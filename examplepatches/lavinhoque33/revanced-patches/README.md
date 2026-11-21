@@ -75,7 +75,7 @@ Local imports do not update automatically; import the new `.mpp` for each update
 | `Custom DPI` | Forces a higher display density for this app only, so the whole UI scales up without changing system density. | 21.39.525 ~ 20.05.46 |
 | `Custom Shorts action buttons` | Changes, at compile time, the icon of the action buttons of the Shorts player. | 21.39.525 ~ 20.05.46 |
 | `Custom branding for YouTube` | Adds in-app app-name, launcher-icon, header, splash, and settings-icon selection. | 21.39.525 ~ 20.05.46 |
-| `Custom double tap length` | Adds Double-tap to seek values that are specified in patch options. | 21.39.525 ~ 20.05.46 |
+| `Custom double tap length` | Adds custom seek lengths to YouTube settings and separate backward and forward choices to RVX settings. | 21.39.525 ~ 20.05.46 |
 | `DeArrow` | Adds options to replace video thumbnails and titles using the DeArrow API, or replace video thumbnails with image captures from the video. | 21.39.525 ~ 20.05.46 |
 | `Description components` | Adds options to hide and disable description components. | 21.39.525 ~ 20.05.46 |
 | `Disable QUIC protocol` | Adds an option to disable CronetEngine's QUIC protocol. | 21.39.525 ~ 20.05.46 |
@@ -94,7 +94,7 @@ Local imports do not update automatically; import the new `.mpp` for each update
 | `Enable gradient loading screen` | Adds an option to enable the gradient loading screen. | 21.39.525 ~ 20.05.46 |
 | `Feed card layout` | Adds an option to show or hide the card layout of feed videos, which YouTube sends as an A/B test. | 21.39.525 ~ 20.05.46 |
 | `Feed video actions` | Adds a Watch later button to video thumbnails in feeds, and opens the video menu by tapping and holding anywhere on a video. | 21.39.525 ~ 20.05.46 |
-| `Feed view count` | Adds an option to show the view count at the bottom left of the thumbnails of feed videos. | 21.39.525 ~ 20.05.46 |
+| `Feed view count` | Adds options to hide view counts or upload dates below feed videos and show view counts on thumbnails. | 21.39.525 ~ 20.05.46 |
 | `Force animations` | Adds an option to always turn on or off the app animations that YouTube can turn off, such as the player transitions. | 21.39.525 ~ 20.05.46 |
 | `Force original audio` | Adds an option to disable audio tracks from being automatically enabled. | 21.39.525 ~ 20.05.46 |
 | `Force system font` | Adds an option to show the app with the device system font instead of YouTube Sans. | 21.39.525 ~ 20.05.46 |
@@ -102,7 +102,7 @@ Local imports do not update automatically; import the new `.mpp` for each update
 | `Fullscreen video scale` | Adds options to stretch or zoom videos to fill the screen in fullscreen mode. | 21.39.525 ~ 20.05.46 |
 | `Gemini` | Adds options to use Gemini for video summaries, transcription, and settings search. | 21.39.525 ~ 20.05.46 |
 | `GmsCore support` | Allows the app to work without root by using a different package name when patched using a GmsCore instead of Google Play Services. | 21.39.525 ~ 20.05.46 |
-| `Hide Shorts dimming` | Adds an in-app setting to hide the dimming effect at the top and bottom of Shorts videos. | 21.39.525 ~ 20.05.46 |
+| `Hide Shorts dimming` | Adds settings to hide the stock Shorts dimming, adjust the overlay opacity, and hide the status bar in Shorts. | 21.39.525 ~ 20.05.46 |
 | `Hide accessibility controls dialog` | Removes, at compile time, accessibility controls dialog 'Turn on accessibility controls for the video player?'. | 21.39.525 ~ 20.05.46 |
 | `Hide action buttons` | Adds options to hide action buttons under videos. | 21.39.525 ~ 20.05.46 |
 | `Hide ads` | Adds options to hide ads. | 21.39.525 ~ 20.05.46 |
@@ -112,7 +112,7 @@ Local imports do not update automatically; import the new `.mpp` for each update
 | `Hide layout components` | Adds options to hide general layout components. | 21.39.525 ~ 20.05.46 |
 | `Hide player buttons` | Adds options to hide buttons in the video player, and to hide or change the opacity of the player control buttons background. | 21.39.525 ~ 20.05.46 |
 | `Hide player flyout menu` | Adds options to hide player flyout menu components. | 21.39.525 ~ 20.05.46 |
-| `Hide shortcuts` | Remove, at compile time, the app shortcuts that appears when the app icon is long pressed. | 21.39.525 ~ 20.05.46 |
+| `Hide shortcuts` | Adds patch options to remove app icon shortcuts or the Shorts button in the Quick Actions widget. | 21.39.525 ~ 20.05.46 |
 | `Hide status bar` | Adds an option to hide the system status bar. Swipe down from the top edge to show it for a moment. | 21.39.525 ~ 20.05.46 |
 | `Hook download actions` | Adds support to download videos with the built-in downloader or an external downloader app, and an offline library for downloaded videos. | 21.39.525 ~ 20.05.46 |
 | `Media notification controls` | Adds options to disable the seekbar, hide the previous/next buttons, or make them seek in the media notification and headphone controls. | 21.39.525 ~ 20.05.46 |
@@ -124,6 +124,7 @@ Local imports do not update automatically; import the new `.mpp` for each update
 | `Overlay buttons` | Adds options to display useful overlay buttons in the video player. | 21.39.525 ~ 20.05.46 |
 | `Override YouTube Music buttons` | Overrides YouTube Music buttons to open RVX Music or any compatible third-party client. | 21.39.525 ~ 20.05.46 |
 | `Patches update notice` | Notifies about newer fork patches and opens Manager to re-patch. Does not download APKs. | 21.39.525 ~ 20.05.46 |
+| `Pause on audio interruptions` | Adds an option to pause YouTube instead of lowering the volume during short audio interruptions. | 21.39.525 ~ 20.05.46 |
 | `Picture-in-picture button` | Adds an option to display a picture-in-picture button in the video player. | 21.39.525 ~ 20.05.46 |
 | `Playback buffer` | Adds an option to change the video playback buffer size. | 21.39.525 ~ 20.05.46 |
 | `Playback in feeds` | Adds the 'Playback in feeds' setting of YouTube to the RVX settings, where it is always available even if YouTube hides it. | 21.39.525 ~ 20.05.46 |
@@ -136,6 +137,7 @@ Local imports do not update automatically; import the new `.mpp` for each update
 | `Remember livestream playback position` | Adds an option to remember the playback position of ongoing livestreams and resume from there when reopening a livestream. | 21.39.525 ~ 20.05.46 |
 | `Remove background playback restrictions` | Removes restrictions on background playback, including for music and kids videos. | 21.39.525 ~ 20.05.46 |
 | `Remove viewer discretion dialog` | Adds an option to remove the dialog that appears when opening a video that has been age-restricted by accepting it automatically. This does not bypass the age restriction. | 21.39.525 ~ 20.05.46 |
+| `Restore Cast Play/Queue` | Adds an option to restore the Play/Queue prompt when selecting another video during an active Cast session. | 21.39.525 ~ 20.05.46 |
 | `Restore original titles` | Adds an option to show the original video titles and descriptions instead of the auto-translated ones. | 21.39.525 ~ 20.05.46 |
 | `Return YouTube Dislike` | Adds an option to show the dislike count of videos using the Return YouTube Dislike API. | 21.39.525 ~ 20.05.46 |
 | `Return YouTube Username` | Adds an option to replace YouTube handles with usernames in comments using YouTube Data API v3. | 21.39.525 ~ 20.05.46 |

@@ -1,0 +1,15 @@
+.gradle/
+.gradle-cache/
+**/build/
+.idea/
+*.iml
+*.apk
+*.apks
+*.xapk
+*.mpp
+/apk-inspection/*
+!/apk-inspection/.gitkeep
+*.log
+__pycache__/
+*.pyc
+.tqr/

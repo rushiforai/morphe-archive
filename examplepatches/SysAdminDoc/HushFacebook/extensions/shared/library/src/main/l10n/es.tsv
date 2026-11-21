@@ -2062,6 +2062,8 @@ Comments will open where Facebook stops them.	Los comentarios se abrirán donde 
 Hide the status bar	Ocultar la barra de estado
 # context: summary of that switch; a swipe down from the top edge shows the bar briefly
 Takes the phone's status bar, with the time and battery, off Facebook's main screen, so the app gets the whole screen. Swipe down from the top edge to see it for a moment.	Quita la barra de estado del teléfono, con la hora y la batería, de la pantalla principal de Facebook, para que la app ocupe toda la pantalla. Desliza hacia abajo desde el borde superior para verla un momento.
+Center the feed on big screens	Centrar el feed en pantallas grandes
+On a tablet or an unfolded phone, the feed and Facebook's other lists stay in a column down the middle of the screen instead of stretching from edge to edge. Reels keep the whole screen.	En una tablet o un móvil plegable abierto, el feed y las demás listas de Facebook se quedan en una columna en el centro de la pantalla en vez de estirarse de borde a borde. Los reels siguen ocupando toda la pantalla.
 # context: switch title under Reels and Watch; on, a video tapped in the news feed opens alone in the full-screen player instead of leading into endless reels
 Open feed videos on their own	Abrir los videos del feed por separado
 # context: summary of that switch; the Reels tab itself still scrolls normally
@@ -3067,3 +3069,25 @@ Video buffer will be set to %1$s.	El búfer de video será %1$s.
 Recently watched in the Menu	Vistos recientemente en el menú
 Adds a Recently watched row at the end of Settings and privacy in Facebook's Menu. It opens the list that Remember what you watch keeps.	Añade una fila Vistos recientemente al final de “Configuración y privacidad” en el menú de Facebook. Abre la lista que guarda Recordar lo que ves.
 Recently watched can't open here.	Vistos recientemente no se puede abrir aquí.
+Header text font	Fuente del texto del encabezado
+Bold	Negrita
+Regular	Normal
+Serif	Con serifa
+Script	Manuscrita
+Monospace	Monoespaciada
+Your font	Tu fuente
+The bold font the words have always had.	La fuente en negrita que el texto siempre ha tenido.
+The phone's font at its regular weight.	La fuente del teléfono con su grosor normal.
+A bold font with serifs, like a newspaper's.	Una fuente en negrita con serifas, como la de un periódico.
+Joined-up handwriting.	Letra manuscrita ligada.
+Every letter the same width, like a typewriter.	Todas las letras con el mismo ancho, como en una máquina de escribir.
+The font file picked under Font file, in bold. Bold until one is picked.	El archivo elegido en Archivo de fuente, en negrita. Negrita hasta que elijas uno.
+Header text font will be set to %1$s.	La fuente del texto del encabezado será %1$s.
+Hide songs under names	Ocultar canciones bajo los nombres
+The line under the poster's name leaves out the song a post plays, with no gap where it was.	La línea bajo el nombre de quien publica omite la canción que suena en la publicación, sin dejar un hueco donde estaba.
+Bold post times	Hora de publicación en negrita
+The time or date under the poster's name is bold, like the name.	La hora o la fecha bajo el nombre de quien publica aparece en negrita, como el nombre.
+Show full names	Mostrar nombres completos
+A long name at the top of a post wraps onto the next line instead of ending in "...". A name that fits still takes one line.	Un nombre largo en la parte superior de una publicación sigue en la línea siguiente en lugar de terminar en "...". Un nombre que cabe sigue ocupando una sola línea.
+Dark box behind feed video names	Recuadro oscuro detrás de los nombres en videos del feed
+When a video in your feed has the poster's name on top of the video, that name sits on the same dark box. A change shows on the posts drawn after it.	Cuando un video de tu feed muestra el nombre de quien publica encima del video, ese nombre aparece sobre el mismo recuadro oscuro. El cambio se ve en las publicaciones que se cargan después.

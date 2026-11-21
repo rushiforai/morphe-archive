@@ -3,8 +3,11 @@ package slick.android
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.resourcePatch
+import app.morphe.patcher.resource.ResourceType
+import app.morphe.patcher.resource.resourceId
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.WideLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import org.w3c.dom.Element
@@ -174,12 +177,38 @@ val modMenu =
             """,
                 )
             }
-            method("Lslack/features/slackbot/dm/SlackbotDmUiKt\$\$ExternalSyntheticLambda2;", "invoke").run {
-                val title = indexed { (it as? WideLiteralInstruction)?.wideLiteral == 0x7f132a59L }.one().index
-                check((code[title + 1].ref as MethodReference).name == "stringResource")
+            val preferencesTitle = resourceId(ResourceType.STRING, "title_activity_preferences")
+
+            // R8 can move this lambda under an unrelated class between builds of the same version.
+            // Match the title resource and its consumer instead of the generated class name.
+            fun isTitleCall(
+                literal: Instruction,
+                call: Instruction,
+            ): Boolean {
+                val reference = call.ref as? MethodReference
+                return (literal as? WideLiteralInstruction)?.wideLiteral == preferencesTitle &&
+                    call.opcode == Opcode.INVOKE_STATIC && reference?.name == "stringResource" &&
+                    reference.parameterTypes == listOf("I", "Landroidx/compose/runtime/Composer;") &&
+                    reference.returnType == "Ljava/lang/String;" &&
+                    (call as FiveRegisterInstruction).registerCount == 2 && call.registerC == literal.reg
+            }
+            findMethod("invoke") { method ->
+                method.implementation
+                    ?.instructions
+                    ?.zipWithNext()
+                    ?.any { (literal, call) -> isTitleCall(literal, call) } == true
+            }.run {
+                val title =
+                    code
+                        .zipWithNext()
+                        .withIndex()
+                        .filter { (_, pair) -> isTitleCall(pair.first, pair.second) }
+                        .one()
+                        .index
+                val call = code[title + 1] as FiveRegisterInstruction
                 addInstructions(
                     title + 1,
-                    "invoke-static {v1, v0}, Lslick/android/NativeSettings;->titleResource(ILjava/lang/Object;)I\nmove-result v1",
+                    "invoke-static {v${call.registerC}, v${call.registerD}}, Lslick/android/NativeSettings;->titleResource(ILjava/lang/Object;)I\nmove-result v${call.registerC}",
                 )
             }
 
@@ -190,7 +219,7 @@ val modMenu =
             method("Lslack/home/header/components/UserAvatarWithStatusPresenter;", "present") {
                 it.returnType == "Lslack/home/header/NavHeaderYouModel;"
             }.run {
-                check(registers == 48)
+                check(registers == 55)
                 val (i, x) = indexed(Opcode.RETURN_OBJECT).one()
                 check(x.reg == 16)
                 val end = code[i - 1]

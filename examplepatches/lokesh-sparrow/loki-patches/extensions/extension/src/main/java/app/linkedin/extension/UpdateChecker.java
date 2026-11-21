@@ -185,6 +185,8 @@ final class UpdateChecker {
         if (pkg.contains("splitwise")) names.add("Splitwise");
         if (pkg.contains("truecaller")) names.add("Truecaller");
         if (pkg.contains("docscanner")) names.add("Doc Scanner");
+        if (pkg.contains("apps.photos")) names.add("Google Photos");
+        if (pkg.contains("mxtech")) names.add("MX Player");
         return names;
     }
 

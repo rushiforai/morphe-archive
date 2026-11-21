@@ -6,6 +6,8 @@ import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
+import app.morphed.extension.twitch.musicfilter.StatusWords;
+
 /** The screen lock's three taps, the song removal pill's words, and where both go among the player's controls. */
 public class PlayerOverlayTest {
     @Test
@@ -27,37 +29,40 @@ public class PlayerOverlayTest {
     }
 
     @Test
-    public void thePillNamesTheStepNotTheSong() {
-        SongPillText removing = SongPillText.of("Removing Shakira & Beyoncé - Beautiful Liar", null);
+    public void thePillShowsTheStepsFewWords() {
+        SongPillText removing = SongPillText.of(StatusWords.REMOVING, 0, null, 0, 5000);
         assertEquals("Removing song", removing.text);
         assertEquals(SongPillText.Tone.REMOVING, removing.tone);
-        assertEquals("Downloading", SongPillText.of("Getting Shakira - Hips", null).text);
-        assertEquals("Lining up", SongPillText.of("Lining up Shakira - Hips", null).text);
-        assertEquals("Finding song", SongPillText.of("Finding Shakira - Hips on YouTube", null).text);
-        assertEquals("Song lost", SongPillText.of("Lost Shakira - Hips, looking for it", null).text);
-        assertEquals("Asking Shazam", SongPillText.of("Asking Shazam what's playing", null).text);
-        assertEquals("Song changed", SongPillText.of("The song changed, asking Shazam what's on", null).text);
-        assertEquals("No music", SongPillText.of("No music found, resting a minute", null).text);
-        assertEquals("Listening", SongPillText.of("Listening for music", null).text);
-        assertEquals("Listening", SongPillText.of(null, null).text);
-        assertEquals("Waiting", SongPillText.of("Waiting for the stream's sound", null).text);
-        assertEquals("Retrying", SongPillText.of("Retrying in about a minute, once Shazam can be asked again", null).text);
-        assertEquals("Retrying", SongPillText.of("Retrying from the start", null).text);
-        for (String step : new String[]{"Removing A - B", "Getting A - B", "Lining up A - B", "Finding A - B on YouTube",
-                "Lost A - B, looking for it", "Checking A - B"}) {
-            SongPillText words = SongPillText.of(step, null);
-            assertFalse(step, words.text.contains("A - B"));
-            assertTrue("short enough for the row of pills: " + words.text, words.text.length() <= 14);
+        assertEquals(-1, removing.nextTick);
+        assertEquals(SongPillText.Tone.WORKING, SongPillText.of(StatusWords.LINING_UP, 0, null, 0, 0).tone);
+        assertEquals("Listening", SongPillText.of(null, 0, null, 0, 0).text);
+        for (String step : new String[]{StatusWords.LISTENING, StatusWords.CHECKING, StatusWords.ASKING,
+                StatusWords.FINDING, StatusWords.DOWNLOADING, StatusWords.DECODING, StatusWords.LINING_UP,
+                StatusWords.LOST_SYNC, StatusWords.RESTING, StatusWords.RETRYING, StatusWords.RESTARTING,
+                StatusWords.WAITING}) {
+            assertTrue("short enough for the row of pills: " + step, SongPillText.of(step, 0, null, 0, 0).text.length() <= 20);
         }
     }
 
     @Test
-    public void aProblemShowsWhatFailed() {
-        SongPillText problem = SongPillText.of("Removing A - B",
-                "Shazam couldn't be asked what's playing: no internet connection");
+    public void thePillCountsDown() {
+        SongPillText resting = SongPillText.of(StatusWords.RESTING, 52_000, null, 0, 0);
+        assertEquals("Resting 52 s", resting.text);
+        assertEquals(1005, resting.nextTick);
+        assertEquals("Resting 1 s", SongPillText.of(StatusWords.RESTING, 52_000, null, 0, 51_500).text);
+        assertEquals("Resting", SongPillText.of(StatusWords.RESTING, 52_000, null, 0, 52_000).text);
+    }
+
+    @Test
+    public void aProblemShowsItsFewWordsNotItsSentence() {
+        SongPillText problem = SongPillText.of(StatusWords.REMOVING, 0,
+                StatusWords.problem("Shazam unreachable", "Shazam couldn't be asked what's playing: no internet"), 0, 0);
         assertEquals(SongPillText.Tone.PROBLEM, problem.tone);
-        assertEquals("Shazam couldn't be asked what's playing", problem.text);
-        assertTrue(SongPillText.problem(new String(new char[100]).replace('\0', 'x')).length() <= 60);
+        assertEquals("Shazam unreachable", problem.text);
+        SongPillText limited = SongPillText.of(StatusWords.LISTENING, 0,
+                StatusWords.problem("Shazam rate limit", "Shazam is getting too many requests"), 40_000, 0);
+        assertEquals("Shazam rate limit 40 s", limited.text);
+        assertTrue(SongPillText.short60(new String(new char[100]).replace('\0', 'x')).length() <= 60);
     }
 
     // The numbers below are Twitch 31.8.0's controls on a 1080x2400 screen.

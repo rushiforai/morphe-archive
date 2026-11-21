@@ -1,3 +1,66 @@
+# [1.12.1](https://github.com/quwi26/Quwis-Patches/compare/v1.12.0...v1.12.1) (2026-11-21)
+
+### Bug Fixes
+
+* **Game Review on your computer:** the benchmark result no longer crashes the app when the settings screen is closed while the computer is still being timed. The same guard covers the network scan's dialog and the results that arrive after the screen has gone
+
+# [1.12.0](https://github.com/quwi26/Quwis-Patches/compare/v1.11.0...v1.12.0) (2026-11-20)
+
+### New Features
+
+* **Discord Rich Presence:** what you are doing on chess.com shows on your Discord profile: a game, a review, a puzzle or just browsing, with a timer. The account is connected once on Discord's own page in the browser, so no password is typed into chess.com and no computer is involved. Discord shows the activity under the bundle's own Discord application name and keeps the status picked in the settings while the phone is connected. It is switched on and off like any other feature in Quwi's Patches
+
+# [1.11.0](https://github.com/quwi26/Quwis-Patches/compare/v1.10.5...v1.11.0) (2026-11-20)
+
+### Breaking Changes
+
+* **Chess.com:** chess.com 4.10.23 and 4.10.18 are no longer supported. The bundle targets 4.10.28 and 4.10.27 only, and Morphe no longer offers the older two
+
+# [1.10.5](https://github.com/quwi26/Quwis-Patches/compare/v1.10.4...v1.10.5) (2026-11-20)
+
+### New Features
+
+* **Chess.com:** chess.com 4.10.28 is a normal supported version now, next to 4.10.27, 4.10.23 and 4.10.18. The experimental app versions switch is no longer needed for it
+
+# [1.10.4](https://github.com/quwi26/Quwis-Patches/compare/v1.10.3...v1.10.4) (2026-11-20)
+
+### Bug Fixes
+
+* **Game Review:** browsing a review no longer starts a Stockfish search on every move. A chess.com or phone review already carries its best moves and its eval bar, so the live search only competed with the screen's animations. Lichess reviews keep it for the moves Lichess did not mark
+
+# [1.10.3](https://github.com/quwi26/Quwis-Patches/compare/v1.10.2...v1.10.3) (2026-11-20)
+
+### Bug Fixes
+
+* **Clone Chess.com:** Morphe recognizes the install it builds as a clone again. The patch declares its package option under the key the manager reads, so the copy gets the Clone tag on the home screen, joins the Clones filter and shows the clone chip in its install info
+
+# [1.10.2](https://github.com/quwi26/Quwis-Patches/compare/v1.10.1...v1.10.2) (2026-11-20)
+
+### Bug Fixes
+
+* **Game Review:** the arrows and eval layers no longer look up the board's getters on every frame. They keep the method handles and the board's square size, so a review's board redraws with less work while its moves are browsed
+* **Game Review:** a layer with nothing to draw is skipped before it measures the board
+
+# [1.10.1](https://github.com/quwi26/Quwis-Patches/compare/v1.10.0...v1.10.1) (2026-11-20)
+
+### Bug Fixes
+
+* **Chess.com 4.10.28:** the More screen's Try Premium banner is hidden again, now that it comes from the Go Premium banner provider
+* **Lichess Puzzles:** Solve Puzzles goes back above the Lichess button on chess.com 4.10.28, whose menu buttons take one more argument
+
+# [1.10.0](https://github.com/quwi26/Quwis-Patches/compare/v1.9.31...v1.10.0) (2026-11-20)
+
+### New Features
+
+* **Chess.com:** chess.com 4.10.28 is supported as an experimental version, next to 4.10.27, 4.10.23 and 4.10.18. Turn on **Experimental app versions** for the source in Morphe to pick it
+* **Chess.com:** Hide Premium-only content and Lichess Puzzles follow 4.10.28's Go Premium package and its rewritten Puzzles hub
+
+# [1.9.31](https://github.com/quwi26/Quwis-Patches/compare/v1.9.30...v1.9.31) (2026-11-20)
+
+### Bug Fixes
+
+* **Quwi's Patches:** Great and Brilliant moves analysis is a separate patch again, selected by default and with its own settings page. The other 1.9.30 changes stay: chess.com's icon colour, separate computer and network pages, and one-line descriptions
+
 # [1.9.30](https://github.com/quwi26/Quwis-Patches/compare/v1.9.29...v1.9.30) (2026-11-20)
 
 ### New Features

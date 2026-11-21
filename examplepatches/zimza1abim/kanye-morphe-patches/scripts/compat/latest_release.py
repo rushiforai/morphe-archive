@@ -59,6 +59,11 @@ def main():
     for release in releases:
         if release.get("draft"):
             continue
+        # Joplin publishes betas as GitHub pre-releases and their version numbers can
+        # sit above the newest stable (3.7.14 beta after 3.7.12 stable), so a target
+        # whose flag is trustworthy opts in. Brave's flag is unreliable, hence opt-in.
+        if target.get("prereleaseIsBeta") and release.get("prerelease"):
+            continue
         name = (release.get("name") or "").strip()
         if not name.startswith(target["releaseNamePrefix"]):
             continue

@@ -1,0 +1,89 @@
+name: Publish
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  packages: read
+
+concurrency:
+  group: publish
+  cancel-in-progress: false
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - id: version
+        shell: bash
+        run: |
+          if [ "${{ github.ref }}" != "refs/heads/main" ]; then
+            echo "publish only runs from main"
+            exit 1
+          fi
+          tag_sequence=$(git tag -l 'v*' | sed 's/^v//' | awk -F. '{print $NF}' | sort -n | tail -1)
+          version="$(date -u +%y.%m.%d).$(( ${tag_sequence:-0} + 1 ))"
+          if git rev-parse "v${version}" > /dev/null 2>&1; then
+            echo "tag v${version} already exists"
+            exit 1
+          fi
+          echo "version=${version}" >> "$GITHUB_OUTPUT"
+
+  build:
+    needs: prepare
+    uses: ./.github/workflows/build-mpp.yml
+    with:
+      version: ${{ needs.prepare.outputs.version }}
+      flavor: release
+      sign: true
+      upload: true
+    secrets:
+      MORPHE_SIGNING_KEY: ${{ secrets.MORPHE_SIGNING_KEY }}
+
+  release:
+    needs: [prepare, build]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/download-artifact@v4
+        with:
+          name: f4t-${{ needs.prepare.outputs.version }}-release
+          path: dist
+      - name: Generate release notes
+        run: |
+          version="${{ needs.prepare.outputs.version }}"
+          python3 scripts/generate_changelog.py \
+            --version "${version}" --output "${RUNNER_TEMP}/notes.md"
+          python3 scripts/generate_changelog.py \
+            --version "${version}" --append CHANGELOG.md
+      - name: Create release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          version="${{ needs.prepare.outputs.version }}"
+          mpp="$(ls dist/*.mpp)"
+          gh release create "v${version}" "${mpp}" \
+            --title "v${version}" --notes-file "${RUNNER_TEMP}/notes.md"
+      - name: Update manifest
+        run: |
+          version="${{ needs.prepare.outputs.version }}"
+          python3 scripts/update_manifest.py patches-bundle.json "${version}" \
+            "https://github.com/${{ github.repository }}/releases/download/v${version}/patches-${version}.mpp" \
+            morphe-signing.pub \
+            --description-file "${RUNNER_TEMP}/notes.md"
+      - name: Commit manifest and changelog
+        run: |
+          version="${{ needs.prepare.outputs.version }}"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add patches-bundle.json CHANGELOG.md
+          git commit -m "chore: release v${version} [skip ci]"
+          git push

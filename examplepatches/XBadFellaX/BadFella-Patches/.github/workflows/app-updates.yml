@@ -1,0 +1,28 @@
+name: Watch upstream app versions
+on:
+  schedule:
+    - cron: '23 14 * * *' # Daily schedule (UTC); GitHub may delay scheduled runs.
+  workflow_dispatch:
+permissions:
+  contents: read
+  issues: write
+concurrency:
+  group: app-update-notifications
+  cancel-in-progress: false
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Check monitor behavior
+        run: python -m unittest discover -s tools -p 'test_app_updates.py'
+      - name: Check upstreams and notify only on changes
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          APP_UPDATE_ISSUE: ${{ vars.APP_UPDATE_ISSUE }}
+        run: python tools/app_updates.py --catalog patches-list.json --reviewed-versions tools/app-update-versions.json

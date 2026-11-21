@@ -11,7 +11,9 @@ import android.widget.BaseAdapter;
 import java.lang.ref.WeakReference;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.TimeZone;
 
 /** Exact normal-home hooks; the recent-thread popup does not enter these hooks. */
@@ -20,14 +22,20 @@ public final class BrowsingHistory {
     private static final String PREFS = "io.github.areteruhiro.chmate.haiagaru.ui-config";
     private static final List<Display> displays=new ArrayList<>();
     private static final List<Legacy> legacyFragments=new ArrayList<>();
+    private static final LinkedHashMap<String,DeletedHistory> deletedHistory=new LinkedHashMap<>();
+    private static final LinkedHashMap<String,DeletedHistory> archivedThreads=new LinkedHashMap<>();
     private static final ThreadLocal<HistoryDelete> HISTORY_DELETE=new ThreadLocal<>();
     private static final class HistoryDelete {
-        final Object fragment;final int mode;final long id;final String board;
-        HistoryDelete(Object f,int m,long i,String b){fragment=f;mode=m;id=i;board=b;}
+        final Object fragment;final int mode;final long id,visited;final String board;
+        HistoryDelete(Object f,int m,long i,String b,long v){fragment=f;mode=m;id=i;board=b;visited=v;}
     }
     private static final class Display {
-        final WeakReference<List<Object>> output;final List<?> source;final int mode;
+        final WeakReference<List<Object>> output;List<?> source;final int mode;
         Display(List<Object> o,List<?> s,int m){output=new WeakReference<>(o);source=s;mode=m;}
+    }
+    private static final class DeletedHistory {
+        final long visited,expiresAt;
+        DeletedHistory(long v,long expiry){visited=v;expiresAt=expiry;}
     }
     private static final class Legacy {
         final WeakReference<Object> fragment;final int mode;
@@ -47,33 +55,106 @@ public final class BrowsingHistory {
         }
         return HomeThreadOrder.mode(fragment);
     }
+    /** Remove a fully deleted thread from open HOME history lists immediately. */
+    public static void nativeThreadDeleted(Object nativeBoard,long threadId){
+        if(context==null||nativeBoard==null||threadId<=0)return;
+        final String board=nativeBoard.toString();
+        if(board.isEmpty())return;
+        boolean archived=ArchiveOrigins.consumeHomeArchive(board,threadId);
+        long visited=historyVisited(board,threadId);
+        // When HOME is not open, a newly loaded stale row still needs a cutoff.
+        // A later reopen receives a newer native visit timestamp and is allowed back.
+        if(visited<=0)visited=System.currentTimeMillis();
+        try{HiddenDroppedThreads.removeRememberedHistoryThread(board,threadId);}
+        catch(RuntimeException error){Log.w("Haiagaru","Deleted history source update unavailable",error);}
+        try{removeDeletedHistoryThread(board,threadId,visited);}
+        catch(RuntimeException error){Log.w("Haiagaru","Deleted history display update unavailable",error);}
+        Runnable update=()->{
+            if(archived)markArchived(board,threadId);
+            Activity activity=homeActivity();
+            if(activity!=null)refreshVisible(activity);
+            else{
+                List<Legacy> tracked;synchronized(legacyFragments){tracked=new ArrayList<>(legacyFragments);}
+                for(Legacy entry:tracked){Object fragment=entry.fragment.get();if(fragment!=null&&(archived||HiddenDroppedThreads.historyMode(entry.mode)))applyLegacy(fragment,entry.mode);}
+            }
+        };
+        if(android.os.Looper.myLooper()==android.os.Looper.getMainLooper())update.run();
+        else new android.os.Handler(android.os.Looper.getMainLooper()).post(update);
+    }
+    private static long historyVisited(String board,long threadId){
+        String key=board+"\n"+threadId;long result=0;
+        synchronized(displays){
+            for(Display display:displays){
+                if(!HiddenDroppedThreads.historyMode(display.mode))continue;
+                result=Math.max(result,historyVisited(display.source,key));
+                List<?> output=display.output.get();if(output!=null)result=Math.max(result,historyVisited(output,key));
+            }
+        }
+        return result;
+    }
+    private static long historyVisited(List<?> rows,String key){
+        if(rows==null)return 0;long result=0;
+        for(Object row:rows)if(key.equals(HomeThreadOrder.key(row)))result=Math.max(result,historyVisited(row));
+        return result;
+    }
+    private static Activity homeActivity(){
+        try{
+            Class<?> type=Class.forName("android.app.ActivityThread");
+            java.lang.reflect.Method current=type.getDeclaredMethod("currentActivityThread");current.setAccessible(true);
+            Object thread=current.invoke(null);Field activities=type.getDeclaredField("mActivities");activities.setAccessible(true);
+            Object value=activities.get(thread);if(!(value instanceof Map))return null;
+            for(Object record:((Map<?,?>)value).values())try{
+                Field field=record.getClass().getDeclaredField("activity");field.setAccessible(true);
+                Object candidate=field.get(record);
+                if(candidate instanceof Activity){Activity activity=(Activity)candidate;
+                    if(activity.getClass().getName().equals("jp.syoboi.a2chMate.activity.HomeActivity")
+                            &&!activity.isFinishing()&&!activity.isDestroyed())return activity;
+                }
+            }catch(Exception ignored){}
+        }catch(Exception error){Log.w("Haiagaru","HOME activity lookup after thread deletion failed",error);}
+        return null;
+    }
     /** Capture the HOME history row before ChMate runs its native swipe removal. */
     public static void nativeHistoryDeleteStart(Object fragment,int position,long threadId){
         HISTORY_DELETE.remove();
         if(fragment==null||threadId<=0||!fragment.getClass().getName().equals("o.r8lambdaTb_p0z6z2AqSZIga1YhmAVmiTPk"))return;
-        int mode=trackedLegacyMode(fragment);int selected=Math.abs(mode);
-        if(selected!=100&&selected!=103)return;
-        String board=null;
+        int mode=trackedLegacyMode(fragment);
+        if(!HiddenDroppedThreads.historyMode(mode))return;
+        String board=null;long visited=0;
         try{
             Object adapter=field(fragment,"e").get(fragment);Object value=field(adapter,"j").get(adapter);
             if(value instanceof List&&position>=0&&position<((List<?>)value).size()){
                 Object row=((List<?>)value).get(position);
                 if(row!=null&&row.getClass().getName().equals("o.onAdDisplayed$setIcon")){
                     Object id=field(row,"h").get(row);
-                    if(id instanceof Number&&((Number)id).longValue()==threadId){Object b=field(row,"g").get(row);if(b!=null)board=b.toString();}
+                    if(id instanceof Number&&((Number)id).longValue()==threadId){Object b=field(row,"g").get(row);if(b!=null)board=b.toString();visited=field(row,"c").getLong(row);}
                 }
             }
         }catch(Exception error){Log.w("Haiagaru","HOME history swipe target unavailable",error);}
-        HISTORY_DELETE.set(new HistoryDelete(fragment,mode,threadId,board));
+        if(board==null)board=HiddenDroppedThreads.uniqueHistoryBoard(fragment,threadId);
+        HISTORY_DELETE.set(new HistoryDelete(fragment,mode,threadId,board,visited));
     }
     /** Keep the source copy used by refresh hooks in sync after native swipe succeeds. */
     public static void nativeHistoryDeleteResult(Object fragment,int position,long threadId,boolean removed){
         HistoryDelete pending=HISTORY_DELETE.get();HISTORY_DELETE.remove();
-        if(!removed||pending==null||pending.fragment!=fragment||pending.id!=threadId)return;
+        if(!removed||fragment==null||threadId<=0)return;
+        boolean matched=pending!=null&&pending.fragment==fragment&&pending.id==threadId;
+        int mode=matched?pending.mode:trackedLegacyMode(fragment);
+        if(!HiddenDroppedThreads.historyMode(mode))return;
+        String board=matched?pending.board:null;
+        long visited=matched?pending.visited:0;
+        if(board==null)board=HiddenDroppedThreads.uniqueHistoryBoard(fragment,threadId);
+        if(board==null){Log.w("Haiagaru","HOME deleted history board could not be resolved; leaving other boards unchanged",null);return;}
         try{
-            HiddenDroppedThreads.removeRememberedHistoryThread(pending.board,threadId);
-            applyLegacy(fragment,pending.mode);
+            HiddenDroppedThreads.removeRememberedHistoryThread(board,threadId);
+        }catch(Exception error){Log.w("Haiagaru","HOME history source refresh unavailable",error);}
+        try{
+            HiddenDroppedThreads.removeLiveHistoryThread(fragment,board,threadId);
         }catch(Exception error){Log.w("Haiagaru","HOME history swipe refresh unavailable",error);}
+        try{removeDeletedHistoryThread(board,threadId,visited);}
+        catch(Exception error){Log.w("Haiagaru","HOME history display-copy refresh unavailable",error);}
+        try{applyLegacy(fragment,mode);}
+        catch(Exception error){Log.w("Haiagaru","HOME history adapter notification unavailable",error);}
     }
     public static List<?> transform(List<?> input, int mode) {
         mode=HomeThreadOrder.logicalMode(mode);
@@ -89,7 +170,8 @@ public final class BrowsingHistory {
         return copy;
     }
     private static List<?> transformValues(List<?> input,int mode){
-        input=GlobalSearchHome.rows(input);
+        input=withoutArchivedThreads(GlobalSearchHome.rows(input),mode);
+        if(HiddenDroppedThreads.historyMode(mode))input=withoutRecentlyDeleted(input);
         input=HiddenDroppedThreads.filter(input,mode);
         // Native HOME IDs: 101 = unread, 103 = browsing history, 104 = posted.
         // Never override unread sorting (including its native board-sort option).
@@ -119,6 +201,87 @@ public final class BrowsingHistory {
             return input;
         }
     }
+    /** Keep a successful native deletion out of cached display/source copies until it is re-read. */
+    static void removeDeletedHistoryThread(String board,long threadId,long visited){
+        if(board==null||threadId<=0)return;
+        String key=board+"\n"+threadId;long now=System.currentTimeMillis();
+        synchronized(deletedHistory){
+            deletedHistory.put(key,new DeletedHistory(Math.max(0,visited),now+7L*24*60*60*1000));
+            while(deletedHistory.size()>512)deletedHistory.remove(deletedHistory.keySet().iterator().next());
+        }
+        synchronized(displays){
+            displays.removeIf(display->display.output.get()==null);
+            for(Display display:displays){
+                if(!HiddenDroppedThreads.historyMode(display.mode))continue;
+                ArrayList<Object> source=new ArrayList<>(display.source);
+                HiddenDroppedThreads.removeHistoryRows(source,board,threadId);
+                HiddenDroppedThreads.removeEmptyTimeHeadings(source);
+                display.source=source;
+                List<Object> output=display.output.get();if(output==null)continue;
+                HiddenDroppedThreads.removeHistoryRows(output,board,threadId);
+                HiddenDroppedThreads.removeEmptyTimeHeadings(output);
+            }
+        }
+    }
+    static void markArchived(String board,long threadId){
+        long now=System.currentTimeMillis();
+        synchronized(archivedThreads){
+            archivedThreads.put(board+"\n"+threadId,new DeletedHistory(now,now+10*60_000L));
+            while(archivedThreads.size()>512)archivedThreads.remove(archivedThreads.keySet().iterator().next());
+        }
+    }
+    static List<?> withoutArchivedThreads(List<?> rows,int mode){
+        int screen=Math.abs(mode);
+        if(rows==null||(screen!=100&&screen!=101&&screen!=102&&screen!=103&&screen!=108&&screen!=109))return rows;
+        synchronized(archivedThreads){
+            if(archivedThreads.isEmpty())return rows;
+            long now=System.currentTimeMillis();
+            archivedThreads.entrySet().removeIf(e->now>=e.getValue().expiresAt);
+            if(archivedThreads.isEmpty())return rows;
+            List<Object> kept=null;
+            for(int i=0;i<rows.size();i++){
+                Object row=rows.get(i);
+                DeletedHistory archive=archivedThreads.get(HomeThreadOrder.key(row));
+                if(archive!=null&&historyVisited(row)<=archive.visited){
+                    if(kept==null)kept=new ArrayList<>(rows.subList(0,i));
+                }else if(kept!=null)kept.add(row);
+            }
+            return kept==null?rows:kept;
+        }
+    }
+    private static List<?> withoutRecentlyDeleted(List<?> rows){
+        if(rows==null)return null;
+        long now=System.currentTimeMillis();
+        synchronized(deletedHistory){
+            java.util.Iterator<Map.Entry<String,DeletedHistory>> iterator=deletedHistory.entrySet().iterator();
+            while(iterator.hasNext())if(now>=iterator.next().getValue().expiresAt)iterator.remove();
+            if(deletedHistory.isEmpty())return rows;
+            java.util.HashSet<String> reopened=new java.util.HashSet<>();
+            for(Object row:rows){
+                String key=HomeThreadOrder.key(row);DeletedHistory deleted=key==null?null:deletedHistory.get(key);
+                if(deleted!=null&&historyVisited(row)>deleted.visited)reopened.add(key);
+            }
+            for(String key:reopened)deletedHistory.remove(key);
+            if(deletedHistory.isEmpty())return rows;
+            ArrayList<Object> kept=null;
+            for(int index=0;index<rows.size();index++){
+                Object row=rows.get(index);String key=HomeThreadOrder.key(row);
+                if(key!=null&&deletedHistory.containsKey(key)){
+                    if(kept==null){kept=new ArrayList<>(rows.size());for(int i=0;i<index;i++)kept.add(rows.get(i));}
+                }else if(kept!=null)kept.add(row);
+            }
+            return kept==null?rows:kept;
+        }
+    }
+    private static long historyVisited(Object row){
+        if(row==null)return 0;
+        try{
+            String name=row.getClass().getName();
+            String field=name.equals("o.onAdDisplayed$setIcon")?"c":name.equals("o.Yy2$open")?"e"
+                    :name.equals("o.getAvailabilityStatus$r8lambdawJ5MHcSJed_CjC7r4OWD0UxyJsQ")?"d":null;
+            return field==null?0:field(row,field).getLong(row);
+        }catch(Exception ignored){return 0;}
+    }
     /** Run only after the exact legacy home-sort method has completed. */
     public static void applyLegacy(Object fragment, int mode) {
         if (fragment == null) return;
@@ -129,8 +292,9 @@ public final class BrowsingHistory {
             boolean legacy191 = fragment.getClass().getName().equals("o.r8lambdaTb_p0z6z2AqSZIga1YhmAVmiTPk");
             Object adapter = field(fragment, legacy191 ? "e" : "i").get(fragment);
             if (!(adapter instanceof BaseAdapter)) return;
-            filterLegacyAdapter(adapter, mode, true);
-            ((BaseAdapter) adapter).notifyDataSetChanged();
+            try{filterLegacyAdapter(adapter, mode, true);}
+            catch(Exception error){Log.w("Haiagaru","Normal history rows could not be rebuilt after refresh",error);}
+            finally{((BaseAdapter) adapter).notifyDataSetChanged();}
         } catch (Exception error) {
             Log.w("Haiagaru", "Normal history adapter left unchanged", error);
         }
@@ -163,10 +327,10 @@ public final class BrowsingHistory {
                         : HiddenDroppedThreads.active(mode) && HiddenDroppedThreads.target(mode)
                                 ? HiddenDroppedThreads.filter((List<?>)original, mode) : source;
                 // transformValues already runs both passes for the full sort.
-                if(!group){ordered=GlobalSearchHome.rows(ordered);ordered=HomeThreadOrder.apply(ordered,mode);}
+                if(!group){ordered=withoutArchivedThreads(GlobalSearchHome.rows(ordered),mode);ordered=HomeThreadOrder.apply(ordered,mode);}
                 if(ordered==original){replacements[i]=original;processed.put(original,original);continue;}
                 replacements[i] = original.getClass().getConstructor(List.class).newInstance(ordered);
-                HiddenDroppedThreads.remember(replacements[i],source);
+                HiddenDroppedThreads.remember(replacements[i],source,mode);
                 processed.put(original,replacements[i]);
             }
             for (int i = 0; i < fields.length; i++) field(adapter, fields[i]).set(adapter, replacements[i]);

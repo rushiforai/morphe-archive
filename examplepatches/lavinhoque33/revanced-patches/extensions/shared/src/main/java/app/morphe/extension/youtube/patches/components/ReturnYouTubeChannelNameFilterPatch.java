@@ -4,14 +4,14 @@ import java.net.URLDecoder;
 
 import app.morphe.extension.shared.patches.components.ByteArrayFilterGroup;
 import app.morphe.extension.shared.patches.components.ByteArrayFilterGroupList;
-import app.morphe.extension.shared.patches.components.Filter;
+import app.morphe.extension.shared.patches.components.LazyBufferFilter;
 import app.morphe.extension.shared.patches.components.StringFilterGroup;
 import app.morphe.extension.shared.utils.Logger;
 import app.morphe.extension.youtube.patches.utils.ReturnYouTubeChannelNamePatch;
 import app.morphe.extension.youtube.settings.Settings;
 
 @SuppressWarnings({"unused", "CharsetObjectCanBeUsed"})
-public final class ReturnYouTubeChannelNameFilterPatch extends Filter {
+public final class ReturnYouTubeChannelNameFilterPatch extends LazyBufferFilter {
     private static final String DELIMITING_CHARACTER = "❙";
     private static final String CHANNEL_ID_IDENTIFIER_CHARACTER = "UC";
     private static final String CHANNEL_ID_IDENTIFIER_WITH_DELIMITING_CHARACTER =
@@ -32,10 +32,10 @@ public final class ReturnYouTubeChannelNameFilterPatch extends Filter {
     }
 
     @Override
-    public boolean isFiltered(String path, String identifier, String allValue, byte[] buffer,
+    public boolean isFilteredLazy(String path, String identifier, String allValue, Buffer buffer,
                               StringFilterGroup matchedGroup, FilterContentType contentType, int contentIndex) {
-        if (shortsChannelBarAvatarFilterGroup.check(buffer).isFiltered()) {
-            setLastShortsChannelId(buffer);
+        if (shortsChannelBarAvatarFilterGroup.check(buffer.get()).isFiltered()) {
+            setLastShortsChannelId(buffer.get());
         }
 
         return false;

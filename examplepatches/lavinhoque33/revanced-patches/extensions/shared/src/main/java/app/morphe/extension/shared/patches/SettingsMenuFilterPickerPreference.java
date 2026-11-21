@@ -3,6 +3,7 @@
  * https://github.com/MorpheApp/morphe-patches/pull/2029
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
+ * Modified by lavinhoque33, 2026-11-20.
  */
 
 package app.morphe.extension.shared.patches;
@@ -33,12 +34,13 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Set;
+import java.util.Map;
+import java.util.function.Predicate;
 
+import app.morphe.extension.shared.patches.BaseSettingsMenuFilter.DiscoveredNode;
 import app.morphe.extension.shared.settings.preference.AbstractPreferenceFragment;
 import app.morphe.extension.shared.ui.CustomDialog;
 import app.morphe.extension.shared.utils.BaseThemeUtils;
@@ -87,7 +89,7 @@ public class SettingsMenuFilterPickerPreference extends Preference {
         LinearLayout content = new LinearLayout(context);
         content.setOrientation(LinearLayout.VERTICAL);
 
-        Set<String> selectedLower = new HashSet<>(BaseSettingsMenuFilter.activeFilterEntries());
+        Predicate<DiscoveredNode> selected = BaseSettingsMenuFilter.selectionSnapshot();
         HierarchyAdapter[] adapterRef = {null};
         boolean[] changesMade = {false};
 
@@ -104,18 +106,15 @@ public class SettingsMenuFilterPickerPreference extends Preference {
             ListView listView = new ListView(context);
             listView.setId(android.R.id.list);
 
-            HierarchyAdapter adapter = new HierarchyAdapter(context, rows, selectedLower);
+            HierarchyAdapter adapter = new HierarchyAdapter(context, rows, selected);
             adapterRef[0] = adapter;
             listView.setAdapter(adapter);
 
             listView.setOnItemClickListener((parent, view, position, id) -> {
                 Row row = adapter.getItem(position);
-                if (row == null || isLockedByParent(row, selectedLower)) return;
-                boolean nowSelected = BaseSettingsMenuFilter.toggleInFilter(row.title());
-                String key = row.title().toLowerCase();
-                if (nowSelected) selectedLower.add(key);
-                else selectedLower.remove(key);
-                adapter.notifyDataSetChanged();
+                if (row == null || adapter.isLockedByParent(row)) return;
+                BaseSettingsMenuFilter.toggleDiscoveredRow(row.node());
+                adapter.refreshSelection();
                 changesMade[0] = true;
             });
 
@@ -138,10 +137,9 @@ public class SettingsMenuFilterPickerPreference extends Preference {
                 null,
                 str("revanced_settings_reset"),
                 () -> {
-                    if (!selectedLower.isEmpty()) changesMade[0] = true;
+                    if (BaseSettingsMenuFilter.hasSelections()) changesMade[0] = true;
                     BaseSettingsMenuFilter.clearFilter();
-                    selectedLower.clear();
-                    if (adapterRef[0] != null) adapterRef[0].notifyDataSetChanged();
+                    if (adapterRef[0] != null) adapterRef[0].refreshSelection();
                 },
                 false
         );
@@ -156,48 +154,46 @@ public class SettingsMenuFilterPickerPreference extends Preference {
         dialogPair.first.show();
     }
 
-    private static List<Row> buildRows(List<BaseSettingsMenuFilter.DiscoveredNode> tree) {
-        LinkedHashSet<String> rootOrder = new LinkedHashSet<>();
-        LinkedHashMap<String, LinkedHashSet<String>> childrenByParent = new LinkedHashMap<>();
+    private static List<Row> buildRows(List<DiscoveredNode> tree) {
+        Map<String, DiscoveredNode> roots = new LinkedHashMap<>();
+        Map<String, Map<String, DiscoveredNode>> childrenByParent = new HashMap<>();
+        Map<String, Integer> labelCounts = new HashMap<>();
 
-        for (BaseSettingsMenuFilter.DiscoveredNode node : tree) {
-            if (node.parent() == null) {
-                rootOrder.add(node.title());
+        for (DiscoveredNode node : tree) {
+            String parent = node.parentIdentity();
+            if (parent == null) {
+                roots.putIfAbsent(node.identity(), node);
             } else {
-                childrenByParent
-                        .computeIfAbsent(node.parent(), k -> new LinkedHashSet<>())
-                        .add(node.title());
+                childrenByParent.computeIfAbsent(parent, key -> new LinkedHashMap<>())
+                        .putIfAbsent(node.identity(), node);
             }
+            labelCounts.merge(node.title(), 1, Integer::sum);
         }
 
         List<Row> rows = new ArrayList<>();
-        for (String root : rootOrder) {
-            LinkedHashSet<String> children = childrenByParent.get(root);
-            if (children != null && !children.isEmpty()) {
-                rows.add(new Row(RowType.CATEGORY, root, null));
-                for (String child : children) {
-                    rows.add(new Row(RowType.CHILD, child, root));
+        for (DiscoveredNode root : roots.values()) {
+            Map<String, DiscoveredNode> children = childrenByParent.get(root.identity());
+            RowType type = children == null ? RowType.LEAF : RowType.CATEGORY;
+            rows.add(new Row(type, root, null, displayTitle(root, labelCounts)));
+
+            if (children != null) {
+                for (DiscoveredNode child : children.values()) {
+                    rows.add(new Row(RowType.CHILD, child, root, displayTitle(child, labelCounts)));
                 }
-            } else {
-                rows.add(new Row(RowType.LEAF, root, null));
             }
         }
         return rows;
     }
 
-    /**
-     * Locked children inherit selection from their parent category and cannot be toggled
-     * independently while the category is selected.
-     */
-    private static boolean isLockedByParent(Row row, Set<String> selectedLower) {
-        return row.type() == RowType.CHILD
-                && row.parentTitle() != null
-                && selectedLower.contains(row.parentTitle().toLowerCase());
+    private static String displayTitle(DiscoveredNode node, Map<String, Integer> labelCounts) {
+        return node.key() != null && labelCounts.get(node.title()) > 1
+                ? node.title() + " (" + node.key() + ")"
+                : node.title();
     }
 
     private enum RowType { CATEGORY, LEAF, CHILD }
 
-    private record Row(RowType type, String title, @Nullable String parentTitle) {}
+    private record Row(RowType type, DiscoveredNode node, @Nullable DiscoveredNode parent, String title) {}
 
     private static final class HierarchyAdapter extends BaseAdapter {
         private static final int CHILD_INDENT_DP = 24;
@@ -205,14 +201,14 @@ public class SettingsMenuFilterPickerPreference extends Preference {
 
         private final Context context;
         private final List<Row> rows;
-        private final Set<String> selectedLower;
+        private Predicate<DiscoveredNode> selected;
         private final int childIndentPx;
         private final int foregroundColor;
 
-        HierarchyAdapter(Context context, List<Row> rows, Set<String> selectedLower) {
+        HierarchyAdapter(Context context, List<Row> rows, Predicate<DiscoveredNode> selected) {
             this.context = context;
             this.rows = rows;
-            this.selectedLower = selectedLower;
+            this.selected = selected;
             this.childIndentPx = (int) (CHILD_INDENT_DP * context.getResources().getDisplayMetrics().density);
             this.foregroundColor = BaseThemeUtils.getAppForegroundColor();
         }
@@ -223,7 +219,16 @@ public class SettingsMenuFilterPickerPreference extends Preference {
 
         @Override
         public boolean isEnabled(int position) {
-            return !isLockedByParent(rows.get(position), selectedLower);
+            return !isLockedByParent(rows.get(position));
+        }
+
+        boolean isLockedByParent(Row row) {
+            return row.parent() != null && selected.test(row.parent());
+        }
+
+        void refreshSelection() {
+            selected = BaseSettingsMenuFilter.selectionSnapshot();
+            notifyDataSetChanged();
         }
 
         @NonNull
@@ -254,8 +259,8 @@ public class SettingsMenuFilterPickerPreference extends Preference {
                     holder.itemText.getPaddingRight(),
                     holder.itemText.getPaddingBottom());
 
-            boolean parentSelected = isLockedByParent(row, selectedLower);
-            boolean visualChecked = parentSelected || selectedLower.contains(row.title().toLowerCase());
+            boolean parentSelected = isLockedByParent(row);
+            boolean visualChecked = parentSelected || selected.test(row.node());
 
             holder.checkIcon.setVisibility(visualChecked ? View.VISIBLE : View.GONE);
             holder.checkIcon.setColorFilter(foregroundColor);

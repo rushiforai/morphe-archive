@@ -1,3 +1,6 @@
+## DEPRECATED, USE https://github.com/inxomnyaa/HushFeed INSTEAD
+I didn't realize that morphe-patches.software and TikTok patches exist already, my research failed me
+
 # TikTok Tweaks
 
 Patches for TikTok (`com.zhiliaoapp.musically`) **47.7.1**, built for the [Morphe](https://morphe.software) patcher. They remove ads, Shop and Tako AI, and add a few quality-of-life options, all controlled from a settings page inside the app.

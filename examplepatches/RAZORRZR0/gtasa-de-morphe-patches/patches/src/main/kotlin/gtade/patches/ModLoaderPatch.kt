@@ -8,6 +8,7 @@ import app.morphe.patcher.patch.AppTarget
 import app.morphe.patcher.patch.Compatibility
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.ResourcePatchContext
+import app.morphe.patcher.patch.resourcePatch
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.rawResourcePatch
@@ -55,12 +56,26 @@ internal val amlLibraryPatch = rawResourcePatch {
 }
 
 /**
+ * The Play Store build sets extractNativeLibs="false" (libraries loaded straight from the APK, so they must be stored
+ * uncompressed), but the patcher writes the added libAML.so compressed and the install fails with "Failed to extract
+ * native libraries". Extracting them on install, as the single-APK build does by default, accepts it.
+ */
+internal val extractNativeLibsPatch = resourcePatch {
+    execute {
+        document("AndroidManifest.xml").use { doc ->
+            val app = doc.getElementsByTagName("application").item(0) as org.w3c.dom.Element
+            if (app.getAttribute("android:extractNativeLibs") == "false") app.setAttribute("android:extractNativeLibs", "true")
+        }
+    }
+}
+
+/**
  * Not listed on its own: every mod patch depends on it. GameActivity's static init loads UE4; right after that
  * gtade.boot.Boot.start() copies the bundled mods to Android/data/<game> and loads AML (Android Mod Loader).
  */
 internal val modLoaderPatch = bytecodePatch {
     compatibleWith(GTASA_DE)
-    dependsOn(amlLibraryPatch)
+    dependsOn(amlLibraryPatch, extractNativeLibsPatch)
     extendWith("extensions/extension.mpe")
 
     execute {

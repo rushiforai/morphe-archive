@@ -5,7 +5,7 @@
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
  *
- * Modified by lavinhoque33, 2026-11-17.
+ * Modified by lavinhoque33, 2026-11-20.
  */
 
 package app.morphe.patches.youtube.player.seekbar
@@ -115,6 +115,12 @@ val seekbarComponentsPatch = bytecodePatch(
             "PREFERENCE_SCREEN: PLAYER",
             "SETTINGS: SEEKBAR_COMPONENTS"
         )
+
+        if (installPreciseSeekGestureSwitch()) {
+            settingArray += "SETTINGS: DISABLE_PRECISE_SEEKING_GESTURE"
+        } else {
+            printWarn("\"Disable swipe-up precise seeking\" is not supported: native gesture or guide hook not found.")
+        }
 
         // region patch for enable seekbar tapping patch
 
@@ -797,42 +803,67 @@ val seekbarComponentsPatch = bytecodePatch(
 
         val updatePointMethodRef = SeekbarUpdatePointFingerprint.instructionMatches[1]
             .getInstruction<ReferenceInstruction>().getReference<MethodReference>()!!
+        val previewPatch = "Lapp/morphe/extension/youtube/patches/SeekbarThumbnailPreviewPatch;"
+        val preparePreview = "$previewPatch->prepareThumbnailPreview" +
+                "(Landroid/view/View;Landroid/view/MotionEvent;)Landroid/graphics/Point;"
+        val updatePreview = "$previewPatch->updateThumbnailPreview(Landroid/view/View;Landroid/graphics/Point;)V"
 
-        // Keep both native seek paths on the same callback so they share thumbnail state.
-        SeekbarHandlerOnTouchFingerprint.method.addInstructions(
-            0,
-            """
-                new-instance v0, Landroid/graphics/Point;
-                invoke-direct { v0 }, Landroid/graphics/Point;-><init>()V
-                invoke-interface { p0, v0 }, $updatePointMethodRef
-                invoke-static { p0, p1, v0 }, Lapp/morphe/extension/youtube/patches/SeekbarThumbnailPreviewPatch;->updateThumbnailPreview(Landroid/view/View;Landroid/view/MotionEvent;Landroid/graphics/Point;)V
-            """
-        )
-
-        // To show the thumbnail during the use of slide to seek feature.
-        SlideSeekbarHandlerOnTouchFingerprint.method.apply {
-            fun getSeekbarReference(index: Int) = SlideSeekbarGetViewControllerFingerprint
-                .instructionMatches[index].getInstruction<ReferenceInstruction>().getReference<FieldReference>()!!
-
-            addInstructions(
+        val seekbarTouchMethod = SeekbarHandlerOnTouchFingerprint.method
+        val pointWriter = mutableClassDefBy(seekbarTouchMethod.definingClass).methods.singleOrNull {
+            it.name == updatePointMethodRef.name &&
+                    it.parameterTypes == updatePointMethodRef.parameterTypes &&
+                    it.returnType == updatePointMethodRef.returnType &&
+                    it.implementation != null
+        }
+        if (pointWriter == null) {
+            printWarn("Seekbar thumbnails: no concrete seekbar point writer; keeping native previews.")
+        } else {
+            pointWriter.addInstruction(
                 0,
-                """
-                    iget-object v0, p0, ${getSeekbarReference(0)}
-                    iget-object v0, v0, ${getSeekbarReference(1)}
-                    iget-object v0, v0, ${getSeekbarReference(3)}
-                    new-instance v1, Landroid/graphics/Point;
-                    invoke-direct { v1 }, Landroid/graphics/Point;-><init>()V
-                    invoke-interface { v0, v1 }, $updatePointMethodRef
-                    invoke-static { p1, p2, v1 }, Lapp/morphe/extension/youtube/patches/SeekbarThumbnailPreviewPatch;->updateThumbnailPreview(Landroid/view/View;Landroid/view/MotionEvent;Landroid/graphics/Point;)V
-                """
+                "invoke-static/range { p0 .. p1 }, " +
+                        "$previewPatch->bindThumbnailCoordinates(Landroid/view/View;Landroid/graphics/Point;)V"
+            )
+
+            seekbarTouchMethod.apply {
+                addInstructionsWithLabels(
+                    0,
+                    """
+                        invoke-static { p0, p1 }, $preparePreview
+                        move-result-object v0
+                        if-eqz v0, :skip_thumbnail_preview
+                        invoke-interface { p0, v0 }, $updatePointMethodRef
+                        invoke-static { p0, v0 }, $updatePreview
+                    """,
+                    ExternalLabel("skip_thumbnail_preview", getInstruction(0))
+                )
+            }
+
+            // The slide path must resolve the actual timebar only after the same eligibility check.
+            SlideSeekbarHandlerOnTouchFingerprint.method.apply {
+                fun getSeekbarReference(index: Int) = SlideSeekbarGetViewControllerFingerprint
+                    .instructionMatches[index].getInstruction<ReferenceInstruction>().getReference<FieldReference>()!!
+
+                addInstructionsWithLabels(
+                    0,
+                    """
+                        invoke-static { p1, p2 }, $preparePreview
+                        move-result-object v1
+                        if-eqz v1, :skip_thumbnail_preview
+                        iget-object v0, p0, ${getSeekbarReference(0)}
+                        iget-object v0, v0, ${getSeekbarReference(1)}
+                        iget-object v0, v0, ${getSeekbarReference(3)}
+                        invoke-interface { v0, v1 }, $updatePointMethodRef
+                        invoke-static { p1, v1 }, $updatePreview
+                    """,
+                    ExternalLabel("skip_thumbnail_preview", getInstruction(0))
+                )
+            }
+
+            SeekbarFineScrubbingBitmapFingerprint.method.addInstruction(
+                1,
+                "invoke-static { p1 }, $previewPatch->setFineScrubbingPreviewBitmap(Landroid/graphics/Bitmap;)V"
             )
         }
-
-        SeekbarFineScrubbingBitmapFingerprint.method.addInstruction(
-            1,
-            "invoke-static { p1 }, Lapp/morphe/extension/youtube/patches/SeekbarThumbnailPreviewPatch;->" +
-                    "setFineScrubbingPreviewBitmap(Landroid/graphics/Bitmap;)V"
-        )
 
         StoryboardFrameRegionFingerprint.let {
             val rectIndex = it.instructionMatches[1].index
@@ -847,28 +878,25 @@ val seekbarComponentsPatch = bytecodePatch(
             )
         }
 
-        seekbarOnDrawFingerprint.methodOrThrow(seekbarFingerprint).addInstruction(
-            0,
-            "invoke-static/range { p0 .. p0 }, Lapp/morphe/extension/youtube/patches/SeekbarThumbnailPreviewPatch;->" +
-                    "setSeekbarRectangle(Landroid/view/View;)V"
-        )
-
-        if (is_21_12_or_greater) {
-            SeekbarBigBoardsUpdateFingerprint
-        } else {
-            SeekbarBigBoardsUpdateLegacyFingerprint
-        }.method.addInstructionsWithLabels(
-            0,
-            """
-                invoke-static { }, Lapp/morphe/extension/youtube/patches/SeekbarThumbnailPreviewPatch;->disableBigBoardUpdate()Z
-                move-result v0
-                if-eqz v0, :allow_big_board_update
-                const/4 v0, 0x0
-                return v0
-                :allow_big_board_update
-                nop
-            """
-        )
+        if (pointWriter != null) {
+            val bigBoardsUpdate = if (is_21_12_or_greater) {
+                SeekbarBigBoardsUpdateFingerprint
+            } else {
+                SeekbarBigBoardsUpdateLegacyFingerprint
+            }
+            bigBoardsUpdate.method.addInstructionsWithLabels(
+                0,
+                """
+                    invoke-static { }, $previewPatch->disableBigBoardUpdate()Z
+                    move-result v0
+                    if-eqz v0, :allow_big_board_update
+                    const/4 v0, 0x0
+                    return v0
+                    :allow_big_board_update
+                    nop
+                """
+            )
+        }
 
         // Match the video size instead of fitting a zoomed video inside the preview.
         SeekbarBigBoardsScrubFingerprint.let {
@@ -893,7 +921,7 @@ val seekbarComponentsPatch = bytecodePatch(
             }
         }
 
-        if (is_21_21_or_greater) {
+        if (pointWriter != null && is_21_21_or_greater) {
             ShortsDisableSeekbarThumbnailsFeatureFlagFingerprint.matchAll().forEach {
                 it.method.insertLiteralOverride(
                     it.instructionMatches.first().index,

@@ -43,6 +43,8 @@ sleep_timer  RumblePlayback.onPlayingChanged
 
 fill_screen  RumblePlayer.resizeMode
 player_gestures  RumbleGestures.dispatch
+remote_keys  RumbleRemote.dispatch
+remote_keys  RumbleRemote.onPlayerType
 keep_screen_on_paused  RumblePlayer.keepScreenOn
 refresh_stream  RumblePlayer.onVideoLoaded
 refresh_stream  RumblePlayer.refreshable

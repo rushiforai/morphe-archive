@@ -29,10 +29,12 @@ final class HostPages {
         boolean truecaller = pkg.startsWith("com.truecaller");
         boolean docScanner = pkg.startsWith("com.cv.docscanner");
         boolean mx = pkg.startsWith("com.mxtech.videoplayer");
+        boolean photos = pkg.startsWith("com.google.android.apps.photos");
 
         if (on(context, "app.loki.menu.premium")) pages.add(premium(splitwise, truecaller, docScanner));
         if (splitwise && on(context, "app.loki.menu.amoled")) pages.add(appearance(context));
         if (truecaller && on(context, "app.loki.menu.aftercall")) pages.add(calls(context));
+        if (photos && on(context, "app.loki.menu.pixelspoof")) pages.add(backup(context));
         if (mx && (on(context, "app.loki.menu.license") || on(context, "app.loki.menu.codec"))) {
             pages.add(player(context));
         }
@@ -137,6 +139,44 @@ final class HostPages {
         }
         return page;
     }
+
+    private static SettingsActivity.Page backup(Context context) {
+        SettingsActivity.Page page = new SettingsActivity.Page("Backup", IconDrawable.CLOUD);
+        page.toggle("Unlimited backup (Pixel XL)", "Photos reads this phone as a Pixel XL, the device with unlimited "
+                + "original-quality backup that does not count towards your Google storage. Off: the phone answers "
+                + "as itself again and uploads count as usual.", new SettingsActivity.Toggle() {
+            public boolean get() {
+                return LokiSwitches.get(context, "pixel_spoof");
+            }
+
+            public void set(boolean on) {
+                LokiSwitches.set(context, "pixel_spoof", on);
+            }
+        }, true);
+        page.info("Check", () -> "Photos \u203a Settings \u203a Backup should read \"unlimited photos & videos at no charge\"");
+        if (on(context, "app.loki.menu.pixelspoof")) {
+            page.info("Uploads", () -> "Every upload says Pixel XL (Google marlin), so Google marks it free: swipe up on a "
+                    + "newly backed-up photo and it reads \"doesn't take up space in your account storage\". "
+                    + "Switch changes apply after restarting Photos");
+        }
+        if (on(context, "app.loki.menu.dcimcamera")) {
+            page.toggle("Only real camera photos count as Camera", "Photos treats everything under DCIM as Camera, "
+                    + "so screenshots and other apps' DCIM folders upload with it. On: only DCIM/Camera counts, and "
+                    + "the rest become normal folders you choose in Photos \u203a Backup \u203a Backup device folders. "
+                    + "Off: Photos' own rule.", new SettingsActivity.Toggle() {
+                public boolean get() {
+                    return LokiSwitches.get(context, "photos_camera_only");
+                }
+
+                public void set(boolean on) {
+                    LokiSwitches.set(context, "photos_camera_only", on);
+                }
+            }, false);
+        }
+        page.info("Not covered", () -> "Creations Google renders on its servers (memories, collages) still use your quota");
+        return page;
+    }
+
 
     private static SettingsActivity.Page privacy(Context context) {
         SettingsActivity.Page page = new SettingsActivity.Page("Privacy", IconDrawable.SHIELD);

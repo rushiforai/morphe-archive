@@ -1,4 +1,107 @@
-## Unreleased
+## [1.46.0](https://github.com/lavinhoque33/revanced-patches/compare/v1.45.0...v1.46.0) (2026-11-20)
+
+### Features
+
+* **YouTube – Seekbar:** Optionally disable the pull-up gesture for precise seeking without disabling
+  normal horizontal scrubbing. The gesture stays enabled by default.
+* **YouTube – Feed:** Hide the view count and upload age in video subtitles independently. The thumbnail
+  view-count badge can still show the original count when the subtitle count is hidden.
+* **YouTube – Quick Actions widget:** The `Hide shortcuts` patch can remove the Shorts button from the
+  two-row home screen widget without removing the Shorts shortcut from the app icon’s long-press menu.
+* **YouTube Music – Settings menu filter:** Hidden stock settings stay hidden when the app language changes.
+  Existing title selections migrate when they identify one stock row; ambiguous and custom titles still match
+  literally.
+* **YouTube Music – Navigation:** Hide the native Search tab without hiding toolbar Search or changing
+  what the Samples tab opens.
+* **YouTube Music – Flyout menu:** On supported 9.x versions, hide **Don’t recommend artist** without
+  hiding **Go to artist** or **Not interested**.
+* **YouTube – Player buttons:** Open Quality from a dedicated button beside Playback speed. Choose a
+  resolution or return to Auto without changing the timestamp action. A separate size setting changes
+  the native Play/Pause/Replay button and its touch target together; 100% leaves them unchanged.
+* **YouTube – Return YouTube Dislike:** Keep the original count visible while votes load. Watch-page counts
+  and enabled feed badges update in place when the request finishes without waiting for a scroll.
+* **YouTube – Shorts:** Hide the 2× speed tutorial without hiding the speed indicator or disabling the gesture
+  on versions that have the tutorial.
+* **YouTube – Toolbar:** Hide the Messages button without hiding Notifications.
+* **YouTube – Navigation:** Make the system navigation bar opaque in light or dark theme independently,
+  without changing the in-app glass navigation bar.
+
+### Performance
+
+* **YouTube – Seekbar:** Read the seekbar bounds when a thumbnail preview needs them instead of copying
+  them every time the idle seekbar is drawn.
+* **YouTube – Downloads:** When saving audio and a thumbnail to Pictures, fetch the original artwork once.
+  An unavailable cover does not prevent the audio file from being saved.
+* **YouTube – Watch page:** Separate Like and Dislike counts follow their buttons without remeasuring
+  unchanged labels or requesting a redraw on every frame.
+* **YouTube – SponsorBlock:** Revisiting a video within five minutes can reuse its downloaded segments.
+  Skip-once and undo state still start fresh; a failed lookup is retried rather than cached as empty.
+* **YouTube and YouTube Music – Branding:** Leave already-correct launcher icons and names alone at startup.
+  Recheck the selected launcher and splash resources when the APK is replaced, even at the same app version.
+* **YouTube – Component filters:** On supported 21.x versions, filters that only need the component name
+  or path no longer encode its contents. Filters that inspect those contents still share one encoded copy.
+
+## [1.45.0](https://github.com/lavinhoque33/revanced-patches/compare/v1.44.0...v1.45.0) (2026-11-20)
+
+### Features
+
+* **YouTube – Player:** Choose separate backward and forward double-tap seek lengths. Either side can still
+  follow YouTube’s setting. A separate playback option pauses on the first duckable audio interruption.
+* **YouTube – Search:** Hide Ask in the search field and its hint without changing Ask on the watch page.
+* **YouTube – Cast:** Optionally show Play/Queue when selecting another video during a Cast session.
+* **YouTube – Shorts:** Adjust reel control opacity or hide the status bar only while watching a Short.
+  These settings leave the video and the Clear screen Restore button visible.
+* **YouTube Music – Home:** Hide the Speed dial shelf without hiding Pin or Unpin in song menus.
+* **YouTube Music – Device files:** Open a newly saved file from its completion notification. New M4A and
+  Ogg files include the original album track number when it can be verified.
+* **YouTube and YouTube Music – Downloads:** Export a published device file or a saved playlist to a folder
+  you choose. Playlist exports include an ordered M3U8. Exporting does not change the download method or copy
+  private stream caches.
+  Music includes loose device files in one playlist even before its native playlist database is opened.
+
+### Bug fixes
+
+* **YouTube – Navigation:** Rapid Back gestures no longer let a timed-out tab lookup release the next lookup.
+* **YouTube – Minimal miniplayer:** Expanding and minimizing again no longer starts a second refresh timer.
+  The title and channel now follow player metadata updates instead of polling.
+* **YouTube Music – Player:** Hide overlay filter skips dialogs whose `onStart` cannot be overridden.
+  Creating that override made Music 6.20.51 crash at launch when forced.
+
+This stable release also includes the fullscreen, SponsorBlock icon, and Shorts restore icon fixes
+listed in `1.44.1-dev.1` and `1.44.1-dev.2` below.
+
+## [1.44.1-dev.2](https://github.com/lavinhoque33/revanced-patches/compare/v1.44.1-dev.1...v1.44.1-dev.2) (2026-11-20)
+
+### Bug fixes
+
+* **YouTube – SponsorBlock:** Show icons for Skip button duration, Skip toast duration, and Adjust new segment
+  step in all four visual preference icon styles when **Apply to all settings menu** is on. Refs #70.
+* **YouTube – Player icon style:** Keep the stock Restore screen icon in Shorts clear mode without changing
+  the selected fullscreen icon in the regular player. Refs #70.
+
+## [1.44.1-dev.1](https://github.com/lavinhoque33/revanced-patches/compare/v1.44.0...v1.44.1-dev.1) (2026-11-20)
+
+### Bug fixes
+
+* **YouTube – Fullscreen:** Leave YouTube's video transform alone at Default scale and preserve native
+  animation when leaving Stretch or Zoom. Align overlay buttons without searching the player on every draw.
+  In dark theme, let YouTube choose its elevated player layout; keep the light-theme readability fix. Refs #66.
+
+## [1.44.0](https://github.com/lavinhoque33/revanced-patches/compare/v1.43.0...v1.44.0) (2026-11-20)
+
+### Features
+
+* **YouTube – Snack bar:** Apply the configured border width and color to the native playlist bottom bar with
+  a separate switch. The switch is off by default and is independent of corner radius. Refs #65.
+
+### Bug fixes
+
+* **YouTube / Music – Theme:** Use AMOLED black for a fresh dark theme instead of gray. Saved theme selections
+  still take precedence. Refs #68.
+* **YouTube / Music – Translations:** Apply the list of languages to keep to the packaged resources, including
+  regional translations, and to the app language selectors. Default English is always kept. Refs #68.
+* **YouTube – Player icon style:** Keep the native Shorts Clear Screen icon stock on YouTube 21.39+ without
+  changing the chosen fullscreen player button style. Refs #69.
 
 ## [1.43.0](https://github.com/lavinhoque33/revanced-patches/compare/v1.42.0...v1.43.0) (2026-11-19)
 

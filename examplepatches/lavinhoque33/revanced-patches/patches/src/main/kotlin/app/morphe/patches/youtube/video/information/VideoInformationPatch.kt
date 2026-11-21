@@ -11,7 +11,7 @@
  * - Jav1x (https://github.com/Jav1x)
  *
  * Licensed under the GNU General Public License v3.0.
- * Modified by lavinhoque33, 2026-11-13.
+ * Modified by lavinhoque33, 2026-11-20.
  *
  * Modified by lavinhoque33, 2026-10-24
  *
@@ -63,6 +63,7 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.removeInstruction
+import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.getReference
@@ -94,6 +95,7 @@ import app.morphe.patches.youtube.utils.videoIdFingerprintShorts
 import app.morphe.patches.youtube.video.playerresponse.Hook
 import app.morphe.patches.youtube.video.playerresponse.addPlayerResponseMethodHook
 import app.morphe.patches.youtube.video.playerresponse.playerResponseMethodHookPatch
+import app.morphe.patches.youtube.video.playback.VideoQualitySettingEnumFingerprint
 import app.morphe.patches.youtube.video.quality.getPlaybackStartParametersConstructorFingerprint
 import app.morphe.patches.youtube.video.videoid.hookBackgroundPlayVideoIdNoArgs
 import app.morphe.patches.youtube.video.videoid.hookPlayerResponseVideoId
@@ -130,6 +132,8 @@ import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+import com.android.tools.smali.dexlib2.iface.reference.StringReference
+import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 import com.android.tools.smali.dexlib2.immutable.ImmutableField
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethodImplementation
@@ -157,6 +161,9 @@ private const val EXTENSION_VIDEO_QUALITY_INTERFACE =
 
 private const val EXTENSION_VIDEO_QUALITY_MENU_INTERFACE =
     $$"$$VIDEO_PATH/VideoQualityPatch$VideoQualityMenuInterface;"
+
+private const val EXTENSION_AUTOMATIC_QUALITY_MENU =
+    $$"$$VIDEO_PATH/VideoQualityPatch$AutomaticVideoQualityMenu;"
 
 private const val REGISTER_PLAYER_RESPONSE_MODEL = 8
 
@@ -1269,6 +1276,11 @@ val videoInformationPatch = bytecodePatch(
 
                 findMutableClassOrThrow(setQualityField.type).apply {
                     interfaces.add(EXTENSION_VIDEO_QUALITY_MENU_INTERFACE)
+                    val setQualityMenuIndexMethod = methods.single { method ->
+                        method.parameterTypes.firstOrNull() == modernVideoQualityClassType
+                    }
+                    installAutomaticQualityBridge(this, setQualityMenuIndexMethod)
+
                     methods.add(
                         ImmutableMethod(
                             type,
@@ -1286,10 +1298,6 @@ val videoInformationPatch = bytecodePatch(
                             null,
                             MutableMethodImplementation(2),
                         ).toMutable().apply {
-                            val setQualityMenuIndexMethod = methods.single { method ->
-                                method.parameterTypes.firstOrNull() == modernVideoQualityClassType
-                            }
-
                             addInstructions(
                                 0,
                                 """
@@ -1515,6 +1523,10 @@ val videoInformationPatch = bytecodePatch(
                 val classDef = it.classDef
                 it.method.apply {
                     classDef.interfaces.add(EXTENSION_VIDEO_QUALITY_MENU_INTERFACE)
+                    val setQualityMenuIndexMethod = classDef.methods.single { method ->
+                        method.parameterTypes.firstOrNull() == YOUTUBE_VIDEO_QUALITY_CLASS_TYPE
+                    }
+                    installAutomaticQualityBridge(classDef, setQualityMenuIndexMethod)
 
                     classDef.methods.add(
                         ImmutableMethod(
@@ -1533,10 +1545,6 @@ val videoInformationPatch = bytecodePatch(
                             null,
                             MutableMethodImplementation(2),
                         ).toMutable().apply {
-                            val setQualityMenuIndexMethod = classDef.methods.single { method ->
-                                method.parameterTypes.firstOrNull() == YOUTUBE_VIDEO_QUALITY_CLASS_TYPE
-                            }
-
                             addInstructions(
                                 0,
                                 """
@@ -1575,6 +1583,132 @@ val videoInformationPatch = bytecodePatch(
             }
         }
     }
+}
+
+/**
+ * Both stock quality menus forward fixed resolutions and adaptive presets to the same player.
+ * Retain the virtual call so a native menu subclass can update its own preset state too.
+ */
+context(_: BytecodePatchContext)
+private fun installAutomaticQualityBridge(menu: MutableClass, fixedWrapper: MutableMethod) {
+    val route = findAutomaticQualityRoute(menu, fixedWrapper)
+    if (route == null) {
+        printWarn("Overlay quality: native Auto policy route not found; hiding Auto.")
+        return
+    }
+
+    val (autoField, presetWrapper, playerPresetMethod) = route
+    val dispatchIndices = findPresetDispatchIndices(playerPresetMethod, autoField.type)
+    if (dispatchIndices == null) {
+        printWarn("Overlay quality: native Auto dispatch not found; hiding Auto.")
+        return
+    }
+
+    for (index in dispatchIndices.asReversed()) {
+        playerPresetMethod.addInstruction(
+            index + 1,
+            "invoke-static {}, $EXTENSION_VIDEO_QUALITY_CLASS_DESCRIPTOR->onAutomaticQualityDispatched()V",
+        )
+    }
+    menu.interfaces.add(EXTENSION_AUTOMATIC_QUALITY_MENU)
+    menu.methods.add(
+        ImmutableMethod(
+            menu.type,
+            "patch_setAutomaticQuality",
+            emptyList(),
+            "V",
+            AccessFlags.PUBLIC or AccessFlags.FINAL,
+            null,
+            null,
+            ImmutableMethodImplementation(
+                2,
+                """
+                    sget-object v0, $autoField
+                    invoke-virtual { p0, v0 }, $presetWrapper
+                    return-void
+                """.toInstructions(),
+                null,
+                null,
+            ),
+        ).toMutable(),
+    )
+}
+
+context(_: BytecodePatchContext)
+private fun findAutomaticQualityRoute(
+    menu: MutableClass,
+    fixedWrapper: MutableMethod,
+): Triple<FieldReference, MutableMethod, MutableMethod>? {
+    val enum = VideoQualitySettingEnumFingerprint.matchOrNull() ?: return null
+    val initializer = enum.originalMethod.implementation?.instructions?.toList() ?: return null
+    val autoNameIndex = initializer.indexOfFirst {
+        // YouTube's quick Auto and mobile_video_quality_auto_key both use UNKNOWN, enum value 0.
+        it.getReference<StringReference>()?.string == "VIDEO_QUALITY_SETTING_UNKNOWN"
+    }
+    if (autoNameIndex < 0) return null
+    val autoField = initializer.drop(autoNameIndex + 1).take(4).firstNotNullOfOrNull {
+        if (it.opcode == Opcode.SPUT_OBJECT) it.getReference<FieldReference>() else null
+    }?.takeIf { it.type == enum.originalClassDef.type && it.definingClass == it.type } ?: return null
+
+    val (playerField, _) = fixedWrapper.qualityForwarder() ?: return null
+    if (playerField.definingClass != menu.type) return null
+    val presetWrapper = menu.methods.singleOrNull {
+        it.parameterTypes == listOf(autoField.type) && it.qualityForwarder()?.first == playerField
+    } ?: return null
+    val (_, playerPreset) = presetWrapper.qualityForwarder() ?: return null
+    val playerPresetMethod = findMutableClassOrThrow(playerField.type).methods.singleOrNull {
+        it.name == playerPreset.name && it.parameterTypes == playerPreset.parameterTypes && it.returnType == "V"
+    } ?: return null
+
+    return Triple(autoField, presetWrapper, playerPresetMethod)
+}
+
+private fun MutableMethod.qualityForwarder(): Pair<FieldReference, MethodReference>? {
+    val implementation = implementation ?: return null
+    val instructions = implementation.instructions
+    if (returnType != "V" || parameterTypes.size != 1 ||
+        instructions.map { it.opcode } != listOf(Opcode.IGET_OBJECT, Opcode.INVOKE_VIRTUAL, Opcode.RETURN_VOID)
+    ) return null
+
+    val receiver = instructions[0] as TwoRegisterInstruction
+    val call = instructions[1] as FiveRegisterInstruction
+    val thisRegister = implementation.registerCount - 2
+    if (receiver.registerB != thisRegister || call.registerCount != 2 ||
+        call.registerC != receiver.registerA || call.registerD != thisRegister + 1
+    ) return null
+
+    val field = instructions[0].getReference<FieldReference>() ?: return null
+    val method = instructions[1].getReference<MethodReference>() ?: return null
+    return if (method.definingClass == field.type && method.parameterTypes == parameterTypes &&
+        method.returnType == "V"
+    ) field to method else null
+}
+
+private fun findPresetDispatchIndices(method: MutableMethod, enumType: String): List<Int>? {
+    val instructions = method.implementation?.instructions ?: return null
+    // Older players forward the enum directly. Newer ones can instead wrap it in a native preset event.
+    val presetType = instructions.firstNotNullOfOrNull {
+        it.getReference<MethodReference>()?.takeIf { call ->
+            it.opcode == Opcode.INVOKE_DIRECT && call.name == "<init>" && call.parameterTypes == listOf(enumType)
+        }?.definingClass
+    }
+    val presetCalls = instructions.indices.filter { index ->
+        val instruction = instructions[index]
+        val call = instruction.getReference<MethodReference>()
+        instruction.opcode == Opcode.INVOKE_INTERFACE && call?.returnType == "V" && call.parameterTypes.size == 1
+    }
+    val directPreset = presetCalls.singleOrNull {
+        instructions[it].getReference<MethodReference>()?.parameterTypes == listOf(enumType)
+    } ?: return null
+    if (presetType == null) return presetCalls.takeIf { it.size == 1 }
+
+    val eventPreset = presetCalls.singleOrNull { it != directPreset } ?: return null
+    val call = instructions[eventPreset] as FiveRegisterInstruction
+    if (call.registerCount != 2) return null
+    val constructedPreset = instructions.take(eventPreset).lastOrNull {
+        it.opcode == Opcode.NEW_INSTANCE && (it as OneRegisterInstruction).registerA == call.registerD
+    } ?: return null
+    return presetCalls.takeIf { constructedPreset.getReference<TypeReference>()?.type == presetType }
 }
 
 private fun MutableMethod.getVideoInformationMethod(): MutableMethod =

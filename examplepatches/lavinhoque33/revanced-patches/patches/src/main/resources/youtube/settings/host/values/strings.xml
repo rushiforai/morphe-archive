@@ -289,6 +289,10 @@ To fix this, turn on \'Spoof video streams\' and change the \'Default client\' t
     <string name="morphe_feed_card_layout_title">Feed card layout</string>
     <string name="morphe_feed_view_count_summary">The view count of feed videos is shown at the bottom left of their thumbnails instead of below the title. Some videos, such as in shelves, may not show a view count</string>
     <string name="morphe_feed_view_count_title">Show view count on thumbnails</string>
+    <string name="morphe_hide_feed_subtitle_views_title">Hide view counts below feed videos</string>
+    <string name="morphe_hide_feed_subtitle_views_summary">Hides recognized view counts below video titles without filtering out videos or hiding the thumbnail badge.</string>
+    <string name="morphe_hide_feed_subtitle_age_title">Hide upload dates below feed videos</string>
+    <string name="morphe_hide_feed_subtitle_age_summary">Hides recognized upload dates and relative times, such as “2 days ago”, below video titles.</string>
     <string name="morphe_feed_long_press_menu_summary">Tapping and holding anywhere on a feed video opens its menu</string>
     <string name="morphe_feed_long_press_menu_title">Tap and hold to open video menu</string>
     <string name="morphe_feed_watch_later_button_summary">A Watch later button is shown on the thumbnails of feed videos. Tapping and holding it opens Save to playlist</string>
@@ -371,6 +375,8 @@ To show the \'Audio Track\' menu, change \'Spoof video streams\' to any client e
     <string name="morphe_hide_post_share_button_summary">The download button of the post images is drawn next to the share button, so it\'s hidden too</string>
     <string name="morphe_hide_post_share_button_title">Hide share button</string>
     <string name="morphe_hide_privacy_tos_footer_title">Hide legal and privacy footers</string>
+    <string name="morphe_hide_search_ask_summary">Hides the Ask button and its hint in the search field</string>
+    <string name="morphe_hide_search_ask_title">Hide Ask in search</string>
     <string name="morphe_hide_shopping_menu_title">Hide Shopping menu</string>
     <string name="morphe_hide_sports_menu_title">Hide Sports menu</string>
     <string name="morphe_hide_stats_hidden_24h_reset_title">Reset last 24 hours counter?</string>
@@ -454,6 +460,9 @@ Info: The next queued video only starts while YouTube is on screen"</string>
     <string name="morphe_navigation_bar_style_entry_2">Translucent</string>
     <string name="morphe_navigation_bar_style_title">Navigation bar style</string>
     <string name="morphe_navigation_bar_style_user_dialog_message">This style may not be supported by your device or YouTube version, and can cause layout issues or crashes</string>
+    <string name="morphe_opaque_system_navigation_bar_light_title">Opaque system navigation bar in light theme</string>
+    <string name="morphe_opaque_system_navigation_bar_dark_title">Opaque system navigation bar in dark theme</string>
+    <string name="morphe_opaque_system_navigation_bar_summary">Makes the area behind Android’s navigation controls solid on Android 13 and newer. Does not change the glass capsule. The Opaque navigation bar style applies to both themes.</string>
     <string name="morphe_notification_dot_color_summary">Changes the color of notification dots</string>
     <string name="morphe_notification_dot_color_title">Notification dot color</string>
     <string name="morphe_notification_media_screen_summary">Customize the playback controls shown on your lock screen and notification panel</string>
@@ -471,6 +480,10 @@ Info: The next queued video only starts while YouTube is on screen"</string>
     <string name="morphe_open_videos_fullscreen_title">Open videos in fullscreen mode</string>
     <string name="morphe_override_youtube_music_buttons_summary">Opens your preferred music app instead of the stock YouTube Music app</string>
     <string name="morphe_override_youtube_music_buttons_title">Override YouTube Music buttons</string>
+    <string name="morphe_pause_on_audio_interrupt_summary">
+        Pauses instead of lowering the volume when another app briefly takes audio focus
+    </string>
+    <string name="morphe_pause_on_audio_interrupt_title">Pause on audio interruptions</string>
     <string name="morphe_pip_button_flyout_name">Switch to Picture-in-Picture</string>
     <string name="morphe_pip_button_flyout_title">Show Picture-in-Picture menu</string>
     <string name="morphe_pip_button_overlay_title">Show Picture-in-Picture button</string>
@@ -482,6 +495,8 @@ Info: The next queued video only starts while YouTube is on screen"</string>
     <string name="morphe_playback_in_feeds_entry_off">Off</string>
     <string name="morphe_playback_in_feeds_entry_wifi_only">Wi-Fi only</string>
     <string name="morphe_playback_in_feeds_title">Playback in feeds</string>
+    <string name="morphe_center_playback_button_size_summary" formatted="false">Resize the play, pause, and replay button and its touch area. 100% leaves the original size unchanged.</string>
+    <string name="morphe_center_playback_button_size_title">Play/Pause/Replay button size</string>
     <string name="morphe_player_control_buttons_background_opacity_summary">Adjust the opacity of the background behind the player control buttons and the time bar (0 is invisible, 100 is solid)</string>
     <string name="morphe_player_control_buttons_background_opacity_title">Control buttons background opacity</string>
     <string name="morphe_player_icon_style_entry_auto">Automatic</string>
@@ -565,6 +580,9 @@ Not used while Unlock queue or Premium-style queue is on"</string>
     <string name="morphe_replace_music_with_youtube_summary_off">Shared links use music.youtube.com</string>
     <string name="morphe_replace_music_with_youtube_summary_on">Shared links use youtube.com</string>
     <string name="morphe_replace_music_with_youtube_title">Change share links to youtube.com</string>
+    <string name="morphe_restore_cast_play_queue_summary">Shows Play or Queue when you select another video
+        while casting, without leaving the receiver session</string>
+    <string name="morphe_restore_cast_play_queue_title">Restore Cast Play/Queue</string>
     <string name="morphe_restore_old_player_buttons_summary">Uses the older video player layout for custom overlay buttons</string>
     <string name="morphe_restore_old_player_buttons_title">Restore old player button style</string>
     <string name="morphe_restore_original_titles_loading">Loading title…</string>
@@ -943,6 +961,8 @@ If there are server-side changes, the background color of the snack bar may not 
     <string name="revanced_snack_bar_stroke_width_summary">Set to zero for no border</string>
     <string name="revanced_snack_bar_playlist_radius_title">Apply corner radius to playlist bottom bar</string>
     <string name="revanced_snack_bar_playlist_radius_summary">Use the snack bar radius instead of the playlist bar’s original radius</string>
+    <string name="revanced_snack_bar_playlist_border_title">Apply border color to playlist bottom bar</string>
+    <string name="revanced_snack_bar_playlist_border_summary">Use the snack bar border color and width on the playlist bar</string>
     <string name="revanced_change_share_sheet_summary_off">In-app share sheet is used</string>
     <string name="revanced_change_share_sheet_summary_on">System share sheet is used</string>
     <string name="revanced_change_share_sheet_title">Change share sheet</string>
@@ -1074,6 +1094,9 @@ Settings → Autoplay / Playback → Autoplay next video"</string>
     <string name="revanced_disable_chapter_skip_double_tap_summary_off">Double tap can occasionally trigger a skip to the next / previous chapter</string>
     <string name="revanced_disable_chapter_skip_double_tap_summary_on">Double tap can never trigger a skip to the next / previous chapter</string>
     <string name="revanced_disable_chapter_skip_double_tap_title">Disable double tap chapter skip</string>
+    <string name="revanced_double_tap_seek_backward_title">Double-tap to seek backward</string>
+    <string name="revanced_double_tap_seek_forward_title">Double-tap to seek forward</string>
+    <string name="revanced_double_tap_seek_length_entry_youtube">Use YouTube setting</string>
     <string name="revanced_disable_default_playback_speed_music_off">Default playback speed is enabled for music</string>
     <string name="revanced_disable_default_playback_speed_music_on">Default playback speed is disabled for music</string>
     <string name="revanced_disable_default_playback_speed_music_title">Disable playback speed for music</string>
@@ -1130,6 +1153,9 @@ Possible effects include:
     <string name="revanced_disable_playlist_autoplay_summary_off">Playlists automatically advance to the next video</string>
     <string name="revanced_disable_playlist_autoplay_summary_on">Playlists are prevented from automatically advancing to the next video</string>
     <string name="revanced_disable_playlist_autoplay_title">Disable playlist autoplay</string>
+    <string name="revanced_disable_precise_seeking_gesture_summary_off">Swipe up on the seekbar to open precise seeking</string>
+    <string name="revanced_disable_precise_seeking_gesture_summary_on">Swiping up on the seekbar no longer opens precise seeking</string>
+    <string name="revanced_disable_precise_seeking_gesture_title">Disable swipe-up precise seeking</string>
     <string name="revanced_disable_quic_protocol_summary">"Disables CronetEngine's QUIC protocol"</string>
     <string name="revanced_disable_resuming_miniplayer_summary_off">&lt;b&gt;Continue watching&lt;/b&gt; will resume on app startup.&lt;br&gt;&lt;br&gt;Info:&lt;br&gt;• &lt;b&gt;Continue watching&lt;/b&gt; is the YouTube Premium feature&lt;br&gt;• This setting does not force &lt;b&gt;Continue watching&lt;/b&gt; to be enabled</string>
     <string name="revanced_disable_resuming_miniplayer_summary_on">&lt;b&gt;Continue watching&lt;/b&gt; will not resume on app startup</string>
@@ -1773,6 +1799,8 @@ Words with uppercase letters in the middle must be entered with the casing (ie: 
     <string name="revanced_hide_navigation_notifications_button_summary_off">Notifications button is shown</string>
     <string name="revanced_hide_navigation_notifications_button_summary_on">Notifications button is hidden</string>
     <string name="revanced_hide_navigation_notifications_button_title">Hide Notifications button</string>
+    <string name="revanced_hide_toolbar_messages_button_title">Hide Messages button</string>
+    <string name="revanced_hide_toolbar_messages_button_summary">Hides the Messages button from the toolbar when YouTube shows it</string>
     <string name="revanced_hide_navigation_shorts_button_summary_off">Shorts button is shown</string>
     <string name="revanced_hide_navigation_shorts_button_summary_on">Shorts button is hidden</string>
     <string name="revanced_hide_navigation_shorts_button_title">Hide Shorts button</string>
@@ -1986,6 +2014,10 @@ Info:
     <string name="revanced_hide_shorts_dimming_summary_off">Top and bottom dimming on Shorts is shown</string>
     <string name="revanced_hide_shorts_dimming_summary_on">Top and bottom dimming on Shorts is hidden</string>
     <string name="revanced_hide_shorts_dimming_title">Hide Shorts dimming</string>
+    <string name="revanced_shorts_overlay_opacity_title">Shorts overlay opacity</string>
+    <string name="revanced_shorts_overlay_opacity_summary">Adjust the opacity of Shorts controls, including the toolbar and progress bar. 100% uses the original opacity. Does not change video brightness.</string>
+    <string name="revanced_shorts_immersive_status_bar_title">Immersive status bar</string>
+    <string name="revanced_shorts_immersive_status_bar_summary">Hide the system status bar only while the Shorts player is open. Swipe down from the top to temporarily show it.</string>
     <string name="revanced_hide_shorts_floating_button_summary_off">Floating buttons in Shorts pages are shown</string>
     <string name="revanced_hide_shorts_floating_button_summary_on">Floating buttons in Shorts pages are hidden</string>
     <string name="revanced_hide_shorts_floating_button_title">Hide floating buttons</string>
@@ -2010,6 +2042,8 @@ Info:
     <string name="revanced_hide_shorts_paused_header_summary_off">Paused header is shown</string>
     <string name="revanced_hide_shorts_paused_header_summary_on">Paused header is hidden</string>
     <string name="revanced_hide_shorts_paused_header_title">Hide paused header</string>
+    <string name="revanced_hide_shorts_speed_education_title">Hide Shorts 2× speed tutorial</string>
+    <string name="revanced_hide_shorts_speed_education_summary">Hides the hint for locking or exiting 2× speed. The gesture and speed indicator still work.</string>
     <string name="revanced_hide_shorts_paused_overlay_buttons_summary_off">Paused overlay buttons are shown</string>
     <string name="revanced_hide_shorts_paused_overlay_buttons_summary_on">Paused overlay buttons are hidden</string>
     <string name="revanced_hide_shorts_paused_overlay_buttons_title">Hide paused overlay buttons</string>
@@ -2408,6 +2442,9 @@ Info:
 Tap and hold to reset playback speed to 1.0x. Tap and hold again to reset back to default speed"</string>
     <string name="revanced_overlay_button_speed_dialog_title">Show speed dialog button</string>
     <string name="revanced_overlay_button_speed_dialog_type_title">Speed dialog type (player button)</string>
+    <string name="revanced_overlay_button_video_quality_label">Video quality</string>
+    <string name="revanced_overlay_button_video_quality_summary">Open video quality directly from the player controls.</string>
+    <string name="revanced_overlay_button_video_quality_title">Show video quality button</string>
     <string name="revanced_overlay_button_vot_summary">Show overlay button to toggle voice-over translation for the current video</string>
     <string name="revanced_overlay_button_vot_title">Voice Over Translation</string>
     <string name="revanced_overlay_button_whitelist_summary">"Tap to open whitelist dialog

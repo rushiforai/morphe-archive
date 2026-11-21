@@ -22,13 +22,13 @@ import app.morphe.extension.youtube.patches.utils.ProtoNode;
 
 import app.morphe.extension.shared.patches.components.ByteArrayFilterGroup;
 import app.morphe.extension.shared.patches.components.ByteArrayFilterGroupList;
-import app.morphe.extension.shared.patches.components.Filter;
+import app.morphe.extension.shared.patches.components.LazyBufferFilter;
 import app.morphe.extension.shared.patches.components.StringFilterGroup;
 import app.morphe.extension.shared.patches.components.StringFilterGroupList;
 import app.morphe.extension.youtube.settings.Settings;
 
 @SuppressWarnings({"deprecation", "unused"})
-public final class ShortsButtonFilter extends Filter {
+public final class ShortsButtonFilter extends LazyBufferFilter {
     private static volatile boolean shortShowsBottomActionBar;
 
     /**
@@ -444,7 +444,7 @@ public final class ShortsButtonFilter extends Filter {
     }
 
     @Override
-    public boolean isFiltered(String path, String identifier, String allValue, byte[] buffer,
+    public boolean isFilteredLazy(String path, String identifier, String allValue, Buffer buffer,
                               StringFilterGroup matchedGroup, FilterContentType contentType, int contentIndex) {
         if (matchedGroup == subscribeButton || matchedGroup == joinButton || matchedGroup == autoDubbedLabel) {
             // Selectively filter to avoid false positive filtering of other subscribe/join buttons.
@@ -459,12 +459,12 @@ public final class ShortsButtonFilter extends Filter {
 
         if (matchedGroup == metaPanelButton) {
             return StringUtils.startsWithAny(path, REEL_METAPANEL_PATH, REEL_PLAYER_OVERLAY_PATH)
-                    && useThisSoundButton.check(buffer).isFiltered();
+                    && useThisSoundButton.check(buffer.get()).isFiltered();
         }
 
         // Video action buttons (like, dislike, comment, share, remix) have the same path.
         if (matchedGroup == actionButton) {
-            return videoActionButtonGroupList.check(buffer).isFiltered();
+            return videoActionButtonGroupList.check(buffer.get()).isFiltered();
         }
 
         if (matchedGroup == shortsActionBar) {
@@ -476,14 +476,14 @@ public final class ShortsButtonFilter extends Filter {
                 return true;
             }
             // Suggested actions can be at the start or in the middle of a path.
-            return suggestedActionsGroupList.check(buffer).isFiltered();
+            return suggestedActionsGroupList.check(buffer.get()).isFiltered();
         }
 
         if (matchedGroup == pausedOverlayButtons) {
             if (Settings.HIDE_SHORTS_PAUSED_OVERLAY_BUTTONS.get()) {
                 return true;
             } else if (StringUtils.contains(path, SHORTS_PAUSED_STATE_BUTTON_PATH)) {
-                return pausedOverlayButtonsGroupList.check(buffer).isFiltered();
+                return pausedOverlayButtonsGroupList.check(buffer.get()).isFiltered();
             }
             return false;
         }
@@ -492,7 +492,8 @@ public final class ShortsButtonFilter extends Filter {
     }
 
     @Override
-    public boolean isFiltered(Object contextSource, String identifier, String accessibility, String path, byte[] buffer,
+    public boolean isFilteredLazy(Object contextSource, String identifier, String accessibility,
+                                  String path, Buffer buffer,
                               StringFilterGroup matchedGroup, FilterContentType contentType, int contentIndex) {
         if (matchedGroup == subscribeButton || matchedGroup == joinButton || matchedGroup == autoDubbedLabel) {
             // Selectively filter to avoid false positive filtering of other subscribe/join buttons.
@@ -507,7 +508,7 @@ public final class ShortsButtonFilter extends Filter {
 
         if (matchedGroup == metaPanelButton) {
             return StringUtils.startsWithAny(path, REEL_METAPANEL_PATH, REEL_PLAYER_OVERLAY_PATH)
-                    && useThisSoundButton.check(buffer).isFiltered();
+                    && useThisSoundButton.check(buffer.get()).isFiltered();
         }
 
         if (matchedGroup == shortsActionBar) {
@@ -519,14 +520,14 @@ public final class ShortsButtonFilter extends Filter {
                 return true;
             }
             // Suggested actions can be at the start or in the middle of a path.
-            return suggestedActionsGroupList.check(buffer).isFiltered();
+            return suggestedActionsGroupList.check(buffer.get()).isFiltered();
         }
 
         if (matchedGroup == pausedOverlayButtons) {
             if (Settings.HIDE_SHORTS_PAUSED_OVERLAY_BUTTONS.get()) {
                 return true;
             } else if (StringUtils.contains(path, SHORTS_PAUSED_STATE_BUTTON_PATH)) {
-                return pausedOverlayButtonsGroupList.check(buffer).isFiltered();
+                return pausedOverlayButtonsGroupList.check(buffer.get()).isFiltered();
             }
             return false;
         }

@@ -2,6 +2,7 @@
  * Copyright (C) 2026 lavinhoque33
  * Licensed under the GNU General Public License v3.0 or later.
  * Written by lavinhoque33, 2026-11-16.
+ * Modified by lavinhoque33, 2026-11-20.
  */
 package app.morphe.extension.youtube.patches.theme;
 
@@ -23,6 +24,7 @@ import java.lang.reflect.Method;
 
 import app.morphe.extension.shared.utils.Utils;
 import app.morphe.extension.youtube.settings.Settings;
+import app.morphe.extension.youtube.utils.ThemeUtils;
 
 @RunWith(RobolectricTestRunner.class)
 @Config(manifest = Config.NONE, sdk = 28)
@@ -40,6 +42,19 @@ public class ThemePaletteTest {
         context.setAccessible(true);
         context.set(null, RuntimeEnvironment.getApplication());
         Settings.STATUS_BAR_TRANSLUCENCY.save(ThemePatch.StatusBarTranslucency.DEFAULT);
+    }
+
+    @Test
+    @Config(qualifiers = "night")
+    public void elevatedMetadataUsesTheResolvedAppThemeAndNeverForcesTheNativeFlagOn() {
+        assertFalse(ThemeUtils.allowElevatedPlayer(true));
+
+        ThemeUtils.updateLightDarkModeStatus(2);
+        assertTrue(ThemeUtils.allowElevatedPlayer(true));
+        assertFalse(ThemeUtils.allowElevatedPlayer(false));
+
+        ThemeUtils.updateLightDarkModeStatus(1);
+        assertFalse(ThemeUtils.allowElevatedPlayer(true));
     }
 
     private static int[] darkColors() throws Exception {

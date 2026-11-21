@@ -129,6 +129,10 @@ public final class InterfaceProbe {
                 explicit.putString(key.equals("profileScopeLower") ? "profileScope" : key, key.equals("clipId") ? "shared-clip" : key.equals("contentType") ? "clips_content" : key.equals("profileScopeLower") ? "clips" : "CLIPS");
                 check(TwitchInterface.clipTabs(source, explicit) == source, "Explicit clip context must retain full profile: " + key);
             }
+            // Keep Clips on channel pages (issue 93) leaves the whole list, with or without Hide Clips.
+            Settings.keepChannelClips = true;
+            check(TwitchInterface.clipTabs(source, plain) == source, "Keep Clips on channel pages keeps the Clips tab");
+            Settings.keepChannelClips = false;
             if (enabled) {
                 check(filtered.indexOf(Tab.VIDEOS) == 1, "Pager indexes match filtered entries");
                 check(filtered.equals(Arrays.asList(Tab.HOME, Tab.VIDEOS, Tab.CHAT)), "List equality preserved");

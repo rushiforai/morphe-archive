@@ -13,7 +13,7 @@ internal val COMPATIBILITY_ROX = Compatibility(
     signatures = emptySet(),
     targets = listOf(
         AppTarget(
-            version = "3.0.13",
+            version = "3.0.14",
             minSdk = 28,
         ),
     ),

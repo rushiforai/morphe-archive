@@ -1,11 +1,32 @@
 package app.stylus.patches.bitwarden.font
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
+import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
+import app.morphe.patcher.patch.PatchException
+import app.morphe.patcher.patch.mutableClassDefBy
 import app.morphe.patcher.patch.patch
 import app.stylus.patches.bitwarden.shared.Constants.COMPATIBILITY_BITWARDEN
+import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.builder.instruction.BuilderInstruction11n
+import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 
 private const val EXTENSION_CLASS =
     "Lapp/stylus/extension/bitwarden/patches/ForceSystemFontPatch;"
+
+internal val bitwardenFontExtensionPatch = patch {
+    extendWith("extensions/extension.mpe")
+}
+
+internal fun markCustomUiFontInstalled() {
+    val method = mutableClassDefBy(EXTENSION_CLASS).methods.single {
+        it.name == "hasCustomUiFont" && it.parameterTypes.isEmpty() && it.returnType == "Z"
+    }
+    val firstInstruction = method.implementation?.instructions?.firstOrNull()
+    if (firstInstruction?.opcode != Opcode.CONST_4 || firstInstruction !is OneRegisterInstruction) {
+        throw PatchException("Could not find the custom UI font flag in the Bitwarden extension.")
+    }
+    method.replaceInstruction(0, BuilderInstruction11n(Opcode.CONST_4, firstInstruction.registerA, 1))
+}
 
 @Suppress("unused")
 val forceSystemFontPatch = patch(
@@ -17,7 +38,7 @@ val forceSystemFontPatch = patch(
 
     compatibleWith(COMPATIBILITY_BITWARDEN)
 
-    extendWith("extensions/extension.mpe")
+    dependsOn(bitwardenFontExtensionPatch)
 
     execute {
         val targetMethod = resolveTypefaceCompatCreateFromResourcesFontFileTarget()

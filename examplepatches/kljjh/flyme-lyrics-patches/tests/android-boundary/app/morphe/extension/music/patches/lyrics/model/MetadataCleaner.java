@@ -1,0 +1,1 @@
+package app.morphe.extension.music.patches.lyrics.model; public class MetadataCleaner { public static String[] parseCleanTitleAndArtist(String title,String artist){return new String[]{artist.trim(),title.trim()};} }

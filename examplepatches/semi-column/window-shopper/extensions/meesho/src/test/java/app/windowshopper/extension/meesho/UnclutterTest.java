@@ -15,6 +15,25 @@ import org.junit.Test;
 import retrofit2.Invocation;
 
 public final class UnclutterTest {
+    @Test
+    public void profileDividerIgnoresNullAndUnrelatedRows() {
+        assert !Settings.profileRow(null);
+        assert !Settings.profileRow(new Object());
+    }
+
+    @Test
+    public void importRejectsBadConfigBeforeSaving() {
+        for (String bad : new String[] {"nope", "{}", "{\"app\":\"window-shopper-meesho\"}",
+            "{\"app\":\"window-shopper-meesho\",\"features\":{\"SHOP_RATINGS\":\"yes\"}}",
+            "{\"app\":\"window-shopper-meesho\",\"features\":{},\"tabs\":[\"a\",\"b\",\"c\",\"d\",\"e\",\"f\"]}"}) {
+            try {
+                Settings.importJson(bad);
+                throw new AssertionError("Accepted " + bad);
+            } catch (org.json.JSONException expected) {
+            }
+        }
+    }
+
     private static String transform(String text, String path, boolean... f) throws Exception {
         return Unclutter.transform(text, path, flags(f));
     }
@@ -223,25 +242,41 @@ public final class UnclutterTest {
         keepWishlist.wishlistAd = false;
         Response keptWishlist = widgetsResponse(wishlist, "wishlist", "prod.meeshoapi.com");
         assert filter(keptWishlist, keepWishlist) == keptWishlist;
+        Request popupRequest = new Request.Builder().url("https://prod.meeshoapi.com/api/1.0/inapp/popup").build();
+        Response promo = new Response.Builder().request(popupRequest).protocol(Protocol.HTTP_1_1).code(200).message("OK")
+            .body(ResponseBody.create(MediaType.get("application/json"), "{\"inapp_popup\":{\"popup_type\":\"Advanced_Floating\"}}")).build();
+        assert filter(promo, true).body().string().equals("{}");
+        Unclutter.Filters refer = new Unclutter.Filters(false, false, false, false, false);
+        refer.referEarn = true;
+        JSONObject rae = new JSONObject(transform("{\"platform\":{\"refer_and_earn\":{\"enabled\":true,\"enabled_on_hp\":true}}}",
+            "/api/2.0/configs/user", refer)).getJSONObject("platform").getJSONObject("refer_and_earn");
+        assert !rae.getBoolean("enabled") && !rae.getBoolean("enabled_on_hp");
         String trays = "{\"widget_groups\":["
             + "{\"id\":1,\"source\":{\"source_system\":\"DYNAMIC_FEED_IN_FEED\",\"source_meta\":{\"filters\":[{\"field\":\"highASP_enabled\"}]}}},"
             + "{\"id\":2,\"source\":{\"source_system\":\"DYNAMIC_FEED_IN_FEED\",\"source_meta\":{}}},"
             + "{\"id\":3,\"source\":{\"source_system\":\"SUGGESTION_QUERY_FEED_IN_FEED\"}},"
-            + "{\"id\":4,\"source\":{\"source_system\":\"FY_POP_UP\"}}]}";
+            + "{\"id\":4,\"source\":{\"source_system\":\"CLP\"}}]}";
         Unclutter.Filters goldOnly = new Unclutter.Filters(false, false, false, false, false);
         goldOnly.goldTray = true;
         JSONArray trayLeft = new JSONObject(filter(widgetsResponse(trays, "catalog_search_results",
             "prod.meeshoapi.com"), goldOnly).body().string()).getJSONArray("widget_groups");
         assert trayLeft.length() == 3 && trayLeft.getJSONObject(0).getInt("id") == 2;
         Unclutter.Filters allTrays = new Unclutter.Filters(false, false, false, false, false);
-        allTrays.goldTray = allTrays.suggestionTray = allTrays.similarTray = true;
+        allTrays.goldTray = allTrays.suggestionTray = allTrays.relatedTray = true;
         assert new JSONObject(filter(widgetsResponse(trays, "catalog_search_results",
-            "prod.meeshoapi.com"), allTrays).body().string()).getJSONArray("widget_groups").length() == 2;
-        trayLeft = new JSONObject(filter(widgetsResponse(trays, "search_pop_up",
-            "prod.meeshoapi.com"), allTrays).body().string()).getJSONArray("widget_groups");
-        assert trayLeft.length() == 3 && trayLeft.getJSONObject(2).getInt("id") == 3 : trayLeft;
-        assert new JSONObject(filter(widgetsResponse(trays, "fy_pop_up",
-            "prod.meeshoapi.com"), allTrays).body().string()).getJSONArray("widget_groups").length() == 3;
+            "prod.meeshoapi.com"), allTrays).body().string()).getJSONArray("widget_groups").length() == 1;
+        String home = "{\"widget_groups\":[{\"id\":1,\"source\":{\"source_system\":\"ISO_IOP\"}},"
+            + "{\"id\":2,\"source\":{\"source_system\":\"RECENTLY_VIEWED_NEW\"}},{\"id\":3}]}";
+        Unclutter.Filters shelf = new Unclutter.Filters(false, false, false, false, false);
+        shelf.recentShelf = true;
+        Response homePage = new Response.Builder()
+            .request(new Request.Builder().url("https://prod.meeshoapi.com/api/1.0/home-page/fetch").build())
+            .protocol(Protocol.HTTP_1_1).code(200).message("OK")
+            .body(ResponseBody.create(MediaType.get("application/json"), home)).build();
+        JSONArray homeLeft = new JSONObject(filter(homePage, shelf).body().string()).getJSONArray("widget_groups");
+        assert homeLeft.length() == 2 && homeLeft.getJSONObject(1).getInt("id") == 3 : homeLeft;
+        Response popup = widgetsResponse(trays, "search_pop_up", "prod.meeshoapi.com");
+        assert filter(popup, allTrays) == popup;
         Response keptTrays = widgetsResponse(trays, "catalog_search_results", "prod.meeshoapi.com");
         assert filter(keptTrays, new Unclutter.Filters(true, true, true, true, true)) == keptTrays;
         Response invalid = response.newBuilder()

@@ -10,9 +10,11 @@ import app.morphe.patcher.patch.Compatibility
 import app.morphe.patcher.util.smali.ExternalLabel
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 
 private const val EXTENSION = "Lapp/windowshopper/extension/meesho/Unclutter;"
 private const val SETTINGS = "Lapp/windowshopper/extension/meesho/Settings;"
@@ -69,8 +71,32 @@ private val morpheSettings = bytecodePatch {
         profile.addInstructions(build.index, """
             invoke-static/range {v$register .. v$register}, $SETTINGS->addProfileEntry(Ljava/util/List;)V
         """.trimIndent())
+
+        val row = byVersion("Ldng;", "Lvi/m;")
+        val owners = mutableListOf<String>()
+        classDefForEach { classDef ->
+            if (classDef.methods.any { it.isProfileDividerGate(row) }) owners += classDef.type
+        }
+        check(owners.size == 1) { "Expected one profile divider gate, found ${owners.size}" }
+        val divider = mutableClassDefBy(owners.single()).methods.single { it.isProfileDividerGate(row) }
+        val target = divider.implementation!!.instructions.withIndex().single {
+            it.value.opcode == Opcode.INSTANCE_OF &&
+                ((it.value as ReferenceInstruction).reference as TypeReference).type == row
+        }
+        val registers = target.value as TwoRegisterInstruction
+        divider.replaceInstruction(target.index,
+            "invoke-static/range {v${registers.registerB} .. v${registers.registerB}}, " +
+                "$SETTINGS->profileRow(Ljava/lang/Object;)Z")
+        divider.addInstructions(target.index + 1, "move-result v${registers.registerA}")
     }
 }
+
+private fun com.android.tools.smali.dexlib2.iface.Method.isProfileDividerGate(row: String) =
+    returnType == "Z" && parameterTypes.size == 2 && parameterTypes.first().toString() == "I" &&
+        implementation?.instructions?.any {
+            it.opcode == Opcode.INSTANCE_OF &&
+                ((it as ReferenceInstruction).reference as TypeReference).type == row
+        } == true
 
 private val responseHook = bytecodePatch {
     compatibleWith(MEESHO)
@@ -159,22 +185,71 @@ val hideFeedVideos = feature(
     "hideFeedVideos",
 )
 
-val hidePayLaterPrice = feature(
-    "Hide Pay Later secondary price",
-    "Hides the Pay Later secondary price on discovery listings without changing the primary price or checkout.",
-    "hidePayLaterPrice",
-)
+val hidePayLaterPrice = bytecodePatch(
+    name = "Hide Pay Later secondary price",
+    description = "Hides the Pay Later secondary price on listings and the Pay next month banner on product pages without changing the primary price or checkout.",
+) {
+    compatibleWith(MEESHO)
+    dependsOn(responseHook)
+    execute {
+        enableFeature("hidePayLaterPrice")
+        val owner = byVersion("Lsih;", "Lwz/d6;")
+        val stub = byVersion("Lxoj;", "Landroidx/databinding/p0;")
+        val model = byVersion("Ljkh;", "Lwz/p7;")
+        val method = mutableClassDefBy(owner).methods.single {
+            it.name == "d" && it.returnType == "Z" &&
+                it.parameterTypes.map(CharSequence::toString) == listOf(stub, stub, "Z", "Z", model)
+        }
+        check(method.implementation!!.registerCount <= 255) { "Pay Later display gate has too many registers" }
+        method.addInstructions(0, """
+            invoke-static/range {p2 .. p2}, $SETTINGS->showPayLaterPrice(Z)Z
+            move-result p2
+        """.trimIndent())
+    }
+}
 
-val hideSearchTrays = feature(
-    "Hide search recommendation trays",
-    "Removes the Gold Premium Quality and You may also like rows from search, and Similar Products rows from search, category pages and the home feed.",
-    "hideSearchTrays",
-)
+val hideSearchTrays = bytecodePatch(
+    name = "Hide recommendation trays",
+    description = "Removes the Gold Premium Quality, You may also like and related category rows from search, the recently viewed category shelf from home, and stops Similar Products rows in search, category pages and the home feed.",
+) {
+    compatibleWith(MEESHO)
+    dependsOn(responseHook)
+    execute {
+        enableFeature("hideSearchTrays")
+        // The popup request inserts a placeholder row and scrolls to it before any response arrives.
+        val owners = mutableListOf<String>()
+        classDefForEach { classDef ->
+            if (classDef.methods.any { it.isPopupTrayRequest() }) owners += classDef.type
+        }
+        check(owners.size == 1) { "Expected one Similar Products request owner, found ${owners.size}" }
+        val method = mutableClassDefBy(owners.single()).methods.single { it.isPopupTrayRequest() }
+        method.addInstructionsWithLabels(0, """
+            invoke-static {}, $SETTINGS->hideSimilarTray()Z
+            move-result v0
+            if-eqz v0, :original
+            return-void
+        """.trimIndent(), ExternalLabel("original", method.implementation!!.instructions.first()))
+    }
+}
+
+private fun com.android.tools.smali.dexlib2.iface.Method.isPopupTrayRequest(): Boolean {
+    if (returnType != "V") return false
+    val strings = implementation?.instructions?.mapNotNull {
+        ((it as? ReferenceInstruction)?.reference as? com.android.tools.smali.dexlib2.iface.reference.StringReference)?.string
+    } ?: return false
+    return "In Feed Widget Request" in strings && "FY_POP_UP" in strings
+}
 
 val hideNavTabs = feature(
-    "Hide bottom navigation tabs",
-    "Adds optional toggles to remove Categories, Mall and Video Finds from the bottom tab bar.",
+    "Customize tab bar",
+    "Adds settings to pick and reorder up to 5 tab bar tabs, including Account, and to hide Account in the home header.",
     "hideNavTabs",
+)
+
+val hideReferEarn = feature(
+    "Hide Refer and Earn",
+    "Removes Refer and Earn from the home header and account screen.",
+    "hideReferEarn",
 )
 
 val sortLoadedResults = bytecodePatch(
@@ -203,34 +278,6 @@ val sortLoadedResults = bytecodePatch(
         pause.addInstructions(0, """
             invoke-static/range {p0 .. p0}, Lapp/windowshopper/extension/meesho/LoadedSort;->hide(Ljava/lang/Object;)V
         """.trimIndent())
-    }
-}
-
-val hideFinanceTab = bytecodePatch(
-    name = "Hide Pay Later navigation tab",
-    description = "Prevents Pay Later from taking the fourth navigation slot without disabling its payment services.",
-) {
-    compatibleWith(MEESHO)
-    dependsOn(morpheSettings)
-    execute {
-        enableFeature("hideFinanceTab")
-        val gate = byVersion("X0", "W0")
-        val flag = byVersion("T8", "Y8")
-        val method = mutableClassDefBy("Lcom/meesho/supply/main/HomeActivity;").methods.single {
-            it.name == gate && it.parameterTypes.isEmpty() && it.returnType == "Z"
-        }
-        check(method.implementation!!.instructions.any {
-            val ref = (it as? ReferenceInstruction)?.reference as? MethodReference
-            ref?.definingClass == "Lcom/meesho/core/impl/domain/d;" && ref.name == flag
-        }) { "Unexpected Pay Later navigation gate" }
-        check(method.implementation!!.registerCount > 1) { "Navigation gate needs a local register" }
-        method.addInstructionsWithLabels(0, """
-            invoke-static {}, $SETTINGS->hideFinanceTab()Z
-            move-result v0
-            if-eqz v0, :original
-            const/4 v0, 0x0
-            return v0
-        """.trimIndent(), ExternalLabel("original", method.implementation!!.instructions.first()))
     }
 }
 
@@ -279,4 +326,39 @@ val hideFinanceProfile = bytecodePatch(
         }
     }
 
+}
+
+private const val TELEMETRY = "Lapp/windowshopper/extension/meesho/Telemetry;"
+
+val blockTelemetry = bytecodePatch(
+    name = "Block analytics and telemetry",
+    description = "Answers Meesho event and SDK logging calls locally, skips the SMS inbox upload worker, and opts out of AppsFlyer, Facebook and Firebase analytics.",
+) {
+    compatibleWith(MEESHO)
+    dependsOn(morpheSettings)
+    execute {
+        enableFeature("blockTelemetry")
+        val call = mutableClassDefBy("Lokhttp3/internal/connection/RealCall;").methods.single {
+            it.name == "getResponseWithInterceptorChain\$okhttp" && it.parameterTypes.isEmpty()
+        }
+        call.addInstructionsWithLabels(0, """
+            invoke-static/range {p0 .. p0}, $TELEMETRY->intercept(Lokhttp3/Call;)Lokhttp3/Response;
+            move-result-object v0
+            if-eqz v0, :original
+            return-object v0
+        """.trimIndent(), ExternalLabel("original", call.implementation!!.instructions.first()))
+
+        // The worker's synchronous doWork returns ListenableWorker.Result; its no-arg subclass is Success.
+        val worker = mutableClassDefBy("Lcom/meesho/sms/impl/SmsReadWorker;").methods.single {
+            it.name != "<init>" && it.parameterTypes.isEmpty() && it.returnType.startsWith("L")
+        }
+        worker.addInstructionsWithLabels(0, """
+            invoke-static {}, $TELEMETRY->skipWorker()Z
+            move-result v0
+            if-eqz v0, :original
+            new-instance v0, ${worker.returnType}
+            invoke-direct {v0}, ${worker.returnType}-><init>()V
+            return-object v0
+        """.trimIndent(), ExternalLabel("original", worker.implementation!!.instructions.first()))
+    }
 }

@@ -96,6 +96,85 @@ expect('hideSurveys-0.js', `<div id="feed">${unit('a', '1y')}
   ['#survey', true], ['#a', false], ['#b', false],
 ]);
 
+// Hide surveys: "Was this worth your time?" under a short answer. The box starts with
+// "Your response is private"; the answer around it stays (it is under 400 characters on purpose).
+expect('hideSurveys-0.js', `<div id="feed">
+  <div class="q-box dom_annotate_multifeed_bundle_AnswersBundle" id="w">
+    ${header('Knows things', '1y')}
+    <div class="q-text puppeteer_test_question_title">A short question?</div>
+    <div class="puppeteer_test_answer_content"><p class="q-text" id="w-text">A short answer.</p></div>
+    <div class="q-box" id="worth"><div class="q-box"><div class="q-flex">
+      <div class="q-box"><div class="q-text">Your response is private</div>
+        <div class="q-text">Was this worth your time?</div>
+        <div class="q-text">This helps us show content you find valuable.</div></div>
+      <div class="q-flex"><button>Absolutely not</button><button>Definitely yes</button></div>
+    </div></div></div>
+  </div>
+  ${unit('b', '2y')}</div>`, [
+  ['#worth', true], ['#w', false], ['#w-text', false], ['#name', false], ['#b', false],
+]);
+
+// Copy and Share text: one of each under an answer and under a Spaces post (whose Share button
+// is only marked by its icon's label), none made from each other, and a shortened feed text goes
+// out as a preview without its "Read more".
+{
+  const shareIcon = '<span aria-label="Share"><svg width="24" height="24"></svg></span>';
+  const html = `
+    <div class="q-box dom_annotate_multifeed_bundle_AnswersBundle" id="a">
+      <div class="puppeteer_test_answer_content"><p class="q-text">Full answer text.</p></div>
+      <div class="q-flex" id="a-bar"><span class="q-box"><button class="dom_annotate_answer_action_bar_share">
+        ${shareIcon}<div class="q-text">3</div></button></span></div>
+    </div>
+    <div class="q-box dom_annotate_multifeed_bundle_TribeBundle" id="other">
+      <div class="q-text"><p class="q-text">Text of another item.</p></div>
+    </div>
+    <div class="q-box dom_annotate_multifeed_bundle_PostBundle" id="p">
+      <div class="q-click-wrapper"><div class="q-text qu-dynamicFontSize--regular_title">A post title?</div>
+      <div class="q-text qu-truncateLines--3 qu-wordBreak--break-word"><span>The start of a long post</span></div>
+      <span class="q-text">Read more</span></div>
+      <div class="q-flex" id="p-bar"><span class="q-box"><button class="q-click-wrapper" aria-label="82 shares">
+        ${shareIcon}<div class="q-text">82</div></button></span></div>
+    </div>`;
+  const dom = new JSDOM(`<!doctype html><html><head></head><body>${html}</body></html>`, {
+    runScripts: 'outside-only', pretendToBeVisual: true,
+  });
+  // jsdom has no innerText; the page scripts read the text with it.
+  Object.defineProperty(dom.window.HTMLElement.prototype, 'innerText', {
+    get() { return this.textContent.replace(/\s+/g, ' ').trim(); },
+  });
+  // The app's raw bridge: every call must carry the key the scripts' own wrapper adds.
+  const calls = [];
+  const keys = new Set();
+  const record = (name) => (key, t) => { keys.add(key); calls.push([name, t]); };
+  dom.window.JoFSlashBridge = {
+    copyText: record('copyText'), copyPreview: record('copyPreview'),
+    shareText: record('shareText'), sharePreview: record('sharePreview'),
+  };
+  for (const s of ['copyAnswerText-0.js', 'shareAnswerText-0.js', 'copyAnswerText-0.js']) {
+    dom.window.eval(fs.readFileSync(path.join(dir, s), 'utf8'));
+  }
+  const doc = dom.window.document;
+  const count = (bar, label) => doc.querySelectorAll(`#${bar} button[aria-label="${label}"]`).length;
+  for (const bar of ['a-bar', 'p-bar']) {
+    for (const label of ['Copy text', 'Share text']) {
+      checks++;
+      if (count(bar, label) !== 1) fail(`#${bar} should have one "${label}" button, has ${count(bar, label)}`);
+    }
+  }
+  doc.querySelector('#p-bar button[aria-label="Share text"]').click();
+  doc.querySelector('#a-bar button[aria-label="Copy text"]').click();
+  const want = [['sharePreview', 'A post title?\n\nThe start of a long post…'], ['copyText', 'Full answer text.']];
+  checks++;
+  if (JSON.stringify(calls) !== JSON.stringify(want)) fail(`Copy/Share text calls: ${JSON.stringify(calls)}`);
+  checks++;
+  const [key] = keys;
+  if (keys.size !== 1 || !/^[0-9a-f]{36}$/.test(key)) fail(`Bridge calls should carry one key, got ${JSON.stringify([...keys])}`);
+  // A frame without the key gets nothing: the wrapper is the only way in, and it can't be replaced.
+  checks++;
+  try { dom.window.JoFSlashPatches = {}; } catch (e) { /* frozen in strict code */ }
+  if (typeof dom.window.JoFSlashPatches.ready !== 'function') fail('window.JoFSlashPatches could be replaced');
+}
+
 // Hide Spaces posts: a stylesheet that hides post units and leaves answers.
 {
   const doc = run('hideSpacesPosts-0.js', `${unit('a', '1y')}
@@ -108,5 +187,67 @@ expect('hideSurveys-0.js', `<div id="feed">${unit('a', '1y')}
   }
 }
 
-console.log(`${checks} DOM checks, ${failures} failure(s)`);
-process.exit(failures ? 1 : 0);
+// Block authors (sample list has Jane Doe): her answers go on question pages too; an answer she
+// only upvoted stays.
+expect('blockAuthors-0.js', `
+  <div class="q-box dom_annotate_question_answer_item_0" id="hers">
+    <a class="puppeteer_test_link" href="https://www.quora.com/profile/Jane-Doe-12"></a>
+    <a class="puppeteer_test_link" href="https://www.quora.com/profile/Jane-Doe-12">Jane Doe</a>
+    <div class="puppeteer_test_answer_content"><p class="q-text">Her answer.</p></div></div>
+  <div class="q-box dom_annotate_question_answer_item_1" id="upvoted">
+    <a class="puppeteer_test_link" href="https://www.quora.com/profile/John-Roe">John Roe</a>
+    <div class="q-text qu-color--gray"><div><span class="c1h7helg">Upvoted by <span class="q-inlineFlex">
+      <a class="puppeteer_test_link" href="https://www.quora.com/profile/Jane-Doe-12">Jane Doe</a></span>
+      , PhD in physics</span></div></div>
+    <div class="puppeteer_test_answer_content"><p class="q-text">His answer.</p></div></div>`, [
+  ['#hers', true], ['#upvoted', false],
+]);
+
+// Bookmarks in an open answer: the button is added next to Share, and added again when Quora
+// redraws the action bar and drops it.
+async function bookmarkCheck() {
+  const props = encodeURIComponent(JSON.stringify({ aid: 7 }));
+  const dom = new JSDOM(`<!doctype html><html><body>
+    <div class="q-text puppeteer_test_question_title">Why is the sky blue?</div>
+    <a class="puppeteer_test_link" href="https://www.quora.com/profile/Jane-Doe">Jane Doe</a>
+    <div class="puppeteer_test_answer_content"><p class="q-text">Because of the air.</p></div>
+    <div id="bar"><div class="q-box"><div class="q-box dom_annotate_answer_action_bar_share">
+      <button aria-label="Share"><svg><path d="M0 0"></path></svg></button></div></div></div>
+    </body></html>`, {
+    url: `https://www.quora.com/ans_frontend?rootCls=AnswerModalPage&props=${props}`,
+    runScripts: 'outside-only', pretendToBeVisual: true,
+  });
+  const w = dom.window;
+  w.__RELAY_RECORDS__ = { r1: { aid: 7, permaUrl: 'https://www.quora.com/Why-is-the-sky-blue/answer/Jane-Doe' } };
+  Object.defineProperty(w.HTMLElement.prototype, 'innerText', {
+    get() { return this.textContent.replace(/\s+/g, ' ').trim(); },
+  });
+  const saved = new Set();
+  w.JoFSlashBridge = {
+    isBookmarked: (key, url) => saved.has(url),
+    toggleBookmark: (key, url) => { if (saved.has(url)) saved.delete(url); else saved.add(url); return saved.has(url); },
+  };
+  w.eval(fs.readFileSync(path.join(dir, 'bookmarks-0.js'), 'utf8'));
+  const button = () => w.document.querySelector('[aria-label="Bookmark"],[aria-label="Remove bookmark"]');
+  const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+  await wait(200);
+  checks++;
+  if (!button()) fail('bookmarks-0.js: no bookmark button next to Share');
+  if (button()) {
+    button().click();
+    checks++;
+    if (!saved.has('https://www.quora.com/Why-is-the-sky-blue/answer/Jane-Doe')) fail('bookmarks-0.js: tapping the button saved nothing');
+    // Quora redraws the bar: our button is gone.
+    w.document.querySelector('[data-jofslash-bookmark]').remove();
+    await wait(800);
+    checks++;
+    if (!button()) fail('bookmarks-0.js: the button doesn\'t come back after the bar is redrawn');
+    else if (button().getAttribute('aria-pressed') !== 'true') fail('bookmarks-0.js: the button that came back doesn\'t show the saved state');
+  }
+  w.close();
+}
+
+bookmarkCheck().then(() => {
+  console.log(`${checks} DOM checks, ${failures} failure(s)`);
+  process.exit(failures ? 1 : 0);
+});

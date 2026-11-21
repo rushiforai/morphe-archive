@@ -25,6 +25,28 @@ def run(*command):
     return subprocess.check_output(list(map(str, command)), text=True, encoding="utf-8", stderr=subprocess.STDOUT)
 
 
+def undo_native_edits(root, abi, actual, kind, label):
+    path = root / f"patches/src/main/resources/remoteatv/{kind}-6.1.0-{abi}.tsv"
+    lines = [line.split('\t') for line in path.read_text().splitlines()
+             if line and not line.startswith('#')]
+    before, after = lines[0]
+    assert hashlib.sha256(actual).hexdigest() == after, f"Wrong {label} output"
+    restored = bytearray(actual)
+    for position, old, new in lines[1:]:
+        offset = int(position, 16)
+        old, new = bytes.fromhex(old), bytes.fromhex(new)
+        assert restored[offset:offset + len(new)] == new, f"Missing {label} edit"
+        restored[offset:offset + len(old)] = old
+    assert hashlib.sha256(restored).hexdigest() == before, f"Unreviewed {label} edits"
+    return bytes(restored)
+
+
+def undo_page_swipes(root, abi, actual):
+    restored = undo_native_edits(root, abi, actual, "swipes", "page-swipe")
+    assert hashlib.sha256(restored).hexdigest() == STATUS[abi], "Unreviewed swipe predecessor"
+    return restored
+
+
 def verify(args):
     root = Path(__file__).resolve().parents[1]
     with zipfile.ZipFile(args.stock) as stock, zipfile.ZipFile(args.output) as output:
@@ -47,6 +69,10 @@ def verify(args):
                 assert hashlib.sha256(actual).hexdigest() == NATIVE[name.split("/")[1]], "Wrong Flutter engine"
             elif name.endswith("/libapp.so"):
                 abi = name.split("/")[1]
+                if getattr(args, "dpad_hold", False):
+                    actual = undo_native_edits(root, abi, actual, "hold", "D-pad hold")
+                if getattr(args, "page_swipes", False) or getattr(args, "dpad_hold", False):
+                    actual = undo_page_swipes(root, abi, actual)
                 assert hashlib.sha256(actual).hexdigest() == STATUS[abi], "Wrong status labels"
                 restored = bytearray(actual)
                 for text in [b"Activate premium", b"Upgrade to premium for an Ad-Free Experience"]:
@@ -80,11 +106,18 @@ def verify(args):
     for permission in ["com.google.android.gms.permission.AD_ID", "com.android.vending.CHECK_LICENSE", "android.permission.ACCESS_ADSERVICES_"]:
         assert permission not in manifest, "Advertising/licensing permission retained"
     abi_count = len({name.split("/")[1] for name in expected})
-    print(f"PASS: {abi_count} supplied native ABI(s), only reviewed Dart display labels changed, original assets/compression, restored engine checksums and retained remote-control permissions")
+    changes = "display labels"
+    if getattr(args, "page_swipes", False) or getattr(args, "dpad_hold", False):
+        changes += ", opt-in page-swipe hooks"
+    if getattr(args, "dpad_hold", False):
+        changes += " and D-pad hold hooks"
+    print(f"PASS: {abi_count} supplied native ABI(s), only reviewed {changes} changed, original assets/compression, restored engine checksums and retained remote-control permissions")
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     for name in ["stock", "output"]: parser.add_argument(name, type=Path)
     for name in ["java", "dexlib-jar", "aapt2"]: parser.add_argument("--" + name, type=Path, required=True)
+    parser.add_argument("--page-swipes", action="store_true", help="Verify the optional Disable remote page swipes patch")
+    parser.add_argument("--dpad-hold", action="store_true", help="Verify the optional hold patch and its swipe-lock dependency")
     verify(parser.parse_args())

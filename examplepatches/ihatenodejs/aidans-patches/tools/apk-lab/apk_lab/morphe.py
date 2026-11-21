@@ -278,6 +278,24 @@ def generate_test_cases(patch: PatchDef) -> list[PatchTestCase]:
     return cases
 
 
+_ANDROID_PACKAGE_NAME = re.compile(r"^[A-Za-z][A-Za-z0-9_]*(\.[A-Za-z][A-Za-z0-9_]*)+$")
+
+
+def resolve_expected_output_package(
+    test_case: PatchTestCase, input_package: str
+) -> str:
+    """Returns the package a test case may legitimately declare after patching."""
+    declared = test_case.options.get("packageName")
+    if not isinstance(declared, str):
+        return input_package
+    candidate = declared.strip()
+    if not candidate or candidate == input_package:
+        return input_package
+    if not _ANDROID_PACKAGE_NAME.fullmatch(candidate):
+        return input_package
+    return candidate
+
+
 def verify_sdk_dex(apk_path: Path) -> tuple[bool, str | None]:
     """Runs dexdump -c on every DEX inside the APK to verify structural validity."""
     try:
@@ -731,13 +749,19 @@ def run_single_patch_case(
                 duration_seconds=duration,
             )
 
-        # Package and version unchanged
-        if out_info.package_name != input_inspection.package_name:
+        # Package and version unchanged, unless the patch explicitly declares a new package
+        expected_package = resolve_expected_output_package(
+            test_case, input_inspection.package_name
+        )
+        if out_info.package_name != expected_package:
             return PatchTestCaseResult(
                 patch_name=test_case.patch_name,
                 options=test_case.options,
                 success=False,
-                error_message=f"Package name changed: {input_inspection.package_name} -> {out_info.package_name}",
+                error_message=(
+                    f"Package name changed: {input_inspection.package_name} -> "
+                    f"{out_info.package_name} (expected {expected_package})"
+                ),
                 applied_patches=applied,
                 duration_seconds=duration,
             )
@@ -902,43 +926,40 @@ def run_compatibility_check(
     test_case_results: list[PatchTestCaseResult] = []
     failed_reasons: list[str] = []
 
+    def execute_case(case: PatchTestCase) -> PatchTestCaseResult:
+        return run_single_patch_case(
+            artifact_path=art_path,
+            mpp_path=m_path,
+            test_case=case,
+            input_inspection=input_inspection,
+            force=force,
+            keep_workspace=keep_workspace,
+            ws_mgr=ws_mgr,
+            tool_mgr=tool_mgr,
+        )
+
+    results_by_idx: dict[int, PatchTestCaseResult] = {}
     if max_workers == 1 or len(all_cases) <= 1:
-        for _idx, case in all_cases:
-            res = run_single_patch_case(
-                artifact_path=art_path,
-                mpp_path=m_path,
-                test_case=case,
-                input_inspection=input_inspection,
-                force=force,
-                keep_workspace=keep_workspace,
-                ws_mgr=ws_mgr,
-                tool_mgr=tool_mgr,
-            )
-            test_case_results.append(res)
+        for idx, case in all_cases:
+            results_by_idx[idx] = execute_case(case)
     else:
+        # Run one case first so shared one-time tool state is initialized before
+        # multiple JVMs start and race to create it.
+        warm_idx, warm_case = all_cases[0]
+        results_by_idx[warm_idx] = execute_case(warm_case)
+        remaining_cases = all_cases[1:]
         with ThreadPoolExecutor(
-            max_workers=min(max_workers, len(all_cases))
+            max_workers=min(max_workers, len(remaining_cases))
         ) as executor:
             future_to_idx = {
-                executor.submit(
-                    run_single_patch_case,
-                    artifact_path=art_path,
-                    mpp_path=m_path,
-                    test_case=case,
-                    input_inspection=input_inspection,
-                    force=force,
-                    keep_workspace=keep_workspace,
-                    ws_mgr=ws_mgr,
-                    tool_mgr=tool_mgr,
-                ): idx
-                for idx, case in all_cases
+                executor.submit(execute_case, case): idx
+                for idx, case in remaining_cases
             }
-            results_by_idx: dict[int, PatchTestCaseResult] = {}
             for future in as_completed(future_to_idx):
                 idx = future_to_idx[future]
                 results_by_idx[idx] = future.result()
 
-        test_case_results = [results_by_idx[i] for i in range(len(all_cases))]
+    test_case_results = [results_by_idx[i] for i in range(len(all_cases))]
 
     for res in test_case_results:
         if not res.success:

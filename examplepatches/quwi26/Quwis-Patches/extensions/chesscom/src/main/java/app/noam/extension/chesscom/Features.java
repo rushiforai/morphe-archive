@@ -29,6 +29,8 @@ public final class Features {
     public static final String GAME_REVIEW = "game_review";
     public static final String COMPUTER_REVIEW = "computer_review";
     public static final String NETWORK_SCAN = "network_scan";
+    public static final String GREAT_MOVES = "great_moves";
+    public static final String DISCORD = "discord";
 
     public static final String PAGE_HOME = "home";
     public static final String PAGE_TABS = "tabs";
@@ -40,10 +42,12 @@ public final class Features {
     public static final String PAGE_GAME_REVIEW = "game_review";
     public static final String PAGE_COMPUTER_REVIEW = "computer_review";
     public static final String PAGE_NETWORK_SCAN = "network_scan";
+    public static final String PAGE_GREAT_MOVES = "great_moves";
+    public static final String PAGE_DISCORD = "discord";
     /** The screens shown the first time the patched app opens. */
     public static final String PAGE_WELCOME = "welcome";
 
-    public static final String[] SECTIONS = {"Board", "Look", "Games", "Less clutter"};
+    public static final String[] SECTIONS = {"Board", "Look", "Games", "Less clutter", "Social"};
 
     private static final String PREFERENCES = "morphe_chesscom";
 
@@ -128,6 +132,12 @@ public final class Features {
         new Feature(NETWORK_SCAN, "Games", "glyph_device_computer_versus", "Find the computer on the network",
             "Finds sf-bridge on your Wi-Fi.",
             PAGE_NETWORK_SCAN, Features::networkScanPatched),
+        new Feature(GREAT_MOVES, "Games", "glyph_element_star_hollow", "Great and Brilliant moves analysis",
+            "Marks Great (!) and Brilliant (!!).",
+            PAGE_GREAT_MOVES, Features::greatMovesPatched),
+        new Feature(DISCORD, "Social", "glyph_message_bubble_fill_pair", "Discord Rich Presence",
+            "What you are doing, on your Discord profile.",
+            PAGE_DISCORD, Features::discordPatched),
         new Feature(LIMIT_TOASTS, "Less clutter", "glyph_message_bubble_fill_pair", "Limits as toasts",
             "A toast instead of a Premium offer.",
             null, Features::limitToastsPatched),
@@ -167,6 +177,7 @@ public final class Features {
     public static boolean computerReviewPatched() { return false; }
     public static boolean networkScanPatched() { return false; }
     public static boolean greatMovesPatched() { return false; }
+    public static boolean discordPatched() { return false; }
     public static boolean crashPatched() { return false; }
 
     public static List<Feature> patched() {

@@ -1,17 +1,117 @@
+## 1.6.0 (2026-11-20)
+
+- **LinkedIn:** Support 4.1.1275 and 4.1.1276 beta, including the newer divider colors. Reduce repeated feed parsing while scrolling and hide video carousels. Normal feed reload on reopening is now the default; an explicitly enabled Keep feed on reopen setting is retained.
+- **LinkedIn:** Restore Firebase package and certificate headers for regular Google Play services and cloned builds. GmsCore support remains optional and needs microG RE when selected.
+- **LinkedIn:** Add screenshot share-sheet blocking, top-bar controls, navigation-tab ordering and Messaging in the bottom bar. Add elapsed video time and optional automatic advance, separate post-menu copy/download switches, GIF file types, PDF completion notifications, settings backup files and menu scroll restoration.
+- **Remote for Android TV:** Add optional Disable remote page swipes and Increase D-pad hold tolerance for 6.1.0 build 45. Started arrow holds continue through finger movement in both repeat modes, with normal release/cancellation handling. Both options are off by default; hold tolerance also enables swipe lock.
+- **Wanderlog:** Add support for 2.229 (build 2026111701), retaining the earlier supported versions.
+- **Ultimea:** Add Black Mode, Hide Explorer Tab, Accent color, Disable tracking, Remove distractions and Remove popups for 1.4.4 build 495, ARM64 only. The in-app settings entry uses BadFella Patches branding.
+
+Refresh BadFella Patches in Morphe Manager, repatch the original supported app APK/APKM and install using your existing Manager signing key. Select optional patches explicitly. Existing app data and signing keys should be retained.
+
+LinkedIn feed behavior and push delivery can still depend on account, server and device settings. GmsCore support routes Google sign-in and push through microG RE; leave it unselected to use regular Google Play services. Ultimea startup and soundbar reconnection have not been verified on physical hardware.
+
+Thanks to the upstream authors lokesh-sparrow, amfakh, heyymichii and hxreborn, and to the contributors and reporters who helped test these changes.
+
+## 1.6.0-dev.18 (2026-11-20)
+
+- **LinkedIn:** Add support for 4.1.1276 beta (build 218400), including its updated divider colors for Remove gaps and dividers. Earlier supported versions remain available.
+
+Enable pre-releases for BadFella Patches in Morphe Manager, refresh Sources, and repatch the original LinkedIn APK. Install using your existing Manager signing key.
+
+## 1.6.0-dev.17 (2026-11-19)
+
+- **Remote for Android TV:** Fix another movement-cancellation path in Increase D-pad hold tolerance. Started arrow holds now use the same protection before and after gesture acceptance, in both repeat modes. Ordinary taps, center/select, repeat timing and release/cancel handlers remain unchanged. The patch stays optional and off by default for 6.1.0 build 45.
+
+Enable pre-releases in Morphe Manager and refresh Sources. Repatch the original APKM with Increase D-pad hold tolerance enabled and install using your existing Manager signing key.
+
+## 1.6.0-dev.16 (2026-11-19)
+
+- **Remote for Android TV:** Update the optional Increase D-pad hold tolerance patch for 6.1.0 build 45 to keep the original arrow held through finger movement until release or cancellation. Cover both ways the app repeats held arrows; dev.15 only covered one. Ordinary taps, center/select and repeat timing are unchanged.
+
+Enable pre-releases in Morphe Manager and refresh Sources. Repatch the original APKM with Increase D-pad hold tolerance enabled and install using your existing Manager signing key.
+
+## 1.6.0-dev.15 (2026-11-19)
+
+- **Remote for Android TV:** Add the optional Increase D-pad hold tolerance patch for 6.1.0 build 45. It allows three times more finger movement after an arrow hold starts, retaining release and cancel handling. Requires the remote page swipe lock; both optional patches remain off by default.
+
+Enable pre-releases in Morphe Manager and refresh Sources. Repatch the original APKM with Increase D-pad hold tolerance enabled and install using your existing Manager signing key.
+
+## 1.6.0-dev.14 (2026-11-19)
+
+- **Wanderlog:** Add support for Wanderlog 2.229, build 2026111701, retaining the existing supported versions.
+
+Enable pre-releases in Morphe Manager and refresh Sources. Repatch the original APKM and install using your existing Manager signing key.
+
+## 1.6.0-dev.13 (2026-11-18)
+
+## Remote for Android TV 6.1.0 (build 45)
+
+- **Remote for Android TV:** Add the optional Disable remote page swipes patch. It prevents swiping between the D-pad or touchpad and number pad while retaining the switch button and setup page swipes. The patch is off by default.
+
+Enable pre-releases for BadFella Patches in Morphe Manager and refresh Sources. Select the original Remote for Android TV 6.1.0 build 45 APKM, enable Disable remote page swipes alongside Remote ATV ad-free, and repatch. Install using your existing Manager signing key.
+
+## 1.6.0-dev.12 (2026-11-18)
+
+## LinkedIn 4.1.1275 beta (build 218300)
+
+- **LinkedIn:** Add support for version 4.1.1275 beta, build 218300, while retaining earlier supported versions.
+
+Enable pre-releases for BadFella Patches in Morphe Manager, refresh Sources, and repatch the original LinkedIn APK. Install using your existing Manager signing key.
+
+## 1.6.0-dev.11 (2026-11-17)
+
+- **LinkedIn:** Use LinkedIn’s normal Home feed reload behavior on reopen by default. If you explicitly enabled Keep feed on reopen, that choice is retained.
+- **LinkedIn:** Reorder bottom tabs, add Messaging, choose which Home top-bar buttons to show, and keep swipe gestures in the profile drawer from changing tabs.
+- **LinkedIn:** Disable the screenshot share sheet, show elapsed video time, and optionally advance to the next video. Select the Video tab patch in Morphe Manager to enable its settings.
+- **LinkedIn:** Save animated GIFs with their own file type, show a completion notification after saving a PDF when notifications are allowed, and switch post-menu copy and download actions on or off independently.
+- **LinkedIn:** Save and restore settings as a JSON file, return to the same position in the patch menu, and turn off the microG RE battery reminder.
+
+Enable pre-releases for BadFella Patches in Morphe Manager, refresh Sources, and patch the original LinkedIn APK. Install using your existing Manager signing key.
+
+## 1.6.0-dev.10 (2026-11-16)
+
+- **LinkedIn:** Smoother feed scrolling. Feed filters no longer parse each whole post while it scrolls into view: Hide suggested posts, Hide ads labels and Hide video posts use quick checks, and the work for the post menu and short links runs in the background.
+- **LinkedIn:** Remove the per-post result cache added in 1.6.0-dev.8, which never matched because LinkedIn creates a new post object on every update.
+
+Enable pre-releases for BadFella Patches in Morphe Manager, refresh Sources and repatch the original stock APK. Install with your existing Manager signing key to preserve app data.
+
+## 1.6.0-dev.9 (2026-11-16)
+
+- **LinkedIn:** Hide video posts also hides video carousels such as "Videos for you", matched by the video components inside a post or module rather than by its text.
+- **LinkedIn:** The Diagnostics performance capture also reports filter time per LinkedIn component name (server template names such as feed-full-update, no post content) and how often a post's filter result was reused while scrolling.
+
+Enable pre-releases for BadFella Patches in Morphe Manager, refresh Sources and repatch the original stock APK. Install with your existing Manager signing key to preserve app data.
+
+## 1.6.0-dev.8 (2026-11-16)
+
+- **LinkedIn:** Smoother feed scrolling. Feed filters now check each post once instead of re-reading every visible post on each scroll update.
+- **LinkedIn:** Changing a BadFella Patches setting re-checks posts with the new setting.
+
+Enable pre-releases for BadFella Patches in Morphe Manager, refresh Sources and repatch the original stock APK. Install with your existing Manager signing key to preserve app data.
+
+## 1.6.0-dev.7 (2026-11-16)
+
+- **LinkedIn:** Restore Firebase's original package and certificate headers in the normal LinkedIn patch path, including cloned builds. The correction also applies without GmsCore support.
+- **LinkedIn:** Keep GmsCore support disabled to use regular Google Play services. Selecting it routes Google sign-in and push through microG RE, which must be installed and allowed to run in the background.
+- **LinkedIn:** Notification permission and LinkedIn notification settings still apply. End-to-end push delivery requires device verification.
+
+Enable pre-releases for BadFella Patches in Morphe Manager, refresh Sources and repatch the original stock APK. Install with your existing Manager signing key to preserve app data.
+
 ## 1.6.0-dev.6 (2026-11-16)
 
-- Rename the Ultimea Profile entry and settings-page title to BadFella Patches. Bluetooth/device-control behavior is unchanged from dev.5.
+- **Ultimea:** Rename the Ultimea Profile entry and settings-page title to BadFella Patches. Bluetooth/device-control behavior is unchanged from dev.5.
 
 ## 1.6.0-dev.5 (2026-11-16)
 
-- Add hxreborn-derived Accent color, Disable tracking, Remove distractions and Remove popups for Ultimea 1.4.4 build 495 (ARM64).
-- Apply removal edits during patching and prepare accent colors on launch. Preserve Bluetooth/device-control implementations and Flutter library loading.
-- The existing Feedback contrast issue is unchanged. Physical startup, appearance and soundbar reconnection still require testing.
+- **Ultimea:** Add hxreborn-derived Accent color, Disable tracking, Remove distractions and Remove popups for Ultimea 1.4.4 build 495 (ARM64).
+- **Ultimea:** Apply removal edits during patching and prepare accent colors on launch. Preserve Bluetooth/device-control implementations and Flutter library loading.
+- **Ultimea:** The existing Feedback contrast issue is unchanged. Physical startup, appearance and soundbar reconnection still require testing.
 
 ## 1.6.0-dev.4 (2026-11-16)
 
-- Replace the incomplete Ultimea theme and Explorer edits with the scoped hxreborn-derived port for Ultimea 1.4.4 build 495 (ARM64 only).
-- Keep Bluetooth connection methods, device controls and Flutter engine libraries unchanged. Physical startup and soundbar reconnection remain unverified.
+- **Ultimea:** Replace the incomplete Ultimea theme and Explorer edits with the scoped hxreborn-derived port for Ultimea 1.4.4 build 495 (ARM64 only).
+- **Ultimea:** Keep Bluetooth connection methods, device controls and Flutter engine libraries unchanged. Physical startup and soundbar reconnection remain unverified.
 
 ## 1.5.0 (2026-11-16)
 

@@ -9,7 +9,7 @@
  * - inotia00 (https://github.com/inotia00)
  *
  * Licensed under the GNU General Public License v3.0.
- * Modified by lavinhoque33, 2026-11-16.
+ * Modified by lavinhoque33, 2026-11-20.
  *
  * ------------------------------------------------------------------------
  * GPLv3 Section 7 – Additional Terms & Attribution Requirements
@@ -407,6 +407,17 @@ val navigationBarComponentsPatch = bytecodePatch(
             ).forEach { literal ->
                 replaceLiteralInstructionCall(literal, smaliInstruction)
             }
+        }
+
+        val pivotRenderer = if (is_8_51_or_greater) {
+            TabLayoutTextFingerprint.method
+        } else {
+            legacyTabLayoutTextFingerprint.methodOrThrow()
+        }
+        if (installSearchTabFilter(pivotRenderer)) {
+            addSwitchPreference(CategoryType.NAVIGATION, "revanced_hide_navigation_search_tab", "false")
+        } else {
+            printWarn("Hide Search tab: native Search pivot hook unavailable on ${packageMetadata.versionName}.")
         }
 
         addSwitchPreference(

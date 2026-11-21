@@ -1,6 +1,6 @@
 package app.morphe.extension.youtube.patches.components;
 
-import app.morphe.extension.shared.patches.components.Filter;
+import app.morphe.extension.shared.patches.components.LazyBufferFilter;
 import app.morphe.extension.shared.patches.components.StringFilterGroup;
 import app.morphe.extension.youtube.patches.video.CustomPlaybackSpeedPatch;
 import app.morphe.extension.youtube.settings.Settings;
@@ -8,7 +8,7 @@ import app.morphe.extension.youtube.settings.Settings;
 /**
  * LithoFilter for {@link CustomPlaybackSpeedPatch}.
  */
-public final class PlaybackSpeedMenuFilter extends Filter {
+public final class PlaybackSpeedMenuFilter extends LazyBufferFilter {
     /**
      * Old litho based speed selection menu.
      */
@@ -37,7 +37,7 @@ public final class PlaybackSpeedMenuFilter extends Filter {
     }
 
     @Override
-    public boolean isFiltered(String path, String identifier, String allValue, byte[] buffer,
+    public boolean isFilteredLazy(String path, String identifier, String allValue, Buffer buffer,
                               StringFilterGroup matchedGroup, FilterContentType contentType, int contentIndex) {
         if (matchedGroup == oldPlaybackMenuGroup) {
             isOldPlaybackSpeedMenuVisible = true;

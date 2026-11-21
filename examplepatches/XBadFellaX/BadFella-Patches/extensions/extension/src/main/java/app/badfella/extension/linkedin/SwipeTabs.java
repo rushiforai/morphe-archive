@@ -77,6 +77,17 @@ final class SwipeTabs {
         return null;
     }
 
+    private static boolean profileMenuOpen(View root) {
+        View drawer = NavigationBar.child(root, "home_drawer_layout");
+        if (!(drawer instanceof ViewGroup)) return false;
+        ViewGroup layout = (ViewGroup) drawer;
+        for (int i = 1; i < layout.getChildCount(); i++) {
+            View panel = layout.getChildAt(i);
+            if (panel.isShown() && panel.getRight() > 0 && panel.getLeft() < layout.getWidth()) return true;
+        }
+        return false;
+    }
+
     /** The state of the touch being watched. */
     private static final class Gesture {
         private final WeakReference<View> bar;
@@ -105,7 +116,7 @@ final class SwipeTabs {
                 velocity = VelocityTracker.obtain();
                 intercepting = false;
                 View b = bar.get();
-                valid = b != null && b.isShown() && Settings.swipeTabs();
+                valid = b != null && b.isShown() && Settings.swipeTabs() && !profileMenuOpen(decor);
                 downX = event.getRawX();
                 downY = event.getRawY();
                 scrollable = null;
@@ -141,7 +152,7 @@ final class SwipeTabs {
         /** Whether the finger has gone far enough sideways, and no screen under it wants the swipe. */
         private boolean isSwipe(MotionEvent event, View decor) {
             View b = bar.get();
-            if (b == null) return false;
+            if (b == null || profileMenuOpen(decor)) return false;
             float density = b.getResources().getDisplayMetrics().density;
             float dx = event.getRawX() - downX;
             float dy = event.getRawY() - downY;

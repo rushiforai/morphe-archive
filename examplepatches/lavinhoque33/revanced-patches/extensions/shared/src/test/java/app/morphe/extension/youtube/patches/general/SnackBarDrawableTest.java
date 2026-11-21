@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2026 lavinhoque33
  * Licensed under the GNU General Public License v3.0.
- * Modified by lavinhoque33, 2026-11-19.
+ * Modified by lavinhoque33, 2026-11-20.
  * Written by lavinhoque33, 2026-11-18.
  */
 
@@ -17,11 +17,13 @@ import static app.morphe.extension.youtube.settings.Settings.SnackBarBorderPrese
 import android.content.Context;
 import android.content.ContextWrapper;
 import android.content.pm.PackageInfo;
+import android.content.res.ColorStateList;
 import android.content.res.Resources;
 import android.content.res.TypedArray;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Outline;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -64,6 +66,7 @@ public class SnackBarDrawableTest {
         Settings.SNACK_BAR_STROKE_COLOR.resetToDefault();
         Settings.SNACK_BAR_STROKE_WIDTH.resetToDefault();
         Settings.SNACK_BAR_PLAYLIST_RADIUS.resetToDefault();
+        Settings.SNACK_BAR_PLAYLIST_BORDER.resetToDefault();
     }
 
     @Test
@@ -172,11 +175,14 @@ public class SnackBarDrawableTest {
     }
 
     @Test
-    public void playlistReusesOnlyRadiusAndRestoresItsOwnRadius() {
+    public void playlistBorderAndRadiusAreIndependentAndRestoreStockPixels() {
         SnackBarDrawable playlist = shape(new SnackBarDrawable.Playlist(), 16, Color.RED);
         SnackBarDrawable picker = shape(new SnackBarDrawable.RadiusOnly(), 8, Color.BLUE);
+        Bitmap stock = draw(playlist);
+        float stockOutlineRadius = outlineRadius(playlist);
         Settings.SNACK_BAR_CORNER_RADIUS.save(24.5f);
         Settings.SNACK_BAR_DARK_FILL.save("#00FF00");
+        Settings.SNACK_BAR_STROKE_COLOR.save("#00FF00");
         Settings.SNACK_BAR_STROKE_WIDTH.save(4f);
         assertEquals(Color.RED, draw(playlist).getPixel(32, 1));
         assertEquals(16f * density, playlist.getCornerRadius(), 0f);
@@ -186,9 +192,85 @@ public class SnackBarDrawableTest {
         Settings.SNACK_BAR_PLAYLIST_RADIUS.save(true);
         assertEquals(Color.RED, draw(playlist).getPixel(32, 1));
         assertEquals(24.5f * density, playlist.getCornerRadius(), 0f);
+
+        Settings.SNACK_BAR_PLAYLIST_BORDER.save(true);
+        assertEquals(Color.GREEN, draw(playlist).getPixel(32, 1));
+        assertEquals(24.5f * density, playlist.getCornerRadius(), 0f);
+        assertEquals(Color.BLUE, draw(picker).getPixel(32, 1));
+
         Settings.SNACK_BAR_PLAYLIST_RADIUS.save(false);
-        draw(playlist);
-        assertEquals(16f * density, playlist.getCornerRadius(), 0f);
+        Bitmap borderOnly = draw(playlist);
+        int strokeWidth = Math.round(4f * density);
+        assertEquals(Color.GREEN, borderOnly.getPixel(32, strokeWidth - 1));
+        assertEquals(Color.RED, borderOnly.getPixel(32, strokeWidth));
+        assertEquals(Color.RED, borderOnly.getPixel(32, 32));
+        assertEquals(stockOutlineRadius, outlineRadius(playlist), 0f);
+
+        Settings.SNACK_BAR_STROKE_WIDTH.resetToDefault();
+        assertTrue(stock.sameAs(draw(playlist)));
+        Settings.SNACK_BAR_STROKE_WIDTH.save(4f);
+        Settings.SNACK_BAR_STROKE_COLOR.save("#0000FF00");
+        assertTrue(stock.sameAs(draw(playlist)));
+        Settings.SNACK_BAR_STROKE_COLOR.save("#00FF00");
+        Settings.SNACK_BAR_PLAYLIST_BORDER.save(false);
+        assertTrue(stock.sameAs(draw(playlist)));
+    }
+
+    @Test
+    public void playlistChipFollowsItsOwnThemeAndPreservesTheStatefulFill() {
+        exposeThemeTestAttribute();
+        Resources.Theme darkTheme = theme(android.R.style.Theme_Material);
+        Resources.Theme lightTheme = theme(android.R.style.Theme_Material_Light);
+        SnackBarDrawable playlist = shape(new SnackBarDrawable.Playlist(), 8, Color.RED);
+        int[] focused = { android.R.attr.state_focused };
+        playlist.setColor(new ColorStateList(new int[][]{ focused, {} }, new int[]{ Color.BLUE, Color.RED }));
+        playlist.captureBase(resources, darkTheme);
+
+        Settings.SNACK_BAR_PLAYLIST_BORDER.save(true);
+        Settings.SNACK_BAR_BORDER_PRESET.save(CHIP);
+        Settings.SNACK_BAR_STROKE_WIDTH.save(4f);
+        Bitmap dark = draw(playlist);
+        assertEquals(composite(themeColor(darkTheme), Color.RED), dark.getPixel(32, 1));
+        assertEquals(Color.RED, dark.getPixel(32, 32));
+
+        playlist.applyTheme(lightTheme);
+        playlist.setState(focused);
+        Bitmap focusedLight = draw(playlist);
+        assertEquals(composite(themeColor(lightTheme), Color.BLUE), focusedLight.getPixel(32, 1));
+        assertEquals(Color.BLUE, focusedLight.getPixel(32, 32));
+    }
+
+    @Test
+    public void roundedPlaylistGetsBorderWithoutChangingItsPillRadius() {
+        SnackBarDrawable pill = shape(new SnackBarDrawable.RoundedPlaylist(), 32, Color.RED);
+        Bitmap stock = draw(pill);
+        float stockOutlineRadius = outlineRadius(pill);
+        Settings.SNACK_BAR_CORNER_RADIUS.save(0f);
+        Settings.SNACK_BAR_PLAYLIST_RADIUS.save(true);
+        Settings.SNACK_BAR_STROKE_COLOR.save("#00FF00");
+        Settings.SNACK_BAR_STROKE_WIDTH.save(4f);
+        assertTrue(stock.sameAs(draw(pill)));
+
+        Settings.SNACK_BAR_PLAYLIST_BORDER.save(true);
+        Bitmap outlined = draw(pill);
+        assertEquals(Color.GREEN, outlined.getPixel(32, 1));
+        assertEquals(Color.RED, outlined.getPixel(32, 32));
+        assertEquals(Color.TRANSPARENT, outlined.getPixel(0, 0));
+        assertEquals(stockOutlineRadius, outlineRadius(pill), 0f);
+    }
+
+    private static int composite(int foreground, int background) {
+        Bitmap target = Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(target);
+        canvas.drawColor(background);
+        canvas.drawColor(foreground);
+        return target.getPixel(0, 0);
+    }
+
+    private static float outlineRadius(SnackBarDrawable drawable) {
+        Outline outline = new Outline();
+        drawable.getOutline(outline);
+        return outline.getRadius();
     }
 
     private static final int TEST_CHIP_ATTRIBUTE = android.R.attr.textColorPrimary;

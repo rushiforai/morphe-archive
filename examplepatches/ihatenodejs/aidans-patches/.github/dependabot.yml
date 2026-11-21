@@ -6,13 +6,23 @@ updates:
     target-branch: dev
     schedule:
       interval: monthly
+    groups:
+      github-actions:
+        patterns: ['*']
+        update-types: ['minor', 'patch']
 
-  - package-ecosystem: npm
+  # Bun drives CI (`bun install --frozen-lockfile`). The npm-based release
+  # workflow resolves package-lock.json at release time.
+  - package-ecosystem: bun
     labels: []
     directory: /
     target-branch: dev
     schedule:
       interval: monthly
+    groups:
+      bun-dependencies:
+        patterns: ['*']
+        update-types: ['minor', 'patch']
     ignore:
       # version 10.x and later may not generate release notes correctly
       # https://github.com/conventional-changelog/conventional-changelog/issues/1495

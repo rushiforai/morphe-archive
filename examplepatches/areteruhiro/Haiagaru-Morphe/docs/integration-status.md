@@ -1,6 +1,18 @@
+2026-11-21 Haiagaru 1.48.0 正式公開済み: スレ名変更機能（独自スレ名の編集・表示フック・関連トグル）を削除し、キーワード表示名フックは維持。191／226／242の新着件数から透明NGを除く処理、履歴削除反映、X添付URL処理、読書位置・追加フィルター・エッヂ検索の修正を同梱。Build CI `44841096719`、Release／Attest CI `44841096787`成功。stable `draft=false`／`prerelease=false`、9アセット確認。MPP SHA-256 `257f9c0835fb061e8dee5796927a6dad8fad9e3ba3ba5e56c0625945bd96ed2a`、patches-bundle.json／pre SHA-256 `c7b6fb8ff6c15daa8d775c7d7fa077ff8c74e77ef043659cc821126b8a224c42`、version `1.48.0`。Frida 17.18.0で各版のスレ名変更削除4項目、共通回帰20項目、Xプレビュー7項目を確認。履歴確認は191=27／226=16／242=50項目成功。新着toastはテスト時に新規レスがなく実表示未確認。公開先 https://github.com/areteruhiro/Haiagaru-Morphe/releases/tag/1.48.0。
+
+2026-11-20 Haiagaru 1.47.0 正式公開済み: 既読位置・共有NG・返信通知文字コード・日本語直結URL・HOMEメニュー・設定見出し色・191閲覧履歴の即時反映を同梱。Semantic Release／Attest CI `44716075088` 成功、stable `draft=false`／`prerelease=false`、9アセット確認。MPP SHA-256 `be9108913ba9203a7befbb147eb0afa67c158e1beb409f2bc70f886dde7d09bf`、patches-bundle.json／pre SHA-256 `a9f924e6161d4d0133f83dec46468dd91a50ba3925dc36d8a59cf392233bd2c8`、version `1.47.0`。Host URL57・通知復号成功、Frida 17.18.0で191通知／URL／履歴／設定を確認、履歴DEX bindingは191／226／242全てPASS。3版reporter起動・署名照合済み。実機スレ本文・画像画面は未確認（利用者の「そのまま公式リリース」指示に基づき公開）。公開先 https://github.com/areteruhiro/Haiagaru-Morphe/releases/tag/1.47.0。
+
+2026-11-20 Haiagaru 1.46.0 正式公開済み: 1.45.0からの未公開修正とTwitter画像配列の固定件数上限撤廃を含む。Release／Attest CI `44570390004`成功、stable `prerelease=false`、9アセットを確認。MPP SHA-256 `a74a65a1c855e3348460f542ae296d5636548a1831a59137e920ec2c70ac56ac`。配布ページの更新履歴を日本語化し、謝辞をREADMEと指定の一覧に統一。Twitter画像パーサーは191／226／242隔離版で64件の合成データをFrida確認。実際のX応答件数は未確認。公開先 https://github.com/areteruhiro/Haiagaru-Morphe/releases/tag/1.46.0。
+
 2026-11-20 1.46.0-dev.10 プレリリース公開済み: X返信先@handleを省略警告の詳細／簡易判定から除外し、詳細版は280ポイントちょうどを許容。X本文URLから通常リンクカードを抽出。242限定・初期OFFで、更新直後の新着数から透明NGレスを除く設定を追加。Crash/ANRログは既存Version項目を保ち、ChMate版とHaiagaru版を追加。Frida 17.18.0でX 7項目、新着件数5項目、ログ版数を確認。新着toastの実画面確認は未実施。CI Release `44551628678`／Attest成功。MPP SHA-256 `1799925e4e668445c8a33b749fdc689600f04cd11b6abd16a739eb5adf7a73f8`。Pre bundle version `1.46.0-dev.10`を照合。公開先 https://github.com/areteruhiro/Haiagaru-Morphe/releases/tag/1.46.0-dev.10。
 
+2026-11-20 既読位置・共有NG（プレリリース作業中）: 既読スレを開いた直後の「ここまで読んだ」行を上端へ整列し、リンクカード等の非同期更新後も画面内アンカーを保持。共有NGの初回確認を廃止し、個人NG送信同意と受信設定を分離。個人NG送信時に最新板一覧から既存NGの板を再解決し、未解決条件を全板へ広げず共有側から削除。共有NG一致行は通常「あぼーん」表示を初期値にして、透明表示へ切替可能。Frida 17.18.0で既読位置10項目／各版、表示初期値とON/OFF／各版、初回UI／191、板の再解決／191・226を確認。242の板カタログ確認はFrida接続時のFirebase Crashlytics SIGBUSで未完了。詳細 `docs/reading-position-shared-ng-20261120.md`。
+
 # 主開発先と統合状況
+
+
+
+2026-11-20 通知文字化け・日本語直結URL・HOME表示名メニュー・設定見出し色・閲覧履歴即時反映（ローカル確認）: UTF-8と板既定文字コードを日本語復号品質で選択、URL直前の日本語を許容、HOMEメニューIDをクリック振り分けにも接続、全設定カテゴリ見出しをテーマのアクセント色に統一、191履歴削除後に保持元とライブリストから対象行を除いて再通知。Host 57 URL項目とUTF-8/EUC-JP/MS932復号成功。Mi Note 10の隔離reporter191でFrida 17.18.0の通知3・URL2・履歴1・メニュー1・見出し27項目成功。3版reporterは署名確認・install-r済み。226／242のFridaテストとユーザー報告端末での実操作は未確認。詳細 `docs/bugfix-notification-home-settings-history-20261120.md`。
 
 2026-11-19 1.46.0-dev.9 プレリリース公開済み: NG ID/NAME/WORDの私用領域regex登録拒否・起動時移行、NGWord新規条件6コードポイント以上、Eddi過去ログ遷移、タブレット下部フィルターpane配置を同梱。Frida各版18件／Edge191 7件／Expert242 7件成功、CI Release `44503814635` 成功。公開MPP SHA-256 `4e09e8f10395579b54b30b6c32a2e2adcfd07d27d3a362227003bfb6528de395`。公開先 https://github.com/areteruhiro/Haiagaru-Morphe/releases/tag/1.46.0-dev.9。
 

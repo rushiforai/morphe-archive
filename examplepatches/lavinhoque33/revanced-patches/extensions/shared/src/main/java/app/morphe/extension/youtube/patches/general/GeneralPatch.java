@@ -9,7 +9,7 @@
  * - inotia00 (https://github.com/inotia00)
  *
  * Licensed under the GNU General Public License v3.0.
- * Modified by lavinhoque33, 2026-11-06.
+ * Modified by lavinhoque33, 2026-11-20.
  *
  * ------------------------------------------------------------------------
  * GPLv3 Section 7 – Additional Terms & Attribution Requirements
@@ -1050,6 +1050,16 @@ public class GeneralPatch {
         hideViewUnderCondition(isNotificationButton(enumString), view);
     }
 
+    /**
+     * Injection point. Hide the menu item so the toolbar does not reserve a slot for it.
+     */
+    public static void hideToolbarMessagesButton(Enum<?> icon, MenuItem item) {
+        if (Settings.HIDE_TOOLBAR_MESSAGES_BUTTON.get() && icon != null
+                && "MESSAGE_BUBBLE_OVERLAP".equals(icon.name()) && item != null) {
+            item.setVisible(false);
+        }
+    }
+
     public static void hideSearchButton(String enumString, View view) {
         if (!Settings.HIDE_TOOLBAR_SEARCH_BUTTON.get())
             return;
@@ -1670,6 +1680,10 @@ public class GeneralPatch {
 
     public static boolean hideSearchTermThumbnail(boolean original) {
         return !hideSearchTermThumbnail() && original;
+    }
+
+    public static boolean showSearchAsk(boolean original) {
+        return original && !Settings.HIDE_SEARCH_ASK.get();
     }
 
     private static final boolean hideImageSearchButton = Settings.HIDE_IMAGE_SEARCH_BUTTON.get();

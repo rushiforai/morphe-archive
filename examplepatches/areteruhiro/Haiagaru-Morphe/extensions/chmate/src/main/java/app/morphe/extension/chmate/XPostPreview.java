@@ -195,9 +195,10 @@ public final class XPostPreview {
         int detailedPoints = XPostLength.detailedPoints(text, post, warningStart);
         boolean thresholdReached = Haiagaru.xPostWarningThresholdMode() == 0
                 ? detailedPoints > XPostLength.POSSIBLE_TRUNCATION_POINTS
-                : visibleBytes >= XPostLength.POSSIBLE_TRUNCATION_BYTES;
+                : visibleBytes > XPostLength.POSSIBLE_TRUNCATION_BYTES;
+        String previewText = XPostLength.withoutAttachmentUrls(text, post);
         Data data = new Data(expectedId, user.optString("name", "").substring(0,
-                Math.min(200, user.optString("name", "").length())), handle, text,
+                Math.min(200, user.optString("name", "").length())), handle, previewText,
                 post.optString("created_at", ""),post.optBoolean("truncated",false)&&!fullProvided,
                 !noteComplete&&post.optBoolean("is_note_tweet",false)
                         ||!fullProvided&&(thresholdReached||text.endsWith("…")||text.endsWith("...")));
@@ -287,6 +288,9 @@ public final class XPostPreview {
             if (previous == null) WRITING.remove();
             else WRITING.set(previous);
         }
+        // X preview data can reveal ordinary URLs that were absent from the native
+        // response text. Let the website-card resolver inspect the rendered body.
+        SiteCards.onBound(view);
     }
 
     static String originalText(CharSequence source) {

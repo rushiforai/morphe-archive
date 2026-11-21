@@ -33,6 +33,7 @@ internal fun BytecodePatchContext.patchReadingPosition(version: String) {
     owner.methods.filter { it.name == "onResume" && it.parameterTypes.isEmpty() }.forEach { resume ->
         resume.implementation!!.instructions.withIndex().filter { it.value.opcode == Opcode.RETURN_VOID }
             .asReversed().forEach { (index, _) -> resume.addInstructions(index,
-                "invoke-static/range {p0 .. p0}, Lapp/morphe/extension/chmate/ThreadWatchNavigation;->onResume(Ljava/lang/Object;)V") }
+                "invoke-static/range {p0 .. p0}, Lapp/morphe/extension/chmate/ThreadWatchNavigation;->onResume(Ljava/lang/Object;)V\n" +
+                    "invoke-static/range {p0 .. p0}, Lapp/morphe/extension/chmate/ReadingPosition;->onResume(Ljava/lang/Object;)V") }
     }
 }

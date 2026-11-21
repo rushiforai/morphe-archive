@@ -3,7 +3,7 @@
  * https://github.com/MorpheApp/morphe-patches/pull/3862
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
- * Modified by lavinhoque33, 2026-10-24
+ * Modified by lavinhoque33, 2026-10-24 and 2026-11-20
  */
 
 package app.morphe.extension.youtube.patches.feed;
@@ -59,9 +59,8 @@ import app.morphe.extension.youtube.settings.Settings;
  * The view count is the text YouTube shows below the title, such as
  * "Channel - 4.7M views - 2 days ago". When that text is created, the shortened view count
  * is attached to it as a span, so the card that draws the text knows its view count.
- * The span is copied with the text, so it is kept when the Hide view count option
- * of the Hide layout components patch removes the view count from below the title.
- * No request is made, and the count is the same that YouTube shows.
+ * The independent feed subtitle switches change only the visible text. The badge still uses
+ * the original count when it is hidden from a subtitle. No request is made.
  * <p>
  * The same text is used by other lists too, such as the videos of a playlist, where no badge is
  * shown. So the view count is removed from below the title only for the texts of the components
@@ -72,6 +71,8 @@ import app.morphe.extension.youtube.settings.Settings;
 public final class FeedViewCountPatch {
 
     public static final boolean ENABLED = isPatchIncluded() && Settings.FEED_VIEW_COUNT.get();
+    private static final boolean HIDE_SUBTITLE_VIEWS = isPatchIncluded() && Settings.HIDE_FEED_SUBTITLE_VIEWS.get();
+    private static final boolean HIDE_SUBTITLE_AGE = isPatchIncluded() && Settings.HIDE_FEED_SUBTITLE_AGE.get();
 
     /**
      * Delimiters of the texts below the title. Older layouts show a dot as text,
@@ -229,11 +230,7 @@ public final class FeedViewCountPatch {
      *         without the hashes and the types, which are the same for the same layout.
      */
     @Nullable
-    private static String getElementPath(@Nullable ContextInterface contextInterface) {
-        if (contextInterface == null) {
-            return null;
-        }
-        StringBuilder path = contextInterface.patch_getPathBuilder();
+    private static String getElementPath(@Nullable CharSequence path) {
         if (path == null || path.length() == 0) {
             return null;
         }
@@ -564,7 +561,10 @@ public final class FeedViewCountPatch {
     }
 
     private static SpannableString withSpan(CharSequence text, ViewCountSpan span) {
-        SpannableString spannable = new SpannableString(text);
+        return setViewCountSpan(new SpannableString(text), span);
+    }
+
+    private static SpannableString setViewCountSpan(SpannableString spannable, ViewCountSpan span) {
         for (ViewCountSpan old : spannable.getSpans(0, spannable.length(), ViewCountSpan.class)) {
             spannable.removeSpan(old);
         }
@@ -585,15 +585,22 @@ public final class FeedViewCountPatch {
             return text;
         }
         try {
-            ViewCountMatch match = findViewCount(text.toString(), Locale.getDefault());
-            if (match == null) {
-                return text;
-            }
-            return withSpan(text, new ViewCountSpan(match.parsed.count, null, false));
+            return attachOriginalViewCount(text);
         } catch (Exception ex) {
             Logger.printException(() -> "onFeedSubtitleCreated failure", ex);
         }
         return text;
+    }
+
+    static SpannableString attachOriginalViewCount(SpannableString text) {
+        ViewCountMatch match = findViewCount(text.toString(), Locale.getDefault());
+        return match == null ? text : withSpan(text, new ViewCountSpan(match.parsed.count, null, false));
+    }
+
+    @Nullable
+    static String attachedViewCount(CharSequence text) {
+        ViewCountSpan span = getViewCountSpan(text);
+        return span == null ? null : span.viewCount;
     }
 
     /**
@@ -603,38 +610,65 @@ public final class FeedViewCountPatch {
      * The view count is removed from the texts of the paths of the cards that show the badge.
      */
     public static CharSequence onLithoTextLoaded(@Nullable Object conversionContext, CharSequence text) {
-        ContextInterface contextInterface = conversionContext instanceof ContextInterface context
-                ? context
-                : null;
-        if (!ENABLED || text == null) {
+        if ((!ENABLED && !HIDE_SUBTITLE_VIEWS && !HIDE_SUBTITLE_AGE) || text == null
+                || !(conversionContext instanceof ContextInterface context)) {
             return text;
         }
         try {
-            ViewCountSpan span = getViewCountSpan(text);
-            if (span == null || span.removed) {
-                return text;
-            }
-            String path = getElementPath(contextInterface);
-            if (path == null) {
-                return text;
-            }
-            if (cardPaths.contains(path)) {
-                SpannableString removed = removeViewCount(text);
-                if (removed != null) {
-                    return withSpan(removed, new ViewCountSpan(span.viewCount, path, true));
-                }
-                return text;
-            }
-            if (path.equals(span.path)) {
-                return text;
-            }
-            // Not known yet. The text keeps its view count, and the path is learned
-            // if the badge is shown on its card.
-            return withSpan(text, new ViewCountSpan(span.viewCount, path, false));
+            return transformSubtitle(context.patch_getPathBuilder(), text,
+                    ENABLED, HIDE_SUBTITLE_VIEWS, HIDE_SUBTITLE_AGE, cardPaths);
         } catch (Exception ex) {
             Logger.printException(() -> "onLithoTextLoaded failure", ex);
         }
         return text;
+    }
+
+    static CharSequence transformSubtitle(@Nullable CharSequence rawPath, CharSequence text, boolean badge,
+                                          boolean hideViews, boolean hideAge, Set<String> learnedPaths) {
+        ViewCountSpan span = badge ? getViewCountSpan(text) : null;
+        if (span != null && span.removed) {
+            return text;
+        }
+        String path = span == null ? null : getElementPath(rawPath);
+        boolean moveViews = path != null && learnedPaths.contains(path);
+
+        if (hideViews || hideAge) {
+            FeedSubtitle.Edit edit = FeedSubtitle.hide(rawPath, text, hideViews || moveViews, hideAge);
+            if (edit != null) {
+                if (!badge) {
+                    return edit.text();
+                }
+                String count = span == null ? shortenViewCount(edit.views()) : span.viewCount;
+                if (count == null) {
+                    return edit.text();
+                }
+
+                // Litho can discard empty text items. Keep the badge span mounted without visible text.
+                SpannableString badgeText = edit.text().length() == 0 ? new SpannableString("\u200b") : edit.text();
+                String badgePath = span == null ? getElementPath(rawPath) : path;
+                return setViewCountSpan(badgeText, new ViewCountSpan(count, badgePath, edit.viewsRemoved()));
+            }
+        }
+
+        if (span == null || path == null) {
+            return text;
+        }
+        if (moveViews) {
+            SpannableString removed = removeViewCount(text);
+            return removed == null ? text
+                    : setViewCountSpan(removed, new ViewCountSpan(span.viewCount, path, true));
+        }
+        // The path is learned only if the existing badge is placed on the card.
+        return path.equals(span.path) ? text : withSpan(text, new ViewCountSpan(span.viewCount, path, false));
+    }
+
+    @Nullable
+    private static String shortenViewCount(@Nullable String label) {
+        if (label == null) {
+            return null;
+        }
+        ParsedViewCount parsed = parseViewCount(label, Locale.getDefault());
+        return parsed == null ? null : parsed.count;
     }
 
     // endregion

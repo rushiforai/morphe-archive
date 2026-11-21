@@ -1,0 +1,50 @@
+name: Verify Android Morphe patch source
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_ACTOR: ${{ github.actor }}
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Load pinned Morphe patches Gradle plugin
+        uses: actions/checkout@v4
+        with:
+          repository: MorpheApp/morphe-patches-gradle-plugin
+          ref: 0a2c1971e2913a6ea5e8fd192d359765169a6a06
+          path: build-logic/morphe-patches-gradle-plugin
+          persist-credentials: false
+      - name: Load pinned Morphe patcher
+        uses: actions/checkout@v4
+        with:
+          repository: MorpheApp/morphe-patcher
+          ref: 812e96eaac173cd058ba49e242325371959befae
+          path: build-logic/morphe-patcher
+          persist-credentials: false
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Compile ANDROID DEX bundle and metadata
+        run: bash ./gradlew :patches:generatePatchesList --no-daemon
+      - name: Verify Manager source, Dex content, patch count and regression tests
+        run: |
+          python3 -m unittest discover -s tests -v
+          python3 scripts/validate_morphe_release.py
+          test -s patches/build/libs/patches-0.4.4.mpp
+          sha256sum patches/build/libs/patches-0.4.4.mpp
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hatena-morphe-patches-0.4.4
+          path: patches/build/libs/patches-0.4.4.mpp

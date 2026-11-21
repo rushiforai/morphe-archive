@@ -111,7 +111,7 @@ private object MainActivityOnCreateFingerprint : Fingerprint(
  * shortcut), and SduiFragment lifecycle hooks that drive the SDUI download button.
  */
 val settingsPatch = bytecodePatch {
-    dependsOn(settingsManifestPatch)
+    dependsOn(settingsManifestPatch, firebaseSupportPatch)
 
     extendWith("extensions/extension.mpe")
 

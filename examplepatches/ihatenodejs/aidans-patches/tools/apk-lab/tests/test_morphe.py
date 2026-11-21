@@ -1,9 +1,11 @@
 from apk_lab.morphe import (
     PatchDef,
     PatchOptionDef,
+    PatchTestCase,
     generate_test_cases,
     get_compatible_patches,
     is_patchable_member,
+    resolve_expected_output_package,
 )
 
 
@@ -15,6 +17,39 @@ def test_is_patchable_member_includes_manifest_and_mutable_members():
     assert is_patchable_member("assets/config.json")
     assert is_patchable_member("lib/arm64-v8a/libil2cpp.so")
     assert not is_patchable_member("META-INF/CERT.RSA")
+
+
+def test_resolve_expected_output_package():
+    base = PatchTestCase(
+        patch_name="Normal Patch", options={"other": "x"}, dependencies=[]
+    )
+    assert resolve_expected_output_package(base, "com.example.app") == "com.example.app"
+
+    same = PatchTestCase(
+        patch_name="Clone App",
+        options={"packageName": "com.example.app"},
+        dependencies=[],
+    )
+    assert resolve_expected_output_package(same, "com.example.app") == "com.example.app"
+
+    clone = PatchTestCase(
+        patch_name="Clone App",
+        options={"packageName": "com.example.app.morphe"},
+        dependencies=[],
+    )
+    assert (
+        resolve_expected_output_package(clone, "com.example.app")
+        == "com.example.app.morphe"
+    )
+
+    invalid = PatchTestCase(
+        patch_name="Clone App",
+        options={"packageName": "not a package"},
+        dependencies=[],
+    )
+    assert (
+        resolve_expected_output_package(invalid, "com.example.app") == "com.example.app"
+    )
 
 
 def test_generate_test_cases_boolean_inversion():

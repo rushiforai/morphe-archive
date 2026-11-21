@@ -36,9 +36,12 @@ jobs:
         with:
           python-version: '3.12'
 
+      - name: Fetch the README assets branch
+        run: git fetch --no-tags --depth=1 origin +refs/heads/assets:refs/remotes/origin/assets
+
       - name: Run script tests
         run: |
-          pip install requests
+          pip install requests fonttools brotli
           for test in .github/scripts/test_*.py .github/actions/triage/test_*.py; do
             python "$test" || exit 1
           done
@@ -49,7 +52,13 @@ jobs:
       - name: Run tests
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: ./gradlew :patches:test :extensions:extension:test :extensions:extension:checkstyle :extensions:extension:lintRelease --no-daemon
+        run: ./gradlew :patches:test :testExtensions :checkExtensions --no-daemon
+
+      - name: Run extension script tests
+        run: |
+          for test in extensions/*/src/test/js/*.test.js; do
+            node "$test" || exit 1
+          done
 
       - name: Verify project compiles
         env:

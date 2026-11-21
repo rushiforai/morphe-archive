@@ -60,6 +60,7 @@ public final class InstantsSaveImage {
     /** Called with the viewer state every time the context menu items are built. */
     public static void onViewerState(Object state) {
         viewerState = state;
+        InstantsGoBack.onState(state);
     }
 
     /** Resource id of the app's download icon (the one of "Save to photos"), or [fallback]. */
@@ -151,7 +152,7 @@ public final class InstantsSaveImage {
 
     // ImageUrl's accessor names are obfuscated, so take the first public no-arg String getter
     // that returns something that looks like a location.
-    private static String urlOf(Object imageUrl) {
+    static String urlOf(Object imageUrl) {
         if (imageUrl == null) return null;
         for (Method m : imageUrl.getClass().getMethods()) {
             if (m.getParameterTypes().length != 0 || m.getReturnType() != String.class
@@ -172,7 +173,7 @@ public final class InstantsSaveImage {
     }
 
     // What the viewer shows right now: the address to save and whether it is a video.
-    private static final class Target {
+    static final class Target {
         final String url;
         final boolean video;
 
@@ -183,11 +184,23 @@ public final class InstantsSaveImage {
     }
 
     // The state's accessor for the current media is obfuscated: try its no-arg methods that return
-    // an object, and take the first whose result is a media model (one that holds a Media or exposes
-    // an ImageUrl).
-    private static Target currentTarget() {
-        Object state = viewerState;
+    // an object and take the first whose result is a media model (one that holds a Media). The
+    // accessor found is kept, so that a state without a current item (no unseen posts) is told
+    // apart from an accessor that was never found.
+    private static Method modelAccessor;
+
+    /** The media model the viewer shows in [state], or null when it shows none. */
+    static synchronized Object currentModelOf(Object state) {
         if (state == null) return null;
+        Method cached = modelAccessor;
+        if (cached != null && cached.getDeclaringClass().isInstance(state)) {
+            try {
+                return cached.invoke(state);
+            } catch (Throwable t) {
+                Log.e(TAG, "Unable to read the current media", t);
+                return null;
+            }
+        }
         for (Method m : state.getClass().getMethods()) {
             Class<?> returnType = m.getReturnType();
             if (m.getParameterTypes().length != 0 || returnType.isPrimitive() || returnType == String.class
@@ -196,27 +209,43 @@ public final class InstantsSaveImage {
             }
             try {
                 Object model = m.invoke(state);
-                if (model == null) continue;
-
-                Object media = fieldOfType(model, MEDIA_TYPE);
-                Object source = videoSourceOf(media);
-                String videoUrl = source != null ? videoUrlOf(source) : null;
-                if (videoUrl != null) {
-                    Log.i(TAG, "current media is a video: " + videoUrl);
-                    return new Target(videoUrl, true);
+                if (model != null && fieldOfType(model, MEDIA_TYPE) != null) {
+                    modelAccessor = m;
+                    return model;
                 }
-
-                String url = largestCandidateUrl(model);
-                if (url == null) url = urlOf(imageUrlOf(model));
-                if (url != null && isVideoThumbnail(url)) {
-                    // A video whose address could not be read: do not save its still image as a photo.
-                    Log.w(TAG, "video without a readable address, source=" + (source != null));
-                    return new Target(null, true);
-                }
-                if (url != null) return new Target(url, false);
             } catch (Throwable ignored) {
                 // Try the next accessor.
             }
+        }
+        return null;
+    }
+
+    private static Target currentTarget() {
+        Object model = currentModelOf(viewerState);
+        return model != null ? targetOf(model) : null;
+    }
+
+    /** The address to save for a media model, and whether it is a video. Null when none is found. */
+    static Target targetOf(Object model) {
+        try {
+            Object media = fieldOfType(model, MEDIA_TYPE);
+            Object source = videoSourceOf(media);
+            String videoUrl = source != null ? videoUrlOf(source) : null;
+            if (videoUrl != null) {
+                Log.i(TAG, "current media is a video: " + videoUrl);
+                return new Target(videoUrl, true);
+            }
+
+            String url = largestCandidateUrl(model);
+            if (url == null) url = urlOf(imageUrlOf(model));
+            if (url != null && isVideoThumbnail(url)) {
+                // A video whose address could not be read: do not use its still image as a photo.
+                Log.w(TAG, "video without a readable address, source=" + (source != null));
+                return new Target(null, true);
+            }
+            if (url != null) return new Target(url, false);
+        } catch (Throwable ignored) {
+            // No readable address.
         }
         return null;
     }
@@ -316,7 +345,7 @@ public final class InstantsSaveImage {
         }
     }
 
-    private static Object fieldOfType(Object target, String typeName) throws Exception {
+    static Object fieldOfType(Object target, String typeName) throws Exception {
         for (Class<?> type = target.getClass(); type != null && type != Object.class; type = type.getSuperclass()) {
             for (java.lang.reflect.Field field : type.getDeclaredFields()) {
                 if (!Modifier.isStatic(field.getModifiers()) && field.getType().getName().equals(typeName)) {

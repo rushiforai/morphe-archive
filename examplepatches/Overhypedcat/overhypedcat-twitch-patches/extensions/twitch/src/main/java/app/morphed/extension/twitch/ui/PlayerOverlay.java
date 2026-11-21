@@ -28,16 +28,19 @@ import app.morphed.extension.twitch.patches.DebugLog;
 import app.morphed.extension.twitch.settings.PatchSettings;
 
 /**
- * The patches' parts of the video player's controls, laid over them and shown, moved and faded with them:
+ * The patches' parts of the video player's controls, put into the controls themselves (one more child of their
+ * view), so they come, fade, go and sit under sheets and menus exactly as the player's own buttons do:
  * <ul>
- *     <li>In full screen, a lock button after the top row's left-hand buttons. Locked, the screen stays
- *     horizontal and touches don't reach the player; three quick taps unlock (each tap shows a padlock with the
- *     taps so far).</li>
+ *     <li>In full screen, a lock button after the top row's left-hand buttons. Locking hides the controls at
+ *     once; touches don't reach the player then, and three quick taps unlock (each tap shows a padlock with the
+ *     taps so far). The screen stays horizontal and in full screen however the phone is turned, auto-rotate
+ *     or not; the back button unlocks (and goes back, as it would).</li>
  *     <li>While song removal is on for the stream, a pill next to the player's own (uptime, viewers) with what
  *     it is doing.</li>
  * </ul>
  * The controls are React Native: found by their test ids. They are taken down each time they hide and built anew
- * each time they show, so they are looked up again on every frame they aren't there.
+ * each time they show, so they are looked up again (and our parts put into the new ones) on every frame they
+ * aren't there. React Native doesn't lay out a child it doesn't know: ours are sized and placed here.
  */
 public final class PlayerOverlay {
     private static final int TAG_KEY = 0x7e000102;
@@ -86,7 +89,7 @@ public final class PlayerOverlay {
     private final LockIcon hintIcon;
     private final View[] hintDots = new View[TripleTap.NEEDED];
     private final TripleTap taps = new TripleTap();
-    private final int[] at = new int[2], other = new int[2], layerAt = new int[2];
+    private final int[] at = new int[2], other = new int[2];
     private final Runnable fadeHint, followLater;
     private WeakReference<View> controls = new WeakReference<>(null), tapLayer = new WeakReference<>(null);
     private long searchedAt;
@@ -99,6 +102,11 @@ public final class PlayerOverlay {
     private boolean followQueued;
     private boolean locked;
     private int savedOrientation;
+    private long notFullSince; // (uptime ms) locked, but the screen isn't in full screen since
+    private boolean orientationHeld; // locked: held horizontal (the app's own wish kept for after)
+    /** The controls hidden by the lock (shown again on unlock, if they're still there). */
+    private final java.util.List<WeakReference<View>> hiddenControls = new java.util.ArrayList<>();
+    private final int[] hostAt = new int[2];
     private SongPillText shownPill;
     private boolean noPillPlaceLogged;
     private boolean failureShown;
@@ -132,7 +140,7 @@ public final class PlayerOverlay {
                 failed(t);
             }
         });
-        layer.addView(lockButton, new FrameLayout.LayoutParams(theme.dp(40), theme.dp(40)));
+        lockButton.setLayoutParams(new ViewGroup.LayoutParams(theme.dp(40), theme.dp(40)));
 
         // As the player's own pills: black, mostly opaque, a white glyph and plain white text.
         pill = new LinearLayout(activity);
@@ -153,7 +161,7 @@ public final class PlayerOverlay {
         pillText.setSingleLine(true);
         pillText.setEllipsize(TextUtils.TruncateAt.END);
         pill.addView(pillText, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
-        layer.addView(pill, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, theme.dp(28)));
+        pill.setLayoutParams(new ViewGroup.LayoutParams(theme.dp(40), theme.dp(28)));
 
         hint = new LinearLayout(activity);
         hint.setOrientation(LinearLayout.VERTICAL);
@@ -226,6 +234,16 @@ public final class PlayerOverlay {
         window.setCallback((android.view.Window.Callback) java.lang.reflect.Proxy.newProxyInstance(
                 android.view.Window.Callback.class.getClassLoader(), new Class<?>[]{android.view.Window.Callback.class},
                 (proxy, method, args) -> {
+                    if (locked && "dispatchKeyEvent".equals(method.getName()) && args != null && args.length == 1
+                            && args[0] instanceof android.view.KeyEvent
+                            && ((android.view.KeyEvent) args[0]).getKeyCode() == android.view.KeyEvent.KEYCODE_BACK
+                            && ((android.view.KeyEvent) args[0]).getAction() == android.view.KeyEvent.ACTION_DOWN) {
+                        try {
+                            unlock("back", false); // (and back it goes, as the app does it)
+                        } catch (Throwable t) {
+                            failed(t);
+                        }
+                    }
                     if (locked && "dispatchTouchEvent".equals(method.getName()) && args != null && args.length == 1
                             && args[0] instanceof MotionEvent) {
                         try {
@@ -234,6 +252,14 @@ public final class PlayerOverlay {
                             failed(t);
                         }
                         return true;
+                    }
+                    if (!locked && "dispatchTouchEvent".equals(method.getName()) && args != null && args.length == 1
+                            && args[0] instanceof MotionEvent) {
+                        try {
+                            if (lockButtonTouch((MotionEvent) args[0])) return true;
+                        } catch (Throwable t) {
+                            failed(t);
+                        }
                     }
                     try {
                         return method.invoke(original, args);
@@ -266,7 +292,12 @@ public final class PlayerOverlay {
     /** The screen went away (left, picture in picture): a lock ends with it. */
     public static void paused(Activity activity) {
         PlayerOverlay overlay = (PlayerOverlay) activity.getWindow().getDecorView().getTag(TAG_KEY);
-        if (overlay != null && overlay.locked) overlay.unlock("left the screen", false);
+        if (overlay == null || !overlay.locked) return;
+        try {
+            overlay.unlock("left the screen", false);
+        } catch (Throwable t) {
+            overlay.failed(t);
+        }
     }
 
     /**
@@ -400,13 +431,23 @@ public final class PlayerOverlay {
         View controls = currentControls();
         float alpha = pictureInPicture() ? 0f : shownAlpha(controls);
         boolean shown = alpha > 0.02f && controls instanceof ViewGroup;
-        if (locked && !fullScreen()) unlock("left full screen", false);
+        if (locked) holdOrientation();
+        // Out of full screen all the same for a while (not just turning): the lock goes with it, never left
+        // holding back touches on a screen it isn't for.
+        if (locked && !fullScreen()) {
+            long now = SystemClock.uptimeMillis();
+            if (notFullSince == 0) notFullSince = now;
+            if (LockRules.leftFullScreen(notFullSince, now)) unlock("left full screen", false);
+        } else {
+            notFullSince = 0;
+        }
+        if (locked && pictureInPicture()) unlock("picture in picture", false);
         else if (locked && hadTapLayer && !alive(tapLayer.get()) && controls == null) {
             unlock("the player closed", false);
         }
+        if (locked && controls != null && controls.getVisibility() == View.VISIBLE) hide(controls); // came back
         boolean lockShown = false, pillShown = false;
         if (shown && !locked) {
-            layer.getLocationOnScreen(layerAt);
             ViewGroup group = (ViewGroup) controls;
             View back = part(group, BACK, PART_DEPTH), scale = part(group, SCALE, PART_DEPTH);
             View stats = part(group, STATS, PART_DEPTH);
@@ -414,19 +455,82 @@ public final class PlayerOverlay {
             pillShown = Included.songRemoval() && PatchSettings.songRemoval() && placePill(group, stats, back);
         } else if (!locked && controls == null && Included.songRemoval() && PatchSettings.songRemoval()
                 && !pictureInPicture() && alive(composeControls.get())) {
-            layer.getLocationOnScreen(layerAt);
+            // (Compose's own fade can't be read: shown while its uptime is)
             pillShown = placePillByUptime(composeControls.get());
-            if (pillShown) alpha = 1f; // (Compose's fade can't be read: shown while its uptime is)
         }
-        show(lockButton, lockShown, alpha);
+        show(lockButton, lockShown);
         if (!lockShown) lockTarget = Integer.MIN_VALUE;
-        show(pill, pillShown, alpha);
+        show(pill, pillShown);
+        if (!lockShown) letGo(lockButton);
+        if (!pillShown) letGo(pill);
     }
 
-    private static void show(View view, boolean shown, float alpha) {
-        if (shown) view.setAlpha(alpha);
-        int wanted = shown ? View.VISIBLE : View.INVISIBLE; // (never GONE: that would lay the window out again)
+    /**
+     * While locked, the screen stays horizontal: when the app asks for another orientation (with auto-rotate on
+     * it does as the phone is turned upright, to leave full screen), that's kept for after the lock and the
+     * screen is held horizontal again.
+     */
+    private void holdOrientation() {
+        int wanted = activity.getRequestedOrientation();
+        if (wanted == ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE) return;
+        savedOrientation = wanted;
+        activity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
+        DebugLog.log("Player: the app turned the screen while locked, held horizontal");
+    }
+
+    /** Shown or not where it was put; it fades with the controls it's in (their alpha is its parent's). */
+    private static void show(View view, boolean shown) {
+        int wanted = shown ? View.VISIBLE : View.INVISIBLE; // (never GONE: that would lay the parent out again)
         if (view.getVisibility() != wanted) view.setVisibility(wanted);
+    }
+
+    /**
+     * Puts our part into the player's controls (as their last child, or right after a given one of them), once:
+     * it's moved over when the controls are built anew. Only into views that leave it where it's put (React
+     * Native's, a FrameLayout); false (and told) for others.
+     */
+    private boolean inject(View view, ViewGroup into, View after) {
+        if (view.getParent() == into) return true;
+        if (!(into instanceof FrameLayout) && !reactView(into)) {
+            tell("these player controls (" + into.getClass().getName() + ") place their parts themselves,"
+                    + " the lock and song pill aren't shown in them");
+            return false;
+        }
+        ViewParent old = view.getParent();
+        if (old instanceof ViewGroup) ((ViewGroup) old).removeView(view);
+        int index = after == null ? into.getChildCount() : into.indexOfChild(after) + 1;
+        view.setVisibility(View.INVISIBLE); // (shown once it's placed)
+        into.addView(view, index < 0 ? into.getChildCount() : index, view.getLayoutParams());
+        return true;
+    }
+
+    /** A React Native view (it never lays out children it doesn't know: ours stay where they're put). */
+    private static boolean reactView(View view) {
+        return testIdKey > 0 && view.getTag(testIdKey) instanceof String;
+    }
+
+    /** Our part out of controls that are gone (kept in them, it could end up in a view the player reuses). */
+    private static void letGo(View view) {
+        ViewParent parent = view.getParent();
+        if (parent instanceof ViewGroup && !alive((View) parent)) ((ViewGroup) parent).removeView(view);
+    }
+
+    /**
+     * Sizes our part (its parent may never lay it out: React Native doesn't lay out a child it doesn't know),
+     * and returns where it is laid out on screen; it's moved from there by its translation.
+     */
+    private void size(View view, int width, int height) {
+        ViewGroup.LayoutParams params = view.getLayoutParams();
+        params.width = width; // (kept for a parent that does lay it out; no request, that would lay it all out)
+        params.height = height;
+        if (view.getWidth() != width || view.getHeight() != height || view.isLayoutRequested()) {
+            view.measure(View.MeasureSpec.makeMeasureSpec(width, View.MeasureSpec.EXACTLY),
+                    View.MeasureSpec.makeMeasureSpec(height, View.MeasureSpec.EXACTLY));
+            view.layout(view.getLeft(), view.getTop(), view.getLeft() + width, view.getTop() + height);
+        }
+        ((View) view.getParent()).getLocationOnScreen(hostAt);
+        hostAt[0] += view.getLeft();
+        hostAt[1] += view.getTop();
     }
 
     /**
@@ -436,6 +540,7 @@ public final class PlayerOverlay {
     private boolean placeLock(ViewGroup controls, View back, View scale) {
         View last = scale != null ? scale : back;
         if (last == null) return false;
+        if (!inject(lockButton, controls, null)) return false;
         int first = -1;
         if (scale != null && back != null) {
             back.getLocationOnScreen(at);
@@ -449,10 +554,11 @@ public final class PlayerOverlay {
         int middle = other[0] + controls.getWidth() / 2;
         rowEnd = Math.max(rowEnd, rowEndAfter(controls, rowEnd, rowTop, rowTop + rowHeight, middle, PART_DEPTH));
         int left = rowEnd + (step - size); // the same gap as between the buttons
-        int target = Math.round(left - (float) layerAt[0]);
         boolean wasShown = lockButton.getVisibility() == View.VISIBLE;
         float drawnX = lockButton.getTranslationX(); // (where it is now: an animation may be moving it)
-        place(lockButton, left, rowTop, size, rowHeight);
+        size(lockButton, size, rowHeight);
+        int target = left - hostAt[0];
+        lockButton.setTranslationY(rowTop - hostAt[1]);
         if (!wasShown || lockTarget == Integer.MIN_VALUE) {
             lockButton.animate().cancel();
             lockButton.setTranslationX(target);
@@ -461,7 +567,7 @@ public final class PlayerOverlay {
             lockButton.setTranslationX(drawnX);
             lockButton.animate().translationX(target).setDuration(180).start();
         } else {
-            lockButton.setTranslationX(drawnX); // still where it was, or on its way (place() mustn't stop it)
+            lockButton.setTranslationX(drawnX); // still where it was, or on its way (mustn't be stopped)
         }
         lockTarget = target;
         return true;
@@ -474,7 +580,7 @@ public final class PlayerOverlay {
         int end = 0;
         for (int i = 0; i < group.getChildCount(); i++) {
             View child = group.getChildAt(i);
-            if (!alive(child) || child == lockButton) continue;
+            if (!alive(child) || child == lockButton || child == pill) continue;
             child.getLocationOnScreen(other);
             if (ControlsLayout.inRowAfterButtons(other[0], other[1], other[0] + child.getWidth(),
                     other[1] + child.getHeight(), buttonsRight, rowTop, rowBottom, middle)) {
@@ -488,19 +594,8 @@ public final class PlayerOverlay {
 
     /** The pill: one more of the player's own pills, after them; or on a line of its own above them. */
     private boolean placePill(ViewGroup controls, View stats, View back) {
-        SongRemoval.Status status = SongRemoval.status();
-        if (status != pillStatus || shownPill == null) { // (worked out again only when the status changes)
-            pillStatus = status;
-            pillWords = SongPillText.of(status.step, status.problem);
-        }
-        SongPillText words = pillWords;
-        if (shownPill == null || !words.text.equals(shownPill.text) || words.tone != shownPill.tone) {
-            shownPill = words;
-            pillWidth = -1;
-            pillText.setText(words.text);
-            pillIcon.setColor(words.tone == SongPillText.Tone.PROBLEM ? 0xFFFF6B6B : 0xFFFFFFFF);
-            pillText.setTextColor(words.tone == SongPillText.Tone.PROBLEM ? 0xFFFFB3B3 : 0xFFFFFFFF);
-        }
+        if (!inject(pill, controls, null)) return false;
+        refreshPillWords();
         controls.getLocationOnScreen(at);
         int controlsLeft = at[0], controlsRight = at[0] + controls.getWidth();
         int wanted = wantedWidth();
@@ -528,7 +623,7 @@ public final class PlayerOverlay {
         View firstPill = null;
         for (int i = 0; i < controls.getChildCount(); i++) {
             View child = controls.getChildAt(i);
-            if (child == stats || !alive(child)) continue;
+            if (child == stats || child == pill || child == lockButton || !alive(child)) continue;
             child.getLocationOnScreen(at);
             String id = idOf(child);
             if (id != null && id.startsWith(STATS_PARTS)) {
@@ -555,6 +650,12 @@ public final class PlayerOverlay {
 
     private SongRemoval.Status pillStatus;
     private SongPillText pillWords;
+    private long pillWordsUntil; // when a countdown's next number is due (uptime ms)
+    private final Runnable pillTick = this::frameForTick; // a frame, for a countdown's next number
+
+    private void frameForTick() {
+        layer.invalidate();
+    }
     private int pillWidth = -1;
 
     /**
@@ -571,6 +672,9 @@ public final class PlayerOverlay {
             layer.postDelayed(followLater, COMPOSE_READ_GAP_MS);
         }
         if (!uptimeShown || uptime.width() <= 0) return false;
+        // Compose takes no views into its own: the pill goes right after it, in its parent.
+        if (!(compose.getParent() instanceof ViewGroup)) return false;
+        if (!inject(pill, (ViewGroup) compose.getParent(), compose)) return false;
         refreshPillWords();
         compose.getLocationOnScreen(at);
         int left = uptime.right + theme.dp(8);
@@ -581,12 +685,19 @@ public final class PlayerOverlay {
         return true;
     }
 
-    /** The pill's words and colors, from song removal's status (worked out again only when it changes). */
+    /**
+     * The pill's words and colors, from song removal's status (worked out again only when it changes, or a
+     * countdown's next number is due: a frame is asked for then, none may come by itself).
+     */
     private void refreshPillWords() {
         SongRemoval.Status status = SongRemoval.status();
-        if (status != pillStatus || shownPill == null) {
+        long now = SystemClock.uptimeMillis();
+        if (status != pillStatus || shownPill == null || (pillWordsUntil > 0 && now >= pillWordsUntil)) {
             pillStatus = status;
-            pillWords = SongPillText.of(status.step, status.problem);
+            pillWords = SongPillText.of(status, SystemClock.elapsedRealtime());
+            pillWordsUntil = pillWords.nextTick >= 0 ? now + pillWords.nextTick : 0;
+            layer.removeCallbacks(pillTick);
+            if (pillWords.nextTick >= 0) layer.postDelayed(pillTick, pillWords.nextTick);
         }
         SongPillText words = pillWords;
         if (shownPill == null || !words.text.equals(shownPill.text) || words.tone != shownPill.tone) {
@@ -607,32 +718,124 @@ public final class PlayerOverlay {
         return pillWidth;
     }
 
+    /** Our part at this place on screen, this big, in the controls it was put into. */
     private void place(View view, int screenX, int screenY, int width, int height) {
-        FrameLayout.LayoutParams params = (FrameLayout.LayoutParams) view.getLayoutParams();
-        if (params.width != width || params.height != height) {
-            params.width = width;
-            params.height = height;
-            view.setLayoutParams(params);
-        }
-        view.setTranslationX(screenX - layerAt[0]);
-        view.setTranslationY(screenY - layerAt[1]);
+        size(view, width, height);
+        view.setTranslationX(screenX - hostAt[0]);
+        view.setTranslationY(screenY - hostAt[1]);
     }
 
     private void lock() {
         if (locked) return;
         // The player's controls close as they would on a tap on the video (before the guard takes the window's
-        // touches, so that tap reaches the player); nothing brings them back until unlocked.
-        if (alive(controls.get())) tapVideo();
+        // touches, so that tap reaches the player), and they're gone at once instead of fading out; nothing
+        // brings them back until unlocked.
+        View shownControls = controls.get();
+        if (alive(shownControls)) tapVideo();
         locked = true;
         taps.reset();
+        if (shownControls != null && shownControls.getVisibility() == View.VISIBLE) hide(shownControls);
+        // Held horizontal, whichever way the phone is turned (with auto-rotate on, the app itself would leave
+        // full screen on its own when the phone is held upright: that's held off too, see holdOrientation).
+        orientationHeld = true;
         savedOrientation = activity.getRequestedOrientation();
         activity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
         shield.setVisibility(View.VISIBLE);
-        show(lockButton, false, 0f);
-        show(pill, false, 0f);
+        catchBack(true);
+        show(lockButton, false);
+        show(pill, false);
         hintIcon.setOpen(false);
         showHint(0);
         DebugLog.log("Player: screen locked");
+    }
+
+    /** The controls out of sight at once (they'd fade); shown again on unlock if they're still there. */
+    /**
+     * Back while locked unlocks, then goes back as it would. Twitch targets Android 16, where back (the gesture
+     * and the button) no longer comes as a key event: it's taken here first, on Android 13 and later.
+     */
+    private void catchBack(boolean on) {
+        if (Build.VERSION.SDK_INT < 33) return; // (older: the key event, see guardTouches)
+        android.window.OnBackInvokedDispatcher dispatcher = activity.getOnBackInvokedDispatcher();
+        if (on) {
+            if (backCallback == null) {
+                backCallback = (android.window.OnBackInvokedCallback) () -> {
+                    try {
+                        unlock("back", false); // (this callback is let go of with it)
+                        activity.onBackPressed(); // back goes on as it would
+                    } catch (Throwable t) {
+                        failed(t);
+                    }
+                };
+            }
+            dispatcher.registerOnBackInvokedCallback(android.window.OnBackInvokedDispatcher.PRIORITY_OVERLAY,
+                    (android.window.OnBackInvokedCallback) backCallback);
+        } else if (backCallback != null) {
+            dispatcher.unregisterOnBackInvokedCallback((android.window.OnBackInvokedCallback) backCallback);
+        }
+    }
+
+    private Object backCallback; // (an OnBackInvokedCallback: that class is only there on Android 13 and later)
+
+    private void hide(View view) {
+        if (!view.isAttachedToWindow()) return; // (a view the player let go of may be reused: left alone)
+        view.setVisibility(View.INVISIBLE);
+        hiddenControls.add(new WeakReference<>(view));
+    }
+
+    /** A screen lock problem that doesn't stop it, told on screen once (and in the log). */
+    private void tell(String text) {
+        if (!told.add(text)) return;
+        DebugLog.log("PROBLEM Screen lock: " + text);
+        Toast.makeText(activity, "Screen lock: " + text, Toast.LENGTH_LONG).show();
+    }
+
+    private final java.util.Set<String> told = new java.util.HashSet<>();
+
+    /**
+     * A touch on the lock button is taken here, before the window hands it on: the button sits inside React
+     * Native's views, which give every touch to the app's JavaScript and may have a view of theirs above it that
+     * takes it first. The whole gesture is the button's; a tap (let go on it) locks.
+     */
+    private boolean lockButtonTouch(MotionEvent event) {
+        int action = event.getActionMasked();
+        if (action == MotionEvent.ACTION_DOWN) {
+            buttonGesture = lockButton.getVisibility() == View.VISIBLE && shownAlpha(lockButton) > 0.5f
+                    && onButton(event);
+            buttonFinger = event.getPointerId(0);
+            buttonTap = buttonGesture;
+            if (buttonGesture) lockButton.setPressed(true);
+            return buttonGesture;
+        }
+        if (!buttonGesture) return false;
+        if (action == MotionEvent.ACTION_POINTER_UP && event.getPointerId(event.getActionIndex()) == buttonFinger) {
+            buttonTap = false; // the finger that pressed it went up elsewhere: no tap, whatever lifts last
+            lockButton.setPressed(false);
+        }
+        if (action == MotionEvent.ACTION_UP || action == MotionEvent.ACTION_CANCEL) {
+            buttonGesture = false;
+            lockButton.setPressed(false);
+            if (action == MotionEvent.ACTION_UP && buttonTap && event.getPointerId(0) == buttonFinger
+                    && onButton(event)) {
+                lockButton.performClick();
+            }
+        }
+        return true;
+    }
+
+    private boolean buttonGesture, buttonTap;
+    private int buttonFinger;
+    private final android.graphics.Rect buttonRect = new android.graphics.Rect();
+
+    /** Whether the touch is on the lock button as it shows on screen (a little slack around it, as a finger). */
+    private boolean onButton(MotionEvent event) {
+        if (!lockButton.isAttachedToWindow()) return false;
+        lockButton.getLocationOnScreen(at);
+        decor.getLocationOnScreen(other);
+        int slack = theme.dp(6);
+        buttonRect.set(at[0] - slack, at[1] - slack, at[0] + lockButton.getWidth() + slack,
+                at[1] + lockButton.getHeight() + slack);
+        return buttonRect.contains(Math.round(event.getX() + other[0]), Math.round(event.getY() + other[1]));
     }
 
     private void lockedTap() {
@@ -646,16 +849,27 @@ public final class PlayerOverlay {
         locked = false;
         taps.reset();
         shield.setVisibility(View.GONE);
-        // Back to the orientation from before, unless the app has asked for another since (leaving full screen).
-        if (activity.getRequestedOrientation() == ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE) {
+        catchBack(false);
+        // Back to the orientation the app wants: the one from before, or what it asked for while locked.
+        if (orientationHeld && activity.getRequestedOrientation() == ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE) {
             activity.setRequestedOrientation(savedOrientation);
         }
+        orientationHeld = false;
+        boolean controlsBack = false;
+        for (WeakReference<View> hidden : hiddenControls) {
+            View view = hidden.get();
+            // (only what's still as the lock left it: the player may have taken it down meanwhile, GONE)
+            if (view == null || view.getVisibility() != View.INVISIBLE) continue;
+            view.setVisibility(View.VISIBLE);
+            if (shownAlpha(view) > 0.02f) controlsBack = true;
+        }
+        hiddenControls.clear();
         layer.removeCallbacks(fadeHint);
         if (byUser) {
             // The padlock opens for a moment, and the controls come back (as on a tap on the video).
             hintIcon.setOpen(true);
             showHint(TripleTap.NEEDED);
-            if (!alive(controls.get())) tapVideo();
+            if (!controlsBack && !alive(controls.get())) tapVideo();
         } else {
             fadeHint.run();
         }
@@ -684,28 +898,92 @@ public final class PlayerOverlay {
         }
     }
 
+    /** The biggest picture the player draws on screen (its TextureView or SurfaceView), or null. */
+    private static final android.graphics.Rect VISIBLE = new android.graphics.Rect();
+    private static final long[] bestArea = {0};
+
+    private static long shownArea(android.graphics.Rect rect) {
+        return (long) rect.width() * rect.height();
+    }
+
+    /** The video that shows the most on screen, or null. */
+    private static View largestVideo(View root) {
+        bestArea[0] = 0;
+        return largestVideo(root, null);
+    }
+
+    private static View largestVideo(View view, View best) {
+        if (view.getVisibility() != View.VISIBLE) return best;
+        if ((view instanceof android.view.TextureView || view instanceof android.view.SurfaceView)
+                && view.isShown() && view.getGlobalVisibleRect(VISIBLE) && shownArea(VISIBLE) > bestArea[0]) {
+            best = view; // (by how much of it shows: one pushed off screen doesn't count)
+            bestArea[0] = shownArea(VISIBLE);
+        }
+        if (view instanceof ViewGroup) {
+            ViewGroup group = (ViewGroup) view;
+            for (int i = 0; i < group.getChildCount(); i++) best = largestVideo(group.getChildAt(i), best);
+        }
+        return best;
+    }
+
     /** The padlock in the middle, with the taps so far as filled dots; it fades after a moment. */
     private void showHint(int count) {
         for (int i = 0; i < hintDots.length; i++) {
             hintDots[i].setBackground(new Squircle(i < count ? 0xFFFFFFFF : 0x59FFFFFF, theme.dpf(3.5f)));
         }
         hint.animate().cancel();
+        // Over the middle of the video (not of the screen: the chat may take a column beside it).
+        View video = largestVideo(decor);
+        if (video == null) video = tapLayer.get();
+        android.graphics.Rect shows = new android.graphics.Rect(), window = new android.graphics.Rect();
+        if (alive(video) && video.getGlobalVisibleRect(shows) && layer.getGlobalVisibleRect(window)) {
+            hint.setTranslationX(shows.exactCenterX() - window.exactCenterX());
+            hint.setTranslationY(shows.exactCenterY() - window.exactCenterY());
+        } else {
+            hint.setTranslationX(0);
+            hint.setTranslationY(0);
+        }
         hint.setVisibility(View.VISIBLE);
         hint.setAlpha(1f);
         layer.removeCallbacks(fadeHint);
         layer.postDelayed(fadeHint, HINT_MS);
     }
 
+    /** One step of undoing after a failure; the failure itself is told already, the next step goes on. */
+    private static void attempt(Runnable step) {
+        try {
+            step.run();
+        } catch (Throwable ignored) {
+            // (told with the failure that brought it here)
+        }
+    }
+
     private void failed(Throwable t) {
         Log.e(App.TAG, "The player's lock and song pill failed", t);
         try {
             if (locked) unlock("an error", false); // never left locked without a way out
-            show(lockButton, false, 0f);
-            show(pill, false, 0f);
         } catch (Throwable again) {
-            locked = false;
-            shield.setVisibility(View.GONE);
+            // (whatever unlock didn't get to is undone below)
         }
+        // Each part undone on its own, whether the lock got that far or not: nothing is left held.
+        locked = false;
+        buttonGesture = false;
+        attempt(() -> shield.setVisibility(View.GONE));
+        attempt(() -> lockButton.setPressed(false));
+        for (WeakReference<View> hidden : hiddenControls) {
+            View view = hidden.get();
+            if (view != null) attempt(() -> {
+                if (view.getVisibility() == View.INVISIBLE) view.setVisibility(View.VISIBLE);
+            });
+        }
+        hiddenControls.clear();
+        attempt(() -> {
+            if (orientationHeld) activity.setRequestedOrientation(savedOrientation);
+        });
+        orientationHeld = false;
+        attempt(() -> catchBack(false));
+        attempt(() -> show(lockButton, false));
+        attempt(() -> show(pill, false));
         if (failureShown) return;
         failureShown = true;
         DebugLog.log("PROBLEM Player overlay: " + Log.getStackTraceString(t));

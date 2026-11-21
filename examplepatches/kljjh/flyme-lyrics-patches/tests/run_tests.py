@@ -9,6 +9,8 @@ work = ROOT / "work"
 work.mkdir(exist_ok=True)
 with tempfile.TemporaryDirectory(prefix="bridge-tests-", dir=work) as temp:
     sources = [str(p) for p in (ROOT / "tests/android-boundary").rglob("*.java")]
-    subprocess.run(["javac", "-encoding", "UTF-8", "-d", temp, str(runtime), *sources], check=True)
+    subprocess.run(["javac", "-encoding", "UTF-8", "-d", temp, *(str(runtime.with_name(n + ".java")) for n in ("FlymeLyrics", "FlymeController", "FlymeSource", "FlymeTiming")), *sources], check=True)
     for mode in ([], ["unsupported"]):
         subprocess.run(["java", "-cp", temp, "BridgeTest", *mode], check=True)
+
+    subprocess.run(["java", "-ea", "-cp", temp, "io.github.kljjh.flymelyrics.ControllerTest"], check=True)

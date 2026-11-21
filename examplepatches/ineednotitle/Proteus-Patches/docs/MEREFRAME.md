@@ -52,10 +52,12 @@ Triage if a build still reports "didn't develop":
    wrapper that got a handler; if `p` or `i(Lvp;I)V` is in the "left on the
    native verdict" list, the sweep could not guard it and the crash-free
    guarantee is gone for that wrapper.
-2. `[Proteus][Integrity] wrapper integrity throw contained: ...` in logcat
-   means a guard fired. That is the wrapper whose native call is still
-   rejecting the re-signed build; the next step is to stub that native entry
-   point rather than guess at its return value.
+2. `[Proteus][Integrity] wrapper integrity throw contained at <class>.<method>: ...`
+   in logcat means a guard fired. The line names the wrapper whose native call
+   is still rejecting the re-signed build; the next step is to stub that native
+   entry point rather than guess at its return value. The first throw per
+   wrapper is logged (repeats are counted, not printed), so every failing
+   wrapper shows up in the log, not just the first one.
 3. If no guard line appears and the operation still produces nothing, the
    failure is not the integrity gate — collect a logcat of the develop run
    before re-pinning fingerprints.

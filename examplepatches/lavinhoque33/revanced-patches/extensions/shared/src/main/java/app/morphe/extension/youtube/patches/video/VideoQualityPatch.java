@@ -6,7 +6,7 @@
  * https://github.com/ReVanced/revanced-patches/commit/724e6d61b2ecd868c1a9a37d465a688e83a74799
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to Morphe contributions.
- * Modified by lavinhoque33, 2026-11-13
+ * Modified by lavinhoque33, 2026-11-20
  */
 
 package app.morphe.extension.youtube.patches.video;
@@ -59,6 +59,11 @@ public class VideoQualityPatch {
         void patch_setQuality(VideoQualityInterface quality);
     }
 
+    /** Implemented only on a menu with a matched native adaptive policy route. */
+    public interface AutomaticVideoQualityMenu extends VideoQualityMenuInterface {
+        void patch_setAutomaticQuality();
+    }
+
     /**
      * Video resolution of the automatic quality option.
      */
@@ -80,6 +85,13 @@ public class VideoQualityPatch {
      */
     private static volatile String userSelectedQualityVideoId = "";
     private static volatile int userSelectedQualityResolution = AUTOMATIC_VIDEO_QUALITY_VALUE;
+    @Nullable
+    private static volatile VideoQualityInterface overlayQualityChoice;
+
+    // Native preset dispatch is synchronous even when its playback work is queued.
+    @Nullable
+    private static volatile Thread overlayAutoDispatchThread;
+    private static boolean overlayAutoDispatched;
 
     /**
      * ID of the video whose buffered video is cleared once the player sets the quality
@@ -88,6 +100,7 @@ public class VideoQualityPatch {
     private static volatile String clearVideoBufferVideoId = "";
 
     private static void setUserSelectedQuality(int resolution) {
+        overlayQualityChoice = null;
         userSelectedQualityResolution = resolution;
         userSelectedQualityVideoId = VideoInformation.getVideoId();
         // Clearing a live stream's short buffer forces it to catch up with the live edge.
@@ -109,11 +122,14 @@ public class VideoQualityPatch {
     private static VideoQualityInterface[] currentQualities;
 
     /**
-     * The current quality of the video playing.
-     * This is always the actual quality even if Automatic quality is active.
+     * Quality displayed by the timestamp menu, including its last explicit selection.
+     * The overlay instead uses the quality reported by the native player.
      */
     @Nullable
     private static VideoQualityInterface currentQuality;
+
+    @Nullable
+    private static VideoQualityInterface effectiveQuality;
 
     /**
      * The current VideoQualityMenuInterface, set during setVideoQuality.
@@ -132,8 +148,100 @@ public class VideoQualityPatch {
     }
 
     @Nullable
+    public static VideoQualityInterface getEffectiveQuality() {
+        return effectiveQuality;
+    }
+
+    @Nullable
     public static VideoQualityMenuInterface getCurrentMenuInterface() {
         return currentMenuInterface;
+    }
+
+    @Nullable
+    public static VideoQualityInterface getOverlayQualityChoice() {
+        return isQualitySelectedByUser() ? overlayQualityChoice : null;
+    }
+
+    /**
+     * Apply the selection only to the player and quality list that opened the dialog.
+     */
+    public static boolean applyOverlayQuality(
+            String videoId, VideoQualityInterface[] qualities, VideoQualityMenuInterface menu, int index) {
+        if (videoId.isEmpty() || !VideoInformation.getVideoId().equals(videoId)
+                || qualities != currentQualities || menu != currentMenuInterface
+                || index < 0 || index >= qualities.length) {
+            // The dialog can outlive a video or a replacement quality menu.
+            return false;
+        }
+
+        VideoQualityInterface selected = qualities[index];
+        int resolution = selected.patch_getResolution();
+        if (resolution == AUTOMATIC_VIDEO_QUALITY_VALUE) {
+            if (!(menu instanceof AutomaticVideoQualityMenu adaptiveMenu)
+                    || !applyOverlayAutomaticQuality(adaptiveMenu, selected)) {
+                return false;
+            }
+        } else if (resolution > 0) {
+            setUserSelectedQuality(resolution);
+            menu.patch_setQuality(selected);
+            if (!VideoInformation.getVideoId().equals(videoId) || currentMenuInterface != menu) {
+                return false;
+            }
+            overlayQualityChoice = selected;
+        } else {
+            return false;
+        }
+
+        if (shouldRememberVideoQuality()) {
+            saveDefaultQuality(resolution);
+        }
+        Logger.printDebug(() -> "Overlay video quality selected: " + resolution);
+        return true;
+    }
+
+    private static boolean applyOverlayAutomaticQuality(
+            AutomaticVideoQualityMenu menu, VideoQualityInterface auto) {
+        if (overlayAutoDispatchThread != null) {
+            return false;
+        }
+
+        String previousVideoId = userSelectedQualityVideoId;
+        int previousResolution = userSelectedQualityResolution;
+        String previousBufferVideoId = clearVideoBufferVideoId;
+        VideoQualityInterface previousChoice = overlayQualityChoice;
+
+        // Native code can query RVX policy during dispatch. Do not reapply the manual
+        // default there, and restore the previous selection if no preset was dispatched.
+        setUserSelectedQuality(AUTOMATIC_VIDEO_QUALITY_VALUE);
+        overlayQualityChoice = auto;
+        overlayAutoDispatched = false;
+        overlayAutoDispatchThread = Thread.currentThread();
+        try {
+            menu.patch_setAutomaticQuality();
+            return overlayAutoDispatched && overlayQualityChoice == auto;
+        } finally {
+            overlayAutoDispatchThread = null;
+            if (!overlayAutoDispatched && overlayQualityChoice == auto) {
+                userSelectedQualityVideoId = previousVideoId;
+                userSelectedQualityResolution = previousResolution;
+                clearVideoBufferVideoId = previousBufferVideoId;
+                overlayQualityChoice = previousChoice;
+            }
+        }
+    }
+
+    /** Injection point after stock dispatches a preset to the active playback engine. */
+    public static void onAutomaticQualityDispatched() {
+        if (overlayAutoDispatchThread == Thread.currentThread()) {
+            overlayAutoDispatched = true;
+        }
+    }
+
+    /** The timestamp still uses its own manual picker, which supersedes an overlay choice. */
+    public static void onTimestampQualitySelected(int resolution) {
+        if (getOverlayQualityChoice() != null) {
+            setUserSelectedQuality(resolution);
+        }
     }
 
     public static void setCurrentQuality(VideoQualityInterface updatedCurrentQuality) {
@@ -194,7 +302,9 @@ public class VideoQualityPatch {
                 : Settings.REMEMBER_VIDEO_QUALITY_LAST_SELECTED_TOAST;
 
         if (showToastSetting.get()) {
-            String qualityLabel = qualityResolution + "p";
+            String qualityLabel = qualityResolution == AUTOMATIC_VIDEO_QUALITY_VALUE
+                    ? str("video_quality_quick_menu_auto_toast")
+                    : qualityResolution + "p";
             Utils.showToastShort(str(
                     isShorts
                             ? "revanced_remember_video_quality_toast_shorts"
@@ -218,6 +328,7 @@ public class VideoQualityPatch {
             // the video starts, so the quality selected for the current video
             // would otherwise be used when the other video starts.
             userSelectedQualityVideoId = "";
+            overlayQualityChoice = null;
         }
         return false;
     }
@@ -423,6 +534,7 @@ public class VideoQualityPatch {
             // On extremely slow internet connections the index can initially be -1
             VideoQualityInterface updatedCurrentQuality = qualities[Math.max(0, originalQualityIndex)];
             if (updatedCurrentQuality.patch_getResolution() != AUTOMATIC_VIDEO_QUALITY_VALUE) {
+                effectiveQuality = updatedCurrentQuality;
                 setCurrentQuality(updatedCurrentQuality);
             }
         } catch (Exception ex) {
@@ -479,6 +591,7 @@ public class VideoQualityPatch {
         Logger.printDebug(() -> "newVideoStarted");
         currentQualities = null;
         currentQuality = null;
+        effectiveQuality = null;
         currentMenuInterface = null;
 
         // Hide the quality until playback starts and the qualities are available.
@@ -598,8 +711,10 @@ public class VideoQualityPatch {
      *
      * @return If the 'Advanced' video quality setting is used.
      */
-    public static boolean useAdvancedVideoQualitySetting() {
-        return isDefaultQualitySet();
+    public static boolean useAdvancedVideoQualitySetting(@Nullable String videoId) {
+        var choice = getOverlayQualityChoice();
+        return (choice == null || !userSelectedQualityVideoId.equals(videoId)
+                || choice.patch_getResolution() != AUTOMATIC_VIDEO_QUALITY_VALUE) && isDefaultQualitySet();
     }
 
     /**

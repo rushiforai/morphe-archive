@@ -31,7 +31,7 @@ private val FEED_CLASSES = setOf(
 val keepFeedPatch = bytecodePatch(
     name = "Keep feed on reopen",
     description = "Keeps your place in the feed when you come back to LinkedIn, instead of reloading it. " +
-        "Pull down or tap the \"New posts\" button to load new posts.",
+        "Off by default. Pull down or tap the \"New posts\" button to load new posts.",
     default = true
 ) {
     compatibleWith(COMPATIBILITY_LINKEDIN)

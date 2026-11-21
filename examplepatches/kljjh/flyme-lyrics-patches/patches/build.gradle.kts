@@ -24,7 +24,6 @@ configurations.compileClasspath {
     }
 }
 dependencies {
-    testImplementation(kotlin("test-junit"))
     testImplementation("junit:junit:4.13.2")
 }
 tasks.test {
@@ -34,5 +33,5 @@ tasks.test {
     systemProperty("officialBundle", rootProject.file("work/official/patches-2.1.0.mpp").absolutePath)
 }
 tasks.processResources {
-    from(rootProject.files("LICENSE", "NOTICE", "UPSTREAM.md")) { into("community") }
+    from(rootProject.files("LICENSE", "NOTICE")) { into("community") }
 }

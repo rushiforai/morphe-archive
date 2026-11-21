@@ -6,6 +6,8 @@
  * https://github.com/ReVanced/revanced-patches/commit/724e6d61b2ecd868c1a9a37d465a688e83a74799
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to Morphe contributions.
+ *
+ * Modified by lavinhoque33, 2026-11-20.
  */
 
 package app.morphe.extension.youtube.utils;
@@ -23,6 +25,14 @@ import androidx.annotation.AttrRes;
 import app.morphe.extension.shared.utils.BaseThemeUtils;
 
 public class ThemeUtils extends BaseThemeUtils {
+
+    /**
+     * Elevated player metadata is unreadable in light theme. Until YouTube resolves its
+     * appearance, keep the flag off rather than guessing from the device's night mode.
+     */
+    public static boolean allowElevatedPlayer(boolean original) {
+        return original && isAppThemeResolved() && isDarkModeEnabled();
+    }
 
     /**
      * @return The resource a theme attribute points to, such as a style or a drawable,

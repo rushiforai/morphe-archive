@@ -13,6 +13,31 @@
         "releaseRules": [
           {
             "type": "feat",
+            "subject": "stage cache tab badge beside title and preserve native tab behavior",
+            "release": "patch"
+          },
+          {
+            "type": "feat",
+            "subject": "larger stateful icon, history register action and descriptive deletion text",
+            "release": "patch"
+          },
+          {
+            "type": "feat",
+            "subject": "add discovery-list batch registration and sort quick action bridge",
+            "release": "patch"
+          },
+          {
+            "type": "feat",
+            "subject": "add bounded overlap admission and lightweight comment-frame diagnostics",
+            "release": "patch"
+          },
+          {
+            "type": "feat",
+            "subject": "import reviewed v2.1.4-dev.3 comment and app performance sources",
+            "release": "patch"
+          },
+          {
+            "type": "feat",
             "scope": "nicolive-v2",
             "release": "major"
           },
@@ -123,7 +148,7 @@
     [
       "@semantic-release/exec",
       {
-        "prepareCmd": "./gradlew generatePatchesList && ./gradlew :patches:buildAndroid --no-daemon && python3 .github/scripts/verify_android_mpp.py \"patches/build/libs/patches-${nextRelease.version}.mpp\" \"${nextRelease.version}\" && jq '.version=\"${nextRelease.version}\"' patches-list.json > patches-list.json.tmp && mv patches-list.json.tmp patches-list.json && if [ \"${nextRelease.version}\" = \"2.0.0\" ]; then NICOID_OFFICIAL_RELEASE_APPROVED=APPROVE bash .github/scripts/stage-v2.0.0-mpp.sh; elif [ \"${nextRelease.version}\" = \"2.0.1\" ]; then NICOID_OFFICIAL_RELEASE_APPROVED=APPROVE bash .github/scripts/stage-v2.0.1-mpp.sh; elif [ \"${nextRelease.version}\" = \"2.0.2\" ]; then NICOID_OFFICIAL_RELEASE_APPROVED=APPROVE bash .github/scripts/stage-v2.0.2-mpp.sh; elif [ \"${nextRelease.version}\" = \"2.0.3\" ]; then NICOID_OFFICIAL_RELEASE_APPROVED=APPROVE bash .github/scripts/stage-v2.0.3-mpp.sh; elif [ \"${nextRelease.version}\" = \"2.0.4\" ]; then NICOID_OFFICIAL_RELEASE_APPROVED=APPROVE bash .github/scripts/stage-v2.0.4-mpp.sh; elif [ \"${nextRelease.version}\" = \"2.0.5\" ]; then NICOID_OFFICIAL_RELEASE_APPROVED=APPROVE bash .github/scripts/stage-v2.0.5-mpp.sh; elif [ \"${nextRelease.version}\" = \"2.0.6\" ]; then NICOID_OFFICIAL_RELEASE_APPROVED=APPROVE bash .github/scripts/stage-v2.0.6-mpp.sh; elif [ \"${nextRelease.version}\" = \"2.1.0\" ]; then NICOID_OFFICIAL_RELEASE_APPROVED=APPROVE bash .github/scripts/stage-v2.1.0-mpp.sh; elif [ \"${nextRelease.version}\" = \"2.1.1\" ]; then NICOID_OFFICIAL_RELEASE_APPROVED=APPROVE bash .github/scripts/stage-v2.1.1-mpp.sh; elif [ \"${nextRelease.version}\" = \"2.1.2\" ]; then NICOID_OFFICIAL_RELEASE_APPROVED=APPROVE bash .github/scripts/stage-v2.1.2-mpp.sh; elif [ \"${nextRelease.version}\" = \"2.1.3\" ]; then NICOID_OFFICIAL_RELEASE_APPROVED=APPROVE bash .github/scripts/stage-v2.1.3-mpp.sh; elif [ \"${nextRelease.version}\" = \"2.1.4\" ]; then NICOID_OFFICIAL_RELEASE_APPROVED=APPROVE bash .github/scripts/stage-v2.1.4-mpp.sh; else echo '::error::Unapproved release: no MPP staging script for ${nextRelease.version}' >&2; exit 1; fi && python3 .github/scripts/verify-release-mpp.py record \"${nextRelease.version}\"",
+        "prepareCmd": "./gradlew generatePatchesList && ./gradlew :patches:buildAndroid --no-daemon && python3 .github/scripts/verify_android_mpp.py \"patches/build/libs/patches-${nextRelease.version}.mpp\" \"${nextRelease.version}\" && jq '.version=\"${nextRelease.version}\"' patches-list.json > patches-list.json.tmp && mv patches-list.json.tmp patches-list.json && if [ \"${nextRelease.version}\" = \"2.0.0\" ]; then NICOID_OFFICIAL_RELEASE_APPROVED=APPROVE bash .github/scripts/stage-v2.0.0-mpp.sh; elif [ \"${nextRelease.version}\" = \"2.0.1\" ]; then NICOID_OFFICIAL_RELEASE_APPROVED=APPROVE bash .github/scripts/stage-v2.0.1-mpp.sh; elif [ \"${nextRelease.version}\" = \"2.0.2\" ]; then NICOID_OFFICIAL_RELEASE_APPROVED=APPROVE bash .github/scripts/stage-v2.0.2-mpp.sh; elif [ \"${nextRelease.version}\" = \"2.0.3\" ]; then NICOID_OFFICIAL_RELEASE_APPROVED=APPROVE bash .github/scripts/stage-v2.0.3-mpp.sh; elif [ \"${nextRelease.version}\" = \"2.0.4\" ]; then NICOID_OFFICIAL_RELEASE_APPROVED=APPROVE bash .github/scripts/stage-v2.0.4-mpp.sh; elif [ \"${nextRelease.version}\" = \"2.0.5\" ]; then NICOID_OFFICIAL_RELEASE_APPROVED=APPROVE bash .github/scripts/stage-v2.0.5-mpp.sh; elif [ \"${nextRelease.version}\" = \"2.0.6\" ]; then NICOID_OFFICIAL_RELEASE_APPROVED=APPROVE bash .github/scripts/stage-v2.0.6-mpp.sh; elif [ \"${nextRelease.version}\" = \"2.1.0\" ]; then NICOID_OFFICIAL_RELEASE_APPROVED=APPROVE bash .github/scripts/stage-v2.1.0-mpp.sh; elif [ \"${nextRelease.version}\" = \"2.1.1\" ]; then NICOID_OFFICIAL_RELEASE_APPROVED=APPROVE bash .github/scripts/stage-v2.1.1-mpp.sh; elif [ \"${nextRelease.version}\" = \"2.1.2\" ]; then NICOID_OFFICIAL_RELEASE_APPROVED=APPROVE bash .github/scripts/stage-v2.1.2-mpp.sh; elif [ \"${nextRelease.version}\" = \"2.1.3\" ]; then NICOID_OFFICIAL_RELEASE_APPROVED=APPROVE bash .github/scripts/stage-v2.1.3-mpp.sh; elif [ \"${nextRelease.version}\" = \"2.1.4\" ]; then NICOID_OFFICIAL_RELEASE_APPROVED=APPROVE bash .github/scripts/stage-v2.1.4-mpp.sh; elif [ \"${nextRelease.version}\" = \"2.1.5\" ]; then NICOID_OFFICIAL_RELEASE_APPROVED=APPROVE bash .github/scripts/stage-v2.1.5-mpp.sh; else echo '::error::Unapproved release: no MPP staging script for ${nextRelease.version}' >&2; exit 1; fi && python3 .github/scripts/verify-release-mpp.py record \"${nextRelease.version}\"",
         "successCmd": "git restore -- gradlew.bat",
         "publishCmd": "python3 .github/scripts/verify-release-mpp.py check \"${nextRelease.version}\""
       }

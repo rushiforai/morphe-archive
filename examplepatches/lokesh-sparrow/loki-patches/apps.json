@@ -10,7 +10,8 @@
     "📵": "call screens",
     "👯": "clone",
     "🔑": "Google sign-in",
-    "🎞️": "codecs"
+    "🎞️": "codecs",
+    "💾": "backup"
   },
   "apps": {
     "com.linkedin.android": {
@@ -62,6 +63,15 @@
       "highlights": "💎 🎞️",
       "featured": 5,
       "blurb": "Pro unlocked, every audio codec built in"
+    },
+    "com.google.android.apps.photos": {
+      "name": "Google Photos",
+      "slug": "google-photos",
+      "category": "Photos",
+      "file": "APKM (Android 8+)",
+      "menu": "Account menu",
+      "highlights": "💾 🔑 👯",
+      "blurb": "Unlimited original-quality backup, installs beside the stock app"
     }
   }
 }

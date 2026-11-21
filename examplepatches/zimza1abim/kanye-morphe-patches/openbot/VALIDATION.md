@@ -118,3 +118,32 @@ official APK/DEX compatibility passed. The same five original WebRTC/JNI issues
 remain, with zero new issues. Interactive picking/cancellation, real-file import,
 restart and imported-font previews remain for on-device validation after applying
 the new MPP. No installation was performed by the agent.
+
+## 1.4.12 adapter rebuild
+
+Recorded on 2026-11-21 (Asia/Seoul).
+
+- Official release: `android-v1.4.12`, package `run.openbot.mobile`.
+- Original APK SHA-256:
+  `cddc68aa6eb56e3d518d913221bea26ed1bd3194bcb57b9e2dc52b1b78a49bd5`.
+- Original embedded Hermes SHA-256:
+  `33ac026ee32f80f11e17412c367499390929d1226225d3d56c2edce66d32707f`.
+- Patched Hermes SHA-256:
+  `9c7646a9b250cb020a8bad37ca5f008a4828f6872a07c79dfa7aa934b687c6cc`.
+- Original and patched Hermes bytecode version: **99**.
+- Exact adapter and asset checksums are in `resources/openbot/adapters/1.4.12.properties`.
+
+| Check | Result |
+| --- | --- |
+| Source transform (`prepare-source.cjs`) | All four anchors still present in 1.4.12; 4 transformation tests passed |
+| Font parser/import regression checks | 32 passed |
+| Preview/request policy checks | 18 passed |
+| Official APK patch application | `PATCH OpenBot custom font: OK` |
+| Rewritten DEX verification | `SMOKE_OK`; 4 DEX files, zero new verification issues |
+| Original APK verification baseline | 5 pre-existing WebRTC/JNI optional-class issues; the same five remain |
+
+The patcher's resource-table encoder again reported a fallback rebuild for
+`res/raw/keep.xml` (`tools:keep`), as it did for 1.4.11, and completed it. The
+1.4.11 adapter files were replaced by the 1.4.12 set; on-device checks for the
+new bundle are still open.
+

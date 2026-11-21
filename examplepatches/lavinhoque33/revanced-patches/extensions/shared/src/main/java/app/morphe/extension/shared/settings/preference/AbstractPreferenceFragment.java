@@ -617,6 +617,7 @@ public abstract class AbstractPreferenceFragment extends PreferenceFragment {
         Utils.runOnMainThreadDelayed(() -> {
             try {
                 if (isRestartActivityAlive(context)) {
+                    CustomBrandingPatch.prepareLauncherRestart(context);
                     Utils.restartApp(context);
                 } else {
                     // The host disappeared before the restart could run.

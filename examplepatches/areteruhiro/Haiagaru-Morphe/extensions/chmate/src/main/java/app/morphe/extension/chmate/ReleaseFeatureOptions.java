@@ -18,7 +18,7 @@ final class ReleaseFeatureOptions {
         GLOBAL_SEARCH_BACKGROUND("1.40.0"), GLOBAL_SEARCH_HISTORY("1.40.0"), GLOBAL_SEARCH_PARTIAL("1.40.0"),
         VIEWER_DOUBLE_BACK("1.40.0"), ALWAYS_MOSAIC_GRAY("1.40.0"), ALWAYS_MOSAIC_STRENGTH("1.40.0"),
         MODERATION_ADULT("1.40.0"), MODERATION_GORE("1.40.0"), MODERATION_LIST("1.40.0"),
-        UPLOAD_DESTINATION("1.40.0"), NG_REPLY_NOTIFICATIONS("1.40.0"), THREAD_RENAME("1.41.0"), KEYWORD_NAMES("1.41.0"),
+        UPLOAD_DESTINATION("1.40.0"), NG_REPLY_NOTIFICATIONS("1.40.0"), KEYWORD_NAMES("1.41.0"),
         HOME_THREAD_ORDER("1.42.0"), KEYWORD_MENU("1.42.0"),
         RESPONSE_NOTES_MENU("1.43.0"), ROTATION_MENU("1.43.0"), EXTERNAL_VIDEO_CACHE("1.43.0"),
         POST_LIMIT_DISPLAY("1.46.0"), FILTER_OPTIMIZATION("1.46.0"), DELAYED_POSITION_SNAPSHOT("1.46.0"), CONDITIONAL_REFRESH("1.46.0"),
@@ -26,7 +26,8 @@ final class ReleaseFeatureOptions {
         NG_CHAIN_REPLY_NOTIFICATIONS("1.46.0"), FILTER_TRANSPARENT_BACKGROUND("1.46.0"),
         IMAGE_PAGING_GESTURES("1.46.0"), GIF_DEDICATED_VIEWER("1.46.0"), THREAD_SCOPED_NG("1.46.0"),
         X_POST_TRUNCATION_MODE("1.46.0"), WACCHOI_NG_EXPIRY("1.46.0"),
-        WACCHOI_COPY_PARENS("1.47.0"), THREAD_REPORTER_COPY("1.47.0"), HIDDEN_NG_NEW_ARRIVAL_COUNT("1.47.0");
+        WACCHOI_COPY_PARENS("1.47.0"), THREAD_REPORTER_COPY("1.47.0"), HIDDEN_NG_NEW_ARRIVAL_COUNT("1.47.0"),
+        READING_POSITION_CARD_DEFAULT("1.47.0"), EXTRA_QUICK_FILTERS("1.47.0");
 
         final String version;
         Option(String version) { this.version = version; }
@@ -38,10 +39,12 @@ final class ReleaseFeatureOptions {
                 case NG_CHAIN_REPLY_NOTIFICATIONS:return "通知";
                 case HIDDEN_NG_NEW_ARRIVAL_COUNT:return "スレ更新";
                 case FILTER_TRANSPARENT_BACKGROUND:return "表示・検索";
+                case READING_POSITION_CARD_DEFAULT:return "表示・検索";
+                case EXTRA_QUICK_FILTERS:return "表示・検索";
                 case CONDITIONAL_REFRESH:return "スレ更新";
                 case X_POST_TRUNCATION_MODE:return "表示・検索";
                 case WACCHOI_NG_EXPIRY:return "NG・文字列置換";
-                case THREAD_RENAME:case KEYWORD_NAMES:case GLOBAL_SEARCH_BACKGROUND:case GLOBAL_SEARCH_HISTORY:case GLOBAL_SEARCH_PARTIAL:
+                case KEYWORD_NAMES:case GLOBAL_SEARCH_BACKGROUND:case GLOBAL_SEARCH_HISTORY:case GLOBAL_SEARCH_PARTIAL:
                 case HOME_THREAD_ORDER:case KEYWORD_MENU:case HOME_NOTES_MENU:return "表示・検索";
                 case VIEWER_DOUBLE_BACK:case ALWAYS_MOSAIC_GRAY:case ALWAYS_MOSAIC_STRENGTH:
                 case MODERATION_ADULT:case MODERATION_GORE:case MODERATION_LIST:case UPLOAD_DESTINATION:
@@ -85,7 +88,9 @@ final class ReleaseFeatureOptions {
                 case UPLOAD_DESTINATION:return "書き込み画面から画像・動画を添付するときに、送信先を選べます。";
                 case NG_REPLY_NOTIFICATIONS:return "NGに該当する返信を新着通知の対象から外します。";
                 case NG_CHAIN_REPLY_NOTIFICATIONS:return "連鎖NGの対象も通知から除外します。OFFでは、NGレスにアンカーしただけの別IDの返信は通知されます。";
-                case HIDDEN_NG_NEW_ARRIVAL_COUNT:return "ChMate 0.8.10.242で、スレ更新直後の「新着件数」から透明あぼーんとして判定されたレスを除きます。HOMEやスレ一覧の未読件数・既読位置は変えません。初期状態はOFFです。";
+                case HIDDEN_NG_NEW_ARRIVAL_COUNT:return "ChMate 0.8.10.191／226／242で、スレ更新直後の「新着件数」から透明あぼーんとして判定されたレスを除きます。HOMEやスレ一覧の未読件数・既読位置は変えません。初期状態はOFFです。";
+                case READING_POSITION_CARD_DEFAULT:return "WebサイトのリンクカードまたはXカード形式を有効にすると、読書位置の補助保存を未設定時だけ自動で有効にします。初期状態はOFFで、手動で変更した設定を優先します。";
+                case EXTRA_QUICK_FILTERS:return "AA・自分・返信の追加フィルターを表示するか切り替えます。初期状態はOFFです。";
                 case FILTER_TRANSPARENT_BACKGROUND:return "下部フィルターパネルの背景を透明にするか、テーマ色の不透明背景を使うか切り替えます。";
                 case IMAGE_PAGING_GESTURES:return "ONではHaiagaruの方向指定を使い、OFFではChMate標準の画像切り替え操作を使います。初期状態はOFFです。";
                 case GIF_DEDICATED_VIEWER:return "GIFをHaiagaru専用ビューアで開くか切り替えます。初期状態はOFFです。";
@@ -94,7 +99,6 @@ final class ReleaseFeatureOptions {
                 case WACCHOI_NG_EXPIRY:return "5chは次の日曜日、エッヂはUnix週境界（木曜日）に、ワッチョイ関連NGを自動解除する期限を登録ごとに設定できます。";
                 case WACCHOI_COPY_PARENS:return "ワッチョイの全文コピー時に、IDコードを含む丸括弧を任意で取り除けます。上4桁・下4桁コピーはNG登録に使えるハイフン付き形式です。";
                 case THREAD_REPORTER_COPY:return "スレタイ長押しに記者IDのコピーを追加し、記者IDのNGを一覧表示時にも適用します。";
-                case THREAD_RENAME:return "スレタイトル長押しに「スレの名前を変更」を表示します。表示名はHOMEとスレ一覧で使います。";
                 case KEYWORD_NAMES:return "検索条件ごとに短い表示名を付けられます。縦棒やカンマも使用できます。";
                 case HOME_THREAD_ORDER:return "HOMEのお気に入りスレを並び替え・固定できます。OFFにしても保存した並び順は保持します。";
                 case KEYWORD_MENU:return "HOMEの3点メニューにキーワード表示名の設定入口を表示します。";

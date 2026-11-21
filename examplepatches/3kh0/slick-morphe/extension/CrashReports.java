@@ -152,8 +152,8 @@ public final class CrashReports {
         + metadata
         + "\n"
         + "Only uncaught Java exceptions are captured; native crashes and ANRs are not caught.\n"
-        + "Slick saves this report locally and adds no uploads. Slack's existing crash reporting is"
-        + " unchanged.\n"
+        + "Slick saves this report locally and adds no uploads. Slack's remote reporting follows"
+        + " your Block telemetry setting.\n"
         + "Review for sensitive data before sharing.\n\n"
         + trace;
   }

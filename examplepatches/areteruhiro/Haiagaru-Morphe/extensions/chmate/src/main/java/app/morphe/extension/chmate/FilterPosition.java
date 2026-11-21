@@ -177,20 +177,38 @@ public final class FilterPosition {
             Object row=item.invoke(adapter,i);
             if(row==null)continue;
             if(responseNumber(row)==number) {
-                XPostPreviewPosition.cancel(list);
-                if(list instanceof ListView)((ListView)list).setSelectionFromTop(i,offset);
-                else {
-                    Object manager=call(list,"getLayoutManager",new Class<?>[0]);
-                    if(item.getReturnType().getName().equals("o.zzadi")) {
-                        call(list,"scrollToPosition",new Class<?>[]{int.class},i);
-                        Field pendingOffset=inheritedField(manager.getClass(),"k");
-                        pendingOffset.setAccessible(true);pendingOffset.setInt(manager,offset);list.requestLayout();
-                    } else call(manager,"c",new Class<?>[]{int.class,int.class},i,offset);
-                }
-                return true;
+                return jumpToAdapterPosition(list,i,offset,item.getReturnType());
             }
         }
         return false;
+    }
+
+    /** Scroll an existing adapter row to a pixel offset, including non-response rows. */
+    static boolean jumpToAdapterPosition(View list,int position,int offset) throws Exception {
+        if(list==null)return false;
+        Object adapter=call(list,"getAdapter",new Class<?>[0]);
+        if(adapter==null)return false;
+        Method item=list instanceof ListView?adapter.getClass().getMethod("getItem",int.class):findItem(adapter);
+        item.setAccessible(true);
+        return jumpToAdapterPosition(list,position,offset,item.getReturnType());
+    }
+
+    private static boolean jumpToAdapterPosition(View list,int position,int offset,Class<?> itemType) throws Exception {
+        Object adapter=call(list,"getAdapter",new Class<?>[0]);
+        if(adapter==null)return false;
+        int count=((Number)call(adapter,list instanceof ListView?"getCount":"getItemCount",new Class<?>[0])).intValue();
+        if(position<0||position>=count)return false;
+        XPostPreviewPosition.cancel(list);
+        if(list instanceof ListView)((ListView)list).setSelectionFromTop(position,offset);
+        else {
+            Object manager=call(list,"getLayoutManager",new Class<?>[0]);
+            if(itemType.getName().equals("o.zzadi")) {
+                call(list,"scrollToPosition",new Class<?>[]{int.class},position);
+                Field pendingOffset=inheritedField(manager.getClass(),"k");
+                pendingOffset.setAccessible(true);pendingOffset.setInt(manager,offset);list.requestLayout();
+            } else call(manager,"c",new Class<?>[]{int.class,int.class},position,offset);
+        }
+        return true;
     }
 
     private static Object call(Object target, String name, Class<?>[] types, Object... args) throws Exception {

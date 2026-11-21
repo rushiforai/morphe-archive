@@ -84,6 +84,7 @@ import app.morphe.extension.youtube.patches.general.ChangeFormFactorPatch.FormFa
 import app.morphe.extension.youtube.patches.player.VideoActionBarLayout;
 import app.morphe.extension.youtube.patches.general.ChangeStartPagePatch;
 import app.morphe.extension.youtube.patches.general.ChangeStartPagePatch.StartPage;
+import app.morphe.extension.youtube.patches.player.CenterPlaybackButtonPatch;
 import app.morphe.extension.youtube.patches.player.ExitFullscreenPatch.FullscreenMode;
 import app.morphe.extension.youtube.patches.player.MiniplayerPatch;
 import app.morphe.extension.youtube.patches.shortsicons.ShortsIcons;
@@ -136,6 +137,8 @@ public class Settings extends SharedYouTubeSettings {
 
     public static final EnumSetting<PlaybackBufferSize> PLAYBACK_BUFFER_SIZE = new EnumSetting<>(
             "morphe_playback_buffer_size", PlaybackBufferSize.DEFAULT, true);
+    public static final BooleanSetting PAUSE_ON_AUDIO_INTERRUPT = new BooleanSetting(
+            "morphe_pause_on_audio_interrupt", FALSE, true);
     public static final BooleanSetting RESTORE_ORIGINAL_TITLES = new BooleanSetting("morphe_restore_original_titles", FALSE, true);
     /** Enables arbitrary runtime colors only when the API 30 resource overlay is available. */
     private static Setting.Availability customThemeAvailability(StringSetting selector) {
@@ -165,7 +168,7 @@ public class Settings extends SharedYouTubeSettings {
         return new Setting.Availability() {
             @Override
             public boolean isAvailable() {
-                return !DARK_THEME.isSetToDefault() || !LIGHT_THEME.isSetToDefault();
+                return !ThemePatch.isStockDarkTheme() || !LIGHT_THEME.isSetToDefault();
             }
 
             @Override
@@ -311,6 +314,10 @@ public class Settings extends SharedYouTubeSettings {
             new BooleanSetting("revanced_feed_card_layout_dynamic_colors", TRUE);
     public static final BooleanSetting FEED_VIEW_COUNT = new BooleanSetting("morphe_feed_view_count", FALSE, true);
     public static final StringSetting FEED_VIEW_COUNT_PATHS = new StringSetting("morphe_feed_view_count_paths", "", false, false);
+    public static final BooleanSetting HIDE_FEED_SUBTITLE_VIEWS =
+            new BooleanSetting("morphe_hide_feed_subtitle_views", FALSE, true);
+    public static final BooleanSetting HIDE_FEED_SUBTITLE_AGE =
+            new BooleanSetting("morphe_hide_feed_subtitle_age", FALSE, true);
     public static final IntegerSetting CUSTOM_DPI = new IntegerSetting("morphe_custom_dpi", 0,
             true, new SliderConfig(0, 1_000, 1, "dpi"));
     public static final BooleanSetting OPEN_CHANNEL_OF_LIVE_AVATAR = new BooleanSetting("morphe_open_channel_of_live_avatar", FALSE);
@@ -479,6 +486,12 @@ public class Settings extends SharedYouTubeSettings {
     private static final BooleanSetting DEPRECATED_DISABLE_TRANSLUCENT_NAVIGATION_BAR = new BooleanSetting("revanced_disable_translucent_navigation_bar", FALSE);
     public static final BooleanSetting HIDE_NAVIGATION_BAR = new BooleanSetting("revanced_hide_navigation_bar", FALSE, true);
     public static final EnumSetting<NavigationBarStyle> NAVIGATION_BAR_STYLE = new EnumSetting<>("morphe_navigation_bar_style", NavigationBarStyle.DEFAULT, true, "morphe_navigation_bar_style_user_dialog_message", parentInverted(HIDE_NAVIGATION_BAR));
+    public static final BooleanSetting OPAQUE_SYSTEM_NAVIGATION_BAR_LIGHT = new BooleanSetting(
+            "morphe_opaque_system_navigation_bar_light", FALSE, true,
+            () -> Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU);
+    public static final BooleanSetting OPAQUE_SYSTEM_NAVIGATION_BAR_DARK = new BooleanSetting(
+            "morphe_opaque_system_navigation_bar_dark", FALSE, true,
+            () -> Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU);
     public static final BooleanSetting NAVIGATION_BAR_GLASS = new BooleanSetting(
             "morphe_navigation_bar_glass", FALSE, true,
             parentsAll(parentInverted(HIDE_NAVIGATION_BAR), new GlassNavigationBar.GlassAvailability()));
@@ -608,6 +621,8 @@ public class Settings extends SharedYouTubeSettings {
             "revanced_snack_bar_stroke_width", 0f, new SliderConfig(0, 8, 0.5, "dp"));
     public static final BooleanSetting SNACK_BAR_PLAYLIST_RADIUS = new BooleanSetting(
             "revanced_snack_bar_playlist_radius", FALSE);
+    public static final BooleanSetting SNACK_BAR_PLAYLIST_BORDER = new BooleanSetting(
+            "revanced_snack_bar_playlist_border", FALSE);
 
     // PreferenceScreen: General - Toolbar
     public static final BooleanSetting CHANGE_YOUTUBE_HEADER = new BooleanSetting("revanced_change_youtube_header", TRUE, true);
@@ -619,6 +634,8 @@ public class Settings extends SharedYouTubeSettings {
     public static final BooleanSetting HIDE_TOOLBAR_CAST_BUTTON = new BooleanSetting("revanced_hide_toolbar_cast_button", TRUE, true);
     public static final BooleanSetting HIDE_TOOLBAR_CREATE_BUTTON = new BooleanSetting("revanced_hide_toolbar_create_button", FALSE, true);
     public static final BooleanSetting HIDE_TOOLBAR_NOTIFICATION_BUTTON = new BooleanSetting("revanced_hide_toolbar_notification_button", FALSE, true);
+    public static final BooleanSetting HIDE_TOOLBAR_MESSAGES_BUTTON =
+            new BooleanSetting("revanced_hide_toolbar_messages_button", FALSE, true);
     public static final BooleanSetting HIDE_TOOLBAR_SEARCH_BUTTON = new BooleanSetting("revanced_hide_toolbar_search_button", FALSE, true);
     public static final BooleanSetting HIDE_SEARCH_TERM_THUMBNAIL = new BooleanSetting("revanced_hide_search_term_thumbnail", FALSE);
     public static final BooleanSetting SEARCH_IN_CHANNEL_DIALOG = new BooleanSetting(
@@ -628,6 +645,7 @@ public class Settings extends SharedYouTubeSettings {
             parentsAll(parentInverted(HIDE_TOOLBAR_SEARCH_BUTTON), parent(SEARCH_IN_CHANNEL_DIALOG)));
     public static final BooleanSetting CHANNEL_SEARCH = new BooleanSetting("morphe_channel_search", FALSE);
     public static final BooleanSetting HIDE_IMAGE_SEARCH_BUTTON = new BooleanSetting("revanced_hide_image_search_button", FALSE, true);
+    public static final BooleanSetting HIDE_SEARCH_ASK = new BooleanSetting("morphe_hide_search_ask", FALSE, true);
     public static final BooleanSetting HIDE_SEARCH_BAR_BACK_BUTTON = new BooleanSetting("revanced_hide_search_bar_back_button", FALSE, true);
     public static final BooleanSetting HIDE_VOICE_SEARCH_BUTTON = new BooleanSetting("revanced_hide_voice_search_button", FALSE, true);
     public static final BooleanSetting HIDE_YOU_MAY_LIKE_SECTION = new BooleanSetting("revanced_hide_you_may_like_section", FALSE, true);
@@ -669,6 +687,10 @@ public class Settings extends SharedYouTubeSettings {
     public static final BooleanSetting DISABLE_CONTINUE_WATCHING_PROMPT = new BooleanSetting("revanced_disable_continue_watching_prompt", FALSE);
     public static final BooleanSetting DISABLE_PLAYLIST_AUTOPLAY = new BooleanSetting("revanced_disable_playlist_autoplay", FALSE, true);
     public static final BooleanSetting DISABLE_CHAPTER_SKIP_DOUBLE_TAP = new BooleanSetting("revanced_disable_chapter_skip_double_tap", FALSE);
+    public static final IntegerSetting DOUBLE_TAP_SEEK_BACKWARD =
+            new IntegerSetting("revanced_double_tap_seek_backward", 0);
+    public static final IntegerSetting DOUBLE_TAP_SEEK_FORWARD =
+            new IntegerSetting("revanced_double_tap_seek_forward", 0);
     public static final BooleanSetting DISABLE_SPEED_OVERLAY = new BooleanSetting("revanced_disable_speed_overlay", FALSE, true);
     public static final FloatSetting SPEED_OVERLAY_VALUE = new FloatSetting("revanced_speed_overlay_value", 2.0f,
             true, new SliderConfig(0, 8, 0.1, "x"), parentInverted(DISABLE_SPEED_OVERLAY));
@@ -871,6 +893,9 @@ public class Settings extends SharedYouTubeSettings {
     public static final BooleanSetting HIDE_PLAYER_COLLAPSE_BUTTON = new BooleanSetting("revanced_hide_player_collapse_button", FALSE, true);
     public static final BooleanSetting HIDE_PLAYER_FULLSCREEN_BUTTON = new BooleanSetting("revanced_hide_player_fullscreen_button", FALSE, true);
     public static final BooleanSetting HIDE_PLAYER_PREVIOUS_NEXT_BUTTON = new BooleanSetting("revanced_hide_player_previous_next_button", FALSE, true);
+    public static final IntegerSetting CENTER_PLAYBACK_BUTTON_SIZE = new IntegerSetting(
+            "morphe_center_playback_button_size", CenterPlaybackButtonPatch.DEFAULT_PERCENT, true,
+            new SliderConfig(CenterPlaybackButtonPatch.MIN_PERCENT, CenterPlaybackButtonPatch.MAX_PERCENT, 5, "%"));
     public static final BooleanSetting HIDE_PLAYER_CONTROL_BUTTONS_BACKGROUND = new BooleanSetting("revanced_hide_player_control_buttons_background", FALSE, true);
     public static final IntegerSetting PLAYER_CONTROL_BUTTONS_BACKGROUND_OPACITY = new IntegerSetting("morphe_player_control_buttons_background_opacity", 30, true, new SliderConfig(0, 100, 1, "%"), parentInverted(HIDE_PLAYER_CONTROL_BUTTONS_BACKGROUND));
     public static final BooleanSetting HIDE_PLAYER_YOUTUBE_MUSIC_BUTTON = new BooleanSetting("revanced_hide_player_youtube_music_button", FALSE);
@@ -919,6 +944,8 @@ public class Settings extends SharedYouTubeSettings {
 
     public static final BooleanSetting OVERLAY_BUTTON_SPEED_DIALOG = new BooleanSetting("revanced_overlay_button_speed_dialog", FALSE);
     public static final EnumSetting<PlaybackSpeedMenuType> OVERLAY_BUTTON_SPEED_DIALOG_TYPE = new EnumSetting<>("revanced_overlay_button_speed_dialog_type", PlaybackSpeedMenuType.CUSTOM_MODERN, parent(OVERLAY_BUTTON_SPEED_DIALOG));
+    public static final BooleanSetting OVERLAY_BUTTON_VIDEO_QUALITY =
+            new BooleanSetting("revanced_overlay_button_video_quality", FALSE);
     public static final BooleanSetting OVERLAY_BUTTON_PLAY_ALL = new BooleanSetting("revanced_overlay_button_play_all", FALSE);
     public static final EnumSetting<PlaylistIdPrefix> OVERLAY_BUTTON_PLAY_ALL_TYPE = new EnumSetting<>("revanced_overlay_button_play_all_type", PlaylistIdPrefix.ALL_CONTENTS_WITH_TIME_DESCENDING, parent(OVERLAY_BUTTON_PLAY_ALL));
     public static final BooleanSetting OVERLAY_BUTTON_WHITELIST = new BooleanSetting("revanced_overlay_button_whitelist", FALSE);
@@ -972,6 +999,8 @@ public class Settings extends SharedYouTubeSettings {
     public static final StringSetting CUSTOM_SEEKBAR_COLOR_ACCENT = new StringSetting("revanced_custom_seekbar_color_accent", "#FF2791", true, parent(ENABLE_CUSTOM_SEEKBAR_COLOR));
     public static final StringSetting GRADIENT_SEEKBAR_POSITIONS = new StringSetting("revanced_gradient_seekbar_positions", "0.7, 1.0", parent(ENABLE_CUSTOM_SEEKBAR_COLOR));
     public static final BooleanSetting ENABLE_SEEKBAR_TAPPING = new BooleanSetting("revanced_enable_seekbar_tapping", TRUE);
+    public static final BooleanSetting DISABLE_PRECISE_SEEKING_GESTURE =
+            new BooleanSetting("revanced_disable_precise_seeking_gesture", FALSE);
     public static final BooleanSetting HIDE_SEEKBAR_CHAPTER_LABEL = new BooleanSetting("revanced_hide_seekbar_chapter_label", FALSE, true);
     public static final BooleanSetting HIDE_SEEKBAR = new BooleanSetting("revanced_hide_seekbar", FALSE, true);
     public static final BooleanSetting CUSTOM_SEEKBAR_THUMB =
@@ -1032,6 +1061,10 @@ public class Settings extends SharedYouTubeSettings {
     public static final BooleanSetting SKIP_LIVE_SHORTS = new BooleanSetting("morphe_skip_live_shorts", FALSE);
     public static final BooleanSetting HIDE_SHORTS_DIMMING =
             new BooleanSetting("revanced_hide_shorts_dimming", FALSE);
+    public static final IntegerSetting SHORTS_OVERLAY_OPACITY =
+            new IntegerSetting("revanced_shorts_overlay_opacity", 100, true, new SliderConfig(0, 100, 1, "%"));
+    public static final BooleanSetting SHORTS_IMMERSIVE_STATUS_BAR =
+            new BooleanSetting("revanced_shorts_immersive_status_bar", FALSE, true);
     public static final EnumSetting<ShortsIcons.Style> SHORTS_ICON_STYLE = new EnumSetting<>("morphe_shorts_icon_style", ShortsIcons.Style.AUTO, true);
 
     // PreferenceScreen: Shorts - Shorts player components
@@ -1043,6 +1076,8 @@ public class Settings extends SharedYouTubeSettings {
     public static final BooleanSetting HIDE_SHORTS_LIVE_HEADER = new BooleanSetting("revanced_hide_shorts_live_header", FALSE);
     public static final BooleanSetting HIDE_SHORTS_LIVE_PREVIEW = new BooleanSetting("revanced_hide_shorts_live_preview", FALSE);
     public static final BooleanSetting HIDE_SHORTS_PAUSED_HEADER = new BooleanSetting("revanced_hide_shorts_paused_header", FALSE, true);
+    public static final BooleanSetting HIDE_SHORTS_SPEED_EDUCATION =
+            new BooleanSetting("revanced_hide_shorts_speed_education", FALSE, true);
     public static final BooleanSetting HIDE_SHORTS_PAUSED_OVERLAY_BUTTONS = new BooleanSetting("revanced_hide_shorts_paused_overlay_buttons", FALSE);
     public static final BooleanSetting HIDE_SHORTS_PREVIEW_COMMENT = new BooleanSetting("revanced_hide_shorts_preview_comment", FALSE);
     public static final BooleanSetting HIDE_SHORTS_SHOPPING_BUTTON = new BooleanSetting("revanced_hide_shorts_shopping_button", TRUE);
@@ -1255,6 +1290,8 @@ public class Settings extends SharedYouTubeSettings {
     public static final BooleanSetting REMEMBER_VIDEO_QUALITY_SHORTS_LAST_SELECTED_TOAST = new BooleanSetting("revanced_remember_video_quality_shorts_last_selected_toast", TRUE, parent(REMEMBER_VIDEO_QUALITY_SHORTS_LAST_SELECTED));
     public static final BooleanSetting REMEMBER_LIVESTREAM_POSITION = new BooleanSetting("morphe_remember_livestream_position", FALSE, "morphe_remember_livestream_position_user_dialog_message");
     public static final StringSetting REMEMBER_LIVESTREAM_POSITION_TIMES = new StringSetting("morphe_remember_livestream_position_times", "", false, false);
+    public static final BooleanSetting RESTORE_CAST_PLAY_QUEUE =
+            new BooleanSetting("morphe_restore_cast_play_queue", FALSE);
     public static final IntegerSetting VIDEO_DELAY = new IntegerSetting("morphe_video_delay", 0, new SliderConfig(0, 5000, 25, "ms"));
     public static final BooleanSetting VIDEO_DELAY_BLUETOOTH_ONLY = new BooleanSetting("morphe_video_delay_bluetooth_only", TRUE);
     public static final BooleanSetting ADVANCED_VIDEO_QUALITY_MENU = new BooleanSetting("revanced_advanced_video_quality_menu", TRUE, true);

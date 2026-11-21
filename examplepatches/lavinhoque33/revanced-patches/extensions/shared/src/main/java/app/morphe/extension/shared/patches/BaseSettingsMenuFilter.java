@@ -3,6 +3,7 @@
  * https://github.com/MorpheApp/morphe-patches/pull/2029
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
+ * Modified by lavinhoque33, 2026-11-20.
  */
 
 package app.morphe.extension.shared.patches;
@@ -19,10 +20,10 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.WeakHashMap;
+import java.util.function.Predicate;
 
 import app.morphe.extension.shared.settings.StringSetting;
 import app.morphe.extension.shared.utils.Logger;
-import app.morphe.extension.shared.utils.ResourceUtils;
 
 /**
  * Needle parsing, hierarchical discovery capture, and filter mutation helpers.
@@ -238,12 +239,19 @@ public abstract class BaseSettingsMenuFilter {
         self.discoveredSetting.save(serialize(snapshot));
     }
 
+    protected final void saveDiscoveredTree(List<DiscoveredNode> nodes) {
+        String json = serialize(nodes);
+        if (!json.equals(discoveredSetting.get())) discoveredSetting.save(json);
+    }
+
     private static String serialize(List<DiscoveredNode> nodes) {
         JSONArray array = new JSONArray();
         for (DiscoveredNode node : nodes) {
             try {
                 JSONObject entry = new JSONObject();
                 if (node.parent() != null) entry.put("parent", node.parent());
+                if (node.parentKey() != null) entry.put("parentKey", node.parentKey());
+                if (node.key() != null) entry.put("key", node.key());
                 entry.put("title", node.title());
                 array.put(entry);
             } catch (JSONException ignored) {
@@ -276,7 +284,9 @@ public abstract class BaseSettingsMenuFilter {
                 JSONObject entry = array.getJSONObject(i);
                 String parent = entry.has("parent") ? entry.getString("parent") : null;
                 String title = entry.getString("title");
-                result.add(new DiscoveredNode(parent, title));
+                String parentKey = entry.has("parentKey") ? entry.getString("parentKey") : null;
+                String key = entry.has("key") ? entry.getString("key") : null;
+                result.add(new DiscoveredNode(parent, title, parentKey, key));
             }
             return result;
         } catch (Exception ex) {
@@ -299,6 +309,34 @@ public abstract class BaseSettingsMenuFilter {
         return result;
     }
 
+    public static Predicate<DiscoveredNode> selectionSnapshot() {
+        BaseSettingsMenuFilter self = instance();
+        return self == null ? node -> false : self.selectedRows();
+    }
+
+    protected Predicate<DiscoveredNode> selectedRows() {
+        Set<String> selected = activeFilterEntries();
+        return node -> selected.contains(node.title().toLowerCase());
+    }
+
+    public static boolean hasSelections() {
+        BaseSettingsMenuFilter self = instance();
+        return self != null && self.hasFilterEntries();
+    }
+
+    protected boolean hasFilterEntries() {
+        return !activeFilterEntries().isEmpty();
+    }
+
+    public static void toggleDiscoveredRow(DiscoveredNode node) {
+        BaseSettingsMenuFilter self = instance();
+        if (self != null) self.toggleRow(node);
+    }
+
+    protected void toggleRow(DiscoveredNode node) {
+        toggleInFilter(node.title());
+    }
+
     /**
      * Picker reset entry point: wipes the filter list in one shot so the user does not have
      * to untap every row individually after selecting too much.
@@ -306,8 +344,12 @@ public abstract class BaseSettingsMenuFilter {
     public static void clearFilter() {
         BaseSettingsMenuFilter self = instance();
         if (self == null) return;
-        self.entriesSetting.save("");
+        self.clearFilterEntries();
         Logger.printDebug(() -> "SettingsMenuFilter cleared");
+    }
+
+    protected void clearFilterEntries() {
+        entriesSetting.save("");
     }
 
     /**
@@ -348,5 +390,19 @@ public abstract class BaseSettingsMenuFilter {
      * One Preference in the settings tree: null parent = top-level, matching another
      * node's title = nested child.
      */
-    public record DiscoveredNode(@Nullable String parent, String title) {}
+    public record DiscoveredNode(@Nullable String parent, String title,
+                                 @Nullable String parentKey, @Nullable String key) {
+        private DiscoveredNode(@Nullable String parent, String title) {
+            this(parent, title, null, null);
+        }
+
+        String identity() {
+            return key == null ? "title:" + title : "key:" + key;
+        }
+
+        @Nullable
+        String parentIdentity() {
+            return parentKey != null ? "key:" + parentKey : parent == null ? null : "title:" + parent;
+        }
+    }
 }

@@ -4,6 +4,7 @@
  * https://github.com/MorpheApp/morphe-patches/pull/2763
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
+ * Modified by lavinhoque33, 2026-11-20.
  */
 
 package app.morphe.extension.youtube.patches.components;
@@ -225,13 +226,14 @@ public final class AiSListFilter extends BufferPhraseFilter {
 
     @Override
     @Nullable
-    protected String matchBuffer(byte[] buffer, StringFilterGroup matchedGroup) {
+    protected String matchBuffer(Buffer buffer, StringFilterGroup matchedGroup) {
         ByteTrieSearch bl = blocklistSearch;
         final boolean blActive = blocklistActiveForFeedContext();
         if (bl != null && blActive) {
+            byte[] bytes = buffer.get();
             MutableReference<String> ref = new MutableReference<>();
-            if (bl.matches(buffer, ref)) {
-                recordHide(matchedGroup, buffer);
+            if (bl.matches(bytes, ref)) {
+                recordHide(matchedGroup, bytes);
                 return ref.value;
             }
         }
@@ -239,9 +241,10 @@ public final class AiSListFilter extends BufferPhraseFilter {
         ByteTrieSearch wl = warnlistSearch;
         final boolean wlActive = warnlistActiveForFeedContext();
         if (wl != null && wlActive) {
+            byte[] bytes = buffer.get();
             MutableReference<String> ref = new MutableReference<>();
-            if (wl.matches(buffer, ref)) {
-                recordHide(matchedGroup, buffer);
+            if (wl.matches(bytes, ref)) {
+                recordHide(matchedGroup, bytes);
                 return ref.value;
             }
         }

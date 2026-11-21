@@ -42,6 +42,7 @@ public final class CommentSwipeActions {
     /** Images at least this size in both directions are post media rather than icons. */
     private static final int MEDIA_SIZE_DP = 48;
     public static void bindPost(Object holder) {
+        try { ShareShortcuts.post(holder); } catch (RuntimeException | LinkageError ignored) { }
         MediaPreviewTweaks.bindPost(holder);
         MaterialYouTweaks.bindPost(holder);
         if (!postSwipesEnabled()) return;

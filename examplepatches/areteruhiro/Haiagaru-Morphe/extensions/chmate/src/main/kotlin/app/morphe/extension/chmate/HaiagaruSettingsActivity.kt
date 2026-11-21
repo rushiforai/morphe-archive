@@ -3,8 +3,9 @@ package app.morphe.extension.chmate
 import android.content.SharedPreferences
 import android.os.Bundle
 import android.view.MotionEvent
+import android.view.ViewGroup
 import androidx.activity.compose.BackHandler
-import androidx.activity.compose.setContent
+import androidx.compose.ui.platform.ComposeView
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.shape.CircleShape
@@ -45,12 +46,19 @@ class HaiagaruSettingsActivity : HaiagaruComposeActivity() {
         }
         preferences.add(android.preference.PreferenceManager.getDefaultSharedPreferences(this))
         preferences.forEach { it.registerOnSharedPreferenceChangeListener(listener) }
-        setContent { HaiagaruUi.Theme { SettingsScreen() } }
+        // Set match-parent before attaching or composing. activity-compose creates
+        // a wrap-content root, which API 26 measures as 0x0 on the first pass.
+        val content = ComposeView(this).apply {
+            layoutParams = android.widget.FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT)
+            setContent { HaiagaruUi.Theme { SettingsScreen() } }
+        }
+        setContentView(content)
         gestures = HaiagaruSettingsGestures(this, window.decorView,
             { onBackPressedDispatcher.onBackPressed() }, { top() }, { bottom() }).also { it.setCloseAction { finish() } }
         if (savedInstanceState == null) window.decorView.post {
             SettingsBackupIntroduction.offer(this) {
-                SettingsSupport.offer(this) { PersonalNgSubmissions.offerOnSettingsOpen(this) { MinimalSetup.offer(this) } }
+                SettingsSupport.offer(this) { MinimalSetup.offer(this) }
             }
         }
     }
@@ -65,6 +73,7 @@ class HaiagaruSettingsActivity : HaiagaruComposeActivity() {
 
     override fun onResume() {
         super.onResume()
+        Haiagaru.onSettingsResume(this)
         val light = resources.configuration.uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK !=
             android.content.res.Configuration.UI_MODE_NIGHT_YES
         if (android.os.Build.VERSION.SDK_INT >= 30) {

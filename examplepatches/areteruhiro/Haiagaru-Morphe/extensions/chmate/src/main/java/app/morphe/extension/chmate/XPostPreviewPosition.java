@@ -69,7 +69,6 @@ final class XPostPreviewPosition {
         if(!(view instanceof ViewGroup)||!view.isShown()||interacting(view)||ReadingPosition.nativeRestoring(view)||FilterPosition.changing(view))return;
         Anchor existing=PENDING.get(view);
         if(existing!=null){existing.changed();return;}
-        if(view.isLayoutRequested())return;
         try{
             Anchor anchor=new Anchor((ViewGroup)view);
             if(anchor.position<0||anchor.adapter==null)return;
@@ -97,7 +96,7 @@ final class XPostPreviewPosition {
     private static final class Anchor implements ViewTreeObserver.OnPreDrawListener {
         final ViewGroup list;
         final Object adapter;
-        final int count, position, top;
+        final int count, position, top, responseNumber;
         final boolean bottom;
         final int width,height,viewportTop,viewportBottom;
         final long started=android.os.SystemClock.uptimeMillis();
@@ -118,6 +117,12 @@ final class XPostPreviewPosition {
                     ? ((ListView) list).getPositionForView(first)
                     : (Integer) call(list, "getChildAdapterPosition", new Class<?>[]{View.class}, first);
             top = first == null ? 0 : first.getTop() - list.getPaddingTop();
+            int response=-1;
+            if(position>=0)try{
+                Method item=list instanceof ListView?adapter.getClass().getMethod("getItem",int.class):FilterPosition.findItem(adapter);
+                item.setAccessible(true);response=ReadingPosition.number(ReadingPosition.response(item.invoke(adapter,position)));
+            }catch(Exception ignored){}
+            responseNumber=response;
         }
         int count() throws Exception {
             return (Integer) call(adapter, list instanceof ListView ? "getCount" : "getItemCount", new Class<?>[0]);
@@ -130,6 +135,10 @@ final class XPostPreviewPosition {
         void expire(){if(android.os.SystemClock.uptimeMillis()>=deadline)close();}
         int index(View child)throws Exception{return list instanceof ListView?((ListView)list).getPositionForView(child):(Integer)call(list,"getChildAdapterPosition",new Class<?>[]{View.class},child);}
         View child(int position)throws Exception{for(int i=0;i<list.getChildCount();i++)if(index(list.getChildAt(i))==position)return list.getChildAt(i);return null;}
+        int responseAt(int position)throws Exception{
+            Method item=list instanceof ListView?adapter.getClass().getMethod("getItem",int.class):FilterPosition.findItem(adapter);
+            item.setAccessible(true);return ReadingPosition.number(ReadingPosition.response(item.invoke(adapter,position)));
+        }
         void scroll(int target,int offset)throws Exception{
             if(list instanceof ListView)((ListView)list).setSelectionFromTop(target,offset);
             else{
@@ -150,14 +159,16 @@ final class XPostPreviewPosition {
             correcting=false;
             try {
                 int[] bounds=viewport(list);
+                int currentCount=count();
                 if (!list.isShown() || interacting(list) || ReadingPosition.nativeRestoring(list)||FilterPosition.changing(list)
                         ||width!=list.getWidth()||height!=list.getHeight()||bounds[0]!=viewportTop||bounds[1]!=viewportBottom
-                        || adapter != call(list, "getAdapter", new Class<?>[0]) || count != count()){close();return true;}
+                        || adapter != call(list, "getAdapter", new Class<?>[0]) || currentCount<count||position>=currentCount
+                        ||(responseNumber>0&&responseAt(position)!=responseNumber)){close();return true;}
                 View first=child(position);
                 int target = position, offset = top;
-                if (bottom && count > 0) {
-                    View last=child(count-1);
-                    target = count - 1;
+                if (bottom && currentCount > 0) {
+                    View last=child(currentCount-1);
+                    target = currentCount - 1;
                     if(last==null){if(++corrections>8){close();return true;}scroll(target,0);return false;}
                     offset = viewportBottom-list.getPaddingTop()-last.getHeight();
                     if(Math.abs(last.getBottom()-viewportBottom)<=1){if(now>=quietUntil)close();return true;}

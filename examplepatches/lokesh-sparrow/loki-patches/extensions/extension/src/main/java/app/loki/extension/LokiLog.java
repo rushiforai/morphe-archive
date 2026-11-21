@@ -68,12 +68,26 @@ public final class LokiLog {
         write(context, "D", detail);
     }
 
+    /** Set from the component that starts with the app, so a hook that runs with no Activity still logs. */
+    private static volatile Context attached;
+
+    /** Called once at process start (MenuProvider.onCreate); a report must never come back empty. */
+    static void attach(Context context) {
+        if (context != null && attached == null) attached = context.getApplicationContext();
+    }
+
     public static Context application() {
         try {
-            return (Context) Class.forName("android.app.ActivityThread").getMethod("currentApplication").invoke(null);
-        } catch (Throwable error) {
-            return null;
+            Context context = (Context) Class.forName("android.app.ActivityThread")
+                    .getMethod("currentApplication").invoke(null);
+            if (context != null) {
+                attach(context);
+                return context;
+            }
+        } catch (Throwable ignored) {
+            // Falls through to the attached context: reflection can fail on some builds.
         }
+        return attached;
     }
 
     /** Calls a no-argument boolean getter on a new instance of type: shows whether the patch reached the dex. */

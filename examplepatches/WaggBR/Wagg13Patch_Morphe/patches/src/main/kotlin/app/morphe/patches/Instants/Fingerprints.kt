@@ -88,6 +88,27 @@ internal object VideoRecordedFingerprint : Fingerprint(
     },
 )
 
+private const val MEDIA_SAVER = "Lcom/instagram/quicksnap/util/media/QuickSnapMediaSaver;"
+
+// The app's "save to photos" step. It is a coroutine switch (LX/DaZ in 451.0.0.53.106) whose case
+// 16 saves the captured Bitmap, case 17 the captured JPEG and case 18 the recorded video file; all
+// three go through a QuickSnapMediaSaver, which no other switch dispatcher calls. The patch skips
+// them for captures that came from the gallery.
+internal object GallerySaveFingerprint : Fingerprint(
+    name = "invokeSuspend",
+    returnType = "Ljava/lang/Object;",
+    parameters = listOf("Ljava/lang/Object;"),
+    custom = { method, _ ->
+        val referenced = method.implementation?.instructions
+            ?.filter { it.opcode == Opcode.INVOKE_STATIC }
+            ?.map { (it as ReferenceInstruction).reference as? MethodReference }
+            .orEmpty()
+        listOf("A05", "A07", "A09").all { save ->
+            referenced.any { it?.definingClass == MEDIA_SAVER && it.name == save }
+        }
+    },
+)
+
 // The navigator wrapper (LX/coP in 451.0.0.53.106) forwards navigation to a delegate and logs it.
 // Both methods are anchored on an unobfuscated string ("standalone_app" going forward, "back" going
 // back) and on the Home route check.
@@ -166,5 +187,14 @@ internal object ViewerMenuSelectionFingerprint : Fingerprint(
 internal object ViewerVideoPlayerFingerprint : Fingerprint(
     custom = { method, _ ->
         method.hasStringStartingWith("com.instagram.quicksnap.common.ui.media.QuickSnapVideoPlayer (")
+    },
+)
+
+// The viewer's empty state, shown when there are no posts left. The tracker uses it to know that the
+// last Instant was passed and that the "Go back" button must wait for new posts.
+internal object ViewerEmptyStateFingerprint : Fingerprint(
+    returnType = "V",
+    custom = { method, _ ->
+        method.hasStringStartingWith("com.instagram.quicksnap.viewer.compose.QuickSnapMediaViewerEmptyState (")
     },
 )

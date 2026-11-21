@@ -2,13 +2,13 @@ package app.morphe.extension.youtube.patches.components;
 
 import app.morphe.extension.shared.patches.components.ByteArrayFilterGroup;
 import app.morphe.extension.shared.patches.components.ByteArrayFilterGroupList;
-import app.morphe.extension.shared.patches.components.Filter;
+import app.morphe.extension.shared.patches.components.LazyBufferFilter;
 import app.morphe.extension.shared.patches.components.StringFilterGroup;
 import app.morphe.extension.shared.utils.StringTrieSearch;
 import app.morphe.extension.youtube.settings.Settings;
 
 @SuppressWarnings("unused")
-public final class QuickActionFilter extends Filter {
+public final class QuickActionFilter extends LazyBufferFilter {
     private static final String QUICK_ACTION_PATH = "quick_actions.e";
     private final StringTrieSearch bufferFilterPathExceptions = new StringTrieSearch();
     private final StringFilterGroup quickActionRule;
@@ -109,7 +109,7 @@ public final class QuickActionFilter extends Filter {
     }
 
     @Override
-    public boolean isFiltered(String path, String identifier, String allValue, byte[] buffer,
+    public boolean isFilteredLazy(String path, String identifier, String allValue, Buffer buffer,
                               StringFilterGroup matchedGroup, FilterContentType contentType, int contentIndex) {
         if (matchedGroup == liveChatReplay) {
             return true;
@@ -124,7 +124,7 @@ public final class QuickActionFilter extends Filter {
             if (bufferFilterPathExceptions.matches(path)) {
                 return false;
             }
-            return bufferButtonsGroupList.check(buffer).isFiltered();
+            return bufferButtonsGroupList.check(buffer.get()).isFiltered();
         }
 
         return true;

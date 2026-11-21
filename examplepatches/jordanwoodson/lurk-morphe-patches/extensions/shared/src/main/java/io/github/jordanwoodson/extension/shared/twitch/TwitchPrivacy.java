@@ -45,13 +45,13 @@ public final class TwitchPrivacy {
 
     /**
      * Injection point, while Disable analytics is on: whether a Spade event still goes out. Only minute-watched
-     * does, and only while Auto-claim channel points or Auto-claim Drops is on: Twitch credits watch time from it,
-     * and without that credit a channel never offers channel points or the bonus chest to claim (issue 69), and
-     * time-based Drops never progress.
+     * does, while Keep watch time (on by default), Auto-claim channel points or Auto-claim Drops is on: Twitch
+     * credits watch time from it, and without that credit channel points, the bonus chest (issue 69) and watch
+     * streaks (issue 98) never come, and time-based Drops never progress.
      */
     public static boolean keepSpadeEvent(String event) {
-        return "minute-watched".equals(event) &&
-                (Settings.isEnabled("chat_auto_claim") || Settings.isEnabled("drops_auto_claim"));
+        return "minute-watched".equals(event) && (Settings.isEnabled("disable_analytics_watch_time") ||
+                Settings.isEnabled("chat_auto_claim") || Settings.isEnabled("drops_auto_claim"));
     }
 
     /**
@@ -66,7 +66,7 @@ public final class TwitchPrivacy {
             if (!(event instanceof JSONObject) || !keepSpadeEvent(((JSONObject) event).optString("event"))) it.remove();
         }
         if (events.isEmpty()) return false;
-        Logger.d("analytics: sent " + events.size() + " minute-watched event(s) for channel points and Drops");
+        Logger.d("analytics: sent " + events.size() + " minute-watched event(s) for watch time");
         return true;
     }
 }

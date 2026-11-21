@@ -9,7 +9,7 @@
  * - inotia00 (https://github.com/inotia00)
  *
  * Licensed under the GNU General Public License v3.0.
- * Modified by lavinhoque33, 2026-11-17.
+ * Modified by lavinhoque33, 2026-11-20.
  *
  * ------------------------------------------------------------------------
  * GPLv3 Section 7 – Additional Terms & Attribution Requirements
@@ -60,6 +60,7 @@ import app.morphe.patches.music.utils.patch.PatchList.HIDE_LAYOUT_COMPONENTS
 import app.morphe.patches.music.utils.playservice.is_6_42_or_greater
 import app.morphe.patches.music.utils.playservice.is_6_48_or_greater
 import app.morphe.patches.music.utils.playservice.is_8_05_or_greater
+import app.morphe.patches.music.utils.playservice.is_8_12_or_greater
 import app.morphe.patches.music.utils.playservice.is_8_15_or_greater
 import app.morphe.patches.music.utils.playservice.is_9_00_or_greater
 import app.morphe.patches.music.utils.playservice.versionCheckPatch
@@ -93,6 +94,8 @@ private const val CUSTOM_FILTER_CLASS_DESCRIPTOR =
     "$COMPONENTS_PATH/CustomFilter;"
 private const val LAYOUT_COMPONENTS_FILTER_CLASS_DESCRIPTOR =
     "$COMPONENTS_PATH/LayoutComponentsFilter;"
+private const val SPEED_DIAL_SHELF_FILTER_CLASS_DESCRIPTOR =
+    "$COMPONENTS_PATH/SpeedDialShelfFilter;"
 
 @Suppress("unused")
 val layoutComponentsPatch = bytecodePatch(
@@ -412,6 +415,18 @@ val layoutComponentsPatch = bytecodePatch(
             "revanced_hide_samples_shelf",
             "false"
         )
+
+        if (is_8_12_or_greater) {
+            addLithoFilter(SPEED_DIAL_SHELF_FILTER_CLASS_DESCRIPTOR)
+            addSwitchPreference(
+                CategoryType.GENERAL,
+                "revanced_hide_speed_dial_shelf",
+                "false"
+            )
+        } else {
+            printWarn("Hide Speed dial shelf is only supported on YouTube Music 8.12 or newer.")
+        }
+
         addSwitchPreference(
             CategoryType.GENERAL,
             "revanced_hide_search_button",

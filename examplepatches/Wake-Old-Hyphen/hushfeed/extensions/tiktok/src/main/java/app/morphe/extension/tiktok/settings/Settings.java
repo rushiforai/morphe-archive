@@ -1585,6 +1585,10 @@ public class Settings extends BaseSettings {
     // (#420). Off by default, like Hide online status, and read at each request, so no restart.
     public static final BooleanSetting GHOST_HIDE_LIVE_VIEWS =
             new BooleanSetting("ghost_hide_live_views", FALSE, false, Setting.parent(GHOST_MODE));
+    // Answers a video like on the phone and keeps it there, so TikTok never gets it. Off by
+    // default, and read at each like, so no restart.
+    public static final BooleanSetting GHOST_LOCAL_LIKES =
+            new BooleanSetting("ghost_local_likes", FALSE, false, Setting.parent(GHOST_MODE));
     public static final BooleanSetting DISABLE_ANALYTICS = new BooleanSetting("disable_analytics", FALSE);
     // Stop on-device AI profiling, in the default selection with this off. TikTok starts the
     // engine during launch, so a restart applies it.
@@ -1851,6 +1855,8 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting SHOW_FOLLOW_STATUS = new BooleanSetting("show_follow_status", TRUE);
     // "Joined Jan 2020" in the same spot on someone else's profile, read from the account's ID.
     public static final BooleanSetting SHOW_JOIN_DATE = new BooleanSetting("show_join_date", FALSE);
+    // "Since Nov 18: +12 followers" under it, from the counts each profile showed on this phone last time.
+    public static final BooleanSetting SHOW_PROFILE_CHANGES = new BooleanSetting("show_profile_changes", FALSE);
     public static final BooleanSetting LOCAL_PROFILE_COUNTS = new BooleanSetting("local_profile_counts", FALSE, true);
     public static final BooleanSetting LOCAL_PROFILE_VERIFIED_BADGE = new BooleanSetting("local_profile_verified_badge", FALSE, true);
     public static final BooleanSetting HIDE_OWN_PROFILE_RESTRICTION_NOTICE = new BooleanSetting("hide_own_profile_restriction_notice", FALSE, true);

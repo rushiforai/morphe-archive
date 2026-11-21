@@ -3,10 +3,21 @@ package app.badfella.extension.linkedin;
 import android.app.DownloadManager;
 import android.content.Context;
 import android.net.Uri;
+import android.os.Handler;
+import android.os.Looper;
+import android.webkit.MimeTypeMap;
 import android.widget.Toast;
+
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.util.Locale;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /** Saves media through the system DownloadManager, into the folder chosen in BadFella Patches. */
 final class Downloads {
+    private static final ExecutorService IMAGE_TYPE_WORKER = Executors.newSingleThreadExecutor();
+    private static final Handler MAIN = new Handler(Looper.getMainLooper());
 
     private Downloads() {
     }
@@ -24,13 +35,52 @@ final class Downloads {
     }
 
     static boolean enqueue(Context context, String url, String baseName, boolean video) {
+        if (video) return enqueue(context, url, baseName, true, "video/mp4", "mp4");
+        Uri uri = Uri.parse(url);
+        if (!"https".equals(uri.getScheme()) || !"media.licdn.com".equalsIgnoreCase(uri.getHost())) {
+            return enqueue(context, url, baseName, false, "image/jpeg", "jpg");
+        }
+        Context app = context.getApplicationContext();
+        IMAGE_TYPE_WORKER.execute(() -> {
+            String mime = imageType(url);
+            String extension = MimeTypeMap.getSingleton().getExtensionFromMimeType(mime);
+            MAIN.post(() -> enqueue(app, url, baseName, false,
+                    extension == null ? "image/jpeg" : mime, extension == null ? "jpg" : extension));
+        });
+        return true;
+    }
+
+    private static String imageType(String url) {
+        HttpURLConnection connection = null;
         try {
-            String fileName = "linkedin_" + baseName + (video ? ".mp4" : ".jpg");
+            connection = (HttpURLConnection) new URL(url).openConnection();
+            connection.setInstanceFollowRedirects(false);
+            connection.setRequestMethod("HEAD");
+            connection.setConnectTimeout(2500);
+            connection.setReadTimeout(2500);
+            int status = connection.getResponseCode();
+            String type = connection.getContentType();
+            if (status >= 200 && status < 300 && type != null) {
+                String mime = type.split(";", 2)[0].trim().toLowerCase(Locale.ROOT);
+                if (mime.startsWith("image/")) return mime;
+            }
+        } catch (java.io.IOException ignored) {
+            // The regular download can still succeed when the server doesn't answer HEAD.
+        } finally {
+            if (connection != null) connection.disconnect();
+        }
+        return "image/jpeg";
+    }
+
+    private static boolean enqueue(Context context, String url, String baseName, boolean video,
+                                   String mime, String extension) {
+        try {
+            String fileName = "linkedin_" + baseName + "." + extension;
             String folder = Settings.downloadFolder();
             String subPath = folder.isEmpty() ? fileName : folder + "/" + fileName;
             DownloadManager.Request request = new DownloadManager.Request(Uri.parse(url))
                     .setTitle(fileName)
-                    .setMimeType(video ? "video/mp4" : "image/jpeg")
+                    .setMimeType(mime)
                     .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
                     .setDestinationInExternalPublicDir(baseDir(video), subPath);
             DownloadManager manager = (DownloadManager) context.getSystemService(Context.DOWNLOAD_SERVICE);

@@ -1,6 +1,8 @@
 package io.github.jordanwoodson.extension.shared.twitch;
 
 import android.view.View;
+import android.view.ViewGroup;
+import android.view.ViewParent;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -31,6 +33,9 @@ public final class TwitchHighlights {
     static final String HOME_CONTINUE_WATCHING = "hide_home_continue_watching";
     static final String HOME_OFFLINE = "hide_home_offline_channels";
     static final String HOME_RECOMMENDED = "hide_home_recommended";
+
+    /** The chat header's row (layout chat_header's header_container), resolved once; 0 when missing. */
+    private static int headerRowId = -1;
 
     private TwitchHighlights() { }
 
@@ -126,12 +131,52 @@ public final class TwitchHighlights {
 
     /**
      * Injection point: the extensions about to be shown as icons above chat or in its header (issue 81). While
-     * hidden, the row's view is gone and gets no icons, so neither the icons nor the extensions button show.
+     * hidden, the row's view is gone and gets no icons, so neither the icons nor the extensions button show. A
+     * chat header left with nothing to show goes too (issue 101), as on a channel without extensions.
      */
     public static List<?> extensionIcons(View row, List<?> extensions) {
         if (!Settings.isEnabled(EXTENSIONS)) return extensions;
-        if (row != null) row.setVisibility(View.GONE);
+        if (row != null) {
+            row.setVisibility(View.GONE);
+            collapseEmptyHeader(row);
+        }
         return Collections.emptyList();
+    }
+
+    /**
+     * The chat header is a fixed-height row (the chat's name, the leaderboard button, the extensions, then
+     * Follow, Subscribe and Gift A Sub) with a divider under it, and Twitch shows it even when the extensions
+     * were all it had: for a follower with no subscription buttons (Hide subscription upsells, or a channel
+     * without subscriptions) hiding them left an empty band between the player and chat. Once Twitch has
+     * rendered the header (its render makes it visible last, so after it), the header goes if every part of
+     * its row is gone; the next render shows it again and checks again.
+     */
+    private static void collapseEmptyHeader(View extensions) {
+        ViewParent parent = extensions.getParent();
+        if (!(parent instanceof ViewGroup) || !isHeaderRow((ViewGroup) parent)) return;
+        ViewGroup row = (ViewGroup) parent;
+        ViewParent outer = row.getParent();
+        if (!(outer instanceof View)) return;
+        View header = (View) outer;
+        header.post(() -> {
+            if (Settings.isEnabled(EXTENSIONS) && header.getVisibility() == View.VISIBLE && isEmpty(row)) {
+                header.setVisibility(View.GONE);
+            }
+        });
+    }
+
+    private static boolean isHeaderRow(ViewGroup row) {
+        if (headerRowId == -1) {
+            headerRowId = row.getResources().getIdentifier("header_container", "id", row.getContext().getPackageName());
+        }
+        return headerRowId != 0 && row.getId() == headerRowId;
+    }
+
+    private static boolean isEmpty(ViewGroup row) {
+        for (int i = 0; i < row.getChildCount(); i++) {
+            if (row.getChildAt(i).getVisibility() == View.VISIBLE) return false;
+        }
+        return true;
     }
 
     /** Injection point: whether the "Changed to Column Chat" pop-up, with Next Mode, is skipped (issue 85). */

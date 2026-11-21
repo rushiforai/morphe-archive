@@ -18,10 +18,13 @@ function fakePage(units = []) {
     head: { appendChild: (el) => styles.push(el.textContent) },
     getElementById: () => null,
     createElement: () => ({}),
+    querySelector: () => null,
     querySelectorAll: () => units,
+    addEventListener() {},
   };
   const sandbox = {
     window: { addEventListener() {} }, document, URL, styles,
+    location: { href: 'https://www.quora.com/' },
     MutationObserver: class { observe() {} },
     setTimeout: () => 0,
   };

@@ -6,7 +6,7 @@ import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import app.morphe.extension.shared.patches.components.Filter;
+import app.morphe.extension.shared.patches.components.LazyBufferFilter;
 import app.morphe.extension.shared.patches.components.StringFilterGroup;
 import app.morphe.extension.shared.settings.StringSetting;
 import app.morphe.extension.shared.utils.ResourceUtils;
@@ -15,7 +15,7 @@ import app.morphe.extension.youtube.shared.NavigationBar;
 import app.morphe.extension.youtube.shared.RootView;
 
 @SuppressWarnings("all")
-public final class FeedVideoViewsFilter extends Filter {
+public final class FeedVideoViewsFilter extends LazyBufferFilter {
 
     public FeedVideoViewsFilter() {
 
@@ -62,10 +62,10 @@ public final class FeedVideoViewsFilter extends Filter {
     }
 
     @Override
-    public boolean isFiltered(String path, String identifier, String allValue, byte[] buffer,
+    public boolean isFilteredLazy(String path, String identifier, String allValue, Buffer buffer,
                               StringFilterGroup matchedGroup, FilterContentType contentType, int contentIndex) {
         return hideFeedVideoViewsSettingIsActive() &&
-                filterByViews(buffer);
+                filterByViews(buffer.get());
     }
 
     private static final String ARROW = " -> ";

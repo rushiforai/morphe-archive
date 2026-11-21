@@ -1,0 +1,1 @@
+package app.morphe.extension.music.settings; public class Settings { public static final app.morphe.extension.shared.settings.BooleanSetting LYRICS_ENABLED=new app.morphe.extension.shared.settings.BooleanSetting(); }

@@ -36,6 +36,32 @@ class SourceMetadataTests(unittest.TestCase):
         self.assertEqual(manifest["download_url"],
                          f"https://github.com/XBadFellaX/BadFella-Patches/releases/download/v{version}/patches-{version}.mpp")
 
+    def test_preview_changelog_is_visible_in_manager(self):
+        """Manager's preview channel reads CHANGELOG.md on dev down to the first stable heading, then narrows
+        it per app by bullet scope (`- **App:**`). A missing entry, or bullets naming no app, show nothing."""
+        root = Path(__file__).resolve().parents[1]
+        version = json.loads((root / "patches-bundle.json").read_text(encoding="utf-8"))["version"]
+        heading = re.compile(r"^## (\S+) \((\d{4}-\d{2}-\d{2})\)$")
+        entries = []
+        for line in (root / "CHANGELOG.md").read_text(encoding="utf-8").splitlines():
+            match = heading.match(line)
+            if match:
+                if entries and "-" not in entries[-1][0]:
+                    break
+                entries.append((match.group(1), []))
+            elif entries and line.startswith(("- ", "* ")):
+                entries[-1][1].append(line)
+        if "-" not in version:
+            return
+        self.assertEqual(entries[0][0], version, "CHANGELOG.md must start with the manifest's preview version")
+        for name, bullets in entries:
+            if "-" not in name:
+                continue
+            with self.subTest(entry=name):
+                self.assertTrue(bullets, "preview entry has no bullets")
+                for bullet in bullets:
+                    self.assertRegex(bullet, r"^[-*] \*\*[^*]+:\*\* ", "scope each bullet to its app")
+
     def test_timezone_suffixes_rejected_by_manager(self):
         for value in ["2026-10-30T05:01:09+00:00", "2026-10-30T05:01:09Z"]:
             with self.subTest(value=value), self.assertRaises(ValueError):

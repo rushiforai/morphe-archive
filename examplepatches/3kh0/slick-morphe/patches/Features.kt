@@ -17,27 +17,44 @@ import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 private const val OBJ = "(Ljava/lang/Object;)Ljava/lang/Object;"
 private const val RESULT = "move-result-object v0"
 
-val nativeFeatures =
+internal val archiveHooks =
     bytecodePatch {
         dependsOn(modMenu)
         execute {
-            val stateMethod =
-                findMethod("stateFromTs") {
-                    it.parameterTypes == listOf("Lslack/model/Message;") &&
-                        it.returnType == "Lslack/model/MessageState;" && it.accessFlags and 0x8 != 0
-                }
-            method("Lslick/android/Host;", "messageState").run {
-                removeInstructions(0, code.size)
+            val handler = mutableClassDefBy("Lslack/services/messages/eventhandlers/MessageEventHandler;")
+            method(
+                "Lslack/intune/NoOpIntuneIntegration\$\$ExternalSyntheticLambda0;",
+                "invoke\$slack\$messages\$impl\$v2\$MessageRangeTransactionDaoImpl\$persistMessagesAndRanges\$2\$\$ExternalSyntheticLambda0",
+            ).run {
+                check(registers == 18)
+                val (i, x) =
+                    indexed { it.opcode == Opcode.CHECK_CAST && it.cast == "Lslack/persistence/messages/MessageHistoryChunk;" }
+                        .one()
+                check(x.reg == 2)
+                // Pinned transaction locals: owner v3, chunk v2, nullable thread v9, trace v11.
                 addInstructions(
-                    0,
-                    """
-                    check-cast p0, Lslack/model/Message;
-                    invoke-static {p0}, $stateMethod
-                    move-result-object p0
-                    return-object p0
-                    """,
+                    i + 1,
+                    "invoke-static {v3, v2, v9, v11}, Lslick/android/Archive;->history(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/String;Ljava/lang/Object;)V",
                 )
             }
+            for ((name, type, callback) in listOf(
+                Triple("onNewMessage", "Lslack/model/Message;", "newMessage"),
+                Triple("updateMessage", "Lslack/corelib/rtm/msevents/MessageChangedEvent;", "changed"),
+                Triple("removeMessage", "Lslack/corelib/rtm/msevents/MessageDeletedEvent;", "deleted"),
+            )) {
+                handler.methods.single { it.name == name }.run {
+                    val i = code.indexOfFirst { it.opcode == Opcode.CHECK_CAST && it.cast == type }
+                    check(i >= 0)
+                    addInstructions(i + 1, call("v${code[i].reg}", "Archive;->$callback(Ljava/lang/Object;)V"))
+                    addInstructions(0, call("p0", "Archive;->begin(Ljava/lang/Object;)V"))
+                }
+            }
+        }
+    }
+
+val customFont =
+    slackPatch("Custom font", "Use Lexend or your own TTF/OTF.", "font") {
+        execute {
             val compat = "Landroidx/core/content/res/ResourcesCompat;"
             method("Landroidx/compose/ui/text/font/FontFamilyResolverImpl;", "resolve") {
                 it.parameterTypes == listOf("Landroidx/compose/ui/text/font/TypefaceRequest;")
@@ -79,6 +96,12 @@ val nativeFeatures =
                     "return-object v0",
                 )
             }
+        }
+    }
+
+val appearance =
+    slackPatch("Appearance", "AMOLED theme, black sheets and workspace title.", "amoled", "workspace_title") {
+        execute {
             method("Lslack/theming/darkmode/DarkModeHelperImpl;", "isTrueDarkMode") { it.parameterTypes.isEmpty() }.run {
                 check(registers > 1)
                 intercept("invoke-static {}, Lslick/android/Features;->amoled()Z\nmove-result v0", "return v0")
@@ -133,7 +156,12 @@ val nativeFeatures =
                     wrapReturn(i, x.reg, "Appearance;->compose", "Lslack/kit/usertheme/SKThemeColorSet;")
                 }
             }
+        }
+    }
 
+val pronouns =
+    slackPatch("Show pronouns", "Show pronouns beside message timestamps.", "pronouns") {
+        execute {
             // R8 merged the user-header renderer into this coroutine. Hook only its header branch.
             method("Lslack/reactorsview/ReactorsViewDataProviderImpl\$invoke\$2;", "invokeSuspend").run {
                 check(parameterTypes == listOf("Ljava/lang/Object;") && returnType == "Ljava/lang/Object;")
@@ -162,7 +190,30 @@ val nativeFeatures =
                     "invoke-static {v$views, v${code[metadata].reg}, v$binding}, Lslick/android/Features;->timestampPronouns(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)V",
                 )
             }
+        }
+    }
 
+val messageLogger =
+    slackPatch("Message logger", "Keep deleted messages and edit history visible.", "message_logger", "log") {
+        dependsOn(archiveHooks)
+        execute {
+            val stateMethod =
+                findMethod("stateFromTs") {
+                    it.parameterTypes == listOf("Lslack/model/Message;") &&
+                        it.returnType == "Lslack/model/MessageState;" && it.accessFlags and 0x8 != 0
+                }
+            method("Lslick/android/Host;", "messageState").run {
+                removeInstructions(0, code.size)
+                addInstructions(
+                    0,
+                    """
+                    check-cast p0, Lslack/model/Message;
+                    invoke-static {p0}, $stateMethod
+                    move-result-object p0
+                    return-object p0
+                    """,
+                )
+            }
             val messages = "Lslack/services/messages/delegate/MessagesDelegateImpl;"
             method(messages, "updateChannel").run {
                 check(parameterTypes.first() == "Lslack/messagerendering/model/ChannelMetadata;")
@@ -220,7 +271,12 @@ val nativeFeatures =
                         "invoke-static/range {p1 .. p2}, Lslick/android/InlineEdits;->bind(Ljava/lang/Object;Ljava/lang/Object;)V",
                     )
             }
+        }
+    }
 
+val whoReacted =
+    slackPatch("Who reacted", "Show reaction participants beside reaction counts.", "who_reacted") {
+        execute {
             val reactionView = "Lslack/widgets/messages/reactions/ReactionView;"
             method(reactionView, "updateReaction").run {
                 val (i) =
@@ -234,7 +290,12 @@ val nativeFeatures =
             method("Lslack/corelib/repository/member/UserRepositoryImpl;", "<init>").run {
                 addInstructions(code.indexOfLast { it.opcode == Opcode.RETURN_VOID }, call("p0", "Reactors;->repository(Ljava/lang/Object;)V"))
             }
+        }
+    }
 
+val anonymousUploads =
+    slackPatch("Anonymize file names", "Randomize file names in upload metadata.", "anonymous_uploads") {
+        execute {
             // Rewrite upload metadata, never the local path or bytes read from it.
             val anonymous = { p: String -> wrap(p, "Features;->anonymousName(Ljava/lang/String;)Ljava/lang/String;") }
             for ((type, parameters) in listOf(
@@ -251,34 +312,10 @@ val nativeFeatures =
                 check(parameterTypes.take(2) == listOf("J", "Ljava/lang/String;"))
                 addInstructions(0, anonymous("p3"))
             }
-
-            val handler = mutableClassDefBy("Lslack/services/messages/eventhandlers/MessageEventHandler;")
-            method(
-                "Lslack/intune/NoOpIntuneIntegration\$\$ExternalSyntheticLambda0;",
-                "invoke\$slack\$messages\$impl\$v2\$MessageRangeTransactionDaoImpl\$persistMessagesAndRanges\$2\$\$ExternalSyntheticLambda0",
-            ).run {
-                check(registers == 18)
-                val (i, x) =
-                    indexed { it.opcode == Opcode.CHECK_CAST && it.cast == "Lslack/persistence/messages/MessageHistoryChunk;" }
-                        .one()
-                check(x.reg == 2)
-                // Pinned transaction locals: owner v3, chunk v2, nullable thread v9, trace v11.
-                addInstructions(
-                    i + 1,
-                    "invoke-static {v3, v2, v9, v11}, Lslick/android/Archive;->history(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/String;Ljava/lang/Object;)V",
-                )
-            }
-            for ((name, type, callback) in listOf(
-                Triple("onNewMessage", "Lslack/model/Message;", "newMessage"),
-                Triple("updateMessage", "Lslack/corelib/rtm/msevents/MessageChangedEvent;", "changed"),
-                Triple("removeMessage", "Lslack/corelib/rtm/msevents/MessageDeletedEvent;", "deleted"),
-            )) {
-                handler.methods.single { it.name == name }.run {
-                    val i = code.indexOfFirst { it.opcode == Opcode.CHECK_CAST && it.cast == type }
-                    check(i >= 0)
-                    addInstructions(i + 1, call("v${code[i].reg}", "Archive;->$callback(Ljava/lang/Object;)V"))
-                    addInstructions(0, call("p0", "Archive;->begin(Ljava/lang/Object;)V"))
-                }
-            }
         }
+    }
+
+val lastSeen =
+    slackPatch("Last seen", "Track the latest message activity observed for each person.", "last_seen", "activity") {
+        dependsOn(archiveHooks)
     }

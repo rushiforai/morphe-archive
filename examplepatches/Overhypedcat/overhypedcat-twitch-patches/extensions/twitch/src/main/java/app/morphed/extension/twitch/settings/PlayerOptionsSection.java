@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.res.ColorStateList;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.InsetDrawable;
+import android.os.SystemClock;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.Gravity;
@@ -24,6 +25,7 @@ import app.morphed.extension.twitch.App;
 import app.morphed.extension.twitch.Included;
 import app.morphed.extension.twitch.Messages;
 import app.morphed.extension.twitch.musicfilter.SongRemoval;
+import app.morphed.extension.twitch.musicfilter.StatusWords;
 import app.morphed.extension.twitch.patches.DebugLog;
 import app.morphed.extension.twitch.ui.Squircle;
 import app.morphed.extension.twitch.ui.Theme;
@@ -215,6 +217,8 @@ public final class PlayerOptionsSection {
         if (Included.adBlock()) section.addView(row(activity, theme, side, "Ad blocker", PatchSettings.AD_BLOCK, null));
 
         TextView songStatus = status(activity, theme);
+        TextView songDetail = status(activity, theme); // a problem's whole sentence, under its few words
+        songDetail.setTextSize(12);
         TextView retry = new TextView(activity);
         retry.setText("Retry");
         retry.setTextColor(theme.text);
@@ -228,7 +232,9 @@ public final class PlayerOptionsSection {
         retryLine.setPadding(side, 0, side, theme.dp(4));
         retryLine.addView(retry);
         View songRow = row(activity, theme, side, "Song removal", PatchSettings.SONG_REMOVAL, songStatus);
-        TextView songName = (TextView) ((ViewGroup) ((ViewGroup) songRow).getChildAt(0)).getChildAt(0);
+        ViewGroup songTexts = (ViewGroup) ((ViewGroup) songRow).getChildAt(0);
+        TextView songName = (TextView) songTexts.getChildAt(0);
+        songTexts.addView(songDetail);
         if (Included.songRemoval()) {
             section.addView(songRow);
             section.addView(retryLine);
@@ -239,17 +245,24 @@ public final class PlayerOptionsSection {
             section.addView(row(activity, theme, side, "Quality unlock", PatchSettings.QUALITY_UNLOCK, unlockStatus));
         }
 
+        Runnable[] tick = new Runnable[1];
+        boolean[] ticking = {false}; // only a countdown's number changed: no need to lay the sheet out again
         Runnable showSong = () -> {
             boolean on = PatchSettings.songRemoval();
             SongRemoval.Status s = SongRemoval.status();
             // (a past broadcast's switch is its own: switching it on doesn't switch on its channel)
             songName.setText(PatchSettings.watchingVideo() ? "Song removal for this video" : "Song removal");
-            String text = !on ? null : s.problem != null ? s.problem : s.step;
-            show(songStatus, text, on && s.problem != null, theme);
+            long now = SystemClock.elapsedRealtime();
+            SongLines lines = SongLines.of(s, now);
+            show(songStatus, on ? lines.status : null, on && s.problem != null, theme);
+            show(songDetail, on ? lines.detail : null, false, theme);
+            // a countdown: shown again at its next number
+            section.removeCallbacks(tick[0]);
+            if (on && lines.nextTick >= 0 && section.isAttachedToWindow()) section.postDelayed(tick[0], lines.nextTick);
             // Retry: only when there's a song to forget or a problem to try past
             boolean retryable = on && Included.songRemoval() && (s.filtering || s.problem != null);
             retryLine.setVisibility(retryable ? View.VISIBLE : View.GONE);
-            relayout(section);
+            if (!ticking[0]) relayout(section);
         };
         Runnable showUnlock = () -> {
             boolean on = PatchSettings.qualityUnlock();
@@ -257,6 +270,14 @@ public final class PlayerOptionsSection {
             String text = on ? s.text : null;
             show(unlockStatus, text, on && s.problem, theme);
             relayout(section);
+        };
+        tick[0] = () -> {
+            ticking[0] = true;
+            try {
+                showSong.run();
+            } finally {
+                ticking[0] = false;
+            }
         };
         showSong.run();
         showUnlock.run();
@@ -272,6 +293,7 @@ public final class PlayerOptionsSection {
                 SongRemoval.addListener(songListener);
                 QualityUnlock.addListener(unlockListener);
                 PatchSettings.addListener(settingsListener);
+                showSong.run(); // (what changed while it was away, and its countdown going again)
             }
 
             @Override
@@ -279,6 +301,7 @@ public final class PlayerOptionsSection {
                 SongRemoval.removeListener(songListener);
                 QualityUnlock.removeListener(unlockListener);
                 PatchSettings.removeListener(settingsListener);
+                section.removeCallbacks(tick[0]);
             }
         });
         return section;
@@ -300,6 +323,32 @@ public final class PlayerOptionsSection {
         section.post(() -> {
             if (section.getParent() instanceof ViewGroup) place((ViewGroup) section.getParent(), section);
         });
+    }
+
+    /** Song removal's lines in the Options: what it does (or a problem's few words), and a problem's sentence. */
+    static final class SongLines {
+        final String status, detail;
+        final long nextTick; // ms until a countdown shows its next number, -1: none
+
+        private SongLines(String status, String detail, long nextTick) {
+            this.status = status;
+            this.detail = detail;
+            this.nextTick = nextTick;
+        }
+
+        static SongLines of(SongRemoval.Status s, long nowMs) {
+            return of(s.step, s.stepEndsAt, s.problem, s.problemEndsAt, nowMs);
+        }
+
+        static SongLines of(String step, long stepEndsAt, String problem, long problemEndsAt, long nowMs) {
+            if (problem == null) {
+                return new SongLines(step == null ? null : StatusWords.counting(step, stepEndsAt, nowMs), null,
+                        StatusWords.nextTick(stepEndsAt, nowMs));
+            }
+            String words = StatusWords.words(problem), detail = StatusWords.detail(problem);
+            return new SongLines(StatusWords.counting(words, problemEndsAt, nowMs), detail.equals(words) ? null : detail,
+                    StatusWords.nextTick(problemEndsAt, nowMs));
+        }
     }
 
     private static TextView status(Context context, Theme theme) {

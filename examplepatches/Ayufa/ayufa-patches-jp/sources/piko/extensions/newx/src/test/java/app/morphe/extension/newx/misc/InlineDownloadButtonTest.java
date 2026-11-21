@@ -241,6 +241,48 @@ public final class InlineDownloadButtonTest {
     }
 
     @Test
+    public void broadcastVideoOffersTheHlsPlaylistAsTs() {
+        String media = "MediaContentVideo(variants=[" +
+                "MediaVariant(url=https://video.twimg.com/ext_tw_video_broadcast/2122765566/pu/pl/playlist.m3u8, " +
+                "bitRate=0, contentType=application/x-mpegURL)])";
+
+        List<InlineDownloadButton.DownloadItem> items =
+                InlineDownloadButton.downloadItems(Collections.singletonList(media));
+
+        assertEquals(1, items.size());
+        InlineDownloadButton.DownloadItem item = items.get(0);
+        assertEquals("Video", item.label);
+        assertEquals(
+                "https://video.twimg.com/ext_tw_video_broadcast/2122765566/pu/pl/playlist.m3u8",
+                item.url
+        );
+        assertEquals("ts", item.extension);
+        assertEquals("video/mp2t", item.mimeType);
+        assertTrue(item.resolutionOptions.isEmpty());
+        assertTrue(InlineDownloadButton.isDownloadableMedia(media));
+        assertTrue(InlineDownloadButton.isDownloadableVariant(
+                item.url, "application/x-mpegURL"));
+        assertFalse(InlineDownloadButton.isHttpMp4Variant(item.url, "application/x-mpegURL"));
+    }
+
+    @Test
+    public void videoWithMp4AndHlsVariantsStillOffersMp4Only() {
+        String media = "MediaContentVideo(variants=[" +
+                "MediaVariant(url=https://video.twimg.com/amplify_video/1/pl/stream.m3u8, " +
+                "bitRate=0, contentType=application/x-mpegURL), " +
+                "MediaVariant(url=https://video.twimg.com/vid/1280x720/high.mp4, " +
+                "bitRate=2176000, contentType=video/mp4)])";
+
+        List<InlineDownloadButton.DownloadItem> items =
+                InlineDownloadButton.downloadItems(Collections.singletonList(media));
+
+        assertEquals(1, items.size());
+        assertEquals("https://video.twimg.com/vid/1280x720/high.mp4", items.get(0).url);
+        assertEquals("mp4", items.get(0).extension);
+        assertEquals(1, items.get(0).resolutionOptions.size());
+    }
+
+    @Test
     public void cardVideoDownloadsUseMp4VariantsSortedByBitrate() {
         String rawJson = "{\"type\":\"video_website\",\"media_entities\":{" +
                 "\"13_2122608655896035329\":{" +

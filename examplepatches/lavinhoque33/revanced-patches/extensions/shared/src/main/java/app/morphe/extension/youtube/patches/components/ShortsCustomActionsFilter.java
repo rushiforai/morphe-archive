@@ -11,6 +11,7 @@
  * - Francesco Marastoni (https://github.com/Francesco146)
  *
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-20.
  *
  * ------------------------------------------------------------------------
  * GPLv3 Section 7 – Additional Terms & Attribution Requirements
@@ -52,14 +53,14 @@ import java.util.Map;
 
 import app.morphe.extension.shared.patches.components.ByteArrayFilterGroup;
 import app.morphe.extension.shared.patches.components.ByteArrayFilterGroupList;
-import app.morphe.extension.shared.patches.components.Filter;
+import app.morphe.extension.shared.patches.components.LazyBufferFilter;
 import app.morphe.extension.shared.patches.components.StringFilterGroup;
 import app.morphe.extension.shared.utils.Logger;
 import app.morphe.extension.shared.utils.TrieSearch;
 import app.morphe.extension.youtube.patches.shorts.CustomActionsPatch;
 
 @SuppressWarnings("unused")
-public final class ShortsCustomActionsFilter extends Filter {
+public final class ShortsCustomActionsFilter extends LazyBufferFilter {
     private static final boolean SHORTS_CUSTOM_ACTIONS_FLYOUT_MENU_ENABLED =
             CustomActionsPatch.isFlyoutMenuEnabled();
     private static final boolean SHORTS_CUSTOM_ACTIONS_TOOLBAR_ENABLED =
@@ -203,16 +204,16 @@ public final class ShortsCustomActionsFilter extends Filter {
     }
 
     @Override
-    public boolean isFiltered(String path, String identifier, String allValue, byte[] buffer,
+    public boolean isFilteredLazy(String path, String identifier, String allValue, Buffer buffer,
                               StringFilterGroup matchedGroup, FilterContentType contentType, int contentIndex) {
         if (!SHORTS_CUSTOM_ACTIONS_ENABLED) {
             return false;
         }
         if (matchedGroup == playerFlyoutMenu) {
             isShortsFlyoutMenuVisible = true;
-            findVideoId(buffer);
-        } else if (matchedGroup == likeDislikeButton && videoIdFilterGroup.check(buffer).isFiltered()) {
-            findVideoId(buffer);
+            findVideoId(buffer.get());
+        } else if (matchedGroup == likeDislikeButton && videoIdFilterGroup.check(buffer.get()).isFiltered()) {
+            findVideoId(buffer.get());
         }
 
         return false;

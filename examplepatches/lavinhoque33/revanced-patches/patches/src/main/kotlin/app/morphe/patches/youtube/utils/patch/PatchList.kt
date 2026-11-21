@@ -67,7 +67,7 @@ internal enum class PatchList(
     ),
     CUSTOM_DOUBLE_TAP_LENGTH(
         "Custom double tap length",
-        "Adds Double-tap to seek values that are specified in patch options."
+        "Adds custom seek lengths to YouTube settings and separate backward and forward choices to RVX settings."
     ),
     CUSTOM_DPI(
         "Custom DPI",
@@ -149,7 +149,7 @@ internal enum class PatchList(
     ),
     FEED_VIEW_COUNT(
         "Feed view count",
-        "Adds an option to show the view count at the bottom left of the thumbnails of feed videos."
+        "Adds options to hide view counts or upload dates below feed videos and show view counts on thumbnails."
     ),
     FORCE_ANIMATIONS(
         "Force animations",
@@ -186,7 +186,7 @@ internal enum class PatchList(
     ),
     HIDE_SHORTS_DIMMING(
         "Hide Shorts dimming",
-        "Adds an in-app setting to hide the dimming effect at the top and bottom of Shorts videos."
+        "Adds settings to hide the stock Shorts dimming, adjust the overlay opacity, and hide the status bar in Shorts."
     ),
     HIDE_ACTION_BUTTONS(
         "Hide action buttons",
@@ -222,7 +222,7 @@ internal enum class PatchList(
     ),
     HIDE_SHORTCUTS(
         "Hide shortcuts",
-        "Remove, at compile time, the app shortcuts that appears when the app icon is long pressed."
+        "Adds patch options to remove app icon shortcuts or the Shorts button in the Quick Actions widget."
     ),
     // modified by lavinhoque33, 2026-10-16: Hide status bar patch entry.
     HIDE_STATUS_BAR(
@@ -268,6 +268,10 @@ internal enum class PatchList(
         "Override YouTube Music buttons",
         "Overrides YouTube Music buttons to open RVX Music or any compatible third-party client."
     ),
+    PAUSE_ON_AUDIO_INTERRUPT(
+        "Pause on audio interruptions",
+        "Adds an option to pause YouTube instead of lowering the volume during short audio interruptions."
+    ),
     PICTURE_IN_PICTURE_BUTTON(
         "Picture-in-picture button",
         "Adds an option to display a picture-in-picture button in the video player."
@@ -311,6 +315,10 @@ internal enum class PatchList(
     REMOVE_VIEWER_DISCRETION_DIALOG(
         "Remove viewer discretion dialog",
         "Adds an option to remove the dialog that appears when opening a video that has been age-restricted by accepting it automatically. This does not bypass the age restriction."
+    ),
+    RESTORE_CAST_PLAY_QUEUE(
+        "Restore Cast Play/Queue",
+        "Adds an option to restore the Play/Queue prompt when selecting another video during an active Cast session."
     ),
     RESTORE_ORIGINAL_TITLES(
         "Restore original titles",

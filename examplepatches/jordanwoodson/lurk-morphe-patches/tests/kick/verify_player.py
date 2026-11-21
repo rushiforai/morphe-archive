@@ -127,6 +127,7 @@ public class PlayerProbe {
     /** A player, as the bridges see it: Kick's list of its video tracks, here their heights. */
     static final List<Integer> STREAM = List.of(1080, 720, 480, 360, 160);
     static final List<Integer> NO_720 = List.of(1080, 936, 480);
+    static final List<Integer> NO_160 = List.of(1080, 720, 480, 360);
 
     static int checks;
     static void check(boolean value, String message) {
@@ -166,6 +167,14 @@ public class PlayerProbe {
             "720 cap");
         check(ceiling(STREAM, size(1920, 1080)).equals(lurk == 1080 ? "1280x720" : "1920x1080"),
             "720 cap on the Lurk height");
+        // With every track taller than the Lurk height, Lurk's reducer starts at the lowest track (Kick's sets none):
+        // that start is capped, the same size picked elsewhere passes.
+        Settings.values.put("quality_metered", "160");
+        check(ceiling(NO_160, size(640, 360)).equals(lurk == 160 ? "285x160" : "640x360"),
+            "the lowest-track start handled wrongly for Lurk height " + lurk);
+        check(ceiling(STREAM, size(284, 160)).equals("284x160") && ceiling(NO_160, null).equals(max + "160"),
+            "160 cap");
+        check(ceiling(NO_160, size(1280, 720)).equals("285x160"), "Kick's 720 start isn't capped at 160");
         // Wi-Fi: nothing changes.
         Network.metered = false;
         Settings.values.put("quality_metered", "160");
@@ -283,7 +292,7 @@ def main():
     repo = Path(__file__).resolve().parents[2]
     scratch = Path(os.environ.get("MORPHE_WORK", Path.home() / "build/lurk-morphe-patches")) / "kick-tests"
     scratch.mkdir(parents=True, exist_ok=True)
-    for lurk_height in (0, 1080):
+    for lurk_height in (0, 1080, 160):
         output = Path(tempfile.mkdtemp(prefix="player-", dir=scratch))
         try:
             run(output, repo, lurk_height)

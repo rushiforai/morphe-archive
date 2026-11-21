@@ -40,9 +40,12 @@ private const val PATCHED_PACKAGE_NAME = "app.morphe.android.apps.maps.nmaxconne
 private const val ORIGINAL_CERT_SHA1 = "38918a453d07199354f8b19af05ec6562ced5788"
 private const val ORIGINAL_CERT_SHA256 = "f0fd6c5b410f25cb25c3b53346c8972fae30f8ee7411df910480ad6b2d60db83"
 private const val ORIGINAL_CERT_SHA256_ANDROID_13_PLUS = "7ce83c1b71f3d572fed04c8d40c5cb10ff75e6d87d9df6fbd53f0468c2905053"
-private const val GMS_CORE_PACKAGE_NAME = "app.revanced.android.gms"
-private const val GMS_CORE_VENDOR_GROUP = "app.revanced"
-private const val C2DM_PACKAGE_NAME = "app.revanced.android.c2dm"
+// MicroG-RE is embedded in Maps NMAX (tools/embed-gms): Maps binds its own package. MicroG is built with
+// -PbasePackageName=app.morphe.nmax, so its authorities, actions and permissions start with GMS_CORE_ROUTE.
+private const val GMS_CORE_PACKAGE_NAME = PATCHED_PACKAGE_NAME
+private const val GMS_CORE_VENDOR_GROUP = "app.morphe.nmax"
+private const val GMS_CORE_ROUTE = "$GMS_CORE_VENDOR_GROUP.android.gms"
+private const val C2DM_PACKAGE_NAME = "$GMS_CORE_VENDOR_GROUP.android.c2dm"
 private const val MAIN_CLASS = "Lcom/google/android/maps/MapsActivity;"
 internal const val MAPS_APPLICATION_CLASS = "Lcom/google/android/apps/gmm/base/app/GoogleMapsApplication;"
 private const val GOOGLE_API_CLIENT_BUILDER = "Lcom/google/android/gms/common/api/GoogleApiClient\$Builder;"
@@ -250,7 +253,7 @@ private val manifestRouteReplacements = mapOf(
     "com.google.android.c2dm.permission.RECEIVE" to "$C2DM_PACKAGE_NAME.permission.RECEIVE",
     "com.google.android.c2dm.permission.SEND" to "$C2DM_PACKAGE_NAME.permission.SEND",
     "com.google.android.providers.gsf.permission.READ_GSERVICES" to "$GMS_CORE_VENDOR_GROUP.android.providers.gsf.permission.READ_GSERVICES",
-    "com.google.android.gms.permission.CAR_SPEED" to "$GMS_CORE_PACKAGE_NAME.permission.CAR_SPEED",
+    "com.google.android.gms.permission.CAR_SPEED" to "$GMS_CORE_ROUTE.permission.CAR_SPEED",
 )
 
 private fun String.rewriteManifestRoute() =
@@ -283,12 +286,12 @@ private fun ensureSpoofMetadata(document: Document) {
 
     application.setMetadata(
         document,
-        "$GMS_CORE_PACKAGE_NAME.SPOOFED_PACKAGE_NAME",
+        "$GMS_CORE_ROUTE.SPOOFED_PACKAGE_NAME",
         ORIGINAL_PACKAGE_NAME,
     )
     application.setMetadata(
         document,
-        "$GMS_CORE_PACKAGE_NAME.SPOOFED_PACKAGE_SIGNATURE",
+        "$GMS_CORE_ROUTE.SPOOFED_PACKAGE_SIGNATURE",
         ORIGINAL_CERT_SHA1,
     )
     application.setMetadata(
@@ -298,7 +301,7 @@ private fun ensureSpoofMetadata(document: Document) {
     )
     application.setMetadata(
         document,
-        "$GMS_CORE_PACKAGE_NAME.MICROG_PACKAGE_NAME",
+        "$GMS_CORE_ROUTE.MICROG_PACKAGE_NAME",
         GMS_CORE_PACKAGE_NAME,
     )
 }
@@ -338,11 +341,11 @@ private val exactGmsRouteReplacements = mapOf(
     "com.google.android.c2dm.permission.RECEIVE" to "$C2DM_PACKAGE_NAME.permission.RECEIVE",
     "com.google.android.c2dm.permission.SEND" to "$C2DM_PACKAGE_NAME.permission.SEND",
     "com.google.android.gms" to GMS_CORE_PACKAGE_NAME,
-    "com.google.android.gms.auth.accounts" to "$GMS_CORE_PACKAGE_NAME.auth.accounts",
-    "com.google.android.gms.chimera" to "$GMS_CORE_PACKAGE_NAME.chimera",
-    "com.google.android.gms.fonts" to "$GMS_CORE_PACKAGE_NAME.fonts",
-    "com.google.android.gms.permission.CAR_SPEED" to "$GMS_CORE_PACKAGE_NAME.permission.CAR_SPEED",
-    "com.google.android.gms.phenotype" to "$GMS_CORE_PACKAGE_NAME.phenotype",
+    "com.google.android.gms.auth.accounts" to "$GMS_CORE_ROUTE.auth.accounts",
+    "com.google.android.gms.chimera" to "$GMS_CORE_ROUTE.chimera",
+    "com.google.android.gms.fonts" to "$GMS_CORE_ROUTE.fonts",
+    "com.google.android.gms.permission.CAR_SPEED" to "$GMS_CORE_ROUTE.permission.CAR_SPEED",
+    "com.google.android.gms.phenotype" to "$GMS_CORE_ROUTE.phenotype",
     "com.google.android.providers.gsf.permission.READ_GSERVICES" to "$GMS_CORE_VENDOR_GROUP.android.providers.gsf.permission.READ_GSERVICES",
 )
 
@@ -356,7 +359,7 @@ private fun transformString(value: String): String? {
 
 private fun String.toRevancedContentUriRoute(): String = when {
     startsWith("content://com.google.android.gms.phenotype") ->
-        replace("content://com.google.android.gms.phenotype", "content://$GMS_CORE_PACKAGE_NAME.phenotype")
+        replace("content://com.google.android.gms.phenotype", "content://$GMS_CORE_ROUTE.phenotype")
 
     startsWith("content://com.google.android.gsf.gservices") ->
         replace("content://com.google.android.gsf.gservices", "content://$GMS_CORE_VENDOR_GROUP.android.gsf.gservices")

@@ -1,6 +1,7 @@
 package app.badfella.patches.wanderlog
 
 import app.morphe.patcher.patch.ApkFileType
+import app.morphe.patcher.patch.AppTarget
 import app.morphe.patcher.patch.Compatibility
 import app.morphe.patcher.patch.resourcePatch
 import org.w3c.dom.Element
@@ -15,6 +16,25 @@ val wanderlogProPatch = resourcePatch(
     compatibleWith(Compatibility(
         name = "Wanderlog", packageName = "com.wanderlog.android", apkFileType = ApkFileType.APKM,
         appIconColor = 0xF75940,
+        targets = listOf(
+            AppTarget(version = null, isExperimental = true,
+                description = "Any version (experimental). Every patch verifies its own anchors."),
+            AppTarget(
+                version = "2.227",
+                versionCode = 2026102307,
+                description = "Version 2.227, build 2026102307 (universal).",
+            ),
+            AppTarget(
+                version = "2.228",
+                versionCode = 2026110208,
+                description = "Version 2.228, build 2026110208 (universal).",
+            ),
+            AppTarget(
+                version = "2.229",
+                versionCode = 2026111701,
+                description = "Version 2.229, build 2026111701 (universal).",
+            ),
+        ),
     ))
     execute {
         val bundle = get("assets/index.android.bundle")

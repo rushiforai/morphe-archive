@@ -28,7 +28,6 @@ body:
       label: Quora version
       options:
         - "3.2.42"
-        - "3.2.30"
         - Other (write it below)
     validations:
       required: true
@@ -43,8 +42,12 @@ body:
   - type: textarea
     id: patches
     attributes:
-      label: Other patches you applied
-      description: Optional. Some patches change the same pages, so the full list helps.
+      label: Info from Patch settings
+      description: >-
+        Optional, but it helps a lot. In the patched app, long-press the Home tab, then tap
+        "Report a problem": it copies the Quora and Android version, the patches that are on and the
+        page check result. Paste it here.
+      render: text
   - type: textarea
     id: logs
     attributes:

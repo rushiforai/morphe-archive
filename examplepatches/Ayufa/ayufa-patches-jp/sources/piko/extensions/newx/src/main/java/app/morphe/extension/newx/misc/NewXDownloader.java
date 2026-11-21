@@ -97,7 +97,10 @@ public final class NewXDownloader {
         DownloadEngine created = new DownloadEngine(
                 applicationContext,
                 new SafDestination(LOG),
-                new NewXDownloadTransfer(new HttpTransfer(LOG), new DownloadRemuxer(applicationContext)::remux),
+                new NewXDownloadTransfer(
+                        new HttpTransfer(LOG),
+                        new HlsTransfer(LOG),
+                        new DownloadRemuxer(applicationContext)::remux),
                 events,
                 TRANSFER_EXECUTOR,
                 System::currentTimeMillis

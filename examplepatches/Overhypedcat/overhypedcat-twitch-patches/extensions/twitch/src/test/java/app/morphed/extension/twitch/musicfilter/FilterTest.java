@@ -168,7 +168,7 @@ public class FilterTest {
         List<Float> flat = new ArrayList<>();
         for (int i = 0; i < 6; i++) filter.push(block, block, HOP, (a, b) -> { for (float v : a) flat.add(v); });
         assertEquals(1, problems.size());
-        assertTrue(problems.get(0), problems.get(0).contains("broke, the sound plays unfiltered: boom"));
+        assertTrue(problems.get(0), problems.get(0).startsWith("Filter broke | ") && problems.get(0).contains("broke, the sound plays unfiltered: boom"));
         for (int i = DELAY; i < flat.size(); i++) assertEquals(block[(i - DELAY) % HOP], flat.get(i), 1e-7);
     }
 

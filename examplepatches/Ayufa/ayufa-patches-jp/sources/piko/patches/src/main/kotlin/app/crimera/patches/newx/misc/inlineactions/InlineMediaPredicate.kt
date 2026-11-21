@@ -110,7 +110,7 @@ internal fun patchCompositionMediaPredicate(
         iget(contentTypeRegister, variantRegister, models.variantContentTypeField)
         invokeStatic(
             methodReference(
-                "$INLINE_DOWNLOAD_BUTTON_DESCRIPTOR->isHttpMp4Variant(" +
+                "$INLINE_DOWNLOAD_BUTTON_DESCRIPTOR->isDownloadableVariant(" +
                     "$STRING_DESCRIPTOR$STRING_DESCRIPTOR)Z",
             ),
             urlRegister,

@@ -15,8 +15,10 @@ from apk_lab.acquisition import (
     acquire_with_goopdl,
     build_apkeep_cmd,
     build_goopdl_cmd,
+    build_goopdl_env,
     normalize_apks_to_apkm,
 )
+from apk_lab.google_play_accounts import GooglePlayAccount
 from apk_lab.models import (
     AndroidManifestInfo,
     ArtifactInspection,
@@ -70,6 +72,54 @@ def test_command_builders():
         "com.test.pkg", "/tmp/attempt", expected_version="1.2.3"
     )
     assert goopdl_cmd_ver[-2:] == ["--version", "1.2.3"]
+
+
+def test_build_goopdl_env_uses_aas_token_only():
+    base = {"PATH": "/usr/bin", "GOOPDL_ACCOUNT_EMAIL": "stale@example.com"}
+    account = GooglePlayAccount(
+        label="primary",
+        email="primary@example.com",
+        aas_token="aas_et/token-value",
+    )
+
+    env = build_goopdl_env(account, base)
+    assert env["GOOPDL_ACCOUNT_EMAIL"] == "primary@example.com"
+    assert env["GOOPDL_AAS_TOKEN"] == "aas_et/token-value"
+    assert env["PATH"] == "/usr/bin"
+    assert base["GOOPDL_ACCOUNT_EMAIL"] == "stale@example.com"
+
+    unsupported = GooglePlayAccount(
+        label="legacy",
+        email="legacy@example.com",
+        aas_token="oauth2_4/token-value",
+    )
+    unsupported_env = build_goopdl_env(unsupported, base)
+    assert unsupported_env == base
+
+
+def test_goopdl_failure_redacts_credentials_before_truncation(monkeypatch, tmp_path):
+    token = "aas_et/" + "a" * 400
+    account = GooglePlayAccount(
+        label="primary",
+        email="primary@example.com",
+        aas_token=token,
+    )
+    # The token starts before the 300-character limit and ends after it.
+    stderr = "x" * 20 + f"{account.email} {token}\n" + "y" * 400
+
+    def mock_run(*_args, **_kwargs):
+        return subprocess.CompletedProcess([], returncode=1, stdout="", stderr=stderr)
+
+    monkeypatch.setattr("subprocess.run", mock_run)
+
+    with pytest.raises(AcquisitionError) as exc_info:
+        acquire_with_goopdl("com.test.pkg", tmp_path, account=account)
+
+    message = str(exc_info.value)
+    assert "[REDACTED_TOKEN]" in message
+    assert token[:20] not in message
+    assert account.email not in message
+    assert account.redacted_email in message
 
 
 def test_apkeep_credentials_ini_and_isolation(monkeypatch, tmp_path):
@@ -384,6 +434,62 @@ def test_acquire_artifact_fallback_to_apkmirror(monkeypatch, tmp_path):
     artifact, source = acquire_artifact("com.sezzle.sezzlemobile", out_dir)
     assert source == AcquisitionSource.APKMIRROR
     assert artifact.is_file()
+
+
+def test_acquire_artifact_reports_every_source_failure(monkeypatch, tmp_path):
+    accounts_json = json.dumps(
+        {
+            "version": 1,
+            "accounts": [
+                {
+                    "label": "primary",
+                    "email": "primary@example.com",
+                    "aasToken": "aas_et/token",
+                    "enabled": True,
+                }
+            ],
+        }
+    )
+    monkeypatch.setenv("APKEEP_ACCOUNTS", accounts_json)
+
+    tool_mgr = MagicMock()
+    tool_mgr.is_tool_installed.return_value = True
+
+    monkeypatch.setattr(
+        "apk_lab.acquisition.acquire_with_apkeep",
+        MagicMock(
+            side_effect=AcquisitionError(
+                "latest 2.0.0 != expected 1.0.0", ExitCode.INVALID_ARTIFACT
+            )
+        ),
+    )
+    monkeypatch.setattr(
+        "apk_lab.acquisition.acquire_with_goopdl",
+        MagicMock(
+            side_effect=AcquisitionError(
+                "dispenser returned HTTP 403", ExitCode.INFRASTRUCTURE_FAILURE
+            )
+        ),
+    )
+    monkeypatch.setattr(
+        "apk_lab.acquisition.acquire_with_apkmirror",
+        MagicMock(
+            side_effect=AcquisitionError(
+                "no mapping configured", ExitCode.INVALID_ARTIFACT
+            )
+        ),
+    )
+
+    with pytest.raises(AcquisitionError) as exc:
+        acquire_artifact(
+            "com.example", tmp_path, expected_version="1.0.0", tool_mgr=tool_mgr
+        )
+
+    message = str(exc.value)
+    assert "apkeep [primary]" in message
+    assert "goopdl [primary] direct auth" in message
+    assert "apkmirror" in message
+    assert exc.value.exit_code == ExitCode.INVALID_ARTIFACT
 
 
 def test_apkmirror_timeout_is_acquisition_failure(monkeypatch, tmp_path):

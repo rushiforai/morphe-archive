@@ -18,6 +18,7 @@
  * https://github.com/MorpheApp/morphe-patches/pull/1972
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to Morphe contributions.
+ * Modified by lavinhoque33, 2026-11-20.
  */
 
 package app.morphe.extension.shared.patches.components;
@@ -46,7 +47,7 @@ import app.morphe.extension.shared.utils.Utils;
  * per-invocation phrase-matching logic and per-tab activation gating.
  */
 @SuppressWarnings("unused")
-public abstract class BufferPhraseFilter extends Filter {
+public abstract class BufferPhraseFilter extends LazyBufferFilter {
 
     /**
      * Strings found in the buffer for every video. Full strings should be specified.
@@ -207,7 +208,7 @@ public abstract class BufferPhraseFilter extends Filter {
      * Called after the path-exception check has passed.
      */
     @Nullable
-    protected abstract String matchBuffer(byte[] buffer, StringFilterGroup matchedGroup);
+    protected abstract String matchBuffer(Buffer buffer, StringFilterGroup matchedGroup);
 
     /**
      * Optional hook invoked when a hide is confirmed. Subclasses can override to record stats.
@@ -217,10 +218,10 @@ public abstract class BufferPhraseFilter extends Filter {
     }
 
     @Override
-    public final boolean isFiltered(String path,
+    public final boolean isFilteredLazy(String path,
                                     String identifier,
                                     String allValue,
-                                    byte[] buffer,
+                                    Buffer buffer,
                                     StringFilterGroup matchedGroup,
                                     FilterContentType contentType,
                                     int contentIndex) {

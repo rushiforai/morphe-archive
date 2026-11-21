@@ -154,7 +154,8 @@ public final class SettingsActivity extends Activity {
                 || Settings.isCopyTextIncluded() || Settings.isKeepFeedIncluded()
                 || Settings.isPostMenuIncluded() || Settings.isViewerTapToHideIncluded()
                 || Settings.isSwipeFeedsIncluded() || Settings.isHideTabsIncluded()
-                || Settings.isCopyPostTextIncluded() || Settings.isIconOnlyActionsIncluded()) {
+                || Settings.isCopyPostTextIncluded() || Settings.isIconOnlyActionsIncluded()
+                || Settings.isScreenshotShareIncluded()) {
             Category feed = new Category("Feed", IconDrawable.FEED);
             if (Settings.isDisableDoubleTapLikeIncluded()) {
                 feed.toggle(Settings.DISABLE_DOUBLE_TAP_LIKE, true, "Disable double-tap like",
@@ -183,8 +184,11 @@ public final class SettingsActivity extends Activity {
                         "Long press a post's text to copy all of it, including the part behind \"...more\".");
             }
             if (Settings.isPostMenuIncluded()) {
-                feed.toggle(Settings.POST_MENU, true, "Post menu items",
-                        "Copy text, Download photos and videos, and Save document as PDF in the ⋯ menu of posts.");
+                feed.toggle(Settings.POST_MENU, true, "Post menu items", "Add actions to the ⋯ menu of posts.")
+                        .toggle(Settings.POST_MENU_COPY, true, "Copy text in the post menu",
+                                "Copy the full text of a post.")
+                        .toggle(Settings.POST_MENU_DOWNLOAD, true, "Downloads in the post menu",
+                                "Save photos, videos, and documents.");
             }
             if (Settings.isSwipeFeedsIncluded()) {
                 feed.toggle(Settings.SWIPE_FEEDS, true, "Swipe between feeds",
@@ -201,7 +205,7 @@ public final class SettingsActivity extends Activity {
                         "Tap a video or document in full screen to hide the caption and buttons, like photos.");
             }
             if (Settings.isKeepFeedIncluded()) {
-                feed.toggle(Settings.KEEP_FEED, true, "Keep feed on reopen",
+                feed.toggle(Settings.KEEP_FEED, false, "Keep feed on reopen",
                         "Stay where you were when you come back. Pull down or tap \"New posts\" for new posts.");
             }
             if (Settings.isFeedFiltersIncluded()) {
@@ -241,6 +245,10 @@ public final class SettingsActivity extends Activity {
                             }
                         });
             }
+            if (Settings.isScreenshotShareIncluded()) {
+                feed.toggle(Settings.NO_SCREENSHOT_SHARE, true, "Disable screenshot share sheet",
+                        "Keep LinkedIn's share sheet closed when you take a screenshot of a post.");
+            }
             categories.add(feed);
         }
 
@@ -266,10 +274,31 @@ public final class SettingsActivity extends Activity {
                                 "My Network in the bottom bar. Restart LinkedIn after changing it.")
                         .toggle(Settings.SHOW_TAB_NOTIFICATIONS, true, "Show Notifications",
                                 "Notifications in the bottom bar. Restart LinkedIn after changing it.")
+                        .toggle(Settings.SHOW_TAB_POST, true, "Show Post", "Takes effect after restarting LinkedIn.")
+                        .toggle(Settings.SHOW_TAB_VIDEO, true, "Show Video", "Takes effect after restarting LinkedIn.")
+                        .toggle(Settings.SHOW_TAB_NEWS, true, "Show News", "Takes effect after restarting LinkedIn.")
+                        .toggle(Settings.SHOW_TAB_MESSAGING, false, "Add Messaging to the navigation bar",
+                                "Takes effect after restarting LinkedIn.")
                         .toggle(Settings.SHOW_TAB_MORE, Settings.showMoreTab(), "Show More",
-                                "More in the bottom bar. Restart LinkedIn after changing it.");
+                                "More in the bottom bar. Restart LinkedIn after changing it.")
+                        .action("Reorder tabs", "Home stays first. Changes take effect after restarting LinkedIn.",
+                                this::reorderTabs);
             }
             categories.add(navigation);
+        }
+
+        if (Settings.isTopBarButtonsIncluded()) {
+            categories.add(new Category("Top bar", IconDrawable.MORE)
+                    .toggle(Settings.HIDE_TOP_BAR_POST, false, "Hide Post in the top bar",
+                            "Takes effect after restarting LinkedIn.")
+                    .toggle(Settings.HIDE_TOP_BAR_MESSAGING, false, "Hide Messaging in the top bar",
+                            "Takes effect after restarting LinkedIn."));
+        }
+        if (Settings.isVideoTabIncluded()) {
+            categories.add(new Category("Video tab", IconDrawable.MORE)
+                    .toggle(Settings.VIDEO_TAB_TIME, true, "Show video time", "Show elapsed time and duration.")
+                    .toggle(Settings.VIDEO_TAB_AUTO_SCROLL, false, "Advance after playback",
+                            "Go to the next video when the current video ends."));
         }
 
         if (Settings.isMoreMenuIncluded()) {
@@ -407,9 +436,17 @@ public final class SettingsActivity extends Activity {
                         return true;
                     }
                 })
-                .action("Export settings", "Copy all settings to the clipboard as a backup.", this::exportSettings)
-                .action("Import settings", "Paste a settings backup from the clipboard.", this::importSettings)
+                .action("Save settings backup", "Export settings to a JSON file.", () -> pickSettingsFile(true))
+                .action("Restore settings backup", "Import settings from a JSON file.", () -> pickSettingsFile(false))
+                .action("Copy settings", "Copy a settings backup to the clipboard.", this::exportSettings)
+                .action("Paste settings backup", "Import settings from the clipboard.", this::importSettings)
                 .action("Reset to defaults", "Reset all BadFella Patches settings.", this::resetSettings));
+        if (Settings.isGmsCoreSupportIncluded()) {
+            categories.add(new Category("microG RE", IconDrawable.MORE)
+                    .toggle(Settings.MICROG_BATTERY_REMINDER, true, "Battery optimization reminder",
+                            "Show a reminder when Android limits microG RE in the background."));
+        }
+
         categories.add(new Category("Diagnostics", IconDrawable.MORE)
                 .toggle(Settings.DEBUG_LOGGING, false, "Diagnostic logging",
                         "Counts fixed event categories only. Account details and content are not recorded.")
@@ -442,6 +479,7 @@ public final class SettingsActivity extends Activity {
     private ImageButton searchButton;
     private LinearLayout content;
     private ScrollView scroll;
+    private int mainScrollY;
     private View restartBanner;
 
     /**
@@ -570,6 +608,7 @@ public final class SettingsActivity extends Activity {
         } else if (openCategory != null) {
             openCategory = null;
             render();
+            scroll.post(() -> scroll.scrollTo(0, mainScrollY));
         } else {
             super.onBackPressed();
         }
@@ -607,6 +646,7 @@ public final class SettingsActivity extends Activity {
         content.addView(navRow(IconDrawable.INFO, "About", v -> showAbout()));
         for (Category category : categories) {
             content.addView(navRow(category.icon, category.title, v -> {
+                mainScrollY = scroll.getScrollY();
                 openCategory = category;
                 render();
             }));
@@ -899,6 +939,9 @@ public final class SettingsActivity extends Activity {
                 {"Copy post text", Settings.isCopyPostTextIncluded()},
                 {"Icon-only post actions", Settings.isIconOnlyActionsIncluded()},
                 {"Keep feed on reopen", Settings.isKeepFeedIncluded()},
+                {"Disable screenshot share sheet", Settings.isScreenshotShareIncluded()},
+                {"Hide top bar buttons", Settings.isTopBarButtonsIncluded()},
+                {"Video tab", Settings.isVideoTabIncluded()},
                 {"Post menu items", Settings.isPostMenuIncluded()},
                 {"Tap to hide in viewers", Settings.isViewerTapToHideIncluded()},
                 {"Swipe between feeds", Settings.isSwipeFeedsIncluded()},
@@ -1120,6 +1163,9 @@ public final class SettingsActivity extends Activity {
     // region Backup
 
     private static final int SAVE_DIAGNOSTICS = 7412;
+    private static final int SAVE_SETTINGS = 7413;
+    private static final int OPEN_SETTINGS = 7414;
+    private static final int MAX_BACKUP_BYTES = 1024 * 1024;
     private boolean diagnosticExportRunning;
 
     private void startPerformanceCapture() {
@@ -1164,8 +1210,10 @@ public final class SettingsActivity extends Activity {
     @Override
     protected void onActivityResult(int request, int result, Intent data) {
         super.onActivityResult(request, result, data);
-        if (request == SAVE_DIAGNOSTICS && result == RESULT_OK && data != null && data.getData() != null) {
-            exportDiagnosticReport(data.getData());
+        if (result != RESULT_OK || data == null || data.getData() == null) return;
+        if (request == SAVE_DIAGNOSTICS) exportDiagnosticReport(data.getData());
+        else if (request == SAVE_SETTINGS || request == OPEN_SETTINGS) {
+            transferSettings(data.getData(), request == SAVE_SETTINGS);
         }
     }
 
@@ -1209,6 +1257,131 @@ public final class SettingsActivity extends Activity {
     private void clearDiagnosticLog() {
         Diagnostics.clear();
         Downloads.toast(this, "Diagnostic data cleared");
+    }
+
+    private void reorderTabs() {
+        List<String> saved = java.util.Arrays.asList(Settings.getString(Settings.TAB_ORDER, "").split(","));
+        List<String[]> tabs = new ArrayList<>(java.util.Arrays.asList(NavigationBar.SORTABLE_TABS));
+        tabs.sort(java.util.Comparator.comparingInt(tab -> {
+            int rank = saved.indexOf(tab[0]);
+            return rank < 0 ? saved.size() : rank;
+        }));
+        LinearLayout rows = new LinearLayout(this);
+        rows.setOrientation(LinearLayout.VERTICAL);
+        TabOrder order = new TabOrder(tabs, rows);
+        order.render();
+        ScrollView choices = new ScrollView(this);
+        choices.addView(rows);
+        tint(new AlertDialog.Builder(this, dialogTheme())
+                .setTitle(I18n.tr("Reorder tabs")).setView(choices)
+                .setPositiveButton(I18n.tr("Save"), (dialog, which) -> {
+                    List<String> ids = new ArrayList<>();
+                    for (String[] tab : tabs) ids.add(tab[0]);
+                    Settings.setString(Settings.TAB_ORDER, android.text.TextUtils.join(",", ids));
+                    showRestartBanner();
+                })
+                .setNeutralButton(I18n.tr("Default"), (dialog, which) -> {
+                    Settings.setString(Settings.TAB_ORDER, "");
+                    showRestartBanner();
+                })
+                .setNegativeButton(I18n.tr("Cancel"), null).show());
+    }
+
+    private final class TabOrder {
+        private final List<String[]> tabs;
+        private final LinearLayout rows;
+
+        TabOrder(List<String[]> tabs, LinearLayout rows) {
+            this.tabs = tabs;
+            this.rows = rows;
+        }
+
+        void render() {
+            rows.removeAllViews();
+            for (int i = 0; i < tabs.size(); i++) {
+                int index = i;
+                String title = tabs.get(i)[1];
+                LinearLayout row = settingRow();
+                TextView name = text(title, 16, textPrimary, false);
+                row.addView(name, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
+                addMoveButton(row, title, index, -1);
+                addMoveButton(row, title, index, 1);
+                rows.addView(row);
+            }
+        }
+
+        private void addMoveButton(LinearLayout row, String title, int from, int direction) {
+            TextView button = text(direction < 0 ? "↑" : "↓", 18, accent, false);
+            button.setGravity(Gravity.CENTER);
+            button.setContentDescription(I18n.f(direction < 0 ? "Move %1$s up" : "Move %1$s down", I18n.tr(title)));
+            int to = from + direction;
+            button.setEnabled(to >= 0 && to < tabs.size());
+            button.setAlpha(button.isEnabled() ? 1f : 0.35f);
+            button.setOnClickListener(view -> {
+                java.util.Collections.swap(tabs, from, to);
+                render();
+            });
+            row.addView(button, new LinearLayout.LayoutParams(dp(48), dp(48)));
+        }
+    }
+
+    private void pickSettingsFile(boolean save) {
+        Intent intent = new Intent(save ? Intent.ACTION_CREATE_DOCUMENT : Intent.ACTION_OPEN_DOCUMENT)
+                .addCategory(Intent.CATEGORY_OPENABLE).setType(save ? "application/json" : "*/*");
+        if (save) intent.putExtra(Intent.EXTRA_TITLE, "badfella-linkedin-settings.json");
+        try {
+            startActivityForResult(intent, save ? SAVE_SETTINGS : OPEN_SETTINGS);
+        } catch (RuntimeException failure) {
+            Downloads.toast(this, "Couldn't open the file picker");
+        }
+    }
+
+    private void transferSettings(Uri file, boolean save) {
+        new Thread(() -> {
+            try {
+                if (save) {
+                    byte[] settings = Settings.exportJson().getBytes(java.nio.charset.StandardCharsets.UTF_8);
+                    if (settings.length > MAX_BACKUP_BYTES) throw new java.io.IOException("Backup is too large");
+                    try (java.io.OutputStream output = getContentResolver().openOutputStream(file, "wt")) {
+                        if (output == null) throw new java.io.IOException("No output stream");
+                        output.write(settings);
+                    }
+                    runOnUiThread(() -> Downloads.toast(this, "Settings backup saved"));
+                } else {
+                    java.io.ByteArrayOutputStream settings = new java.io.ByteArrayOutputStream();
+                    try (java.io.InputStream input = getContentResolver().openInputStream(file)) {
+                        if (input == null) throw new java.io.IOException("No input stream");
+                        byte[] buffer = new byte[8192];
+                        for (int size; (size = input.read(buffer)) != -1; ) {
+                            if (settings.size() + size > MAX_BACKUP_BYTES) throw new java.io.IOException("Backup is too large");
+                            settings.write(buffer, 0, size);
+                        }
+                    }
+                    String json = new String(settings.toByteArray(), java.nio.charset.StandardCharsets.UTF_8);
+                    runOnUiThread(() -> {
+                        if (isFinishing() || isDestroyed()) return;
+                        tint(new AlertDialog.Builder(this, dialogTheme())
+                                .setTitle(I18n.tr("Restore settings backup"))
+                                .setMessage(I18n.tr("Replace the settings included in this backup?"))
+                                .setPositiveButton(I18n.tr("Import"), (dialog, which) -> applySettingsBackup(json))
+                                .setNegativeButton(I18n.tr("Cancel"), null).show());
+                    });
+                }
+            } catch (Exception failure) {
+                runOnUiThread(() -> Downloads.toast(this, save ? "Couldn't save settings backup" : "Couldn't read settings backup"));
+            }
+        }, "badfella-settings-backup").start();
+    }
+
+    private void applySettingsBackup(String json) {
+        try {
+            int count = Settings.importJson(json);
+            Downloads.toast(this, I18n.f("%1$s settings imported", count));
+            refresh();
+            showRestartBanner();
+        } catch (Exception failure) {
+            Downloads.toast(this, "Invalid backup");
+        }
     }
 
     private void exportSettings() {
@@ -1261,16 +1434,7 @@ public final class SettingsActivity extends Activity {
         tint(new AlertDialog.Builder(this, dialogTheme())
                 .setTitle(I18n.tr("Import settings"))
                 .setView(box)
-                .setPositiveButton(I18n.tr("Import"), (dialog, which) -> {
-                    try {
-                        int count = Settings.importJson(input.getText().toString());
-                        Downloads.toast(this, I18n.f("%1$s settings imported", count));
-                        refresh();
-                        showRestartBanner();
-                    } catch (Exception e) {
-                        Downloads.toast(this, "Invalid backup");
-                    }
-                })
+                .setPositiveButton(I18n.tr("Import"), (dialog, which) -> applySettingsBackup(input.getText().toString()))
                 .setNegativeButton(I18n.tr("Cancel"), null)
                 .show());
     }

@@ -31,7 +31,7 @@ public final class TeraboxTaskClicker {
 
     private static final String TAG = "TeraboxTaskClicker";
 
-    private static final long POLL_INTERVAL_MS = 800L;
+    private static final long POLL_INTERVAL_MS = 600L;
 
     private static final int MAX_POLLS = 9000;
 
@@ -162,6 +162,9 @@ public final class TeraboxTaskClicker {
          */
         private void syncState(WebView webView) {
             boolean adOnTop = TeraboxAdCloser.isAdOnTop();
+            // Also lets the closer give up on an ad whose reward callback never
+            // arrived, so a failed network cannot leave the task flow hanging.
+            TeraboxAdCloser.watchStuckAd();
             Activity host = TeraboxTaskHud.activityOf(webView);
             boolean otherPage = host != null && !TeraboxAdCloser.isOnTop(host);
             // `recentlyRewarded()` is global and can still be true from an ad
@@ -281,7 +284,7 @@ public final class TeraboxTaskClicker {
             "if(window.__tbTaskClicker){return;}window.__tbTaskClicker=1;",
             "var SIGN_ENTRY='.coin-wrap .sign-in';",
             "var WATCH_GROUP='__WATCH_AD_GROUP__';",
-            "var WATCH_WORDS=/xem quảng cáo|watch ad|quảng cáo|advertis|观看广告|看广告|reklam/i;",
+            "var WATCH_WORDS=/xem quảng cáo|xem quang cao|quảng cáo|quang cao|watch ad|watch video|advertis|观看广告|看广告|nonton iklan|tonton iklan|ver anuncio|ver anúncio|смотреть рекламу|reklam/i;",
             "var WATCH_SELECTOR='.tc-task-card-v2 .task-btn-wrap .btn.btn-go,.tc-task-card-v2 .task-btn-wrap .btn.btn-collect';",
             "var TARGETS=[",
             "'.popup-bg-box .popup-box .video-btn:not(.notClickable)',",
@@ -303,18 +306,18 @@ public final class TeraboxTaskClicker {
             "];",
             "function watchGroup(){var groups;try{groups=document.querySelectorAll('.tc-task-group');}catch(e){return null;}for(var i=0;i<groups.length;i++){var head=groups[i].querySelector('.group-title');if(!head)continue;var text=(''+((head.innerText||head.textContent)||'')).replace(/\\s+/g,' ').trim();if(WATCH_WORDS.test(text))return groups[i];}return null;}",
             "function watchTargets(now,i){var g=watchGroup();if(!g)return [];var list;try{list=g.querySelectorAll(WATCH_SELECTOR);}catch(e){return [];}var out=[];for(var j=0;j<list.length;j++){var el=list[j];if(visible(el)&&enabled(el)&&ready(el,i,now))out.push(el);}return out;}",
-            "var MODALS='.popup-bg-box,.popup-mask,.dialog-mask,.base-popup-mask,.auto-sign-rewards-mask,.continuous-sign-in-popup,.sign-rules,.makeup-card-content,.task-sheet-mask,.record-drawer-mask,.guide-ad-mask,.reward-toast';",
+            "var MODALS='.popup-bg-box,.popup-mask,.dialog-mask,.base-popup-mask,.auto-sign-rewards-mask,.continuous-sign-in-popup,.sign-rules,.makeup-card-content,.task-sheet-mask,.record-drawer-mask,.guide-ad-mask,.reward-toast,[role=dialog],.modal';",
             "var LOADERS='.loading-box,.el-m-toast__spinner,.task-card__loading';",
-            "var COOLDOWN=8000,DEAD=60000,MIN_GAP=1500,PER_MIN=10,TICK=700,SETTLE=400,VERIFY=1500,MIN_TICK=250;",
+            "var COOLDOWN=6000,DEAD=60000,MIN_GAP=1000,PER_MIN=10,TICK=500,SETTLE=300,VERIFY=1000,MIN_TICK=200;",
             "var dead={},lastAt={},lastNote='',noteAt=0,recent=[],scrolled='',pending=null,url=(window.location&&window.location.href)||'',pageAt=Date.now(),loadStart=0,quietSince=0,closed=false,busy=false,lastClick=0,lastSig='',signEntryDone=false,lastRun=0;",
             "function label(el){try{return (''+((el.innerText||el.textContent)||'')).replace(/\\s+/g,' ').trim();}catch(e){return '';}}",
             "function cls(el){try{var c=el&&el.className;return ''+((c&&c.baseVal!==undefined)?c.baseVal:c||'');}catch(e){return '';}}",
             "function note(m){try{var n=Date.now();if(m===lastNote&&n-noteAt<5000)return;lastNote=m;noteAt=n;window.tbTaskHud&&window.tbTaskHud.note(m);}catch(e){}}",
             "function hud(t){try{window.tbTaskHud&&window.tbTaskHud.clicked(t);}catch(e){}}",
             "function visible(el){try{var r=el.getBoundingClientRect();if(r.width<4||r.height<4)return false;var s=window.getComputedStyle(el);return s.display!=='none'&&s.visibility!=='hidden'&&parseFloat(s.opacity||'1')!==0;}catch(e){return false;}}",
-            "function enabled(el){try{if(el.disabled)return false;if(el.getAttribute&&(el.getAttribute('aria-disabled')==='true'||el.getAttribute('disabled')!==null))return false;if(/disabl|notClickable|is-disabled|is-completed|complete-btn|grey|gray|claimed|received|expired/i.test(cls(el)))return false;if(el.closest&&el.closest('.adx,.adx-two,.notClickable'))return false;return true;}catch(e){return false;}}",
+            "function enabled(el){try{if(el.disabled)return false;if(el.getAttribute&&(el.getAttribute('aria-disabled')==='true'||el.getAttribute('disabled')!==null))return false;if(/disabl|notClickable|is-disabled|is-completed|complete-btn|grey|gray|claimed|received|expired/i.test(cls(el)))return false;if(el.closest&&el.closest('.adx,.adx-two,.notClickable'))return false;if(/mua gói|nap tien|nạp tiền|đăng ký|dang ky|subscribe|purchase|top ?up|recharge|upgrade|đổi thẻ|doi the|exchange|share|chía sẻ|invite|mời bạn|uninstall|gỡ cài đặt/i.test(label(el)))return false;return true;}catch(e){return false;}}",
             "function onScreen(el){try{var r=el.getBoundingClientRect(),h=window.innerHeight||1e9,w=window.innerWidth||1e9;return r.bottom>0&&r.right>0&&r.top<h&&r.left<w;}catch(e){return false;}}",
-            "function covered(el){try{var r=el.getBoundingClientRect(),x=r.left+r.width/2,y=r.top+r.height/2;if(x<0||y<0||x>(window.innerWidth||1e9)||y>(window.innerHeight||1e9))return false;var top=document.elementFromPoint(x,y);if(!top||top===el||el.contains&&el.contains(top)||top.contains&&top.contains(el))return false;for(var p=top;p&&p!==document.body;p=p.parentElement){if(/popup-bg-box|popup-mask|dialog-mask|base-popup-mask|auto-sign-rewards-mask|continuous-sign-in-popup|sign-rules|makeup-card-content|task-sheet-mask|record-drawer-mask|guide-ad-mask|reward-toast/.test(cls(p)))return true;}}catch(e){}return false;}",
+            "function covered(el){try{var r=el.getBoundingClientRect(),x=r.left+r.width/2,y=r.top+r.height/2;if(x<0||y<0||x>(window.innerWidth||1e9)||y>(window.innerHeight||1e9))return false;var top=document.elementFromPoint(x,y);if(!top||top===el||el.contains&&el.contains(top)||top.contains&&top.contains(el))return false;if(top.getAttribute&&top.getAttribute('role')==='dialog')return true;for(var p=top;p&&p!==document.body;p=p.parentElement){if(/popup-bg-box|popup-mask|dialog-mask|base-popup-mask|auto-sign-rewards-mask|continuous-sign-in-popup|sign-rules|makeup-card-content|task-sheet-mask|record-drawer-mask|guide-ad-mask|reward-toast/.test(cls(p)))return true;}}catch(e){}return false;}",
             "function loading(){try{var n=document.querySelectorAll(LOADERS);for(var i=0;i<n.length;i++){var r=n[i].getBoundingClientRect();if(visible(n[i])&&r.width>=40&&r.height>=40)return true;}}catch(e){}return false;}",
             "function sigOf(){var o=[];for(var i=0;i<TARGETS.length;i++){try{o.push(TARGETS[i]===WATCH_GROUP?watchTargets(Date.now(),i).length:document.querySelectorAll(TARGETS[i]).length);}catch(e){o.push('x');}}return o.join(',');}",
             "function keyOf(el,i){var idx=0,p=el.parentElement;if(p){var s=p.children;for(var k=0;k<s.length;k++){if(s[k]===el){idx=k;break;}}}return i+'#'+idx+'#'+label(el).slice(0,24);}",
@@ -335,11 +338,11 @@ public final class TeraboxTaskClicker {
             "if(pending&&now-pending.at>=VERIFY){dead[pending.key]=now;pending=null;note('that control had no effect, skipping it for a minute');}",
             "if(now-pageAt<SETTLE){note('page just loaded');return;}",
             "var cand=pick(now);",
-            "if(!cand&&loading()){if(!loadStart)loadStart=now;if(now-loadStart<4000){note('waiting for the page to finish loading');return;}}",
+            "if(!cand&&loading()){if(!loadStart)loadStart=now;if(now-loadStart<3000){note('waiting for the page to finish loading');return;}}",
             "loadStart=0;",
-            "if(!cand){if(!quietSince)quietSince=now;if(!closed&&now-quietSince>=10000&&signDone()){closed=true;closePage();note('check-in complete, closing page');}else note('no matching control on this page');return;}",
+            "if(!cand){if(!quietSince)quietSince=now;if(!closed&&now-quietSince>=8000&&signDone()){closed=true;closePage();note('check-in complete, closing page');}else note('no matching control on this page');return;}",
             "quietSince=now;",
-            "if(!onScreen(cand.el)&&scrolled!==cand.key){scrolled=cand.key;try{cand.el.scrollIntoView({block:'center'});}catch(e){}note('scrolling to the control');return;}",
+            "if(!onScreen(cand.el)&&scrolled!==cand.key){scrolled=cand.key;try{cand.el.scrollIntoView({block:'center'});}catch(e){try{cand.el.scrollIntoView();}catch(e2){}}note('scrolling to the control');return;}",
             "scrolled='';",
             "if(covered(cand.el)){note('waiting, a modal is on top');return;}",
             "if(now-lastClick<MIN_GAP)return;",

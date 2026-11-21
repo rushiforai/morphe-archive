@@ -9,7 +9,7 @@ object Constants {
         packageName = "com.newstargames.newstarsoccer",
         appIconColor = 0xEC2C24,
         targets = listOf(
-            AppTarget(version = "4.32")
+            AppTarget(version = "4.34")
         )
     )
 }

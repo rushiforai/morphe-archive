@@ -36,10 +36,10 @@ final class ExpertSettings {
         new LiveSettings(prefs,()->{}).toggle(emoji,EmojiFontFallback.ENABLED);
         LiveSettings.Toggle readingPosition = new LiveSettings.Toggle(activity);
         readingPosition.setText("スレを開き直すときの表示位置を補完");
-        readingPosition.setChecked(prefs.getBoolean(ReadingPosition.ENABLED,true));
+        readingPosition.setChecked(ReadingPosition.enabled(prefs));
         options.addView(readingPosition);
         android.widget.TextView readingHelp=new android.widget.TextView(activity);
-        readingHelp.setText("ChMate標準の位置復元を補います。オフで追加の位置監視・保存を停止します。変更の反映には再起動が必要です。");
+        readingHelp.setText("ChMate標準の位置復元を補います。初期状態はOFFです。WebサイトのリンクカードまたはXカード形式が有効な場合、未設定なら自動でONになります。手動で変更した設定を優先します。オフでは追加の位置監視・保存を停止します。反映には再起動が必要です。");
         options.addView(readingHelp);
         new LiveSettings(prefs,()->{}).toggle(readingPosition,ReadingPosition.ENABLED);
         LiveSettings.Toggle previewPosition = new LiveSettings.Toggle(activity);

@@ -1,0 +1,70 @@
+name: Game Review on your computer does not connect
+description: The app cannot reach sf-bridge, or a review on the computer is slow or fails.
+title: "[Bridge]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        These usually come down to the network or the firewall, and the fields below are the ones that point at it :3
+
+        `bridge/README.md` has the firewall rule, the port and the token. Fill in what you know, leave the rest empty.
+
+  - type: textarea
+    id: result
+    attributes:
+      label: What "Test the connection" answers
+      description: The exact message, or "no answer at all" if the button spins and stops.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: network
+    attributes:
+      label: The network you are on
+      description: A work, school or public Wi-Fi often keeps the devices apart, and then nothing can be found.
+      options:
+        - Home Wi-Fi
+        - Work, school or public Wi-Fi
+        - Phone hotspot
+        - VPN on one or both devices
+    validations:
+      required: false
+
+  - type: dropdown
+    id: os
+    attributes:
+      label: The computer's system
+      options:
+        - Windows 11
+        - Windows 10
+        - macOS
+        - Linux
+    validations:
+      required: false
+
+  - type: input
+    id: versions
+    attributes:
+      label: Node.js and Stockfish versions
+      description: The output of `node --version`, and the Stockfish build you put next to `server.js`. Optional.
+      placeholder: v22.11.0, Stockfish 17.1
+    validations:
+      required: false
+
+  - type: textarea
+    id: log
+    attributes:
+      label: The last lines of sf-bridge.log
+      description: The log sits next to `server.js`. Optional, and do remove the token and any address you would rather not publish.
+      render: text
+    validations:
+      required: false
+
+  - type: textarea
+    id: extra
+    attributes:
+      label: Anything else
+      description: Depth and thread count, whether "Find on the network" fills the address in, how a review behaves once it starts. Optional.
+    validations:
+      required: false

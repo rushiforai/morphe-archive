@@ -1,7 +1,6 @@
 package slick.android
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
-import app.morphe.patcher.patch.bytecodePatch
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 
@@ -9,7 +8,7 @@ import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 private const val STORE = "Lslack/services/featureflag/store/FeatureFlagStoreImpl;"
 
 val featureFlags =
-    bytecodePatch {
+    slackPatch("Feature flags", "Override Slack features and experiments.", "feature_flags", "flags") {
         execute {
             // Remember the workspace's store once Object.<init> has run, so the flags screen can list it.
             method(STORE, "<init>").run {

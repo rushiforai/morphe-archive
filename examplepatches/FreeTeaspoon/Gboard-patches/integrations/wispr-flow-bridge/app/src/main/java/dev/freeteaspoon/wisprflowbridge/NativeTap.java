@@ -6,10 +6,15 @@ import java.lang.reflect.Method;
 final class NativeTap {
     private NativeTap() {}
 
-    static void run(Object permissionGate, Object toggle, Object eventSink) throws Exception {
-        if (Boolean.TRUE.equals(call(permissionGate, "invoke", new Class<?>[0]))) return;
+    static boolean run(Object permissionGate, Object toggle, Object eventSink) throws Exception {
+        if (Boolean.TRUE.equals(call(permissionGate, "invoke", new Class<?>[0]))) return false;
+        toggle(toggle, eventSink, true);
+        return true;
+    }
+
+    static void toggle(Object toggle, Object eventSink, boolean submit) throws Exception {
         Object result = call(toggle, "invoke", new Class<?>[]{Object.class, Object.class},
-                Boolean.TRUE, Boolean.FALSE);
+                submit, Boolean.FALSE);
         if (result == null) throw new IllegalStateException("Missing recording toggle result");
         Object followUp = call(result, "getFollowUp", new Class<?>[0]);
         if (followUp != null) call(eventSink, "invoke", new Class<?>[]{Object.class}, followUp);

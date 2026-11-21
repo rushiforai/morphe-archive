@@ -238,4 +238,11 @@ public final class NativeTweaksPatch {
             Log.e(TAG, "Failed to set text size", ex);
         }
     }
+
+    /**
+     * Fix device theme patch. A new install has no stored choice, so treat it as Auto.
+     */
+    public static Boolean useDeviceThemeOrDefault(Boolean stored) {
+        return stored != null ? stored : Boolean.TRUE;
+    }
 }

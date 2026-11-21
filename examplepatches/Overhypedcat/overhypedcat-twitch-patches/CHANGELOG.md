@@ -1,3 +1,9 @@
+## [4.2.0](https://github.com/[secure]/overhypedcat-twitch-patches/compare/v4.1.1...v4.2.0) (2026-11-20)
+
+### New Features
+
+* Screen lock inside the player's controls, song removal status in a few words, patcher 2.4.0 ([a4f0a68](https://github.com/[secure]/overhypedcat-twitch-patches/commit/a4f0a68baa1c8c179c900eb81897b29fe6ca0cc2))
+
 ## [4.1.1](https://github.com/[secure]/overhypedcat-twitch-patches/compare/v4.1.0...v4.1.1) (2026-11-16)
 
 ### Bug Fixes

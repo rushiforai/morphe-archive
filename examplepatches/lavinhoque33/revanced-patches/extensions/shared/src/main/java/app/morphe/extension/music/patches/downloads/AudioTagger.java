@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2026 lavinhoque33
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-20.
  * Modified by lavinhoque33, 2026-10-24.
  */
 package app.morphe.extension.music.patches.downloads;
@@ -21,7 +22,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.concurrent.ThreadLocalRandom;
 
-// modified by lavinhoque33, 2026-10-16: Music's device-files library shows only the tags Android's
+// Music's device-files library shows only the tags Android's
 // media scanner extracts. MatroskaExtractor reports no tags at all, so Opus is repackaged losslessly
 // into Ogg Opus (comment tags + METADATA_BLOCK_PICTURE), and MP4 gets an iTunes ilst in its moov.
 // The YouTube built-in downloader writes its audio-only downloads with it as well.
@@ -32,12 +33,20 @@ public final class AudioTagger {
         final String artist;
         final String album;
         final byte[] artwork;
+        final int trackNumber;
+        final int trackTotal;
 
         public Tags(String title, String artist, String album, byte[] artwork) {
+            this(title, artist, album, artwork, 0, 0);
+        }
+
+        Tags(String title, String artist, String album, byte[] artwork, int trackNumber, int trackTotal) {
             this.title = title;
             this.artist = artist;
             this.album = album;
             this.artwork = artwork;
+            this.trackNumber = trackNumber;
+            this.trackTotal = trackTotal;
         }
     }
 
@@ -284,6 +293,10 @@ public final class AudioTagger {
             comment.add("TITLE", tags.title);
             comment.add("ARTIST", tags.artist);
             comment.add("ALBUM", tags.album);
+            if (tags.trackNumber > 0) {
+                comment.add("TRACKNUMBER", Integer.toString(tags.trackNumber));
+                if (tags.trackTotal > 0) comment.add("TRACKTOTAL", Integer.toString(tags.trackTotal));
+            }
             if (tags.artwork != null) comment.add("METADATA_BLOCK_PICTURE", picture(tags.artwork));
             ByteArrayOutputStream packet = new ByteArrayOutputStream();
             byte[] magic = "OpusTags".getBytes(StandardCharsets.US_ASCII);
@@ -568,6 +581,13 @@ public final class AudioTagger {
             text(items, "\u00A9nam", tags.title);
             text(items, "\u00A9ART", tags.artist);
             text(items, "\u00A9alb", tags.album);
+            if (tags.trackNumber > 0) {
+                // The iTunes trkn payload is reserved, number, total, reserved (all big-endian uint16).
+                byte[] position = ByteBuffer.allocate(8).putShort((short) 0).putShort((short) tags.trackNumber)
+                        .putShort((short) tags.trackTotal).array();
+                byte[] trkn = box("trkn", data(0, position));
+                items.write(trkn, 0, trkn.length);
+            }
             if (tags.artwork != null) {
                 int type = "image/png".equals(imageMimeType(tags.artwork)) ? 14 : 13;
                 byte[] covr = box("covr", data(type, tags.artwork));

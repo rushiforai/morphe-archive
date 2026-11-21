@@ -120,26 +120,29 @@ val tabletGridFeedPatch =
             val masonryParams = masonryMethod.parameterTypes.map { it.toString() }
 
             val listParams = ListFeedFingerprint.method.parameterTypes.map { it.toString() }
-            val composerIndex = listParams.indexOfLast { it != "I" }
-            if (composerIndex == -1 || listParams[composerIndex] != masonryParams[11]) {
-                throw PatchException(
-                    "Composer type mismatch: list feed has ${listParams.getOrNull(composerIndex)}, masonry feed has ${masonryParams[11]}",
-                )
-            }
+            val stateIndex = firstParameterIndex(listParams, masonryParams[0])
+            val sinkIndex = firstParameterIndex(listParams, masonryParams[1])
+            val f1Index = firstParameterIndex(listParams, "Lkotlin/jvm/functions/Function1;")
+            val modifierIndex = firstParameterIndex(listParams, masonryParams[3])
+            val feedTypeIndex = firstParameterIndex(listParams, "Lcom/reddit/feeds/data/FeedType;")
+            val headerIndex = firstParameterIndex(listParams, "Lkotlin/jvm/functions/Function2;")
+            val stateSlotIndex = firstParameterIndex(listParams, masonryParams[9])
+            val composerIndex = firstParameterIndex(listParams, masonryParams[11])
+            val topInsetIndex = firstParameterIndex(listParams, "F")
 
             val originalFirstInstruction = ListFeedFingerprint.method.instructions.first()
             ListFeedFingerprint.method.addInstructionsWithLabels(
                 0,
                 """
-                    move-object/from16 v0, p0
-                    move-object/from16 v1, p1
-                    move-object/from16 v2, p2
-                    move-object/from16 v3, p4
-                    move-object/from16 v4, p5
-                    move-object/from16 v5, p7
-                    move-object/from16 v6, p9
+                    move-object/from16 v0, p$stateIndex
+                    move-object/from16 v1, p$sinkIndex
+                    move-object/from16 v2, p$f1Index
+                    move-object/from16 v3, p$modifierIndex
+                    move-object/from16 v4, p$feedTypeIndex
+                    move-object/from16 v5, p$headerIndex
+                    move-object/from16 v6, p$stateSlotIndex
                     move-object/from16 v7, p$composerIndex
-                    move/from16 v8, p6
+                    move/from16 v8, p$topInsetIndex
                     invoke-static/range {v0 .. v8}, $EXTENSION_CLASS->masonryFeed(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;F)Z
                     move-result v0
                     if-eqz v0, :continue

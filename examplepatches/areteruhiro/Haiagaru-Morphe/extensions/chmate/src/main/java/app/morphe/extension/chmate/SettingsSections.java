@@ -70,6 +70,14 @@ final class SettingsSections {
     SettingsSections(LinearLayout layout, boolean english) { this.layout=layout; this.english=english; }
     private String text(String ja,String en) { return english?en:ja; }
     private int dp(int n) { return (int)(n*layout.getResources().getDisplayMetrics().density+.5f); }
+    private int accentColor() {
+        android.util.TypedValue value=new android.util.TypedValue();
+        if(layout.getContext().getTheme().resolveAttribute(android.R.attr.colorAccent,value,true)){
+            if(value.resourceId!=0)try{return layout.getResources().getColor(value.resourceId,layout.getContext().getTheme());}catch(Exception ignored){}
+            return value.data;
+        }
+        return 0xff448aff;
+    }
     void begin(Category category) { collect(); collecting=category; start=layout.getChildCount(); }
     private void collect() {
         if(collecting==null)return;
@@ -91,7 +99,7 @@ final class SettingsSections {
         collect(); layout.removeAllViews();
         back=button(text("‹ 戻る","‹ Back"));
         back.setOnClickListener(v->{if(!goBack()&&closeAction!=null)closeAction.run();}); layout.addView(back);
-        title=label("",22,true); layout.addView(title);
+        title=label("",22,true);title.setTextColor(accentColor());layout.addView(title);
         summary=label("",14,false); layout.addView(summary);
         intro=new LinearLayout(layout.getContext()); intro.setOrientation(LinearLayout.VERTICAL);
         intro.addView(label(text("まずは下の項目を選んでください。分からない設定はそのままで使えます。","Choose a topic below. You can leave unfamiliar settings as they are."),14,false));
@@ -109,6 +117,7 @@ final class SettingsSections {
             String heading=text(c.ja,c.en)+"  ›";
             android.text.SpannableString caption=new android.text.SpannableString(heading+"\n"+text(c.jaSummary,c.enSummary));
             caption.setSpan(new android.text.style.StyleSpan(Typeface.BOLD),0,heading.length(),0);
+            caption.setSpan(new android.text.style.ForegroundColorSpan(accentColor()),0,heading.length(),0);
             caption.setSpan(new android.text.style.RelativeSizeSpan(.85f),heading.length()+1,caption.length(),0);
             s.card=button("");s.card.setTypeface(null,Typeface.NORMAL);s.card.setText(caption);
             // Theme-derived colors remain legible in both light and dark ChMate themes.

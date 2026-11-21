@@ -193,7 +193,7 @@ https://github.com/areteruhiro/Haiagaru-Morphe/
 
 ご支援いただいている皆様、ありがとうございます。README掲載の支援者の皆様へ感謝申し上げます。
 
-👑 Kitadai 様
+- Kitadai 様
 - yujirox 様
 - ﾜｯﾁｮｲ 8f01-uDul 様
 - toya0717 様
@@ -204,7 +204,7 @@ https://github.com/areteruhiro/Haiagaru-Morphe/
 - Red Frame X 様
 - ﾜｯﾁｮｲ 3f3c-gNc7 様
 - chikuwadon 様（外部チェッカーとの連携をご快諾いただき、ありがとうございます）
-- rikunode 様
+- rikunode 様（226／242のDroid＋ツールバー対応）
 
 ## 構成
 

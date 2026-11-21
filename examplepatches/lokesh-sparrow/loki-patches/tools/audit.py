@@ -40,21 +40,29 @@ def walk(base, suffix):
 
 def check_menu_flags():
     """Every patch that records itself in the menu must have a row on the Patch status page, and vice versa."""
-    set_flags, read_flags = {}, {}
+    set_flags, read_flags, prefixes = {}, {}, set()
     for path in list(walk(PATCHES, ".kt")):
+        text = read(path)
         # Written as a manifest meta-data, however it is spelled: addMenuFlag(...), metaData(...), setAttribute.
-        for key in re.findall(r'"(app\.loki\.menu\.[a-z0-9]+)"', read(path)):
+        # A patch may also build the name from a variable (e.g. `"app.loki.menu.x.$name"`): the part before
+        # the variable is then a prefix that covers every key starting with it.
+        for key in re.findall(r'"(app\.loki\.menu\.[a-z0-9._]+)"', text):
             set_flags.setdefault(key, []).append(os.path.relpath(path, ROOT))
+        for prefix in re.findall(r'"(app\.loki\.menu\.[a-z0-9._]*\.)\$', text):
+            prefixes.add(prefix)
     info = read(MENU_INFO)
     for key in re.findall(r'flag\(flags,\s*"([^"]+)"\)', info):
         read_flags.setdefault(key, 0)
         read_flags[key] += 1
 
+    def recorded(key):
+        return key in set_flags or any(key.startswith(prefix) for prefix in prefixes)
+
     for key, where in sorted(set_flags.items()):
         if key not in read_flags:
             fail("menu flag", where[0], f"{key} is recorded by a patch but no row on the Patch status page shows it")
     for key in sorted(read_flags):
-        if key not in set_flags:
+        if not recorded(key):
             fail("menu flag", "MenuInfo.java", f"row for {key} can never read as applied - no patch records it")
 
 
@@ -80,6 +88,25 @@ def check_apps():
         if description and app["name"].lower() not in description.lower():
             fail("bundle description", "patches/build.gradle.kts",
                  f"the description Manager shows does not name {app['name']}")
+
+
+def check_bundle_apps():
+    """Every app the bundle patches must be described in apps.json: name, icon, docs page, README row."""
+    manifest = os.path.join(ROOT, "apps.json")
+    data = json.loads(read(manifest))
+    known = set(data["apps"].keys())
+    patched = set()
+    for path in walk(PATCHES, ".kt"):
+        text = read(path)
+        for match in re.findall(r'packageName\s*=\s*"([a-zA-Z0-9_.]+)"', text):
+            patched.add(match)
+        # A Constants file keeps the package in one place that Compatibility then names.
+        for const in re.findall(r'const val PACKAGE\s*=\s*"([a-zA-Z0-9_.]+)"', text):
+            if "Compatibility" in text or "COMPATIBILITY" in text:
+                patched.add(const)
+    for package in sorted(patched - known):
+        fail("apps.json", "apps.json", f"{package} is patched by the bundle but has no apps.json entry "
+                                    "(no name, icon or docs page, and missing from the README index)")
 
 
 def check_logs():
@@ -211,6 +238,7 @@ def check_private():
 def main():
     check_menu_flags()
     check_apps()
+    check_bundle_apps()
     check_logs()
     check_row_builders()
     check_featured()

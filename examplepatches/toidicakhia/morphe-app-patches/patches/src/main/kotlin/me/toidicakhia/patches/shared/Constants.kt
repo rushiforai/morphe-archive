@@ -53,19 +53,20 @@ object Constants {
         )
     )
 
-    // TeraBox 4.27.5 (version code 702), distributed as an XAPK.
+    // TeraBox 4.28.5 (version code 709), distributed as an APKM with
+    // arm64-v8a and armeabi-v7a splits (Android 6.0+).
     val TERABOX_COMPATIBILITY = Compatibility(
         name = "TeraBox",
         packageName = "com.dubox.drive",
-        apkFileType = ApkFileType.XAPK,
+        apkFileType = ApkFileType.APKM,
         appIconColor = 0x226DF6,
         signatures = setOf(
             "b75fd2b70084d7e0813b8f74dd74b62ab79b2aa0ce1372331a1841bd88eed993"
         ),
         targets = listOf(
             AppTarget(
-                version = "4.27.5",
-                versionCode = 702,
+                version = "4.28.5",
+                versionCode = 709,
                 minSdk = 23
             )
         )

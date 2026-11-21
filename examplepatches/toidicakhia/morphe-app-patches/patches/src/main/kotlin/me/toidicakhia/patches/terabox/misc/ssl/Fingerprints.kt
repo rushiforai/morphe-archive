@@ -113,25 +113,25 @@ internal val BaiduHostnameVerifierCertificateFingerprint =
 
 internal val BaiduHostnameVerifierSessionFingerprint = hostnameVerifierSession(BAIDU_OKHTTP)
 
-internal val TencentTrustManagerFingerprint = trustManager("Lwd/__\$___;")
+/** Obfuscated platform trust manager used by TeraBox's own HTTP clients. */
+internal val TencentTrustManagerFingerprint = trustManager("Lkd/____\$___;")
 
-internal val TencentHostnameVerifierFingerprint = hostnameVerifier("Lwd/__\$_;")
+/** Obfuscated host name verifiers wrapped around the strict platform verifier. */
+internal val TencentHostnameVerifierFingerprint = hostnameVerifier("Lkd/____\$_;")
 
-internal val TencentLoginHostnameVerifierFingerprint = hostnameVerifier("Lwd/__\$__;")
+internal val TencentLoginHostnameVerifierFingerprint = hostnameVerifier("Lkd/__\$_;")
 
-internal val TencentDownloadHostnameVerifierFingerprint = hostnameVerifier("Lwd/____\$_;")
+internal val TencentDownloadHostnameVerifierFingerprint = hostnameVerifier("Lkd/__\$__;")
 
 internal val ObfuscatedHostnameVerifierFingerprint = hostnameVerifier("L_____/___;")
 
-internal val TencentCeHostnameVerifierFingerprint = hostnameVerifier("Lce/__\$_;")
+internal val NcHostnameVerifierFingerprint = hostnameVerifier("Lnc/______;")
 
-internal val TencentReHostnameVerifierFingerprint = hostnameVerifier("Lre/__\$_;")
+internal val FeHostnameVerifierFingerprint = hostnameVerifier("Lfe/__\$_;")
 
-internal val TencentZcHostnameVerifierFingerprint = hostnameVerifier("Lzc/______;")
+internal val QdHostnameVerifierFingerprint = hostnameVerifier("Lqd/__\$_;")
 
-internal val TencentHttpDnsHostnameVerifierFingerprint = hostnameVerifier("Llu/n\$_;")
-
-internal val AdvlionHostnameVerifierFingerprint = hostnameVerifier("Lcom/advlion/core/z3;")
+internal val HttpDnsHostnameVerifierFingerprint = hostnameVerifier("Lau/n\$_;")
 
 internal val MintegralHostnameVerifierFingerprint =
     hostnameVerifier("Lcom/mbridge/msdk/foundation/same/net/MBridgeHostnameVerifier;")

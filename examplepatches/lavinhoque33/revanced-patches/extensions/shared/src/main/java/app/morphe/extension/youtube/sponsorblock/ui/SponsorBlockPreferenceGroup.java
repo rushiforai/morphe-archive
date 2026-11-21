@@ -134,31 +134,35 @@ public class SponsorBlockPreferenceGroup extends PreferenceGroup {
     private static final String ICON_NAME_EMPTY = "empty_icon";
 
     /**
-     * Sets the icon of every preference. The icon drawables only exist if the
-     * 'Visual preferences icons' patch is applied, otherwise nothing is changed.
+     * Applies the generated icons. Only the full icon set uses blank icons to align other rows.
      */
     private void setPreferenceIcons() {
-        if (ResourceUtils.getDrawableIdentifier(Settings.SB_ENABLED.key + ICON_SUFFIX) == 0) {
+        int emptyIcon = 0;
+        if (ResourceUtils.getDrawableIdentifier(Settings.SB_ENABLED.key + ICON_SUFFIX) != 0) {
+            emptyIcon = ResourceUtils.getDrawableIdentifier(ICON_NAME_EMPTY);
+        } else if (ResourceUtils.getDrawableIdentifier(Settings.SB_AUTO_HIDE_SKIP_BUTTON_DURATION.key + ICON_SUFFIX)
+                == 0) {
+            // The YouTube style generates the duration and step icons without the full set.
             return;
         }
 
-        // Only Bold (stock size) installs this row; other styles retain their framework layout.
+        // Bold (stock size) and YouTube install this row; other styles retain the framework layout.
         int stockIconLayout = ResourceUtils.getLayoutIdentifier("revanced_preference_stock_icon");
-        setPreferenceIcons(this, stockIconLayout);
+        setPreferenceIcons(this, stockIconLayout, emptyIcon);
     }
 
-    private void setPreferenceIcons(PreferenceGroup group, int stockIconLayout) {
+    private void setPreferenceIcons(PreferenceGroup group, int stockIconLayout, int emptyIcon) {
         for (int i = 0, count = group.getPreferenceCount(); i < count; i++) {
             Preference preference = group.getPreference(i);
 
             if (preference instanceof PreferenceGroup childGroup) {
-                setPreferenceIcons(childGroup, stockIconLayout);
+                setPreferenceIcons(childGroup, stockIconLayout, emptyIcon);
                 continue;
             }
 
             int icon = ResourceUtils.getDrawableIdentifier(getIconName(preference));
             if (icon == 0) {
-                icon = ResourceUtils.getDrawableIdentifier(ICON_NAME_EMPTY);
+                icon = emptyIcon;
             }
             if (icon != 0) {
                 preference.setIcon(icon);

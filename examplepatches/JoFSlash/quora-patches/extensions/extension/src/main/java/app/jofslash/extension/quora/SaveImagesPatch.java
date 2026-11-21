@@ -74,10 +74,10 @@ public final class SaveImagesPatch {
                     .setDestinationInExternalPublicDir(Environment.DIRECTORY_PICTURES, "Quora/" + name);
             DownloadManager manager = (DownloadManager) context.getSystemService(Context.DOWNLOAD_SERVICE);
             manager.enqueue(request);
-            Toast.makeText(context, "Saving image to Pictures/Quora", Toast.LENGTH_SHORT).show();
+            Toast.makeText(context, Texts.t("Saving image to Pictures/Quora"), Toast.LENGTH_SHORT).show();
         } catch (Exception ex) {
             Log.e(TAG, "Failed to save image", ex);
-            Toast.makeText(context, "Couldn't save the image", Toast.LENGTH_SHORT).show();
+            Toast.makeText(context, Texts.t("Couldn't save the image"), Toast.LENGTH_SHORT).show();
         }
     }
 }

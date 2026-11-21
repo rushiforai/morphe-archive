@@ -6,6 +6,8 @@
  * https://github.com/ReVanced/revanced-patches/commit/724e6d61b2ecd868c1a9a37d465a688e83a74799
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to Morphe contributions.
+ *
+ * Modified by lavinhoque33, 2026-11-20.
  */
 
 package app.morphe.patches.youtube.player.overlaybuttons
@@ -14,6 +16,7 @@ import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.literal
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.matchAllMethodIndicesForEach
+import app.morphe.patches.youtube.utils.extension.Constants.EXTENSION_PATH
 import app.morphe.patches.youtube.utils.extension.Constants.UTILS_PATH
 import app.morphe.patches.youtube.utils.extension.sharedExtensionPatch
 import app.morphe.patches.youtube.utils.playercontrols.playerControlsPatch
@@ -76,12 +79,10 @@ internal val legacyOverlayButtonsPatch = bytecodePatch(
 
     execute {
         if (is_21_08_or_greater) {
-            // The elevated player shows the video metadata without a background over the
-            // ambient mode colors, so the light theme text can not be read.
             ElevatedPlayerFeatureFlagFingerprint.matchAll().forEach {
                 it.method.insertLiteralOverride(
                     it.instructionMatches.first().index,
-                    false
+                    "$EXTENSION_PATH/utils/ThemeUtils;->allowElevatedPlayer(Z)Z",
                 )
             }
         }

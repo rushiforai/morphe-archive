@@ -66,13 +66,15 @@ final class GmsCoreCheck {
 
             boolean automotive = manager.hasSystemFeature("android.hardware.type.automotive");
             PowerManager power = (PowerManager) activity.getSystemService(Activity.POWER_SERVICE);
-            if (!automotive && power != null && !power.isIgnoringBatteryOptimizations(GMS_CORE_PACKAGE)) {
+            if (Settings.get(Settings.MICROG_BATTERY_REMINDER, true) && !automotive
+                    && power != null && !power.isIgnoringBatteryOptimizations(GMS_CORE_PACKAGE)) {
                 Settings.debugLog("GmsCore check: microG RE is under battery optimization");
                 ask(activity, I18n.tr("microG RE is limited by battery optimization, so Google sign-in may fail. "
                                 + "Allow it to run in the background."),
                         I18n.tr("Open settings"),
                         () -> activity.startActivity(
-                                new Intent(android.provider.Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS)));
+                                new Intent(android.provider.Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS)),
+                        true);
                 return;
             }
 
@@ -81,7 +83,7 @@ final class GmsCoreCheck {
                 Settings.debugLog("GmsCore check: microG RE is not running");
                 ask(activity, I18n.tr("microG RE is not running in the background, so Google sign-in may fail. "
                                 + "Your phone may stop it; the website explains how to allow it."),
-                        I18n.tr("Open website"), () -> open(activity, DONT_KILL_MY_APP_URL));
+                        I18n.tr("Open website"), () -> open(activity, DONT_KILL_MY_APP_URL), false);
             } else {
                 client.close();
             }
@@ -90,14 +92,18 @@ final class GmsCoreCheck {
         }
     }
 
-    private static void ask(Activity activity, String message, String action, Runnable onAction) {
-        AlertDialog dialog = new AlertDialog.Builder(activity)
+    private static void ask(Activity activity, String message, String action, Runnable onAction,
+                            boolean batteryReminder) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(activity)
                 .setTitle("microG RE")
                 .setMessage(message)
                 .setPositiveButton(action, (d, which) -> onAction.run())
-                .setNegativeButton(I18n.tr("Not now"), null)
-                .show();
-        SettingsActivity.tintButtons(dialog, activity);
+                .setNegativeButton(I18n.tr("Not now"), null);
+        if (batteryReminder) {
+            builder.setNeutralButton(I18n.tr("Don't remind me"),
+                    (dialog, which) -> Settings.set(Settings.MICROG_BATTERY_REMINDER, false));
+        }
+        SettingsActivity.tintButtons(builder.show(), activity);
     }
 
     private static void open(Activity activity, String url) {

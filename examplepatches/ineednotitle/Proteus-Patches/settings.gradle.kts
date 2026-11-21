@@ -4,6 +4,11 @@ pluginManagement {
     repositories {
         gradlePluginPortal()
         google()
+        // The GitHub Packages mirror below serves the Morphe plugin's own
+        // artifacts but not every transitive of its classpath (e.g.
+        // kotlin-stdlib patch releases); Maven Central is the canonical host
+        // for those and must stay in the list.
+        mavenCentral()
         maven {
             name = "GitHubPackages"
             url = uri("https://maven.pkg.github.com/MorpheApp/registry")

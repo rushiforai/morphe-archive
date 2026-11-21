@@ -1,6 +1,8 @@
 package app.morphe.patches.instaprime.premium
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
+import app.morphe.patcher.patch.AppTarget
+import app.morphe.patcher.patch.Compatibility
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import com.android.tools.smali.dexlib2.AccessFlags
@@ -9,16 +11,25 @@ import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 
 private const val GLOBALS = "Lcom/primemods/utils/Globals;"
 
-internal object InstaPrimeNoUpdate {
-    @Suppress("unused")
-    val patch = bytecodePatch(
+@Suppress("unused")
+val instaPrimeNoUpdatePatch = bytecodePatch(
         name = "Disable update check",
-        description = "Desativa os avisos e a atualização forçada do InstaPrime (Globals.A09 sempre falso).",
+        description = "Turns off InstaPrime's update check so no update dialog or forced update is ever shown.",
     ) {
-        compatibleWith("com.instaprime.android"("435.0.0.37.76"))
+        compatibleWith(
+            Compatibility(
+                name = "InstaPrime",
+                packageName = "com.instaprime.android",
+                targets = listOf(AppTarget(version = "435.0.0.37.76")),
+            ),
+        )
+
+        // The server-block handling belongs to the same group as the update check.
+        dependsOn(instaPrimeServerBlockMessagePatch)
 
         execute {
-            val globals = mutableClassDefBy(GLOBALS)
+            // V7.2 only: no V8 as classes com.primemods.* estao cifradas em assets/fonts.
+            val globals = mutableClassDefByOrNull(GLOBALS) ?: return@execute
 
             val old = globals.methods.first { m ->
                 m.name == "A09" &&
@@ -50,4 +61,3 @@ internal object InstaPrimeNoUpdate {
             globals.methods.add(rebuilt)
         }
     }
-}

@@ -22,6 +22,7 @@ import app.morphe.util.addInstructionsAtControlFlowLabel
 import app.morphe.util.findInstructionIndicesReversedOrThrow
 import app.morphe.util.inputStreamFromBundledResource
 import com.android.tools.smali.dexlib2.Opcode
+import app.morphe.patches.shared.misc.extension.candycrushsagaBoostersExtensionPatch
 
 private const val HEX_CHARACTERS_PER_BYTE = 2
 
@@ -48,7 +49,7 @@ private val addBoosterLibraryPatch = resourcePatch {
 }
 
 internal val candyCrushRewardsPatch = bytecodePatch {
-    extendWith("extensions/extension.mpe")
+    dependsOn(candycrushsagaBoostersExtensionPatch)
     dependsOn(addBoosterLibraryPatch)
 
     execute {
@@ -147,8 +148,7 @@ internal val candyCrushRewardsPatch = bytecodePatch {
 val addBoostersPatch = bytecodePatch(
     name = "Add boosters",
     description = "Adds 1,000 of each booster every time the game starts. " +
-        "A booster is usable from its usual level, or from the first level with Unlock booster slots. " +
-        "Requires a standard install.",
+        "A booster is usable from its usual level, or from the first level with Unlock booster slots.",
 ) {
     compatibleWith(AppCompatibilities.CANDY_CRUSH_SAGA, AppCompatibilities.CANDY_CRUSH_SODA_SAGA)
     availability(requireArm64StandardInstall)

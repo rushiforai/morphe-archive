@@ -48,8 +48,12 @@ cache and the existing provider/title failure cooldown. The library switch works
 with Continue Watching disabled, and is included in per-profile settings backups.
 
 Restart Nuvio after changing settings so existing metadata/presentation caches
-can rebuild. Saved artwork may appear briefly during warm startup until native
-background enrichment finishes. Restored enrichment overlays allow a fresh
+can rebuild. Selected-provider posters, backgrounds and logos are written into
+Nuvio's existing per-profile Continue Watching enrichment records. Its normal
+save/restore path retains these images across app restarts; no additional artwork
+file or preference cache is created. Existing installations need one successful
+enrichment/save after updating. Saved watch progress remains unchanged.
+Restored enrichment overlays allow a fresh
 selected-provider lookup when needed. Failed title/provider lookups have a
 60-second retry cooldown. Native eligibility, timeouts, lifecycle jobs,
 cancellation and HTTP cache lifetimes are retained. No custom HTTP client or
@@ -71,6 +75,12 @@ Original DEX governs bindings; the local source checkout only helped locate them
 - `ya.p4.invokeSuspend(Object):Object` reuses `v3.g1` InProgress and `v3.f1` NextUp
   overlays. Wrapping their two completed reads permits the existing semaphore/lifecycle
   job to enrich restored entries. No overlay is removed or overwritten by the hook.
+- Native `com.nuvio.tv.data.local.s0` and `t0` constructors hold Resume and
+  Next Up enrichment records. Their `d`, `e` and `f` artwork fields receive the
+  selected poster, landscape/background and logo before native serialization.
+  Constructor registers v3/v4 hold content ID/type; v6/v7/v8 hold artwork.
+  All other constructor instructions remain unchanged. When the process artwork
+  map is empty, deserialization retains the images already stored in the record.
 - `ya.p7.a(f0,boolean,DetailImdbRatingsVisibility,String,String,Context):m6`
   constructs modern CW presentation. The boolean at v40 selects landscape. Its
   sole return holds the result in v11; v2/v3 are dead. The wrapper copies `m6`
@@ -90,7 +100,7 @@ Original DEX governs bindings; the local source checkout only helped locate them
   and cancellation methods establish its native composition lifecycle. Each
   library callback balances a separate replaceable group using `d0`/`p(false)`.
 
-Nine native methods change, including component registration; twelve behavior hooks
+Eleven native methods change, including component registration; eighteen behavior hooks
 are injected. Hook bodies have exact descriptor/register/instruction fingerprints.
 Runtime reflection shares full `REF_METADATA_*` contracts with patch validation.
 Private repository cache entries are bounded to four; artwork and failure records
@@ -170,6 +180,30 @@ It retains all original native libraries and passes 16-KB alignment. The deliver
 APK audit resolves all twelve hooks and the native effect reflection reference.
 This local APK is unsigned, was not installed and has not been device-tested.
 Published release versions and assets are assigned separately by the Release workflow.
+
+## Native artwork persistence validation on 2026-11-20
+
+Replaced the proposed extra preference cache with hooks in NuvioTV's existing
+Resume and Next Up enrichment-record constructors. The DEX regression verifies
+the ID/type/artwork registers and proves that removing the three hooks restores
+each constructor's complete original fingerprint. Runtime checks cover selected,
+disabled, unresolved, profile/provider isolation and restoration without requests.
+
+Passed `buildAndroid`, `verifyNuvioMetadataAddon`, `verifyNuvioMetadataRuntime`,
+`verifyNuvioMetadataSettingsRuntime`, `verifyNuvio110Bundle` with
+`-Pnuvio110Selections=metadata,combined`, `verifyAndroidBundle`,
+`verifyMorpheDesktopImport` using Desktop 2.2.0 and `verifyNuvioMetadataApk`.
+Standalone and combined DEX checks add no hierarchy findings beyond the original
+36 optional-library findings.
+
+Local bundle: `patches/build/libs/patches-0.20.0.mpp`, SHA-256
+`21995409deb457e12932340edf10a494ebbb44146f1e240b32be88bfe9176de8`.
+The metadata-only verification APK rebuilt from the original is
+`../Apps/NuvioTV/NuvioTV-1.1.0-metadata-native-save-unsigned.apk`, SHA-256
+`95a81ffb406fcd31cbe744a1b618b9fc3965b81d1d509ea69bd6bcd7f205d82f`.
+All eighteen delivered hooks resolve, all 108 native libraries are unchanged,
+and 16-KB alignment passes. This APK is unsigned and was not installed.
+Cold/warm startup and visible poster retention still need device confirmation.
 
 
 ## Pre-publication review

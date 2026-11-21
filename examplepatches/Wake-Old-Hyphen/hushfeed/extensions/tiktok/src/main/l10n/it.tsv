@@ -2440,7 +2440,7 @@ Manage posts	Gestisci post
 Content preferences	Preferenze dei contenuti
 Notifications	Notifiche
 Time and well-being	Tempo e benessere
-Family Pairing	Collegamento famigliare
+Family Pairing	Collegamento familiare
 Sign up	Registrati
 Account	Account
 Security & permissions	Sicurezza e autorizzazioni
@@ -2451,8 +2451,6 @@ QR code	Codice QR
 Share profile	Condividi profilo
 TikTok Plus	TikTok Plus
 Invite friends	Invita amici
-Inbox mode	Modalità Posta
-Audience controls	Controlli del pubblico
 Background audio	Audio in background
 Display	Schermo
 Commercial content library	Libreria di contenuti commerciali
@@ -2464,7 +2462,6 @@ Shake to report	Scuoti per segnalare
 Free up space	Libera spazio
 Data Saver	Risparmio dati
 Free data	Dati gratuiti
-Live wallpaper	Sfondo animato
 Check for updates	Verifica aggiornamenti
 Lite mode	Modalità Lite
 TikTok Beta	TikTok Beta
@@ -2478,6 +2475,16 @@ Policy updates	Aggiornamenti delle normative
 What's new on TikTok	Novità su TikTok
 Switch account	Cambia account
 Log out	Esci
+Mentions	Menzioni
+Direct messages	Messaggi diretti
+Reuse of content	Riutilizzo dei contenuti
+Display profile when sharing links	Mostra il profilo quando condividi i link
+Following list	Elenco di utenti seguiti
+Viewers	Spettatori
+Inbox & Messaging	Posta in arrivo e messaggi
+Audience control	Controllo del pubblico
+Wallpaper	Immagine di sfondo
+Help Center	Centro assistenza
 Open the search page	Apri la pagina di ricerca
 Search didn't open. Restart TikTok and try again.	Ricerca non aperta. Riavvia TikTok e riprova.
 Fold the search into a button	Riduci la ricerca a un pulsante
@@ -2511,6 +2518,16 @@ Leave after no touch	Esci se lo schermo non viene toccato
 Zero switches this off. After that many minutes with no touch on the screen, the video stops and TikTok goes to the background, for when you fall asleep watching. Any touch starts the wait over.	Zero disattiva questa funzione. Dopo quel numero di minuti senza tocchi sullo schermo, il video si ferma e TikTok passa in background, per quando ti addormenti guardando. Qualsiasi tocco fa ripartire l'attesa.
 Left TikTok after no touch	Uscito da TikTok per inattività
 Show when an account was made	Mostra quando è stato creato un account
+Show what changed since your last visit	Mostra cosa è cambiato dall’ultima visita
+Under the @username on a profile, show how its followers, following, likes and videos changed since you last opened it. The counts are kept on this phone only.	Sotto il @nomeutente di un profilo, mostra come sono cambiati follower, seguiti, Mi piace e video dall’ultima volta che l’hai aperto. I numeri restano solo su questo telefono.
+Since %1$s: %2$s	Da %1$s: %2$s
+No changes since %1$s	Nessuna modifica da %1$s
+%1$s, %2$s	%1$s, %2$s
+%1$s follower	%1$s follower
+%1$s followers	%1$s follower
+%1$s following	%1$s seguiti
+%1$s like	%1$s Mi piace
+%1$s likes	%1$s Mi piace
 Under the @username on someone else's profile, show the month and year the account was made. It's read from the account's ID, so very old accounts show nothing.	Sotto il @nomeutente del profilo di un'altra persona, mostra il mese e l'anno in cui è stato creato l'account. Si legge dall'ID dell'account, quindi gli account molto vecchi non mostrano nulla.
 Joined %s	Iscritto da %s
 Keep unsent messages	Conserva i messaggi ritirati
@@ -2670,6 +2687,18 @@ Remove selected comments	Rimuovi i commenti scelti
 Pick comments from your comment history to delete.	Scegli dalla cronologia dei commenti quelli da eliminare.
 Removing all comments in %1$d	Rimozione dei commenti tra %1$d
 Removing the picked comments in %1$d	Rimozione dei commenti scelti tra %1$d
+Unfollow accounts that don't follow you back	Smetti di seguire chi non ti segue
+Checks your followers first and says how many it found, then unfollows them one after another. Accounts that follow you back stay.	Controlla prima i tuoi follower e dice quanti account ha trovato, poi smette di seguirli uno dopo l'altro. Gli account che ti seguono restano.
+Checking who you follow: %1$d	Controllo di chi segui: %1$d
+Checking your followers: %1$d	Controllo dei tuoi follower: %1$d
+Everyone you follow follows you back	Tutti quelli che segui ti seguono
+Couldn't check who follows you back. Try again.	Impossibile controllare chi ti segue. Riprova.
+Accounts to unfollow: %1$d. Starting in %2$d	Account da non seguire più: %1$d. Inizio tra %2$d
+Unfollowed: %1$d	Non più seguiti: %1$d
+Done. %1$d unfollowed.	Fatto. %1$d non più seguiti.
+Stopped. %1$d unfollowed.	Interrotto. %1$d non più seguiti.
+TikTok refused. %1$d unfollowed.	TikTok ha rifiutato. %1$d non più seguiti.
+Network error. %1$d unfollowed.	Errore di rete. %1$d non più seguiti.
 Comments removed: %1$d	Commenti rimossi: %1$d
 TikTok refused to list your comments	TikTok non ha voluto elencare i tuoi commenti
 Couldn't load your comments. Try again.	Impossibile caricare i tuoi commenti. Riprova.
@@ -2955,6 +2984,44 @@ Crop and stretch to fill the screen	Ritaglia e allunga per riempire lo schermo
 Cover the whole window with half the crop of Fill and half the stretch of Stretch, so neither is easy to spot. A video far from the screen's shape keeps TikTok's size.	Copre tutta la finestra con metà del ritaglio di Riempi e metà dell'allungamento di Allunga, così nessuno dei due si nota molto. Un video con una forma molto diversa da quella dello schermo mantiene le dimensioni di TikTok.
 Watch LIVEs unseen	Guarda le LIVE senza farti vedere
 You stay off the viewer list of LIVEs you open. Tap the eye in a LIVE to let that host see you. Needs Ghost mode on.	Non comparirai nell'elenco degli spettatori delle LIVE che apri. Tocca l'occhio in una LIVE per farti vedere da chi la conduce. Serve la modalità fantasma attiva.
+Keep likes on this phone	Tieni i Mi piace su questo telefono
+A like you give a video stays on this phone. The heart turns red, but TikTok isn't told, so the creator never sees it and it isn't on your profile. Needs Ghost mode on.	Un Mi piace che metti a un video resta su questo telefono. Il cuore diventa rosso, ma TikTok non lo sa, quindi il creator non lo vede mai e non compare nel tuo profilo. Serve la modalità fantasma attiva.
+My likes on this phone	I miei Mi piace su questo telefono
+Find and reopen the videos you liked only on this phone	Trova e riapri i video a cui hai messo Mi piace solo su questo telefono
+Videos you like on this phone show up here	I video a cui metti Mi piace su questo telefono compaiono qui
+Likes cleared	Mi piace cancellati
+Export followers and following	Esporta follower e seguiti
+Saves the accounts that follow you, or the ones you follow, as a CSV file in Download/Hushfeed. They're read at about the pace of scrolling the list, up to %1$s at a time.	Salva gli account che ti seguono, o quelli che segui, come file CSV in Download/Hushfeed. Vengono letti più o meno alla velocità con cui si scorre l'elenco, fino a %1$s alla volta.
+A list is already being read	Si sta già leggendo un elenco
+Reading your followers (%1$s)	Lettura dei tuoi follower (%1$s)
+Reading who you follow (%1$s)	Lettura degli account che segui (%1$s)
+Couldn't read the list. Try again in a moment.	Non è stato possibile leggere l'elenco. Riprova tra un momento.
+Stopped before anyone was read	Interrotto prima di leggere qualcuno
+Nobody follows this account yet	Nessuno segue ancora questo account
+This account doesn't follow anyone yet	Questo account non segue ancora nessuno
+The file couldn't be saved. Try again.	Non è stato possibile salvare il file. Riprova.
+Saved one account to %2$s	Un account salvato in %2$s
+Saved %1$s accounts to %2$s	%1$s account salvati in %2$s
+It stopped before the end of the list, so the file is partial.	Si è fermato prima della fine dell'elenco, quindi il file è parziale.
+TikTok stopped answering before the end of the list, so the file is partial.	TikTok ha smesso di rispondere prima della fine dell'elenco, quindi il file è parziale.
+Only the first %1$s are in the file.	Nel file ci sono solo i primi %1$s.
+Save your likes from a TikTok data export	Salva i tuoi Mi piace da un'esportazione dei dati di TikTok
+Pick the export TikTok sends from Settings and privacy > Account > Download your data, in JSON format. The videos it lists as liked or favorited are saved like picked videos, up to %1$s at a time.	Scegli l'esportazione che TikTok invia da Impostazioni e privacy > Account > Scarica i tuoi dati, in formato JSON. I video che elenca come Mi piace o preferiti vengono salvati come video scelti, fino a %1$s alla volta.
+Reading the data export	Lettura dell'esportazione dei dati
+Liked videos (%1$s)	Video che ti piacciono (%1$s)
+Favorites (%1$s)	Preferiti (%1$s)
+That export lists no liked or favorited videos	Quell'esportazione non elenca video con Mi piace né preferiti
+Couldn't start saving. Try again in a moment.	Non è stato possibile iniziare a salvare. Riprova tra un momento.
+You've already saved every one of these videos here	Hai già salvato qui ognuno di questi video
+Saving one video	Salvataggio di un video
+Saving %1$s videos	Salvataggio di %1$s video
+One you saved before is left out	Uno che avevi già salvato viene saltato
+%1$s you saved before are left out	%1$s che avevi già salvato vengono saltati
+Choose the file again after this run to save the other %1$s	Scegli di nuovo il file dopo questo giro per salvare gli altri %1$s
+That file is larger than %1$s MB. Choose the JSON file from the export.	Quel file supera %1$s MB. Scegli il file JSON dell'esportazione.
+That isn't a TikTok data export in JSON format. Choose user_data_tiktok.json or the zip it came in.	Questa non è un'esportazione dei dati di TikTok in formato JSON. Scegli user_data_tiktok.json o lo zip in cui è arrivato.
+One isn't on TikTok anymore	Uno non è più su TikTok
+%1$s aren't on TikTok anymore	%1$s non sono più su TikTok
 The host can see you	Chi conduce può vederti
 Let the host see you	Fatti vedere da chi conduce
 Couldn't tell which LIVE this is. Open it again.	Impossibile capire quale LIVE sia. Riaprila.

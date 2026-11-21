@@ -10,11 +10,10 @@ import app.morphe.extension.shared.Utils;
 
 /** Selects the location action supported by the installed GmsCore provider. */
 public final class LocationServicePatch {
-    private static final String PROVIDER_PACKAGE = "app.revanced.android.gms";
     private static final String GOOGLE_ACTION =
             "com.google.android.location.internal.GoogleLocationManagerService.START";
     private static final String RENAMED_ACTION =
-            "app.revanced.android.location.internal.GoogleLocationManagerService.START";
+            "app.morphe.nmax.android.location.internal.GoogleLocationManagerService.START";
 
     private LocationServicePatch() {
     }
@@ -27,19 +26,21 @@ public final class LocationServicePatch {
             PackageManager packages = context.getPackageManager();
             // Prefer the existing protocol when both aliases are supported. Do not cache:
             // the user can replace or update the provider while Maps remains installed.
-            if (supports(packages, GOOGLE_ACTION)) return GOOGLE_ACTION;
-            if (supports(packages, RENAMED_ACTION)) return RENAMED_ACTION;
+            // MicroG is embedded, so the provider is Maps NMAX itself.
+            String provider = context.getPackageName();
+            if (supports(packages, provider, GOOGLE_ACTION)) return GOOGLE_ACTION;
+            if (supports(packages, provider, RENAMED_ACTION)) return RENAMED_ACTION;
         } catch (RuntimeException exception) {
             Log.w("MapsLocationService", "Could not resolve provider location action", exception);
         }
         return GOOGLE_ACTION;
     }
 
-    private static boolean supports(PackageManager packages, String action) {
+    private static boolean supports(PackageManager packages, String provider, String action) {
         ResolveInfo resolved = packages.resolveService(
-                new Intent(action).setPackage(PROVIDER_PACKAGE), 0);
+                new Intent(action).setPackage(provider), 0);
         return resolved != null && resolved.serviceInfo != null
                 && resolved.serviceInfo.exported && resolved.serviceInfo.enabled
-                && PROVIDER_PACKAGE.equals(resolved.serviceInfo.packageName);
+                && provider.equals(resolved.serviceInfo.packageName);
     }
 }

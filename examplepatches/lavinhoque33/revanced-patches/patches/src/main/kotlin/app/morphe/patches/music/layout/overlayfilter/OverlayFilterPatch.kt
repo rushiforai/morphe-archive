@@ -42,9 +42,10 @@ private fun BytecodePatchContext.hookPlayerDialog(tag: String): Boolean {
     val fragment = mutableClassDefByOrNull(type) ?: return false
     val parent = fragment.superclass ?: return false
 
-    val lifecycle = generateSequence(classDefByOrNull(parent)) { classDef ->
+    val ancestors = generateSequence(classDefByOrNull(parent)) { classDef ->
         classDef.superclass?.let(::classDefByOrNull)
-    }.firstNotNullOfOrNull { PlayerDialogShowFingerprint.matchOrNull(it) } ?: return false
+    }
+    val lifecycle = ancestors.firstNotNullOfOrNull { PlayerDialogShowFingerprint.matchOrNull(it) } ?: return false
     val instructions = lifecycle.originalMethod.implementation?.instructions ?: return false
     val dialog = instructions.asSequence()
         .filter { it.opcode == Opcode.IGET_OBJECT }
@@ -73,6 +74,14 @@ private fun BytecodePatchContext.hookPlayerDialog(tag: String): Boolean {
 
         onStart.addInstructions(1, updateDim)
     } else {
+        // Some older player fragments inherit a final onStart. Overriding it prevents the class from loading.
+        val inherited = ancestors.firstNotNullOfOrNull { ancestor ->
+            ancestor.virtualMethods.firstOrNull {
+                it.name == "onStart" && it.parameterTypes.isEmpty() && it.returnType == "V"
+            }
+        } ?: return false
+        if (AccessFlags.FINAL.isSet(inherited.accessFlags)) return false
+
         fragment.methods.add(ImmutableMethod(
             type, "onStart", emptyList(), "V", AccessFlags.PUBLIC.value, null, null, MutableMethodImplementation(2),
         ).toMutable().apply {

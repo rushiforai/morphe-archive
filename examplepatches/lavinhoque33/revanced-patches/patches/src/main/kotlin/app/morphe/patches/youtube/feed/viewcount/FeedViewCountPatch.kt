@@ -3,7 +3,7 @@
  * https://github.com/MorpheApp/morphe-patches/pull/3862
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
- * Modified by lavinhoque33, 2026-10-24
+ * Modified by lavinhoque33, 2026-10-24 and 2026-11-20
  */
 
 package app.morphe.patches.youtube.feed.viewcount
@@ -21,6 +21,7 @@ import app.morphe.patches.youtube.utils.feedcards.feedVideoCardsHookPatch
 import app.morphe.patches.youtube.utils.patch.PatchList.FEED_VIEW_COUNT
 import app.morphe.patches.youtube.utils.settings.ResourceUtils.addPreference
 import app.morphe.patches.youtube.utils.settings.settingsPatch
+import app.morphe.util.Utils.printWarn
 import app.morphe.util.setExtensionIsPatchIncluded
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 
@@ -39,8 +40,7 @@ val feedViewCountPatch = bytecodePatch(
         settingsPatch,
         // Finds the video cards. The view count is drawn by the extension.
         feedVideoCardsHookPatch,
-        // The view count is removed from the texts of the cards that show the badge,
-        // known by the Litho path of the text.
+        // Identifies the visible subtitle without editing the card's accessibility text.
         conversionContextPatch,
         textComponentPatch,
     )
@@ -48,19 +48,22 @@ val feedViewCountPatch = bytecodePatch(
     compatibleWith(COMPATIBILITY_YOUTUBE)
 
     execute {
+        if (!hookFeedSubtitle()) {
+            printWarn("Feed view count: the subtitle text hook was not found; keeping the original subtitles.")
+            return@execute
+        }
+
+        hookTextComponent(EXTENSION_CLASS)
+        setExtensionIsPatchIncluded(EXTENSION_CLASS)
+
         addPreference(
             arrayOf(
                 "PREFERENCE_SCREEN: FEED",
-                "SETTINGS: FEED_VIEW_COUNT"
+                "SETTINGS: FEED_VIEW_COUNT",
+                "SETTINGS: HIDE_FEED_SUBTITLE_METADATA"
             ),
             FEED_VIEW_COUNT
         )
-
-        hookFeedSubtitle()
-
-        hookTextComponent(EXTENSION_CLASS)
-
-        setExtensionIsPatchIncluded(EXTENSION_CLASS)
     }
 }
 
@@ -69,23 +72,20 @@ val feedViewCountPatch = bytecodePatch(
  * such as "Channel - 4.7M views - 2 days ago", so the card that draws the text knows its view count.
  */
 context(_: BytecodePatchContext)
-private fun hookFeedSubtitle() {
-    FeedSubtitleFingerprint.let {
-        it.method.apply {
-            // The string passed to the span method is the returned string.
-            val subtitleRegister = it.instructionMatches.last()
-                .getInstruction<FiveRegisterInstruction>().registerC
+private fun hookFeedSubtitle(): Boolean {
+    val fingerprint = FeedSubtitleFingerprint
+    val subtitleMethod = fingerprint.methodOrNull ?: return false
 
-            // Before the text dimension is applied, where the text is complete.
-            val applyDimensionIndex = it.instructionMatches[2].index
+    // The string passed to the final span call is the returned string, before its height is applied.
+    val subtitleRegister = fingerprint.instructionMatches.last().getInstruction<FiveRegisterInstruction>().registerC
+    val applyDimensionIndex = fingerprint.instructionMatches[2].index
 
-            addInstructions(
-                applyDimensionIndex,
-                """
-                    invoke-static { v$subtitleRegister }, $ON_FEED_SUBTITLE_CREATED
-                    move-result-object v$subtitleRegister
-                """
-            )
-        }
-    }
+    subtitleMethod.addInstructions(
+        applyDimensionIndex,
+        """
+            invoke-static { v$subtitleRegister }, $ON_FEED_SUBTITLE_CREATED
+            move-result-object v$subtitleRegister
+        """
+    )
+    return true
 }

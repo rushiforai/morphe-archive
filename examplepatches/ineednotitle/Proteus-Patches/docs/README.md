@@ -26,6 +26,7 @@ Guides, verification notes and triage references for Proteus Patches.
 | [Reddit deleted comments](REDDIT-DELETED-COMMENTS.md) | Archive restore behavior, limits and privacy |
 | [Reddit performance](REDDIT-PERFORMANCE.md) | Listing filter performance notes |
 | [Reddit stability](REDDIT-STABILITY.md) | Save-flow crash analysis and stability hardening |
+| [Spotify](SPOTIFY.md) | Spotify ad, widget, navigation and diagnostic patch status and limits |
 | [Table Notes](TABLE_NOTES.md) | Table Notes premium-export and ad-removal patch analysis |
 
 ## Project

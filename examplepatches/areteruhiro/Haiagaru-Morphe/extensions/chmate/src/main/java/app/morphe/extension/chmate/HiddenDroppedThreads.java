@@ -14,8 +14,8 @@ public final class HiddenDroppedThreads {
     private static final Map<String,Boolean> nativeStatus=new LinkedHashMap<>();
     private static final List<Original> originals=new ArrayList<>();
     private static final class Original {
-        final java.lang.ref.WeakReference<Object> wrapper;List<?> source;
-        Original(Object w,List<?> s){wrapper=new java.lang.ref.WeakReference<>(w);source=s;}
+        final java.lang.ref.WeakReference<Object> wrapper;final int mode;List<?> source;
+        Original(Object w,List<?> s,int m){wrapper=new java.lang.ref.WeakReference<>(w);source=s;mode=m;}
     }
     static boolean option(String key){Context c=Haiagaru.applicationContextForExtension();return c!=null&&c.getSharedPreferences(WacchoiSearchOptions.PREFS,0).getBoolean(key,false);}
     static boolean enabled(){return option(KEY);}
@@ -135,13 +135,13 @@ public final class HiddenDroppedThreads {
     }
     // Native legacy list wrappers are recreated during sorting. Remember their source to restore OFF.
     static List<?> source(Object wrapper,List<?> fallback){synchronized(originals){for(Original o:originals)if(o.wrapper.get()==wrapper)return o.source;return fallback;}}
-    static void remember(Object wrapper,List<?> source){synchronized(originals){originals.removeIf(o->o.wrapper.get()==null||o.wrapper.get()==wrapper);if(originals.size()>=64)originals.remove(0);originals.add(new Original(wrapper,source));}}
     static void removeRememberedHistoryThread(String board,long threadId){
-        if(threadId<=0)return;
+        if(board==null||threadId<=0)return;
         synchronized(originals){
             originals.removeIf(o->o.wrapper.get()==null);
             IdentityHashMap<List<?>,List<?>> changed=new IdentityHashMap<>();
             for(Original original:originals){
+                if(!historyMode(original.mode))continue;
                 List<?> source=original.source;List<?> replacement=changed.get(source);
                 if(replacement==null){
                     ArrayList<Object> kept=new ArrayList<>(source.size());boolean removed=false;
@@ -152,14 +152,52 @@ public final class HiddenDroppedThreads {
             }
         }
     }
-    private static boolean historyThread(Object row,String board,long threadId){
-        if(row==null||!row.getClass().getName().equals("o.onAdDisplayed$setIcon"))return false;
+    /** Remove an already-deleted history row from the live legacy adapter list. */
+    static void removeLiveHistoryThread(Object fragment,String board,long threadId)throws Exception{
+        if(fragment==null||board==null||threadId<=0)return;
+        Field adapterField=fragment.getClass().getDeclaredField("e");adapterField.setAccessible(true);
+        Object adapter=adapterField.get(fragment);
+        if(adapter==null)return;
+        Field rowsField=adapter.getClass().getDeclaredField("j");rowsField.setAccessible(true);
+        Object value=rowsField.get(adapter);
+        if(!(value instanceof List))return;
+        removeHistoryRows((List<?>)value,board,threadId);
+    }
+    public static int removeHistoryRows(List<?> rows,String board,long threadId){
+        if(rows==null||threadId<=0)return 0;int removed=0;
+        for(int i=rows.size()-1;i>=0;i--)if(historyThread(rows.get(i),board,threadId)){rows.remove(i);removed++;}
+        return removed;
+    }
+    static String uniqueHistoryBoard(Object fragment,long threadId){
+        if(threadId<=0)return null;
+        HashSet<String> boards=new HashSet<>();
         try{
-            Field id=row.getClass().getDeclaredField("h");id.setAccessible(true);if(id.getLong(row)!=threadId)return false;
-            if(board==null)return true;
-            Field value=row.getClass().getDeclaredField("g");value.setAccessible(true);Object actual=value.get(row);
-            return actual!=null&&board.equals(actual.toString());
-        }catch(Exception ignored){return false;}
+            Object adapter=field(fragment,"e").get(fragment);
+            if(adapter!=null)for(String name:new String[]{"j","i","g"})try{
+                Object value=field(adapter,name).get(adapter);if(value instanceof List)collectHistoryBoards((List<?>)value,threadId,boards);
+            }catch(Exception ignored){}
+        }catch(Exception ignored){}
+        synchronized(originals){for(Original original:originals)if(historyMode(original.mode))collectHistoryBoards(original.source,threadId,boards);}
+        return boards.size()==1?boards.iterator().next():null;
+    }
+    private static Field field(Object owner,String name)throws Exception{
+        Field value=owner.getClass().getDeclaredField(name);value.setAccessible(true);return value;
+    }
+    private static void collectHistoryBoards(List<?> rows,long threadId,Set<String> boards){
+        if(rows==null)return;
+        String suffix="\n"+threadId;
+        for(Object row:rows){
+            String key=HomeThreadOrder.key(row);
+            if(key!=null&&key.endsWith(suffix))boards.add(key.substring(0,key.length()-suffix.length()));
+        }
+    }
+    static void remember(Object wrapper,List<?> source,int mode){
+        synchronized(originals){originals.removeIf(o->o.wrapper.get()==null||o.wrapper.get()==wrapper);if(originals.size()>=64)originals.remove(0);originals.add(new Original(wrapper,source,mode));}
+    }
+    private static boolean historyThread(Object row,String board,long threadId){
+        String key=HomeThreadOrder.key(row);
+        return key!=null&&key.endsWith("\n"+threadId)
+                &&(board==null||key.equals(board+"\n"+threadId));
     }
     private HiddenDroppedThreads(){}
 }

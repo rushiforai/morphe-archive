@@ -1,7 +1,11 @@
 package app.template.extension.extension;
 
+import java.util.Collections;
 import java.util.Locale;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Contains the Mereframe native residency check's SecurityException, both at the
@@ -43,6 +47,15 @@ public final class MereframeIntegrityHook {
     private static final String NATIVE_METHOD = "nd2cccb916f63efbcf8b5b19b";
 
     private static final AtomicBoolean LOGGED = new AtomicBoolean(false);
+
+    // Per-site containment log. The first contained throw at each wrapper site
+    // is printed with the site's identity (docs/MEREFRAME.md triage step 2
+    // reads those lines to find the wrapper that is still failing); repeats at
+    // the same site and sites beyond the cap are counted, never printed.
+    static final int MAX_LOGGED_SITES = 32;
+    private static final Set<String> LOGGED_SITES =
+            Collections.newSetFromMap(new ConcurrentHashMap<String, Boolean>());
+    private static final AtomicInteger SUPPRESSED_CONTAINMENTS = new AtomicInteger();
 
     private MereframeIntegrityHook() {}
 
@@ -88,7 +101,7 @@ public final class MereframeIntegrityHook {
             logOnce("native verdict not long[] — substituting fallback");
             return new long[]{0L, 1L};
         } catch (Throwable t) {
-            logOnce("native integrity throw contained: " + t);
+            logContainment("native integrity throw contained", t);
             return new long[]{0L, 1L};
         }
     }
@@ -309,7 +322,7 @@ public final class MereframeIntegrityHook {
             // RuntimeException regardless of the compiler's inference rules.
             MereframeIntegrityHook.<RuntimeException>sneakyThrow(t);
         }
-        logOnce("wrapper integrity throw contained: " + t);
+        logContainment("wrapper integrity throw contained", t);
     }
 
     /**
@@ -338,6 +351,53 @@ public final class MereframeIntegrityHook {
     @SuppressWarnings("unchecked")
     private static <T extends Throwable> void sneakyThrow(Throwable t) throws T {
         throw (T) t;
+    }
+
+    // ───────────────────────────────────────────────────────────────────────
+    // Containment logging
+    //
+    // The patching runbook (docs/MEREFRAME.md) triages a still-failing build
+    // from these lines, so each one must name the wrapper whose native call
+    // threw. The Throwable's own stack carries that identity: frame 0 is the
+    // wrapper (or its native method); the hook frames are skipped.
+    // ───────────────────────────────────────────────────────────────────────
+
+    /** Pure: "wrapper integrity throw contained at <site>: <throwable>". */
+    static String containmentLabel(String prefix, Throwable t) {
+        return prefix + " at " + callSite(t) + ": " + t;
+    }
+
+    private static final String HOOK_CLASS = "app.template.extension.extension.MereframeIntegrityHook";
+
+    /** Pure: the first stack frame outside this hook class = the guarded wrapper. */
+    static String callSite(Throwable t) {
+        StackTraceElement[] stack = t.getStackTrace();
+        if (stack != null) {
+            for (StackTraceElement frame : stack) {
+                String className = frame.getClassName();
+                if (!className.equals(HOOK_CLASS) && !className.startsWith(HOOK_CLASS + "$")) {
+                    return className + "." + frame.getMethodName();
+                }
+            }
+        }
+        return "unknown";
+    }
+
+    /** Bounded dedup: true exactly once per site, false for every repeat. */
+    static boolean shouldLogSite(String site) {
+        if (LOGGED_SITES.size() >= MAX_LOGGED_SITES && !LOGGED_SITES.contains(site)) {
+            SUPPRESSED_CONTAINMENTS.incrementAndGet();
+            return false;
+        }
+        boolean first = LOGGED_SITES.add(site);
+        if (!first) SUPPRESSED_CONTAINMENTS.incrementAndGet();
+        return first;
+    }
+
+    private static void logContainment(String prefix, Throwable t) {
+        if (shouldLogSite(callSite(t))) {
+            System.out.println("[Proteus][Integrity] " + containmentLabel(prefix, t));
+        }
     }
 
     private static void logOnce(String message) {

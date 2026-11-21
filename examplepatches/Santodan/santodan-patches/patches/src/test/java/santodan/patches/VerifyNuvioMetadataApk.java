@@ -40,9 +40,9 @@ public final class VerifyNuvioMetadataApk {
         for (String ref : List.of(NuvioNative.REF_METADATA_INIT,NuvioNative.REF_METADATA_ALL,NuvioNative.REF_METADATA_PRIMARY,
                 NuvioNative.REF_METADATA_CARD,NuvioNative.REF_METADATA_HERO,NuvioNative.REF_METADATA_LIBRARY_EFFECT))
             if (!definitions.contains(ref) || !strings.contains(ref)) throw new AssertionError("Missing delivered reflection binding " + ref);
-        if (hooks.values().stream().mapToInt(Integer::intValue).sum() != 12) throw new AssertionError("Incomplete metadata hooks " + hooks);
+        if (hooks.values().stream().mapToInt(Integer::intValue).sum() != 18) throw new AssertionError("Incomplete metadata hooks " + hooks);
         for (String ref : hooks.keySet()) if (!definitions.contains(ref)) throw new AssertionError("Unresolved delivered hook " + ref);
         if (!definitions.contains(NuvioMetadataAddonPatch.SETTINGS + "->registerComponent(Ljava/lang/Object;)V")) throw new AssertionError("Missing settings registration");
-        System.out.println("PASS: delivered APK contains all twelve metadata hooks and shared full reflection bindings resolve against its actual native classes");
+        System.out.println("PASS: delivered APK contains all eighteen metadata hooks and shared full reflection bindings resolve against its actual native classes");
     }
 }

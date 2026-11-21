@@ -16,6 +16,8 @@ captures/
 .cxx/
 *.aab
 *.apk
+# MicroG-RE built for Maps NMAX; EmbedGms puts it inside Maps on the phone
+!patches/src/main/resources/nmaxgms/microg.apk
 output-metadata.json
 
 # IntelliJ

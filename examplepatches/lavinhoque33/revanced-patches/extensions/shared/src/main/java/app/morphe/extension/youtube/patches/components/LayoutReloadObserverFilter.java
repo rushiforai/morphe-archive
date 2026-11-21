@@ -2,7 +2,7 @@ package app.morphe.extension.youtube.patches.components;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import app.morphe.extension.shared.patches.components.Filter;
+import app.morphe.extension.shared.patches.components.LazyBufferFilter;
 import app.morphe.extension.shared.patches.components.StringFilterGroup;
 import app.morphe.extension.shared.utils.Utils;
 import app.morphe.extension.youtube.shared.PlayerType;
@@ -29,7 +29,7 @@ import app.morphe.extension.youtube.shared.PlayerType;
  * it is treated as being in the same state as [WATCH_WHILE_MAXIMIZED].
  */
 @SuppressWarnings("unused")
-public final class LayoutReloadObserverFilter extends Filter {
+public final class LayoutReloadObserverFilter extends LazyBufferFilter {
     // Must be volatile or synchronized, as litho filtering runs off main thread and this field is then access from the main thread.
     public static final AtomicBoolean isActionBarVisible = new AtomicBoolean(false);
 
@@ -43,7 +43,7 @@ public final class LayoutReloadObserverFilter extends Filter {
     }
 
     @Override
-    public boolean isFiltered(String path, String identifier, String allValue, byte[] buffer,
+    public boolean isFilteredLazy(String path, String identifier, String allValue, Buffer buffer,
                               StringFilterGroup matchedGroup, FilterContentType contentType, int contentIndex) {
         if (PlayerType.getCurrent() == PlayerType.WATCH_WHILE_MINIMIZED &&
                 isActionBarVisible.compareAndSet(false, true)) {

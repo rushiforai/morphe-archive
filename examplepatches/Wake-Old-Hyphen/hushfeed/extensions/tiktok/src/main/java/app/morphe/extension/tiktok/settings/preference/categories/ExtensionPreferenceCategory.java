@@ -16,6 +16,7 @@ import app.morphe.extension.tiktok.settings.Settings;
 import app.morphe.extension.tiktok.settings.SettingsStatus;
 import app.morphe.extension.tiktok.settings.preference.AppIconPreference;
 import app.morphe.extension.tiktok.settings.preference.ChoicePreference;
+import app.morphe.extension.tiktok.settings.preference.FollowListExportPreference;
 import app.morphe.extension.tiktok.settings.preference.ImportedFontPreference;
 import app.morphe.extension.tiktok.settings.preference.InputTextPreference;
 import app.morphe.extension.tiktok.settings.preference.ProfileShortcutChecklistPreference;
@@ -278,6 +279,11 @@ public class ExtensionPreferenceCategory extends ConditionalPreferenceCategory {
                             + "account was made. It's read from the account's ID, so very old "
                             + "accounts show nothing.",
                     Settings.SHOW_JOIN_DATE));
+            addPreference(new TogglePreference(context, "Show what changed since your last visit",
+                    "Under the @username on a profile, show how its followers, following, likes "
+                            + "and videos changed since you last opened it. The counts are kept on "
+                            + "this phone only.",
+                    Settings.SHOW_PROFILE_CHANGES));
             addPreference(new TogglePreference(context, "Local profile counts",
                     "Show chosen counts on your own profile on this phone. Other people see the real counts.",
                     Settings.LOCAL_PROFILE_COUNTS));
@@ -288,6 +294,7 @@ public class ExtensionPreferenceCategory extends ConditionalPreferenceCategory {
             addPreference(new TogglePreference(context, "Hide your account warning",
                     "Hide the restriction notice on your own profile on this phone. TikTok's restrictions and appeals still apply.",
                     Settings.HIDE_OWN_PROFILE_RESTRICTION_NOTICE));
+            addPreference(new FollowListExportPreference(context));
         }
         if (SettingsStatus.copyIdsEnabled) {
             addPreference(new TogglePreference(

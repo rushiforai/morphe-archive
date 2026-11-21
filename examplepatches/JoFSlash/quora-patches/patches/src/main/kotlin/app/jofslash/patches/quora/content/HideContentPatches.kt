@@ -2,6 +2,7 @@ package app.jofslash.patches.quora.content
 
 import app.jofslash.patches.quora.ads.PageFinishedFingerprint
 import app.jofslash.patches.quora.shared.Constants.COMPATIBILITY_QUORA
+import app.jofslash.patches.quora.video.InitWebViewFingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
 import app.morphe.patcher.patch.bytecodePatch
 
@@ -11,10 +12,16 @@ private const val EXTENSION_CLASS = "Lapp/jofslash/extension/quora/HideContentPa
  * Quora renders its content in a WebView. Each patch injects a stylesheet or script into every page
  * that changes one thing about it.
  */
-private fun pageScriptPatch(patchCategory: String, name: String, description: String, extensionMethod: String) = bytecodePatch(
+private fun pageScriptPatch(
+    patchCategory: String,
+    name: String,
+    description: String,
+    extensionMethod: String,
+    default: Boolean = false,
+) = bytecodePatch(
     name = name,
     description = description,
-    default = false
+    default = default
 ) {
     category(patchCategory)
     compatibleWith(COMPATIBILITY_QUORA)
@@ -35,7 +42,51 @@ val hideQuoraPlusAnswersPatch = pageScriptPatch(
     patchCategory = "Feed",
     description = "Hides answers and posts that can only be read with a Quora+ subscription.",
     extensionMethod = "hideQuoraPlusAnswers",
+    default = true,
 )
+
+@Suppress("unused")
+val hideAskBoxPatch = pageScriptPatch(
+    name = "Hide ask box",
+    patchCategory = "Feed",
+    description = "Hides the \"What do you want to ask or share?\" box with Ask, Answer and Post at the top of the feed.",
+    extensionMethod = "hideAskBox",
+    default = true,
+)
+
+@Suppress("unused")
+val hideCommentBoxPatch = pageScriptPatch(
+    name = "Hide comment box",
+    patchCategory = "Reading",
+    description = "Hides the \"Add a comment…\" field under answers and posts. Comments still open from the comment button.",
+    extensionMethod = "hideCommentBox",
+)
+
+@Suppress("unused")
+val hideDismissedQuestionsPatch = bytecodePatch(
+    name = "Hide dismissed questions",
+    description = "When you close a feed item with its × and pick \"Not interested in this question\", the feed " +
+            "doesn't show answers to that question again. Undo brings it back. The list stays on your phone, " +
+            "under Dismissed questions in Patch settings.",
+    default = false
+) {
+    category("Feed")
+    compatibleWith(COMPATIBILITY_QUORA)
+
+    extendWith("extensions/extension.mpe")
+
+    execute {
+        PageFinishedFingerprint.method.addInstruction(
+            0,
+            "invoke-static { p1 }, $EXTENSION_CLASS->hideDismissedQuestions(Landroid/webkit/WebView;)V"
+        )
+        // The list is kept by the app, which the page reaches through this.
+        InitWebViewFingerprint.method.addInstruction(
+            0,
+            "invoke-static { p1 }, Lapp/jofslash/extension/quora/PatchSettings;->bind(Landroid/webkit/WebView;)V"
+        )
+    }
+}
 
 @Suppress("unused")
 val hideRelatedQuestionsPatch = pageScriptPatch(
@@ -59,6 +110,7 @@ val hideAiAnswersPatch = pageScriptPatch(
     patchCategory = "Feed",
     description = "Hides answers written by Poe bots.",
     extensionMethod = "hideAiAnswers",
+    default = true,
 )
 
 @Suppress("unused")
@@ -75,6 +127,7 @@ val hideQuoraPlusPromotionsPatch = pageScriptPatch(
     patchCategory = "Feed",
     description = "Hides buttons that ask you to try or join Quora+.",
     extensionMethod = "hideQuoraPlusPromotions",
+    default = true,
 )
 
 @Suppress("unused")
@@ -91,6 +144,7 @@ val hidePoePatch = pageScriptPatch(
     patchCategory = "Feed",
     description = "Hides links and buttons that open Poe or Quora's AI assistant.",
     extensionMethod = "hidePoe",
+    default = true,
 )
 
 @Suppress("unused")
@@ -107,6 +161,7 @@ val enableTextSelectionPatch = pageScriptPatch(
     patchCategory = "Reading",
     description = "Lets you select and copy text on every page.",
     extensionMethod = "enableTextSelection",
+    default = true,
 )
 
 @Suppress("unused")
@@ -145,6 +200,8 @@ val hideCredentialsPatch = pageScriptPatch(
 val hideSurveysPatch = pageScriptPatch(
     name = "Hide surveys",
     patchCategory = "Feed",
-    description = "Hides Quora's surveys in the feed, such as \"How satisfied are you with your home feed?\".",
+    description = "Hides Quora's surveys in the feed, such as \"How satisfied are you with your home feed?\" " +
+            "and \"Was this worth your time?\" under answers.",
     extensionMethod = "hideSurveys",
+    default = true,
 )

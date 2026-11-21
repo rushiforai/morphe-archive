@@ -7,6 +7,7 @@ import android.view.ViewParent;
 import java.lang.reflect.Method;
 import java.util.Map;
 import java.util.WeakHashMap;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * The older board is a ChessBoardView with a PieceView child, whose own getParent() (a second one
@@ -33,6 +34,8 @@ public final class BoardViews {
     private static Method hostGetter;
     /** The newer board keeps its orientation behind an obfuscated getter: its setter reports it here. */
     private static final Map<View, Boolean> V2_FLIPPED = new WeakHashMap<>();
+    /** The no-argument getters call() looks up, per class: a board redraw asks for them every frame. */
+    private static final Map<Class<?>, Map<String, Method>> METHODS = new ConcurrentHashMap<>();
 
     private BoardViews() {}
 
@@ -63,7 +66,19 @@ public final class BoardViews {
     public static Object call(Object target, String name) {
         if (target == null) return null;
         try {
-            return target.getClass().getMethod(name).invoke(target);
+            Class<?> type = target.getClass();
+            Map<String, Method> methods = METHODS.get(type);
+            if (methods == null) {
+                methods = new ConcurrentHashMap<>();
+                Map<String, Method> raced = METHODS.putIfAbsent(type, methods);
+                if (raced != null) methods = raced;
+            }
+            Method method = methods.get(name);
+            if (method == null) {
+                method = type.getMethod(name);
+                methods.put(name, method);
+            }
+            return method.invoke(target);
         } catch (Throwable throwable) {
             return null;
         }

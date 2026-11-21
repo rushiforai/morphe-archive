@@ -5,6 +5,7 @@
  * https://github.com/anddea/revanced-patches
  *
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-20.
  * Written by lavinhoque33, 2026-11-05.
  */
 package app.morphe.extension.youtube.patches.general.offline;
@@ -30,6 +31,15 @@ public class OfflinePlaylistSelectionTest {
         assertFalse(model.get(1).selected());
         assertTrue(model.get(1).alreadyDownloaded());
         assertEquals(123_000, model.get(0).lengthMs());
+    }
+
+    @Test public void repeatedPlaylistEntryQueuesOnlyOneDownloadTask() {
+        var first = new OfflinePlaylist.Entry("abcdefghijk", "First", 123_000);
+        var second = new OfflinePlaylist.Entry("lmnopqrstuv", "Second", 456_000);
+        var items = OfflinePlaylistSelection.from(List.of(first, first, second, first), key -> false);
+        assertEquals(List.of("abcdefghijk", "lmnopqrstuv"), items.stream()
+                .map(OfflinePlaylistSelection.Item::videoId).toList());
+        assertEquals(2, items.get(1).index());
     }
 
     @Test public void allNoneAndIndividualSelectionKeepOriginalOrder() {

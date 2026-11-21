@@ -31,7 +31,11 @@ private const val PURCHASE_SMALI = """
 
 private const val CONSUME_SMALI = """
     iget-object v0, p0, Lcom/newstargames/newstarsoccer/GooglePlayBB;->inventory:Lcom/newstargames/newstarsoccer/GooglePlayInvent;
-    invoke-virtual {v0, p1}, Lcom/newstargames/newstarsoccer/GooglePlayInvent;->DiscardPending(Ljava/lang/String;)V
+    invoke-virtual {v0, p1}, Lcom/newstargames/newstarsoccer/GooglePlayInvent;->GetPending(Ljava/lang/String;)Lcom/android/billingclient/api/Purchase;
+    move-result-object v1
+    if-eqz v1, :done
+    invoke-virtual {v0, v1}, Lcom/newstargames/newstarsoccer/GooglePlayInvent;->DiscardPurchase(Lcom/android/billingclient/api/Purchase;)V
+    :done
     return-void
 """
 

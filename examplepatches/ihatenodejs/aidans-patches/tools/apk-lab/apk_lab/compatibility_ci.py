@@ -396,6 +396,12 @@ def run_ci_reconcile_and_test(
 
         if matched_slot_role is None:
             # Must acquire exact target_version
+            print(
+                f"No R2 fixture matches {pkg} v{target_version} "
+                f"(target={target_slot.version_name if target_slot else 'absent'}, "
+                f"latest={latest_slot.version_name if latest_slot else 'absent'}); "
+                "attempting acquisition..."
+            )
             if acquirer is None:
                 has_creds = bool(os.environ.get("APKEEP_ACCOUNTS")) or bool(
                     os.environ.get("R2_ACCESS_KEY_ID")

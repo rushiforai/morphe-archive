@@ -58,18 +58,102 @@ final class ProtoScanner {
         return false;
     }
 
-    /** Fast raw byte search, for markers that are unambiguous substrings (such as URNs). */
-    static boolean containsAscii(byte[] data, String needle) {
+    /**
+     * True if a length-delimited field holds exactly [value]: its bytes, directly after a one-byte length equal to
+     * their size and a wire type 2 tag. One linear search, no parsing; for short labels such as "Suggested".
+     */
+    static boolean hasFieldString(byte[] data, String value) {
         if (data == null) return false;
-        byte[] n = needle.getBytes(StandardCharsets.US_ASCII);
-        outer:
-        for (int i = 0; i <= data.length - n.length; i++) {
-            for (int j = 0; j < n.length; j++) {
-                if (data[i + j] != n[j]) continue outer;
-            }
-            return true;
+        byte[] n = value.getBytes(StandardCharsets.UTF_8);
+        if (n.length == 0 || n.length > 127) return false;
+        for (int i = indexOf(data, n, 0); i >= 0; i = indexOf(data, n, i + 1)) {
+            if (isField(data, i, n.length)) return true;
         }
         return false;
+    }
+
+    /**
+     * True if a length-delimited field holds a view name (lowercase letters, digits, '-' and '_', with a '-') with
+     * [word] or its plural as a whole word, such as large-single-video-view for "video". Never matches post text.
+     */
+    static boolean hasViewNameWithWord(byte[] data, String word) {
+        if (data == null) return false;
+        byte[] n = word.getBytes(StandardCharsets.US_ASCII);
+        for (int i = indexOf(data, n, 0); i >= 0; i = indexOf(data, n, i + 1)) {
+            int end = i + n.length;
+            if (end < data.length && data[end] == 's') end++;
+            if (end < data.length && isWordChar(data[end])) continue;
+            if (i > 0 && isWordChar(data[i - 1])) continue;
+            int start = i;
+            while (start > 0 && isNameChar(data[start - 1])) start--;
+            int stop = end;
+            while (stop < data.length && isNameChar(data[stop])) stop++;
+            boolean dash = false;
+            for (int k = start; k < stop && !dash; k++) dash = data[k] == '-';
+            if (dash && stop - start <= 127 && isField(data, start, stop - start)) return true;
+        }
+        return false;
+    }
+
+    /**
+     * True if a field string of at most [maxLength] bytes starts with one of [labels] as a whole word, such as
+     * "Promoted", "Promoted by X" or "Sponsored ·". Each label is tried as given, lowercase and uppercase.
+     */
+    static boolean hasFieldStartingWith(byte[] data, int maxLength, String... labels) {
+        if (data == null) return false;
+        for (String label : labels) {
+            for (String form : new String[]{label, label.toLowerCase(java.util.Locale.ROOT),
+                    label.toUpperCase(java.util.Locale.ROOT)}) {
+                byte[] n = form.getBytes(StandardCharsets.UTF_8);
+                for (int i = indexOf(data, n, 0); i >= 0; i = indexOf(data, n, i + 1)) {
+                    if (i < 2) continue;
+                    int length = data[i - 1] & 0xff;
+                    int tag = data[i - 2] & 0xff;
+                    if (length < n.length || length > maxLength || i + length > data.length) continue;
+                    if ((tag & 0x80) != 0 || (tag & 7) != 2 || (tag >>> 3) == 0) continue;
+                    if (length == n.length) return true;
+                    int next = data[i + n.length] & 0xff;
+                    // Followed by a non-letter: a space, punctuation or a separator such as the middle dot.
+                    if (!((next >= 'a' && next <= 'z') || (next >= 'A' && next <= 'Z'))) return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private static boolean isWordChar(byte c) {
+        return (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9');
+    }
+
+    private static boolean isNameChar(byte c) {
+        return isWordChar(c) || c == '-' || c == '_';
+    }
+
+    /** True when [length] bytes at [at] follow that one-byte length and a one-byte wire type 2 tag. */
+    private static boolean isField(byte[] data, int at, int length) {
+        if (at < 2 || (data[at - 1] & 0xff) != length) return false;
+        int tag = data[at - 2] & 0xff;
+        return (tag & 0x80) == 0 && (tag & 7) == 2 && (tag >>> 3) > 0;
+    }
+
+    private static int indexOf(byte[] data, byte[] n, int from) {
+        byte first = n[0];
+        int last = data.length - n.length;
+        outer:
+        for (int i = from; i <= last; i++) {
+            if (data[i] != first) continue;
+            for (int j = 1; j < n.length; j++) {
+                if (data[i + j] != n[j]) continue outer;
+            }
+            return i;
+        }
+        return -1;
+    }
+
+    /** Fast raw byte search, for markers that are unambiguous substrings (such as URNs). */
+    static boolean containsAscii(byte[] data, String needle) {
+        if (data == null || needle.isEmpty()) return false;
+        return indexOf(data, needle.getBytes(StandardCharsets.US_ASCII), 0) >= 0;
     }
 
     /** Collected fields of one message, used to recognize the Image layout. */
@@ -212,6 +296,16 @@ final class ProtoScanner {
         return null;
     }
 
+    /** One strict decoder per thread (decode() resets it); creating one per string was costly on large posts. */
+    private static final ThreadLocal<CharsetDecoder> DECODER = new ThreadLocal<CharsetDecoder>() {
+        @Override
+        protected CharsetDecoder initialValue() {
+            return StandardCharsets.UTF_8.newDecoder()
+                    .onMalformedInput(CodingErrorAction.REPORT)
+                    .onUnmappableCharacter(CodingErrorAction.REPORT);
+        }
+    };
+
     private static String printableUtf8(byte[] b, int start, int end) {
         if (end <= start) return null;
         // No control characters at all: a nested message starting with tag 0x0A ('\n') would
@@ -220,9 +314,7 @@ final class ProtoScanner {
             int c = b[i] & 0xff;
             if (c < 0x20 || c == 0x7f) return null;
         }
-        CharsetDecoder decoder = StandardCharsets.UTF_8.newDecoder()
-                .onMalformedInput(CodingErrorAction.REPORT)
-                .onUnmappableCharacter(CodingErrorAction.REPORT);
+        CharsetDecoder decoder = DECODER.get();
         try {
             return decoder.decode(ByteBuffer.wrap(b, start, end - start)).toString();
         } catch (CharacterCodingException e) {

@@ -1,0 +1,35 @@
+# Remote ATV 6.1.0 build 45; optional page-swipe patch after ad-free/status restoration.
+# Fields: input SHA-256 / output SHA-256, then file offset / expected bytes / replacement bytes.
+# Constructor marks only the two remote PageViews via pageSnapping=false.
+# Physics hook tail-calls existing NeverScrollableScrollPhysics.applyTo for those views.
+# Tail branches preserve original GC safepoints and allocation sizes; setup paging is unchanged.
+# Caller checks use PC-relative differences, so library load alignment does not affect them.
+# 0x8038d0: ldur x16, [x29, #8]
+# 0x8038d4: adr x17, #0x8038d0
+# 0x8038d8: sub x16, x16, x17
+# 0x8038dc: ubfx x16, x16, #0, #0x10
+# 0x8038e0: mov w17, #0x96bc
+# 0x8038e4: cmp w16, w17
+# 0x8038e8: b.eq #0x803900
+# 0x8038ec: mov w17, #0xb320
+# 0x8038f0: cmp w16, w17
+# 0x8038f4: b.eq #0x803900
+# 0x8038f8: stur w7, [x3, #0x23]
+# 0x8038fc: b #0x4697e0
+# 0x803900: stur w8, [x3, #0x23]
+# 0x803904: b #0x4697e0
+# 0x803908: ldur x0, [x29, #-8]
+# 0x80390c: ldur w0, [x0, #0xb]
+# 0x803910: add x0, x0, x28, lsl #32
+# 0x803914: ldur w0, [x0, #0x23]
+# 0x803918: add x16, x22, #0x20
+# 0x80391c: cmp w0, w16
+# 0x803920: b.eq #0x803928
+# 0x803924: b #0x5e9dc0
+# 0x803928: b #0x5e9bec
+27a54169f0134529b675b5aa0f097a1debb83394f92c1d9cad8db8b3431687c1	3d9217ce1592a14f1c8751d7e90e0aaa0b5a7e2c0825491daa3b5b55397e49c2
+4697dc	673002b8	3d680e14
+4ccc6c	e0730494	27db0c94
+8038d0	0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000	b08340f8f1ffff10100211cb103e40d391d792521f02116bc0000054116496521f02116b60000054673002b8b997f117683002b8b797f117a0835ff800b040b800801c8b003042b8d08200911f00106b400000542799f717b198f717
+d0	d0385c0000000000	2c395c0000000000
+d8	d0385c0000000000	2c395c0000000000

@@ -47,6 +47,9 @@ import app.noam.extension.chesscom.Features;
 import app.noam.extension.chesscom.Utils;
 import app.noam.extension.chesscom.arcade.ArcadePreview;
 import app.noam.extension.chesscom.board.BoardColors;
+import app.noam.extension.chesscom.discord.DiscordAuth;
+import app.noam.extension.chesscom.discord.DiscordPresence;
+import app.noam.extension.chesscom.discord.DiscordSettings;
 import app.noam.extension.chesscom.gamereview.GameReview;
 import app.noam.extension.chesscom.home.HomeLayout;
 import app.noam.extension.chesscom.home.HomeTabs;
@@ -199,6 +202,8 @@ public final class MorpheSettingsActivity extends Activity {
         if (Features.PAGE_GAME_REVIEW.equals(page)) return "Game Review";
         if (Features.PAGE_COMPUTER_REVIEW.equals(page)) return "Game Review on your computer";
         if (Features.PAGE_NETWORK_SCAN.equals(page)) return "Find the computer";
+        if (Features.PAGE_GREAT_MOVES.equals(page)) return "Great and Brilliant moves";
+        if (Features.PAGE_DISCORD.equals(page)) return "Discord Rich Presence";
         if (Features.PAGE_WELCOME.equals(page)) return "Welcome";
         return TITLE;
     }
@@ -240,6 +245,8 @@ public final class MorpheSettingsActivity extends Activity {
         else if (Features.PAGE_GAME_REVIEW.equals(page)) renderGameReview();
         else if (Features.PAGE_COMPUTER_REVIEW.equals(page)) renderComputerReview();
         else if (Features.PAGE_NETWORK_SCAN.equals(page)) renderNetworkScan();
+        else if (Features.PAGE_GREAT_MOVES.equals(page)) renderGreatMoves();
+        else if (Features.PAGE_DISCORD.equals(page)) renderDiscord();
         else if (Features.PAGE_WELCOME.equals(page)) renderWelcome();
         else renderMain();
     }
@@ -491,16 +498,9 @@ public final class MorpheSettingsActivity extends Activity {
     private void renderGameReview() {
         lichessMethodChoice();
         // Local Stockfish needs the engine, which comes with the Stockfish analysis patch. Great and
-        // Brilliant marks are part of this patch.
+        // Brilliant marks have a patch and a page of their own.
         boolean stockfish = Features.stockfishPatched();
-        boolean computer = GameReview.computerReview();
-        boolean marks = GameReview.marksMoves();
         if (stockfish) reviewDepthChoice();
-        if (marks && (stockfish || computer)) {
-            list.addView(switchRow("Great moves", "chess.com's \"!\" for the only good move.",
-                GameReview.greatMoves(), GameReview::setGreatMoves));
-            list.addView(caption("Brilliant is marked either way; Great needs a second line."));
-        }
         if (stockfish) {
             list.addView(header("Local Stockfish engines"));
             list.addView(segments(new String[]{"Auto", "1", "2", "3", "4"}, GameReview.reviewEnginesSetting(),
@@ -518,6 +518,24 @@ public final class MorpheSettingsActivity extends Activity {
                 GameReview.deleteSavedReviews();
                 render();
             }));
+        }
+
+        list.addView(caption("Reviews are saved on this phone and open straight away next time."));
+    }
+
+    /** Great and Brilliant marks: the switch that asks for Great, and the brilliant moves reviews found. */
+    private void renderGreatMoves() {
+        boolean stockfish = Features.stockfishPatched();
+        boolean computer = GameReview.computerReview();
+        boolean marks = GameReview.marksMoves();
+
+        list.addView(header("Marks"));
+        if (stockfish || computer) {
+            list.addView(switchRow("Great moves", "chess.com's \"!\" for the only good move.",
+                GameReview.greatMoves(), GameReview::setGreatMoves));
+            list.addView(caption("Brilliant is marked either way; Great needs a second line."));
+        } else {
+            list.addView(caption("Needs Local Stockfish or Stockfish on your computer."));
         }
 
         if (marks) {
@@ -553,8 +571,76 @@ public final class MorpheSettingsActivity extends Activity {
                 ? "Read from the reviews saved on this phone."
                 : "None yet: a reviewed game can show one here."));
         }
+    }
 
-        list.addView(caption("Reviews are saved on this phone and open straight away next time."));
+    /**
+     * Discord Rich Presence: the account, the switch, and the status the session asks for. The
+     * browser does the login; nothing here ever sees a password.
+     */
+    private void renderDiscord() {
+        if (!DiscordAuth.configured(this)) {
+            list.addView(header("Discord"));
+            list.addView(caption("This build has no Discord application, so an account cannot be "
+                + "connected yet. Nothing is sent anywhere while that is so."));
+            return;
+        }
+
+        boolean linked = DiscordAuth.linked();
+        list.addView(header("Account"));
+        LinearLayout account = card();
+        list.addView(account, cardParams());
+        if (linked) {
+            String name = DiscordPresence.userName();
+            account.addView(infoRow("Connected", name.isEmpty() ? "Discord account" : name));
+            account.addView(divider(16));
+            account.addView(actionRow("Disconnect", "Forgets the Discord link on this phone.", () -> {
+                DiscordAuth.signOut();
+                DiscordPresence.refresh();
+                render();
+            }));
+        } else {
+            account.addView(actionRow("Connect Discord",
+                "Discord opens in your browser; no password is typed here.", this::connectDiscord));
+            list.addView(caption("Friends see your activity while this phone is connected. Discord "
+                + "shows it under this bundle's own Discord application name, not chess.com."));
+            return;
+        }
+
+        list.addView(header("What friends see"));
+        LinearLayout rows = card();
+        list.addView(rows, cardParams());
+        rows.addView(switchRow("Show my chess.com activity",
+            "A game, a review, a puzzle: whatever is open on this phone.",
+            Features.isEnabled(Features.DISCORD), checked -> {
+                Features.setEnabled(Features.DISCORD, checked);
+                DiscordPresence.refresh();
+            }));
+        rows.addView(divider(16));
+        rows.addView(infoRow("Connection", DiscordPresence.state()));
+
+        list.addView(header("Status while connected"));
+        String[] names = {"Online", "Idle", "Do not disturb"};
+        String[] values = {DiscordSettings.ONLINE, DiscordSettings.IDLE, DiscordSettings.DND};
+        int selected = 0;
+        for (int i = 0; i < values.length; i++) {
+            if (values[i].equals(DiscordSettings.status())) selected = i;
+        }
+        list.addView(segments(names, selected, index -> {
+            DiscordSettings.setStatus(values[index]);
+            DiscordPresence.refresh();
+        }), cardParams());
+        list.addView(caption("While connected, Discord keeps this status on every device you use. "
+            + "Invisible is not offered: it would hide the activity too. The link can be removed in "
+            + "Discord under Settings - Authorized Apps."));
+    }
+
+    private void connectDiscord() {
+        try {
+            browse(DiscordAuth.begin(this));
+        } catch (Throwable failure) {
+            Utils.logError("Discord login could not start", failure);
+            Utils.toast("Could not open Discord's login.");
+        }
     }
 
     private void lichessMethodChoice() {
@@ -727,15 +813,14 @@ public final class MorpheSettingsActivity extends Activity {
 
     private void showFoundBridges(BridgeDiscovery.Result result, int port) {
         if (result.devices.isEmpty()) {
-            new AlertDialog.Builder(this, android.R.style.Theme_DeviceDefault_Dialog_Alert)
+            showDialog(new AlertDialog.Builder(this, android.R.style.Theme_DeviceDefault_Dialog_Alert)
                 .setTitle("No sf-bridge found")
                 .setMessage("Nothing answered on port " + port + " in the " + result.scanned
                     + " addresses of this network.\n\nThis phone and your computer have to be on the same "
                     + "Wi-Fi. Guest and office networks often keep devices from reaching each other at all, "
                     + "and Windows blocks the bridge on a network it calls public until the sf-bridge rule "
                     + "is allowed there too.")
-                .setPositiveButton("OK", null)
-                .show();
+                .setPositiveButton("OK", null));
             return;
         }
         if (result.devices.size() == 1) {
@@ -744,11 +829,10 @@ public final class MorpheSettingsActivity extends Activity {
         }
         final String[] labels = new String[result.devices.size()];
         for (int i = 0; i < labels.length; i++) labels[i] = result.devices.get(i).label();
-        new AlertDialog.Builder(this, android.R.style.Theme_DeviceDefault_Dialog_Alert)
+        showDialog(new AlertDialog.Builder(this, android.R.style.Theme_DeviceDefault_Dialog_Alert)
             .setTitle("sf-bridge on this network")
             .setItems(labels, (dialog, which) -> useBridge(result.devices.get(which)))
-            .setNegativeButton("Cancel", null)
-            .show();
+            .setNegativeButton("Cancel", null));
     }
 
     private void useBridge(BridgeDiscovery.Device device) {
@@ -765,9 +849,12 @@ public final class MorpheSettingsActivity extends Activity {
         Toast.makeText(this, "Asking the computer…", Toast.LENGTH_SHORT).show();
         new Thread(() -> {
             String problem = NetEngine.ping();
-            runOnUiThread(() -> Toast.makeText(this,
-                problem == null ? "The computer answered: its Stockfish is ready" : problem,
-                Toast.LENGTH_LONG).show());
+            runOnUiThread(() -> {
+                if (!alive()) return;
+                Toast.makeText(this,
+                    problem == null ? "The computer answered: its Stockfish is ready" : problem,
+                    Toast.LENGTH_LONG).show();
+            });
         }, "MorpheBridgeTest").start();
     }
 
@@ -785,12 +872,21 @@ public final class MorpheSettingsActivity extends Activity {
                 message = e.getMessage() == null ? e.toString() : e.getMessage();
             }
             String result = message;
-            runOnUiThread(() -> new AlertDialog.Builder(this, android.R.style.Theme_DeviceDefault_Dialog_Alert)
+            runOnUiThread(() -> showDialog(new AlertDialog.Builder(this, android.R.style.Theme_DeviceDefault_Dialog_Alert)
                 .setTitle("Computer Stockfish")
                 .setMessage(result)
-                .setPositiveButton("OK", null)
-                .show());
+                .setPositiveButton("OK", null)));
         }, "MorpheBridgeBenchmark").start();
+    }
+
+    /** Whether this screen is still there to show a result on: the worker may outlive it. */
+    private boolean alive() {
+        return !isFinishing() && !isDestroyed();
+    }
+
+    /** A dialog from a worker's result, dropped when the screen closed while the work ran. */
+    private void showDialog(AlertDialog.Builder builder) {
+        if (alive()) builder.show();
     }
 
     private static String benchmarkText(BridgeBenchmark.Report report) {

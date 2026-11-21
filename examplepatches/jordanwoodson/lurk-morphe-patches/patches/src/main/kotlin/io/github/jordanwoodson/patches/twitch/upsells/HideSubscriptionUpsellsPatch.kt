@@ -10,7 +10,12 @@ import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.smali.ExternalLabel
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
+import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
+import com.android.tools.smali.dexlib2.iface.Method
+import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.WideLiteralInstruction
@@ -26,6 +31,7 @@ import io.github.jordanwoodson.patches.shared.settings.isEnabled
 import io.github.jordanwoodson.patches.twitch.clips.hideSubscriptionInterface
 import io.github.jordanwoodson.patches.twitch.settings.twitchSettings
 import io.github.jordanwoodson.patches.twitch.settings.twitchSettingsPatch
+import io.github.jordanwoodson.patches.shared.bridge
 import io.github.jordanwoodson.patches.shared.invokeStatic
 import io.github.jordanwoodson.patches.shared.parameterRegister
 import io.github.jordanwoodson.patches.twitch.shared.lowParameters
@@ -45,8 +51,9 @@ private const val KEY = "hide_subscription_upsells"
 @Suppress("unused")
 val hideSubscriptionUpsellsPatch = bytecodePatch(
     name = "Hide subscription upsells",
-    description = "Hides Subscribe and Gift a Sub prompts, Turbo promotions and the native Turbo signup/startup offer. " +
-        "Keeps the existing subscribed indicator and legitimate account entitlements.",
+    description = "Hides Subscribe, Gift a Sub and Upgrade prompts (in chat, under the stream title and on channel " +
+        "pages), Turbo promotions such as Try Ad-Free on your channel page, and the native Turbo signup/startup " +
+        "offer. Keeps the existing subscribed indicator and legitimate account entitlements.",
     default = false,
 ) {
     compatibleWith(COMPATIBILITY_TWITCH)
@@ -58,6 +65,11 @@ val hideSubscriptionUpsellsPatch = bytecodePatch(
         hideAccountTurboPromotion()
         TurboSignupFingerprint.twitchMatch("Turbo signup upsell").method.addInstructionsIfEnabled(KEY, "return-void")
         hideTurboStartDialog()
+        hideStreamInfoSubscriptionButtons()
+        // The Subscribe, Gift a Sub or Upgrade button beside Follow and notifications on another channel's page: the
+        // page shows it, whatever its text, only while its state's canSubscribe is true.
+        filterUiFlag(ChannelPageStateFingerprint, ", canSubscribe=", "$INTERFACE_CLASS->subscriptionUpsellVisible(Z)Z")
+        hideTurboIngress()
         twitchSettings.add(SwitchSetting(KEY, "Hide subscription upsells", "Subscribe, gifting and Turbo promotions. Keeps subscribed status.", Section.INTERFACE, restart = true))
     }
 }
@@ -192,3 +204,115 @@ private fun BytecodePatchContext.hideTurboStartDialog() {
         if-nez v$register, :lurk_skip_turbo_dialog
     """, ExternalLabel("lurk_skip_turbo_dialog", method.getInstruction(start + 3)))
 }
+
+/**
+ * The row under the stream title: Follow (or Unfollow), notifications, Gift a Sub and Subscribe (issue 92), a Compose
+ * row whose buttons one builder picks. It offers Subscribe from the subscription state's isSubscriptionEnabled(), Gift
+ * a Sub from its isGiftingEnabled() and Upgrade from a flag; each goes through subscriptionUpsellVisible, which turns
+ * it off while the switch is on. isSubscribed() is kept, so a subscriber still gets the subscription details button
+ * (which Twitch shows when there's no Upgrade button).
+ */
+private fun BytecodePatchContext.hideStreamInfoSubscriptionButtons() {
+    val state = StreamInfoButtonsStateFingerprint.twitchMatch("stream info buttons state").method.definingClass
+    val method = singleMethod("stream info buttons builder") { instruction ->
+        instruction.opcode == Opcode.INVOKE_DIRECT && (instruction as ReferenceInstruction).reference.let {
+            it is MethodReference && it.definingClass == state && it.name == "<init>"
+        }
+    }
+    Locators.record("twitch.hide_subscription_upsells.stream_info_buttons", method)
+    val instructions = method.implementation!!.instructions.toList()
+    val flags = listOf("isSubscriptionEnabled", "isGiftingEnabled").map { name ->
+        val call = instructions.indices.singleOrNull { index ->
+            val reference = (instructions[index] as? ReferenceInstruction)?.reference as? MethodReference
+            instructions[index].opcode == Opcode.INVOKE_VIRTUAL && reference?.name == name &&
+                reference.returnType == "Z" && reference.parameterTypes.isEmpty()
+        } ?: throw PatchException("Twitch: stream info buttons don't ask $name once")
+        if (instructions[call + 1].opcode != Opcode.MOVE_RESULT) throw PatchException("Twitch: $name result isn't kept")
+        call + 1
+    }.toMutableList()
+    // `upgrade = flag ? UpgradeSubButton : null`: move-result, if-eqz, then the button's sget.
+    val upgrade = instructions.indices.singleOrNull { index ->
+        instructions[index].opcode == Opcode.SGET_OBJECT &&
+            namedClass(((instructions[index] as ReferenceInstruction).reference as FieldReference).type, "UpgradeSubButton")
+    } ?: throw PatchException("Twitch: stream info buttons have no single Upgrade button")
+    val test = instructions[upgrade - 1]
+    val result = instructions[upgrade - 2]
+    if (test.opcode != Opcode.IF_EQZ || result.opcode != Opcode.MOVE_RESULT ||
+        (test as OneRegisterInstruction).registerA != (result as OneRegisterInstruction).registerA) {
+        throw PatchException("Twitch: unexpected stream info Upgrade flag")
+    }
+    flags += upgrade - 2
+    flags.sortedDescending().forEach { at ->
+        val register = (instructions[at] as OneRegisterInstruction).registerA
+        method.requireNotBranchTarget(at + 1, "stream info buttons flag")
+        method.addInstructions(at + 1, """
+            invoke-static/range { v$register .. v$register }, $INTERFACE_CLASS->subscriptionUpsellVisible(Z)Z
+            move-result v$register
+        """)
+    }
+}
+
+/**
+ * "Try Ad-Free" and "Go Ad-Free" (your own channel page, issue 92) and any other screen that reads Twitch's Turbo offer.
+ * One place makes the offer's Visible(ingressType) state; with the switch on, TwitchInterface.turboIngress swaps it
+ * for the hidden state the same code hands out when there's no offer, a static instance of the same family.
+ */
+private fun BytecodePatchContext.hideTurboIngress() {
+    val visible = TurboIngressVisibleFingerprint.twitchMatch("Turbo offer Visible state").method.definingClass
+    val family = classDefBy(visible).superclass ?: throw PatchException("Twitch: Turbo offer state has no parent")
+    val method = singleMethod("Turbo offer") { instruction ->
+        instruction.opcode == Opcode.NEW_INSTANCE && (instruction as ReferenceInstruction).reference.toString() == visible
+    }
+    Locators.record("twitch.hide_subscription_upsells.turbo_offer", method)
+    val instructions = method.implementation!!.instructions.toList()
+    fun inFamily(type: String): Boolean {
+        var current = classDefByOrNull(type)
+        while (current != null) {
+            if (current.superclass == family) return true
+            current = current.superclass?.let { classDefByOrNull(it) }
+        }
+        return false
+    }
+    val hidden = instructions.filter { it.opcode == Opcode.SGET_OBJECT }
+        .map { (it as ReferenceInstruction).reference as FieldReference }
+        .filter { it.type != visible && it.type == it.definingClass && inFamily(it.type) }
+        .distinctBy { it.toString() }.singleOrNull()
+        ?: throw PatchException("Twitch: Turbo offer has no single hidden state")
+    val init = instructions.indices.singleOrNull { index ->
+        val reference = (instructions[index] as? ReferenceInstruction)?.reference as? MethodReference
+        instructions[index].opcode in setOf(Opcode.INVOKE_DIRECT, Opcode.INVOKE_DIRECT_RANGE) &&
+            reference?.definingClass == visible && reference.name == "<init>"
+    } ?: throw PatchException("Twitch: Turbo offer isn't constructed once")
+    val register = when (val call = instructions[init]) {
+        is FiveRegisterInstruction -> call.registerC
+        is RegisterRangeInstruction -> call.startRegister
+        else -> throw PatchException("Twitch: unexpected Turbo offer constructor call")
+    }
+    if (register > 255) throw PatchException("Twitch: Turbo offer register exceeds move-result range")
+    bridge(INTERFACE_CLASS, "turboIngressHidden", "sget-object v0, $hidden\nreturn-object v0", locals = 1)
+    // The instruction after the constructor is where the method's other offer states join (a branch target): they
+    // jump past this code, so only the Visible state goes through the swap.
+    method.addInstructions(init + 1, """
+        invoke-static/range { v$register .. v$register }, $INTERFACE_CLASS->turboIngress(Ljava/lang/Object;)Ljava/lang/Object;
+        move-result-object v$register
+        check-cast v$register, $family
+    """)
+}
+
+/** The one app method with an instruction matching [matches]. */
+private fun BytecodePatchContext.singleMethod(what: String, matches: (Instruction) -> Boolean): MutableMethod {
+    val found = mutableListOf<Pair<String, Method>>()
+    classDefForEach { type ->
+        type.methods.filter { method -> method.implementation?.instructions?.any(matches) == true }
+            .forEach { found += type.type to it }
+    }
+    val (type, method) = found.singleOrNull() ?: throw PatchException("Twitch: expected one $what, found ${found.size}")
+    return mutableClassDefBy(type).methods.single {
+        it.name == method.name && it.parameterTypes == method.parameterTypes && it.returnType == method.returnType
+    }
+}
+
+/** Whether [type] is an app class whose toString() returns [name]. */
+private fun BytecodePatchContext.namedClass(type: String, name: String) =
+    classDefByOrNull(type)?.methods?.singleOrNull { it.name == "toString" && it.parameterTypes.isEmpty() }
+        ?.implementation?.instructions?.any { ((it as? ReferenceInstruction)?.reference as? StringReference)?.string == name } == true

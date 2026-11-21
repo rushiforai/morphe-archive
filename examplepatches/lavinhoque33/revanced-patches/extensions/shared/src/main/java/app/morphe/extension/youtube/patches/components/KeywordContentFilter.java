@@ -22,7 +22,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import app.morphe.extension.shared.patches.components.Filter;
+import app.morphe.extension.shared.patches.components.LazyBufferFilter;
 import app.morphe.extension.shared.patches.components.StringFilterGroup;
 import app.morphe.extension.shared.utils.ByteTrieSearch;
 import app.morphe.extension.shared.utils.Logger;
@@ -53,7 +53,7 @@ import app.morphe.extension.youtube.shared.RootView;
  */
 @SuppressWarnings({"ConstantValue", "ExtractMethodRecommender", "FieldCanBeLocal",
         "RedundantIfStatement", "StringEquality", "unchecked", "unused"})
-public final class KeywordContentFilter extends Filter {
+public final class KeywordContentFilter extends LazyBufferFilter {
 
     /**
      * Composite rule syntax pattern:
@@ -679,7 +679,7 @@ public final class KeywordContentFilter extends Filter {
     }
 
     @Override
-    public boolean isFiltered(String path, String identifier, String allValue, byte[] buffer,
+    public boolean isFilteredLazy(String path, String identifier, String allValue, Buffer buffer,
                               StringFilterGroup matchedGroup, FilterContentType contentType, int contentIndex) {
         if (contentIndex != 0 && matchedGroup == startsWithFilter) {
             return false;
@@ -705,7 +705,7 @@ public final class KeywordContentFilter extends Filter {
         }
 
         MutableReference<String> matchRef = new MutableReference<>();
-        if (bufferSearch.matches(buffer, matchRef)) {
+        if (bufferSearch.matches(buffer.get(), matchRef)) {
             updateStats(true, matchRef.value);
             return true;
         }

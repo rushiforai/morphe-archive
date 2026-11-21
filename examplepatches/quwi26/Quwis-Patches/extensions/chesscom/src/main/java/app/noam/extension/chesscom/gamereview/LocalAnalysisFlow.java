@@ -812,7 +812,7 @@ final class LocalAnalysisFlow {
      * The mark a move gets, once. Lichess marks inaccuracies, mistakes and blunders (a lost forced
      * mate shows as a Miss); moves of the opening Lichess names are Book and the engine's own best
      * move is Brilliant, Great or Best (a sacrifice within 2% of the best can be Brilliant too).
-     * Brilliant and Great only come with Unlimited Game Review. Local
+     * Brilliant and Great only come with the Great and Brilliant moves analysis patch. Local
      * Stockfish marks the rest Excellent or Good, as chess.com would; Lichess's review leaves them
      * unmarked, as Lichess does.
      */

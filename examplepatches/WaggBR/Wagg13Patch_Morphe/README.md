@@ -24,7 +24,7 @@
   <img src="https://img.shields.io/github/license/WaggBR/Wagg13Patch_Morphe?style=flat-square&label=license" alt="GPLv3 license" />
   <img src="https://img.shields.io/github/issues/WaggBR/Wagg13Patch_Morphe?style=flat-square&label=open%20issues" alt="Open issues" />
   <img src="https://img.shields.io/badge/apps-14-0EA5E9?style=flat-square" alt="14 supported apps" />
-  <img src="https://img.shields.io/badge/patches-48-14B8A6?style=flat-square" alt="48 patches" />
+  <img src="https://img.shields.io/badge/patches-56-14B8A6?style=flat-square" alt="56 patches" />
   <img src="https://img.shields.io/badge/primary%20architecture-arm64--v8a-64748B?style=flat-square" alt="arm64-v8a" />
 </div>
 
@@ -34,7 +34,7 @@
 > **Modified apps carry account and data risks.** Patching may violate an app's terms of service and can lead to warnings, restrictions or account bans. Use these patches at your own risk. The project author is not responsible for account actions, data loss or other consequences.
 
 > [!NOTE]
-> **Beta:** Instagram's *Story mention indicator*, *Story like history* and the *Instants Mod* are version-pinned beta features. They may contain bugs or stop working after an app update. Instagram patches target different versions and cannot all be combined in one APK.
+> **Beta:** Instagram's *Story mention indicator*, *Story like history*, *Save Instants to gallery* and the *Instants Mod* are version-pinned beta features. They may contain bugs or stop working after an app update. Instagram patches target different versions and cannot all be combined in one APK.
 
 ## Explore the apps
 
@@ -45,14 +45,14 @@ A quick overview of what each app's patches change. Select an app to jump to its
     <td width="50%" valign="middle">
       <a href="#app-buzzcast"><img src="assets/readme/app-icons/buzzcast.svg" width="56" height="56" align="left" alt="BuzzCast icon" /></a>
       <strong><a href="#app-buzzcast">BuzzCast</a></strong><br />
-      <sub>11 patches · v3.2.92</sub><br />
+      <sub>11 patches · v3.3.02</sub><br />
       <sub>Local SVIP state, fewer ads and a cleaner live-room experience.</sub>
     </td>
     <td width="50%" valign="middle">
       <a href="#app-instagram"><img src="assets/readme/app-icons/instagram.svg" width="56" height="56" align="left" alt="Instagram icon" /></a>
       <strong><a href="#app-instagram">Instagram</a></strong><br />
-      <sub>3 patches · v452.1 / v439.0</sub><br />
-      <sub>Story-like history, mention indicator and re-signed build trust support.</sub>
+      <sub>4 patches · v452.1 / v439.0</sub><br />
+      <sub>Story-like history, mention indicator, Instants saving and re-signed build trust support.</sub>
     </td>
   </tr>
   <tr>
@@ -60,7 +60,7 @@ A quick overview of what each app's patches change. Select an app to jump to its
       <a href="#app-instagram-instants"><img src="assets/readme/app-icons/instagram-instants.svg" width="56" height="56" align="left" alt="Instagram Instants icon" /></a>
       <strong><a href="#app-instagram-instants">Instagram Instants</a></strong><br />
       <sub>1 patch · v451.0</sub><br />
-      <sub>Gallery posting and saving friends' Instants.</sub>
+      <sub>Gallery posting with crop editor, replay and saving friends' Instants.</sub>
     </td>
     <td width="50%" valign="middle">
       <a href="#app-telegraph"><img src="assets/readme/app-icons/telegraph.svg" width="56" height="56" align="left" alt="Telegraph icon" /></a>
@@ -73,7 +73,7 @@ A quick overview of what each app's patches change. Select an app to jump to its
     <td width="50%" valign="middle">
       <a href="#app-tinder"><img src="assets/readme/app-icons/tinder.svg" width="56" height="56" align="left" alt="Tinder icon" /></a>
       <strong><a href="#app-tinder">Tinder</a></strong><br />
-      <sub>10 patches · v17.41.0</sub><br />
+      <sub>13 patches · v17.41.0</sub><br />
       <sub>Fewer ads and upsells, unlimited rewind and quality-of-life controls.</sub>
     </td>
     <td width="50%" valign="middle">
@@ -93,7 +93,7 @@ A quick overview of what each app's patches change. Select an app to jump to its
     <td width="50%" valign="middle">
       <a href="#app-pinterest"><img src="assets/readme/app-icons/pinterest.svg" width="56" height="56" align="left" alt="Pinterest icon" /></a>
       <strong><a href="#app-pinterest">Pinterest</a></strong><br />
-      <sub>1 patch · v14.39–14.41</sub><br />
+      <sub>1 patch · v14.39–14.45</sub><br />
       <sub>Adds a direct delete action to the saved-Pin long-press menu.</sub>
     </td>
   </tr>
@@ -101,8 +101,8 @@ A quick overview of what each app's patches change. Select an app to jump to its
     <td width="50%" valign="middle">
       <a href="#app-instagram"><img src="assets/readme/app-icons/instagram.svg" width="56" height="56" align="left" alt="Instagram icon" /></a>
       <strong><a href="#app-InstaPrime">InstaPrime</a></strong><br />
-      <sub>1 patches · v435.0.0.37.76</sub><br />
-      <sub>Local VIP-Mod state.</sub>
+      <sub>6 patches · v435.0.0.37.76 (7.2) / v451.0.0.53.80 (beta2)</sub><br />
+      <sub>Local Premium state for InstaPrime 7.2 and 8.0.</sub>
     </td>
     <td width="50%" valign="middle">
       <a href="#app-notifications-simulator"><img src="assets/readme/app-icons/notifications-simulator.svg" width="56" height="56" align="left" alt="Notifications Simulator icon" /></a>
@@ -179,14 +179,14 @@ Open this link on your Android device with Morphe Manager installed:
 The list below contains the complete patch-level index, including exact supported versions and short descriptions. Expand an app to inspect its patches.
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.6.0](https://github.com/WaggBR/Wagg13Patch_Morphe/releases/tag/v1.6.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;47 patches total
+> **[v1.7.0](https://github.com/WaggBR/Wagg13Patch_Morphe/releases/tag/v1.7.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;53 patches total
 <details open>
 <summary>📦 BuzzCast&nbsp;&nbsp;•&nbsp;&nbsp;11 patches</summary>
 <br>
 
 **🎯 Supported versions:**
 
-| 3.2.92 |
+| 3.3.02 |
 | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
@@ -195,7 +195,7 @@ The list below contains the complete patch-level index, including exact supporte
 | [Disable trackers](#disable-trackers) | Stops the app from collecting your usage and advertising data. |  |
 | [Hide first recharge popups](#hide-first-recharge-popups) | Hides the first-recharge offer pop-ups. |  |
 | [Hide home banner](#hide-home-banner) | Hides the promotional banner in the middle of the home list. |  |
-| [Hide join and follow messages](#hide-join-and-follow-messages) | Hides the "joined" and "followed" messages in live chats and the join banner at the top. |  |
+| [Hide join and follow messages](#hide-join-and-follow-messages) | Hides the "joined" and "followed" messages, the join banner, and the automatic "follow me" and "support the streamer" chat messages. |  |
 | [Hide live room cards](#hide-live-room-cards) | Hides the rotating event and gift cards in the corner of live rooms. |  |
 | [Hide live room notice](#hide-live-room-notice) | Removes the "healthy live streaming" message shown in every live chat. |  |
 | [Hide rating prompts](#hide-rating-prompts) | Stops the pop-ups that ask you to rate the app. |  |
@@ -229,12 +229,29 @@ The list below contains the complete patch-level index, including exact supporte
 
 **🎯 Supported versions:**
 
-| 14.39.0 | 14.40.0 | 14.41.0 |
-| :---: | :---: | :---: |
+| 14.39.0 | 14.40.0 | 14.41.0 | 14.44.0 | 14.45.0 |
+| :---: | :---: | :---: | :---: | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
 | [Delete button in pin menu](#delete-button-in-pin-menu) | Replaces the WhatsApp button in the menu that opens when you press and hold your saved pin with a trash button that deletes it. |  |
+
+</details>
+
+<details open>
+<summary>📦 InstaPrime&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 435.0.0.37.76 | 451.0.0.53.80 |
+| :---: | :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Disable update check](#disable-update-check) | Turns off InstaPrime's update check so no update dialog or forced update is ever shown. |  |
+| [Enable Premium](#enable-premium) | Enables an unlimited local Premium subscription in the mod's features and removes the forced update. |  |
+| [InstaPrime v8 full mod (beta 2)](#instaprime-v8-full-mod-beta-2) | Applies the prebuilt InstaPrime V8 core and customizes the in-app texts. |  |
 
 </details>
 
@@ -254,21 +271,6 @@ The list below contains the complete patch-level index, including exact supporte
 </details>
 
 <details open>
-<summary>📦 com.instaprime.android&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
-<br>
-
-**🎯 Supported versions:**
-
-| 435.0.0.37.76 |
-| :---: |
-
-| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
-|----------|----------------|-----------|
-| [Enable Premium](#enable-premium) | Enables unlimited local PREMIUM subscription in the mod's functions and remove forced update. |  |
-
-</details>
-
-<details open>
 <summary>📦 Instagram Instants&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
 
@@ -279,7 +281,7 @@ The list below contains the complete patch-level index, including exact supporte
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
-| [Instants Mod](#instants-mod) | Adds a gallery button to post photos and videos, and allows saving friends' Instants to your device. |  |
+| [Instants Mod](#instants-mod) | Post photos and videos from your gallery (with a square crop editor), replay the last Instant you passed, and save your friends' Instants. |  |
 
 </details>
 
@@ -337,7 +339,7 @@ The list below contains the complete patch-level index, including exact supporte
 </details>
 
 <details open>
-<summary>📦 Instagram&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
+<summary>📦 Instagram&nbsp;&nbsp;•&nbsp;&nbsp;4 patches</summary>
 <br>
 
 **🎯 Supported versions:**
@@ -348,13 +350,14 @@ The list below contains the complete patch-level index, including exact supporte
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
 | [Restore trust on re-signed builds](#restore-trust-on-re-signed-builds) | Lets Instagram's own checks of who signed the app pass on a patched build, so the parts that need them keep working. |  |
+| [Save Instants to gallery](#save-instants-to-gallery) | Adds a "Save to gallery" option to the Instants menu, so you can keep the photo or video you are viewing. |  |
 | [Story like history](#story-like-history) | Keeps a local history of the stories you liked in the last 24 hours and shows it in a native grid, opened from the story "..." menu. |  |
 | [Story mention indicator](#story-mention-indicator) | Shows an "@N mention" pill in the story header when the story mentions someone. Tap it to list and open the mentioned profiles. |  |
 
 </details>
 
 <details open>
-<summary>📦 Tinder&nbsp;&nbsp;•&nbsp;&nbsp;10 patches</summary>
+<summary>📦 Tinder&nbsp;&nbsp;•&nbsp;&nbsp;13 patches</summary>
 <br>
 
 **🎯 Supported versions:**
@@ -368,9 +371,12 @@ The list below contains the complete patch-level index, including exact supporte
 | [Tinder Block User Button](#tinder-block-user-button) | Replaces the swipe screen's First Impression button with Tinder's block-user flow. |  |
 | [Tinder Disable Consent Prompt](#tinder-disable-consent-prompt) | Suppresses Tinder's in-house privacy/consent (TCF) pop-up. No consent is granted. |  |
 | [Tinder Disable Paywall Flow](#tinder-disable-paywall-flow) | Short-circuits Tinder's central paywall launcher so no paywall screen opens. Also blocks upgrade screens you open yourself. |  |
-| [Tinder Disable Watch-an-Ad Sheet](#tinder-disable-watch-an-ad-sheet) | Hides the "watch an ad to keep swiping" bottom sheet shown when you are out of likes. |  |
+| [Tinder Disable Watch-an-Ad Sheet](#tinder-disable-watch-an-ad-sheet) | Hides the "watch an ad" bottom sheets shown when you are out of likes or rewinds. |  |
+| [Tinder Disable WebView Preconnect](#tinder-disable-webview-preconnect) | Prevents a startup crash on devices whose WebView crashes in Profile.preconnect (Google Ads SDK). |  |
 | [Tinder Distance First](#tinder-distance-first) | Shows profile distance before Bio and Interests. |  |
 | [Tinder Remove Ads](#tinder-remove-ads) | Removes the ads shown between profiles in the swipe deck. |  |
+| [Tinder Remove Offer Pill](#tinder-remove-offer-pill) | Removes the discount offer pill shown at the bottom of the swipe screen. |  |
+| [Tinder Remove Plan Banners](#tinder-remove-plan-banners) | Removes the Gold/Platinum/Plus self-promotion banners and cards (profile, settings, discovery preferences) and the See All Likes button on the Likes tab. |  |
 | [Tinder Remove Upsell Dialogs](#tinder-remove-upsell-dialogs) | Removes upsell pop-ups such as Platinum Likes, Boost, and Secret Admirer. |  |
 | [Tinder Remove Upsells](#tinder-remove-upsells) | Removes sponsored chat messages and upsell pop-ups (Likes You, Boost). |  |
 | [Tinder Unlimited Rewind](#tinder-unlimited-rewind) | Lets you rewind without the limit or paywall check. |  |
@@ -435,12 +441,15 @@ The list below contains the complete patch-level index, including exact supporte
   - **Tinder Remove Ads:** removes the ads shown between profiles in the swipe deck.
   - **Tinder Remove Upsells:** removes sponsored chat messages and the Likes You/Boost upsell pop-ups.
   - **Tinder Remove Upsell Dialogs:** removes the Platinum Likes, My Likes, Primetime Boost, Secret Admirer and headless-purchase upsell dialogs.
+  - **Tinder Remove Plan Banners:** removes the Gold/Platinum/Plus self-promotion banners and cards (profile, settings, discovery preferences) and the "See All Likes" button on the Likes tab.
+  - **Tinder Remove Offer Pill:** removes the discount offer pill shown at the bottom of the swipe screen.
   - **Tinder Block User Button:** replaces the swipe screen's First Impression button with Tinder's existing block-user flow.
   - **Tinder Distance First:** shows the profile distance before Bio and Interests.
   - **Spoof signature:** fixes push notifications on the patched app by spoofing the original signature.
+  - **Tinder Disable WebView Preconnect** *(on by default)*: prevents a startup crash on devices whose WebView crashes in `Profile.preconnect` (Google Ads SDK).
   - **Tinder Disable Consent Prompt** *(off by default)*: suppresses the privacy/consent (TCF) pop-up. No consent is granted.
   - **Tinder Disable Paywall Flow** *(off by default)*: short-circuits the central paywall launcher. It also blocks upgrade screens you open yourself.
-  - **Tinder Disable Watch-an-Ad Sheet** *(off by default)*: hides the "watch an ad to keep swiping" sheet shown when you are out of likes.
+  - **Tinder Disable Watch-an-Ad Sheet** *(off by default)*: hides the "watch an ad" bottom sheets shown when you are out of likes or rewinds.
 - **Compatibility:** v17.41.0 only (the patches are tied to this exact version)
 - **Status:** ✅ Active & Maintained (stable)
 - **Limitations:** No Tinder premium subscription can be unlocked by these patches — everything validated by Tinder's servers (including the people who liked your profile) stays locked. **Spoof signature** is enabled by default; you can turn it off if you prefer. See **Important Warnings** at the top of this page.
@@ -456,7 +465,7 @@ The list below contains the complete patch-level index, including exact supporte
 #### 📌 Pinterest — Trash Bubble on Pin Long Press
 - **Package:** `com.pinterest`
 - **Functionality:** Replaces the WhatsApp action in the long-press menu of a saved Pin with a trash-can action that deletes the Pin.
-- **Compatibility:** v14.39.0 / v14.40.0 / v14.41.0 only
+- **Compatibility:** v14.39.0 / v14.40.0 / v14.41.0 / v14.44.0 / v14.45.0 only
 - **Status:** ✅ Active & Maintained
 - **Limitations:** The trash action is available only for Pins owned by the current account.
 
@@ -484,13 +493,21 @@ The list below contains the complete patch-level index, including exact supporte
 - **Functionality:** Records the stories you like in the last 24 hours in a local history and shows them in a native grid, opened from the story "..." menu. Nothing is sent anywhere; the history lives only on the device.
 - **Compatibility:** v452.1.0.53.64 only (arm64-v8a)
 - **Status:** 🧪 **Beta** — errors and bugs are expected.
-- **Limitations:** This patch and *Restore trust* target 452.1.0.53.64, while *Story mention indicator* targets 439.0.0.37.89 — the Instagram patches cannot be combined in the same APK.
+- **Limitations:** This patch, *Restore trust* and *Save Instants to gallery* target 452.1.0.53.64, while *Story mention indicator* targets 439.0.0.37.89 — the Instagram patches cannot all be combined in the same APK.
+- **Ban risk:** ⚠️ Account restrictions or bans are possible. The author is not responsible for them.
+
+#### 📸 Instagram — Save Instants to Gallery
+- **Package:** `com.instagram.android`
+- **Functionality:** Adds a "Save to gallery" option to the Instants menu, so you can keep the photo or video you are viewing.
+- **Compatibility:** v452.1.0.53.64 only (arm64-v8a)
+- **Status:** 🧪 **Beta** — errors and bugs are expected.
 - **Ban risk:** ⚠️ Account restrictions or bans are possible. The author is not responsible for them.
 
 #### 📷 Instants — Instants Mod
 - **Package:** `com.instagram.moonshot`
 - **Functionality:**
-  - **Gallery post:** posts photos and short videos straight from the gallery as if they had just been captured live (gallery button on the camera screen).
+  - **Gallery post:** posts photos and short videos straight from the gallery as if they had just been captured live (gallery button on the camera screen), with a square crop editor.
+  - **Replay:** brings back the last Instant you passed.
   - **Save to gallery:** a "Save to gallery" option (photos and videos) in the overflow menu of your friends' Instants.
 - **Compatibility:** v451.0.0.53.106 only (arm64-v8a)
 - **Status:** 🧪 **Beta** — errors and bugs are expected.
@@ -501,7 +518,7 @@ The list below contains the complete patch-level index, including exact supporte
 - **Functionality:**
   - **Unlock SVIP:** forces the SVIP state on the client side (VIP level, VIP flag, expiry and badge), stubs the Google Play purchase flow and disables Unity Ads (including the related ad permissions/activities in the manifest).
   - **Hide live room notice:** removes the "healthy live streaming" message that is posted to the chat every time you enter a live room.
-  - **Hide join and follow messages:** hides the "joined" and "followed the streamer" messages in the live chat and the join banner at the top.
+  - **Hide join and follow messages:** hides the "joined" and "followed the streamer" messages, the join banner at the top, and the automatic "follow me" / "support the streamer" chat messages.
   - **Hide live room cards:** hides the rotating event/honor wall/daily recharge cards in the corner of live rooms.
   - **Hide home banner:** hides the promotional banner carousel shown in the middle of the home live list.
   - **Disable trackers:** turns off AppsFlyer, Firebase Analytics and Bugly, and removes the advertising ID permissions.
@@ -510,7 +527,7 @@ The list below contains the complete patch-level index, including exact supporte
   - **Hide splash promo:** skips the full-screen promotional screen ("Skip N" / GO button) shown when the app opens.
   - **Hide update prompt:** hides the "Update now / Later" pop-up.
   - **Hide rating prompts:** hides the pop-ups that ask you to rate the app.
-- **Compatibility:** v3.2.92 only (the patches are tied to this exact version — several of them rely on version-specific class names and resource IDs)
+- **Compatibility:** v3.3.02 only (the patches are tied to this exact version — several of them rely on version-specific class names and resource IDs)
 - **Status:** ✅ Active & Maintained
 - **Limitations:** Only what is decided on the client can be unlocked. Anything that depends on BuzzCast's servers (for example gifts or paid content validated server-side) cannot be unlocked by a patch.
 - **Ban risk:** ⚠️ Account restrictions or bans are possible. The author is not responsible for them.
@@ -563,15 +580,19 @@ The list below contains the complete patch-level index, including exact supporte
 - **Compatibility:** v7.9.5_G only (arm64-v8a; the app is obfuscated, so the patches are pinned to this build)
 - **Status:** ✅ Active & Maintained
 
-#### 🏴‍☠️ InstaPrime — Premium Unlock
+#### 🏴‍☠️ InstaPrime — Premium Unlock (7.2) & Full Mod (8.0)
 - **Package:** `com.instaprime.android`
 - **Functionality:**
-  - **ALERTS:** Forced update notifications have been disabled.
-  - **Enable Premium:** makes the app treat the current account as infinite VIP (local state).
-- **Compatibility:** v435.0.0.37.76 (version Mod 7.2 CLONE) only
-- **Status:** ✅ Active & Maintained?
-- **Limitations:** Premium is a local flag. "VIEW BLOCKED PROFILE" is provided by the server; it will not work!.
-- **GENERAL TIP:** Don't pay for APK mods! 'long live open source'!
+  - **V8.0 (451.0.0.53.80 beta 2 only):**
+    - **InstaPrime v8 full mod (beta 2):** applies the prebuilt V8 core and customizes the in-app texts.
+  - **V7.2 (435.0.0.37.76):**
+    - **Enable Premium:** enables an unlimited local Premium subscription in the mod's features and removes the forced update. Also applies the hidden About-screen adjustments.
+    - **Disable update check:** turns off the update check so no update dialog or forced update is shown. Also applies the hidden server-block handling.
+- **Compatibility:** v451.0.0.53.80 (V8) and v435.0.0.37.76 (V7.2) — the two versions have different patch sets and cannot be combined in one APK.
+- **Status:** ✅ Active & Maintained
+- **Limitations:** Premium is a local flag. Features the InstaPrime server validates (for example "View blocked profile" & "OCR Image") remain unavailable.
+- **GENERAL TIP:** Don't pay for APK mods! Long live open source!
+- **NOTE:** PERFORM A CLEAN INSTALLATION TO AVOID PROBLEMS
 
 ---
 
@@ -698,7 +719,7 @@ This project is licensed under the **GNU General Public License v3.0 (GPLv3)** �
 - Respect the terms of service of the applications being patched.
 - This tool should only be used for personal, non-commercial purposes.
 - Always download original APKs from official sources.
-- This project is independent and not affiliated with Tinder, Google, Bisbi, Instagram, Instants, BuzzCast, Car Scanner, Pinterest, Picsart, Image & Video Date Fixer, Notifications Simulator, Telegraph (Graph Messenger), iCSee, InstaPime, or Morphe. All trademarks are the property of their respective owners.
+- This project is independent and not affiliated with Tinder, Google, Bisbi, Instagram, Instants, BuzzCast, Car Scanner, Pinterest, Picsart, Image & Video Date Fixer, Notifications Simulator, Telegraph (Graph Messenger), iCSee, InstaPrime, or Morphe. All trademarks are the property of their respective owners.
 
 ---
 
@@ -741,7 +762,7 @@ For questions about Morphe itself, visit [Morphe's official documentation](https
 
 ## Project statistics
 
-- **Total Patches:** 14 applications (48 patches)
+- **Total Patches:** 14 applications (56 patches)
 - **Last Updated:** November 2026
 - **Status:** Actively maintained
 - **Architecture Support:** arm64-v8a (primary)

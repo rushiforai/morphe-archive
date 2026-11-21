@@ -6,7 +6,8 @@ import android.view.KeyEvent;
 import android.widget.EditText;
 
 /**
- * Hardware keyboard shortcuts of the video player: playback speed, comments, fullscreen, minimize and frame step.
+ * Hardware keyboard shortcuts of the video player: playback speed, comments, fullscreen, minimize, frame step
+ * and SponsorBlock skip.
  * <p>
  * Each shortcut is enabled by its own patch, which changes the matching method below at patch time.
  */
@@ -39,6 +40,10 @@ public final class KeyboardShortcutsPatch {
         return false;
     }
 
+    private static boolean isSponsorBlockSkipEnabled() {
+        return false;
+    }
+
     // endregion
 
     /**
@@ -58,7 +63,8 @@ public final class KeyboardShortcutsPatch {
                     || (isCommentsEnabled() && KeyboardCommentsPatch.handleKey(activity, event))
                     || (isFullscreenEnabled() && KeyboardFullscreenPatch.handleKey(activity, event))
                     || (isMinimizeEnabled() && KeyboardMinimizePatch.handleKey(activity, event))
-                    || (isFrameStepEnabled() && KeyboardFrameStepPatch.handleKey(activity, event));
+                    || (isFrameStepEnabled() && KeyboardFrameStepPatch.handleKey(activity, event))
+                    || (isSponsorBlockSkipEnabled() && KeyboardSponsorBlockSkipPatch.handleKey(activity, event));
         } catch (Exception ex) {
             Log.e(TAG, "dispatchKeyEvent failure", ex);
             return false;

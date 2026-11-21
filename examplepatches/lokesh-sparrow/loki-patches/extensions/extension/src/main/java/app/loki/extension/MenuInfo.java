@@ -63,11 +63,15 @@ public final class MenuInfo {
             rows.add(new String[]{"Anonymous profile viewing", flag(flags, "app.loki.menu.anonview")});
             rows.add(new String[]{"Anonymous search", flag(flags, "app.loki.menu.anonsearch")});
             rows.add(new String[]{"GmsCore support (Truecaller)", flag(flags, "app.loki.menu.gmscore")});
+        } else if (pkg.startsWith("com.google.android.apps.photos")) {
+            rows.add(new String[]{"Unlimited backup (Pixel XL)", flag(flags, "app.loki.menu.pixelspoof")});
+            rows.add(new String[]{"Only real camera photos count as Camera", flag(flags, "app.loki.menu.dcimcamera")});
+            rows.add(new String[]{"GmsCore support (Google Photos)", flag(flags, "app.loki.menu.gmscore")});
         } else if (pkg.startsWith("com.mxtech.videoplayer")) {
             rows.add(new String[]{"All codecs", flag(flags, "app.loki.menu.codec")});
             rows.add(new String[]{"Skip license check", flag(flags, "app.loki.menu.license")});
             rows.add(new String[]{"GmsCore support (MX Player Pro)", flag(flags, "app.loki.menu.gmscore")});
-        } else {
+        } else if (pkg.startsWith("com.cv.docscanner")) {
             rows.add(new String[]{"Enable premium features (Doc Scanner)", flag(flags, "app.loki.menu.premium")});
             rows.add(new String[]{"Hide ads (Doc Scanner)", flag(flags, "app.loki.menu.hideads")});
             rows.add(new String[]{"Declutter", flag(flags, "app.loki.menu.declutter")});

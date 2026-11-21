@@ -57,6 +57,8 @@ private const val SETTINGS_LOADED = "Lcom/chess/features/puzzles/rated/p0\$l0;"
 private const val PUZZLE_SETTINGS = "Lcom/chess/features/puzzles/rated/api/PuzzleSettings;"
 private const val PATH_STATS = "Lcom/chess/features/path/ui/v4;"
 private const val PATH_STATS_41027 = "Lcom/chess/features/path/ui/t2;"
+// 4.10.28 gave t2 to an unrelated class and moved the path stats to r2.
+private const val PATH_STATS_41028 = "Lcom/chess/features/path/ui/r2;"
 private const val RATING_STATS = "Lcom/chess/features/puzzles/db/model/o;"
 private const val RATING_STATS_41027 = "Lcom/chess/features/puzzles/db/model/n;"
 private const val STATS_LOADED = "Lcom/chess/features/puzzles/rated/p0\$q0;"
@@ -80,6 +82,11 @@ private const val HUB_USER_41023 = "Lcom/chess/features/puzzles/home/ui/p0;"
 private const val HUB_STATE_41027 = "Lcom/chess/features/puzzles/home/ui/i0;"
 private const val HUB_PATH_41027 = "Lcom/chess/features/puzzles/home/ui/o0;"
 private const val HUB_USER_41027 = "Lcom/chess/features/puzzles/home/ui/n0;"
+// 4.10.28 turned i0 into the state interface; the data class is j0, with the leading boolean
+// back: j0 (state), o0 (path), p0 (user).
+private const val HUB_STATE_41028 = "Lcom/chess/features/puzzles/home/ui/j0;"
+private const val HUB_PATH_41028 = "Lcom/chess/features/puzzles/home/ui/o0;"
+private const val HUB_USER_41028 = "Lcom/chess/features/puzzles/home/ui/p0;"
 private const val UNIT = "sget-object v0, Lkotlin/Unit;->a:Lkotlin/Unit;\nreturn-object v0"
 private const val NOTHING = "const/4 v0, 0x0\nreturn-object v0"
 
@@ -123,12 +130,20 @@ val lichessPuzzlesPatch = bytecodePatch(
         // 4.10.27 renamed several obfuscated puzzle models; its Classic layout state (l0$a) is the
         // marker, since the hub's short names overlap the older builds' unrelated classes.
         val v41027 = classDefByOrNull(CLASSIC_STATE_41027) != null
+        // 4.10.28 keeps the 4.10.27 puzzle models but turns the hub state into an interface, so
+        // the 4.10.27 marker above stays true there. Only the data class tells the builds apart.
+        val v41028 = classDefByOrNull(HUB_STATE_41028)?.methods?.any { method ->
+            method.name == "<init>" && method.parameterTypes.size == 14 &&
+                method.parameterTypes[5].toString() == HUB_USER_41028 &&
+                method.parameterTypes[6].toString() == HUB_PATH_41028
+        } == true
         val classicStateType = if (v41027) CLASSIC_STATE_41027 else CLASSIC_STATE
         val ratingHistoryType = if (v41027) RATING_HISTORY_41027 else RATING_HISTORY
         val ratingPointType = if (v41027) RATING_POINT_41027 else RATING_POINT
         val solutionType = if (v41027) SOLUTION_41027 else SOLUTION
         val ratingStatsType = if (v41027) RATING_STATS_41027 else RATING_STATS
         val pathStatsType = when {
+            v41028 -> PATH_STATS_41028
             v41027 -> PATH_STATS_41027
             classDefByOrNull(PATH_STATS) != null -> PATH_STATS
             else -> "Lcom/chess/features/path/ui/o2;"
@@ -428,6 +443,8 @@ val lichessPuzzlesPatch = bytecodePatch(
             )
         }
         when {
+            v41028 ->
+                hookHubState(HUB_STATE_41028, HUB_PATH_41028, HUB_USER_41028, arity = 14, pathIndex = 6, userIndex = 5)
             v41027 ->
                 hookHubState(HUB_STATE_41027, HUB_PATH_41027, HUB_USER_41027, arity = 13, pathIndex = 4, userIndex = 5)
             classDefByOrNull(HUB_STATE) != null ->

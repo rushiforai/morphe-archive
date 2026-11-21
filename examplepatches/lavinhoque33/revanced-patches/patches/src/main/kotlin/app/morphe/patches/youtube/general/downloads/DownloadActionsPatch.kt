@@ -9,6 +9,7 @@
  * - inotia00 (https://github.com/inotia00)
  *
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-20.
  * Modified by lavinhoque33, 2026-10-24.
  *
  * ------------------------------------------------------------------------
@@ -71,6 +72,7 @@ import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMuta
 import app.morphe.patcher.util.smali.ExternalLabel
 import app.morphe.patches.shared.misc.fix.proto.fixProtoLibraryPatch
 import app.morphe.patches.shared.misc.fix.proto.parseByteArrayMethodRef
+import app.morphe.patches.shared.misc.portableexport.portableExportResources
 import app.morphe.patches.youtube.utils.compatibility.Constants.COMPATIBILITY_YOUTUBE
 import app.morphe.patches.youtube.utils.bottomsheet.bottomSheetFlyoutMenuPatch
 import app.morphe.patches.youtube.utils.extension.Constants.GENERAL_PATH
@@ -151,6 +153,7 @@ val downloadActionsPatch = bytecodePatch(
 
     dependsOn(
         lithoFilterPatch,
+        portableExportResources,
         sharedResourceIdPatch,
         versionCheckPatch,
         // modified by lavinhoque33, 2026-10-10: Downloads button in the You tab.

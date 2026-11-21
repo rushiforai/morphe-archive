@@ -2,6 +2,9 @@ name: Build patch bundle (.mpp)
 
 on:
   workflow_dispatch:
+  # API-triggered rebuilds (repository_dispatch, event_type: build-mpp).
+  repository_dispatch:
+    types: [build-mpp]
   push:
     branches:
       - main
@@ -13,6 +16,8 @@ jobs:
   build:
     name: Build .mpp
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
@@ -30,7 +35,7 @@ jobs:
         run: |
           ./gradlew buildAndroid --stacktrace > build.log 2>&1 && tail -5 build.log && exit 0
           echo "=== GREP: exception headers ==="
-          grep -n -m 12 -E "What went wrong|FAILURE:|Caused by|Exception|Error|Killed|No space|OutOfMemory|ExceptionInInitializerError|AssertionError" build.log | while IFS= read -r line; do
+          grep -n -m 40 -E "What went wrong|FAILURE:|Caused by|Exception|Error|Killed|No space|OutOfMemory|ExceptionInInitializerError|AssertionError|\.kt:[0-9]+" build.log | while IFS= read -r line; do
             echo "::error::$line"
             echo "$line"
           done
@@ -53,8 +58,18 @@ jobs:
           bash .github/scripts/test_pinterest_video_urls.sh
           bash .github/scripts/test_instagram_extension.sh
 
-      - name: Test permission removal, Brave, Instagram, and Reddit helpers
-        run: ./gradlew :patches:testPermissionRemoval :patches:testBravePrivacy :patches:testInstagram :patches:testRedditCommentTree --stacktrace
+      - name: Test permission removal, Brave, Instagram, Reddit, and Spotify helpers
+        run: |
+          ./gradlew :patches:testPermissionRemoval :patches:testBravePrivacy :patches:testInstagram :patches:testRedditCommentTree :patches:testSpotifyHooks :patches:testFirefox :patches:testMalwarebytesUnlock :patches:testSpotifyClone :patches:testSpotifyAmoled --stacktrace > test.log 2>&1 && tail -5 test.log && exit 0
+          echo "=== GREP: test failures ==="
+          grep -n -m 40 -E "FAILED|failed|Exception|\.kt:[0-9]+|Error|Caused by" test.log | while IFS= read -r line; do
+            echo "::error::$line"
+          done
+          echo "=== LAST 20 RAW LINES ==="
+          tail -n 20 test.log | while IFS= read -r line; do
+            echo "::warning::$line"
+          done
+          exit 1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -67,10 +82,18 @@ jobs:
 
       - name: Verify Android bundle and remote source metadata
         run: |
-          python3 -m unittest discover -s .github/scripts -p 'test_*.py'
+          : > verify.log
+          RC1=0; python3 -m unittest discover -s .github/scripts -p 'test_*.py' >> verify.log 2>&1 || RC1=$?
           VERSION=$(sed -n 's/^version[[:space:]]*=[[:space:]]*//p' gradle.properties)
-          python3 .github/scripts/verify_android_bundle.py "patches/build/libs/patches-${VERSION}.mpp" "$VERSION"
-          python3 .github/scripts/verify_patch_source.py patches-bundle.json "$VERSION"
+          echo "=== version=$VERSION rc-tests=$RC1 ===" >> verify.log
+          RC2=0; python3 .github/scripts/verify_android_bundle.py "patches/build/libs/patches-${VERSION}.mpp" "$VERSION" >> verify.log 2>&1 || RC2=$?
+          RC3=0; python3 .github/scripts/verify_patch_source.py patches-bundle.json "$VERSION" >> verify.log 2>&1 || RC3=$?
+          echo "=== rc: tests=$RC1 bundle=$RC2 source=$RC3 ===" >> verify.log
+          if [ "$RC1$RC2$RC3" = "000" ]; then tail -5 verify.log; exit 0; fi
+          tail -n 40 verify.log | while IFS= read -r line; do
+            echo "::error::$line"
+          done
+          exit 1
 
       - name: Upload .mpp artifact
         if: success()
@@ -79,6 +102,17 @@ jobs:
           name: patches-mpp
           path: patches/build/libs/*.mpp
           if-no-files-found: error
+
+      # Re-cut mode: a repository_dispatch run that names release_tag replaces
+      # that release's bundle asset with the build just produced.
+      - name: Upload bundle to the release (re-cut dispatch)
+        if: success() && github.event_name == 'repository_dispatch' && github.event.client_payload.release_tag != ''
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION=$(sed -n 's/^version[[:space:]]*=[[:space:]]*//p' gradle.properties)
+          gh release upload "${{ github.event.client_payload.release_tag }}" \
+            "patches/build/libs/patches-${VERSION}.mpp" --clobber --repo "$GITHUB_REPOSITORY"
 
       - name: Upload full gradle log
         if: failure()

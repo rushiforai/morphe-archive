@@ -2440,7 +2440,7 @@ Manage posts	Paylaşımları idarə et
 Content preferences	Məzmun seçimləri
 Notifications	Bildirişlər
 Time and well-being	Vaxt və rifah
-Family Pairing	Ailə Cütləşməsi
+Family Pairing	Ailə əlaqələndirməsi
 Sign up	Qeydiyyatdan keç
 Account	Hesab
 Security & permissions	Təhlükəsizlik və icazələr
@@ -2451,8 +2451,6 @@ QR code	QR kod
 Share profile	Profili paylaş
 TikTok Plus	TikTok Plus
 Invite friends	Dostları dəvət et
-Inbox mode	Gələnlər rejimi
-Audience controls	Auditoriya nəzarəti
 Background audio	Arxa fon səsi
 Display	Ekran
 Commercial content library	Kommersiya məzmunu kitabxanası
@@ -2464,7 +2462,6 @@ Shake to report	Bildirmək üçün silkələ
 Free up space	Yer boşalt
 Data Saver	Data qənaəti
 Free data	Pulsuz data
-Live wallpaper	Canlı divar kağızı
 Check for updates	Yeniləmələri yoxla
 Lite mode	Lite rejimi
 TikTok Beta	TikTok Beta
@@ -2478,6 +2475,16 @@ Policy updates	Siyasət yeniləmələri
 What's new on TikTok	TikTok-da yeniliklər
 Switch account	Hesabı dəyiş
 Log out	Çıxış
+Mentions	Bəhsetmələr
+Direct messages	Birbaşa mesajlar
+Reuse of content	Kontentin təkrar istifadəsi
+Display profile when sharing links	Linkləri paylaşanda profili göstər
+Following list	İzlənilənlər siyahısı
+Viewers	İzləyicilər
+Inbox & Messaging	Mesaj qutusu və Mesajlaşma
+Audience control	Auditoriyaya nəzarət
+Wallpaper	Divar kağızı
+Help Center	Kömək mərkəzi
 Open the search page	Axtarış səhifəsini aç
 Search didn't open. Restart TikTok and try again.	Axtarış açılmadı. TikTok-u yenidən başladıb yoxlayın.
 Fold the search into a button	Axtarışı düyməyə yığ
@@ -2511,6 +2518,16 @@ Leave after no touch	Toxunuş olmadıqda çıxın
 Zero switches this off. After that many minutes with no touch on the screen, the video stops and TikTok goes to the background, for when you fall asleep watching. Any touch starts the wait over.	Sıfır bunu söndürür. Ekrana bu qədər dəqiqə toxunulmadıqda video dayanır və TikTok arxa plana keçir, izləyərkən yuxuya getdiyiniz hallar üçün. İstənilən toxunuş gözləməni yenidən başladır.
 Left TikTok after no touch	Toxunuş olmadığı üçün TikTok-dan çıxıldı
 Show when an account was made	Hesabın nə vaxt yaradıldığını göstər
+Show what changed since your last visit	Son baxışınızdan bəri dəyişənləri göstər
+Under the @username on a profile, show how its followers, following, likes and videos changed since you last opened it. The counts are kept on this phone only.	Profildə @istifadəçi adının altında, onu son açdığınızdan bəri izləyicilərin, izlənilənlərin, bəyənmələrin və videoların necə dəyişdiyini göstərir. Saylar yalnız bu telefonda saxlanılır.
+Since %1$s: %2$s	Son baxış %1$s: %2$s
+No changes since %1$s	Dəyişiklik yoxdur (son baxış %1$s)
+%1$s, %2$s	%1$s, %2$s
+%1$s follower	%1$s izləyici
+%1$s followers	%1$s izləyici
+%1$s following	%1$s izlənilən
+%1$s like	%1$s bəyənmə
+%1$s likes	%1$s bəyənmə
 Under the @username on someone else's profile, show the month and year the account was made. It's read from the account's ID, so very old accounts show nothing.	Başqasının profilində @istifadəçi adının altında hesabın yaradıldığı ayı və ili göstərin. Bu, hesabın ID-sindən oxunur, ona görə çox köhnə hesablarda heç nə görünmür.
 Joined %s	Qoşulub: %s
 Keep unsent messages	Geri götürülən mesajları saxlayın
@@ -2670,6 +2687,18 @@ Remove selected comments	Seçilmiş şərhləri silin
 Pick comments from your comment history to delete.	Şərh tarixçənizdən silinəcək şərhləri seçin.
 Removing all comments in %1$d	Şərhlər silinir: %1$d
 Removing the picked comments in %1$d	Seçilmiş şərhlər silinir: %1$d
+Unfollow accounts that don't follow you back	Sizi izləməyən hesabları izləmədən çıxar
+Checks your followers first and says how many it found, then unfollows them one after another. Accounts that follow you back stay.	Əvvəlcə izləyicilərinizi yoxlayır və neçəsini tapdığını deyir, sonra onları bir-bir izləmədən çıxarır. Sizi izləyən hesablar qalır.
+Checking who you follow: %1$d	İzlədikləriniz yoxlanılır: %1$d
+Checking your followers: %1$d	İzləyiciləriniz yoxlanılır: %1$d
+Everyone you follow follows you back	İzlədiyiniz hər kəs sizi izləyir
+Couldn't check who follows you back. Try again.	Sizi kimin izlədiyini yoxlamaq mümkün olmadı. Yenidən cəhd edin.
+Accounts to unfollow: %1$d. Starting in %2$d	İzləmədən çıxarılacaq hesablar: %1$d. Başlanğıc: %2$d
+Unfollowed: %1$d	İzləmədən çıxarıldı: %1$d
+Done. %1$d unfollowed.	Hazırdır. %1$d hesab izləmədən çıxarıldı.
+Stopped. %1$d unfollowed.	Dayandırıldı. %1$d hesab izləmədən çıxarıldı.
+TikTok refused. %1$d unfollowed.	TikTok rədd etdi. %1$d hesab izləmədən çıxarıldı.
+Network error. %1$d unfollowed.	Şəbəkə xətası. %1$d hesab izləmədən çıxarıldı.
 Comments removed: %1$d	Silinən şərhlər: %1$d
 TikTok refused to list your comments	TikTok şərhlərinizi göstərməkdən imtina etdi
 Couldn't load your comments. Try again.	Şərhləriniz yüklənmədi. Yenidən cəhd edin.
@@ -2955,6 +2984,44 @@ Crop and stretch to fill the screen	Ekranı doldurmaq üçün kəs və uzat
 Cover the whole window with half the crop of Fill and half the stretch of Stretch, so neither is easy to spot. A video far from the screen's shape keeps TikTok's size.	Bütün pəncərəni Doldurmanın yarısı qədər kəsmə və Uzatmanın yarısı qədər uzatma ilə örtür, beləliklə heç biri çox gözə çarpmır. Forması ekrandan çox fərqli olan video TikTok-un ölçüsünü saxlayır.
 Watch LIVEs unseen	LIVE-lara görünmədən bax
 You stay off the viewer list of LIVEs you open. Tap the eye in a LIVE to let that host see you. Needs Ghost mode on.	Açdığınız LIVE-ların baxış siyahısında görünməyəcəksiniz. Aparıcının sizi görməsi üçün LIVE-da gözə toxunun. Xəyal rejimi açıq olmalıdır.
+Keep likes on this phone	Bəyənmələri bu telefonda saxlayın
+A like you give a video stays on this phone. The heart turns red, but TikTok isn't told, so the creator never sees it and it isn't on your profile. Needs Ghost mode on.	Videoya verdiyiniz bəyənmə bu telefonda qalır. Ürək qırmızı olur, amma TikTok-a bildirilmir, ona görə də yaradıcı onu heç vaxt görmür və o, profilinizdə görünmür. Xəyal rejimi açıq olmalıdır.
+My likes on this phone	Bu telefondakı bəyənmələrim
+Find and reopen the videos you liked only on this phone	Yalnız bu telefonda bəyəndiyiniz videoları tapın və yenidən açın
+Videos you like on this phone show up here	Bu telefonda bəyəndiyiniz videolar burada görünür
+Likes cleared	Bəyənmələr təmizləndi
+Export followers and following	İzləyiciləri və izlədiklərinizi ixrac edin
+Saves the accounts that follow you, or the ones you follow, as a CSV file in Download/Hushfeed. They're read at about the pace of scrolling the list, up to %1$s at a time.	Sizi izləyən və ya sizin izlədiyiniz hesabları Download/Hushfeed qovluğunda CSV faylı kimi saxlayır. Onlar siyahını sürüşdürmə sürətinə yaxın sürətlə, bir dəfəyə %1$s ədədə qədər oxunur.
+A list is already being read	Artıq bir siyahı oxunur
+Reading your followers (%1$s)	İzləyiciləriniz oxunur (%1$s)
+Reading who you follow (%1$s)	İzlədikləriniz oxunur (%1$s)
+Couldn't read the list. Try again in a moment.	Siyahını oxumaq olmadı. Bir azdan yenidən cəhd edin.
+Stopped before anyone was read	Heç kim oxunmamış dayandırıldı
+Nobody follows this account yet	Bu hesabı hələ heç kim izləmir
+This account doesn't follow anyone yet	Bu hesab hələ heç kimi izləmir
+The file couldn't be saved. Try again.	Faylı saxlamaq olmadı. Yenidən cəhd edin.
+Saved one account to %2$s	Bir hesab %2$s qovluğunda saxlanıldı
+Saved %1$s accounts to %2$s	%1$s hesab %2$s qovluğunda saxlanıldı
+It stopped before the end of the list, so the file is partial.	Siyahının sonuna çatmadan dayandı, ona görə də fayl natamamdır.
+TikTok stopped answering before the end of the list, so the file is partial.	TikTok siyahının sonuna qədər cavab vermədi, ona görə də fayl natamamdır.
+Only the first %1$s are in the file.	Faylda yalnız ilk %1$s hesab var.
+Save your likes from a TikTok data export	Bəyənmələrinizi TikTok məlumat ixracından saxlayın
+Pick the export TikTok sends from Settings and privacy > Account > Download your data, in JSON format. The videos it lists as liked or favorited are saved like picked videos, up to %1$s at a time.	TikTok-un Ayarlar və məxfilik > Hesab > Məlumatlarınızı endirin bölməsindən göndərdiyi ixracı JSON formatında seçin. Orada bəyənilmiş və ya sevimli kimi göstərilən videolar seçilmiş videolar kimi, bir dəfəyə %1$s ədədə qədər saxlanılır.
+Reading the data export	Məlumat ixracı oxunur
+Liked videos (%1$s)	Bəyənilmiş videolar (%1$s)
+Favorites (%1$s)	Sevimlilər (%1$s)
+That export lists no liked or favorited videos	Bu ixracda bəyənilmiş və ya sevimli video yoxdur
+Couldn't start saving. Try again in a moment.	Saxlamağa başlamaq olmadı. Bir azdan yenidən cəhd edin.
+You've already saved every one of these videos here	Bu videoların hamısını artıq burada saxlamısınız
+Saving one video	Bir video saxlanılır
+Saving %1$s videos	%1$s video saxlanılır
+One you saved before is left out	Əvvəl saxladığınız bir video buraxıldı
+%1$s you saved before are left out	Əvvəl saxladığınız %1$s video buraxıldı
+Choose the file again after this run to save the other %1$s	Qalan %1$s videonu saxlamaq üçün bu dövrədən sonra faylı yenidən seçin
+That file is larger than %1$s MB. Choose the JSON file from the export.	Bu fayl %1$s MB-dan böyükdür. İxracdakı JSON faylını seçin.
+That isn't a TikTok data export in JSON format. Choose user_data_tiktok.json or the zip it came in.	Bu, JSON formatında TikTok məlumat ixracı deyil. user_data_tiktok.json faylını və ya onun gəldiyi zip faylını seçin.
+One isn't on TikTok anymore	Biri artıq TikTok-da yoxdur
+%1$s aren't on TikTok anymore	%1$s video artıq TikTok-da yoxdur
 The host can see you	Aparıcı sizi görür
 Let the host see you	Aparıcı sizi görsün
 Couldn't tell which LIVE this is. Open it again.	Bunun hansı LIVE olduğu bilinmədi. Yenidən açın.

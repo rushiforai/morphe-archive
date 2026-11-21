@@ -8,6 +8,8 @@ import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.findFreeRegister
 import app.morphe.patcher.util.getReference
 import app.morphe.patcher.util.smali.ExternalLabel
+import app.morphe.patches.shared.mapping.ResourceType
+import app.morphe.patches.shared.mapping.hasResourceId
 import app.morphe.patches.youtube.utils.compatibility.Constants.COMPATIBILITY_YOUTUBE
 import app.morphe.patches.youtube.utils.extension.Constants.PATCH_STATUS_CLASS_DESCRIPTOR
 import app.morphe.patches.youtube.utils.extension.Constants.PLAYER_CLASS_DESCRIPTOR
@@ -29,6 +31,7 @@ import app.morphe.patches.youtube.utils.resourceid.titleAnchor
 import app.morphe.patches.youtube.utils.resourceid.youTubeControlsButtonGroupLayoutStub
 import app.morphe.patches.youtube.utils.settings.ResourceUtils.addPreference
 import app.morphe.patches.youtube.utils.settings.settingsPatch
+import app.morphe.util.Utils.printWarn
 import app.morphe.util.fingerprint.methodOrThrow
 import app.morphe.util.indexOfFirstInstruction
 import app.morphe.util.indexOfFirstInstructionOrThrow
@@ -237,7 +240,9 @@ val playerButtonsPatch = bytecodePatch(
 
         // endregion
 
-        // region Hide player control buttons background
+        // region native center button sizing and backgrounds
+
+        var centerResizeInstalled = false
 
         inflateControlsGroupLayoutStubFingerprint.method.apply {
             val controlsButtonGroupLayoutStubResIdConstIndex =
@@ -250,28 +255,33 @@ val playerButtonsPatch = bytecodePatch(
             val hidePlayerControlButtonsBackgroundDescriptor =
                 "$PLAYER_CLASS_DESCRIPTOR->hidePlayerControlButtonsBackground(Landroid/view/View;)V"
 
-            // YouTube 21.39 keeps the inflated view (move-result-object right after inflate).
-            // Inserting a second move-result there leaves the original one orphaned (VerifyError),
-            // so hook after the existing move-result and reuse its register.
+            val inflate = getInstruction(inflateControlsGroupLayoutStubIndex).getReference<MethodReference>()
+            centerResizeInstalled =
+                inflate?.definingClass == "Landroid/view/ViewStub;" &&
+                inflate.returnType == "Landroid/view/View;" &&
+                hasResourceId(ResourceType.LAYOUT, "youtube_controls_button_group_layout") &&
+                hasResourceId(ResourceType.ID, "player_control_play_pause_replay_button") &&
+                hasResourceId(ResourceType.ID, "player_control_play_pause_replay_button_touch_area")
+
+            // Some versions retain the inflated View. An invoke cannot have two move-results.
             val nextInstruction = getInstruction(inflateControlsGroupLayoutStubIndex + 1)
-            if (nextInstruction.opcode == Opcode.MOVE_RESULT_OBJECT) {
-                val viewRegister = (nextInstruction as OneRegisterInstruction).registerA
-                addInstruction(
-                    inflateControlsGroupLayoutStubIndex + 2,
-                    "invoke-static { v$viewRegister }, $hidePlayerControlButtonsBackgroundDescriptor"
-                )
+            val retainsView = nextInstruction.opcode == Opcode.MOVE_RESULT_OBJECT
+            val viewRegister = if (retainsView) {
+                (nextInstruction as OneRegisterInstruction).registerA
             } else {
-                val freeRegister = findFreeRegister(inflateControlsGroupLayoutStubIndex)
-                addInstructions(
-                    inflateControlsGroupLayoutStubIndex + 1,
-                    """
-                       # Move the inflated layout to a temporary register.
-                       # The result of the inflate method is by default not moved to a register after the method is called.
-                       move-result-object v$freeRegister
-                       invoke-static { v$freeRegister }, $hidePlayerControlButtonsBackgroundDescriptor
-                    """
-                )
+                findFreeRegister(inflateControlsGroupLayoutStubIndex)
             }
+
+            val instructions = buildString {
+                if (!retainsView) appendLine("move-result-object v$viewRegister")
+                appendLine("invoke-static/range { v$viewRegister .. v$viewRegister }, " +
+                    hidePlayerControlButtonsBackgroundDescriptor)
+                if (centerResizeInstalled) {
+                    appendLine("invoke-static/range { v$viewRegister .. v$viewRegister }, " +
+                        "$PLAYER_PATH/CenterPlaybackButtonPatch;->resize(Landroid/view/View;)V")
+                }
+            }
+            addInstructions(inflateControlsGroupLayoutStubIndex + if (retainsView) 2 else 1, instructions)
         }
 
         // endregion
@@ -302,6 +312,12 @@ val playerButtonsPatch = bytecodePatch(
             ),
             HIDE_PLAYER_BUTTONS
         )
+
+        if (centerResizeInstalled) {
+            addPreference(arrayOf("SETTINGS: CENTER_PLAYBACK_BUTTON_SIZE"))
+        } else {
+            printWarn("Play/Pause/Replay button size: native control group not found; keeping stock sizing.")
+        }
 
         // endregion
 

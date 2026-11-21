@@ -1,5 +1,9 @@
 package app.revanced.patches.rif.submit
 
+import app.revanced.patches.rif.shared.PatchedditFeatures
+import app.revanced.patches.rif.shared.skipForPatcheddit
+import app.revanced.patches.rif.shared.skipResourcesForPatcheddit
+import app.revanced.patches.rif.shared.switchOffForPatcheddit
 import app.morphe.patcher.util.smali.ExternalLabel
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
@@ -40,6 +44,8 @@ private val postToProfileResourcePatch = resourcePatch(
     compatibleWith(*RIF_COMPATIBILITY)
 
     execute {
+        if (skipResourcesForPatcheddit(PatchedditFeatures.POST_TO_PROFILE)) return@execute
+
         // Submit in the profile's 3-dot menu, right before Inbox (as on the front page). Hidden
         // until the extension shows it on the active account's own profile.
         document("res/menu/profile.xml").use { doc ->
@@ -149,7 +155,13 @@ val postToProfilePatch = bytecodePatch(
     dependsOn(postToProfileResourcePatch, platinumAdSlotFixPatch)
     extendWith("extensions/extension.mpe")
 
+    finalize {
+        switchOffForPatcheddit(PatchedditFeatures.POST_TO_PROFILE)
+    }
+
     execute {
+        if (skipForPatcheddit(PatchedditFeatures.POST_TO_PROFILE)) return@execute
+
         val onCreateView = submitViewFingerprint.method
         val mutableClass = proxy(submitViewFingerprint.classDef).mutableClass
         val methods = mutableClass.methods

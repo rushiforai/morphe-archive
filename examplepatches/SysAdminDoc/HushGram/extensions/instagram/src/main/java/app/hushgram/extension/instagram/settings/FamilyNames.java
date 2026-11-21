@@ -198,10 +198,12 @@ public final class FamilyNames {
     public static final String ASK_BEFORE_CALL = "Ask before a call";
     public static final String KINDNESS_REMINDER = "Hide the Community Standards reminder";
     public static final String CALL_BLOCKER = "Call blocker";
+    public static final String CALL_RECORDER = "Record calls";
     public static final String MESSAGE_BOX = "Message box buttons";
     public static final String PLUS_MENU = "Chat plus menu";
     public static final String GLASS_CHAT = "Glass in chats";
     public static final String CENTER_CHAT_NAME = "Center names in chats";
+    public static final String CHAT_BUBBLES = "Chat bubbles";
     public static final String ASK_BEFORE_LIKE = "Ask before a like";
     public static final String ASK_BEFORE_REFRESH = "Ask before a refresh";
     public static final String ASK_BEFORE_FOLLOW = "Ask before a follow";

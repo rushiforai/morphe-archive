@@ -543,6 +543,12 @@ public final class LichessPuzzles {
                     constructor.setAccessible(true);
                     return constructor.newInstance(null, text, SOLVE);
                 }
+                // 4.10.28 added a trailing boolean, true on every button the app builds itself.
+                if (types.length == 4 && types[1] == int.class && types[2] == Function0.class &&
+                        types[3] == boolean.class) {
+                    constructor.setAccessible(true);
+                    return constructor.newInstance(null, text, SOLVE, true);
+                }
             }
         } catch (Throwable ignored) {
         }

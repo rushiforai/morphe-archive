@@ -172,13 +172,13 @@ Fizz enforces client freshness at the HTTP gateway level (`api510.pineapple-conn
 1. **Header Interceptor (`ic.g.a`)**: Emits `fizz-client-version` and `fizz-build-number` on every outbound request to the Fizz gateway.
 2. **DTO Initialization (`ub.dc.<init>`)**: Hardcodes `clientVersion: "1.54.0"` into `SessionStateRequestData`.
 
-When the backend detects an outdated version (e.g. `1.54.0` while `1.60.0` is current), it rejects session establishment, transitioning the root app state to `kd.e.SessionUnavailable` and displaying the "Error connecting to Fizz" screen with developer debug controls ("Mono App sandbox: Disabled").
+When the backend detects an outdated version (e.g. `1.54.0` while `1.72.0` is current), it rejects session establishment, transitioning the root app state to `kd.e.SessionUnavailable` and displaying the "Error connecting to Fizz" screen with developer debug controls ("Mono App sandbox: Disabled").
 
 ### 2. Runtime Extension Architecture (`VersionBridge.java`)
 
 To prevent session rejection without requiring manual patch recompilation for every Play Store update:
 
-1. **Seed Version**: `VersionBridge` contains build-time defaults (`DEFAULT_VERSION = "1.60.0"`, `DEFAULT_BUILD_NUMBER = "400032"`).
+1. **Seed Version**: `VersionBridge` contains build-time defaults (`DEFAULT_VERSION = "1.72.0"`, `DEFAULT_BUILD_NUMBER = "400032"`).
 2. **Persistent Storage**: On first launch, `VersionBridge.init(Context)` loads the cached version from `SharedPreferences` (`aidan_fizz_version_spoof`).
 3. **Daily Daemon Sync**: If the cached timestamp is older than 24 hours, a background daemon thread queries the Cloudflare Worker:
    `GET https://worker.patch.p0ntus.com/api/version/com.ashtoncofer.Buzz`
@@ -195,10 +195,12 @@ Payload contract:
 ```json
 {
   "packageName": "com.ashtoncofer.Buzz",
-  "versionName": "1.60.0",
-  "versionCode": 400032,
-  "updatedAt": "2026-10-21T20:48:51.000Z"
+  "versionName": "1.72.0",
+  "versionCode": null,
+  "updatedAt": "2026-11-20T00:46:53.000Z"
 }
 ```
+
+`versionCode` may be `null` when Play metadata is scraped without a build number; `VersionBridge` then keeps the previous build-number seed.
 
 Edge caching is set to `Cache-Control: public, max-age=3600` with public CORS support. A daily CI script (`scripts/sync-fizz-version.ts` / `.github/workflows/sync-fizz-version.yml`) keeps the initial build-time seed in `VersionBridge.java` aligned with the latest Play Store release.

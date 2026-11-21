@@ -3,13 +3,11 @@ package app.morphe.patches.shared.translations
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.ResourcePatchContext
 import app.morphe.util.FilesCompat
-import app.morphe.util.doRecursively
 import app.morphe.util.inputStreamFromBundledResource
 import org.w3c.dom.Element
 import org.w3c.dom.Node
 import java.io.File
 import javax.xml.parsers.DocumentBuilderFactory
-import javax.xml.transform.OutputKeys
 import javax.xml.transform.TransformerFactory
 import javax.xml.transform.dom.DOMSource
 import javax.xml.transform.stream.StreamResult
@@ -40,15 +38,22 @@ val APP_LANGUAGES = arrayOf(
     "zh", "zh-rCN", "zh-rHK", "zh-rTW", "zu",
 )
 
+private val ANDROID_REGION_SEPARATOR = Regex("-r(?=[a-z]{2}(?:-|$)|[0-9]{3}(?:-|$))")
+private val DEFAULT_LOCALES = APP_LANGUAGES.mapTo(hashSetOf(), ::normalizeLocale)
+
+// Android puts the locale after MCC/MNC and before all other qualifiers.
+private val RESOURCE_LOCALE = Regex(
+    "^(?:mcc[0-9]{3}-)?(?:mnc[0-9]{1,3}-)?" +
+        "(b\\+[a-z]{2,3}(?:\\+[a-zA-Z0-9]{1,8})*|[a-z]{2,3}(?:-r(?:[A-Z]{2}|[0-9]{3}))?)(?:-|$)"
+)
+
 fun ResourcePatchContext.baseTranslationsPatch(
     customTranslations: String?,
     selectedTranslations: String?,
-    selectedStringResources: String?,
     translationsArray: Set<String>,
     sourceDirectory: String,
 ) {
     val resourceDirectory = get("res")
-    val isYouTube = sourceDirectory == "youtube"
 
     // Check if the custom translation path is valid.
     customTranslations?.takeIf { it.isNotEmpty() }?.let { customLang ->
@@ -67,99 +72,110 @@ fun ResourcePatchContext.baseTranslationsPatch(
         }
     } ?: run {
         // Process selected translations if no custom translation is set.
-        val selectedTranslationsArray =
-            selectedTranslations?.split(",")?.map { it.trim() }?.toTypedArray()
-                ?: throw PatchException("Invalid selected languages.")
-        val filteredLanguages =
-            translationsArray.filter { it in selectedTranslationsArray }.toTypedArray()
-        copyStringsXml(sourceDirectory, filteredLanguages)
-    }
-
-    // Process selected string resources.
-    val selectedStringResourcesArray =
-        selectedStringResources?.split(",")?.map { it.trim() }?.toTypedArray()
-            ?: throw PatchException("Invalid selected string resources.")
-    val filteredStringResources =
-        APP_LANGUAGES.filter { it in selectedStringResourcesArray }.toTypedArray()
-
-    // Remove unselected app languages.
-    APP_LANGUAGES.filter { it !in filteredStringResources }.forEach { language ->
-        resourceDirectory.resolve("values-$language").takeIf { it.exists() && it.isDirectory }
-            ?.deleteRecursively()
-    }
-
-    // Filter the app languages to include both versions of locales (with and without 'r', en-rGB and en-GB)
-    // and also handle locales with "b+" prefix
-    var filteredAppLanguages = (selectedStringResourcesArray + arrayOf("en"))
-        .map { language ->
-            language.replace("-r", "-").replace("b+", "").replace("+", "-")
-        }.toHashSet().toTypedArray()
-
-    // Remove unselected app languages from UI
-    try {
-        document("res/xml/locales_config.xml").use { document ->
-            val nodesToRemove = mutableListOf<Node>()
-
-            document.doRecursively { node ->
-                if (node is Element && node.tagName == "locale") {
-                    node.getAttributeNode("android:name")?.let { attribute ->
-                        if (attribute.textContent !in filteredAppLanguages) {
-                            nodesToRemove.add(node)
-                        }
-                    }
-                }
-            }
-
-            // Remove the collected nodes (avoids NullPointerException)
-            for (node in nodesToRemove) {
-                node.parentNode?.removeChild(node)
-            }
-        }
-    } catch (_: Exception) {}
-
-    if (!isYouTube) return
-
-    filteredAppLanguages = filteredAppLanguages.map { language ->
-        val hyphenIndex = language.indexOf("-") - 1
-        if (hyphenIndex > 2) {
-            language.subSequence(0, hyphenIndex).toString().uppercase()
+        val requested = selectedTranslations?.split(',')?.mapTo(hashSetOf(), String::trim)
+        val translations = if (requested == null || "all" in requested) {
+            translationsArray
         } else {
-            language.uppercase()
+            translationsArray.filter { it in requested }
         }
-    }.toHashSet().toTypedArray()
+        copyStringsXml(sourceDirectory, translations)
+    }
+}
 
-    // Remove unselected app languages from RVX Settings
-    document("res/values/arrays.xml").use { document ->
-        val targetAttributeNames = setOf(
-            "revanced_language_entries",
-            "revanced_language_entry_values",
-        )
-        val nodesToRemove = mutableListOf<Node>()
+internal fun ResourcePatchContext.filterTranslations(selectedStringResources: String?, filterRvxPicker: Boolean) {
+    val selected = selectedStringResources?.split(',')?.asSequence()
+        ?.map(String::trim)
+        ?.filter(String::isNotEmpty)
+        ?.map(::normalizeLocale)
+        ?.toSet()
+        ?: return
 
-        val resourcesNode = document.documentElement
-        val childNodes = resourcesNode.childNodes
-        for (i in 0 until childNodes.length) {
-            val node = childNodes.item(i) as? Element ?: continue
+    // Keeping everything must also keep stock locales not listed in this patch's option defaults.
+    if ("all" in selected || selected.containsAll(DEFAULT_LOCALES)) return
 
-            if (node.getAttribute("name") in targetAttributeNames) {
-                val itemNodes = node.childNodes
-                for (j in 0 until itemNodes.length) {
-                    val item = itemNodes.item(j) as? Element ?: continue
-                    val text = item.textContent
-                    val length = text.length
-                    if (!text.endsWith("DEFAULT") &&
-                        length >= 2 &&
-                        text.subSequence(length - 2, length) !in filteredAppLanguages
-                    ) {
-                        nodesToRemove.add(item)
-                    }
-                }
+    fun keepLocale(tag: String): Boolean {
+        val locale = normalizeLocale(tag)
+        if (locale == "en" || locale in selected) return true
+
+        // A base locale keeps its variants; a variant also keeps its less specific fallback.
+        return selected.any { choice -> locale.isLocaleVariantOf(choice) || choice.isLocaleVariantOf(locale) }
+    }
+
+    removeLocaleResources(::keepLocale)
+    filterAndroidLocaleConfig(::keepLocale)
+    if (filterRvxPicker) filterRvxLanguagePicker(selected)
+}
+
+private fun normalizeLocale(tag: String): String {
+    val locale = tag.lowercase().removePrefix("b+").replace('+', '-').replace(ANDROID_REGION_SEPARATOR, "-")
+    val language = locale.substringBefore('-')
+    val canonicalLanguage = when (language) {
+        "in" -> "id"
+        "iw" -> "he"
+        "ji" -> "yi"
+        "fil" -> "tl"
+        else -> return locale
+    }
+    return canonicalLanguage + locale.substring(language.length)
+}
+
+private fun String.isLocaleVariantOf(locale: String) =
+    length > locale.length && this[locale.length] == '-' && startsWith(locale)
+
+private fun ResourcePatchContext.removeLocaleResources(keepLocale: (String) -> Boolean) {
+    val rejectedDirectories = hashMapOf<String, Boolean>()
+
+    fun shouldRemove(directory: String) = rejectedDirectories.getOrPut(directory) {
+        val qualifiers = directory.substringAfter('-', "")
+        val locale = RESOURCE_LOCALE.find(qualifiers)?.groupValues?.get(1)
+        // "car" is a UI mode qualifier, not a locale.
+        locale != null && locale != "car" && !keepLocale(locale)
+    }
+
+    // Stock configurations may not have been decoded. Delete through the patcher to update resources.arsc.
+    for (path in listDecodableFiles("res/*-*/*")) {
+        if (shouldRemove(path.substringAfter('/').substringBefore('/'))) delete(path)
+    }
+
+    // Also remove locale variants introduced by the selected patches, including bundled RVX translations.
+    for (directory in get("res").listFiles().orEmpty()) {
+        if (!directory.isDirectory || !shouldRemove(directory.name)) continue
+
+        for (file in directory.listFiles().orEmpty()) {
+            delete("res/${directory.name}/${file.name}")
+        }
+    }
+}
+
+private fun ResourcePatchContext.filterAndroidLocaleConfig(keepLocale: (String) -> Boolean) {
+    for (path in listDecodableFiles("res/xml*/locales_config.xml")) {
+        document(path).use { document ->
+            val locales = document.getElementsByTagName("locale")
+            for (index in locales.length - 1 downTo 0) {
+                val locale = locales.item(index) as Element
+                val tag = locale.getAttribute("android:name")
+                if (tag.isNotEmpty() && !keepLocale(tag)) locale.parentNode.removeChild(locale)
             }
         }
+    }
+}
 
-        // Remove the collected nodes (avoids NullPointerException)
-        for (n in nodesToRemove) {
-            n.parentNode?.removeChild(n)
+private fun ResourcePatchContext.filterRvxLanguagePicker(selected: Set<String>) {
+    val languages = selected.mapTo(hashSetOf("default", "en")) { it.substringBefore('-') }
+
+    document("res/values/arrays.xml").use { document ->
+        val arrays = document.getElementsByTagName("string-array")
+        for (index in 0 until arrays.length) {
+            val array = arrays.item(index) as Element
+            val name = array.getAttribute("name")
+            if (name != "revanced_language_entries" && name != "revanced_language_entry_values") continue
+
+            val items = array.getElementsByTagName("item")
+            for (itemIndex in items.length - 1 downTo 0) {
+                val item = items.item(itemIndex)
+                val language = item.textContent.trim().removePrefix("@string/revanced_language_")
+                if (normalizeLocale(language) !in languages) array.removeChild(item)
+            }
         }
     }
 }
@@ -172,7 +188,7 @@ fun ResourcePatchContext.baseTranslationsPatch(
  */
 private fun ResourcePatchContext.copyStringsXml(
     sourceDirectory: String,
-    languageArray: Array<String>
+    languageArray: Collection<String>
 ) {
     val languageMap = mapOf(
         "fil-rPH" to "tl"
@@ -238,14 +254,8 @@ private fun updateStringsXml(sourceFile: File, destinationFile: File) {
         }
     }
 
-    /**
-     * Prepare the transformer for writing the updated document back to the file.
-     * The transformer is configured to indent the output XML for better readability.
-     */
-    val transformerFactory = TransformerFactory.newInstance()
-    val transformer = transformerFactory.newTransformer()
-    transformer.setOutputProperty(OutputKeys.INDENT, "yes")
-    transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2")
+    // Indentation inside a styled string is part of its value.
+    val transformer = TransformerFactory.newInstance().newTransformer()
 
     val domSource = DOMSource(destinationDoc)
     val streamResult = StreamResult(destinationFile)

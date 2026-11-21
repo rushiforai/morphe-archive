@@ -16,6 +16,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import app.noam.extension.chesscom.crash.CrashHandler;
+import app.noam.extension.chesscom.discord.DiscordPresence;
 import app.noam.extension.chesscom.settings.Welcome;
 import app.noam.extension.chesscom.theme.Recolor;
 
@@ -36,6 +37,7 @@ public final class Utils {
         application = app;
         app.registerActivityLifecycleCallbacks(new ActivityTracker());
         CrashHandler.install(app);
+        DiscordPresence.install(app);
     }
 
     public static Context context() {
@@ -156,6 +158,11 @@ public final class Utils {
         public void onActivityResumed(Activity activity) {
             resumedActivity = new WeakReference<>(activity);
             Welcome.onScreenShown(activity);
+            try {
+                DiscordPresence.onActivityResumed(activity);
+            } catch (Throwable throwable) {
+                logError("Discord presence failed", throwable);
+            }
         }
 
         @Override

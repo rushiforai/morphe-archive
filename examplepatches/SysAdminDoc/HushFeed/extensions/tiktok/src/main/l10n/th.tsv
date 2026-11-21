@@ -2443,7 +2443,7 @@ Manage posts	จัดการโพสต์
 Content preferences	การตั้งค่าเนื้อหา
 Notifications	การแจ้งเตือน
 Time and well-being	เวลาและความเป็นอยู่ที่ดี
-Family Pairing	การจับคู่ครอบครัว
+Family Pairing	แนะนำโดยผู้ปกครอง
 Sign up	ลงทะเบียน
 Account	บัญชี
 Security & permissions	ความปลอดภัยและการอนุญาต
@@ -2454,8 +2454,6 @@ QR code	คิวอาร์โค้ด
 Share profile	แชร์โปรไฟล์
 TikTok Plus	TikTok Plus
 Invite friends	เชิญเพื่อน
-Inbox mode	โหมดกล่องข้อความ
-Audience controls	การควบคุมผู้ชม
 Background audio	เสียงในพื้นหลัง
 Display	การแสดงผล
 Commercial content library	คลังเนื้อหาเชิงพาณิชย์
@@ -2467,7 +2465,6 @@ Shake to report	เขย่าเพื่อรายงาน
 Free up space	เพิ่มพื้นที่ว่าง
 Data Saver	ประหยัดอินเทอร์เน็ต
 Free data	อินเทอร์เน็ตฟรี
-Live wallpaper	วอลเปเปอร์เคลื่อนไหว
 Check for updates	ตรวจหาการอัปเดต
 Lite mode	โหมด Lite
 TikTok Beta	TikTok Beta
@@ -2481,6 +2478,16 @@ Policy updates	การอัปเดตนโยบาย
 What's new on TikTok	มีอะไรใหม่บน TikTok
 Switch account	สลับบัญชี
 Log out	ออกจากระบบ
+Mentions	เอ่ยถึง
+Direct messages	ข้อความโดยตรง
+Reuse of content	การใช้เนื้อหาอีกครั้ง
+Display profile when sharing links	แสดงโปรไฟล์เมื่อแชร์ลิงก์
+Following list	รายชื่อผู้ที่กำลังติดตาม
+Viewers	ผู้ชม
+Inbox & Messaging	กล่องข้อความและการส่งข้อความ
+Audience control	การควบคุมผู้ชม
+Wallpaper	รูปพื้นหลัง
+Help Center	ศูนย์ช่วยเหลือ
 Open the search page	เปิดหน้าค้นหา
 Search didn't open. Restart TikTok and try again.	ไม่สามารถเปิดการค้นหาได้ รีสตาร์ท TikTok แล้วลองอีกครั้ง
 Fold the search into a button	ยุบการค้นหาเป็นปุ่ม
@@ -2514,6 +2521,16 @@ Leave after no touch	ออกจากแอปเมื่อไม่มี�
 Zero switches this off. After that many minutes with no touch on the screen, the video stops and TikTok goes to the background, for when you fall asleep watching. Any touch starts the wait over.	เลขศูนย์คือปิดใช้งาน หลังจากไม่มีการสัมผัสหน้าจอตามจำนวนนาทีดังกล่าว วิดีโอจะหยุดและ TikTok จะสลับไปทำงานอยู่เบื้องหลัง เผื่อกรณีที่คุณเผลอหลับขณะรับชม การสัมผัสใดๆ จะเริ่มนับเวลารอใหม่
 Left TikTok after no touch	ออกจาก TikTok เนื่องจากไม่มีการสัมผัส
 Show when an account was made	แสดงเวลาที่สร้างบัญชี
+Show what changed since your last visit	แสดงสิ่งที่เปลี่ยนไปตั้งแต่คุณเข้าชมครั้งล่าสุด
+Under the @username on a profile, show how its followers, following, likes and videos changed since you last opened it. The counts are kept on this phone only.	ใต้ @ชื่อผู้ใช้ในโปรไฟล์ แสดงว่าผู้ติดตาม การติดตาม ยอดถูกใจ และวิดีโอเปลี่ยนไปอย่างไรตั้งแต่คุณเปิดครั้งล่าสุด ตัวเลขจะเก็บไว้ในโทรศัพท์เครื่องนี้เท่านั้น
+Since %1$s: %2$s	ตั้งแต่ %1$s: %2$s
+No changes since %1$s	ไม่มีการเปลี่ยนแปลงตั้งแต่ %1$s
+%1$s, %2$s	%1$s, %2$s
+%1$s follower	%1$s ผู้ติดตาม
+%1$s followers	%1$s ผู้ติดตาม
+%1$s following	%1$s กำลังติดตาม
+%1$s like	%1$s ถูกใจ
+%1$s likes	%1$s ถูกใจ
 Under the @username on someone else's profile, show the month and year the account was made. It's read from the account's ID, so very old accounts show nothing.	แสดงเดือนและปีที่สร้างบัญชีใต้ @ชื่อผู้ใช้ บนโปรไฟล์ของผู้อื่น ข้อมูลนี้อ่านจาก ID ของบัญชี ดังนั้นบัญชีที่เก่ามากจะไม่แสดงข้อมูลใดๆ
 Joined %s	เข้าร่วมเมื่อ %s
 Keep unsent messages	เก็บข้อความที่ถูกยกเลิกการส่ง
@@ -2673,6 +2690,18 @@ Remove selected comments	ลบความคิดเห็นที่เล�
 Pick comments from your comment history to delete.	เลือกความคิดเห็นที่จะลบจากประวัติความคิดเห็นของคุณ
 Removing all comments in %1$d	กำลังลบความคิดเห็นทั้งหมดใน %1$d
 Removing the picked comments in %1$d	กำลังลบความคิดเห็นที่เลือกใน %1$d
+Unfollow accounts that don't follow you back	เลิกติดตามบัญชีที่ไม่ได้ติดตามคุณกลับ
+Checks your followers first and says how many it found, then unfollows them one after another. Accounts that follow you back stay.	ตรวจสอบผู้ติดตามของคุณก่อนและบอกจำนวนที่พบ จากนั้นเลิกติดตามทีละบัญชี บัญชีที่ติดตามคุณกลับจะยังอยู่
+Checking who you follow: %1$d	กำลังตรวจสอบบัญชีที่คุณติดตาม: %1$d
+Checking your followers: %1$d	กำลังตรวจสอบผู้ติดตามของคุณ: %1$d
+Everyone you follow follows you back	ทุกคนที่คุณติดตามติดตามคุณกลับ
+Couldn't check who follows you back. Try again.	ตรวจสอบไม่ได้ว่าใครติดตามคุณกลับ โปรดลองอีกครั้ง
+Accounts to unfollow: %1$d. Starting in %2$d	บัญชีที่จะเลิกติดตาม: %1$d เริ่มใน %2$d
+Unfollowed: %1$d	เลิกติดตามแล้ว: %1$d
+Done. %1$d unfollowed.	เสร็จสิ้น เลิกติดตามแล้ว %1$d บัญชี
+Stopped. %1$d unfollowed.	หยุดแล้ว เลิกติดตามแล้ว %1$d บัญชี
+TikTok refused. %1$d unfollowed.	TikTok ปฏิเสธ เลิกติดตามแล้ว %1$d บัญชี
+Network error. %1$d unfollowed.	เครือข่ายผิดพลาด เลิกติดตามแล้ว %1$d บัญชี
 Comments removed: %1$d	ลบความคิดเห็นแล้ว: %1$d
 TikTok refused to list your comments	TikTok ปฏิเสธการแสดงความคิดเห็นของคุณ
 Couldn't load your comments. Try again.	โหลดความคิดเห็นของคุณไม่ได้ ลองอีกครั้ง
@@ -2958,6 +2987,44 @@ Crop and stretch to fill the screen	ครอปและยืดวิดี�
 Cover the whole window with half the crop of Fill and half the stretch of Stretch, so neither is easy to spot. A video far from the screen's shape keeps TikTok's size.	แสดงวิดีโอเต็มทั้งหน้าต่าง โดยครอปเพียงครึ่งหนึ่งของแบบเต็มหน้าจอและยืดเพียงครึ่งหนึ่งของแบบยืด จึงแทบไม่สังเกตเห็นทั้งสองอย่าง วิดีโอที่มีรูปทรงต่างจากหน้าจอมากจะคงขนาดของ TikTok
 Watch LIVEs unseen	ดู LIVE โดยไม่มีใครเห็น
 You stay off the viewer list of LIVEs you open. Tap the eye in a LIVE to let that host see you. Needs Ghost mode on.	คุณจะไม่ปรากฏในรายชื่อผู้ชมของ LIVE ที่คุณเปิด แตะรูปตาใน LIVE เพื่อให้โฮสต์เห็นคุณ ต้องเปิดใช้งานโหมด Ghost
+Keep likes on this phone	เก็บการถูกใจไว้บนโทรศัพท์เครื่องนี้
+A like you give a video stays on this phone. The heart turns red, but TikTok isn't told, so the creator never sees it and it isn't on your profile. Needs Ghost mode on.	การถูกใจที่คุณให้กับวิดีโอจะอยู่บนโทรศัพท์เครื่องนี้เท่านั้น หัวใจจะเป็นสีแดง แต่ TikTok จะไม่รู้ ผู้สร้างจึงไม่เห็น และจะไม่แสดงในโปรไฟล์ของคุณ ต้องเปิดใช้งานโหมด Ghost
+My likes on this phone	การถูกใจของฉันบนโทรศัพท์เครื่องนี้
+Find and reopen the videos you liked only on this phone	ค้นหาและเปิดวิดีโอที่คุณถูกใจเฉพาะบนโทรศัพท์เครื่องนี้อีกครั้ง
+Videos you like on this phone show up here	วิดีโอที่คุณถูกใจบนโทรศัพท์เครื่องนี้จะแสดงที่นี่
+Likes cleared	ล้างการถูกใจแล้ว
+Export followers and following	ส่งออกผู้ติดตามและที่กำลังติดตาม
+Saves the accounts that follow you, or the ones you follow, as a CSV file in Download/Hushfeed. They're read at about the pace of scrolling the list, up to %1$s at a time.	บันทึกบัญชีที่ติดตามคุณ หรือบัญชีที่คุณติดตาม เป็นไฟล์ CSV ใน Download/Hushfeed โดยอ่านด้วยความเร็วประมาณการเลื่อนดูรายการ ครั้งละไม่เกิน %1$s บัญชี
+A list is already being read	กำลังอ่านรายการอยู่แล้ว
+Reading your followers (%1$s)	กำลังอ่านผู้ติดตามของคุณ (%1$s)
+Reading who you follow (%1$s)	กำลังอ่านบัญชีที่คุณติดตาม (%1$s)
+Couldn't read the list. Try again in a moment.	อ่านรายการไม่ได้ ลองอีกครั้งในอีกสักครู่
+Stopped before anyone was read	หยุดก่อนที่จะอ่านได้สักบัญชี
+Nobody follows this account yet	ยังไม่มีใครติดตามบัญชีนี้
+This account doesn't follow anyone yet	บัญชีนี้ยังไม่ได้ติดตามใคร
+The file couldn't be saved. Try again.	บันทึกไฟล์ไม่ได้ ลองอีกครั้ง
+Saved one account to %2$s	บันทึก 1 บัญชีไว้ที่ %2$s
+Saved %1$s accounts to %2$s	บันทึก %1$s บัญชีไว้ที่ %2$s
+It stopped before the end of the list, so the file is partial.	หยุดก่อนถึงท้ายรายการ ไฟล์จึงไม่ครบ
+TikTok stopped answering before the end of the list, so the file is partial.	TikTok หยุดตอบก่อนถึงท้ายรายการ ไฟล์จึงไม่ครบ
+Only the first %1$s are in the file.	ในไฟล์มีเพียง %1$s บัญชีแรก
+Save your likes from a TikTok data export	บันทึกการถูกใจของคุณจากไฟล์ส่งออกข้อมูล TikTok
+Pick the export TikTok sends from Settings and privacy > Account > Download your data, in JSON format. The videos it lists as liked or favorited are saved like picked videos, up to %1$s at a time.	เลือกไฟล์ส่งออกที่ TikTok ส่งมาจาก การตั้งค่าและความเป็นส่วนตัว > บัญชี > ดาวน์โหลดข้อมูลของคุณ ในรูปแบบ JSON วิดีโอที่ไฟล์ระบุว่าถูกใจหรือเป็นรายการโปรดจะถูกบันทึกเหมือนวิดีโอที่เลือก ครั้งละไม่เกิน %1$s รายการ
+Reading the data export	กำลังอ่านไฟล์ส่งออกข้อมูล
+Liked videos (%1$s)	วิดีโอที่ถูกใจ (%1$s)
+Favorites (%1$s)	รายการโปรด (%1$s)
+That export lists no liked or favorited videos	ไฟล์ส่งออกนั้นไม่มีวิดีโอที่ถูกใจหรือรายการโปรด
+Couldn't start saving. Try again in a moment.	เริ่มบันทึกไม่ได้ ลองอีกครั้งในอีกสักครู่
+You've already saved every one of these videos here	คุณบันทึกวิดีโอเหล่านี้ทั้งหมดไว้ที่นี่แล้ว
+Saving one video	กำลังบันทึกวิดีโอ 1 รายการ
+Saving %1$s videos	กำลังบันทึกวิดีโอ %1$s รายการ
+One you saved before is left out	ข้ามวิดีโอ 1 รายการที่คุณบันทึกไว้แล้ว
+%1$s you saved before are left out	ข้ามวิดีโอ %1$s รายการที่คุณบันทึกไว้แล้ว
+Choose the file again after this run to save the other %1$s	เลือกไฟล์อีกครั้งหลังรอบนี้เพื่อบันทึกอีก %1$s รายการ
+That file is larger than %1$s MB. Choose the JSON file from the export.	ไฟล์นั้นใหญ่กว่า %1$s MB เลือกไฟล์ JSON จากไฟล์ส่งออก
+That isn't a TikTok data export in JSON format. Choose user_data_tiktok.json or the zip it came in.	นั่นไม่ใช่ไฟล์ส่งออกข้อมูล TikTok ในรูปแบบ JSON เลือก user_data_tiktok.json หรือไฟล์ zip ที่ส่งมา
+One isn't on TikTok anymore	วิดีโอ 1 รายการไม่มีใน TikTok แล้ว
+%1$s aren't on TikTok anymore	วิดีโอ %1$s รายการไม่มีใน TikTok แล้ว
 The host can see you	โฮสต์มองเห็นคุณ
 Let the host see you	ให้โฮสต์เห็นคุณ
 Couldn't tell which LIVE this is. Open it again.	ไม่รู้ว่านี่คือ LIVE ไหน เปิดอีกครั้ง

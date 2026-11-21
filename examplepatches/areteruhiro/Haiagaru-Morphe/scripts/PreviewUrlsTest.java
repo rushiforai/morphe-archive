@@ -19,6 +19,7 @@ public final class PreviewUrlsTest {
    check(PreviewUrls.normalize(prefix+news).equals("https://"+news),"normalize "+prefix);
    check(PreviewUrls.extract("記事 "+prefix+news+"。",8).equals(List.of("https://"+news)),"extract "+prefix);
   }
+  check(PreviewUrls.extract("記事はこちらhttps://example.org/a",8).equals(List.of("https://example.org/a")),"URL immediately after Japanese text");
   String timetable="timetable.jr-odekake.net/train-timetable/421?date=20261026";
   check(PreviewUrls.extract(timetable,8).equals(List.of("https://"+timetable)),"requested timetable");
   check(PreviewUrls.normalize("http://example.org/a").equals("http://example.org/a"),"explicit HTTP preserved");

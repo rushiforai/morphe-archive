@@ -915,6 +915,7 @@ internal class HermesBundle(input: ByteArray) {
 
 /** v99 opcodes that the helper and the patches match or write (BytecodeList.def of the static_h branch). */
 internal object HermesOp {
+    const val UNREACHABLE = 0x00
     const val NEW_OBJECT_WITH_BUFFER = 0x01
     const val NEW_OBJECT_WITH_BUFFER_LONG = 0x02
     const val NEW_OBJECT_WITH_BUFFER_AND_PARENT = 0x03
@@ -922,6 +923,7 @@ internal object HermesOp {
     const val NEW_ARRAY_WITH_BUFFER = 0x07
     const val NEW_ARRAY_WITH_BUFFER_LONG = 0x08
     const val MOV = 0x10
+    const val GET_PARENT_ENVIRONMENT = 0x34
     const val LOAD_FROM_ENVIRONMENT = 0x3b
     const val GET_BY_ID_SHORT = 0x44
     const val GET_BY_ID = 0x45
@@ -932,6 +934,7 @@ internal object HermesOp {
     const val CALL3 = 0x6f
     const val CREATE_CLOSURE = 0x84
     const val CREATE_CLOSURE_LONG_INDEX = 0x85
+    const val LOAD_PARAM = 0x89
     const val LOAD_CONST_INT = 0x8c
     const val RET = 0x76
     const val LOAD_CONST_UINT8 = 0x8b
@@ -947,6 +950,9 @@ internal object HermesOp {
     const val JMP_TRUE = 0xb1
     const val JMP_TRUE_LONG = 0xb2
     const val JMP_FALSE = 0xb3
+    const val J_LESS = 0xb8
+    const val J_NOT_LESS_EQUAL = 0xc2
+    const val J_NOT_GREATER = 0xca
 }
 
 /** An array or object literal [instruction] in [function], whose values occupy value-buffer bytes [start, end). */

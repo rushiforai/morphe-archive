@@ -6,12 +6,13 @@
  * https://github.com/ReVanced/revanced-patches/commit/724e6d61b2ecd868c1a9a37d465a688e83a74799
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to Morphe contributions.
+ * Modified by lavinhoque33, 2026-11-20.
  */
 
 package app.morphe.extension.youtube.patches.components;
 
 import app.morphe.extension.shared.patches.components.ByteArrayFilterGroup;
-import app.morphe.extension.shared.patches.components.Filter;
+import app.morphe.extension.shared.patches.components.LazyBufferFilter;
 import app.morphe.extension.shared.patches.components.StringFilterGroup;
 import app.morphe.extension.youtube.settings.Settings;
 import app.morphe.extension.youtube.patches.spoof.SpoofOSNamePatch;
@@ -30,7 +31,7 @@ import app.morphe.extension.youtube.patches.spoof.SpoofOSNamePatch;
  * (Path does not contain an Identifier)
  */
 @SuppressWarnings("unused")
-public final class AdsFilter extends Filter {
+public final class AdsFilter extends LazyBufferFilter {
 
     /**
      * Injection point.
@@ -162,10 +163,10 @@ public final class AdsFilter extends Filter {
     }
 
     @Override
-    public boolean isFiltered(String path, String identifier, String allValue, byte[] buffer,
+    public boolean isFilteredLazy(String path, String identifier, String allValue, Buffer buffer,
                               StringFilterGroup matchedGroup, FilterContentType contentType, int contentIndex) {
         if (matchedGroup == creatorStoreShelf) {
-            return contentIndex == 0 && creatorStoreShelfBuffer.check(buffer).isFiltered();
+            return contentIndex == 0 && creatorStoreShelfBuffer.check(buffer.get()).isFiltered();
         }
         return true;
     }

@@ -138,6 +138,7 @@ public final class SurfaceSettingsActivity extends Activity {
             section("Glass surfaces");
             toggle("Glass effects","Use frosted surfaces for floating controls","feed_pill_blur");
             toggle("Dialog blur","Blur the screen behind dialogs and menus","dialog_blur");
+            if(Build.VERSION.SDK_INT>=31)toggle("Glass menus","Post and comment menus are a frosted bubble instead of blurring the screen","glass_menus",true);
             if(Build.VERSION.SDK_INT>=31)toggle("Blurred header","Blur what scrolls under the top bar instead of a gradient","header_blur",false);
             if(Build.VERSION.SDK_INT>=31)toggle("Glass header buttons","Frosted glass circles behind the top bar's icons","header_glass_buttons",false);
             toggle("Subreddit colours","Tint the top bar with each community's colour. Off when the header is blurred","subreddit_colours");
@@ -158,6 +159,7 @@ public final class SurfaceSettingsActivity extends Activity {
         if(page==2){
             section("Comments");
             toggle("Dynamic header","Show the subreddit and post title","dynamic_header");
+            toggle("Share button","Tap to share a comment, hold to copy its link","comment_share",true);
             toggle("Remember thread position","Return to the comment you last viewed","remember_position");
             toggle("Touch feedback","Light ticks on tabs, votes and pull to refresh","touch_haptics");
             section("Swipe actions");

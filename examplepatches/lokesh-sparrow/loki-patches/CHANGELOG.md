@@ -1,3 +1,13 @@
+## 3.4.0 (2026-11-20)
+
+### New Features
+- **Google Photos:** Google Photos joins the bundle - unlimited original-quality backup as a Pixel XL, only real camera photos count as Camera, MicroG-RE sign-in, installs next to the stock app.
+
+### Fixes
+- Diagnostic reports always start with a line saying the patches loaded, so a report is never empty.
+
+**45 patches for 6 apps.** Full list in the [README](https://github.com/lokesh-sparrow/loki-patches#apps).
+
 ## 3.3.0 (2026-11-18)
 
 ### New Features

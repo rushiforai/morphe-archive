@@ -71,6 +71,21 @@ final class PerformanceCapture {
         }
     }
 
+    /** Filter time per SDUI view name: server template identifiers such as feed-full-update, never content. */
+    static void endView(String viewName, long started) {
+        if (started == 0) return;
+        Session session = current;
+        if (session == null || started < session.startedNanos) return;
+        long elapsed = System.nanoTime() - started;
+        String name = viewName == null || viewName.isEmpty() ? "(unnamed)"
+                : VIEW_NAME.matcher(viewName).matches() ? viewName : "(other)";
+        synchronized (session.stats) {
+            if (session.running) session.stats.view(name, elapsed);
+        }
+    }
+
+    private static final java.util.regex.Pattern VIEW_NAME = java.util.regex.Pattern.compile("[a-z0-9][a-z0-9._-]{0,63}");
+
     private static final class Session implements Application.ActivityLifecycleCallbacks {
         final Application application;
         final Handler main = new Handler(Looper.getMainLooper());
@@ -126,6 +141,19 @@ final class PerformanceCapture {
     static final class Stats {
         private long frames, slow, total, maximum, firstDraws, dropped;
         private final long[] hookCount = new long[2], hookTotal = new long[2], hookMax = new long[2];
+        /** View name to {calls, total ns, max ns}. */
+        private final java.util.Map<String, long[]> views = new java.util.HashMap<>();
+
+        void view(String name, long duration) {
+            long[] entry = views.get(name);
+            if (entry == null) {
+                if (views.size() >= 200) return;
+                views.put(name, entry = new long[3]);
+            }
+            entry[0]++;
+            entry[1] += duration;
+            entry[2] = Math.max(entry[2], duration);
+        }
 
         void frame(long duration, long budget, boolean firstDraw, int missed) {
             dropped += Math.max(0, missed);
@@ -154,6 +182,14 @@ final class PerformanceCapture {
             for (int i = 0; i < hookCount.length; i++) {
                 out.append(String.format(Locale.ROOT, "  %s: calls=%d; total_ms=%.3f; max_ms=%.3f\n",
                         i == 0 ? "SDUI rewrite" : "SDUI filter", hookCount[i], hookTotal[i] / 1_000_000d, hookMax[i] / 1_000_000d));
+            }
+            java.util.List<java.util.Map.Entry<String, long[]>> top = new java.util.ArrayList<>(views.entrySet());
+            top.sort((a, b) -> Long.compare(b.getValue()[1], a.getValue()[1]));
+            if (!top.isEmpty()) out.append("  SDUI filter by view name (top 30 by time):\n");
+            for (java.util.Map.Entry<String, long[]> view : top.subList(0, Math.min(30, top.size()))) {
+                long[] v = view.getValue();
+                out.append(String.format(Locale.ROOT, "    %s: calls=%d; total_ms=%.3f; max_ms=%.3f\n",
+                        view.getKey(), v[0], v[1] / 1_000_000d, v[2] / 1_000_000d));
             }
             out.append("  Slow frames use the frame deadline or display refresh budget. This capture adds some overhead.\n");
             return out.toString();

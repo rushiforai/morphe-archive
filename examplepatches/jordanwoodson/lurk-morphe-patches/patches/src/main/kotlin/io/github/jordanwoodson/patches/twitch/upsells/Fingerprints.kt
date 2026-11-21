@@ -32,3 +32,21 @@ internal object AccountSubscriptionsSectionFingerprint : Fingerprint(
         resourceLiteral(ResourceType.STRING, "viewer_account_menu_turbo_upsell"),
     ),
 )
+
+/** Visible(buttons, onNotificationSettingSelected): the Follow / notifications / Gift a Sub / Subscribe row under the stream title. */
+internal object StreamInfoButtonsStateFingerprint : Fingerprint(
+    name = "toString", returnType = "Ljava/lang/String;", parameters = emptyList(),
+    filters = listOf(string("Visible(buttons="), string(", onNotificationSettingSelected=")),
+)
+
+/** Visible(ingressType): Twitch offers Turbo ("Try Ad-Free", "Go Ad-Free"). */
+internal object TurboIngressVisibleFingerprint : Fingerprint(
+    name = "toString", returnType = "Ljava/lang/String;", parameters = emptyList(),
+    filters = listOf(string("Visible(ingressType=")),
+)
+
+/** UserProfile(model, channelId, canSubscribe, isSubscribed, canUpgradeSub, ...): another channel's page header. */
+internal object ChannelPageStateFingerprint : Fingerprint(
+    name = "toString", returnType = "Ljava/lang/String;", parameters = emptyList(),
+    filters = listOf(string("UserProfile(model="), string(", canSubscribe=")),
+)

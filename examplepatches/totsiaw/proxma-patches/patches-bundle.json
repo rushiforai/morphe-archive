@@ -1,7 +1,7 @@
 {
-  "created_at": "2026-11-02T19:29:09",
-  "description": "## [1.28.1](https://github.com/totsiaw/proxma-patches/compare/1.28.0...1.28.1) (2026-11-02)\n\n### Bug Fixes\n\n* **simosa:** claim a milestone level-up that reaches the server late ([cb19363](https://github.com/totsiaw/proxma-patches/commit/cb1936370e96616753ef83017cf3fc33b2d98e8f))",
-  "download_url": "https://github.com/totsiaw/proxma-patches/releases/download/1.28.1/patches-1.28.1.mpp",
+  "created_at": "2026-11-21T04:31:19",
+  "description": "## [1.29.0](https://github.com/totsiaw/proxma-patches/compare/1.28.2...1.29.0) (2026-11-21)\n\n### New Features\n\n* **rox:** support ROX 3.0.14 and add check-in, battery and Play-check patches ([e0aa2f4](https://github.com/totsiaw/proxma-patches/commit/e0aa2f4195d027d0ff9feab4551800f9c684bebf)), closes [#59](https://github.com/totsiaw/proxma-patches/issues/59)",
+  "download_url": "https://github.com/totsiaw/proxma-patches/releases/download/1.29.0/patches-1.29.0.mpp",
   "signature_download_url": "",
-  "version": "1.28.1"
+  "version": "1.29.0"
 }

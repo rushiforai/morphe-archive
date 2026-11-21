@@ -11,9 +11,9 @@ internal const val BRAVE_PACKAGE_NAME = "com.brave.browser"
  * .github/workflows/compat-check.yml appends new versions through a pull request.
  */
 internal val BRAVE_VERSIONS = listOf(
-    "1.98.63",
     "1.99.55",
     "1.100.56",
+    "1.100.58",
 )
 
 internal fun braveCompatibility() = Compatibility(

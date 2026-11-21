@@ -79,7 +79,7 @@ val hideChatHighlightsPatch = bytecodePatch(
             SwitchSetting(CELEBRATIONS, "Hide celebrations",
                 "Full-screen celebration animations over the video.", Section.INTERFACE, default = false),
             SwitchSetting(EXTENSIONS, "Hide extensions",
-                "The channel's extension icons and the extensions button above chat (native chat).",
+                "The channel's extension icons and the extensions button above chat (native chat), and the chat header row when nothing else is left in it.",
                 Section.INTERFACE, default = false, restart = true),
         )
     }

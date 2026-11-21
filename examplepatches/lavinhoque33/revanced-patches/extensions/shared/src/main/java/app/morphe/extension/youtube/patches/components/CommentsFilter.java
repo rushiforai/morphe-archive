@@ -19,7 +19,7 @@ import java.util.regex.Pattern;
 
 import app.morphe.extension.shared.patches.components.ByteArrayFilterGroup;
 import app.morphe.extension.shared.patches.components.ByteArrayFilterGroupList;
-import app.morphe.extension.shared.patches.components.Filter;
+import app.morphe.extension.shared.patches.components.LazyBufferFilter;
 import app.morphe.extension.shared.patches.components.StringFilterGroup;
 import app.morphe.extension.shared.utils.Logger;
 import app.morphe.extension.shared.utils.StringTrieSearch;
@@ -30,7 +30,7 @@ import app.morphe.extension.youtube.shared.PlayerType;
 import app.morphe.extension.youtube.utils.ExtendedUtils;
 
 @SuppressWarnings("unused")
-public final class CommentsFilter extends Filter {
+public final class CommentsFilter extends LazyBufferFilter {
     /**
      * Type of the entity that tells if the channel guidelines must be acknowledged before commenting.
      */
@@ -233,7 +233,7 @@ public final class CommentsFilter extends Filter {
     }
 
     @Override
-    public boolean isFiltered(String path, String identifier, String allValue, byte[] buffer,
+    public boolean isFilteredLazy(String path, String identifier, String allValue, Buffer buffer,
                               StringFilterGroup matchedGroup, FilterContentType contentType, int contentIndex) {
         if (exceptions.matches(path))
             return false;
@@ -246,7 +246,7 @@ public final class CommentsFilter extends Filter {
             if (!ExtendedUtils.IS_20_31_OR_GREATER) {
                 return false;
             }
-            return commentComposerButtonsGroupList.check(buffer).isFiltered();
+            return commentComposerButtonsGroupList.check(buffer.get()).isFiltered();
         }
 
         if (matchedGroup == timestampButton) {
@@ -254,7 +254,7 @@ public final class CommentsFilter extends Filter {
         } else if (matchedGroup == chipBar) {
             // Playlist sort button uses same components and must only filter if the player is opened.
             return PlayerType.getCurrent().isMaximizedOrFullscreen()
-                    && aiCommentsSummary.check(buffer).isFiltered();
+                    && aiCommentsSummary.check(buffer.get()).isFiltered();
         } else if (matchedGroup == commentsFilterBar) {
             return Settings.HIDE_CATEGORY_BAR_IN_COMMENTS.get()
                     && PlayerType.getCurrent().isMaximizedOrFullscreen();
@@ -289,9 +289,10 @@ public final class CommentsFilter extends Filter {
     // modified by lavinhoque33, 2026-10-16: the modern litho bridge supplies accessibility text separately
     // (same approach as ActionButtonsFilter); the legacy bridge's allValue holds the component string.
     @Override
-    public boolean isFiltered(Object contextSource, String identifier, String accessibility, String path, byte[] buffer,
+    public boolean isFilteredLazy(Object contextSource, String identifier, String accessibility,
+                                  String path, Buffer buffer,
                               StringFilterGroup matchedGroup, FilterContentType contentType, int contentIndex) {
-        return isFiltered(path, identifier, accessibility, buffer, matchedGroup, contentType, contentIndex);
+        return isFilteredLazy(path, identifier, accessibility, buffer, matchedGroup, contentType, contentIndex);
     }
 
     /**

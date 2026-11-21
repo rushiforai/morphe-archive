@@ -15,6 +15,7 @@ private const val ORIGINS = "Lapp/morphe/extension/chmate/ArchiveOrigins;"
 
 internal fun BytecodePatchContext.patchArchiveOrigins(version: String) {
     val model = mutableClassDefBy("Ljp/syoboi/a2chMate/client/BBSUrlInfo;")
+    patchArchiveCopyResolution(version, model.type)
     val url = model.methods.single { method ->
         method.parameterTypes.isEmpty() && method.returnType == "Ljava/lang/String;" && method.accessFlags and 8 == 0 &&
             method.implementation?.instructions?.any { ins ->
@@ -71,4 +72,61 @@ internal fun BytecodePatchContext.patchArchiveOrigins(version: String) {
     }
     check(methods == 1) { "$version native archive writer expected 1, found $methods" }
     println("Archive original URLs: $version, model=${url.name}, archive writers=$methods copies=$copies")
+}
+
+
+private fun BytecodePatchContext.patchArchiveCopyResolution(version: String, model: String) {
+    val runtime = "Lapp/morphe/extension/chmate/NativeArchiveCopies;"
+    val uri = "Landroid/net/Uri;"
+    val file = "Ljava/io/File;"
+    val owner = when {
+        version.contains("191") -> model
+        version.contains("226") -> "Ljp/syoboi/a2chMate/client/BBSUrlInfo\$write;"
+        else -> "Ljp/syoboi/a2chMate/client/BBSUrlInfo\$ComponentActivity;"
+    }
+    fun call(owner: String, name: String, result: String, op: com.android.tools.smali.dexlib2.iface.instruction.Instruction): Boolean {
+        val ref = (op as? ReferenceInstruction)?.reference as? MethodReference ?: return false
+        return ref.definingClass == owner && ref.name == name && ref.returnType == result && ref.parameterTypes.isEmpty()
+    }
+    fun replacement(op: com.android.tools.smali.dexlib2.iface.instruction.Instruction, target: String) =
+        when (op) {
+            is FiveRegisterInstruction -> {
+                check(op.registerCount == 1)
+                "invoke-static {v${op.registerC}}, $runtime->$target"
+            }
+            is RegisterRangeInstruction -> {
+                check(op.registerCount == 1)
+                "invoke-static/range {v${op.startRegister} .. v${op.startRegister}}, $runtime->$target"
+            }
+            else -> error("Unsupported archive resolver instruction")
+        }
+
+    var names = 0
+    for (method in mutableClassDefBy(owner).methods) {
+        if (method.returnType != model) continue
+        val instructions = method.implementation?.instructions?.toList() ?: continue
+        for ((index, op) in instructions.withIndex()) {
+            if (call(uri, "getLastPathSegment", "Ljava/lang/String;", op)) {
+                method.replaceInstruction(index, replacement(op, "threadDatName($uri)Ljava/lang/String;"))
+                names++
+            }
+        }
+    }
+    check(names >= 1) { "$version archive URI reader missing" }
+
+    val readerType = when {
+        version.contains("191") -> "Lo/r8lambda9_COK73qqUUFHkYp0uhRYVshnk;"
+        version.contains("226") -> "Lo/AndroidLogKt;"
+        else -> "Lo/GNk16;"
+    }
+    val reader = mutableClassDefBy(readerType).methods.single { method ->
+        method.returnType == file && method.parameterTypes.isEmpty() &&
+                method.implementation?.instructions?.any {
+                    ((it as? ReferenceInstruction)?.reference as? StringReference)?.string == ".dat"
+                } == true
+    }
+    val (index, op) = reader.implementation!!.instructions.withIndex()
+        .single { call(file, "listFiles", "[$file", it.value) }
+    reader.replaceInstruction(index, replacement(op, "listDatCopies($file)[$file"))
+    println("Archive copy resolver: $version ${reader.definingClass}->${reader.name}; URI readers=$names")
 }

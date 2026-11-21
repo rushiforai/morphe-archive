@@ -91,7 +91,7 @@ uv run --project tools/apk-lab apk-lab compare old_version.apkm new_version.apkm
 Applies patch bundles (`.mpp`) to an artifact using Morphe Desktop in isolated runs. Runs the default option configuration and independently inverts every boolean option to test all boundary cases, aggregating results across all cases. Validates postconditions:
 
 - Output is a valid APK.
-- Package name and version code remain unchanged.
+- Package name and version code remain unchanged, except when the case declares a `packageName` option (for example Clone App); the output must then match that declared package.
 - Android SDK DEX structural verification passes (`dexdump -c`).
 - At least one patchable member (DEX, manifest/resources, assets/lib) is modified in the output.
 - Injected extension classes (`app/aidan/extension/...`) are inventoried when present.
@@ -467,7 +467,7 @@ uv run --project tools/apk-lab apk-lab fixtures download \
 
 ### `acquire` — Artifact Acquisition from Google Play & Fallbacks
 
-Downloads and normalizes Android application artifacts directly using Google Play accounts with `apkeep` (native Play Store downloader), falling back to `goopdl`, and finally to configured package mappings in APKMirror. Output is normalized to `.apkm` (or single `.apk` for APKMirror APK mappings). Validates downloaded package signatures, container integrity, and version metadata using the inspection badging parser.
+Downloads and normalizes Android application artifacts directly using Google Play accounts with `apkeep` (native Play Store downloader), falling back to `goopdl`, and finally to configured package mappings in APKMirror. When configured accounts carry `aas_et/` tokens, `goopdl` receives them as `GOOPDL_ACCOUNT_EMAIL`/`GOOPDL_AAS_TOKEN` and authenticates directly with Google instead of the public Aurora device dispenser. Output is normalized to `.apkm` (or single `.apk` for APKMirror APK mappings). Validates downloaded package signatures, container integrity, and version metadata using the inspection badging parser.
 Prerequisites: Google Play credentials configured via `APKEEP_ACCOUNTS` or `google-play-accounts.json`; R2 fixture credentials via `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, and `R2_SECRET_ACCESS_KEY`.
 
 ```bash

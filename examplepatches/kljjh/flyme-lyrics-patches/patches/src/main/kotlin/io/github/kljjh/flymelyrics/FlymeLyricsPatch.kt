@@ -6,7 +6,7 @@ import app.morphe.patcher.patch.*
 @Suppress("unused")
 val flymeLyricsPatch = patch(
     name = "Flyme status bar lyrics",
-    description = "Requires Third-party lyrics and Show mini-player lyrics from the official Morphe source. Mirrors the mini-player lyric text to Flyme."
+    description = "Requires official Third-party lyrics. Adds an independent Flyme status bar lyrics switch (on by default)."
 ) {
     compatibleWith(Compatibility(
         name = "YouTube Music",
@@ -34,7 +34,10 @@ val flymeLyricsPatch = patch(
                 it.name == "getContext" && it.parameterTypes.isEmpty() && it.returnType == "Landroid/content/Context;"
             } != false) throw PatchException("Unsupported official shared extension: Utils.getContext is missing.")
         // Validate the official API before editing. Unknown upstream layouts fail visibly.
+        OfficialHooks.validateReader { classDefByOrNull(it) }
         OfficialHooks.instrument(mutableClassDefBy(official))
-        OfficialHooks.instrumentMiniplayer(mutableClassDefBy(miniplayer))
+        val prefs = classDefByOrNull(OfficialHooks.PREFS) ?: throw PatchException("Unsupported official music settings screen")
+        OfficialHooks.instrumentTiming(mutableClassDefBy(OfficialHooks.FORMATTER), mutableClassDefBy(OfficialHooks.PRESENTATION))
+        OfficialHooks.instrumentSettings(mutableClassDefBy(miniplayer), mutableClassDefBy(prefs))
     }
 }

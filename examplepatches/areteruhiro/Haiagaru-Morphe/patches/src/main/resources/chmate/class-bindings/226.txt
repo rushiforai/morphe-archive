@@ -746,3 +746,5 @@ Lo/setIconified;
 [SiteMomentumSort]
 Lo/getWriteBytesTotal$IntentSenderRequest;
 Lo/Yhp5;
+[HiddenNgNewArrivalCountPatch:1]
+Ljp/syoboi/a2chMate/ui/reslist/ResListFragment$setHasDecor;

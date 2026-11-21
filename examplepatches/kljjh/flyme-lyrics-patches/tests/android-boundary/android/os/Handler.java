@@ -1,0 +1,2 @@
+package android.os;
+public class Handler { public static Runnable pending; public Handler(Looper l){} public boolean post(Runnable r){pending=r;return true;} public boolean postDelayed(Runnable r,long ms){if(ms!=300) throw new AssertionError();return post(r);} public void removeCallbacks(Runnable r){if(pending==r)pending=null;} public static void tick(){Runnable r=pending;pending=null;if(r!=null)r.run();} }

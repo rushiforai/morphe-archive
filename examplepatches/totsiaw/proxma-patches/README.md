@@ -30,12 +30,17 @@ _Supported version(s): 3.3.5, 3.3.4.2_
 
 ### ROX (`com.jazz.rox`)
 
-_Supported version(s): 3.0.13_
+_Supported version(s): 3.0.14_
 
 | Patch | Description |
 |-------|-------------|
-| **Auto check-in daily streak** | Presses the Daily Streak Check-in button for you when the app is open, once a day. It runs the app's own check-in, so it needs you to be signed in and to open the app each day. |
+| **Auto check-in daily streak** | Presses the Daily Streak Check-in button for you when the app is open, once a day. It runs the app's own check-in, so it needs you to be signed in. Add "Auto check-in in the background" so you don't have to open the app each day. |
+| **Auto check-in in the background** | Does the daily streak check-in without you opening ROX. Shortly after midnight (Pakistan time) an alarm that also fires while the phone sleeps wakes ROX; if today's check-in isn't done yet, ROX opens its own screen for a moment, presses Check-in and closes again. While the phone is in use that screen is see-through and lets your taps through, so you keep using what you had open. While the phone is locked it opens over the lock screen if full-screen notifications are allowed for ROX; otherwise the check-in waits and runs right after you next unlock the phone. If Android doesn't allow ROX to open itself, a notification on the next app open asks you to turn on "Appear on top" for ROX; until then it tries off-screen. It retries up to three times a day. A notification says when it worked, or asks you to tap it if it couldn't; the next time you open ROX a short message also says what the last background try did. You must be signed in, and ROX must have been opened once after installing. Force-stopping ROX stops it until the next time you open the app. |
+| **Bypass Play Store check** | Stops ROX from sending a patched copy to the "Get this app from Play" screen and closing, so no separate installer-source patch is needed. |
+| **Close when idle in background** | Closes ROX once it has been out of sight for three minutes and nothing is playing, so its timers, ad and analytics code stop using the battery. This also covers ROX being started in the background by a push message or a job. Notifications still arrive. Opening ROX after that is a fresh start. |
 | **Remove ads** | Stops banner and full-screen ads from loading. Rewarded video ads are left alone, so the watch-an-ad-for-points option keeps working. |
+| **Skip forced update prompt** | Stops the "Update Available" screen that blocks ROX until you install a newer version, so this patched copy keeps working after ROX releases an update. ROX's own code is told the app is a newer version than it is; Android still sees the real version. Off by default: turn it on only if ROX shows that screen again before a new patched build is out. |
+| **Stop background service** | Keeps ROX's background service from running. It can hold the phone awake, restarts itself when the system stops it and starts again after a reboot, which drains the battery. The check-in and the rest of the app don't need it. |
 
 ### My Telenor (`com.telenor.pakistan.mytelenor`)
 
@@ -118,7 +123,7 @@ _Supported version(s): 20.07.001_
 
 ### inDrive (`sinet.startup.inDriver`)
 
-_Supported version(s): 5.188.0, 5.189.0_
+_Supported version(s): 5.188.0, 5.189.0, 5.193.0_
 
 | Patch | Description |
 |-------|-------------|

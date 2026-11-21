@@ -94,13 +94,13 @@ based on this APK; the Rumble and Kick fingerprints do not apply directly.
 | Lurk icon | Purple Lurk artwork, adaptive/round/monochrome launcher resources. Twitch's own icon stays, and Lurk settings › Interface › App icon (`app_icon`) switches the launcher to it: the launcher entry (`LandingActivity`'s MAIN/LAUNCHER filter) moves to two aliases, one per icon, and the choice enables one ([how it works](rumble.md#app-icon)). Verified with a Clone app build too, which switches on its own. |
 | Remove tracking permissions | Removes the two present advertising-ID and Play install-referrer permissions. This alone does not stop other identifiers or telemetry. |
 | Clone app | Opt-in package `tv.twitch.android.app.lurk`; renames all provider authorities (ten in 31.8.0), including Amazon's suffix, and the app's signature permission. Amazon sign-in and verified app links are unverified after re-signing. |
-| Disable analytics | Native/RN Spade, local vendor consent decisions, ComScore permission, Branch events/tracking mode, Sentry and Crashlytics collection controls. Details below. |
+| Disable analytics | Native/RN Spade, local vendor consent decisions, ComScore permission, Branch events/tracking mode, Sentry and Crashlytics collection controls, and the in-app web pages' Sentry, Sprig, comScore and Nielsen requests. Details below. |
 | Clean share links | Native/RN share intents and clipboard paths; removes known tracking parameters only on Twitch-owned hosts. Keeps timestamps, unknown parameters, fragments and unrelated URLs. |
 | Disable autoplay | Separate switches for fresh feed-preview defaults and automatic next-video/clip advancement. Manual playback stays available. |
 | Default video quality | Opt-in default rendition, Source initially. Saved choices including Auto win; unavailable renditions use Twitch's fallback. |
-| Hide Shorts | `Hide Clips`: Home discovery and native channel-profile Clips tabs. Clip routes remain present. |
+| Hide Shorts | `Hide Clips`: Home discovery and native channel-profile Clips tabs (*Keep Clips on channel pages* leaves the latter). Clip routes remain present. |
 | Hide tipping and Rants | `Hide Bits tipping`: purchase/cheering controls, including native and RN chat buttons and the chat header's Get Bits. Received chat messages stay untouched. |
-| Hide Premium upsells | `Hide subscription upsells`: Subscribe/Gift prompts (the chat header's too) and Turbo promotions. Existing subscriber status and native member-management rows remain. |
+| Hide Premium upsells | `Hide subscription upsells`: Subscribe/Gift prompts (the chat header's, the stream title row's and channel pages' too) and Turbo promotions, including Try Ad-Free. Existing subscriber status and native member-management rows remain. |
 | Block cookie notice | Hides the automatic notice only. Does not accept consent, change saved consent or disable manual privacy settings. |
 | Block ads | `Block client ads`: takes the existing native client ad-decline path and completes its result. Does not remove ads stitched into streams or cover every RN ad path. |
 | Unlock Premium | No patch. Local Turbo state exists, but no useful equivalent entitlement change was established. Signed playback/account benefits are server controlled. |
@@ -291,6 +291,39 @@ Following.
   environment. Every public `Sprig` method has zero spare registers, so the facade can't be guarded
   directly.
 
+*Keep watch time* (`disable_analytics_watch_time`, under Disable analytics, on by default) lets the player's
+`minute-watched` Spade event through and nothing else, the same way the Auto-claim switches do (see *Auto-claim
+channel points*). Twitch credits channel points, watch streaks and time-based Drops only from that event, so
+with Disable analytics on by default and both Auto-claim switches off by default, a default build earned no
+points and lost watch streaks (issue 98). It is read per event, so it needs no restart. Turned off, Disable
+analytics blocks `minute-watched` too unless an Auto-claim switch is on.
+
+The in-app web pages (portals, see [In-app web pages](#in-app-web-pages-fix-web-page-errors)) run Twitch's web
+client, with trackers of their own. While Disable analytics is on, both portal WebViewClients'
+`shouldInterceptRequest` starts with `TwitchPortals.trackerResponse(request)`, which answers requests to these
+hosts and their subdomains with an empty 204 (CORS headers that let `fetch()` and its preflight through), so
+they never leave the device:
+- `sentry.io`: every portal's Sentry client (`o278969.ingest.us.sentry.io`, the Android DSN) for error reports and
+  a sampled share of traces (`sentry_tracing_threshold`, 0.01 in the bundled settings);
+- `sprig.com`: Sprig, which every portal loads once its first page is up, in the countries of the
+  `c3p_sprig_countries` setting (US and Canada by default) while Twitch's `sprig-sdk-load` experiment is on
+  (`api.sprig.com`, and `cdn.sprig.com` for its session-replay recorder);
+- `scorecardresearch.com` and `imrworldwide.com`: the comScore and Nielsen pixels of the mod view's player.
+
+What the portals don't do: their Spade events don't go to `spade.twitch.tv` but to `gql.twitch.tv/gql` as a
+`sendSpadeEvents` GraphQL mutation (`graphqlSpadeEndpoint` is `graphqlEndpoint`), with the same headers as the
+page's other GraphQL requests, and `shouldInterceptRequest` gets no request body to tell them apart, so they still
+go. `spade_url`, `beacon_url` (`beacon.twitch.tv`) and the `amazon_ads_url*` values (`s.amazon-adsystem.com`,
+`aax-eu.amazon-adsystem.com`) are in the settings bundled into `portals.html`, but no portal code sends to them
+(`spade_url` only filters the page's network benchmarks). Branch's web SDK waits for an opt-in no portal gives.
+Kasada (`k.twitchcdn.net`, with its `cloudflare.com/cdn-cgi/trace` lookup) protects sign-in and sign-up and is left
+alone. On the emulator, signed out, with a temporary log of every request in the hook, Sign up, the login portal
+and Web Content Licenses requested only `m.twitch.tv`, `assets.twitch.tv`, `gql.twitch.tv`,
+`static-cdn.jtvnw.net`, `k.twitchcdn.net` and `cloudflare.com` in the 15 to 40 seconds watched. Requests from the
+Sign up page to each tracker host, made over the WebView's DevTools socket, got the 204 (a JSON POST to Sentry's
+envelope endpoint passed its preflight), and with Debug logging on Lurk logged `analytics: answered a web page's
+request to <host> locally`; with Disable analytics off the hook wasn't consulted and the request went out.
+
 A blanket "disable Google Play services" switch is deliberately not offered. It would break push,
 Google and FIDO sign-in, Cast and billing.
 
@@ -415,6 +448,54 @@ out. Two checks guard against it:
   `tests/twitch/verify_hooks.py`, which keeps the groups of the patches the APK includes (read from
   its settings registry) and checks each call is in the patched dex.
 
+### In-app web pages: Fix web page errors
+
+Issue 102: on Twitch 32.1.0, the player's Clip button opened the Create Clip sheet, which closed a moment later
+with "There was an error, please try again later". The reporter's log had `chromium: handshake failed; ...
+net_error -202`: something on the phone (an HTTPS-filtering ad blocker, a VPN or a DNS block page) answered
+some host with a certificate WebView doesn't trust.
+
+Create Clip, Report, Sign up, passkeys, collaboration and several other screens are *portals*: a Capacitor
+WebView on a page from `m.twitch.tv/wv/<page>` (`kau.a("clip_editor_portal", ..., "clip-creation", ...)`), run by
+Twitch's web client. Its own assets are bundled in `assets/public/portals.html` for portals that may use local
+assets (Sign up); Create Clip and Web Content Licenses load from the network (`m.twitch.tv` and
+`assets.twitch.tv`). Two WebViewClients serve portals: Capacitor's, which `TwitchBridgeWebViewClientPlugin.load`
+creates for a `PortalFragment` (`le50` in 32.1.0), and the one of Twitch's own `TwitchPortalView` (`me50`, which
+logs `onReceivedSslError(view=`). Both forward *every* certificate error to the portal: `onReceivedSslError`
+calls `super` (which cancels) and then `ne50.c(view, error)`, with no check that the error is the page's own, unlike
+their `onReceivedError` and `onReceivedHttpError`, which only forward main-frame errors. The portal records a
+`portal_hosting_app_event` named `received_ssl_error` and moves to its error state, and each screen reacts to
+that: `ClipEditorPortalFragment` shows `clip_creation_sheet_error` and dismisses itself (the collaboration
+sheets show "Something went wrong"); Sign up and Web Content Licenses keep showing the page. So one blocked
+request from any host the page loads closes Create Clip, unpatched Twitch included.
+
+The patch hooks the start of both clients' `onReceivedSslError` with `TwitchPortals.sslError(view, handler,
+error)`. When the error's URL (`SslError.getUrl()`) is on another host than the page's (`WebView.getUrl()` or
+`getOriginalUrl()`, the one still loading), it calls `handler.cancel()` (never `proceed()`: the request stays
+blocked) and returns null, and the hook returns before Twitch's code. Otherwise it returns the error and Twitch
+handles it as before: an error on the page's own host (the page itself), one while the page's host isn't known
+yet (no URL, `about:blank`), one without a URL, and every error while the switch is off. Capacitor's client has
+no local registers there, so the hook can't return a boolean: the extension hands back the error, or null once
+it has handled it, and the `SslError` parameter takes the answer. The `fix_web_pages` switch (Interface, on by
+default: it restores expected behavior) turns it off. A blocked request still fails in the page; when that is
+something the page can't work without (its scripts on `assets.twitch.tv`, or `gql.twitch.tv`), the page stays
+open and shows its own error or stays empty instead of closing.
+
+Disable analytics now covers the portals too (see [Trackers in Disable analytics](#trackers-in-disable-analytics)).
+
+Checked on the emulator (`emulator-5580`, Android 16, WebView 133) on 2026-11-20, signed out, with WebView told
+to resolve one host to 1.1.1.1 (`/data/local/tmp/webview-command-line`, read on debuggable images: `_
+--host-resolver-rules="MAP <host> 1.1.1.1"`), which fails that host's TLS with a name mismatch (`net_error
+-200`, primary error 2). A temporary debug hook on the native Spade dispatcher logged the portal events. With
+`k.twitchcdn.net` (Kasada's script, which each of these portals loaded) mapped and the switch off, Web Content Licenses
+(network page) and Sign up and the login portal (local assets) each recorded `received_ssl_error` right after
+the handshake failure; with the switch on, Lurk logged `web page: ignored a certificate error (2) from
+k.twitchcdn.net`, no `received_ssl_error` followed, and the Sign up form stayed usable (read over the WebView's
+DevTools socket). With `m.twitch.tv` mapped, Web Content Licenses still recorded `received_ssl_error` and
+stayed blank, with no Lurk line, as unpatched. Create Clip itself needs a signed-in account, which Twitch refuses
+on the emulator; its reaction to `received_ssl_error` is from the code (`et7`). `tests/twitch/test_portals.py`
+pins the decisions.
+
 ### Player: sleep timer, refresh, gestures and latency
 
 The player patches hook IVS `CorePlayerImpl` (the SDK's names are kept) and Twitch's own control
@@ -478,8 +559,19 @@ only for a positive
 latency or a negative one below -1 (-1 means no player, 0 a stream still loading). After switching between
 live channels, IVS can keep reporting a negative latency (-28 to -96 s on the emulator in 32.1.0, also with
 only this patch applied) until the stream reloads, and Twitch's own stats panel shows that as 0 (issue 77).
-The pill then reads "? s"; a tap's Retry restored a normal 1.9 s at once. Signed in on a phone, about 30
-switches between live channels gave "? s" four times, and each tap tried brought it back to 1.4–1.6 s. Twitch's native player has no seek to live (only the React Native theatre has a DVR "jump to live"
+A tap's Retry restored a normal 1.9 s at once. Signed in on a phone, about 30 switches between live channels
+gave a negative reading four times, and each tap tried brought it back to 1.4–1.6 s.
+
+Until the stream reloads, the pill shows Twitch's own delay behind the broadcast instead (issue 99). Twitch
+tags each segment with a timed ID3 `TXXX` frame whose `ld_lat_data` command carries `transc_r`, the
+transcoder's wall clock time; as the cue plays, Twitch's parser (found by `ld_lat_data`, `stream_offset` and
+`transc_r`) stores now minus `transc_r` in the event the IVS wrapper makes from the cue (the wrapper method found
+by `ID3`, `TXXX`, `stream_loudness` and `cmd`). Right after that event's constructor, `TwitchLatency.id3` keeps
+the delay per wrapper, read through a bridge stub, and the badge reads its presenter's wrapper (the field its
+latency getter reads) through another. The pill uses a tag that played in the last 6 s only while IVS reports
+below -1, and reads "? s" only until the first tag arrives. On the emulator, signed out, 8 switches between live
+channels: IVS read 1.1–2.4 s and the tags 0.3–0.6 s less each time, and on the switch where IVS reported
+-86,569 ms the pill read 0.7 s from the tags (before the change, 4 of 10 switches showed "? s"). Twitch's native player has no seek to live (only the React Native theatre has a DVR "jump to live"
 pill), so a tap calls the presenter's Retry with `(0, true)`, the same call the error screen and *Refresh
 stream* make: a new access token and playlist, which start at the live edge. Verified on the emulator on a
 live channel: the pill read 2.3–2.7 s with low latency, a tap logged `jump to live from 2342 ms`, the stream
@@ -741,6 +833,11 @@ Native Home is not React Native: RN Home and the Ultralight theatre run only wit
 That includes the signed-out Home. *Hide Clips* therefore also filters the native Home tab provider at
 its three users, keeping Clips when Home opens on a clip.
 
+*Hide Clips*' child switch *Keep Clips on channel pages* (off by default, issue 93) leaves the channel page's Clips
+tab: `TwitchInterface.clipTabs`, which filters the profile pager's tab list, hands back Twitch's list unchanged
+while it is on. Home's clip tab and shelves stay hidden. Checked on a phone, signed in: with it on, a channel page
+showed Home, About, Clips, Videos, Schedule, Chat while Home kept only Following and Live.
+
 In RN Home's feeds, *Hide Clips* also hides clip shelves such as "Clips for you" on the Live tab (issue 89).
 Every feed shelf is one `FeedShelfContainer`, which already renders nothing for a shelf without items, after all
 of its hooks (`items.length === 0`, then `x == null`). The second check becomes a long jump to a stub that makes
@@ -762,7 +859,16 @@ either feed even with the switch off; with it on, both feeds loaded and scrolled
   `BaseViewDelegate` view and extension list to `TwitchHighlights.extensionIcons`, which hides the view and
   returns no extensions, so neither the icons nor the extensions button show. React Native chat opens extensions
   from its own sheet and keeps it. None of eight large live channels showed the test account extension icons, even
-  with the switch off, so the hide is checked only through its hook.
+  with the switch off, so the hide is checked only through its hook. The chat header (`chat_header`: the chat's
+  name, the leaderboard button, the extensions, then Follow/Subscribe/Gift A Sub in a `ComposeView`, over a
+  divider) is a fixed-height row that Twitch keeps showing when the extensions were all it had: a follower with no
+  subscription buttons (Twitch builds no buttons when Follow, Subscribe and Gift A Sub are all left out, as with
+  *Hide subscription upsells*) saw an empty band between the player and chat (issue 101). After hiding the
+  header's extensions, `extensionIcons` posts a check that runs after the header's render (which makes it visible
+  last) and hides the header when no part of its `header_container` row is visible; the next render shows it
+  and the check runs again. Signed out, the header always has Follow, so on the emulator the collapse was shown
+  with a test build that also counted the buttons and spacer as empty: on a channel with an extension button in
+  its header (Nix), the header went to zero height and chat started right under the player.
 
 *Hide player buttons* filters the clip button state and live overlay options, every AndroidX
 `MediaRouteButton` (Cast), and the VOD and vertical-theatre share buttons. Its *Hide chat mode pop-up* switch
@@ -778,9 +884,19 @@ clears the `ShowStoriesShelf` argument and filters the Following page's section 
 channels you follow" shelf of past streams on the Live tab, switch *Hide recent streams*). The last two were
 checked on a phone only as far as Home still rendering with the switches on: the test account can't follow
 channels (Twitch asks for a phone number first), so neither section was there to hide. Its *Hide Live tab* switch
-removes the Live tab itself ([Hide Live tab](#hide-live-tab)). *Hide mature
+removes the Live tab itself ([Hide Live tab](#hide-live-tab)); its *Hide Stories* switch on the React Native Home is
+described in [Hide Stories](#hide-stories). *Hide mature
 content warning* makes the label-acknowledgement check return true without saving anything; age,
 region, guardian and account gates still apply.
+
+*Hide content label* (its own patch, switch off by default, issue 92) hides the "Intended for certain audiences"
+label at the top of the native player on streams with content labels. The label is a view delegate whose render
+(found by the `ccl_disclosure_label` and `ccl_disclosure_label_error` strings) draws the label's state:
+`MatureContent(...)` shows it, `NotShowing` fades it out. Before the render, a `MatureContent` state goes to
+`TwitchInterface.hideContentLabel`, which with the switch on hides the delegate's `BaseViewDelegate` view and skips
+the render. The delegate class also draws unrelated views for other states, which pass through. It doesn't touch the
+content warning (that's *Hide mature content warning*) or the labels in the vertical feeds. Checked on a phone,
+signed in, on a GTA VI stream: the label shows with the switch off and doesn't with it on.
 
 *Hide Bits tipping* now also filters `ConfigureMessageInput(isBitsPickerVisible=)`. The classic chat
 input reads its Bits button and tray from that state, not from the toolbar states.
@@ -811,8 +927,78 @@ bundle) forced the state to a following subscriber with Bits for sale: with both
 "Get Bits" and "Gift A Sub" as in the issue, with *Hide Bits tipping* only "Gift A Sub", and with both
 switches on the row was gone. Not verified: a real signed-in account.
 
+The row under the stream title in the native theatre (Follow or Unfollow, the notifications bell, Gift a Sub and
+Subscribe, issue 92) is a Compose row whose buttons one builder picks (the method that constructs
+`Visible(buttons=, onNotificationSettingSelected=)`). It offers Subscribe from the subscription state's
+`isSubscriptionEnabled()`, Gift a Sub from `isGiftingEnabled()` and Upgrade from a flag (the move-result before the
+`UpgradeSubButton` read); *Hide subscription upsells* routes all three through `subscriptionUpsellVisible`.
+`isSubscribed()` is kept, so a subscriber gets Twitch's subscription details button, which Twitch shows only when there
+is no Upgrade button. The test account had the switch on and still saw the issue's row (heart, bell, gift, Subscribe)
+before this; afterwards the row was the heart and the bell, and with the switch off all four came back.
+`bin/test-twitch-interface` runs the real builder on ART for a follower, a new viewer and a subscriber who can
+upgrade, with the switch on and off (and `--stock`). The patch records
+`twitch.hide_subscription_upsells.stream_info_buttons`.
+
+Another channel's page has the same kind of button beside Follow and notifications: Subscribe, Gift a Sub for a
+subscriber, or Upgrade. The page shows it only while its state's `canSubscribe` is true
+(`UserProfile(model=, canSubscribe=, ...)`), which *Hide subscription upsells* filters through
+`subscriptionUpsellVisible` in the state's constructor (`twitch.ui_flag.channel_page_state.can_subscribe`); Follow then
+takes the row. Checked on the phone: Follow alone with the switch on, where Subscribe had shown before.
+
+"Try Ad-Free" (or "Go Ad-Free") on your own channel page comes from Twitch's Turbo offer state, `Visible(ingressType=)`,
+which one method makes (`twitch.hide_subscription_upsells.turbo_offer`). With *Hide subscription upsells* on,
+`TwitchInterface.turboIngress` swaps it, right after its constructor, for the hidden state the same method hands out
+when there's no offer (the one static instance of that state family it reads, read through the
+`turboIngressHidden` bridge); the other states join after the swap and skip it. The probe checks the swap on ART with
+the switch on and off. The test account isn't offered Turbo, so the button itself wasn't seen on the phone.
+
 `bin/test-twitch-highlights` runs the real classes on ART with each switch on and off. Following
 sections, Hype Train and the RN paths are verified only statically.
+
+### Hide Stories
+
+*Hide Home sections*' *Hide Stories* switch (on by default, restart) hides the Stories button and shelf at the top of
+Home. Natively it clears the `ShowStoriesShelf` argument. React Native Home (phones, signed in) has no Stories switch of
+its own: `DiscoveryFeedContent` reads `recaps = useRecapsShelfEnabled()` and shows Stories while it is false
+(`showStoriesShelf = !recaps`). Stock Twitch with its recaps shelf on is therefore the model: no shelf, and none of the
+layout and scrolling that make room for one. `patches/.../twitch/home/HermesHomeStories.kt` changes three places in
+`DiscoveryFeedContent`, all under `hide_home_stories`:
+
+- `showStoriesShelf`: the `Not` negates the hook function instead of its result, so the value is false for the top
+  chrome (`FeedTopChrome`'s `showStoriesShelf`) and for `useStoriesShelf` (`shelfPresent`), and the hook still runs.
+  Hiding the shelf only in the chrome, as up to v1.17.1, left `useStoriesShelf` with a shelf, and a pull at the top of
+  the feed revealed the empty shelf instead of refreshing
+  ([issue #75](https://github.com/jordanwoodson/lurk-morphe-patches/issues/75)).
+- The shelf offset, `recaps ? 0 : shelfHeight + TABS_BAR_MARGIN_TOP`. `FeedTopChrome` is translated by
+  `shelfProgress` from `-offset` (shelf collapsed) to 0 (open), and the Following and Live pages from 0 to `offset`.
+  `TABS_BAR_MARGIN_TOP` (28 dp) is the gap the chrome puts above its tabs only while `showStoriesShelf` is on.
+  `useStoriesShelf` starts with the shelf open and the feed pinned, so the feed's first drag up collapses the shelf
+  even when there is none (`shelfHeight` 0). With the offset still 28, that moved the tabs 28 dp up under the status
+  bar, and without a shelf to reveal nothing moved them back until Home was rebuilt
+  ([issue #95](https://github.com/jordanwoodson/lurk-morphe-patches/issues/95)). The branch's `JmpTrue end, recaps`
+  is now `JmpFalse end, showStoriesShelf`: the same test with the switch off, offset 0 with it on.
+- `FollowingTab`'s `feedPinOffsetRef`, `recaps ? undefined : feedPinOffsetRef`, changes the same way. With the ref,
+  Following's scroll handler holds its list at the pin until a drag has collapsed the shelf, which is now invisible.
+
+The other reads of `recaps` keep Twitch's value: the recap cards and `RecapsShelfHeader` belong to the recaps shelf
+(*Hide recent streams*), and `useStoriesCreationAccess` still gets the account's ID. The patch checks that nothing
+writes `showStoriesShelf`'s register between the `Not` and the two branches.
+
+`bin/test-twitch-interface-hermes` runs `tests/twitch/HomeStoriesProbe.kt`, which runs the edited bytecode of the
+three places in the stock bundle for both switch positions and both values of the recaps flag: with the switch off
+every value is Twitch's, with it on `showStoriesShelf` is false, the offset 0 and Following has no pin, whatever the
+flag says.
+
+Checked on 2026-11-20 on the emulator with the issue reporter's Lurk switches, in a throwaway build (not part of the
+bundle) that shows React Native Home signed out. In 32.1.0 a phone gets it only with an account, so the build
+returned true from the Ultralight availability check (the method with the `isEnabled()Z` string), hid the second
+splash, which waits for a signed-in feed, and read `useAuth().isLoggedIn` as true in `DiscoveryFeedContent`. The feed
+and its gestures then render, though its requests fail and the pages show their error states. Before the fix, one drag
+up on Following moved the tabs under the status bar, cut in half as in the issue's screenshot, and they stayed there
+after scrolling back up and on the Live tab; the pages also started 28 dp lower. With the fix the tabs didn't move.
+With *Hide Stories* off, before and after the fix, the tabs sat under the (empty) Stories shelf, rose to just below
+the status bar when it collapsed and came back down when a pull revealed it. Not checked: a signed-in feed with items,
+and pull to refresh, which the error states don't offer.
 
 ### Hide Live tab
 
@@ -923,7 +1109,7 @@ fails on a version where any implementation dereferences the chat mode before ov
 stand-in for the action, so the request itself is unverified.
 
 Twitch offers points and the chest only for watch time it is told about: the player's `minute-watched`
-Spade event, which *Disable analytics* (on by default) blocks with every other event. Signed in on a phone
+Spade event, which *Disable analytics* (on by default) blocked with every other event until *Keep watch time*. Signed in on a phone
 with Twitch 32.1.0, 18 minutes with Disable analytics on brought neither the +10 watch points nor a chest;
 with it off, +10 came after about 5 minutes and the chest was claimed by itself (`chat: claiming a channel
 points bonus`, 320 to 380 points). So while this switch is on, Disable analytics lets `minute-watched`
@@ -1142,6 +1328,65 @@ the emulator: xQc's 7TV list arrived about a second after the switch, and the ne
 channel with no set on a service still gets the service's global emotes; a 404 for the channel is an empty list,
 not a failure (checked on a channel none of the three services knows: three empty channel lists, then the
 global ones). The landscape one-chat overlay of the native theatre is native too and gets the same emotes.
+
+**Loading and failures** ([issue #100](https://github.com/jordanwoodson/lurk-morphe-patches/issues/100): a
+channel's emotes stayed text and the picker had only the global ones). A channel's lists load when chat connects to
+it and again whenever a chat line, the picker or autocomplete finds them expired. Up to v1.20.0 every list, the
+badge lists, pronoun badges and *Emote and badge info*'s images shared three background threads; a list that failed
+stayed empty for a minute, while the global lists kept what they had, so a failure on joining a channel left
+exactly the global emotes; and a request that got no answer held its thread for the 15 s read timeout. On
+2026-11-19, when FrankerFaceZ's API answered Cloudflare 522s, its channel list, global list and badge list each did
+that once a minute (the badges every two), so the three threads could all be waiting on it while 7TV's and
+BetterTTV's lists for the channel being opened queued behind them. No log came with the report, so which of these
+the reporter hit isn't known. FrankerFaceZ's API is still slow at times: on 2026-11-20 its badge list took 32 s to
+answer this host, and the emulator's channel and global requests once got no answer within 8 s.
+
+Now each service's lists load on a lane of their own (`TwitchEmotes.LANES`, two threads and a queue of 32 each), so
+a service that hangs only delays its own lists. A list that fails keeps what it had and is tried again after 5, 15
+and 30 s, then every minute; when chat joins the channel again, a failed list is tried at once (unless it failed in
+the last 5 s). Every failure is logged as a warning (tag `lurk`, without the channel's ID) with the reason and when
+the next try is. A request given up because its React Native rows went away stores nothing, so the next caller asks
+straight away. `tests/twitch/test_providers.py` runs the loader on the JVM with controlled HTTPS answers and clock
+(`TwitchEmoteLoadingProbe`): FrankerFaceZ hanging with the shared pool busy while 7TV's and BetterTTV's channel and
+global lists of two channels load; the retry times, a failing list keeping its emotes and a channel join retrying;
+and a cancelled load storing nothing. On the emulator (signed out, 7TV, BetterTTV and FrankerFaceZ emotes and
+badges on, Debug logging), with an `iptables` rule resetting connections to `7tv.io` while lirik's channel opened
+and removed six seconds later: both 7TV lists failed at once and again 6 s later, and arrived (998 channel emotes) on
+the next try 16 s after that. With `api.frankerfacez.com` blocked instead, BetterTTV's and 7TV's lists arrived 1 to
+5 s after chat connected while FrankerFaceZ's requests were still waiting.
+
+**FrankerFaceZ's fallback** ([issue #97](https://github.com/jordanwoodson/lurk-morphe-patches/issues/97):
+FrankerFaceZ emotes were text while its API answered 522s). FrankerFaceZ's emote lists fall back to BetterTTV's copy
+of them, the one BetterTTV's own extension uses: `api.betterttv.net/3/cached/frankerfacez/users/twitch/<id>` and
+`/emotes/global`. When `api.frankerfacez.com` gives no answer within 8 s (it normally answers within a second or
+two), answers with an error other than 404 (a 404 is a channel it doesn't know), or sends a body that doesn't parse,
+the same list comes from the copy, and for the next 10 minutes the copy is asked first, so other channels don't wait
+8 s each. Checked on 2026-11-20 against six channels and the global list: the copy has FrankerFaceZ's emote IDs,
+codes, animated flags and modifiers in BetterTTV's list format (`[{id, code, animated, modifier, user:
+{displayName}, images}]`), and its global list is FrankerFaceZ's default sets. Emotes from the copy get IDs
+`lurkz…` instead of `lurkf…`, and their images come from BetterTTV's copy of FrankerFaceZ's CDN,
+`cdn.betterttv.net/frankerfacez_emote/<id>/<1|2|4>` and `/animated/<1|2|4>.gif` (the same files), so they keep
+working when `cdn.frankerfacez.com` fails too; Lurk's image cache keeps them like any `cdn.betterttv.net` image, and
+*Emote and badge info* names them FrankerFaceZ emotes. The copy has no sizes, so a wide emote is drawn in a square
+box unless FrankerFaceZ's own list gave its width earlier in the session. The *FrankerFaceZ emotes* summary names
+`api.betterttv.net` and `cdn.betterttv.net`, since the fallback sends them the channel's ID. FrankerFaceZ's badges
+have no such copy (BetterTTV doesn't mirror FrankerFaceZ's badge list), so they stay away while FrankerFaceZ is
+down. A request that can't even complete its TLS handshake is tried on each of the host's addresses by Android's
+HTTP stack, each with its own timeout, so then the first fallback takes longer (24 s on the emulator below, three
+addresses).
+
+`TwitchEmoteLoadingProbe` (in `test_providers.py`) also runs FrankerFaceZ answering 522: lists from the copy,
+`lurkz` IDs, their CDN URLs, the info sheet's naming, the copy asked first for the next channel and FrankerFaceZ
+again ten minutes later with its own IDs and widths, a 404 kept as an empty list, and both failing counted as one
+failure. `bin/test-twitch-providers` parses the copy's format with Android's `JsonReader` and runs the fallback over
+controlled HTTPS on ART; `bin/test-twitch-chat-style` checks the info sheet's larger copy for the copy's image URLs.
+On the emulator, with `api.frankerfacez.com` blocked by an `iptables` rule matching its TLS server name: on lirik's
+channel FrankerFaceZ's channel and global lists came from the copy (18 and 11 emotes) 24 s after chat connected,
+once all three addresses had timed out, with the warning above; switching to pokelawls then took the copy straight
+away (62 emotes, 0.1 s), and FrankerFaceZ-only emotes drawn in its chat (`monkaW`) were in Lurk's image cache under
+their `cdn.betterttv.net/frankerfacez_emote` URLs. Before the rule, the emulator's requests to FrankerFaceZ had timed
+out on their own and fell back the same way (`PepeLa`, `monkaOMEGA` drawn from the copy). With the rule removed and
+the app restarted, the lists and the badge list came from FrankerFaceZ again.
 
 VOD replay splits its named message tokens. React Native chat gets `emotes=` ranges added to incoming
 IRC frames, and its `ImageSource` maps the same URLs. Compiled RN row wrappers additionally enrich
@@ -1463,7 +1708,7 @@ These features appear in other Twitch bundles and mods but are deliberately not 
 
 Native Spade dispatch completes the nullable success callback exactly once rather
 than leaving callers waiting. The native batch transport is also guarded. The one exception is
-`minute-watched` while *Auto-claim channel points* or *Auto-claim Drops* is on (see those patches): it passes the dispatcher, and
+`minute-watched` while *Keep watch time*, *Auto-claim channel points* or *Auto-claim Drops* is on (see those patches): it passes the dispatcher, and
 the batch transport sends only `minute-watched` events. `tests/twitch/test_privacy_consent.py` checks both
 decisions. RN's
 `createSpadeReporter` retains its object/API while enqueue and flush return their
@@ -1711,7 +1956,8 @@ for the target methods:
 - `bin/test-twitch-interface-hermes <stock.bundle> [patched.bundle]`: production transforms and
   actual caller instructions for the two-tab model/pager, initial selection, swipe
   bounds, explicit native clip callbacks and empty-feed initial-effect deduplication, and Hide Live tab with
-  Hide Clips in all four combinations (`HomeLiveTabProbe.kt`, see [Hide Live tab](#hide-live-tab)).
+  Hide Clips in all four combinations (`HomeLiveTabProbe.kt`, see [Hide Live tab](#hide-live-tab)), and Hide Stories
+  with Twitch's recaps flag off and on (`HomeStoriesProbe.kt`, see [Hide Stories](#hide-stories)).
 - `bash bin/test-twitch-emotes <patched.apk>`: the emote picker presenter's section building and the
   autocomplete filter with *Emotes in the picker* on and off (`EmotePickerArtProbe`).
 - `bash bin/test-twitch-drops <patched.apk>`: *Auto-claim Drops* through the drops notification's own Claim
@@ -1750,7 +1996,8 @@ patched APK as `assets/lurk/locators.json`:
   `twitch.hide_subscription_upsells.subscribe_renderer`/`turbo_dialog_route`/`chat_header_subscription_state` and
   `twitch.emote_picker.section`/`autocomplete_map`/`autocomplete_order`/`autocomplete_order_type` and
   `twitch.latency_badge.latency` and `twitch.auto_claim_drops.handler`/`handler_case` and
-  `twitch.emote_badge_info.placeholder`.
+  `twitch.emote_badge_info.placeholder` and `twitch.portals.bridge_client`/`view_client` (the two portal
+  WebViewClients).
 
 `ChatArtProbe`, `AdsProbe`, `PrivacyAdsProbe` and `HighlightsArtProbe` read the file through
 `ProbeLocators.java`, and `verify_privacy.py` and `verify_interface_emitted.py` through `locators.py`;

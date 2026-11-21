@@ -2,6 +2,7 @@ package app.bin0culars.patches.reddit.layout.tabletgrid
 
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.methodCall
+import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.string
 import com.android.tools.smali.dexlib2.AccessFlags
 
@@ -23,28 +24,41 @@ private val MASONRY_PARAMETERS =
         "I",
     )
 
-private val LIST_FEED_PREFIX =
-    listOf(
-        "L",
-        "L",
-        "Lkotlin/jvm/functions/Function1;",
-        "Landroidx/compose/foundation/lazy/b;",
-        "L",
-        "Lcom/reddit/feeds/data/FeedType;",
-        "F",
-        "Lkotlin/jvm/functions/Function2;",
-    )
+internal fun firstParameterIndex(parameters: List<String>, type: String): Int {
+    val index = parameters.indexOfFirst { it == type }
+    if (index == -1) {
+        throw PatchException("List feed has no $type parameter")
+    }
+    return index
+}
 
 object ListFeedFingerprint : Fingerprint(
     definingClass = "Lcom/reddit/feeds/ui/composables/feed/",
     isStatic = true,
     returnType = "V",
+    filters =
+    listOf(
+        methodCall(
+            parameters =
+            listOf(
+                "L",
+                "L",
+                "L",
+                "Lcom/reddit/feeds/data/FeedType;",
+                "Z",
+                "L",
+                "L",
+                "Landroidx/compose/runtime/internal/a;",
+                "L",
+                "I",
+                "I",
+            ),
+            returnType = "V",
+        ),
+    ),
     custom = { method, _ ->
         val params = method.parameterTypes.map { it.toString() }
-        params.size >= LIST_FEED_PREFIX.size &&
-            LIST_FEED_PREFIX.zip(params).all { (expected, actual) ->
-                if (expected == "L") actual.startsWith("L") else actual == expected
-            }
+        "Landroidx/compose/foundation/lazy/b;" in params && "Lcom/reddit/feeds/data/FeedType;" in params
     },
 )
 

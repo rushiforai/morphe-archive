@@ -1,3 +1,9 @@
+## 1.6.0 (2026-11-20)
+
+### ✨ New Features
+
+* **maps:** embed MicroG-RE in Google Maps NMAX ([915cd5e](https://github.com/lamphung-phuc/nmax-patches/commit/915cd5e1dc9da257d4ddad41cda505e5995508bb))
+
 ## 1.0.0 (2026-11-17)
 
 ### ✨ New Features

@@ -1416,6 +1416,11 @@ public class PlayerPatch {
         return Settings.ENABLE_SEEKBAR_TAPPING.get();
     }
 
+    /** Injection point for swipe-up precise seeking and its guide. */
+    public static boolean disablePreciseSeekingGesture() {
+        return Settings.DISABLE_PRECISE_SEEKING_GESTURE.get();
+    }
+
     private static final int timeBarChapterViewId =
             ResourceUtils.getIdIdentifier("time_bar_chapter_title");
 

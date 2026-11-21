@@ -5,6 +5,7 @@
  * https://github.com/anddea/revanced-patches
  *
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-20.
  * Written by lavinhoque33, 2026-10-24.
  */
 
@@ -51,8 +52,13 @@ final class OfflineThumbnails {
      */
     @Nullable
     static Image fetchOriginal(String videoId) {
+        return fetchOriginal(videoId, URL_FORMAT);
+    }
+
+    @Nullable
+    static Image fetchOriginal(String videoId, String urlFormat) {
         for (String size : SIZES) {
-            String url = String.format(Locale.US, URL_FORMAT, videoId, size);
+            String url = String.format(Locale.US, urlFormat, videoId, size);
             byte[] bytes = fetch(url);
             String extension = bytes == null ? null : extensionOf(bytes);
             if (extension != null) return new Image(bytes, extension);

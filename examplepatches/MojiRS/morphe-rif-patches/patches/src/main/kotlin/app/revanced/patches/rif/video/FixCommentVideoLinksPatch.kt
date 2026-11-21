@@ -1,5 +1,9 @@
 package app.revanced.patches.rif.video
 
+import app.revanced.patches.rif.shared.PatchedditFeatures
+import app.revanced.patches.rif.shared.skipForPatcheddit
+import app.revanced.patches.rif.shared.skipResourcesForPatcheddit
+import app.revanced.patches.rif.shared.switchOffForPatcheddit
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.instructions
 import app.morphe.patcher.fingerprint
@@ -42,7 +46,13 @@ val fixCommentVideoLinksPatch = bytecodePatch(
     dependsOn(platinumAdSlotFixPatch)
     extendWith("extensions/extension.mpe")
 
+    finalize {
+        switchOffForPatcheddit(PatchedditFeatures.FIX_COMMENT_VIDEO_LINKS)
+    }
+
     execute {
+        if (skipForPatcheddit(PatchedditFeatures.FIX_COMMENT_VIDEO_LINKS)) return@execute
+
         // The loader's result handler: (ThreadMediaRedditVideo) -> void, in the same class as
         // the request builder. It shows "error retrieving…" when the result is null; before
         // that, substitute a video built from the link's streams. p0 = loader, p1 = result.

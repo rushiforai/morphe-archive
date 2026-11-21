@@ -65,10 +65,23 @@ private object BouncerRewardedVideoOnViewCreatedFingerprint : Fingerprint(
     parameters = listOf("Landroid/view/View;", "Landroid/os/Bundle;"),
 )
 
+// Modal "assista a um anúncio para ganhar um Rewind de volta" (módulo rewardedvideomodal).
+// Vem do Kirby1997 (17.15.0) e foi reconferido na 17.41.0: a classe mantém o nome e o
+// onCreateView (agora em Compose). Cadeia: Lge3; > Lb81; > Landroidx/fragment/app/i;.
+// .registers 10 com 4 de entrada, então p0 = v6 e p1 = v7 cabem nas formas de 4 bits.
+// Fecha o diálogo e devolve view nula, como no Kirby. Com o Tinder Unlimited Rewind ligado
+// este modal nem chega a abrir; o ajuste vale para quem usa esta opção sem ele.
+private object RewindRewardedVideoOnCreateViewFingerprint : Fingerprint(
+    definingClass = "Lcom/tinder/rewardedvideomodal/internal/ui/RewardedVideoBottomSheetFragment;",
+    name = "onCreateView",
+    returnType = "Landroid/view/View;",
+    parameters = listOf("Landroid/view/LayoutInflater;", "Landroid/view/ViewGroup;", "Landroid/os/Bundle;"),
+)
+
 @Suppress("unused")
 val tinderDisableBouncerRewardedVideoPatch = bytecodePatch(
     name = "Tinder Disable Watch-an-Ad Sheet",
-    description = "Hides the \"watch an ad to keep swiping\" bottom sheet shown when you are out of likes.",
+    description = "Hides the \"watch an ad\" bottom sheets shown when you are out of likes or rewinds.",
     default = false,
 ) {
     compatibleWith(TinderCompatibility.TINDER)
@@ -79,6 +92,15 @@ val tinderDisableBouncerRewardedVideoPatch = bytecodePatch(
             """
                 invoke-virtual {p0}, Landroidx/fragment/app/i;->dismissAllowingStateLoss()V
                 return-void
+            """
+        )
+
+        RewindRewardedVideoOnCreateViewFingerprint.method.addInstructions(
+            0,
+            """
+                invoke-virtual {p0}, Landroidx/fragment/app/i;->dismissAllowingStateLoss()V
+                const/4 p1, 0x0
+                return-object p1
             """
         )
     }

@@ -12,7 +12,7 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import app.morphe.extension.shared.patches.components.Filter;
+import app.morphe.extension.shared.patches.components.LazyBufferFilter;
 import app.morphe.extension.shared.patches.components.StringFilterGroup;
 import app.morphe.extension.shared.utils.ByteTrieSearch;
 import app.morphe.extension.shared.utils.Logger;
@@ -23,7 +23,7 @@ import app.morphe.extension.youtube.settings.Settings;
  * Allows custom filtering using a path and optionally a proto buffer string.
  */
 @SuppressWarnings("unused")
-public final class CustomFilter extends Filter {
+public final class CustomFilter extends LazyBufferFilter {
 
     private static void showInvalidSyntaxToast(@NonNull String expression) {
         Utils.showToastLong(str("revanced_custom_filter_toast_invalid_syntax", expression));
@@ -147,13 +147,13 @@ public final class CustomFilter extends Filter {
     }
 
     @Override
-    public boolean isFiltered(String path, String identifier, String allValue, byte[] buffer,
+    public boolean isFilteredLazy(String path, String identifier, String allValue, Buffer buffer,
                               StringFilterGroup matchedGroup, FilterContentType contentType, int contentIndex) {
         // All callbacks are custom filter groups.
         CustomFilterGroup custom = (CustomFilterGroup) matchedGroup;
         if (custom.startsWith && contentIndex != 0) {
             return false;
         }
-        return custom.bufferSearch == null || custom.bufferSearch.matches(buffer);
+        return custom.bufferSearch == null || custom.bufferSearch.matches(buffer.get());
     }
 }

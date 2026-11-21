@@ -7,36 +7,31 @@ import com.android.tools.smali.dexlib2.AccessFlags
 object RecommendedMediaRequestFingerprint : Fingerprint(
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
     returnType = "Ljava/lang/Object;",
-    parameters = listOf(
-        "Ljava/lang/String;",
-        "Lcom/reddit/domain/model/media/MediaContext;",
-        "Ljava/lang/String;",
-        "Lcom/reddit/domain/model/media/FbpMediaType;",
-        "L",
-        "Z",
-        "Ljava/lang/String;",
-        "Lkotlin/coroutines/jvm/internal/ContinuationImpl;",
-    ),
     filters = listOf(
         methodCall(definingClass = "Lcom/reddit/domain/model/media/MediaContext;", name = "getSeedSubredditIds"),
         methodCall(definingClass = "Lcom/reddit/domain/model/media/MediaContext;", name = "getListingType"),
     ),
+    custom = { method, _ ->
+        val params = method.parameterTypes.map { it.toString() }
+        params.size >= 4 &&
+            params[1] == "Lcom/reddit/domain/model/media/MediaContext;" &&
+            params.last() == "Lkotlin/coroutines/jvm/internal/ContinuationImpl;" &&
+            params[3] == "Lcom/reddit/domain/model/media/FbpMediaType;"
+    },
 )
 
 object RecommendedVideosRequestFingerprint : Fingerprint(
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
     returnType = "Ljava/lang/Object;",
-    parameters = listOf(
-        "Ljava/lang/String;",
-        "Lcom/reddit/domain/model/media/MediaContext;",
-        "L",
-        "L",
-        "Z",
-        "Ljava/lang/String;",
-        "Lkotlin/coroutines/jvm/internal/ContinuationImpl;",
-    ),
     filters = listOf(
         methodCall(definingClass = "Lcom/reddit/domain/model/media/MediaContext;", name = "getSeedSubredditIds"),
         methodCall(definingClass = "Lcom/reddit/domain/model/media/MediaContext;", name = "getListingType"),
     ),
+    custom = { method, _ ->
+        val params = method.parameterTypes.map { it.toString() }
+        params.size >= 2 &&
+            params[1] == "Lcom/reddit/domain/model/media/MediaContext;" &&
+            params.last() == "Lkotlin/coroutines/jvm/internal/ContinuationImpl;" &&
+            params.none { it == "Lcom/reddit/domain/model/media/FbpMediaType;" }
+    },
 )

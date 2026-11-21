@@ -1,5 +1,5 @@
 {
-  "version": "v1.43.0",
+  "version": "v1.46.0",
   "patches": [
     {
       "name": "Add to queue",
@@ -616,10 +616,11 @@
     },
     {
       "name": "Custom double tap length",
-      "description": "Adds Double-tap to seek values that are specified in patch options.",
+      "description": "Adds custom seek lengths to YouTube settings and separate backward and forward choices to RVX settings.",
       "use": true,
       "dependencies": [
-        "ResourcePatch"
+        "ResourcePatch",
+        "BytecodePatch"
       ],
       "compatiblePackages": {
         "com.google.android.youtube": [
@@ -633,7 +634,7 @@
         {
           "key": "doubleTapLengthArrays",
           "title": "Double-tap to seek values",
-          "description": "A list of custom Double-tap to seek lengths to be added, separated by commas.",
+          "description": "A comma-separated list of seek lengths in seconds for the YouTube and RVX settings.",
           "required": true,
           "type": "kotlin.String",
           "default": "3, 5, 10, 15, 20, 30, 60, 120, 180",
@@ -1054,6 +1055,7 @@
         "BytecodePatch",
         "BytecodePatch",
         "ResourcePatch",
+        "ResourcePatch",
         "BytecodePatch"
       ],
       "compatiblePackages": {
@@ -1250,7 +1252,7 @@
     },
     {
       "name": "Feed view count",
-      "description": "Adds an option to show the view count at the bottom left of the thumbnails of feed videos.",
+      "description": "Adds options to hide view counts or upload dates below feed videos and show view counts on thumbnails.",
       "use": true,
       "dependencies": [
         "BytecodePatch",
@@ -1654,13 +1656,14 @@
     },
     {
       "name": "Hide Shorts dimming",
-      "description": "Adds an in-app setting to hide the dimming effect at the top and bottom of Shorts videos.",
+      "description": "Adds settings to hide the stock Shorts dimming, adjust the overlay opacity, and hide the status bar in Shorts.",
       "use": true,
       "dependencies": [
         "ResourcePatch",
         "BytecodePatch",
         "ResourcePatch",
-        "ResourcePatch"
+        "ResourcePatch",
+        "BytecodePatch"
       ],
       "compatiblePackages": {
         "com.google.android.youtube": [
@@ -2008,7 +2011,7 @@
     },
     {
       "name": "Hide shortcuts",
-      "description": "Remove, at compile time, the app shortcuts that appears when the app icon is long pressed.",
+      "description": "Adds patch options to remove app icon shortcuts or the Shorts button in the Quick Actions widget.",
       "use": false,
       "dependencies": [
         "ResourcePatch",
@@ -2058,6 +2061,15 @@
           "type": "kotlin.Boolean",
           "default": true,
           "values": null
+        },
+        {
+          "key": "shortsWidget",
+          "title": "Hide Shorts in the Quick Actions widget",
+          "description": "Remove the Shorts button from the two-row home screen widget.",
+          "required": true,
+          "type": "kotlin.Boolean",
+          "default": false,
+          "values": null
         }
       ]
     },
@@ -2087,6 +2099,7 @@
       "use": true,
       "dependencies": [
         "BytecodePatch",
+        "ResourcePatch",
         "ResourcePatch",
         "ResourcePatch",
         "BytecodePatch",
@@ -2324,6 +2337,7 @@
         "BytecodePatch",
         "BytecodePatch",
         "ResourcePatch",
+        "ResourcePatch",
         "ResourcePatch"
       ],
       "compatiblePackages": {
@@ -2436,6 +2450,24 @@
       "dependencies": [
         "BytecodePatch",
         "ResourcePatch",
+        "BytecodePatch",
+        "ResourcePatch"
+      ],
+      "compatiblePackages": {
+        "com.google.android.youtube": [
+          "21.39.525",
+          "21.45.90",
+          "21.13.164",
+          "20.05.46"
+        ]
+      },
+      "options": []
+    },
+    {
+      "name": "Pause on audio interruptions",
+      "description": "Adds an option to pause YouTube instead of lowering the volume during short audio interruptions.",
+      "use": true,
+      "dependencies": [
         "BytecodePatch",
         "ResourcePatch"
       ],
@@ -2603,6 +2635,7 @@
         "BytecodePatch",
         "ResourcePatch",
         "ResourcePatch",
+        "BytecodePatch",
         "BytecodePatch"
       ],
       "compatiblePackages": {
@@ -2850,6 +2883,25 @@
       "options": []
     },
     {
+      "name": "Restore Cast Play/Queue",
+      "description": "Adds an option to restore the Play/Queue prompt when selecting another video during an active Cast session.",
+      "use": true,
+      "dependencies": [
+        "BytecodePatch",
+        "ResourcePatch",
+        "ResourcePatch"
+      ],
+      "compatiblePackages": {
+        "com.google.android.youtube": [
+          "21.39.525",
+          "21.45.90",
+          "21.13.164",
+          "20.05.46"
+        ]
+      },
+      "options": []
+    },
+    {
       "name": "Restore old style library shelf",
       "description": "Adds an option to return the Library tab to the old style.",
       "use": true,
@@ -2919,6 +2971,7 @@
       "use": true,
       "dependencies": [
         "ResourcePatch",
+        "BytecodePatch",
         "BytecodePatch",
         "BytecodePatch",
         "BytecodePatch",
@@ -3839,6 +3892,7 @@
         "BytecodePatch",
         "ResourcePatch",
         "ResourcePatch",
+        "ResourcePatch",
         "BytecodePatch",
         "ResourcePatch"
       ],
@@ -3900,8 +3954,7 @@
       "description": "Add translations or remove string resources.",
       "use": true,
       "dependencies": [
-        "BytecodePatch",
-        "ResourcePatch"
+        "BytecodePatch"
       ],
       "compatiblePackages": {
         "com.google.android.youtube": [
@@ -3925,7 +3978,7 @@
           "key": "selectedTranslations",
           "title": "Translations to add",
           "description": "A list of translations to be added for the RVX settings, separated by commas.",
-          "required": true,
+          "required": false,
           "type": "kotlin.String",
           "default": "ar, az-rAZ, bn, cs-rCZ, de-rDE, el-rGR, es-rES, fa-rIR, fr-rFR, hu-rHU, in, it-rIT, iw-rIL, ja-rJP, ko-rKR, pl-rPL, pt-rBR, ru-rRU, th-rTH, tr-rTR, uk-rUA, vi-rVN, zh-rCN, zh-rTW",
           "values": null
@@ -3933,8 +3986,8 @@
         {
           "key": "selectedStringResources",
           "title": "String resources to keep",
-          "description": "A list of string resources to be kept, separated by commas.\nString resources not in the list will be removed from the app.\n\nDefault string resource, English, is not removed.",
-          "required": true,
+          "description": "A list of locales to keep, separated by commas. Choosing a language also keeps its regional variants.\nLocale-specific resources outside the selection are removed. Use \"all\" to keep every locale.\n\nThe default English resources are always kept.",
+          "required": false,
           "type": "kotlin.String",
           "default": "af, am, ar, ar-rXB, as, az, b+es+419, b+sr+Latn, be, bg, bn, bs, ca, cs, da, de, el, en-rAU, en-rCA, en-rGB, en-rIN, en-rXA, en-rXC, es, es-rUS, et, eu, fa, fi, fil-rPH, fr, fr-rCA, gl, gu, hi, hr, hu, hy, id, in, is, it, iw, ja, ka, kk, km, kn, ko, ky, lo, lt, lv, mk, ml, mn, mr, ms, my, nb, ne, nl, no, or, pa, pl, pt, pt-rBR, pt-rPT, ro, ru, si, sk, sl, sq, sr, sv, sw, ta, te, th, tl, tr, uk, ur, uz, vi, zh, zh-rCN, zh-rHK, zh-rTW, zu",
           "values": null
@@ -3946,8 +3999,7 @@
       "description": "Add translations or remove string resources.",
       "use": true,
       "dependencies": [
-        "BytecodePatch",
-        "ResourcePatch"
+        "BytecodePatch"
       ],
       "compatiblePackages": {
         "com.google.android.apps.youtube.music": [
@@ -3973,7 +4025,7 @@
           "key": "selectedTranslations",
           "title": "Translations to add",
           "description": "A list of translations to be added for the RVX settings, separated by commas.",
-          "required": true,
+          "required": false,
           "type": "kotlin.String",
           "default": "ar, de-rDE, es-rES, fr-rFR, hu-rHU, in, it-rIT, ja-rJP, ko-rKR, pl-rPL, pt-rBR, ru-rRU, tr-rTR, uk-rUA, zh-rCN, zh-rTW",
           "values": null
@@ -3981,8 +4033,8 @@
         {
           "key": "selectedStringResources",
           "title": "String resources to keep",
-          "description": "A list of string resources to be kept, separated by commas.\nString resources not in the list will be removed from the app.\n\nDefault string resource, English, is not removed.",
-          "required": true,
+          "description": "A list of locales to keep, separated by commas. Choosing a language also keeps its regional variants.\nLocale-specific resources outside the selection are removed. Use \"all\" to keep every locale.\n\nThe default English resources are always kept.",
+          "required": false,
           "type": "kotlin.String",
           "default": "af, am, ar, ar-rXB, as, az, b+es+419, b+sr+Latn, be, bg, bn, bs, ca, cs, da, de, el, en-rAU, en-rCA, en-rGB, en-rIN, en-rXA, en-rXC, es, es-rUS, et, eu, fa, fi, fil-rPH, fr, fr-rCA, gl, gu, hi, hr, hu, hy, id, in, is, it, iw, ja, ka, kk, km, kn, ko, ky, lo, lt, lv, mk, ml, mn, mr, ms, my, nb, ne, nl, no, or, pa, pl, pt, pt-rBR, pt-rPT, ro, ru, si, sk, sl, sq, sr, sv, sw, ta, te, th, tl, tr, uk, ur, uz, vi, zh, zh-rCN, zh-rHK, zh-rTW, zu",
           "values": null
@@ -4131,7 +4183,7 @@
         {
           "key": "applyToAll",
           "title": "Apply to all settings menu",
-          "description": "Add icons to the native settings entry and the RVX settings screens.\n\nTrue (default): also add icons to individual settings inside RVX sub-screens.\n\nFalse: icons only on parent screens and About rows for Regular and Bold styles.\n\nYouTube style shows icons on rows that open a settings screen and on About rows.",
+          "description": "Add icons to the native settings entry and the RVX settings screens.\n\nTrue (default): also add icons to individual settings inside RVX sub-screens.\n\nFalse: icons only on parent screens and About rows for Regular and Bold styles.\n\nYouTube style shows icons on rows that open a settings screen and on About rows.\nTrue also adds icons to SponsorBlock's duration and segment step rows in this style.",
           "required": true,
           "type": "kotlin.Boolean",
           "default": true,
@@ -4140,7 +4192,7 @@
         {
           "key": "iconStyle",
           "title": "Icon style",
-          "description": "The icon design, weight and size. YouTube uses the app's rounded settings icons at stock size\non rows that open a settings screen and on About rows, with rounded RVX fallbacks where unavailable.\nIts RVX entry uses YouTube's magic wand when available.\n\nIndividual setting icons in Regular and Bold styles require Apply to all settings menu = true.",
+          "description": "The icon design, weight and size. YouTube uses the app's rounded settings icons at stock size,\nwith rounded RVX fallbacks where unavailable.\nIts RVX entry uses YouTube's magic wand when available.\n\nIndividual setting icons require Apply to all settings menu = true.",
           "required": true,
           "type": "kotlin.String",
           "default": "regular",

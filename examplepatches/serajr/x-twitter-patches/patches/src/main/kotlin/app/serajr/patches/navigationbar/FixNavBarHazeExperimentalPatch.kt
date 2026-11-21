@@ -89,10 +89,41 @@ private const val PUBLISH_ROOT_CONTEXT = "${MAIN_ACTIVITY}->serajrOnRootContext(
 private const val LAST_ROOT_CLASS = "${MAIN_ACTIVITY}->serajrNavLastRootClass:Ljava/lang/Class;"
 
 // Haze.
+// Keeps the injected Navigation Bar Haze visible behind the native bottom bar.
+// Values: false = follow the visibility gate, true = always render.
+// Default: true.
 private const val FORCE_HAZE_ALWAYS_VISIBLE = true
-private const val DEBUG_MAGENTA_TINT = false
-private const val USE_PROGRESSIVE_HAZE = true
+
+// Defines the default maximum blur radius used by the progressive Haze.
+// The native progressive shader reduces the radius toward the upper edge.
+// Minimum runtime value: 0.0 dp | Maximum: 64.0 dp | Default: 32.0 dp.
+// Runtime key: serajr_x_haze_radius.
 private const val PROGRESSIVE_BLUR_RADIUS = 32.0f
+
+// Selects the diagnostic magenta replacement for the injected Haze colors.
+// Tint alpha is independently configurable at runtime; background retains native opacity.
+// Values: 0 = off, 1 = tint, 2 = background, 3 = tint + background.
+// Minimum: 0 | Maximum: 3 | Default: 0.
+// Runtime key: serajr_x_haze_debug_magenta.
+private const val DEBUG_MAGENTA_MODE = 0
+
+// Controls the alpha applied to the injected Haze tint after resolving its color.
+// This does not change the background color or the native progressive mask.
+// Minimum: 0.0 (transparent) | Maximum: 1.0 (opaque) | Default: 0.75.
+// Runtime key: serajr_x_haze_tint_alpha.
+private const val DEFAULT_TINT_ALPHA = 0.75f
+
+// Controls the native Haze noise factor for the injected Navigation Bar overlay.
+// This changes only the noise amount; it does not modify blur, tint or the mask.
+// Minimum: 0.0 (off) | Maximum: 1.0 | Default: 0.05 (validated T4E-T2).
+// Runtime key: serajr_x_haze_noise_factor.
+private const val DEFAULT_NOISE_FACTOR = 0.05f
+
+// Enables the existing native progressive blur callback.
+// Values: false = solid, true = progressive.
+// Default: true.
+private const val USE_PROGRESSIVE_HAZE = true
+
 private const val USE_PROGRESSIVE_MASK = true
 private const val ENABLE_RUNTIME_BLUR_CONTROL = true
 private const val NAV_EXTENSION = "Lapp/serajr/extension/navigationbar/PersistentNavigationHaze;"
@@ -162,7 +193,7 @@ private fun Method.isNativeBlurRecorder(): Boolean {
 @Suppress("unused")
 val fixNavigationBarHazeExperimentalPatch = bytecodePatch(
     name = "Fix Navigation Bar Haze (Experimental)",
-    description = "D3-K1A.11-T10-B1-T4D: native solid or progressive Navigation Bar Haze with configurable radius, optional linear mask and runtime global blur control.",
+    description = "D3-K1A.11-T10-B1-T4E-T3: runtime noise, tint alpha, blur radius and magenta diagnostics with native progressive Haze.",
     default = false
 ) {
     compatibleWith(Constants.COMPATIBILITY_X)
@@ -1205,16 +1236,19 @@ val fixNavigationBarHazeExperimentalPatch = bytecodePatch(
                 invoke-static {p1}, Lcom/x/compose/core/m0;->a(Landroidx/compose/runtime/Composer;)J
                 move-result-wide v2
                 
-                # Select diagnostic magenta or native theme tint.
-                ${if (DEBUG_MAGENTA_TINT) {
-                    "const-wide v7, -0xff0100000000L"
-                } else {
-                    "move-wide v7, v2"
-                }}
-                
-                const/high16 v5, 0x3f400000
+                # Resolve the tint independently; use the cached runtime tint alpha.
+                move-wide v7, v2
+                invoke-static {v7, v8}, $NAV_EXTENSION->resolveTintColor(J)J
+                move-result-wide v7
+
+                invoke-static {}, $NAV_EXTENSION->getNavigationTintAlpha()F
+                move-result v5
                 invoke-static {v5, v7, v8}, Landroidx/compose/ui/graphics/z;->b(FJ)J
                 move-result-wide v7
+
+                # Resolve background independently from the tint.
+                invoke-static {v2, v3}, $NAV_EXTENSION->resolveBackgroundColor(J)J
+                move-result-wide v2
 
                 # Visibility gate 0/1 -> 64-bit mask 0/-1.
                 neg-int v9, v6
@@ -1228,12 +1262,10 @@ val fixNavigationBarHazeExperimentalPatch = bytecodePatch(
                 move-result v5
                 and-int/2addr v6, v5
                 move-object v1, p0
-                ${if (USE_PROGRESSIVE_HAZE) {
-                    "const v5, 0x${PROGRESSIVE_BLUR_RADIUS.toRawBits().toString(16)}"
-                } else {
-                    "const/high16 v5, 0x42000000"
-                }}
-                const v7, 0x3d4ccccd
+                invoke-static {}, $NAV_EXTENSION->getNavigationBlurRadius()F
+                move-result v5
+                invoke-static {}, $NAV_EXTENSION->getNavigationNoiseFactor()F
+                move-result v7
                 const/4 v8, 0x0
                 ${if (USE_PROGRESSIVE_HAZE) {
                     """
@@ -1453,7 +1485,7 @@ val fixNavigationBarHazeExperimentalPatch = bytecodePatch(
                 sput-boolean v0, $versionLoggedField
 
                 const-string v0, "$DIAG_TAG"
-                const-string v1, "D3-K1A.11-T10-B1-T4D ACTIVE"
+                const-string v1, "D3-K1A.11-T10-B1-T4E-T3 ACTIVE"
 
                 invoke-static {v0, v1}, Landroid/util/Log;->d(Ljava/lang/String;Ljava/lang/String;)I
 

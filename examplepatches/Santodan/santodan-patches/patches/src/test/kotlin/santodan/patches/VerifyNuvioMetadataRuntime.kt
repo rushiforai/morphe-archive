@@ -140,6 +140,26 @@ fun main(args: Array<String>) = runBlocking {
         val decoratedHero = cardType.getField("e").get(decorated)
         check(heroType.getField("q").get(decoratedHero) == "selected/poster")
         check(heroType.getField("a").get(decoratedHero) == "native-0")
+        fun retained(name: String, id: String = "title", original: String? = "native"): String? =
+            bridge.getMethod(name, String::class.java, String::class.java, String::class.java)
+                .invoke(null, id, "series", original) as String?
+        val savedPoster = retained("retainedPoster")
+        val savedBackground = retained("retainedBackground")
+        val savedLogo = retained("retainedLogo")
+        check(savedPoster == "selected/poster" && savedBackground == "selected/landscape" && savedLogo == "selected/logo")
+        check(retained("retainedPoster", "unresolved") == "native")
+        setting("profile",2); check(retained("retainedPoster") == "native")
+        setting("profile",1); setting("url","first"); check(retained("retainedPoster") == "native")
+        setting("url","selected"); setting("cw",false); check(retained("retainedPoster") == "native")
+        setting("cw",true)
+        val artworkMap = bridge.getDeclaredField("artwork").apply { isAccessible=true }.get(null) as MutableMap<*,*>
+        artworkMap.clear()
+        val requestsBeforeRestore = MetadataFixtureFlows.requests.size
+        check(retained("retainedPoster", original=savedPoster) == savedPoster)
+        check(retained("retainedBackground", original=savedBackground) == savedBackground)
+        check(retained("retainedLogo", original=savedLogo) == savedLogo)
+        check(MetadataFixtureFlows.requests.size == requestsBeforeRestore)
+        check(cached.invoke(null,info) == null)
         setting("cw",false); check(imageMethod.invoke(null,item,true) == null); check(decorate.invoke(null,card,false) === card)
         MetadataFixtureFlows.failSelected=true
         flow("all","missing").first(); check(MetadataFixtureFlows.requests.last() == "first:series:missing:catalog")

@@ -1,0 +1,180 @@
+/*
+ * Copyright (C) 2026 lavinhoque33
+ * Licensed under the GNU General Public License v3.0.
+ * Written by lavinhoque33, 2026-11-20.
+ */
+package app.morphe.extension.shared.patches.components;
+
+import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
+import java.util.function.BooleanSupplier;
+
+final class LithoReplay {
+    private static final String ASK = "yt_fill_spark";
+    private static final String SHARE = "yt_outline_share";
+    private static final Context BUTTON = context("button.eml|42", "quick_actions.e|ContainerType|button.e");
+    private static final Context PROBE = context("probe.e|42", "probe.e|ContainerType");
+    private static final ByteArrayFilterGroup ASK_BYTES = new ByteArrayFilterGroup(null, ASK);
+    private static int encodes;
+    private static int encodedBytes;
+    private static int copies;
+    private static int copiedBytes;
+    private static int matches;
+    private static boolean before;
+
+    static void copied(int bytes) {
+        copies++;
+        copiedBytes += bytes;
+    }
+
+    static void matched() {
+        matches++;
+    }
+
+    private record Context(String identifier, StringBuilder path) implements ContextInterface {
+        public String patch_getIdentifier() { return identifier; }
+        public StringBuilder patch_getPathBuilder() { return path; }
+        public Integer patch_getHeightConstraint() { return null; }
+        public Object patch_getHorizontalCollectionSwipeProtector() { return null; }
+    }
+
+    private static Context context(String identifier, String path) {
+        return new Context(identifier, new StringBuilder(path));
+    }
+
+    private static class Element implements LithoFilterPatch.EncodableElement {
+        String payload;
+        Element(String payload) { this.payload = payload; }
+
+        public byte[] patch_encodeElement() {
+            encodes++;
+            byte[] bytes = payload.getBytes(StandardCharsets.US_ASCII);
+            encodedBytes += bytes.length;
+            return bytes;
+        }
+    }
+
+    private static boolean filter(Context context, Element element) {
+        /* DISPATCH */
+    }
+
+    static final class Probe extends LazyBufferFilter {
+        Probe() {
+            addIdentifierCallbacks(new StringFilterGroup(null, "probe.e"));
+            addPathCallbacks(new StringFilterGroup(null, "probe.e"));
+        }
+
+        @Override
+        public boolean isFilteredLazy(String path, String identifier, String allValue, Buffer buffer,
+                                      StringFilterGroup group, FilterContentType type, int index) {
+            // The first candidate checks its bytes, then tries another component with the same ID.
+            // The next path callback must get the original element's bytes if filtering continues.
+            if (type == FilterContentType.IDENTIFIER) {
+                byte[] first = buffer.get();
+                String value = new String(first, StandardCharsets.US_ASCII);
+                if (value.equals("throw")) throw new IllegalStateException("filter after byte read");
+                if (value.equals(ASK + ":outer")) {
+                    require(!filter(PROBE, new Element(SHARE)), "nested sibling took outer bytes");
+                    require(first == buffer.get() && ASK_BYTES.check(buffer.get()).isFiltered(),
+                            "outer read was re-bound after nested filter");
+                } else if (value.equals(ASK + ":nested-throw")) {
+                    require(!filter(PROBE, new Element("throw")), "nested throwing filter did not fail open");
+                    require(first == buffer.get(), "outer bytes lost after nested exception");
+                }
+                return false;
+            }
+            return ASK_BYTES.check(buffer.get()).isFiltered();
+        }
+    }
+
+    private static void require(boolean condition, String message) {
+        if (!condition) throw new AssertionError(message);
+    }
+
+    private static void scenario(String name, boolean expected, int eager, int lazy, int debug,
+                                 int expectedCopies, BooleanSupplier action) {
+        encodes = encodedBytes = copies = copiedBytes = matches = 0;
+        boolean actual = action.getAsBoolean();
+        require(actual == expected, name + ": wrong decision " + actual);
+        int expectedEncodes = before ? eager : Boolean.getBoolean("debug") ? debug : lazy;
+        require(encodes == expectedEncodes, name + ": " + encodes + " encode(s), expected " + expectedEncodes);
+        require(copies == expectedCopies, name + ": " + copies + " copy/copies, expected " + expectedCopies);
+        System.out.printf("%s filtered=%b matches=%d encodes=%d encodedBytes=%d copies=%d copiedBytes=%d%n",
+                name, actual, matches, encodes, encodedBytes, copies, copiedBytes);
+    }
+
+    public static void main(String[] args) {
+        before = args[0].equals("before");
+        System.setProperty("HIDE_ASK_BUTTON", "true");
+        System.setProperty("HIDE_QUICK_ACTIONS_LIKE_BUTTON", "true");
+        System.setProperty("HIDE_LIVE_CHAT_REPLAY_BUTTON", "true");
+
+        scenario("miss", false, 1, 0, 1, 0,
+                () -> filter(context("unmatched.e", "unmatched.e|ContainerType"), new Element(SHARE)));
+        scenario("disabled-identifier", false, 1, 0, 1, 0,
+                () -> filter(context("quick_actions.e", "quick_actions.e|ContainerType"), new Element(SHARE)));
+        scenario("identifier-only", true, 1, 0, 1, 0,
+                () -> filter(context("live_chat_ep_entrypoint.eml|42", "unmatched.e"), new Element(SHARE)));
+        scenario("path-only", true, 1, 0, 1, 0,
+                () -> filter(context("button.eml|42", "quick_actions.e|like_button"), new Element(SHARE)));
+        scenario("path-candidate-rejected", false, 1, 0, 1, 0,
+                () -> filter(context("button.eml|42", "sibling.e|ContainerType|button.e"), new Element(ASK)));
+        scenario("byte-reader", true, 1, 1, 1, 0, () -> filter(BUTTON, new Element(ASK)));
+        scenario("same-template-visible", false, 1, 1, 1, 0, () -> filter(BUTTON, new Element(SHARE)));
+        Element recycled = new Element(ASK);
+        scenario("recycled-before", true, 1, 1, 1, 0, () -> filter(BUTTON, recycled));
+        recycled.payload = SHARE;
+        scenario("recycled-after", false, 1, 1, 1, 0, () -> filter(BUTTON, recycled));
+        scenario("check-and-callback", true, 1, 1, 1, 0, () -> filter(PROBE, new Element(ASK)));
+        scenario("nested-same-template", true, 2, 2, 2, 0,
+                () -> filter(PROBE, new Element(ASK + ":outer")));
+        scenario("nested-throw", true, 2, 2, 2, 0,
+                () -> filter(PROBE, new Element(ASK + ":nested-throw")));
+        scenario("nested-during-encode", true, 2, 2, 2, 0, () -> filter(BUTTON, new Element(ASK) {
+            @Override
+            public byte[] patch_encodeElement() {
+                require(!filter(BUTTON, new Element(SHARE)), "native reentry reused outer template bytes");
+                return super.patch_encodeElement();
+            }
+        }));
+        scenario("filter-throw", false, 1, 1, 1, 0, () -> filter(PROBE, new Element("throw")));
+        scenario("empty-id", false, 1, 0, 0, 0, () -> filter(context("", "probe.e"), new Element(ASK)));
+        scenario("empty-path", false, 1, 0, 0, 0, () -> filter(context("probe.e", ""), new Element(ASK)));
+        scenario("missing-context", false, 1, 0, 0, 0, () -> filter(null, new Element(ASK)));
+        LithoFilterPatch.setProtoBuffer(("\0\0button.eml|42|" + ASK).getBytes(StandardCharsets.US_ASCII));
+        scenario("no-encoder-after-return", false, 0, 0, 0, 0, () -> filter(BUTTON, null));
+        scenario("parser-fallback", true, 0, 0, 0, 0,
+                () -> LithoFilterPatch.isFiltered(BUTTON.identifier, null, null, BUTTON.path, BUTTON));
+        if (!before) testFailedEncoder();
+
+        ByteBuffer direct = ByteBuffer.allocateDirect(ASK.length());
+        direct.put(ASK.getBytes(StandardCharsets.US_ASCII));
+        scenario("direct-flatbuffer", true, 0, 0, 0, 1, () -> filterDirect(direct));
+        scenario("direct-flatbuffer-reused", true, 0, 0, 0, 0, () -> filterDirect(direct));
+        require(direct.position() == ASK.length(), "direct copy moved original position");
+    }
+
+    private static void testFailedEncoder() {
+        Element broken = new Element(ASK) {
+            @Override
+            public byte[] patch_encodeElement() {
+                encodes++;
+                throw new IllegalStateException("native encoder failure");
+            }
+        };
+        encodes = 0;
+        require(!filter(BUTTON, broken), "throwing encoder removed the row");
+        require(encodes == 1, "throwing encoder was called more than once");
+
+        LithoFilterPatch.setDirectProtoBuffer(ASK.getBytes(StandardCharsets.US_ASCII));
+        require(!filter(null, broken), "missing context used bytes");
+        require(!filter(BUTTON, null), "modern conversion consumed prior direct bytes");
+        require(LithoFilterPatch.isFiltered(BUTTON.identifier, null, null, BUTTON.path, BUTTON),
+                "scoped current-element filtering touched eager thread-local bytes");
+    }
+
+    private static boolean filterDirect(ByteBuffer buffer) {
+        LithoFilterPatch.setDirectProtoBuffer(buffer);
+        return LithoFilterPatch.isFiltered(BUTTON.identifier, null, null, BUTTON.path, BUTTON);
+    }
+}

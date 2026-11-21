@@ -23,7 +23,7 @@ final class XPostLength {
     static int visibleBytes(String text, JSONObject post, int startOffset) {
         if (text == null || text.isEmpty()) return 0;
         int start = Math.max(0, Math.min(startOffset, text.length()));
-        List<Range> media = mediaRanges(post);
+        List<Range> media = countExcludedRanges(text, post);
         int bytes = 0;
         for (int index = start; index < text.length();) {
             Range attachment = containing(index, media);
@@ -45,7 +45,7 @@ final class XPostLength {
     static int detailedPoints(String text, JSONObject post, int startOffset) {
         if (text == null || text.isEmpty()) return 0;
         int start = Math.max(0, Math.min(startOffset, text.length()));
-        List<Range> media = mediaRanges(post);
+        List<Range> media = countExcludedRanges(text, post);
         Matcher matcher = URL.matcher(text);
         matcher.region(start, text.length());
         int points = 0, position = start;
@@ -55,6 +55,45 @@ final class XPostLength {
             position = matcher.end();
         }
         return points + weightedPlain(text, position, text.length(), media);
+    }
+
+    /**
+     * Attachment short URLs are rendered by the separate media preview. Remove them
+     * from the text preview, including only their immediately preceding ASCII space.
+     */
+    static String withoutAttachmentUrls(String text, JSONObject post) {
+        if (text == null || text.isEmpty()) return text == null ? "" : text;
+        List<Range> ranges = mediaRanges(post);
+        StringBuilder result = null;
+        int cursor = 0;
+        for (Range range : ranges) {
+            if (range.end > text.length() || range.start < cursor
+                    || !isAttachmentShortUrl(text.substring(range.start, range.end))) continue;
+            int start = range.start;
+            if (start > cursor && text.charAt(start - 1) == ' ') start--;
+            if (result == null) result = new StringBuilder(text.length());
+            result.append(text, cursor, start);
+            cursor = range.end;
+        }
+        if (result == null) return text;
+        return result.append(text, cursor, text.length()).toString();
+    }
+
+    private static boolean isAttachmentShortUrl(String value) {
+        return value.regionMatches(true, 0, "t.co/", 0, 5)
+                || value.regionMatches(true, 0, "https://t.co/", 0, 13)
+                || value.regionMatches(true, 0, "http://t.co/", 0, 12);
+    }
+
+    private static List<Range> countExcludedRanges(String text, JSONObject post) {
+        ArrayList<Range> result = new ArrayList<>();
+        for (Range range : mediaRanges(post)) {
+            if (range.end > text.length()) continue;
+            int start = range.start;
+            if (start > 0 && text.charAt(start - 1) == ' ') start--;
+            result.add(new Range(start, range.end));
+        }
+        return result;
     }
 
     /** Reply recipients are transport metadata, not text that should trigger a truncation warning. */

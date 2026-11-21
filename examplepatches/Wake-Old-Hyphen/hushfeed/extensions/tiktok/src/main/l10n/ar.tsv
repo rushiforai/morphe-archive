@@ -2683,7 +2683,7 @@ Manage posts	إدارة المنشورات
 Content preferences	تفضيلات المحتوى
 Notifications	الإشعارات
 Time and well-being	الوقت والرفاهية
-Family Pairing	الاقتران العائلي
+Family Pairing	ربط الحسابات للعائلة
 Sign up	التسجيل
 Account	الحساب
 Security & permissions	الأمان والأذونات
@@ -2694,8 +2694,6 @@ QR code	رمز QR
 Share profile	مشاركة الملف الشخصي
 TikTok Plus	TikTok Plus
 Invite friends	دعوة الأصدقاء
-Inbox mode	وضع البريد الوارد
-Audience controls	عناصر التحكم في الجمهور
 Background audio	الصوت في الخلفية
 Display	العرض
 Commercial content library	مكتبة المحتوى التجاري
@@ -2707,7 +2705,6 @@ Shake to report	هزّ للإبلاغ
 Free up space	تحرير مساحة
 Data Saver	توفير البيانات
 Free data	بيانات مجانية
-Live wallpaper	خلفية حية
 Check for updates	التحقق من التحديثات
 Lite mode	وضع Lite
 TikTok Beta	TikTok Beta
@@ -2721,6 +2718,16 @@ Policy updates	تحديثات السياسة
 What's new on TikTok	الجديد على TikTok
 Switch account	تبديل الحساب
 Log out	تسجيل الخروج
+Mentions	الذِكر
+Direct messages	الرسائل الخاصة
+Reuse of content	إعادة استخدام المحتوى
+Display profile when sharing links	عرض الملف الشخصي عند مشاركة الروابط
+Following list	قائمة أتابعه
+Viewers	المشاهدون
+Inbox & Messaging	صندوق الوارد والمراسلة
+Audience control	التحكم في الجمهور
+Wallpaper	الخلفية
+Help Center	مركز المساعدة
 Open the search page	فتح صفحة البحث
 Search didn't open. Restart TikTok and try again.	لم يتم فتح البحث. أعد تشغيل TikTok وحاول مرة أخرى.
 Fold the search into a button	طي البحث في زر
@@ -2754,6 +2761,24 @@ Leave after no touch	المغادرة عند عدم اللمس
 Zero switches this off. After that many minutes with no touch on the screen, the video stops and TikTok goes to the background, for when you fall asleep watching. Any touch starts the wait over.	الصفر يوقف هذه الميزة. بعد هذا العدد من الدقائق دون لمس الشاشة، يتوقف الفيديو وينتقل TikTok إلى الخلفية، عندما تغفو أثناء المشاهدة. أي لمسة تعيد بدء الانتظار.
 Left TikTok after no touch	تم الخروج من TikTok بعد عدم اللمس
 Show when an account was made	إظهار تاريخ إنشاء الحساب
+Show what changed since your last visit	إظهار ما تغيّر منذ زيارتك الأخيرة
+Under the @username on a profile, show how its followers, following, likes and videos changed since you last opened it. The counts are kept on this phone only.	أسفل @اسم المستخدم في الملف الشخصي، يعرض كيف تغيّر عدد المتابِعين والمتابَعين والإعجابات والفيديوهات منذ آخر مرة فتحته فيها. تُحفظ الأعداد على هذا الهاتف فقط.
+Since %1$s: %2$s	منذ %1$s: %2$s
+No changes since %1$s	لا تغييرات منذ %1$s
+%1$s, %2$s	%1$s، %2$s
+%1$s follower	%1$s متابِع
+%1$s followers	%1$s متابِع
+%1$s following	المتابَعون %1$s
+%1$s like	%1$s إعجاب
+%1$s likes	%1$s إعجاب
+%1$s followers|zero	%1$s متابِع
+%1$s likes|zero	%1$s إعجاب
+%1$s followers|two	%1$s متابِعان
+%1$s likes|two	%1$s إعجابان
+%1$s followers|few	%1$s متابِعين
+%1$s likes|few	%1$s إعجابات
+%1$s followers|many	%1$s متابِعًا
+%1$s likes|many	%1$s إعجابًا
 Under the @username on someone else's profile, show the month and year the account was made. It's read from the account's ID, so very old accounts show nothing.	أسفل @username في ملف شخص آخر، اعرض الشهر والسنة اللذين أنشئ فيهما الحساب. يقرأ ذلك من معرف الحساب، لذا لا تظهر الحسابات القديمة جدا شيئا.
 Joined %s	انضم في %s
 Keep unsent messages	الاحتفاظ بالرسائل غير المرسلة
@@ -2913,6 +2938,18 @@ Remove selected comments	إزالة التعليقات المحددة
 Pick comments from your comment history to delete.	اختر من سجل تعليقاتك ما تريد حذفه.
 Removing all comments in %1$d	إزالة جميع التعليقات خلال %1$d
 Removing the picked comments in %1$d	إزالة التعليقات المختارة خلال %1$d
+Unfollow accounts that don't follow you back	إلغاء متابعة الحسابات التي لا تتابعك
+Checks your followers first and says how many it found, then unfollows them one after another. Accounts that follow you back stay.	يتحقق من متابعيك أولا ويخبرك بعدد ما وجده، ثم يلغي متابعتهم واحدا تلو الآخر. الحسابات التي تتابعك تبقى.
+Checking who you follow: %1$d	جارٍ التحقق ممن تتابعهم: %1$d
+Checking your followers: %1$d	جارٍ التحقق من متابعيك: %1$d
+Everyone you follow follows you back	كل من تتابعهم يتابعونك
+Couldn't check who follows you back. Try again.	تعذر التحقق ممن يتابعك. حاول مرة أخرى.
+Accounts to unfollow: %1$d. Starting in %2$d	حسابات لإلغاء متابعتها: %1$d. البدء خلال %2$d
+Unfollowed: %1$d	أُلغيت المتابعة: %1$d
+Done. %1$d unfollowed.	تم. أُلغيت متابعة %1$d.
+Stopped. %1$d unfollowed.	توقف. أُلغيت متابعة %1$d.
+TikTok refused. %1$d unfollowed.	رفض TikTok. أُلغيت متابعة %1$d.
+Network error. %1$d unfollowed.	خطأ في الشبكة. أُلغيت متابعة %1$d.
 Comments removed: %1$d	التعليقات المحذوفة: %1$d
 TikTok refused to list your comments	رفض TikTok عرض تعليقاتك
 Couldn't load your comments. Try again.	تعذر تحميل تعليقاتك. حاول مرة أخرى.
@@ -3202,6 +3239,60 @@ Crop and stretch to fill the screen	قصّ ومدّ الفيديو ليملأ ا
 Cover the whole window with half the crop of Fill and half the stretch of Stretch, so neither is easy to spot. A video far from the screen's shape keeps TikTok's size.	يغطي النافذة بأكملها بنصف قص خيار الملء ونصف مدّ خيار المد، فلا يكاد يُلاحظ أيٌّ منهما. الفيديو الذي يختلف شكله كثيرًا عن شكل الشاشة يحتفظ بحجم TikTok.
 Watch LIVEs unseen	مشاهدة LIVE دون أن يراك أحد
 You stay off the viewer list of LIVEs you open. Tap the eye in a LIVE to let that host see you. Needs Ghost mode on.	لن تظهر في قائمة مشاهدي LIVE التي تفتحها. اضغط على العين داخل LIVE ليراك مضيفه. يتطلب تفعيل وضع الشبح.
+Keep likes on this phone	الاحتفاظ بالإعجابات على هذا الهاتف
+A like you give a video stays on this phone. The heart turns red, but TikTok isn't told, so the creator never sees it and it isn't on your profile. Needs Ghost mode on.	يبقى الإعجاب الذي تمنحه لفيديو على هذا الهاتف. يتحول القلب إلى الأحمر، لكن TikTok لا يعرف بذلك، فلا يراه صانع المحتوى أبدًا ولا يظهر في ملفك الشخصي. يتطلب تفعيل وضع الشبح.
+My likes on this phone	إعجاباتي على هذا الهاتف
+Find and reopen the videos you liked only on this phone	اعثر على الفيديوهات التي أعجبتك على هذا الهاتف فقط وأعد فتحها
+Videos you like on this phone show up here	الفيديوهات التي تعجبك على هذا الهاتف تظهر هنا
+Likes cleared	تم مسح الإعجابات
+Export followers and following	تصدير المتابِعين والمتابَعين
+Saves the accounts that follow you, or the ones you follow, as a CSV file in Download/Hushfeed. They're read at about the pace of scrolling the list, up to %1$s at a time.	يحفظ الحسابات التي تتابعك، أو التي تتابعها، كملف CSV في Download/Hushfeed. تُقرأ بسرعة تقارب سرعة تمرير القائمة، حتى %1$s في المرة الواحدة.
+A list is already being read	تجري قراءة قائمة بالفعل
+Reading your followers (%1$s)	جارٍ قراءة متابِعيك (%1$s)
+Reading who you follow (%1$s)	جارٍ قراءة من تتابعهم (%1$s)
+Couldn't read the list. Try again in a moment.	تعذّرت قراءة القائمة. حاول مرة أخرى بعد لحظة.
+Stopped before anyone was read	توقّف قبل قراءة أي حساب
+Nobody follows this account yet	لا أحد يتابع هذا الحساب بعد
+This account doesn't follow anyone yet	هذا الحساب لا يتابع أحدًا بعد
+The file couldn't be saved. Try again.	تعذّر حفظ الملف. حاول مرة أخرى.
+Saved one account to %2$s	تم حفظ حساب واحد في %2$s
+Saved %1$s accounts to %2$s	تم حفظ %1$s حساب في %2$s
+It stopped before the end of the list, so the file is partial.	توقّف قبل نهاية القائمة، لذا الملف غير كامل.
+TikTok stopped answering before the end of the list, so the file is partial.	توقّف TikTok عن الرد قبل نهاية القائمة، لذا الملف غير كامل.
+Only the first %1$s are in the file.	الملف يضم أول %1$s فقط.
+Saved %1$s accounts to %2$s|zero	تم حفظ %1$s حساب في %2$s
+Saved %1$s accounts to %2$s|two	تم حفظ %1$s حسابين في %2$s
+Saved %1$s accounts to %2$s|few	تم حفظ %1$s حسابات في %2$s
+Saved %1$s accounts to %2$s|many	تم حفظ %1$s حسابًا في %2$s
+Save your likes from a TikTok data export	حفظ إعجاباتك من تصدير بيانات TikTok
+Pick the export TikTok sends from Settings and privacy > Account > Download your data, in JSON format. The videos it lists as liked or favorited are saved like picked videos, up to %1$s at a time.	اختر التصدير الذي يرسله TikTok من الإعدادات والخصوصية > الحساب > تنزيل بياناتك، بتنسيق JSON. تُحفظ الفيديوهات المدرجة فيه كمُعجَب بها أو مفضلة مثل الفيديوهات المختارة، حتى %1$s في المرة الواحدة.
+Reading the data export	جارٍ قراءة تصدير البيانات
+Liked videos (%1$s)	الفيديوهات التي أعجبتك (%1$s)
+Favorites (%1$s)	المفضلة (%1$s)
+That export lists no liked or favorited videos	هذا التصدير لا يتضمن فيديوهات أعجبتك أو مفضلة
+Couldn't start saving. Try again in a moment.	تعذّر بدء الحفظ. حاول مرة أخرى بعد لحظة.
+You've already saved every one of these videos here	لقد حفظت كل هذه الفيديوهات هنا من قبل
+Saving one video	جارٍ حفظ فيديو واحد
+Saving %1$s videos	جارٍ حفظ %1$s فيديو
+One you saved before is left out	تم تخطي فيديو واحد حفظته من قبل
+%1$s you saved before are left out	تم تخطي %1$s فيديو حفظتها من قبل
+Choose the file again after this run to save the other %1$s	اختر الملف مرة أخرى بعد هذه الجولة لحفظ الـ %1$s الباقية
+That file is larger than %1$s MB. Choose the JSON file from the export.	هذا الملف أكبر من %1$s ميغابايت. اختر ملف JSON من التصدير.
+That isn't a TikTok data export in JSON format. Choose user_data_tiktok.json or the zip it came in.	هذا ليس تصدير بيانات TikTok بتنسيق JSON. اختر user_data_tiktok.json أو ملف zip الذي وصل فيه.
+One isn't on TikTok anymore	فيديو واحد لم يعد موجودًا على TikTok
+%1$s aren't on TikTok anymore	%1$s فيديو لم تعد موجودة على TikTok
+Saving %1$s videos|zero	جارٍ حفظ %1$s فيديو
+%1$s you saved before are left out|zero	تم تخطي %1$s فيديو حفظتها من قبل
+%1$s aren't on TikTok anymore|zero	%1$s فيديو لم تعد موجودة على TikTok
+Saving %1$s videos|two	جارٍ حفظ %1$s فيديوين
+%1$s you saved before are left out|two	تم تخطي %1$s فيديوين حفظتهما من قبل
+%1$s aren't on TikTok anymore|two	%1$s فيديوان لم يعودا موجودين على TikTok
+Saving %1$s videos|few	جارٍ حفظ %1$s فيديوهات
+%1$s you saved before are left out|few	تم تخطي %1$s فيديوهات حفظتها من قبل
+%1$s aren't on TikTok anymore|few	%1$s فيديوهات لم تعد موجودة على TikTok
+Saving %1$s videos|many	جارٍ حفظ %1$s فيديو
+%1$s you saved before are left out|many	تم تخطي %1$s فيديو حفظتها من قبل
+%1$s aren't on TikTok anymore|many	%1$s فيديو لم يعد موجودًا على TikTok
 The host can see you	يمكن للمضيف رؤيتك
 Let the host see you	اسمح للمضيف برؤيتك
 Couldn't tell which LIVE this is. Open it again.	تعذّر معرفة أي LIVE هذا. افتحه مرة أخرى.

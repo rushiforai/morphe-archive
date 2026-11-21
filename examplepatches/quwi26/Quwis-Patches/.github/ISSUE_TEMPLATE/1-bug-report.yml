@@ -1,0 +1,82 @@
+name: Bug report
+description: Something in a patch, in the settings or in a review is not doing what the README says.
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time :3
+
+        Two things that are not bugs and need no issue:
+
+        - **Sign in with Google, Facebook or Apple** never works in a patched app. Add an email and a password to the account and log in with them, as in the README.
+        - A new bundle in Morphe does not change an app that is already installed. The APK has to be patched and installed again.
+
+        For the rest, fill in what you know and leave the rest empty.
+
+  - type: dropdown
+    id: chess-version
+    attributes:
+      label: chess.com version
+      options:
+        - 4.10.28
+        - 4.10.27
+        - Other (written below)
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: What happened
+      description: What you expected, and what the app did instead.
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: What you did
+      description: The shortest way to get there, starting from opening the app. Two lines are fine.
+    validations:
+      required: false
+
+  - type: textarea
+    id: patches
+    attributes:
+      label: Patches selected
+      description: Whatever you remember having ticked, or just the ones that matter here. Optional.
+      placeholder: |
+        Unlimited Game Review
+        Game Review on your computer
+        Great and Brilliant moves analysis
+    validations:
+      required: false
+
+  - type: input
+    id: device
+    attributes:
+      label: Device
+      description: The model is enough, the Android version and the ROM are not needed. Optional.
+      placeholder: Pixel 7
+    validations:
+      required: false
+
+  - type: input
+    id: manager-version
+    attributes:
+      label: Morphe Manager version
+      description: If you happen to know it - Settings, About. Optional.
+      placeholder: 2.3.0
+    validations:
+      required: false
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs or screenshots
+      description: A screenshot, or a bit of logcat around the moment it goes wrong. Saves a round of questions, but no pressure.
+      render: text
+    validations:
+      required: false

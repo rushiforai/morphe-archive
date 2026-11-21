@@ -4,8 +4,13 @@ import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.bytecodePatch
 import com.android.tools.smali.dexlib2.AccessFlags
+import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 
-private const val PREBID_PLUGIN = "Lsetupad/plugin/setupad_prebid_flutter/a;"
+// The setupad_prebid_flutter plugin's MethodCallHandler is R8-obfuscated and its name changes
+// between app versions (3.0.13: setupad/plugin/setupad_prebid_flutter/a; 3.0.14: a class in
+// package o/). The one stable mark is that its onMethodCall body reads the plugin's own
+// R$string resource ids, so match on that instead of the volatile class name.
+private const val PREBID_R = "setupad/plugin/setupad_prebid_flutter/R"
 private const val AD_GATE = "Lapp/proxma/rox/AdGate;"
 private const val METHOD_CALL = "Lio/flutter/plugin/common/MethodCall;"
 private const val METHOD_RESULT = "Lio/flutter/plugin/common/MethodChannel\$Result;"
@@ -14,8 +19,11 @@ internal val roxPrebidOnMethodCallFingerprint = Fingerprint(
     returnType = "V",
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
     parameters = listOf(METHOD_CALL, METHOD_RESULT),
-    custom = { method, classDef ->
-        classDef.type == PREBID_PLUGIN && method.name == "onMethodCall"
+    custom = { method, _ ->
+        method.name == "onMethodCall" &&
+            method.implementation?.instructions?.any { instruction ->
+                ((instruction as? ReferenceInstruction)?.reference?.toString() ?: "").contains(PREBID_R)
+            } == true
     },
 )
 

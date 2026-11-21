@@ -1,3 +1,37 @@
+## [1.12.0](https://github.com/ch3thanhs/stylus/compare/v1.11.0...v1.12.0) (2026-11-21)
+
+### ✨ New Features
+
+* **ChatGPT:** add custom UI and monospace font patches ([a20e3c3](https://github.com/ch3thanhs/stylus/commit/a20e3c30f6b9d7327d237894e4a0628a63bf0632))
+
+### 🐛 Bug Fixes
+
+* **bitwarden:** adapt font patches to Bitwarden's switch to Inter ([181766b](https://github.com/ch3thanhs/stylus/commit/181766b13c320b858b8f1c948b54607ce922d2a9))
+* **Where is my Train:** update font patch fingerprints ([b01cb31](https://github.com/ch3thanhs/stylus/commit/b01cb3190f1aad602a29473da2081f91433700cc))
+
+### 🚀 Updated App Support
+
+* **Bitwarden:** Update app support to 2026.11.1 ([7121aff](https://github.com/ch3thanhs/stylus/commit/7121aff1139b7642c9606cbdf466f143f75ea7f7))
+* **GitHub:** Update app support to 1.284.0 ([0525415](https://github.com/ch3thanhs/stylus/commit/0525415dd1f92eaab07fb55f0db531e2b33e5abd))
+* **Where is my Train:** Update app support to 7.1.5.1012928357 ([570f98b](https://github.com/ch3thanhs/stylus/commit/570f98ba49bf37b5d59dadbb37b1b8a3cc185b19))
+
+## [1.12.0-dev.1](https://github.com/ch3thanhs/stylus/compare/v1.11.0...v1.12.0-dev.1) (2026-11-21)
+
+### ✨ New Features
+
+* **ChatGPT:** add custom UI and monospace font patches ([a20e3c3](https://github.com/ch3thanhs/stylus/commit/a20e3c30f6b9d7327d237894e4a0628a63bf0632))
+
+### 🐛 Bug Fixes
+
+* **bitwarden:** adapt font patches to Bitwarden's switch to Inter ([181766b](https://github.com/ch3thanhs/stylus/commit/181766b13c320b858b8f1c948b54607ce922d2a9))
+* **Where is my Train:** update font patch fingerprints ([b01cb31](https://github.com/ch3thanhs/stylus/commit/b01cb3190f1aad602a29473da2081f91433700cc))
+
+### 🚀 Updated App Support
+
+* **Bitwarden:** Update app support to 2026.11.1 ([7121aff](https://github.com/ch3thanhs/stylus/commit/7121aff1139b7642c9606cbdf466f143f75ea7f7))
+* **GitHub:** Update app support to 1.284.0 ([0525415](https://github.com/ch3thanhs/stylus/commit/0525415dd1f92eaab07fb55f0db531e2b33e5abd))
+* **Where is my Train:** Update app support to 7.1.5.1012928357 ([570f98b](https://github.com/ch3thanhs/stylus/commit/570f98ba49bf37b5d59dadbb37b1b8a3cc185b19))
+
 ## [1.11.0](https://github.com/ch3thanhs/stylus/compare/v1.10.0...v1.11.0) (2026-11-07)
 
 ### ✨ New Features

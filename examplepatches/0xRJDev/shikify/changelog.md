@@ -1,3 +1,19 @@
+# Version 1.1.4
+
+Boost for Reddit:
+- Hold Share… in a post or comment menu to copy the link to it.
+- Hold a post's share button to copy its link.
+- New Share button option adds a share button to comments: tap to share the comment's link, hold to copy it.
+- New Glass menus option makes post and comment menus a frosted bubble instead of blurring the whole screen.
+
+# Version 1.1.4-dev.1
+
+Boost for Reddit:
+- Hold Share… in a post or comment menu to copy the link to it.
+- Hold a post's share button to copy its link.
+- New Share button option adds a share button to comments: tap to share the comment's link, hold to copy it.
+- New Glass menus option makes post and comment menus a frosted bubble instead of blurring the whole screen.
+
 # Version 1.1.3
 
 Boost for Reddit:

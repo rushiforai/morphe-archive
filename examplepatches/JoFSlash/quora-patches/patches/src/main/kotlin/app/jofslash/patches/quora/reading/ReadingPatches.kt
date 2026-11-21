@@ -20,10 +20,16 @@ private fun smaliString(value: String) =
     value.replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", " ").replace("\r", " ")
 
 /** A patch that runs one ReadingPatch method, which takes only the WebView, on every page. */
-private fun readingPatch(patchCategory: String, name: String, description: String, extensionMethod: String) = bytecodePatch(
+private fun readingPatch(
+    patchCategory: String,
+    name: String,
+    description: String,
+    extensionMethod: String,
+    default: Boolean = false,
+) = bytecodePatch(
     name = name,
     description = description,
-    default = false
+    default = default
 ) {
     category(patchCategory)
     compatibleWith(COMPATIBILITY_QUORA)
@@ -150,13 +156,14 @@ val expandAnswersPatch = readingPatch(
     patchCategory = "Reading",
     description = "Opens shortened answers on question pages, and shows the whole answer preview in the feed.",
     extensionMethod = "expandAnswers",
+    default = true,
 )
 
 @Suppress("unused")
 val copyAnswerTextPatch = bytecodePatch(
     name = "Copy answer text",
     description = "Adds a Copy button next to Share under answers and posts. It copies their text without formatting.",
-    default = false
+    default = true
 ) {
     category("Reading")
     compatibleWith(COMPATIBILITY_QUORA)

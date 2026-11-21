@@ -2,6 +2,7 @@ package dev.rikunode.pupil
 
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.patch.booleanOption
 import app.morphe.patcher.patch.bytecodePatch
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
@@ -53,12 +54,19 @@ private object MainResumeShortcutFingerprint : Fingerprint(
 @Suppress("unused")
 val favoritesRandomShortcutPatch = bytecodePatch(
     name = "Favorites random shortcut",
-    description = "Show a one-tap random gallery button above the bottom navigation on the Favorites tab in Pupil 6.1.1.",
+    description = "Show a one-tap random gallery button above the bottom navigation on the Favorites tab in Pupil 6.1.1, with an optional matching left button.",
     default = false,
 ) {
     compatibleWith(PupilCompatibility)
 
     extendWith("extensions/extension.mpe")
+
+    val showLeftRandomButton by booleanOption(
+        key = "showLeftRandomButton",
+        default = false,
+        title = "Show left random button",
+        description = "Also show a matching random gallery button on the left side of the Favorites tab.",
+    )
 
     execute {
         val listMethod = GalleryListShortcutFingerprint.method
@@ -116,9 +124,10 @@ val favoritesRandomShortcutPatch = bytecodePatch(
                 invoke-static {}, $SHORTCUT_CLASS->hideForDetail()V
             """.trimIndent(),
         )
+        val installMethod = if (showLeftRandomButton == true) "installWithLeftButton" else "install"
         resumeMethod.addInstructions(
             1,
-            "invoke-static {p0}, $SHORTCUT_CLASS->install(Landroid/app/Activity;)V",
+            "invoke-static {p0}, $SHORTCUT_CLASS->$installMethod(Landroid/app/Activity;)V",
         )
     }
 }

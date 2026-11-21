@@ -35,6 +35,13 @@ public final class ThreadWatchNavigation {
         pending=new Pending(url,number,expires);
     }
 
+    static boolean pendingFor(Object fragment,View list){
+        Pending target=pending;
+        return target!=null&&System.currentTimeMillis()<=target.expires
+                &&target.fragment!=null&&target.fragment.get()==fragment
+                &&target.list!=null&&target.list.get()==list;
+    }
+
     static void register(Object fragment,View list){
         if(list==null)return;
         Pending target=load(list.getContext());

@@ -423,6 +423,9 @@ public final class ChatStyleArtProbe {
             {"https://cdn.betterttv.net/emote/abc/2x.png", "https://cdn.betterttv.net/emote/abc/3x.png"},
             {"https://cdn.frankerfacez.com/emote/123/2", "https://cdn.frankerfacez.com/emote/123/4"},
             {"https://cdn.frankerfacez.com/emote/123/animated/2.gif", "https://cdn.frankerfacez.com/emote/123/animated/4.gif"},
+            // FrankerFaceZ emotes from BetterTTV's copy of its lists (issue 97).
+            {"https://cdn.betterttv.net/frankerfacez_emote/123/2", "https://cdn.betterttv.net/frankerfacez_emote/123/4"},
+            {"https://cdn.betterttv.net/frankerfacez_emote/123/animated/1.gif", "https://cdn.betterttv.net/frankerfacez_emote/123/animated/4.gif"},
             {url, url.substring(0, url.length() - 1) + "3"},
             {"data:image/png;base64,AA==", "data:image/png;base64,AA=="},
             {"https://fourtf.com/chatterino/badges/topd3x.png", "https://fourtf.com/chatterino/badges/topd3x.png"}};

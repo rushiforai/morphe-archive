@@ -11,6 +11,7 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
+import java.util.concurrent.Executor;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -29,12 +30,7 @@ final class TwitchThirdParty {
     private static final int READ_TIMEOUT_MS = 15_000;
     private static final String USER_AGENT = "Lurk (+https://github.com/jordanwoodson/lurk-morphe-patches)";
 
-    private static final ThreadPoolExecutor POOL = new ThreadPoolExecutor(3, 3, 30, TimeUnit.SECONDS,
-            new LinkedBlockingQueue<>(50), runnable -> {
-                Thread thread = new Thread(runnable, "lurk-third-party");
-                thread.setDaemon(true);
-                return thread;
-            });
+    private static final ThreadPoolExecutor POOL = lane("third-party", 3, 50);
 
     private static final ThreadLocal<BooleanSupplier> ACTIVE_REQUEST = new ThreadLocal<>();
     private static final java.util.concurrent.atomic.AtomicLong CATALOG_REVISION = new java.util.concurrent.atomic.AtomicLong();
@@ -42,11 +38,29 @@ final class TwitchThirdParty {
     static long catalogRevision() { return CATALOG_REVISION.get(); }
 
 
-    static {
-        POOL.allowCoreThreadTimeOut(true);
+    private TwitchThirdParty() {
     }
 
-    private TwitchThirdParty() {
+    /**
+     * A small bounded pool of daemon threads that end when idle. A caller that keeps one service's requests apart
+     * from another's (so a service that hangs can't hold up the others) gives each service a lane of its own.
+     */
+    static ThreadPoolExecutor lane(String name, int threads, int queue) {
+        ThreadPoolExecutor lane = new ThreadPoolExecutor(threads, threads, 30, TimeUnit.SECONDS,
+                new LinkedBlockingQueue<>(queue), runnable -> {
+                    Thread thread = new Thread(runnable, "lurk-" + name);
+                    thread.setDaemon(true);
+                    return thread;
+                });
+        lane.allowCoreThreadTimeOut(true);
+        return lane;
+    }
+
+    /** A request given up because nothing wants its answer any more: not a failure of the service. */
+    static final class Cancelled extends IOException {
+        Cancelled() {
+            super("Provider request no longer owned");
+        }
     }
 
     interface JsonParser<T> {
@@ -78,8 +92,13 @@ final class TwitchThirdParty {
 
     /** Recheck demand on the worker; completion also runs on cancellation and queue rejection. */
     static void run(String what, BooleanSupplier wanted, Runnable task, Runnable completion) {
+        run(POOL, what, wanted, task, completion);
+    }
+
+    /** {@link #run(String, BooleanSupplier, Runnable, Runnable)} on {@code lane} instead of the shared pool. */
+    static void run(Executor lane, String what, BooleanSupplier wanted, Runnable task, Runnable completion) {
         try {
-            POOL.execute(() -> {
+            lane.execute(() -> {
                 try {
                     ACTIVE_REQUEST.set(wanted);
                     if (wanted.getAsBoolean()) task.run();
@@ -145,7 +164,7 @@ final class TwitchThirdParty {
 
     private static HttpURLConnection open(String url, String accept) throws IOException {
         BooleanSupplier wanted = ACTIVE_REQUEST.get();
-        if (wanted != null && !wanted.getAsBoolean()) throw new IOException("Provider request no longer owned");
+        if (wanted != null && !wanted.getAsBoolean()) throw new Cancelled();
         HttpURLConnection connection = (HttpURLConnection) URI.create(url).toURL().openConnection();
         connection.setConnectTimeout(CONNECT_TIMEOUT_MS);
         connection.setReadTimeout(READ_TIMEOUT_MS);

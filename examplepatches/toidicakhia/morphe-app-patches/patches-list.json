@@ -12,7 +12,7 @@
           "packageName": "com.dubox.drive",
           "name": "TeraBox",
           "description": null,
-          "apkFileType": "XAPK",
+          "apkFileType": "APKM",
           "appIconColor": "#226DF6",
           "signatures": [
             "b75fd2b70084d7e0813b8f74dd74b62ab79b2aa0ce1372331a1841bd88eed993"
@@ -20,12 +20,12 @@
           "formFactor": "MOBILE",
           "targets": [
             {
-              "version": "4.27.5",
+              "version": "4.28.5",
               "versionCodes": {
-                "ARM64_V8A": 702,
-                "ARMEABI_V7A": 702,
-                "X86_64": 702,
-                "X86": 702
+                "ARM64_V8A": 709,
+                "ARMEABI_V7A": 709,
+                "X86_64": 709,
+                "X86": 709
               },
               "isExperimental": false,
               "minSdk": 23,
@@ -46,7 +46,7 @@
           "packageName": "com.dubox.drive",
           "name": "TeraBox",
           "description": null,
-          "apkFileType": "XAPK",
+          "apkFileType": "APKM",
           "appIconColor": "#226DF6",
           "signatures": [
             "b75fd2b70084d7e0813b8f74dd74b62ab79b2aa0ce1372331a1841bd88eed993"
@@ -54,12 +54,12 @@
           "formFactor": "MOBILE",
           "targets": [
             {
-              "version": "4.27.5",
+              "version": "4.28.5",
               "versionCodes": {
-                "ARM64_V8A": 702,
-                "ARMEABI_V7A": 702,
-                "X86_64": 702,
-                "X86": 702
+                "ARM64_V8A": 709,
+                "ARMEABI_V7A": 709,
+                "X86_64": 709,
+                "X86": 709
               },
               "isExperimental": false,
               "minSdk": 23,
@@ -146,7 +146,7 @@
           "packageName": "com.dubox.drive",
           "name": "TeraBox",
           "description": null,
-          "apkFileType": "XAPK",
+          "apkFileType": "APKM",
           "appIconColor": "#226DF6",
           "signatures": [
             "b75fd2b70084d7e0813b8f74dd74b62ab79b2aa0ce1372331a1841bd88eed993"
@@ -154,12 +154,12 @@
           "formFactor": "MOBILE",
           "targets": [
             {
-              "version": "4.27.5",
+              "version": "4.28.5",
               "versionCodes": {
-                "ARM64_V8A": 702,
-                "ARMEABI_V7A": 702,
-                "X86_64": 702,
-                "X86": 702
+                "ARM64_V8A": 709,
+                "ARMEABI_V7A": 709,
+                "X86_64": 709,
+                "X86": 709
               },
               "isExperimental": false,
               "minSdk": 23,
@@ -510,7 +510,7 @@
           "packageName": "com.dubox.drive",
           "name": "TeraBox",
           "description": null,
-          "apkFileType": "XAPK",
+          "apkFileType": "APKM",
           "appIconColor": "#226DF6",
           "signatures": [
             "b75fd2b70084d7e0813b8f74dd74b62ab79b2aa0ce1372331a1841bd88eed993"
@@ -518,12 +518,12 @@
           "formFactor": "MOBILE",
           "targets": [
             {
-              "version": "4.27.5",
+              "version": "4.28.5",
               "versionCodes": {
-                "ARM64_V8A": 702,
-                "ARMEABI_V7A": 702,
-                "X86_64": 702,
-                "X86": 702
+                "ARM64_V8A": 709,
+                "ARMEABI_V7A": 709,
+                "X86_64": 709,
+                "X86": 709
               },
               "isExperimental": false,
               "minSdk": 23,

@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2026 lavinhoque33
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-20.
  * Modified by lavinhoque33, 2026-11-17.
  */
 package app.morphe.extension.music.patches.downloads;
@@ -35,11 +36,13 @@ final class TrackMetadata {
      * @param playingArtist Media session artist, if the track is the one playing.
      */
     static AudioTagger.Tags resolve(String videoId, @Nullable String playingTitle,
-                                    @Nullable String playingArtist, VideoDetails details) {
+                                    @Nullable String playingArtist, VideoDetails details,
+                                    @Nullable AlbumFileTracks albumTracks) {
         String title = null;
         String artist = null;
         String album = null;
         String artworkUrl = null;
+        AlbumFileTracks.Position position = null;
         try {
             JSONObject response = MusicBrowseRequest.next(Utils.getContext(), videoId);
             JSONObject endpoint = response.optJSONObject("currentVideoEndpoint");
@@ -47,12 +50,15 @@ final class TrackMetadata {
             JSONObject screen = response.optJSONObject("lockScreen");
             JSONObject lock = screen == null ? null : screen.optJSONObject("lockScreenRenderer");
             // A redirected video would describe a different track.
-            if (watch != null && videoId.equals(watch.optString("videoId")) && lock != null) {
-                title = text(lock.optJSONObject("title"));
-                artist = text(lock.optJSONObject("shortBylineText"));
-                album = text(lock.optJSONObject("albumText"));
-                JSONObject thumbnail = lock.optJSONObject("thumbnail");
-                artworkUrl = largest(thumbnail == null ? null : thumbnail.optJSONArray("thumbnails"));
+            if (watch != null && videoId.equals(watch.optString("videoId"))) {
+                if (lock != null) {
+                    title = text(lock.optJSONObject("title"));
+                    artist = text(lock.optJSONObject("shortBylineText"));
+                    album = text(lock.optJSONObject("albumText"));
+                    JSONObject thumbnail = lock.optJSONObject("thumbnail");
+                    artworkUrl = largest(thumbnail == null ? null : thumbnail.optJSONArray("thumbnails"));
+                }
+                if (albumTracks != null) position = albumTracks.resolve(videoId, response);
             }
         } catch (Exception ex) {
             Logger.printException(() -> "Could not resolve Music metadata, using stream details: " + videoId, ex);
@@ -69,7 +75,8 @@ final class TrackMetadata {
             }
         }
         byte[] artwork = artworkUrl == null ? null : artwork(videoId, artworkUrl);
-        return new AudioTagger.Tags(title, artist, album == null || album.isBlank() ? null : album, artwork);
+        return new AudioTagger.Tags(title, artist, album == null || album.isBlank() ? null : album, artwork,
+                position == null ? 0 : position.number(), position == null ? 0 : position.total());
     }
 
     @Nullable

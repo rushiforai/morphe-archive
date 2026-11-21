@@ -5,7 +5,7 @@
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
  *
- * Modified by lavinhoque33, 2026-10-25
+ * Modified by lavinhoque33, 2026-11-20
  */
 
 package app.morphe.extension.youtube.videoplayer;
@@ -38,6 +38,22 @@ import app.morphe.extension.shared.utils.ResourceUtils;
 @SuppressWarnings("unused")
 public abstract class AppPlayerIconDrawable extends DrawableWrapper {
 
+    private static final String FULLSCREEN_EXIT = "yt_outline_experimental_player_full_exit_vd_theme_24";
+    private static final String FULLSCREEN_EXIT_ALT = "yt_outline_experimental_player_full_exit_alt_vd_theme_24";
+
+    private static final class FullscreenExitIds {
+        private static final int EXIT = drawableId(FULLSCREEN_EXIT);
+        private static final int EXIT_BITMAP = drawableId("yt_outline_experimental_player_full_exit_black_24");
+        private static final int STYLED_EXIT = drawableId("morphe_" + FULLSCREEN_EXIT);
+        private static final int EXIT_ALT = drawableId(FULLSCREEN_EXIT_ALT);
+        private static final int EXIT_ALT_BITMAP = drawableId("yt_outline_experimental_player_full_exit_alt_black_24");
+        private static final int STYLED_EXIT_ALT = drawableId("morphe_" + FULLSCREEN_EXIT_ALT);
+
+        private static int drawableId(String name) {
+            return ResourceUtils.getIdentifier(name, ResourceType.DRAWABLE);
+        }
+    }
+
     public static final class FullscreenEnter extends AppPlayerIconDrawable {
         public FullscreenEnter() {
             super("morphe_fullscreen_enter", "morphe_yt_player_full_enter");
@@ -58,14 +74,26 @@ public abstract class AppPlayerIconDrawable extends DrawableWrapper {
 
     public static final class FullscreenExit extends AppPlayerIconDrawable {
         public FullscreenExit() {
-            super("morphe_fullscreen_exit", "morphe_yt_player_full_exit");
+            super("morphe_fullscreen_exit", FULLSCREEN_EXIT);
         }
     }
 
     public static final class FullscreenExitAlt extends AppPlayerIconDrawable {
         public FullscreenExitAlt() {
-            super("morphe_fullscreen_exit", "morphe_yt_player_full_exit_alt");
+            super("morphe_fullscreen_exit", FULLSCREEN_EXIT_ALT);
         }
+    }
+
+    /** Styles exit icons only when the app loads them for the watch player's fullscreen button. */
+    @SuppressWarnings("deprecation")
+    public static Drawable loadWatchPlayerFullscreenIcon(Resources resources, int resId) {
+        if (resId == FullscreenExitIds.EXIT || resId == FullscreenExitIds.EXIT_BITMAP) {
+            if (FullscreenExitIds.STYLED_EXIT != 0) resId = FullscreenExitIds.STYLED_EXIT;
+        } else if (resId == FullscreenExitIds.EXIT_ALT || resId == FullscreenExitIds.EXIT_ALT_BITMAP) {
+            if (FullscreenExitIds.STYLED_EXIT_ALT != 0) resId = FullscreenExitIds.STYLED_EXIT_ALT;
+        }
+
+        return resources.getDrawable(resId);
     }
 
     public static final class SkipNext extends AppPlayerIconDrawable {
@@ -96,6 +124,23 @@ public abstract class AppPlayerIconDrawable extends DrawableWrapper {
         public Settings() {
             super("morphe_player_settings", "yt_outline_gear_white_24");
         }
+    }
+
+    /** Injection point for the native Shorts menu, not the player fullscreen button. */
+    public static boolean isFullscreenEnterIcon(@Nullable Drawable icon) {
+        return icon instanceof FullscreenEnter || icon instanceof FullscreenEnterAlt
+                || icon instanceof FullscreenEnterPortrait;
+    }
+
+    /** Called only for a fullscreen-enter icon on a Reel content clear-mode action. */
+    @NonNull
+    public static Drawable useStockClearScreenIcon(@NonNull Drawable icon) {
+        Drawable stockIcon = ResourceUtils.getDrawable("morphe_shorts_clear_screen");
+        if (stockIcon == null) return icon;
+
+        // Some sheet items are tinted before binding; others get the tint from the ImageView.
+        stockIcon.mutate().setColorFilter(icon.getColorFilter());
+        return stockIcon;
     }
 
     // The opacity of the app's disabled transport icons, white at 30 percent.

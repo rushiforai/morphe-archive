@@ -691,7 +691,7 @@ public final class ProgrammableNgController {
         LEGACY_RESPONSE_MATCHES.clear();LEGACY_SHARED_RESPONSE_MATCHES.clear();
         MODERN_RESPONSE_MATCHES.clear();MODERN_SHARED_RESPONSE_MATCHES.clear();
     }
-    /** Shared NG rows use ChMate's separate transparent map, like registered images. */
+    /** Shared NG rows use ChMate's native per-response reason map. */
     @SuppressWarnings({"rawtypes", "unchecked"})
     public static void applySharedHidden(Object owner) {
         if (owner == null || !SharedNg.enabled()) return;
@@ -720,12 +720,13 @@ public final class ProgrammableNgController {
             if (matches == null || matches.isEmpty()) return;
             Object target = field(owner, mapField);
             List<?> rows = originalResponses(field(owner, rowsField));
+            int hiddenFlag=SharedNg.hiddenMapFlag();
             if (target instanceof android.util.SparseIntArray) {
                 android.util.SparseIntArray map = (android.util.SparseIntArray) target;
                 for (Object row : rows) {
                     int number = ((Number) field(row, numberField)).intValue();
                     if (matches.contains(number) && FirstResponseNg.protectedNumber(number) != 0)
-                        map.put(number, map.get(number, 0) | 0x1000);
+                        map.put(number, map.get(number, 0) | hiddenFlag);
                 }
             } else if (target instanceof Map) {
                 Map map = (Map) target;
@@ -733,11 +734,11 @@ public final class ProgrammableNgController {
                     int number = ((Number) field(row, numberField)).intValue();
                     if (matches.contains(number) && FirstResponseNg.protectedNumber(number) != 0) {
                         Object previous = map.get(number);
-                        map.put(number, (previous instanceof Number ? ((Number) previous).intValue() : 0) | 0x1000);
+                        map.put(number, (previous instanceof Number ? ((Number) previous).intValue() : 0) | hiddenFlag);
                     }
                 }
             }
-        } catch (Exception error) { report("共有NGの透明あぼーん", error); }
+        } catch (Exception error) { report("共有NGのレス表示", error); }
     }
     private static boolean[] evaluateBodies(List<ProgrammableNgScript.Input> inputs){return evaluateBodies(inputs,null);}
     private static boolean[] evaluateBodies(List<ProgrammableNgScript.Input> inputs,boolean[] sharedMatches){
@@ -747,7 +748,12 @@ public final class ProgrammableNgController {
     static boolean[] notificationMatches(List<ProgrammableNgScript.Input> inputs){
         return evaluateBodies(inputs);
     }
-    private static boolean bodyRulesEnabled(){if(SharedNg.enabled())return true;if(!enabled)return false;for(ProgrammableNgRuleSet.Rule rule:rules.rules)if(rule.enabled&&"body".equals(rule.target))return true;return false;}
+    private static boolean bodyRulesEnabled(){return SharedNg.enabled()||programmableBodyRulesEnabled();}
+    static boolean programmableBodyRulesEnabled(){
+        if(!enabled)return false;
+        for(ProgrammableNgRuleSet.Rule rule:rules.rules)if(rule.enabled&&"body".equals(rule.target))return true;
+        return false;
+    }
     static String plain(String html) {
         return PLAIN_TEXT.plain(html,value->Html.fromHtml(value).toString());
     }

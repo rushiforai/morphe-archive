@@ -2,6 +2,7 @@ package app.stylus.patches.wimt.font
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.removeInstruction
+import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.decode
 import app.morphe.patcher.patch.deleteResource
@@ -10,8 +11,12 @@ import app.morphe.patcher.patch.resourceFile
 import app.morphe.patcher.patch.stringOption
 import app.stylus.patches.wimt.shared.Constants.COMPATIBILITY_WIMT
 import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.builder.instruction.BuilderInstruction31c
+import com.android.tools.smali.dexlib2.builder.instruction.BuilderInstruction35c
+import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
-import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
+import com.android.tools.smali.dexlib2.immutable.reference.ImmutableStringReference
 import java.io.File
 
 private const val CUSTOM_FONT_RESOURCE_NAME = "custom_ui_font"
@@ -482,51 +487,55 @@ val customFontWimtPatch = patch(
         // The track row binder resets station names to Typeface.DEFAULT. Drop
         // that reset so they keep the theme font, which this patch replaces.
         val trackRowMethod = TrackRowTypefaceFingerprint.method
-        val trackRowInstructions = trackRowMethod.implementation?.instructions
-            ?: throw PatchException("Track row binder has no implementation.")
-
-        val typefaceResetIndex = trackRowInstructions.indexOfFirst { instruction ->
-            if (instruction.opcode != Opcode.INVOKE_VIRTUAL) {
-                return@indexOfFirst false
-            }
-
-            val reference = (instruction as? ReferenceInstruction)?.reference as? MethodReference
-                ?: return@indexOfFirst false
-
-            reference.definingClass == "Landroid/widget/TextView;" &&
-                reference.name == "setTypeface" &&
-                reference.parameterTypes.singleOrNull() == "Landroid/graphics/Typeface;"
-        }
-
+        val typefaceResetIndex = findTrackRowTypefaceReset(trackRowMethod)
         if (typefaceResetIndex < 0) {
             throw PatchException("Could not find the station name typeface reset.")
         }
-
         trackRowMethod.removeInstruction(typefaceResetIndex)
 
         val featureSettings =
             normalizeFontFeatureSettings(fontFeatureSettingsOption.value) ?: return@execute
 
-        val method = ComposeParagraphConstructorFingerprint.method
-        val implementation = method.implementation
-            ?: throw PatchException("Compose text constructor has no implementation.")
-        val returnIndex = implementation.instructions
-            .indexOfLast { it.opcode == Opcode.RETURN_VOID }
-
-        if (returnIndex < 0) {
-            throw PatchException("Could not find the Compose text constructor return.")
-        }
-
-        // This constructor creates the single TextPaint used by Compose text.
-        // Re-apply the setting here so it wins over the base SpanStyle, which
-        // may carry its own fontFeatureSettings value.
-        method.addInstructions(
-            returnIndex,
-            """
-                iget-object v1, v0, Ldhn;->c:Ldnv;
-                const-string v2, "$featureSettings"
-                invoke-virtual {v1, v2}, Ldnv;->setFontFeatureSettings(Ljava/lang/String;)V
-            """.trimIndent(),
-        )
+        applyComposeFontFeatureSettings(featureSettings)
     }
+}
+
+private fun applyComposeFontFeatureSettings(featureSettings: String) {
+    val method = ComposeParagraphConstructorFingerprint.method
+    val instructions = method.implementation?.instructions
+        ?: throw PatchException("Compose text constructor has no implementation.")
+    val baseSetter = instructions.withIndex().singleOrNull { isFontFeatureSettingsCall(it.value) }
+        ?: throw PatchException("Could not find the Compose paint's base feature settings call.")
+    val call = baseSetter.value as FiveRegisterInstruction
+    val scratch = call.registerD
+    val joinIndex = baseSetter.index + 1
+    val continuation = instructions.getOrNull(joinIndex)
+    if (continuation?.opcode != Opcode.IGET_OBJECT || continuation !is TwoRegisterInstruction ||
+        continuation.registerA != scratch || continuation.registerB == scratch || call.registerC == scratch
+    ) {
+        throw PatchException("Could not reuse the Compose font feature settings register.")
+    }
+
+    // The SpanStyle may skip its font feature call. Retain the branch labels
+    // on the next instruction so both paths apply the custom settings before layout.
+    method.replaceInstruction(
+        joinIndex,
+        BuilderInstruction31c(Opcode.CONST_STRING_JUMBO, scratch, ImmutableStringReference(featureSettings)),
+    )
+    method.addInstructions(
+        joinIndex + 1,
+        listOf(
+            BuilderInstruction35c(
+                Opcode.INVOKE_VIRTUAL,
+                2,
+                call.registerC,
+                scratch,
+                0,
+                0,
+                0,
+                (baseSetter.value as ReferenceInstruction).reference,
+            ),
+            continuation,
+        ),
+    )
 }

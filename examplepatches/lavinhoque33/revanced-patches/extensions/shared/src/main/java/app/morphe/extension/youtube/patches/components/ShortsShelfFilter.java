@@ -7,6 +7,7 @@
  * https://github.com/ReVanced/revanced-patches/commit/724e6d61b2ecd868c1a9a37d465a688e83a74799
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to Morphe contributions.
+ * Modified by lavinhoque33, 2026-11-20.
  */
 
 package app.morphe.extension.youtube.patches.components;
@@ -15,7 +16,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import app.morphe.extension.shared.patches.components.ByteArrayFilterGroup;
 import app.morphe.extension.shared.patches.components.ContextInterface;
-import app.morphe.extension.shared.patches.components.Filter;
+import app.morphe.extension.shared.patches.components.LazyBufferFilter;
 import app.morphe.extension.shared.patches.components.StringFilterGroup;
 import app.morphe.extension.shared.settings.BaseSettings;
 import app.morphe.extension.shared.settings.BooleanSetting;
@@ -29,7 +30,7 @@ import app.morphe.extension.youtube.shared.PlayerType;
 import app.morphe.extension.youtube.shared.RootView;
 
 @SuppressWarnings({"unused", "deprecation"})
-public final class ShortsShelfFilter extends Filter {
+public final class ShortsShelfFilter extends LazyBufferFilter {
     private static final String BROWSE_ID_HISTORY = "FEhistory";
     private static final String BROWSE_ID_LIBRARY = "FElibrary";
     private static final String BROWSE_ID_NOTIFICATION_INBOX = "FEnotifications_inbox";
@@ -108,17 +109,18 @@ public final class ShortsShelfFilter extends Filter {
     }
 
     @Override
-    public boolean isFiltered(String path, String identifier, String allValue, byte[] buffer,
+    public boolean isFilteredLazy(String path, String identifier, String allValue, Buffer buffer,
                               StringFilterGroup matchedGroup, FilterContentType contentType, int contentIndex) {
         boolean isHomeFeedOrRelatedVideo = feedGroup.matches(allValue)
                 || ((matchedGroup == shelfHeaderPath || matchedGroup == shelfHeaderIdentifier)
                 && !RootView.isBackButtonVisible()
-                && legacyFeedShelfHeader.check(buffer).isFiltered());
+                && legacyFeedShelfHeader.check(buffer.get()).isFiltered());
         return isFiltered(isHomeFeedOrRelatedVideo, path, identifier, buffer, matchedGroup, contentType, contentIndex);
     }
 
     @Override
-    public boolean isFiltered(Object contextSource, String identifier, String accessibility, String path, byte[] buffer,
+    public boolean isFilteredLazy(Object contextSource, String identifier, String accessibility,
+                                  String path, Buffer buffer,
                               StringFilterGroup matchedGroup, FilterContentType contentType, int contentIndex) {
         return isFiltered(contextSource instanceof ContextInterface contextInterface
                         ? contextInterface.isHomeFeedOrRelatedVideo()
@@ -126,7 +128,7 @@ public final class ShortsShelfFilter extends Filter {
                 path, identifier, buffer, matchedGroup, contentType, contentIndex);
     }
 
-    private boolean isFiltered(boolean isHomeFeedOrRelatedVideo, String path, String identifier, byte[] buffer,
+    private boolean isFiltered(boolean isHomeFeedOrRelatedVideo, String path, String identifier, Buffer buffer,
                                StringFilterGroup matchedGroup, FilterContentType contentType, int contentIndex) {
         if (contentType == FilterContentType.PATH) {
             if (matchedGroup == compactFeedVideoPath) {
@@ -137,7 +139,7 @@ public final class ShortsShelfFilter extends Filter {
                         // It appears [shortsCompactFeedVideoBuffer] is used after 20 seconds during autoplay in the feed in YouTube 20.44.38.
                         // If the Shorts shelf is hidden on the Home feed, the video in the feed will be hidden after 20 seconds have passed since autoplay began in the feed.
                         // See: https://github.com/MorpheApp/morphe-patches/issues/773.
-                        && compactFeedVideoBuffer.check(buffer).isFiltered()
+                        && compactFeedVideoBuffer.check(buffer.get()).isFiltered()
                         // Checked last, as only the Shorts are logged.
                         && shouldHideShortsFeedItems(path);
             } else if (matchedGroup == shelfHeaderPath) {
@@ -147,7 +149,8 @@ public final class ShortsShelfFilter extends Filter {
                     return false;
                 }
                 if (!isHomeFeedOrRelatedVideo) {
-                    return !NavigationBar.isSearchBarActive() && channelProfileShelfHeader.check(buffer).isFiltered();
+                    return !NavigationBar.isSearchBarActive()
+                            && channelProfileShelfHeader.check(buffer.get()).isFiltered();
                 }
                 return shouldHideShortsFeedItems(path);
             }

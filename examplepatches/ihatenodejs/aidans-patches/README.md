@@ -45,7 +45,7 @@ My [Morphe](https://morphe.software) patches
 
 <!-- PATCHES_START EXPANDED -->
 
-> **[v1.9.0](https://github.com/ihatenodejs/aidans-patches/releases/tag/v1.9.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;79 patches total
+> **[v1.9.3](https://github.com/ihatenodejs/aidans-patches/releases/tag/v1.9.3)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;80 patches total
 
 <details open>
 <summary>📦 SidelineSwap&nbsp;&nbsp;•&nbsp;&nbsp;4 patches&nbsp;&nbsp;<a href="https://patch.p0ntus.com/status"><img src="https://worker.patch.p0ntus.com/badges/tests/com.sidelineswap.android.svg" alt="Tests Passing" align="absmiddle"></a></summary>
@@ -130,7 +130,7 @@ My [Morphe](https://morphe.software) patches
 </details>
 
 <details open>
-<summary>📦 Canvas Student&nbsp;&nbsp;•&nbsp;&nbsp;7 patches&nbsp;&nbsp;<a href="https://patch.p0ntus.com/status"><img src="https://worker.patch.p0ntus.com/badges/tests/com.instructure.candroid.svg" alt="Tests Passing" align="absmiddle"></a></summary>
+<summary>📦 Canvas Student&nbsp;&nbsp;•&nbsp;&nbsp;8 patches&nbsp;&nbsp;<a href="https://patch.p0ntus.com/status"><img src="https://worker.patch.p0ntus.com/badges/tests/com.instructure.candroid.svg" alt="Tests Passing" align="absmiddle"></a></summary>
 <br>
 
 **🎯 Supported versions:**
@@ -144,6 +144,7 @@ My [Morphe](https://morphe.software) patches
 | **Change App Name**                     | Replaces the launcher label shown under the app icon. In-app text is unchanged.                                                                                                                                                                                                                                                                                     | • App Name                                                            |
 | **Clone App**                           | Changes the package name so this build installs alongside the original Canvas Student. The clone has separate app data. Re-signed or cloned App Links, push notifications, and package/certificate-bound services may not work; verify login, sharing, and document viewing.                                                                                        | • Clone Package Name                                                  |
 | **Disable AI Study Tools**              | Hides Study Tools and stops page content from being sent to Instructure's AI study-assist endpoint.                                                                                                                                                                                                                                                                 |                                                                       |
+| **Fix PDF Viewer Crash**                | Stops the document viewer from aborting when opening any PDF. Nutrient's license grants form viewing and filling but not form editing, yet the native library applies its editing-only license assertion to view-path calls such as form field loading, so the process is killed.                                                                                   | • Remove Evaluation Watermark                                         |
 | **Remove Tracking and Analytics**       | Neutralizes behavioral tracking (Pendo SDK session recordings, guides, and click tracking), student surveillance telemetry (Pandata pageview recording, time-spent counters, and background upload worker), first-party app analytics (ScreenView processors, offline analytics, token logging), crash reporting (Firebase Crashlytics), and in-app rating prompts. | • Disable Crashlytics Collection                                      |
 | **Show Remote Config Editor**           | Adds the hidden Remote Config editor to Settings, allowing Firebase remote-config overrides and experimental flags to be inspected and changed.                                                                                                                                                                                                                     |                                                                       |
 | **Unlock Notebook and Offline Content** | Forces the client-side Notebook and Offline Content environment feature flags on, regardless of the institution's rollout. Server support is still required for content sync.                                                                                                                                                                                       | • Enable Notebook<br>• Enable Offline Content                         |
@@ -296,8 +297,8 @@ My [Morphe](https://morphe.software) patches
 
 **🎯 Supported versions:**
 
-| 1.0.12 |
-| :----: |
+| 1.14 |
+| :--: |
 
 | 💊&nbsp;Patch       | 📜&nbsp;Description                                                                                                                                               | ⚙️&nbsp;Options                                                                                                                                             |
 | ------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |

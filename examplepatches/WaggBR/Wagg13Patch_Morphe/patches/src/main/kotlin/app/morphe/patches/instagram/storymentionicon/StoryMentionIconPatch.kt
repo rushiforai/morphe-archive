@@ -131,6 +131,7 @@ val storyMentionIconPatch = bytecodePatch(
     name = "Story mention indicator",
     description = "Shows an \"@N mention\" pill in the story header when the story mentions someone. " +
         "Tap it to list and open the mentioned profiles.",
+    default = false,
 ) {
     compatibleWith(
         Compatibility(

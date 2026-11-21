@@ -7,13 +7,16 @@ Requires hermes-dec. Usage:
 
 Kick's player store starts every stream, and goes back on Auto, through setDefaultMaxResolution: it reduces the
 stream's video tracks to the tallest one no taller than PlayerConfig.settings.defaultMaxAutoQualityHeight (720) and
-makes it the player's maxResolution. The patch makes that reducer's read of the default the chosen height. The two other
-reads of the default decide, in the quality picker, which picks need a signed-in account, and must stay Kick's. The
-limited interpreter rejects unknown instructions. It does not replace playback device tests.
+makes it the player's maxResolution; when every track is taller it sets nothing and the stream plays uncapped. The patch
+replaces the reducer's read of the default (the environment chain ending in it) with the chosen height and a fallback:
+when every track is taller, the lowest one. The two other reads of the default decide, in the quality picker, which
+picks need a signed-in account, and must stay Kick's. The limited interpreter rejects unknown instructions. It does not
+replace playback device tests.
 """
 import argparse
 import ast
 from io import BytesIO
+from itertools import permutations
 import json
 from pathlib import Path
 import re
@@ -27,6 +30,9 @@ from hermes_dec.parsers.serialized_literal_parser import unpack_slp_array
 
 UNDEFINED = object()
 KEY = "default_video_quality"
+HEIGHTS = (1080, 720, 480, 360, 240, 160)
+COMPARISONS = {"Less": lambda a, b: a < b, "LessEqual": lambda a, b: a <= b,
+               "Greater": lambda a, b: a > b, "GreaterEqual": lambda a, b: a >= b}
 
 
 def verify(stock, embedded, manifest, height):
@@ -61,17 +67,28 @@ def verify(stock, embedded, manifest, height):
     reducer = sites[reducer_site]
 
     edits = [edit for edit in manifest["edits"] if edit["key"] == KEY]
-    assert len(edits) == 1, "Default video quality must edit exactly the reducer's read"
+    assert len(edits) == 1, "Default video quality must make exactly one edit"
     edit = edits[0]
     before, after = bytes.fromhex(edit["original"]), bytes.fromhex(edit["replacement"])
-    assert edit["offset"] == reducer_site and len(before) == len(after) == 6, "the edit isn't the reducer's read"
-    assert after[:2] == bytes([0x8c, before[1]]), "changed destination or instruction"
-    assert struct.unpack("<i", after[2:])[0] == height, "wrong quality option"
+    start = edit["offset"]
+    # The edit is the chain that reads the default: the closure's environment, PlayerConfig, settings and the read.
+    stock_code = {reducer.offset + i.original_pos: i for i in instructions(reducer, stock)}
+    chain = [stock_code[offset] for offset in sorted(stock_code) if start <= offset < start + len(before)]
+    assert [i.inst.name for i in chain] == ["GetParentEnvironment", "LoadFromEnvironment", "GetById", "GetById",
+                                            "GetById"], "the edit isn't the reducer's chain to the default"
+    assert [reader.strings[i.arg4] for i in chain[2:]] == ["PlayerConfig", "settings",
+                                                           "defaultMaxAutoQualityHeight"], "the edit reads elsewhere"
+    assert reducer_site == start + len(before) - 6, "the edit doesn't end at the reducer's read"
+    limit = chain[-1].arg1
+    assert after[:2] == bytes([0x8c, limit]), "the chain doesn't start by loading the height into the default's register"
+    assert struct.unpack("<i", after[2:6])[0] == height, "wrong quality option"
     assert all(not (e["offset"] <= site < e["offset"] + len(e["original"]) // 2)
                for e in manifest["edits"] for site in sites if site != reducer_site), "a picker gate was edited"
     selected = bytearray(stock)
-    selected[reducer_site:reducer_site + 6] = after
-    structural["decoded"](reader, reducer, selected)
+    selected[start:start + len(after)] = after
+    patched_code = structural["decoded"](reader, reducer, selected)
+    assert not any(i.inst.name.startswith("GetById") and i.arg4 == property_id for i in patched_code), \
+        "the patched reducer still reads the default"
 
     def literal(value):
         if value == "undefined":
@@ -79,6 +96,9 @@ def verify(stock, embedded, manifest, height):
         if value in ("null", "true", "false"):
             return {"null": None, "true": True, "false": False}[value]
         return ast.literal_eval(value)
+
+    def truthy(value):
+        return value not in (UNDEFINED, None, False, 0, "")
 
     def execute(header, data, environments, params=()):
         code = {i.original_pos: i for i in instructions(header, data)}
@@ -88,6 +108,7 @@ def verify(stock, embedded, manifest, height):
             op = i.inst.name
             a = [getattr(i, f"arg{j}") for j in range(1, len(i.inst.operands) + 1)]
             pc = i.next_pos
+            comparison = re.fullmatch(r"J(Not)?(Less|LessEqual|Greater|GreaterEqual)", op)
             if op == "GetParentEnvironment":
                 r[a[0]] = environments[a[1]]
             elif op == "LoadFromEnvironment":
@@ -106,10 +127,12 @@ def verify(stock, embedded, manifest, height):
                 r[a[0]][list(r[a[0]])[a[2]]] = r[a[1]]
             elif op == "Mov":
                 r[a[0]] = r[a[1]]
-            elif op in ("JNotLessEqual", "JNotGreater", "JLessEqual", "JGreater"):
-                left, right = r[a[1]], r[a[2]]
-                holds = left <= right if "LessEqual" in op else left > right
-                if holds != op.startswith("JNot"):
+            elif op in ("JmpTrue", "JmpFalse"):
+                if truthy(r[a[1]]) == (op == "JmpTrue"):
+                    pc = i.original_pos + a[0]
+            elif comparison:
+                holds = COMPARISONS[comparison.group(2)](r[a[1]], r[a[2]])
+                if holds != bool(comparison.group(1)):
                     pc = i.original_pos + a[0]
             elif op == "Ret":
                 return r[a[0]]
@@ -119,22 +142,39 @@ def verify(stock, embedded, manifest, height):
 
     config = {7: {"PlayerConfig": {"settings": {"defaultMaxAutoQualityHeight": 720}}}}
 
-    def ceiling(data, heights):
-        """What setDefaultMaxResolution makes the ceiling for a stream with these heights (16:9)."""
+    def size(data, tracks):
+        """What setDefaultMaxResolution's reduce makes the ceiling for a stream with these (width, height) tracks."""
         best = {"width": 0, "height": 0}
-        for track in heights:
-            best = execute(reducer, data, [config], (best, {"size": {"width": track * 16 // 9, "height": track}}))
-        return best["height"]
+        for width, track in tracks:
+            best = execute(reducer, data, [config], (best, {"size": {"width": width, "height": track}}))
+        return best["width"], best["height"]
 
-    full = [1080, 936, 720, 480, 360, 160]
+    def ceiling(data, heights):
+        """The ceiling's height for a stream with these heights (16:9); 0 is none: the stream plays uncapped."""
+        return size(data, [(track * 16 // 9, track) for track in heights])[1]
+
+    def expected(heights, limit):
+        fitting = [track for track in heights if track <= limit]
+        return max(fitting) if fitting else min(heights)
+
+    full = [1080, 720, 480, 360, 160]
     assert ceiling(stock, full) == 720, "stock doesn't start at 720"
-    assert ceiling(selected, full) == height, f"the patched reducer doesn't start at {height}p"
-    without = [h for h in full if h != height]
-    expected = max(h for h in without if h <= height)
-    assert ceiling(selected, without) == expected, "a stream without the chosen height doesn't start at the next one down"
-    assert ceiling(selected, [1440, 2160]) == 0, "a ceiling above every track"
-    print(f"PASS: one edit, the default ceiling's reducer; {height}p start and Auto (next one down without it); the "
-          "picker's two sign-in gates keep Kick's 720")
+    assert ceiling(stock, [1080]) == 0 and ceiling(stock, [1440, 1080]) == 0, \
+        "stock no longer leaves a stream uncapped when every track is taller than its default"
+    for order in permutations(full):
+        assert ceiling(selected, order) == expected(full, height), f"{order} doesn't start at {expected(full, height)}p"
+    without = [track for track in full if track != height]
+    assert ceiling(selected, without) == expected(without, height), "a stream without the height isn't capped below it"
+    taller = [track for track in full if track > height] or [2160, 1440]
+    for order in permutations(taller):
+        assert ceiling(selected, order) == min(taller), f"{order}: every track taller doesn't start at the lowest"
+    assert ceiling(selected, [1080]) == 1080, "a single track isn't the ceiling"
+    assert ceiling(selected, []) == 0, "no tracks made a ceiling"
+    # Equal heights keep the first track, as Kick's reducer does, at or below the height and above it.
+    assert size(selected, [(284, 160), (256, 160)]) == (284, 160), "equal heights kept the second track"
+    assert size(selected, [(3840, 2160), (2560, 2160)]) == (3840, 2160), "equal taller heights kept the second track"
+    print(f"PASS: one edit, the default ceiling's reducer; {height}p start and Auto in any track order, the next one "
+          "down without it, the lowest track when every one is taller; the picker's two sign-in gates keep Kick's 720")
 
 
 if __name__ == "__main__":
@@ -142,7 +182,7 @@ if __name__ == "__main__":
     parser.add_argument("stock", type=Path)
     parser.add_argument("patched", type=Path)
     parser.add_argument("manifest", nargs="?", type=Path)
-    parser.add_argument("--height", type=int, default=1080, choices=(1080, 720, 480, 360, 240))
+    parser.add_argument("--height", type=int, default=1080, choices=HEIGHTS)
     args = parser.parse_args()
     if is_zipfile(args.patched):
         with ZipFile(args.patched) as apk:

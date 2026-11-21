@@ -58,9 +58,8 @@ public final class ReleaseFeatureOptionsTest {
         check(added.contains(ReleaseFeatureOptions.Option.GLOBAL_SEARCH_PARTIAL),"partial results are available from history");
         ownership(List.of(next,release("1.39.0"),older));
         var labels=release("1.41.0");
-        check(ReleaseFeatureOptions.forRelease(labels,List.of(labels)).equals(List.of(
-                ReleaseFeatureOptions.Option.THREAD_RENAME,ReleaseFeatureOptions.Option.KEYWORD_NAMES)),
-                "display name settings belong to their release");
+        check(ReleaseFeatureOptions.forRelease(labels,List.of(labels)).equals(List.of(ReleaseFeatureOptions.Option.KEYWORD_NAMES)),
+                "keyword display-name setting belongs to its release after thread rename removal");
         var brief=new ReleaseHistoryText.Release("1.27.4","2026-11-13","- 最適化");
         check(ReleaseHistoryText.displayNotes(brief).contains("1レス目"),"in-app explanation remains detailed");
         check(brief.notes.equals("- 最適化"),"public notes remain brief");

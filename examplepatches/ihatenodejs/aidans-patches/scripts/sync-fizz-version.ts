@@ -23,34 +23,20 @@ interface StatusResponse {
   };
 }
 
-async function fetchLatestFizzVersion(): Promise<{
+interface FizzVersion {
   versionName: string;
   versionCode: string | null;
-}> {
-  const versionUrl =
-    process.env.WORKER_VERSION_URL ||
-    'https://worker.patch.p0ntus.com/api/version/com.ashtoncofer.Buzz';
+}
 
-  try {
-    const res = await fetch(versionUrl, {
-      headers: { 'User-Agent': 'aidans-patches-sync' },
-      signal: AbortSignal.timeout(10_000),
-    });
-    if (res.ok) {
-      const data = (await res.json()) as VersionResponse;
-      if (data.versionName) {
-        return {
-          versionName: data.versionName.trim(),
-          versionCode:
-            data.versionCode != null ? String(data.versionCode).trim() : null,
-        };
-      }
-    }
-  } catch (err) {
-    console.warn(`Direct version endpoint fetch failed (${versionUrl}):`, err);
-  }
+function normalizeVersionCode(
+  value: number | string | null | undefined,
+): string | null {
+  return value != null && String(value).trim() !== ''
+    ? String(value).trim()
+    : null;
+}
 
-  // Fallback to /api/status
+async function fetchStatusFizzVersion(): Promise<FizzVersion> {
   const statusBase =
     process.env.WORKER_STATUS_URL || 'https://worker.patch.p0ntus.com';
   const statusUrl = `${statusBase.replace(/\/$/, '')}/api/status`;
@@ -74,11 +60,61 @@ async function fetchLatestFizzVersion(): Promise<{
 
   return {
     versionName: fizzRecord.playVersion.trim(),
-    versionCode:
-      fizzRecord.playVersionCode != null
-        ? String(fizzRecord.playVersionCode).trim()
-        : null,
+    versionCode: normalizeVersionCode(fizzRecord.playVersionCode),
   };
+}
+
+async function fetchLatestFizzVersion(): Promise<FizzVersion> {
+  const versionUrl =
+    process.env.WORKER_VERSION_URL ||
+    'https://worker.patch.p0ntus.com/api/version/com.ashtoncofer.Buzz';
+
+  let direct: FizzVersion | null = null;
+  try {
+    const res = await fetch(versionUrl, {
+      headers: { 'User-Agent': 'aidans-patches-sync' },
+      signal: AbortSignal.timeout(10_000),
+    });
+    if (res.ok) {
+      const data = (await res.json()) as VersionResponse;
+      if (data.versionName) {
+        direct = {
+          versionName: data.versionName.trim(),
+          versionCode: normalizeVersionCode(data.versionCode),
+        };
+        if (direct.versionCode != null) {
+          return direct;
+        }
+      }
+    }
+  } catch (err) {
+    console.warn(`Direct version endpoint fetch failed (${versionUrl}):`, err);
+  }
+
+  // /api/version can omit versionCode when Play metadata lacks it. Try
+  // /api/status for the build number while keeping the direct version name.
+  try {
+    const status = await fetchStatusFizzVersion();
+    if (!direct) {
+      return status;
+    }
+    if (status.versionName !== direct.versionName) {
+      console.warn(
+        `Status version ${status.versionName} differs from direct version ${direct.versionName}; keeping the direct version.`,
+      );
+      return direct;
+    }
+    return {
+      versionName: direct.versionName,
+      versionCode: status.versionCode,
+    };
+  } catch (err) {
+    if (direct) {
+      console.warn('Status endpoint did not provide a Fizz version code:', err);
+      return direct;
+    }
+    throw err;
+  }
 }
 
 export async function syncFizzVersion(
@@ -147,7 +183,7 @@ export async function syncFizzVersion(
 
   if (options.checkOnly) {
     console.warn(
-      `Version mismatch detected: local=${currentVersion}, remote=${latest.versionName}`,
+      `Seed mismatch detected: local=${currentVersion} (build ${currentBuild}), remote=${latest.versionName} (build ${latest.versionCode ?? 'unknown'})`,
     );
     return true;
   }

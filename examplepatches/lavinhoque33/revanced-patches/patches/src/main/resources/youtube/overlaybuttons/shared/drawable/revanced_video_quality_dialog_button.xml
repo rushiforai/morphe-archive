@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Copyright (C) 2026 lavinhoque33
+    Licensed under the GNU General Public License v3.0 or later.
+    Written by lavinhoque33, 2026-11-20.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp" android:height="24dp"
+    android:viewportWidth="24" android:viewportHeight="24">
+    <path android:fillColor="#FFFFFFFF" android:fillType="evenOdd"
+        android:pathData="M3,4H21Q23,4 23,6V18Q23,20 21,20H3Q1,20 1,18V6Q1,4 3,4ZM3,6V18H21V6Z" />
+    <path android:fillColor="#FFFFFFFF" android:fillType="evenOdd"
+        android:pathData="M5,8H7V11H9V8H11V16H9V13H7V16H5ZM13,8H17Q19,8 19,10V14Q19,16 17,16H13ZM15,10V14H17V10Z" />
+</vector>

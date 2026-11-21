@@ -17,32 +17,61 @@ import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 
 private const val EXTENSION_CLASS = "Lapp/bin0culars/extension/reddit/SameSubredditMediaPatch;"
 
-private val RELABEL_SMALI =
-    """
-    invoke-static/range { p2 .. p2 }, $EXTENSION_CLASS->shouldRelabel(Ljava/lang/Object;)Z
-    move-result v0
-    if-eqz v0, :keep
-    invoke-virtual/range { p2 .. p2 }, Lcom/reddit/domain/model/media/MediaContext;->getSeedSubredditIds()Ljava/util/List;
-    move-result-object v2
-    sget-object v3, Lcom/reddit/listing/common/ListingType;->SUBREDDIT:Lcom/reddit/listing/common/ListingType;
-    invoke-virtual/range { p2 .. p2 }, Lcom/reddit/domain/model/media/MediaContext;->getLinkKindWithId()Ljava/lang/String;
-    move-result-object v4
-    invoke-virtual/range { p2 .. p2 }, Lcom/reddit/domain/model/media/MediaContext;->getOnboardingCategories()Ljava/util/List;
-    move-result-object v5
-    invoke-virtual/range { p2 .. p2 }, Lcom/reddit/domain/model/media/MediaContext;->isImage()Z
-    move-result v6
-    invoke-virtual/range { p2 .. p2 }, Lcom/reddit/domain/model/media/MediaContext;->isArticleLink()Z
-    move-result v7
-    invoke-virtual/range { p2 .. p2 }, Lcom/reddit/domain/model/media/MediaContext;->getCrossPostSeedId()Ljava/lang/String;
-    move-result-object v8
-    invoke-virtual/range { p2 .. p2 }, Lcom/reddit/domain/model/media/MediaContext;->getMarkArticleAsRead()Z
-    move-result v9
-    new-instance v1, Lcom/reddit/domain/model/media/MediaContext;
-    invoke-direct/range { v1 .. v9 }, Lcom/reddit/domain/model/media/MediaContext;-><init>(Ljava/util/List;Lcom/reddit/listing/common/ListingType;Ljava/lang/String;Ljava/util/List;ZZLjava/lang/String;Z)V
-    move-object/16 p2, v1
-    :keep
-    nop
-    """.trimIndent()
+private fun relabelSmali(hasPodcast: Boolean): String {
+    val podcastGetter =
+        if (hasPodcast) {
+            """
+            invoke-virtual/range { p2 .. p2 }, Lcom/reddit/domain/model/media/MediaContext;->isPodcastFeedEntry()Z
+            move-result v8
+            """.trimIndent()
+        } else {
+            null
+        }
+
+    val crossPostReg = if (hasPodcast) "v9" else "v8"
+    val markReadReg = if (hasPodcast) "v10" else "v9"
+    val lastReg = if (hasPodcast) "v10" else "v9"
+    val descriptor =
+        if (hasPodcast) {
+            "(Ljava/util/List;Lcom/reddit/listing/common/ListingType;Ljava/lang/String;Ljava/util/List;ZZZLjava/lang/String;Z)V"
+        } else {
+            "(Ljava/util/List;Lcom/reddit/listing/common/ListingType;Ljava/lang/String;Ljava/util/List;ZZLjava/lang/String;Z)V"
+        }
+
+    val parts =
+        listOfNotNull(
+            """
+            invoke-static/range { p2 .. p2 }, $EXTENSION_CLASS->shouldRelabel(Ljava/lang/Object;)Z
+            move-result v0
+            if-eqz v0, :keep
+            invoke-virtual/range { p2 .. p2 }, Lcom/reddit/domain/model/media/MediaContext;->getSeedSubredditIds()Ljava/util/List;
+            move-result-object v2
+            sget-object v3, Lcom/reddit/listing/common/ListingType;->SUBREDDIT:Lcom/reddit/listing/common/ListingType;
+            invoke-virtual/range { p2 .. p2 }, Lcom/reddit/domain/model/media/MediaContext;->getLinkKindWithId()Ljava/lang/String;
+            move-result-object v4
+            invoke-virtual/range { p2 .. p2 }, Lcom/reddit/domain/model/media/MediaContext;->getOnboardingCategories()Ljava/util/List;
+            move-result-object v5
+            invoke-virtual/range { p2 .. p2 }, Lcom/reddit/domain/model/media/MediaContext;->isImage()Z
+            move-result v6
+            invoke-virtual/range { p2 .. p2 }, Lcom/reddit/domain/model/media/MediaContext;->isArticleLink()Z
+            move-result v7
+            """.trimIndent(),
+            podcastGetter,
+            """
+            invoke-virtual/range { p2 .. p2 }, Lcom/reddit/domain/model/media/MediaContext;->getCrossPostSeedId()Ljava/lang/String;
+            move-result-object $crossPostReg
+            invoke-virtual/range { p2 .. p2 }, Lcom/reddit/domain/model/media/MediaContext;->getMarkArticleAsRead()Z
+            move-result $markReadReg
+            new-instance v1, Lcom/reddit/domain/model/media/MediaContext;
+            invoke-direct/range { v1 .. $lastReg }, Lcom/reddit/domain/model/media/MediaContext;-><init>$descriptor
+            move-object/16 p2, v1
+            :keep
+            nop
+            """.trimIndent(),
+        )
+
+    return parts.joinToString("\n")
+}
 
 private fun fillBridge(name: String, smali: String) {
     Fingerprint(definingClass = EXTENSION_CLASS, name = name).method.addInstructions(0, smali)
@@ -73,7 +102,7 @@ val sameSubredditMediaPatch =
             val mediaContextClass = classDefByOrNull("Lcom/reddit/domain/model/media/MediaContext;")
                 ?: throw PatchException("Could not find class Lcom/reddit/domain/model/media/MediaContext;")
 
-            val expectedConstructorParams = listOf(
+            val expectedConstructorParams8 = listOf(
                 "Ljava/util/List;",
                 "Lcom/reddit/listing/common/ListingType;",
                 "Ljava/lang/String;",
@@ -83,15 +112,33 @@ val sameSubredditMediaPatch =
                 "Ljava/lang/String;",
                 "Z",
             )
+            val expectedConstructorParams9 = listOf(
+                "Ljava/util/List;",
+                "Lcom/reddit/listing/common/ListingType;",
+                "Ljava/lang/String;",
+                "Ljava/util/List;",
+                "Z",
+                "Z",
+                "Z",
+                "Ljava/lang/String;",
+                "Z",
+            )
 
-            val hasConstructor = mediaContextClass.methods.any { method ->
+            val has9ArgConstructor = mediaContextClass.methods.any { method ->
                 method.name == "<init>" &&
                     method.returnType == "V" &&
-                    method.parameterTypes.map { it.toString() } == expectedConstructorParams
+                    method.parameterTypes.map { it.toString() } == expectedConstructorParams9
             }
-            if (!hasConstructor) {
-                throw PatchException("MediaContext missing expected 8-arg constructor")
+            val has8ArgConstructor = !has9ArgConstructor && mediaContextClass.methods.any { method ->
+                method.name == "<init>" &&
+                    method.returnType == "V" &&
+                    method.parameterTypes.map { it.toString() } == expectedConstructorParams8
             }
+            if (!has9ArgConstructor && !has8ArgConstructor) {
+                throw PatchException("MediaContext has no supported constructor")
+            }
+
+            val hasPodcast = has9ArgConstructor
 
             val requiredMethods = listOf(
                 "getLinkKindWithId",
@@ -100,7 +147,8 @@ val sameSubredditMediaPatch =
                 "isArticleLink",
                 "getCrossPostSeedId",
                 "getMarkArticleAsRead",
-            )
+            ) + if (hasPodcast) listOf("isPodcastFeedEntry") else emptyList()
+
             for (methodName in requiredMethods) {
                 if (mediaContextClass.methods.none { it.name == methodName }) {
                     throw PatchException("MediaContext missing required method: $methodName")
@@ -111,6 +159,8 @@ val sameSubredditMediaPatch =
                 RecommendedMediaRequestFingerprint.method,
                 RecommendedVideosRequestFingerprint.method,
             )
+
+            val relabelSmali = relabelSmali(hasPodcast)
 
             for (method in targetMethods) {
                 val instructions = method.instructions.toList()
@@ -127,7 +177,7 @@ val sameSubredditMediaPatch =
                     "invoke-static/range { v$returnRegister .. v$returnRegister }, $EXTENSION_CLASS->filterResults(Ljava/lang/Object;)V",
                 )
 
-                method.addInstructionsWithLabels(0, RELABEL_SMALI)
+                method.addInstructionsWithLabels(0, relabelSmali)
             }
 
             fillBridge(

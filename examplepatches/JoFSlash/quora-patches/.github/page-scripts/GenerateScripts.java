@@ -57,6 +57,8 @@ public final class GenerateScripts {
                 return "3";
             case "hideSeen":
                 return "hide";
+            case "sortAnswers":
+                return "Recent";
             default:
                 return "";
         }

@@ -116,7 +116,7 @@ private fun MutableMethod.requireStatic(label: String) {
 val newXInlineDownloadButtonPatch =
     bytecodePatch(
         name = "NewX: Inline download button",
-        description = "NewXのポストの下にダウンロードボタンを追加し、選んだフォルダへメディアを保存します。カードで参照された動画もダウンロードできます。ファイル名はテンプレートでカスタマイズできます。",
+        description = "NewXのポストの下にダウンロードボタンを追加し、選んだフォルダへメディアを保存します。カードで参照された動画や、ライブ配信のアーカイブもダウンロードできます。ファイル名はテンプレートでカスタマイズできます。",
     ) {
         unsupportedOnMount()
         compatibleWith(COMPATIBILITY_NEW_X)

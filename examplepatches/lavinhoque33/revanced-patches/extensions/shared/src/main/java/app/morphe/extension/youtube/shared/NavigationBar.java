@@ -11,7 +11,7 @@
  *
  * See the included NOTICE file for GPLv3 §7(b) and §7(c) terms that apply to Morphe contributions.
  *
- * Modified by lavinhoque33, 2026-11-17.
+ * Modified by lavinhoque33, 2026-11-20.
  */
 
 package app.morphe.extension.youtube.shared;
@@ -159,15 +159,8 @@ public final class NavigationBar {
      */
     private static final long LATCH_AWAIT_TIMEOUT_MILLISECONDS = 120;
 
-    /**
-     * Used as a workaround to fix the issue of YT calling back button handlers out of order.
-     * Used to hold calls to {@link NavigationButton#getSelectedNavigationButton()}
-     * until the current navigation button can be determined.
-     * <p>
-     * Only used when the hardware back button is pressed.
-     */
-    @Nullable
-    private static volatile CountDownLatch navButtonLatch;
+    // Litho can arrive before the first tab selection or while Back is changing tabs.
+    private static final SelectionWait selectionWait = new SelectionWait();
 
     /**
      * Map of nav button layout views to Enum type.
@@ -175,26 +168,31 @@ public final class NavigationBar {
      */
     private static final Map<View, NavigationButton> viewToButtonMap = new WeakHashMap<>();
 
-    static {
-        // On app startup litho can start before the navigation bar is initialized.
-        // Force it to wait until the nav bar is updated.
-        createNavButtonLatch();
-    }
+    static final class SelectionWait {
+        @Nullable
+        private volatile CountDownLatch pending = new CountDownLatch(1);
 
-    private static void createNavButtonLatch() {
-        navButtonLatch = new CountDownLatch(1);
-    }
+        @Nullable
+        CountDownLatch current() {
+            return pending;
+        }
 
-    private static void releaseNavButtonLatch() {
-        CountDownLatch latch = navButtonLatch;
-        if (latch != null) {
-            navButtonLatch = null;
-            latch.countDown();
+        synchronized void reset() {
+            CountDownLatch previous = pending;
+            pending = new CountDownLatch(1);
+            if (previous != null) previous.countDown();
+        }
+
+        synchronized void release(@Nullable CountDownLatch expected) {
+            if (expected != null && expected == pending) {
+                pending = null;
+                expected.countDown();
+            }
         }
     }
 
     private static void waitForNavButtonLatchIfNeeded() {
-        CountDownLatch latch = navButtonLatch;
+        CountDownLatch latch = selectionWait.current();
         if (latch == null) {
             return;
         }
@@ -211,14 +209,13 @@ public final class NavigationBar {
         try {
             Logger.printDebug(() -> "Latch wait started");
             if (latch.await(LATCH_AWAIT_TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS)) {
-                // Back button changed the navigation tab.
+                // A selection arrived or a newer Back operation superseded this one.
                 Logger.printDebug(() -> "Latch wait complete");
                 return;
             }
 
-            // Timeout occurred, and a normal event when pressing the physical back button
-            // does not change navigation tabs.
-            releaseNavButtonLatch(); // Prevent other threads from waiting for no reason.
+            // Do not let a timed-out waiter release a newer Back operation.
+            selectionWait.release(latch);
             Logger.printDebug(() -> "Latch wait timed out");
 
         } catch (InterruptedException ex) {
@@ -321,7 +318,7 @@ public final class NavigationBar {
             NavigationButton.selectedNavigationButton = button;
 
             // Release any threads waiting for the selected nav button.
-            releaseNavButtonLatch();
+            selectionWait.release(selectionWait.current());
 
             if (button != oldButton) {
                 Logger.printDebug(() -> "Changed to navigation button: " + button);
@@ -337,7 +334,7 @@ public final class NavigationBar {
      */
     public static void onBackPressed(Activity activity) {
         Logger.printDebug(() -> "Back button pressed");
-        createNavButtonLatch();
+        selectionWait.reset();
     }
 
     /** @noinspection EmptyMethod*/

@@ -1,3 +1,15 @@
+## [2.4.0](https://github.com/amfakh/fakh-patches/compare/v2.3.2...v2.4.0) (2026-11-21)
+
+### New Features
+
+* **Confluence:** add support for `5.26.1.1` with Material You, Pitch black, Glass navigation bar and Disable Play license check ([021436f](https://github.com/amfakh/fakh-patches/commit/021436f9c556a193c7ff75386718b1ce9455efd3))
+
+## [2.3.2](https://github.com/amfakh/fakh-patches/compare/v2.3.1...v2.3.2) (2026-11-20)
+
+### Updated App Support
+
+* **LinkedIn:** add support for `4.1.1276`, next to `4.1.1275` ([5c5f5d0](https://github.com/amfakh/fakh-patches/commit/5c5f5d0e416e0aa4b14cdf81de8fd840bb8d2535))
+
 ## [2.3.1](https://github.com/amfakh/fakh-patches/compare/v2.3.0...v2.3.1) (2026-11-19)
 
 ### Updated App Support

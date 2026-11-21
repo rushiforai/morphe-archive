@@ -8,7 +8,7 @@
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to Morphe contributions.
  *
- * Modified by lavinhoque33, 2026-11-17.
+ * Modified by lavinhoque33, 2026-11-20.
  */
 
 package app.morphe.patches.youtube.video.playback
@@ -332,7 +332,7 @@ val videoPlaybackPatch = bytecodePatch(
                 addInstructionsWithLabels(
                     0,
                     """
-                        invoke-static { }, $EXTENSION_VIDEO_QUALITY_CLASS_DESCRIPTOR->useAdvancedVideoQualitySetting()Z
+                        invoke-static/range { p1 .. p1 }, $EXTENSION_VIDEO_QUALITY_CLASS_DESCRIPTOR->useAdvancedVideoQualitySetting(Ljava/lang/String;)Z
                         move-result v0
                         if-eqz v0, :original
                         sget-object v0, $advancedMenuField

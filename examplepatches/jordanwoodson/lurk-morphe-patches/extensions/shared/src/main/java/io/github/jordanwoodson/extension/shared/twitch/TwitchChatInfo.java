@@ -68,6 +68,8 @@ public final class TwitchChatInfo {
     static final String CDN_7TV = "https://cdn.7tv.app/emote/";
     static final String CDN_BTTV = "https://cdn.betterttv.net/emote/";
     static final String CDN_FFZ = "https://cdn.frankerfacez.com/emote/";
+    /** FrankerFaceZ emotes whose list came from BetterTTV's copy (see TwitchEmotes.fetchFfz). */
+    static final String CDN_FFZ_MIRROR = "https://cdn.betterttv.net/frankerfacez_emote/";
 
     private static final int MAX_IMAGE_BYTES = 4 * 1024 * 1024;
 
@@ -171,7 +173,7 @@ public final class TwitchChatInfo {
     /** Whether a chat image URL is an emote's: Twitch's or a service's. Cheermotes and others aren't. */
     static boolean isEmote(String url) {
         return url.startsWith(TWITCH_EMOTE_URL) || url.startsWith(CDN_7TV) || url.startsWith(CDN_BTTV)
-                || url.startsWith(CDN_FFZ);
+                || url.startsWith(CDN_FFZ) || url.startsWith(CDN_FFZ_MIRROR);
     }
 
     private static void twitchBadge(String url, Object key, String scope) {
@@ -336,7 +338,7 @@ public final class TwitchChatInfo {
         if (url.startsWith(TWITCH_BADGE_URL)) return tail.matches("[123]") ? head + "3" : url;
         if (url.startsWith(CDN_7TV)) return tail.matches("[1234]x(_static)?\\.(png|gif|webp)") ? head + "4x" + tail.substring(2) : url;
         if (url.startsWith(CDN_BTTV)) return tail.matches("[123]x(\\.(png|gif|webp))?") ? head + "3x" + tail.substring(2) : url;
-        if (url.startsWith(CDN_FFZ)) {
+        if (url.startsWith(CDN_FFZ) || url.startsWith(CDN_FFZ_MIRROR)) {
             if (tail.matches("[124]")) return head + "4";
             if (tail.matches("[124]\\.gif") && head.endsWith("/animated/")) return head + "4.gif";
         }

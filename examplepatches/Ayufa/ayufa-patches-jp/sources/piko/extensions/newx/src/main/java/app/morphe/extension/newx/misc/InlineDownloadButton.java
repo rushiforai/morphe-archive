@@ -637,7 +637,7 @@ public final class InlineDownloadButton {
             if (value.startsWith("MediaContentImage(")) {
                 return NewXUtils.isHttpUrl(ToStringParser.fieldValue(value, "imageUrl"));
             }
-            return hasMp4Variant(value);
+            return hasMp4Variant(value) || hasHlsVariant(value);
         } catch (RuntimeException exception) {
             NewXLogger.printException(() -> "Failed to read NewX media", exception);
             return false;
@@ -665,10 +665,45 @@ public final class InlineDownloadButton {
         }
     }
 
+    private static boolean hasHlsVariant(String value) {
+        return firstHlsVariantUrl(value) != null;
+    }
+
+    /** The first HLS playlist variant URL in a media value, or null when it has none. */
+    private static String firstHlsVariantUrl(String value) {
+        String prefix = "MediaVariant(url=";
+        int offset = 0;
+        while (true) {
+            int start = value.indexOf(prefix, offset);
+            if (start < 0) return null;
+            start += prefix.length();
+            int bitRateStart = value.indexOf(", bitRate=", start);
+            int contentTypeStart = value.indexOf(", contentType=", bitRateStart);
+            int end = value.indexOf(')', contentTypeStart);
+            if (bitRateStart < 0 || contentTypeStart < 0 || end < 0) return null;
+
+            String url = value.substring(start, bitRateStart);
+            String contentType = value.substring(contentTypeStart + 14, end);
+            if (isHlsVariant(url, contentType)) return url;
+            offset = end + 1;
+        }
+    }
+
     static boolean isHttpMp4Variant(String url, String contentType) {
         if (url == null || !NewXUtils.isHttpUrl(url)) return false;
         return (contentType != null && contentType.equalsIgnoreCase("video/mp4")) ||
                 NewXUtils.containsIgnoreCaseAscii(url, ".mp4");
+    }
+
+    /** HLS playlist variants: broadcast replays carry no mp4 variant, only the playlist. */
+    public static boolean isHlsVariant(String url, String contentType) {
+        if (url == null || !NewXUtils.isHttpUrl(url)) return false;
+        return HlsPlaylist.isHlsVariant(url, contentType);
+    }
+
+    /** Any variant the download flow can save: a progressive mp4 file or an HLS playlist. */
+    public static boolean isDownloadableVariant(String url, String contentType) {
+        return isHttpMp4Variant(url, contentType) || isHlsVariant(url, contentType);
     }
 
     static List<DownloadItem> downloadItems(List<?> media) {
@@ -697,7 +732,25 @@ public final class InlineDownloadButton {
         }
 
         List<Variant> variants = mp4Variants(value);
-        if (variants.isEmpty()) return null;
+        if (variants.isEmpty()) {
+            // Broadcast replays expose no progressive file: their only variant is the HLS
+            // playlist, which the transfer layer assembles into a single TS file.
+            String hlsUrl = firstHlsVariantUrl(value);
+            if (hlsUrl == null) return null;
+            String hlsLabel = value.startsWith("MediaContentGif(") ? "GIF" : "Video";
+            return new DownloadItem(
+                    hlsUrl,
+                    "ts",
+                    "video/mp2t",
+                    hlsLabel,
+                    thumbnailUrl,
+                    thumbnailCacheUrl,
+                    null,
+                    null,
+                    null,
+                    java.util.Collections.emptyList()
+            );
+        }
 
         String label = value.startsWith("MediaContentGif(") ? "GIF" : "Video";
         List<DownloadItem> options = new ArrayList<>(variants.size());

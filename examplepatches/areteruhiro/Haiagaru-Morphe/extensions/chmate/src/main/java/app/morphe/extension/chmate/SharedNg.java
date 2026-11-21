@@ -21,6 +21,7 @@ final class SharedNg {
     private static volatile List<SharedNgRules.Rule> rules=Collections.emptyList();
     private static volatile Set<String> exceptions=Collections.emptySet();
     private static volatile boolean enabled,busy;
+    private static volatile boolean showAboon=true;
     private static volatile int threshold=SharedNgDefaults.DEFAULT_THRESHOLD;
     private static volatile long nextSync;
     private static volatile String status="未同期";
@@ -37,9 +38,12 @@ final class SharedNg {
         try{loadCache();}catch(FileNotFoundException absent){/* First launch has no cache. */}catch(Exception e){status="キャッシュを読み込めません";}
         if(rules.isEmpty())prefs().edit().putLong("cursor",0).apply();flushReports();sync(false);
     });}
-    static void reload(){if(context==null)return;SharedPreferences p=prefs();SharedNgDefaults.migrate(p);SharedNgLocalEdits.reload(p);enabled=p.getBoolean("enabled",false);threshold=p.getInt("threshold",SharedNgDefaults.DEFAULT_THRESHOLD);if(threshold<1)threshold=SharedNgDefaults.DEFAULT_THRESHOLD;exceptions=new HashSet<>(p.getStringSet("exceptions",Collections.emptySet()));new android.os.Handler(android.os.Looper.getMainLooper()).post(ProgrammableNgController::sharedNgChanged);}
+    static void reload(){if(context==null)return;SharedPreferences p=prefs();SharedNgDefaults.migrate(p);SharedNgLocalEdits.reload(p);enabled=p.getBoolean("enabled",false);showAboon=p.getBoolean("showAboon",true);threshold=p.getInt("threshold",SharedNgDefaults.DEFAULT_THRESHOLD);if(threshold<1)threshold=SharedNgDefaults.DEFAULT_THRESHOLD;exceptions=new HashSet<>(p.getStringSet("exceptions",Collections.emptySet()));new android.os.Handler(android.os.Looper.getMainLooper()).post(ProgrammableNgController::sharedNgChanged);}
     static SharedNgRules.Rule originalRule(SharedNgRules.Rule fallback){for(SharedNgRules.Rule rule:rules)if(rule.id.equals(fallback.id))return rule;return fallback;}
     static boolean enabled(){return enabled;}
+    static boolean showAboon(){return showAboon;}
+    /** Native direct-NG reason renders the standard visible aboon row; 0x1000 is transparent. */
+    static int hiddenMapFlag(){return showAboon?0x8:0x1000;}
     static void showResponseExclusions(Activity activity, ProgrammableNgScript.Input input) {
         if (!enabled) return;
         List<SharedNgRules.Rule> source = SharedNgLocalEdits.apply(SharedNgReporterPolicy.apply(rules,ignoredReporters()),SharedNgLocalEdits.snapshot());
@@ -291,8 +295,10 @@ final class SharedNg {
     static String read(InputStream in,int max)throws IOException{ByteArrayOutputStream out=new ByteArrayOutputStream();byte[] buf=new byte[8192];int n;while((n=in.read(buf))!=-1){if(out.size()+n>max)throw new IOException("応答が大きすぎます");out.write(buf,0,n);}return out.toString("UTF-8");}
     static void settings(Activity a){LinearLayout box=new LinearLayout(a);box.setOrientation(1);int pad=(int)(16*a.getResources().getDisplayMetrics().density);box.setPadding(pad,0,pad,0);
         PersonalNgSubmissions.addSettings(box,a);
-        Switch on=new Switch(a);on.setText("オンライン共有NGを使う");on.setChecked(enabled);box.addView(on);on.setOnCheckedChangeListener((v,b)->{if(b&&!PersonalNgSubmissions.consented()){on.setChecked(false);PersonalNgSubmissions.enableWithConsent(a,()->on.setChecked(true));return;}prefs().edit().putBoolean("enabled",b).apply();reload();schedule();});
-        TextView help=new TextView(a);help.setText("初回は個人NGの送信に同意すると共有NGが有効になります。送信対象は個人NGの送信設定で変更できます。承認された条件だけを受信し、必要な報告数・掲示板・種類・個別除外で絞り込みます。ID・ワッチョイは保存された掲示板の区分で適用し、掲示板が不明な過去NGと全板指定のNGは全掲示板に適用します。有効期間は設けません。変更後はスレを開き直してください。");box.addView(help);
+        Switch on=new Switch(a);on.setText("オンライン共有NGを使う");on.setChecked(enabled);box.addView(on);on.setOnCheckedChangeListener((v,b)->{prefs().edit().putBoolean("enabled",b).apply();reload();schedule();});
+        Switch display=new Switch(a);display.setText("共有NGの一致レスを「あぼーん」で表示");display.setChecked(prefs().getBoolean("showAboon",true));box.addView(display);display.setOnCheckedChangeListener((v,b)->{prefs().edit().putBoolean("showAboon",b).apply();reload();});
+        TextView displayHelp=new TextView(a);displayHelp.setText("初期ON。ONでは一致したレスを「あぼーん」行で表示し、OFFでは透明あぼーんにします。変更後はスレを開き直してください。");box.addView(displayHelp);
+        TextView help=new TextView(a);help.setText("この設定は共有NGを受信して適用します。あなたの個人NGは送信しません。個人NGを運営の審査用に送る場合は、上の「個人NGの送信設定」から別途同意してください。共有NGは承認された条件だけを受信し、必要な報告数・掲示板・種類・個別除外で絞り込みます。ID・ワッチョイは共有条件に保存された掲示板の区分で適用し、全板指定の条件だけ全掲示板に適用します。有効期間は設けません。変更後はスレを開き直してください。");box.addView(help);
         TextView levelLabel=new TextView(a);levelLabel.setText("必要な報告数");box.addView(levelLabel);
         LinearLayout voteRow=new LinearLayout(a);voteRow.setGravity(android.view.Gravity.CENTER_VERTICAL);
         EditText votes=new EditText(a);votes.setSingleLine(true);votes.setInputType(android.text.InputType.TYPE_CLASS_NUMBER);votes.setText(Integer.toString(threshold));votes.setContentDescription("共有NGに必要な報告数");voteRow.addView(votes,new LinearLayout.LayoutParams(0,-2,1));

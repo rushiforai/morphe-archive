@@ -18,6 +18,9 @@ public final class PersonalNgSubmissions {
     private static SharedPreferences prefs(){return context.getSharedPreferences(PREFS,0);}
     private static ScheduledFuture<?> retryTask;
     private static long retryGeneration;
+    private static final class BoardCatalogUnavailable extends Exception {
+        BoardCatalogUnavailable(){super("掲示板一覧を再取得できません");}
+    }
     static void initialize(Context c){
         if(context!=null)return;context=c.getApplicationContext();
         SharedPreferences p=prefs();
@@ -50,28 +53,7 @@ public final class PersonalNgSubmissions {
         button.setOnClickListener(v->showSettings(activity,false,null));
     }
     static boolean consented(){return context!=null&&prefs().getBoolean("consent",false);}
-    /** Show once from settings; opening or dismissing this dialog never grants consent. */
-    static void offerOnSettingsOpen(Activity activity,Runnable next){
-        if(activity.isFinishing()||activity.isDestroyed())return;
-        SharedNg.initialize(activity);
-        SharedPreferences p=prefs();
-        if(p.contains("consent")||p.getBoolean("settingsConsentShownV1",false)){next.run();return;}
-        showSettings(activity,true,()->{
-            SharedNg.prefs().edit().putBoolean("enabled",true).apply();
-            SharedNg.reload();SharedNg.schedule();
-        },()->activity.getWindow().getDecorView().post(()->{
-            if(!activity.isFinishing()&&!activity.isDestroyed())next.run();
-        }));
-        p.edit().putBoolean("settingsConsentShownV1",true).apply();
-    }
-    static void enableWithConsent(Activity activity,Runnable accepted){
-        if(consented()){accepted.run();return;}
-        showSettings(activity,true,accepted);
-    }
     private static void showSettings(Activity activity,boolean enabling,Runnable accepted){
-        showSettings(activity,enabling,accepted,null);
-    }
-    private static void showSettings(Activity activity,boolean enabling,Runnable accepted,Runnable dismissed){
             LinearLayout form=new LinearLayout(activity);form.setOrientation(1);SharedPreferences p=prefs();
             Switch on=new Switch(activity);on.setText("個人NGを運営の審査用に送信する");on.setChecked(enabling||p.getBoolean("consent",false));form.addView(on);
             String[] types={"ID","NAME","WORD","REPORTER"};String[] labels={"NGID","NGName（ワッチョイ上下4桁を含む）","NGワード","エッヂの記者ID（記者IDだけのNG・高度なNG）"};CheckBox[] choices=new CheckBox[types.length];
@@ -79,7 +61,7 @@ public final class PersonalNgSubmissions {
             TextView triggerHelp=new TextView(activity);
             triggerHelp.setText("NGを登録・変更・削除して保存すると、約1秒後に変更分を自動送信します。連続操作はまとめ、1回20件まで送信します。定期的な全件確認は行いません。通信に失敗した送信待ちだけ15分後に再試行し、次回起動時にも回復します。アプリ終了中は動作しません。");
             form.addView(triggerHelp);
-            TextView help=new TextView(activity);help.setText("初回同意後、選んだ種類の既存NGをまとめて送り、その後の追加・変更・削除も送信します。送信するのはNGの値・種類・掲示板の区分・一致設定・送信元を区別する識別子です。生の端末IDは送信しません。承認済みの配信条件には公開用の報告者識別子が付き、受信側で報告者ごとに除外できます。android等の個別板名と有効期間は送信しません。掲示板が不明な過去NGと全板指定のID・ワッチョイは、全掲示板に適用する共有条件として送信します。名前や個人的なNGワードも含まれます。NGワードは空白を除いて5文字以上かつ英字だけではないものを送信します。ローカルのNG登録には影響しません。記者IDは「記者IDだけをNG」の登録と、高度なNGのひな形と同じ完全一致条件からIDだけを取り出します。複雑なJavaScript条件は対象外です。Cookie・認証情報・閲覧履歴・書き込み履歴・高度NGのJavaScriptは送りません。\n受け取った共有NGは別キャッシュに保管し、再送しません。削除はあなたの報告の取り消しとして扱います。配信済み条件の停止とは別です。オフで未送信データの送信も停止します。");form.addView(help);
+            TextView help=new TextView(activity);help.setText("初回同意後、選んだ種類の既存NGをまとめて送り、その後の追加・変更・削除も送信します。送信するのはNGの値・種類・掲示板の区分・一致設定・送信元を区別する識別子です。生の端末IDは送信しません。承認済みの配信条件には公開用の報告者識別子が付き、受信側で報告者ごとに除外できます。送信前にChMateの板一覧を再取得して対象板を解決します。対象板を特定できないNGは共有側から削除し、全板NGとして広げません。全板指定で登録したID・ワッチョイは全掲示板対象のままです。個別板名と有効期間は送信しません。名前や個人的なNGワードも含まれます。NGワードは空白を除いて5文字以上かつ英字だけではないものを送信します。端末内のNG登録は変更しません。記者IDは「記者IDだけをNG」の登録と、高度なNGのひな形と同じ完全一致条件からIDだけを取り出します。複雑なJavaScript条件は対象外です。Cookie・認証情報・閲覧履歴・書き込み履歴・高度NGのJavaScriptは送りません。\n受け取った共有NGは別キャッシュに保管し、再送しません。削除はあなたの報告の取り消しとして扱います。配信済み条件の停止とは別です。オフで未送信データの送信も停止します。");form.addView(help);
             Button preview=new Button(activity);preview.setText("選択した既存NGの件数・送信内容を確認");form.addView(preview);
             preview.setOnClickListener(previewView->{
                 Set<String> selected=new HashSet<>();for(int i=0;i<types.length;i++)if(choices[i].isChecked())selected.add(types[i]);
@@ -90,7 +72,8 @@ public final class PersonalNgSubmissions {
                         if(category.equals("REPORTER")){for(JSONObject c:reporterConditions()){count++;if(shown++<80)examples.append("\n").append(c.toString()).append("\n");}}
                         else for(NativeNgStore.Entry entry:new NativeNgStore(context,category).entries()){
                             if(entry.pattern.isEmpty()||entry.pattern.length()>2000||(entry.flags&4)!=0||(category.equals("WORD")&&!SharedNgRules.shareableKeyword(entry.pattern)))continue;
-                            count++;if(shown++<80)examples.append("\n").append(condition(category,entry).toString()).append("\n");
+                            JSONObject row=condition(category,entry);if(row==null)continue;
+                            count++;if(shown++<80)examples.append("\n").append(row.toString()).append("\n");
                         }
                         total+=count;details.append(category).append(": ").append(count).append("件\n").append(examples);
                     }
@@ -103,8 +86,7 @@ public final class PersonalNgSubmissions {
             });
             TextView status=new TextView(activity);status.setText(p.getString("status","未送信"));form.addView(status);
             ScrollView settingsScroll=new ScrollView(activity);settingsScroll.addView(form);
-            new HaiagaruDialog.Builder(activity).setTitle(dismissed==null?"個人NGの送信に同意":"オンライン共有NGへの同意（開発中）").setView(settingsScroll)
-                .setOnDismissListener(d->{if(dismissed!=null)dismissed.run();})
+            new HaiagaruDialog.Builder(activity).setTitle("個人NGの送信設定").setView(settingsScroll)
                 .setNegativeButton("キャンセル",null).setPositiveButton("保存",(d,w)->{
                 SharedPreferences.Editor edit=p.edit().putBoolean("consent",on.isChecked());for(int i=0;i<types.length;i++)edit.putBoolean("type."+types[i],choices[i].isChecked());
                 if(!on.isChecked()||!p.getBoolean("consent",false))for(String key:p.getAll().keySet())if(key.startsWith("queue.")||key.startsWith("snapshot."))edit.remove(key);edit.putLong("generation",p.getLong("generation",0)+1);if(edit.commit()){cancelRetry();changed();if(on.isChecked()&&accepted!=null)accepted.run();}
@@ -120,9 +102,11 @@ public final class PersonalNgSubmissions {
         JSONObject request=new JSONObject().put("version",2).put("action",action).put("device",installation());
         String key=deviceKey();if(!key.isEmpty())request.put("deviceKey",key);return request;
     }
-    private static JSONObject condition(String category,NativeNgStore.Entry entry)throws Exception{
+    static JSONObject condition(String category,NativeNgStore.Entry entry)throws Exception{
         String board=SharedNgBoardCatalog.resolve(context,entry.board);
-        if(board.isEmpty()||board.equals("unknown.invalid/unresolved"))board="*"; // User-selected shared policy: unresolved past registrations apply globally.
+        // A missing/ambiguous board is not a request for a global NG. The old snapshot
+        // comparison removes a previous "other/all boards" condition after refresh.
+        if(board.isEmpty()||board.equals("unknown.invalid/unresolved"))return null;
         String kind=category.equals("ID")?"id":category.equals("WORD")?"keyword":"name",value=entry.pattern;
         boolean regex=(entry.flags&0x20)!=0;
         if(category.equals("NAME")&&!regex){
@@ -163,6 +147,10 @@ public final class PersonalNgSubmissions {
         if(context==null||!prefs().getBoolean("consent",false))return;
         cancelRetry();
         try{
+            // Resolve saved native board keys against ChMate's latest board catalog before
+            // comparing snapshots. If the catalog is unavailable, preserve the current
+            // snapshot/queue and retry rather than widening a board-specific NG to all boards.
+            if(!SharedNgBoardCatalog.refresh(context))throw new BoardCatalogUnavailable();
             SharedPreferences p=prefs();long generation=p.getLong("generation",0);String endpoint=SharedNg.endpoint();String sourceKey=hash(endpoint);JSONObject previous=new JSONObject(p.getString("snapshot."+sourceKey,"{}")),now=new JSONObject();
             JSONArray oldQueue=new JSONArray(p.getString("queue."+sourceKey,"[]")),queue=new JSONArray(),additions=new JSONArray();
             for(int i=0;i<oldQueue.length();i++){JSONObject row=oldQueue.getJSONObject(i);
@@ -175,7 +163,7 @@ public final class PersonalNgSubmissions {
                 if(kind.equals("REPORTER")){for(JSONObject c:reporterConditions()){String key=hash(c.toString());now.put(key,c);if(!previous.has(key))additions.put(operation(c,"upsert"));}continue;}
                 for(NativeNgStore.Entry e:new NativeNgStore(context,kind).entries()){
                     if(e.pattern.isEmpty()||e.pattern.length()>2000||(e.flags&4)!=0||(kind.equals("WORD")&&!SharedNgRules.shareableKeyword(e.pattern)))continue;
-                    JSONObject c=condition(kind,e);String key=hash(c.toString());now.put(key,c);
+                    JSONObject c=condition(kind,e);if(c==null)continue;String key=hash(c.toString());now.put(key,c);
                     if(!previous.has(key))additions.put(operation(c,"upsert"));
                 }
             }
@@ -216,8 +204,9 @@ public final class PersonalNgSubmissions {
             }
         }catch(Exception error){
             if(!prefs().getBoolean("consent",false))return;
-            prefs().edit().putLong("retryAfter",System.currentTimeMillis()+15*60*1000).putString("status","送信待ちを維持しています："+error.getMessage()).apply();
-            scheduleRetry(15*60*1000);
+            long delay=error instanceof BoardCatalogUnavailable?60_000:15*60*1000;
+            prefs().edit().putLong("retryAfter",System.currentTimeMillis()+delay).putString("status","送信待ちを維持しています："+error.getMessage()).apply();
+            scheduleRetry(delay);
         }
 
     }

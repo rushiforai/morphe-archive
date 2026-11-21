@@ -494,21 +494,30 @@ val navigationBarComponentsPatch = bytecodePatch(
                 )
             }
 
-            // The translucent theme hands the window a transparent color for the system navigation
-            // buttons, so an opaque one is swapped in there instead of turning off the feature flag.
-            SystemNavigationBarColorFingerprint.let {
-                it.method.apply {
-                    val colorIndex = it.instructionMatches[1].index
-                    val colorRegister = getInstruction<OneRegisterInstruction>(colorIndex).registerA
+            // Transform the themed color before YouTube compares it with the current Window color.
+            // Android 15+ also needs app-side paint because the system gesture area is transparent.
+            val systemNavigationColor = SystemNavigationBarColorFingerprint.matchOrNull()
+            if (systemNavigationColor != null) {
+                val matches = systemNavigationColor.instructionMatches
+                val colorRegister = matches[1].getInstruction<OneRegisterInstruction>().registerA
+                val windowRegister = matches[2].getInstruction<FiveRegisterInstruction>().registerC
+                val setter = matches.last().getInstruction<FiveRegisterInstruction>()
 
-                    addInstructions(
-                        colorIndex + 1,
+                if (setter.registerC == windowRegister && setter.registerD == colorRegister) {
+                    val hook = "$EXTENSION_CLASS_DESCRIPTOR->getSystemNavigationBarColor(Landroid/view/Window;I)I"
+                    systemNavigationColor.method.addInstructionsAtControlFlowLabel(
+                        matches[2].index,
                         """
-                            invoke-static { v$colorRegister }, $EXTENSION_CLASS_DESCRIPTOR->getSystemNavigationBarColor(I)I
+                            invoke-static { v$windowRegister, v$colorRegister }, $hook
                             move-result v$colorRegister
-                        """
+                        """,
                     )
+                    settingArray += "SETTINGS: SYSTEM_NAVIGATION_BAR_TRANSLUCENCY"
+                } else {
+                    printWarn("System navigation bar translucency is not supported: unexpected window color registers.")
                 }
+            } else {
+                printWarn("System navigation bar translucency is not supported: window color hook not found.")
             }
 
             if (is_20_46_or_greater && !is_20_31_or_greater) {

@@ -2,16 +2,15 @@ package slick.android
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
-import app.morphe.patcher.patch.bytecodePatch
 import com.android.tools.smali.dexlib2.Opcode
 
 val cacheCleaner =
-    bytecodePatch {
+    slackPatch("Cache cleaner", "Manage disposable image and video caches.", "cache") {
         execute {
             for ((type, parameters, hook) in listOf(
                 Triple(
                     "Lcoil/disk/RealDiskCache;",
-                    listOf("J", "Lkotlinx/coroutines/CoroutineDispatcher;", "Lokio/FileSystem;", "Lokio/Path;"),
+                    listOf("J", "Lkotlinx/coroutines/scheduling/DefaultIoScheduler;", "Lokio/JvmSystemFileSystem;", "Lokio/Path;"),
                     "images",
                 ),
                 Triple(

@@ -27,10 +27,11 @@ public final class Unclutter {
     public static boolean hideFeedVideos() { return false; }
     public static boolean hidePayLaterPrice() { return false; }
     public static boolean loadedSort() { return false; }
-    public static boolean hideFinanceTab() { return false; }
     public static boolean hideFinanceProfile() { return false; }
     public static boolean hideSearchTrays() { return false; }
     public static boolean hideNavTabs() { return false; }
+    public static boolean hideReferEarn() { return false; }
+    public static boolean blockTelemetry() { return false; }
 
     public static Response filter(Response response) {
         Filters flags = new Filters(Settings.enabled(Settings.Feature.SPONSORED),
@@ -40,15 +41,18 @@ public final class Unclutter {
         flags.orderFinance = Settings.enabled(Settings.Feature.ORDER_FINANCE);
         flags.confirmationAd = Settings.enabled(Settings.Feature.CONFIRMATION_AD);
         flags.wishlistAd = Settings.enabled(Settings.Feature.WISHLIST_AD);
+        flags.promoPopup = Settings.enabled(Settings.Feature.PROMO_POPUP);
+        flags.referEarn = Settings.enabled(Settings.Feature.REFER_EARN);
         flags.goldTray = Settings.enabled(Settings.Feature.GOLD_TRAY);
         flags.suggestionTray = Settings.enabled(Settings.Feature.SUGGESTION_TRAY);
-        flags.similarTray = Settings.enabled(Settings.Feature.SIMILAR_TRAY);
+        flags.relatedTray = Settings.enabled(Settings.Feature.RELATED_TRAY);
+        flags.recentShelf = Settings.enabled(Settings.Feature.RECENT_SHELF);
         return filter(response, flags);
     }
 
     static final class Filters {
         final boolean ads, ratings, sort, videos, hidePrice;
-        boolean orderAds, orderFinance, confirmationAd, wishlistAd, goldTray, suggestionTray, similarTray;
+        boolean orderAds, orderFinance, confirmationAd, wishlistAd, promoPopup, referEarn, goldTray, suggestionTray, relatedTray, recentShelf;
 
         Filters(boolean ads, boolean ratings, boolean sort, boolean videos, boolean hidePrice) {
             this.ads = ads;
@@ -56,21 +60,27 @@ public final class Unclutter {
             this.sort = sort;
             this.videos = videos;
             this.hidePrice = hidePrice;
-            orderAds = orderFinance = confirmationAd = wishlistAd = ads;
+            orderAds = orderFinance = confirmationAd = wishlistAd = promoPopup = ads;
         }
     }
 
     static Response filter(Response response, Filters flags) {
         String host = response.request().url().host();
         String path = response.request().url().encodedPath();
-        boolean widgets = host.matches("prod[1-4]?\\.meeshoapi\\.com")
-            && "/api/1.0/widget-groups/fetch".equals(path);
+        boolean meesho = host.matches("prod[1-4]?\\.meeshoapi\\.com");
+        boolean widgets = meesho && "/api/1.0/widget-groups/fetch".equals(path);
+        boolean home = flags.recentShelf && meesho && "/api/1.0/home-page/fetch".equals(path);
+        if (flags.promoPopup && meesho && path.matches("/api/[0-9.]+/inapp/popup") && response.isSuccessful()) {
+            ResponseBody popup = response.body();
+            if (popup != null) popup.close();
+            return response.newBuilder().removeHeader("Content-Length")
+                .body(ResponseBody.create(MediaType.get("application/json"), "{}")).build();
+        }
         Object screen = widgets ? screenName(response) : null;
-        boolean popup = screen != null && screen.toString().endsWith("pop_up");
         boolean orderBanners = flags.orderFinance && "orders".equals(screen);
         boolean wishlistBanners = flags.wishlistAd && "wishlist".equals(screen);
-        boolean searchTrays = (flags.goldTray || flags.suggestionTray) && "catalog_search_results".equals(screen)
-            || flags.similarTray && popup;
+        boolean searchTrays = (flags.goldTray || flags.suggestionTray || flags.relatedTray)
+            && "catalog_search_results".equals(screen) || home;
         if ((!isTarget(host, path) && !orderBanners && !wishlistBanners && !searchTrays) || !response.isSuccessful()) return response;
         ResponseBody body = response.body();
         if (body == null) return response;
@@ -90,7 +100,7 @@ public final class Unclutter {
             String original = peek.string();
             String filtered = orderBanners ? removeOrderBanners(original)
                 : wishlistBanners ? removeWishlistBanners(original)
-                : searchTrays ? removeSearchTrays(original, popup, flags)
+                : searchTrays ? removeSearchTrays(original, home, flags)
                 : transform(original, path, flags);
             if (filtered.equals(original)) return response;
             ResponseBody replacement = ResponseBody.create(type, filtered);
@@ -133,7 +143,7 @@ public final class Unclutter {
         return changed ? root.toString() : text;
     }
 
-    static String removeSearchTrays(String text, boolean popup, Filters flags) throws JSONException {
+    static String removeSearchTrays(String text, boolean home, Filters flags) throws JSONException {
         JSONObject root = new JSONObject(text);
         JSONArray groups = root.optJSONArray("widget_groups");
         if (groups == null) return text;
@@ -145,8 +155,8 @@ public final class Unclutter {
             String system = source.optString("source_system");
             boolean gold = "DYNAMIC_FEED_IN_FEED".equals(system)
                 && String.valueOf(source.opt("source_meta")).contains("highASP_enabled");
-            if (popup ? flags.similarTray && "FY_POP_UP".equals(system)
-                    : flags.goldTray && gold || flags.suggestionTray && "SUGGESTION_QUERY_FEED_IN_FEED".equals(system)) {
+            if (home ? "RECENTLY_VIEWED_NEW".equals(system) : flags.goldTray && gold || flags.suggestionTray && "SUGGESTION_QUERY_FEED_IN_FEED".equals(system)
+                    || flags.relatedTray && "CLP".equals(system)) {
                 groups.remove(i);
                 changed = true;
             }
@@ -182,7 +192,7 @@ public final class Unclutter {
 
     static boolean isTarget(String host, String path) {
         if (!host.matches("prod[1-4]?\\.meeshoapi\\.com")) return false;
-        return path.matches("/api/[0-9.]+/(?:anonymous/)?(?:config(?:/.*)?|feed(?:/.*)?|"
+        return path.matches("/api/[0-9.]+/(?:anonymous/)?(?:configs?(?:/.*)?|feed(?:/.*)?|"
             + "search/products|clp|plp|dynamic-filters-feed|meri-shop/feed|"
             + "for-you|deals-for-you|catalogs(?:/.*)?|catalog/products|"
             + "collections/[^/]+|reco(?:/.*)?|product(?:/static|/dynamic)?)");
@@ -190,7 +200,7 @@ public final class Unclutter {
 
     static String transform(String text, String path, Filters flags) throws JSONException {
         if (!flags.ads && !flags.ratings && !flags.sort && !flags.videos && !flags.hidePrice
-                && !flags.orderAds && !flags.confirmationAd) return text;
+                && !flags.orderAds && !flags.confirmationAd && !flags.referEarn) return text;
         JSONObject root = new JSONObject(text);
         boolean feed = path.matches("/api/[0-9.]+/(?:anonymous/)?(?:for-you|feed(?:/.*)?|"
             + "clp|plp|dynamic-filters-feed|meri-shop/feed)");
@@ -226,6 +236,9 @@ public final class Unclutter {
                 config.put("enable_widgets_order_confirmation", false);
                 config.put("enable_widgets_order_details", false);
                 config.put("enable_widgets_orders_listing", false);
+            }
+            if (flags.referEarn && "refer_and_earn".equals(key) && value instanceof JSONObject) {
+                ((JSONObject) value).put("enabled", false).put("enabled_on_hp", false);
             }
             if (flags.confirmationAd && "ocp_pay_later_ad_banner".equals(key) && value instanceof JSONObject) {
                 ((JSONObject) value).put("enabled", false);

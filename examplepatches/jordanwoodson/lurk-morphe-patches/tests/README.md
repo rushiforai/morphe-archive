@@ -36,7 +36,8 @@ need it rather than skipping them.
 | `tests/twitch/test_playlist_proxy.py` | Playlist proxy channel-only URLs and token omission, malformed paths, existing bare/encoded-URL modes, and off/empty settings. |
 | `tests/twitch/test_vod_requests.py` | *VOD chapters* requests: shared loads, retries, bounded queues and waiters, player and owner changes, switching off. |
 | `tests/twitch/test_privacy_consent.py` | Twitch's privacy and consent helper. |
-| `tests/twitch/test_providers.py` | Third-party emote, badge and pronoun providers: scheduling, ownership, both response orders. |
+| `tests/twitch/test_portals.py` | Twitch's in-app web pages: *Fix web page errors* (a certificate error on another host than the page's cancelled and kept from Twitch, never proceeded; the page's own host, an unknown page and the switch off go to Twitch) and *Disable analytics*' tracker hosts answered with an empty 204 that passes CORS and preflights, other hosts untouched. |
+| `tests/twitch/test_providers.py` | Third-party emote, badge and pronoun providers: scheduling, ownership, both response orders; emote lists loading on a lane per service, retries after a failure, and FrankerFaceZ's fallback to BetterTTV's copy of its lists (issues 97 and 100). |
 | `tests/twitch/test_seventv_badges.py` | *7TV badges*: cosmetic and entitlement events into the badge pipeline (native models, React Native snapshots, Emote and badge info, deletes, the holder bound, the switch off), and the WebSocket client against a local server: handshake, masking, 2- and 8-byte lengths, ping, fragmentation, resubscribing to another channel, close, and no connection while off or without a channel. |
 | `tests/twitch/test_image_cache.py` | The third-party image cache under Glide's network fetcher (issue 71): only third-party image URLs kept, a complete body stored and served again (also after a restart), partial, failed, non-image and oversized bodies not stored, the disk and memory limits (least recently used out first) and expiry. |
 | `tests/twitch/test_rn_chat.py` | The compiled React Native chat helpers, the chat overlay's context and the landscape chat column's opacity. |
@@ -191,7 +192,8 @@ ANDROID_SERIAL=emulator-5580 bin/test-twitch-ui patched/twitch.apk
 - `bin/test-twitch-providers` repeats the provider checks of `test_providers.py` on ART with Android's
   own `JsonReader`, `Canvas` and PNG decoding, controlled HTTP responses and isolated preferences: no
   traffic to the providers and no app data. That covers reused React Native rows across channel, room
-  and user changes, retired effects, and pronoun completion in both response orders.
+  and user changes, retired effects, pronoun completion in both response orders, and FrankerFaceZ's lists
+  coming from BetterTTV's copy when FrankerFaceZ answers 522.
 - `bin/test-twitch-ui` drives real `MotionEvent`s, view trees and `Handler` queues: the chat overlay's
   feed and recreation, stale owners and the switch off, blocked text, Unicode truncation, queue bounds,
   gestures, edge exclusions and the brightness clamp and restore. It doesn't use a visible activity,

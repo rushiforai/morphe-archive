@@ -1541,4 +1541,10 @@
         <item>FIT_SEEKBAR</item>
         <item>ORIGINAL</item>
     </string-array>
+    <string-array name="revanced_double_tap_seek_length_entries">
+        <item>@string/revanced_double_tap_seek_length_entry_youtube</item>
+    </string-array>
+    <string-array name="revanced_double_tap_seek_length_entry_values" translatable="false">
+        <item>0</item>
+    </string-array>
 </resources>

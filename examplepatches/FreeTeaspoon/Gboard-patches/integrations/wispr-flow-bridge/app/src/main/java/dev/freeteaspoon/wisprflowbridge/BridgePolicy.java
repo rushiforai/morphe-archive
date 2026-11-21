@@ -16,4 +16,16 @@ final class BridgePolicy {
         return "Recording".equals(stateClass) || "Processing".equals(stateClass)
                 || "Error".equals(stateClass) || "Repair".equals(stateClass);
     }
+
+    static boolean canStart(String status) {
+        return "Idle".equals(status) || "Error".equals(status) || "Dismissed".equals(status);
+    }
+
+    static boolean canStop(String status, boolean submit) {
+        return "Listening".equals(status) || (!submit && "Initializing".equals(status));
+    }
+
+    static int voiceLevel(float normalizedLevel) {
+        return Math.round(Math.max(0f, Math.min(1f, normalizedLevel)) * 100f);
+    }
 }

@@ -263,6 +263,7 @@
           "Preview chats",
           "Ask before a call",
           "Call blocker",
+          "Record calls",
           "Message box buttons",
           "Chat plus menu",
           "Glass in chats",
@@ -286,6 +287,15 @@
             "op": "any",
             "patches": [
               "Read messages without the seen receipt"
+            ]
+          }
+        },
+        {
+          "title": "Record calls",
+          "when": {
+            "op": "any",
+            "patches": [
+              "Record calls"
             ]
           }
         }
@@ -699,7 +709,8 @@
         "op": "any",
         "patches": [
           "Group Instagram's notifications",
-          "Hide suggested people on profiles"
+          "Hide suggested people on profiles",
+          "Chat bubbles"
         ]
       },
       "anchors": [
@@ -718,6 +729,15 @@
             "op": "any",
             "patches": [
               "Group Instagram's notifications"
+            ]
+          }
+        },
+        {
+          "title": "Chat bubbles",
+          "when": {
+            "op": "any",
+            "patches": [
+              "Chat bubbles"
             ]
           }
         },

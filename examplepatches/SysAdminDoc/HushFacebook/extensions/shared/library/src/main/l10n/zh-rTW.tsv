@@ -2064,6 +2064,8 @@ Comments will open where Facebook stops them.	留言將在 Facebook 預設的位
 Hide the status bar	隱藏狀態列
 # context: summary of that switch; a swipe down from the top edge shows the bar briefly
 Takes the phone's status bar, with the time and battery, off Facebook's main screen, so the app gets the whole screen. Swipe down from the top edge to see it for a moment.	從 Facebook 主畫面移除顯示時間與電量的手機狀態列，讓應用程式使用整個螢幕。從頂端邊緣向下滑動可暫時顯示。
+Center the feed on big screens	在大螢幕將動態消息置中
+On a tablet or an unfolded phone, the feed and Facebook's other lists stay in a column down the middle of the screen instead of stretching from edge to edge. Reels keep the whole screen.	在平板或展開的摺疊手機上，動態消息和 Facebook 的其他清單會保持在螢幕中間的一欄，而不是從一邊延伸到另一邊。Reels 仍佔滿整個螢幕。
 # context: switch title under Reels and Watch; on, a video tapped in the news feed opens alone in the full-screen player instead of leading into endless reels
 Open feed videos on their own	單獨開啟動態消息影片
 # context: summary of that switch; the Reels tab itself still scrolls normally
@@ -3071,3 +3073,25 @@ Video buffer will be set to %1$s.	影片緩衝將設為 %1$s。
 Recently watched in the Menu	選單中的最近觀看
 Adds a Recently watched row at the end of Settings and privacy in Facebook's Menu. It opens the list that Remember what you watch keeps.	在 Facebook 選單的「設定和隱私」末尾新增「最近觀看」一列，開啟「記住觀看內容」保存的清單。
 Recently watched can't open here.	無法從這裡開啟「最近觀看」。
+Header text font	標題文字字型
+Bold	粗體
+Regular	一般
+Serif	襯線
+Script	手寫體
+Monospace	等寬
+Your font	你的字型
+The bold font the words have always had.	文字一直以來使用的粗體字型。
+The phone's font at its regular weight.	手機的字型，一般粗細。
+A bold font with serifs, like a newspaper's.	有襯線的粗體字型，像報紙上的字。
+Joined-up handwriting.	連筆手寫體。
+Every letter the same width, like a typewriter.	每個字母寬度相同，像打字機。
+The font file picked under Font file, in bold. Bold until one is picked.	在「字型檔」中選的檔案，以粗體顯示。選好之前為粗體。
+Header text font will be set to %1$s.	標題文字字型將設為 %1$s。
+Hide songs under names	隱藏名稱下方的歌曲
+The line under the poster's name leaves out the song a post plays, with no gap where it was.	發布者名稱下方的那一行不再顯示貼文播放的歌曲，原本的位置也不會留白。
+Bold post times	貼文時間加粗
+The time or date under the poster's name is bold, like the name.	發布者名稱下方的時間或日期會像名稱一樣以粗體顯示。
+Show full names	顯示完整名稱
+A long name at the top of a post wraps onto the next line instead of ending in "...". A name that fits still takes one line.	貼文頂端的長名稱會換到下一行，而不是以「...」結尾。放得下的名稱仍只佔一行。
+Dark box behind feed video names	動態消息影片名稱的深色底框
+When a video in your feed has the poster's name on top of the video, that name sits on the same dark box. A change shows on the posts drawn after it.	當動態消息中的影片把發布者名稱顯示在影片上時，這個名稱也會顯示在同樣的深色底框上。變更會在之後載入的貼文上生效。

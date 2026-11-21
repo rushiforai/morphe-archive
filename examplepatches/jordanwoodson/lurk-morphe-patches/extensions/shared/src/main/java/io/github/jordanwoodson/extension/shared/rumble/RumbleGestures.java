@@ -251,8 +251,26 @@ public final class RumbleGestures {
             indicator = new WeakReference<>(view);
         }
         view.setText(text);
+        view.setTranslationX(0);
+        view.setTranslationY(0);
         view.setVisibility(View.VISIBLE);
         MAIN.removeCallbacks(HIDE);
+    }
+
+    /** Shows {@code text} over the middle of {@code frame} for a moment: Remote control's play, pause and skips. */
+    static void flash(Activity activity, String text, View frame) {
+        showIndicator(activity, text);
+        TextView view = indicator.get();
+        if (view != null && frame != null && frame.isShown()) {
+            View decor = activity.getWindow().getDecorView();
+            int[] at = new int[2];
+            int[] root = new int[2];
+            frame.getLocationInWindow(at);
+            decor.getLocationInWindow(root);
+            view.setTranslationX(at[0] - root[0] + (frame.getWidth() - decor.getWidth()) / 2f);
+            view.setTranslationY(at[1] - root[1] + (frame.getHeight() - decor.getHeight()) / 2f);
+        }
+        MAIN.postDelayed(HIDE, 800);
     }
 
     private static void hideIndicator() {

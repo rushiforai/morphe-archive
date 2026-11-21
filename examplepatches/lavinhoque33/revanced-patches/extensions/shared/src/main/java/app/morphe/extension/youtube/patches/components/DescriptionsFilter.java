@@ -2,14 +2,14 @@ package app.morphe.extension.youtube.patches.components;
 
 import app.morphe.extension.shared.patches.components.ByteArrayFilterGroup;
 import app.morphe.extension.shared.patches.components.ByteArrayFilterGroupList;
-import app.morphe.extension.shared.patches.components.Filter;
+import app.morphe.extension.shared.patches.components.LazyBufferFilter;
 import app.morphe.extension.shared.patches.components.StringFilterGroup;
 import app.morphe.extension.youtube.settings.Settings;
 import app.morphe.extension.youtube.shared.EngagementPanel;
 import app.morphe.extension.youtube.shared.RootView;
 
 @SuppressWarnings("unused")
-public final class DescriptionsFilter extends Filter {
+public final class DescriptionsFilter extends LazyBufferFilter {
     private static final String INFOCARDS_SECTION_PATH = "infocards_section.";
 
     private final ByteArrayFilterGroupList featuredSectionGroupList = new ByteArrayFilterGroupList();
@@ -304,12 +304,12 @@ public final class DescriptionsFilter extends Filter {
     }
 
     @Override
-    public boolean isFiltered(String path, String identifier, String allValue, byte[] buffer,
+    public boolean isFilteredLazy(String path, String identifier, String allValue, Buffer buffer,
                               StringFilterGroup matchedGroup, FilterContentType contentType, int contentIndex) {
         // modified by lavinhoque33, 2026-10-16: Ported from Morphe.
         // Ask Gemini lives in the PAyouchat engagement panel, not the description panel.
         if (matchedGroup == askGeminiButton) {
-            return path.contains("button.e") && askGeminiButtonBuffer.check(buffer).isFiltered();
+            return path.contains("button.e") && askGeminiButtonBuffer.check(buffer.get()).isFiltered();
         }
 
         if (!EngagementPanel.isDescription() && !RootView.isPlayerActive() && !RootView.isShortsActive()) {
@@ -320,21 +320,21 @@ public final class DescriptionsFilter extends Filter {
         if (matchedGroup == howThisWasMadeSection) {
             return contentIndex == 0;
         } else if (matchedGroup == attributesSectionPath) {
-            return attributesSectionBuffer.check(buffer).isFiltered()
+            return attributesSectionBuffer.check(buffer.get()).isFiltered()
                     || ((Settings.HIDE_EXPLORE_SECTION.get()
                     || Settings.HIDE_EXPLORE_PODCAST_SECTION.get())
-                    && podcastSectionBuffer.check(buffer).isFiltered());
+                    && podcastSectionBuffer.check(buffer.get()).isFiltered());
         } else if (matchedGroup == featuredSection) {
-            return featuredSectionGroupList.check(buffer).isFiltered();
+            return featuredSectionGroupList.check(buffer.get()).isFiltered();
         } else if (matchedGroup == hashtagSection) {
-            return hashtagSectionGroupList.check(buffer).isFiltered();
+            return hashtagSectionGroupList.check(buffer.get()).isFiltered();
         } else if (matchedGroup == infoCardsSection) {
             return hideInfoCards(path, contentIndex);
         } else if (matchedGroup == macroMarkerShelf) {
             if (contentIndex != 0) {
                 return false;
             }
-            return macroMarkerShelfGroupList.check(buffer).isFiltered();
+            return macroMarkerShelfGroupList.check(buffer.get()).isFiltered();
         } else if (matchedGroup == horizontalShelf) {
             if (contentIndex != 0) {
                 return false;
@@ -349,13 +349,13 @@ public final class DescriptionsFilter extends Filter {
             }
             // YouTube 20.14.43 does not always include a buffer for these sections, so the
             // parent setting must also be checked independently of the subtype markers.
-            return Settings.HIDE_EXPLORE_SECTION.get() || playlistSectionGroupList.check(buffer).isFiltered();
+            return Settings.HIDE_EXPLORE_SECTION.get() || playlistSectionGroupList.check(buffer.get()).isFiltered();
         } else if (matchedGroup == shortsHowThisWasMadeSection) {
             return RootView.isShortsActive() && EngagementPanel.isDescription();
         } else if (matchedGroup == subscribeButton) {
             return path.contains(INFOCARDS_SECTION_PATH);
         } else if (matchedGroup == videoDetails) {
-            return videoDetailsBuffer.check(buffer).isFiltered();
+            return videoDetailsBuffer.check(buffer.get()).isFiltered();
         }
 
         return true;

@@ -5,6 +5,7 @@ import static app.morphe.extension.shared.utils.Utils.validateValue;
 
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewStub;
 import android.widget.FrameLayout;
 
 import androidx.annotation.NonNull;
@@ -84,6 +85,13 @@ public class ShortsPatch {
 
     public static void hideShortsCommentsButton(View view) {
         hideViewUnderCondition(Settings.HIDE_SHORTS_COMMENTS_BUTTON.get(), view);
+    }
+
+    /**
+     * Injection point. An absent education stub is already handled by the dedicated tutorial renderer.
+     */
+    public static ViewStub getShortsSpeedEducationStub(ViewStub original) {
+        return Settings.HIDE_SHORTS_SPEED_EDUCATION.get() ? null : original;
     }
 
     public static ViewGroup hideShortsInfoPanel(ViewGroup viewGroup) {

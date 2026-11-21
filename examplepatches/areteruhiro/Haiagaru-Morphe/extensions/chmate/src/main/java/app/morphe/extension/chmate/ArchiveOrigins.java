@@ -18,7 +18,25 @@ public final class ArchiveOrigins {
     private static final Map<String,String> LIVE = Collections.synchronizedMap(new LinkedHashMap<String,String>(128,.75f,true) {
         protected boolean removeEldestEntry(Map.Entry<String,String> e) { return size() > 4096; }
     });
+    private static final Map<String,Long> PENDING_HOME_ARCHIVES = new LinkedHashMap<>();
     private ArchiveOrigins() { }
+
+    private static void rememberHomeArchive(String sourceName) {
+        synchronized (PENDING_HOME_ARCHIVES) {
+            long now = android.os.SystemClock.elapsedRealtime();
+            PENDING_HOME_ARCHIVES.entrySet().removeIf(e -> e.getValue() < now);
+            PENDING_HOME_ARCHIVES.put(sourceName, now + 120_000L);
+            while (PENDING_HOME_ARCHIVES.size() > 512)
+                PENDING_HOME_ARCHIVES.remove(PENDING_HOME_ARCHIVES.keySet().iterator().next());
+        }
+    }
+
+    static boolean consumeHomeArchive(String board, long threadId) {
+        synchronized (PENDING_HOME_ARCHIVES) {
+            Long until = PENDING_HOME_ARCHIVES.remove(board + "_" + threadId + ".dat");
+            return until != null && until >= android.os.SystemClock.elapsedRealtime();
+        }
+    }
     public static String nativeUrlMethod() { return ""; } // Bound by verified BBSUrlInfo method structure.
     public static void onModel(Object model) {
         try { model.getClass().getMethod(nativeUrlMethod()).invoke(model); } catch (Exception ignored) { }
@@ -46,6 +64,7 @@ public final class ArchiveOrigins {
             Context c = Haiagaru.applicationContextForExtension();
             if (c == null || source == null || destination == null || !source.getName().endsWith(".dat") || !destination.isFile()) return;
             String relative = ArchiveOriginPaths.relative(archiveRoot(c), destination);
+            if (source.isFile() && source.length() == destination.length()) rememberHomeArchive(source.getName());
             String url = LIVE.get(source.getName());
             if (url != null) WORK.execute(() -> { try { write(c, relative, url, "captured"); } catch(Exception e) { report(e); } });
         } catch (Exception ignored) { }

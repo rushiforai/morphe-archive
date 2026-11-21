@@ -42,16 +42,8 @@ public final class SduiComponentFilter {
             "leadgen",
     };
 
-    /**
-     * Labels LinkedIn puts on a boosted or otherwise promoted post that carries no sponsored URN. Only
-     * used to decide whether the payload is worth parsing; the parsed strings confirm the label.
-     */
-    private static final String[] PROMOTED_LABEL_MARKERS = {
-            "Promoted", "promoted", "Sponsored", "sponsored", "Dipromosikan", "dipromosikan",
-    };
-
-    /** The labels themselves, compared case-insensitively against whole short strings. */
-    private static final String[] PROMOTED_LABELS = {"promoted", "sponsored", "dipromosikan"};
+    /** The labels themselves, at the start of a short string of their own. */
+    private static final String[] PROMOTED_LABEL_WORDS = {"Promoted", "Sponsored", "Dipromosikan"};
 
     /**
      * AI prompts and assistant cards, recognized by a whole word of the view name (feed-ai-prompt, genai-...).
@@ -59,14 +51,29 @@ public final class SduiComponentFilter {
      * array allocation would add up.
      */
     private static boolean isAiView(String viewName) {
+        return hasWord(viewName, AI_WORDS);
+    }
+
+    private static final java.util.Set<String> VIDEO_WORDS = new java.util.HashSet<>(java.util.Arrays.asList("video", "videos"));
+
+    /** True when a whole word of the view name, split at '-', '_' and '.', is one of [words]. */
+    private static boolean hasWord(String viewName, java.util.Set<String> words) {
         int start = 0;
         for (int i = 0; i <= viewName.length(); i++) {
             char c = i == viewName.length() ? '-' : viewName.charAt(i);
             if (c != '-' && c != '_' && c != '.') continue;
-            if (AI_WORDS.contains(viewName.substring(start, i))) return true;
+            if (words.contains(viewName.substring(start, i))) return true;
             start = i + 1;
         }
         return false;
+    }
+
+    /**
+     * Feed modules built around videos, such as "Videos for you", whose view names are not feed-full-update: a feed
+     * component named with the word video. Posts are matched by the view names inside them in hideFeedUpdate.
+     */
+    private static boolean isFeedVideoView(String viewName) {
+        return viewName.startsWith("feed-") && hasWord(viewName, VIDEO_WORDS);
     }
 
     /** Components of LinkedIn's puzzle games: search cards (search-game-card-queens), the hub (games-sdui-hub). */
@@ -75,6 +82,9 @@ public final class SduiComponentFilter {
      * small text part without a view name, so it can't be found by name: unnamed parts that mention a puzzle.
      */
     private static boolean isPuzzleHeading(Object component) {
+        // Most unnamed parts are containers: their size is known without serializing their whole subtree.
+        Object size = Proto.call(component, "getSerializedSize");
+        if (size instanceof Integer && (Integer) size >= 4000) return false;
         byte[] bytes = payload(component);
         return bytes != null && bytes.length < 4000 && ProtoScanner.containsAscii(bytes, "uzzle");
     }
@@ -178,6 +188,9 @@ public final class SduiComponentFilter {
             if (Settings.hideGames() && isGameView(viewName)) {
                 return hide(true, "games: " + viewName);
             }
+            if (Settings.hideVideoPosts() && isFeedVideoView(viewName)) {
+                return hide(true, "video module: " + viewName);
+            }
             if (Settings.hideGames() && viewName.isEmpty() && isPuzzleHeading(component)) {
                 return hide(true, "games heading");
             }
@@ -186,7 +199,8 @@ public final class SduiComponentFilter {
                 case "feed-full-update": {
                     // One serialization of the post feeds both the remember store and the filters below.
                     byte[] post = Settings.postMenu() ? payload(component) : null;
-                    if (post != null) PostMenu.remember(post);
+                    // Only needed when the post's menu opens, so it is parsed off the scrolling thread.
+                    if (post != null) PostMenu.rememberLater(post);
                     return hideFeedUpdate(component, viewTracking, post);
                 }
                 case "job-card":
@@ -228,6 +242,7 @@ public final class SduiComponentFilter {
             return false;
         } finally {
             PerformanceCapture.endHook(1, captureStart);
+            if (captureStart != 0) PerformanceCapture.endView(viewName(component), captureStart);
         }
     }
 
@@ -257,14 +272,16 @@ public final class SduiComponentFilter {
         }
 
         byte[] payload = remembered != null ? remembered : payload(component);
-        // Each ProtoScanner.scan() parses the whole post and decodes its strings, so the payload is scanned at most
-        // once here and the result is shared by every check that needs the strings.
+        // Every post passes here while the feed scrolls, so the default checks are linear byte searches. A full
+        // ProtoScanner.scan() runs only for the optional checks below that need the strings, at most once.
         ProtoScanner scanner = null;
+        // A prefetch: parsed on the background thread, so scrolling never waits for it.
         if (shortLinks && ProtoScanner.containsAscii(payload, ShortLinkResolver.PREFIX)) {
-            scanner = ProtoScanner.scan(payload);
-            for (String s : scanner.strings) {
-                if (s.contains(ShortLinkResolver.PREFIX)) OpenLinksDirectlyPatch.prefetchShortLinks(s);
-            }
+            Background.run(() -> {
+                for (String s : ProtoScanner.scan(payload).strings) {
+                    if (s.contains(ShortLinkResolver.PREFIX)) OpenLinksDirectlyPatch.prefetchShortLinks(s);
+                }
+            });
         }
         if (ads) {
             if (hasSponsoredTracking(viewTracking) || containsAny(payload, SPONSORED_MARKERS)) {
@@ -272,9 +289,8 @@ public final class SduiComponentFilter {
             }
             // A boosted organic post carries no sponsored URN, only a Promoted/Sponsored badge. The byte
             // check keeps posts without a label from being parsed just for this.
-            if (containsAny(payload, PROMOTED_LABEL_MARKERS)) {
-                if (scanner == null) scanner = ProtoScanner.scan(payload);
-                if (hasPromotedLabel(scanner.strings)) return hide(true, "promoted feed update");
+            if (ProtoScanner.hasFieldStartingWith(payload, 60, PROMOTED_LABEL_WORDS)) {
+                return hide(true, "promoted feed update");
             }
         }
         // Child components are embedded in the post payload, so their view names identify the post type.
@@ -287,7 +303,9 @@ public final class SduiComponentFilter {
         if (reposts && ProtoScanner.containsAscii(payload, "feed-original-share-description")) {
             return hide(true, "repost");
         }
-        if (videos && ProtoScanner.containsAscii(payload, "large-single-video-view")) {
+        // Single videos (large-single-video-view) and carousels such as "Videos for you": any view name inside the
+        // post with the word video. View names are matched whole, never words of the post's text.
+        if (videos && ProtoScanner.hasViewNameWithWord(payload, "video")) {
             return hide(true, "video post");
         }
         boolean recommendationModule = false;
@@ -316,11 +334,9 @@ public final class SduiComponentFilter {
         }
         // The header label is its own string field, so match the whole string, never a substring
         // of post text.
-        if (suggested) {
-            if (scanner == null) scanner = ProtoScanner.scan(payload);
-            for (String s : scanner.strings) {
-                if (s.equals("Suggested") || s.equals("Disarankan")) return hide(true, "suggested post");
-            }
+        if (suggested && (ProtoScanner.hasFieldString(payload, "Suggested")
+                || ProtoScanner.hasFieldString(payload, "Disarankan"))) {
+            return hide(true, "suggested post");
         }
         return false;
     }
@@ -368,26 +384,6 @@ public final class SduiComponentFilter {
     private static boolean containsAny(byte[] payload, String[] markers) {
         for (String marker : markers) {
             if (ProtoScanner.containsAscii(payload, marker)) return true;
-        }
-        return false;
-    }
-
-    /**
-     * A promoted label is its own short post string ("Promoted", "Promoted by X", "Sponsored ·").
-     * Compare only the leading word so a separator or a suffix does not defeat it, while a post whose
-     * commentary merely mentions the word elsewhere is not matched.
-     */
-    private static boolean hasPromotedLabel(List<String> strings) {
-        for (String s : strings) {
-            if (s.length() > 60) continue;
-            int end = s.length();
-            while (end > 0 && !Character.isLetterOrDigit(s.charAt(end - 1))) end--;
-            String value = s.substring(0, end);
-            for (String label : PROMOTED_LABELS) {
-                if (!value.regionMatches(true, 0, label, 0, label.length())) continue;
-                if (value.length() == label.length()) return true;
-                if (!Character.isLetter(value.charAt(label.length()))) return true;
-            }
         }
         return false;
     }

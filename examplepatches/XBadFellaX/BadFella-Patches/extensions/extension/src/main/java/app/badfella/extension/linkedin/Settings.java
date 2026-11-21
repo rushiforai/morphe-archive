@@ -35,7 +35,15 @@ public final class Settings {
     static final String HIDE_TRANSLATION = "hide_translation";
     static final String HIDE_AI = "hide_ai";
     static final String KEEP_FEED = "keep_feed";
+    static final String NO_SCREENSHOT_SHARE = "no_screenshot_share";
+    static final String HIDE_TOP_BAR_POST = "hide_top_bar_post";
+    static final String HIDE_TOP_BAR_MESSAGING = "hide_top_bar_messaging";
+    static final String VIDEO_TAB_TIME = "video_tab_time";
+    static final String VIDEO_TAB_AUTO_SCROLL = "video_tab_auto_scroll";
     static final String POST_MENU = "post_menu";
+    static final String POST_MENU_COPY = "post_menu_copy";
+    static final String POST_MENU_DOWNLOAD = "post_menu_download";
+    static final String MICROG_BATTERY_REMINDER = "microg_battery_reminder";
     static final String VIEWER_TAP_TO_HIDE = "viewer_tap_to_hide";
     static final String SWIPE_FEEDS = "swipe_feeds";
     static final String HIDE_TAB_NETWORK = "hide_tab_network";
@@ -50,6 +58,11 @@ public final class Settings {
     static final String SHOW_TAB_NOTIFICATIONS = "show_tab_notifications";
     static final String HIDE_MORE_TAB = "hide_more_tab";
     static final String SHOW_TAB_MORE = "show_tab_more";
+    static final String SHOW_TAB_POST = "show_tab_post";
+    static final String SHOW_TAB_MESSAGING = "show_tab_messaging";
+    static final String SHOW_TAB_VIDEO = "show_tab_video";
+    static final String SHOW_TAB_NEWS = "show_tab_news";
+    static final String TAB_ORDER = "tab_order";
     static final String MOVE_MORE_ITEMS = "move_more_items";
     /** Items of the More tab last seen, as JSON (MoreMenu). */
     static final String MORE_ITEMS = "more_items";
@@ -263,11 +276,15 @@ public final class Settings {
         while (keys.hasNext()) {
             String key = keys.next();
             Object value = json.get(key);
-            if (value instanceof Boolean) {
-                editor.putBoolean(key, (Boolean) value);
-                count++;
-            } else if (value instanceof String) {
+            if (LAST_SEEN_VERSION.equals(key)) continue;
+            boolean stringKey = key.equals(ACCENT_COLOR) || key.equals(LANGUAGE) || key.equals(MORE_ITEMS)
+                    || key.equals(MUTED_WORDS) || key.equals(DOWNLOAD_BASE_DIR) || key.equals(DOWNLOAD_FOLDER)
+                    || key.equals(TAB_ORDER);
+            if (stringKey && value instanceof String) {
                 editor.putString(key, (String) value);
+                count++;
+            } else if (!stringKey && value instanceof Boolean) {
+                editor.putBoolean(key, (Boolean) value);
                 count++;
             }
         }
@@ -414,6 +431,12 @@ public final class Settings {
                 return isNavigationBarIncluded() && !get(SHOW_TAB_NETWORK, true);
             case "NOTIFICATIONS":
                 return isNavigationBarIncluded() && !get(SHOW_TAB_NOTIFICATIONS, true);
+            case "POST":
+                return isNavigationBarIncluded() && !get(SHOW_TAB_POST, true);
+            case "VIDEO":
+                return isNavigationBarIncluded() && !get(SHOW_TAB_VIDEO, true);
+            case "NEWS":
+                return isNavigationBarIncluded() && !get(SHOW_TAB_NEWS, true);
             default:
                 return false;
         }
@@ -489,7 +512,15 @@ public final class Settings {
 
     /** Copy text, Download and Save as PDF in the ⋯ menu of posts. */
     static boolean postMenu() {
-        return isPostMenuIncluded() && get(POST_MENU, true);
+        return postMenuCopy() || postMenuDownload();
+    }
+
+    static boolean postMenuCopy() {
+        return isPostMenuIncluded() && get(POST_MENU, true) && get(POST_MENU_COPY, true);
+    }
+
+    static boolean postMenuDownload() {
+        return isPostMenuIncluded() && get(POST_MENU, true) && get(POST_MENU_DOWNLOAD, true);
     }
 
     public static boolean isKeepFeedIncluded() {
@@ -497,7 +528,25 @@ public final class Settings {
     }
 
     static boolean keepFeed() {
-        return isKeepFeedIncluded() && get(KEEP_FEED, true);
+        return isKeepFeedIncluded() && get(KEEP_FEED, false);
+    }
+
+    public static boolean isScreenshotShareIncluded() { return false; }
+
+    public static boolean blockScreenshotShare() {
+        return isScreenshotShareIncluded() && get(NO_SCREENSHOT_SHARE, true);
+    }
+
+    public static boolean isTopBarButtonsIncluded() { return false; }
+
+    public static boolean isVideoTabIncluded() { return false; }
+
+    static boolean videoTabTime() {
+        return isVideoTabIncluded() && get(VIDEO_TAB_TIME, true);
+    }
+
+    static boolean videoTabAutoScroll() {
+        return isVideoTabIncluded() && get(VIDEO_TAB_AUTO_SCROLL, false);
     }
 
     public static boolean isAnonymousProfileViewingIncluded() {
@@ -593,6 +642,7 @@ public final class Settings {
         SharedPreferences p = prefs();
         if (p != null) p.edit().putBoolean(key, value).apply();
     }
+
 
     static SharedPreferences prefs() {
         if (prefs == null) {

@@ -127,7 +127,7 @@ metadata. It also checks unrelated account state. No probe uses a Rumble account
 requests.
 
 The probes reach obfuscated classes, methods and fields through locators: while patching, each patch records
-what it matched with `Locators.record("rumble.<patch>.<what>", …)` (67 entries with the default patches:
+what it matched with `Locators.record("rumble.<patch>.<what>", …)` (79 entries with the default patches:
 classes as `Lpkg/A;`, methods as `Lpkg/A;->name(…)R`, fields as `Lpkg/A;->name:T`), and the settings patch
 writes them into the patched APK as `assets/lurk/locators.json`. `ProbeSupport.locate`, `type`, `method` and `fieldName` read that
 file from the APK on the probe's classpath and fall back to the names of the version the probe was written
@@ -326,7 +326,7 @@ Defaults follow one rule: a patch that changes what the app does is selected in 
 starts off; the description ends "Starts off. Turn it on in Lurk settings > <Section>." The exceptions start
 on: privacy (Block ads, Block cookie notice, Disable analytics, Clean share links, Don't save searches),
 lockout protection (Block update prompts), nags (Hide Premium upsells) and restoring expected behavior
-(Resume videos when signed out, Refresh stream), plus the chat features that match Twitch's defaults. Hide
+(Resume videos when signed out, Refresh stream, Remote control), plus the chat features that match Twitch's defaults. Hide
 Shorts, Hide tipping and Rants, Disable autoplay and Default video quality moved to this rule on 2026-10-22:
 they used to be unselected with the switch (or the 1080p default quality) on, so a user who had selected one
 finds its switch off after updating, unless it was changed on the screen before.
@@ -361,6 +361,7 @@ finds its switch off after updating, unless it was changed on the screen before.
 | Default playback speed (a choice in hundredths; "1x (Rumble's)" is 0) | `default_speed` | at the next video |
 | Fill screen | `fill_screen` | when the player is laid out again |
 | Player gestures | `player_gestures` | at the next touch |
+| Remote control | `remote_keys` | at the next key |
 | Keep playing during other sounds (a choice; "Pause" is 0) | `audio_focus` | at the next interruption |
 | Keep screen on while paused | `keep_screen_on_paused` | at the next pause |
 | Sleep timer (a choice in minutes; "Off" is 0) | `sleep_timer` | when playback next starts |
@@ -972,6 +973,80 @@ from 5 to 12 (of 25); a swipe up on the left set the window's brightness overrid
 `mWindowManagerBrightnessOverride=0.447`). A double-tap on the right of the playing video in portrait jumped it
 from 16 s to 34 s in stock behavior.
 
+### Remote control
+
+Rumble's phone player only answers touches, so on an Android TV box (issue #103) the remote's OK does nothing
+to the video, left and right don't skip, and only a mouse pauses. Rumble has a TV player too, in the same app
+(the `TV` screen type, with its own controls), but the phone app never shows it. While `remote_keys` is on (its
+default: it restores what a remote is expected to do and only reacts to keys), and while the video page's
+player is on screen:
+
+- OK (D-pad center), Enter, numpad Enter, Space and a gamepad's A play and pause; media play, pause and
+  play/pause do what they say. Left and right, rewind and fast forward skip 10 s, or the Seek interval choice
+  when one is set, where the video can seek (a VOD, or a live stream with rewind); holding the key keeps
+  skipping. A label ("Paused", "Playing", "+10 s") shows over the video for a moment, in Player gestures'
+  indicator, since the controls stay hidden.
+- Back runs Rumble's own Back (out of full screen, or the page into the mini player).
+- Up, down and every other key go to Rumble as before, and so does everything off the video page: feeds,
+  search, the mini player, Shorts, picture-in-picture.
+- While a text field has focus, a keyboard's keys go to it (a key map that is full or alphabetic, from no D-pad
+  or gamepad), and a remote's too while the on-screen keyboard shows.
+
+How it finds the player's code: the TV player's key handler is a static `(player, focused control, KeyEvent,
+…)Z` method that compares the key code with 126 (MEDIA_PLAY), 127 (MEDIA_PAUSE), 85 (MEDIA_PLAY_PAUSE), 90
+(FAST_FORWARD, with its 10000 ms) and 89 (REWIND), in that order. Each branch calls the player's own method:
+play, pause, whether it plays, whether it can seek, seek forward and back. The patch takes the first player call
+of each shape in each branch (up to the branch's return) and requires the two seek branches to ask the same
+"can seek". The extension calls them through bridged stubs.
+
+`RumbleMainActivity` gets a `dispatchKeyEvent` (it has none; the patch checks) that asks `RumbleRemote.dispatch`
+first, like Player gestures' touch hook. To know the video page's player is on screen, the player's screen type
+setter (its one method taking the screen type enum, with a `type` null check) reports each player's type to
+`RumbleRemote.onPlayerType`. At a key, the extension takes the largest video frame on screen
+(`AspectRatioFrameLayout`), asks its parent, Media3's `PlayerView` (the type of one of the player's fields),
+for its Media3 player through the view's public getter, and looks for a player of type `EMBEDDED` or
+`FULL_SCREEN_*` that owns it through one of its public ExoPlayer getters (content and ads). Feed previews are
+`IN_LIST` or `DISCOVER`, the mini player `MINIMIZED`.
+
+Why OK, left and right always go to the player on the video page, instead of to a focused button: the page
+doesn't own the D-pad focus. Compose moves one focus through everything composed, the screen behind the page
+included, and Rumble draws no focus on the page. Checked with the switch off, after opening a search result:
+Down moved the focus onto a search result under the page (Rumble's green border showed there once the page was
+minimized), and after OK did nothing and right moved the focus to the first related video, Space opened that
+video. So on the video page left, right and OK no longer move the focus or click; up and down still move it.
+
+Back left the page on the emulator without the patch too, so why it did nothing on the reporter's TV box is a
+guess: before Android 16, Back goes through the views first, where Compose can spend it on moving the D-pad
+focus out of whatever has it, and the keys above leave that focus somewhere. The extension takes Back's press
+before the views and calls `Activity.onBackPressed()` on its release, Rumble's handler either way. On Android
+16, where Rumble (targeting SDK 36) gets predictive back, the system runs that handler itself and the app only
+sees the press and a canceled release, so the extension does nothing there.
+
+A focused Compose text field also stays focused behind the page (search, after opening a result), where a
+remote's OK would only bring its keyboard up, hence the on-screen keyboard rule.
+
+The first D-pad key after a touch or a mouse click only takes the window out of touch mode (Android's own
+behavior), so it does nothing; the next ones act.
+
+Checked on 2026-11-20 on the emulator set to 1600x900 at 200 dpi (`wm size`, `wm density`) for a landscape,
+TV-sized layout (player top left, related videos on the right), with `adb shell input keyevent` (a full
+keyboard) and `input dpad keyevent` (a D-pad):
+
+- A VOD opened from search: OK, Space, Enter, A, media play, pause and play/pause each switched the media
+  session between PLAYING and PAUSED. Paused, right, left, fast forward and rewind moved it by exactly 10 s
+  (74.6 s to 84.6, 94.6, 84.6, 94.6, 84.6, 74.6 s). After two Downs had moved the hidden focus, OK still played
+  and right still skipped, on the same video. Back put the page into the mini player.
+- Full screen (Rumble's button): OK, left and right the same; Up did nothing; Back returned to the page.
+- A live stream with rewind: left and right skipped, OK paused and played.
+- With the search field focused behind the page: a keyboard's Space and Enter went to the field (the player
+  didn't change), a D-pad's OK and Enter paused and played. With only the mini player on screen, typed text,
+  Space and left went to the search field ("nasa launch moon "); nothing reached the player.
+- `remote_keys` off: Rumble's own behavior (above).
+- The phone's portrait page (the emulator's own 720x1600): OK paused and played, right skipped 10 s.
+
+Not checked: a real TV box and remote; a comment or chat field (signed in); Back on Android 15 and older, where
+the extension's `onBackPressed()` runs; a live stream without rewind (Rumble's own "can seek" decides).
+
 ### Keep playing during other sounds
 
 `RumblePlayerService` (named in the manifest) is the player's `OnAudioFocusChangeListener`: it resumes on
@@ -1040,7 +1115,8 @@ errors the player gives up on.
 ### Seek interval
 
 The player's rewind and forward buttons call its seek methods through their default-argument twins, which
-fill in 15,000 ms; TV remote keys pass their own 10 s. The patch passes the twins' constant through
+fill in 15,000 ms; the TV player's remote keys pass their own 10 s (Remote control skips by this choice when one
+is set). The patch passes the twins' constant through
 `RumblePlayer.seekMillis`, which returns the `seek_seconds` choice while one is set. The buttons' icons
 (`ic_backward`, `ic_forward`) draw the arrow with strokes and "15s" as a filled path. A resource patch adds
 copies with only the arrow (`lurk_seek_back`, `lurk_seek_forward`, with the helper Twitch's player

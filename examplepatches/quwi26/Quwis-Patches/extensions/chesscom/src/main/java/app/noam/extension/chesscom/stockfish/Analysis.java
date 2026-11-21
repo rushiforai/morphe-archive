@@ -107,13 +107,18 @@ public final class Analysis {
         String fen = fen(position);
         if (fen == null) return;
         View decor = activity.getWindow().getDecorView();
-        // In a review by Lichess's servers chess.com shows Lichess's better move on each move Lichess
-        // marked; Stockfish looks at the other positions live.
-        if (name.equals(REVIEW_SCREEN) && GameReview.lichessReview() && GameReview.lichessArrow(fen)) {
-            wanted = null;
-            if (searching) ENGINE.stopSearch();
-            MAIN.post(() -> Arrows.clearEngine(decor));
-            return;
+        if (name.equals(REVIEW_SCREEN)) {
+            // A review already carries its moves, their best replies and its own eval bar, so a live
+            // search on every browsed move only competes with the screen's animations.
+            if (!GameReview.lichessReview()) return;
+            // In a review by Lichess's servers chess.com shows Lichess's better move on each move
+            // Lichess marked; Stockfish looks at the other positions live.
+            if (GameReview.lichessArrow(fen)) {
+                wanted = null;
+                if (searching) ENGINE.stopSearch();
+                MAIN.post(() -> Arrows.clearEngine(decor));
+                return;
+            }
         }
         if (fen.equals(wanted) && wantedScreen.get() == decor) return;
         WeakReference<View> screen = new WeakReference<>(decor);

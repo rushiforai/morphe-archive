@@ -24,6 +24,17 @@ def main():
                     public String getString(String key) { return (String) values.get(key); }
                 }
             """,
+            "android/view/View.java": """
+                package android.view;
+                public class View {
+                    public static final int GONE = 8;
+                    public void setVisibility(int visibility) { }
+                }
+            """,
+            "io/github/jordanwoodson/extension/shared/Logger.java": """
+                package io.github.jordanwoodson.extension.shared;
+                public final class Logger { public static void d(String message) { } }
+            """,
             "kotlin/enums/EnumEntries.java": "package kotlin.enums; public interface EnumEntries<E extends Enum<E>> extends java.util.List<E> {}",
             "io/github/jordanwoodson/extension/shared/settings/Settings.java": """
                 package io.github.jordanwoodson.extension.shared.settings;
@@ -34,7 +45,9 @@ def main():
                         if (!key.equals("default_tab")) throw new AssertionError("Unexpected key " + key);
                         return defaultTab;
                     }
+                    public static boolean keepChannelClips;
                     public static boolean isEnabled(String key) {
+                        if (key.equals("hide_clips_keep_channel")) return keepChannelClips;
                         if (!key.equals("hide_clips") && !key.equals("hide_tipping") && !key.equals("hide_subscription_upsells"))
                             throw new AssertionError("Unexpected key " + key);
                         return enabled;

@@ -1056,8 +1056,8 @@ Open a chat in Instagram, then come back here to lock it.	Instagram에서 채팅
 This collection is locked	이 컬렉션은 잠겨 있습니다
 Unlock this collection	이 컬렉션 잠금 해제
 Locked collections	잠긴 컬렉션
-Lock single collections in Saved. A locked collection opens only once you unlock it the way Unlock with says. Saving a post to it never asks.	저장됨의 컬렉션을 하나씩 잠급니다. 잠긴 컬렉션은 ‘잠금 해제 방법’에서 정한 방식으로 잠금을 해제해야 열립니다. 게시물을 그 컬렉션에 저장할 때는 묻지 않습니다.
-Open a collection in Saved, then come back here to lock it.	저장됨에서 컬렉션을 연 다음 여기로 돌아와 잠그세요.
+Lock single collections in Saved. Long press one there to lock it or take its lock off. A locked collection opens only once you unlock it the way Unlock with says. Saving a post to it never asks.	저장됨의 컬렉션을 하나씩 잠급니다. 저장됨에서 컬렉션을 길게 누르면 잠그거나 잠금을 풀 수 있습니다. 잠긴 컬렉션은 ‘잠금 해제 방법’에서 정한 방식으로 잠금을 해제해야 열립니다. 게시물을 그 컬렉션에 저장할 때는 묻지 않습니다.
+Long press a collection in Saved to lock it, or open one and come back here.	저장됨에서 컬렉션을 길게 눌러 잠그거나, 컬렉션을 연 다음 여기로 돌아오세요.
 %1$s (opened last)	%1$s (마지막으로 연 채팅)
 %1$s is locked	%1$s 잠김
 %1$s is unlocked	%1$s 잠금 해제됨
@@ -1944,7 +1944,7 @@ That isn't a picture.	이미지가 아닙니다.
 That picture is over %1$d MB.	이미지가 %1$dMB를 넘습니다.
 Couldn't save the picture.	이미지를 저장하지 못했습니다.
 Open a chat, tap the clock button next to the call buttons at the top, or long press the chat's name, and pick Jump to the first message or Jump to a date. The chat loads its older messages on its own, with a count and a Cancel button.	채팅을 열고 위쪽 통화 버튼 옆의 시계 버튼을 누르거나 채팅 이름을 길게 누른 뒤 첫 메시지로 이동 또는 날짜로 이동을 고르세요. 채팅이 이전 메시지를 스스로 불러오며, 개수와 취소 버튼이 표시됩니다.
-Open a chat, tap the clock button next to the call buttons at the top, or long press the chat's name, and pick Export chat. The whole chat is saved as a text file in Downloads, HushGram folder, one line per message.	채팅을 열고 위쪽 통화 버튼 옆의 시계 버튼을 누르거나 채팅 이름을 길게 누른 뒤 채팅 내보내기를 고르세요. 채팅 전체가 다운로드의 HushGram 폴더에 텍스트 파일로 저장되며, 메시지 한 개가 한 줄입니다.
+Open a chat, tap the clock button next to the call buttons at the top, or long press the chat's name, and pick Export chat. The whole chat is saved as a text file in Downloads, HushGram folder, one line per message. Select messages in the same menu lets you tick messages to copy, share or save.	채팅을 열고 위쪽 통화 버튼 옆의 시계 버튼을 누르거나 채팅 이름을 길게 누른 뒤 채팅 내보내기를 고르세요. 채팅 전체가 다운로드의 HushGram 폴더에 텍스트 파일로 저장되며, 메시지 한 개가 한 줄입니다. 같은 메뉴의 메시지 선택에서 복사, 공유, 저장할 메시지를 고를 수 있어요.
 Instagram stopped loading older messages.	Instagram이 이전 메시지 불러오기를 멈췄습니다.
 Black settings page	검은색 설정 페이지
 Black rows and dialogs, with HushGram's name at the top.	검은색 행과 대화상자, 맨 위에 HushGram 이름.
@@ -2705,3 +2705,46 @@ Newest first	최신순
 Puts each page of reels in the order they were posted, newest on top.	릴스의 각 페이지를 게시된 순서대로, 최신 릴스가 위에 오도록 정렬합니다.
 # context: summary of the Also on Home switch under those rows; the posts it leaves out are Home's suggested posts (#780)
 Leaves out suggested posts on Home outside the same numbers too. Pull down on Home to refresh after changing it.	같은 숫자 범위를 벗어난 홈의 추천 게시물도 숨깁니다. 바꾼 뒤에는 홈을 아래로 당겨 새로고침하세요.
+# context: the chat menu's entry that opens a list of the chat's messages to tick, and that list's title
+Select messages	메시지 선택
+# context: Select messages' title switch; it ticks every message
+Select all	모두 선택
+# context: the same switch once every message is ticked; it unticks them all
+Clear	선택 해제
+# context: a button of Select messages; it copies the ticked messages to the clipboard
+Copy	복사
+# context: a button of Select messages; it opens Android's share sheet with the ticked messages
+Share	공유
+# context: a toast when Copy, Share or Save is tapped with no message ticked
+Pick a message first.	먼저 메시지를 골라 주세요.
+# context: a toast after Copy in Select messages when the count is exactly one; %1$d is the number
+Copied %1$d message.	메시지 %1$d개를 복사했어요.
+# context: the same toast for any other count; %1$d is how many
+Copied %1$d messages.	메시지 %1$d개를 복사했어요.
+# context: the one item in the menu a long press on a collection's tile in Saved opens; Remove lock is that item for a collection that's locked already (#678)
+Lock collection	컬렉션 잠금
+Remove lock	잠금 풀기
+# context: toast when locking a collection or taking its lock off couldn't be saved (#678)
+Couldn't change the lock. Try again.	잠금을 바꾸지 못했습니다. 다시 시도하세요.
+# context: the switch under HushGram settings > Notifications that gives a chat's message notification Android's bubble (#747); Android's own name for the feature
+Chat bubbles	채팅 대화창
+# context: that switch's summary (#747)
+A chat's message notification gets Android's bubble button, so the chat can float over other apps. Hidden and locked chats never get one. Needs Android 11 or newer.	채팅 메시지 알림에 Android 대화창 버튼이 생겨서 채팅을 다른 앱 위에 띄울 수 있습니다. 숨긴 채팅과 잠긴 채팅에는 생기지 않습니다. Android 11 이상이 필요합니다.
+# context: the Notifications category's summary when Chat bubbles is the only patch in it (#747)
+Let a chat's notifications open as a bubble over other apps.	채팅 알림을 다른 앱 위에 대화창으로 열 수 있게 합니다.
+# context: the switch under HushGram settings > Messages that puts a Record button on Instagram's call screen (#732)
+Record calls	통화 녹음
+# context: that switch's summary; Record is the button's own label, the next row (#732)
+Adds a Record button to the call screen. It saves the call's sound, both sides, as an audio file on your phone. Some places require everyone on the call to agree to being recorded.	통화 화면에 녹음 버튼을 추가합니다. 통화 소리를 양쪽 모두 오디오 파일로 휴대폰에 저장합니다. 일부 지역에서는 통화에 참여한 모든 사람이 녹음에 동의해야 합니다.
+# context: the button over Instagram's call screen that starts recording the call, a verb, kept short (#732)
+Record	녹음
+# context: what a screen reader says for that button before a recording starts (#732)
+Record this call	이 통화 녹음
+# context: what a screen reader says for that button while it records; its text is then a dot and the time (#732)
+Stop recording	녹음 중지
+# context: a toast when the Record button can't start a recording (#732)
+Couldn't start recording this call	통화 녹음을 시작하지 못했어요
+# context: a toast when a finished call recording can't be saved to the phone (#732)
+Couldn't save the call recording	통화 녹음을 저장하지 못했어요
+# context: a toast when a recording ends with no sound in it (#732)
+Nothing was recorded	녹음된 내용이 없어요

@@ -233,5 +233,18 @@
   "Text under the navigation bar icons.": "Le texte sous les icônes de la barre de navigation.",
   "The count on the navigation bar tabs.": "Le compteur sur les onglets de la barre de navigation.",
   "Post text copied": "Texte du post copié",
-  "A floating, translucent navigation bar.": "Une barre de navigation flottante et translucide."
+  "A floating, translucent navigation bar.": "Une barre de navigation flottante et translucide.",
+  "Reorder tabs": "Réorganiser les onglets",
+  "Move %1$s up": "Monter %1$s",
+  "Move %1$s down": "Descendre %1$s",
+  "Save settings backup": "Sauvegarder les paramètres",
+  "Restore settings backup": "Restaurer les paramètres",
+  "Disable screenshot share sheet": "Désactiver le partage après une capture d’écran",
+  "Top bar": "Barre supérieure",
+  "Video tab": "Onglet Vidéo",
+  "Show video time": "Afficher la durée de la vidéo",
+  "Advance after playback": "Passer à la vidéo suivante",
+  "Document saved": "Document enregistré",
+  "Battery optimization reminder": "Rappel d’optimisation de la batterie",
+  "Don't remind me": "Ne plus me le rappeler"
 }

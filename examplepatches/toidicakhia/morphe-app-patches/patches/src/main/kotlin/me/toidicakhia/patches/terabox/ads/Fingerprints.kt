@@ -16,7 +16,7 @@ private const val REWARD_SHOW_LISTENER =
  * callback the ad SDK delivers is forwarded through `___()` to the caller.
  */
 internal object RewardEarnedFingerprint : Fingerprint(
-    definingClass = "Luk0/l\$__;",
+    definingClass = "Lvk0/l\$__;",
     name = "___",
     accessFlags = listOf(AccessFlags.PUBLIC),
     returnType = "V",

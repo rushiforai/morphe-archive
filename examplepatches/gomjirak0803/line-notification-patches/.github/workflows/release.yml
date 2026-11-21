@@ -1,0 +1,49 @@
+name: Release
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: release
+  cancel-in-progress: false
+jobs:
+  release:
+    if: github.ref == 'refs/heads/main'
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Use runner Android SDK
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force .tools | Out-Null
+          New-Item -ItemType Junction -Path .tools/android-sdk -Target $env:ANDROID_HOME | Out-Null
+      - name: Build patch-only assets
+        shell: pwsh
+        run: |
+          python scripts/bootstrap.py
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+          python scripts/build.py
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+          python scripts/prepare_release.py
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+      - name: Publish experimental release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          $version = (Get-Content patches-bundle.json | ConvertFrom-Json).version
+          gh release create "v$version" artifacts/publish/* --prerelease --title "LINE notification patches $version" --notes-file docs/RELEASE_NOTES.md --target $env:GITHUB_SHA
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add patches-bundle.json patches-list.json
+          git diff --cached --quiet
+          if ($LASTEXITCODE -eq 1) {
+            git commit -m "chore: Update patch source metadata $version"
+            git push origin HEAD:main
+            if ($LASTEXITCODE) { exit $LASTEXITCODE }
+          }

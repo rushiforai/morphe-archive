@@ -1,7 +1,8 @@
 {
   "version": "v0.83.0",
   "appNames": {
-    "com.zhiliaoapp.musically": "TikTok"
+    "com.zhiliaoapp.musically": "TikTok",
+    "com.zhiliaoapp.musically.go": "TikTok Lite"
   },
   "patches": [
     {
@@ -41,6 +42,15 @@
         }
       ],
       "options": [
+        {
+          "key": "inAppSwitch",
+          "title": "Switch in Hushfeed settings",
+          "description": "Adds AMOLED dark mode to Hushfeed settings > App, so you can go back to TikTok's own dark grays without patching again. Turn this off if a 32-bit Morphe Manager runs out of memory: AMOLED then stays on, and the switch is left out.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
         {
           "key": "backgroundColor",
           "title": "Dark background color",
@@ -164,7 +174,7 @@
     },
     {
       "name": "Account cleanup",
-      "description": "Adds Remove all reposts, Remove all likes, Clear Favorites, Remove all comments and Remove selected comments to Hushfeed settings > Privacy. Each one takes items off your account one at a time through TikTok's own requests, with a pause between them, and stops on the first error. A switch there also lets one tap remove a video from your own Liked videos, Favorites or Reposts.",
+      "description": "Adds Remove all reposts, Remove all likes, Clear Favorites, Remove all comments, Remove selected comments and Unfollow accounts that don't follow you back to Hushfeed settings > Privacy. Each one takes items off your account one at a time through TikTok's own requests, with a pause between them, and stops on the first error. A switch there also lets one tap remove a video from your own Liked videos, Favorites or Reposts.",
       "category": "Privacy",
       "use": true,
       "dependencies": [
@@ -1464,6 +1474,9 @@
       "compatiblePackages": {
         "com.zhiliaoapp.musically": [
           "47.9.2"
+        ],
+        "com.zhiliaoapp.musically.go": [
+          "47.8.2"
         ]
       },
       "compatibility": [
@@ -1484,6 +1497,27 @@
                 "ARMEABI_V7A": 2024709020,
                 "X86": 2024709020,
                 "X86_64": 2024709020
+              }
+            }
+          ]
+        },
+        {
+          "name": "TikTok Lite",
+          "packageName": "com.zhiliaoapp.musically.go",
+          "description": null,
+          "appIconColor": 16657493,
+          "signatures": [
+            "d7811ec4166fea6cc720ba66699dc84b584ac9e6986613a76d4e43d8cbe32b27"
+          ],
+          "targets": [
+            {
+              "version": "47.8.2",
+              "experimental": false,
+              "versionCodes": {
+                "ARM64_V8A": 470802,
+                "ARMEABI_V7A": 470802,
+                "X86": 470802,
+                "X86_64": 470802
               }
             }
           ]
@@ -1513,6 +1547,9 @@
       "compatiblePackages": {
         "com.zhiliaoapp.musically": [
           "47.9.2"
+        ],
+        "com.zhiliaoapp.musically.go": [
+          "47.8.2"
         ]
       },
       "compatibility": [
@@ -1533,6 +1570,27 @@
                 "ARMEABI_V7A": 2024709020,
                 "X86": 2024709020,
                 "X86_64": 2024709020
+              }
+            }
+          ]
+        },
+        {
+          "name": "TikTok Lite",
+          "packageName": "com.zhiliaoapp.musically.go",
+          "description": null,
+          "appIconColor": 16657493,
+          "signatures": [
+            "d7811ec4166fea6cc720ba66699dc84b584ac9e6986613a76d4e43d8cbe32b27"
+          ],
+          "targets": [
+            {
+              "version": "47.8.2",
+              "experimental": false,
+              "versionCodes": {
+                "ARM64_V8A": 470802,
+                "ARMEABI_V7A": 470802,
+                "X86": 470802,
+                "X86_64": 470802
               }
             }
           ]
@@ -1678,6 +1736,9 @@
       "compatiblePackages": {
         "com.zhiliaoapp.musically": [
           "47.9.2"
+        ],
+        "com.zhiliaoapp.musically.go": [
+          "47.8.2"
         ]
       },
       "compatibility": [
@@ -1698,6 +1759,27 @@
                 "ARMEABI_V7A": 2024709020,
                 "X86": 2024709020,
                 "X86_64": 2024709020
+              }
+            }
+          ]
+        },
+        {
+          "name": "TikTok Lite",
+          "packageName": "com.zhiliaoapp.musically.go",
+          "description": null,
+          "appIconColor": 16657493,
+          "signatures": [
+            "d7811ec4166fea6cc720ba66699dc84b584ac9e6986613a76d4e43d8cbe32b27"
+          ],
+          "targets": [
+            {
+              "version": "47.8.2",
+              "experimental": false,
+              "versionCodes": {
+                "ARM64_V8A": 470802,
+                "ARMEABI_V7A": 470802,
+                "X86": 470802,
+                "X86_64": 470802
               }
             }
           ]
@@ -1726,6 +1808,9 @@
       "compatiblePackages": {
         "com.zhiliaoapp.musically": [
           "47.9.2"
+        ],
+        "com.zhiliaoapp.musically.go": [
+          "47.8.2"
         ]
       },
       "compatibility": [
@@ -1746,6 +1831,27 @@
                 "ARMEABI_V7A": 2024709020,
                 "X86": 2024709020,
                 "X86_64": 2024709020
+              }
+            }
+          ]
+        },
+        {
+          "name": "TikTok Lite",
+          "packageName": "com.zhiliaoapp.musically.go",
+          "description": null,
+          "appIconColor": 16657493,
+          "signatures": [
+            "d7811ec4166fea6cc720ba66699dc84b584ac9e6986613a76d4e43d8cbe32b27"
+          ],
+          "targets": [
+            {
+              "version": "47.8.2",
+              "experimental": false,
+              "versionCodes": {
+                "ARM64_V8A": 470802,
+                "ARMEABI_V7A": 470802,
+                "X86": 470802,
+                "X86_64": 470802
               }
             }
           ]
@@ -2716,6 +2822,9 @@
       "compatiblePackages": {
         "com.zhiliaoapp.musically": [
           "47.9.2"
+        ],
+        "com.zhiliaoapp.musically.go": [
+          "47.8.2"
         ]
       },
       "compatibility": [
@@ -2736,6 +2845,27 @@
                 "ARMEABI_V7A": 2024709020,
                 "X86": 2024709020,
                 "X86_64": 2024709020
+              }
+            }
+          ]
+        },
+        {
+          "name": "TikTok Lite",
+          "packageName": "com.zhiliaoapp.musically.go",
+          "description": null,
+          "appIconColor": 16657493,
+          "signatures": [
+            "d7811ec4166fea6cc720ba66699dc84b584ac9e6986613a76d4e43d8cbe32b27"
+          ],
+          "targets": [
+            {
+              "version": "47.8.2",
+              "experimental": false,
+              "versionCodes": {
+                "ARM64_V8A": 470802,
+                "ARMEABI_V7A": 470802,
+                "X86": 470802,
+                "X86_64": 470802
               }
             }
           ]
@@ -2838,6 +2968,9 @@
       "compatiblePackages": {
         "com.zhiliaoapp.musically": [
           "47.9.2"
+        ],
+        "com.zhiliaoapp.musically.go": [
+          "47.8.2"
         ]
       },
       "compatibility": [
@@ -2858,6 +2991,27 @@
                 "ARMEABI_V7A": 2024709020,
                 "X86": 2024709020,
                 "X86_64": 2024709020
+              }
+            }
+          ]
+        },
+        {
+          "name": "TikTok Lite",
+          "packageName": "com.zhiliaoapp.musically.go",
+          "description": null,
+          "appIconColor": 16657493,
+          "signatures": [
+            "d7811ec4166fea6cc720ba66699dc84b584ac9e6986613a76d4e43d8cbe32b27"
+          ],
+          "targets": [
+            {
+              "version": "47.8.2",
+              "experimental": false,
+              "versionCodes": {
+                "ARM64_V8A": 470802,
+                "ARMEABI_V7A": 470802,
+                "X86": 470802,
+                "X86_64": 470802
               }
             }
           ]
@@ -3500,6 +3654,9 @@
       "compatiblePackages": {
         "com.zhiliaoapp.musically": [
           "47.9.2"
+        ],
+        "com.zhiliaoapp.musically.go": [
+          "47.8.2"
         ]
       },
       "compatibility": [
@@ -3520,6 +3677,27 @@
                 "ARMEABI_V7A": 2024709020,
                 "X86": 2024709020,
                 "X86_64": 2024709020
+              }
+            }
+          ]
+        },
+        {
+          "name": "TikTok Lite",
+          "packageName": "com.zhiliaoapp.musically.go",
+          "description": null,
+          "appIconColor": 16657493,
+          "signatures": [
+            "d7811ec4166fea6cc720ba66699dc84b584ac9e6986613a76d4e43d8cbe32b27"
+          ],
+          "targets": [
+            {
+              "version": "47.8.2",
+              "experimental": false,
+              "versionCodes": {
+                "ARM64_V8A": 470802,
+                "ARMEABI_V7A": 470802,
+                "X86": 470802,
+                "X86_64": 470802
               }
             }
           ]
@@ -4771,7 +4949,7 @@
     },
     {
       "name": "Ghost mode",
-      "description": "Stops TikTok telling people you viewed their story or profile, or that you're typing. What TikTok already recorded stays. Each of the three has its own switch under it, and separate ones hide your online status and let you watch LIVEs unseen. Starts off. Turn it on in Hushfeed settings > Privacy.",
+      "description": "Stops TikTok telling people you viewed their story or profile, or that you're typing. What TikTok already recorded stays. Each of the three has its own switch under it, and separate ones hide your online status, let you watch LIVEs unseen and keep your likes on the phone. Starts off. Turn it on in Hushfeed settings > Privacy.",
       "category": "Privacy",
       "use": true,
       "dependencies": [
@@ -6883,6 +7061,9 @@
       "compatiblePackages": {
         "com.zhiliaoapp.musically": [
           "47.9.2"
+        ],
+        "com.zhiliaoapp.musically.go": [
+          "47.8.2"
         ]
       },
       "compatibility": [
@@ -6903,6 +7084,27 @@
                 "ARMEABI_V7A": 2024709020,
                 "X86": 2024709020,
                 "X86_64": 2024709020
+              }
+            }
+          ]
+        },
+        {
+          "name": "TikTok Lite",
+          "packageName": "com.zhiliaoapp.musically.go",
+          "description": null,
+          "appIconColor": 16657493,
+          "signatures": [
+            "d7811ec4166fea6cc720ba66699dc84b584ac9e6986613a76d4e43d8cbe32b27"
+          ],
+          "targets": [
+            {
+              "version": "47.8.2",
+              "experimental": false,
+              "versionCodes": {
+                "ARM64_V8A": 470802,
+                "ARMEABI_V7A": 470802,
+                "X86": 470802,
+                "X86_64": 470802
               }
             }
           ]
@@ -8302,6 +8504,9 @@
       "compatiblePackages": {
         "com.zhiliaoapp.musically": [
           "47.9.2"
+        ],
+        "com.zhiliaoapp.musically.go": [
+          "47.8.2"
         ]
       },
       "compatibility": [
@@ -8322,6 +8527,27 @@
                 "ARMEABI_V7A": 2024709020,
                 "X86": 2024709020,
                 "X86_64": 2024709020
+              }
+            }
+          ]
+        },
+        {
+          "name": "TikTok Lite",
+          "packageName": "com.zhiliaoapp.musically.go",
+          "description": null,
+          "appIconColor": 16657493,
+          "signatures": [
+            "d7811ec4166fea6cc720ba66699dc84b584ac9e6986613a76d4e43d8cbe32b27"
+          ],
+          "targets": [
+            {
+              "version": "47.8.2",
+              "experimental": false,
+              "versionCodes": {
+                "ARM64_V8A": 470802,
+                "ARMEABI_V7A": 470802,
+                "X86": 470802,
+                "X86_64": 470802
               }
             }
           ]
@@ -9995,6 +10221,9 @@
       "compatiblePackages": {
         "com.zhiliaoapp.musically": [
           "47.9.2"
+        ],
+        "com.zhiliaoapp.musically.go": [
+          "47.8.2"
         ]
       },
       "compatibility": [
@@ -10015,6 +10244,27 @@
                 "ARMEABI_V7A": 2024709020,
                 "X86": 2024709020,
                 "X86_64": 2024709020
+              }
+            }
+          ]
+        },
+        {
+          "name": "TikTok Lite",
+          "packageName": "com.zhiliaoapp.musically.go",
+          "description": null,
+          "appIconColor": 16657493,
+          "signatures": [
+            "d7811ec4166fea6cc720ba66699dc84b584ac9e6986613a76d4e43d8cbe32b27"
+          ],
+          "targets": [
+            {
+              "version": "47.8.2",
+              "experimental": false,
+              "versionCodes": {
+                "ARM64_V8A": 470802,
+                "ARMEABI_V7A": 470802,
+                "X86": 470802,
+                "X86_64": 470802
               }
             }
           ]
@@ -10638,7 +10888,7 @@
     },
     {
       "name": "Show follow status",
-      "description": "Shows on a profile whether that person follows you back, and marks accounts in your follow lists that don't. On by default. Turn it off in Hushfeed settings > App. A separate switch adds the month an account was made. Optional local counts and appearance controls apply to your own profile.",
+      "description": "Shows on a profile whether that person follows you back, and marks accounts in your follow lists that don't. On by default. Turn it off in Hushfeed settings > App. Separate switches add the month an account was made and what changed on a profile since your last visit. Optional local counts and appearance controls apply to your own profile.",
       "category": "Interaction",
       "use": true,
       "dependencies": [
@@ -11860,6 +12110,9 @@
       "compatiblePackages": {
         "com.zhiliaoapp.musically": [
           "47.9.2"
+        ],
+        "com.zhiliaoapp.musically.go": [
+          "47.8.2"
         ]
       },
       "compatibility": [
@@ -11880,6 +12133,27 @@
                 "ARMEABI_V7A": 2024709020,
                 "X86": 2024709020,
                 "X86_64": 2024709020
+              }
+            }
+          ]
+        },
+        {
+          "name": "TikTok Lite",
+          "packageName": "com.zhiliaoapp.musically.go",
+          "description": null,
+          "appIconColor": 16657493,
+          "signatures": [
+            "d7811ec4166fea6cc720ba66699dc84b584ac9e6986613a76d4e43d8cbe32b27"
+          ],
+          "targets": [
+            {
+              "version": "47.8.2",
+              "experimental": false,
+              "versionCodes": {
+                "ARM64_V8A": 470802,
+                "ARMEABI_V7A": 470802,
+                "X86": 470802,
+                "X86_64": 470802
               }
             }
           ]

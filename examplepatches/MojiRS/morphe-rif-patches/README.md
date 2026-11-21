@@ -23,6 +23,7 @@ This is a port of my rif patches for ReVanced, which are available [here](https:
 | **Fix history import**            | Makes "Import settings" restore the history from backups made with "Export settings and history".                                              |
 | **Post to profile**               | Adds ways to post to your profile: a My Profile button on the submit page and Submit in your profile's menu.                                   |
 | **Explain Reddit blocks**         | Shows "Reddit is temporarily blocking requests" instead of "Error: forbidden" when Reddit blocks a feed.                                       |
+| **Fix random subreddit**          | Makes Random open a random subreddit again, picked by the redditrand.com API.                                                                  |
 
 For details on how each patch works and its settings, see [PATCHES.md](https://github.com/MojiRS/morphe-rif-patches/blob/main/PATCHES.md).
 

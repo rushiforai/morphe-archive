@@ -168,6 +168,7 @@ YouTube Music older than 9.00"</string>
     <string name="morphe_music_downloads_complete">Device file saved</string>
     <string name="morphe_music_downloads_failed_reason">Download failed: %s</string>
     <string name="morphe_music_downloads_notification_channel">Audio downloads</string>
+    <string name="morphe_music_downloads_open_file">Open file</string>
     <string name="morphe_music_downloads_progress">Downloading %s%%</string>
     <string name="morphe_music_downloads_sort">Sort</string>
     <string name="morphe_music_downloads_started">Download started</string>
@@ -224,6 +225,8 @@ YouTube Music older than 9.00"</string>
     <string name="morphe_music_open_downloads_title">Open stream downloads</string>
     <string name="morphe_music_open_downloads_summary">Opens Library, Downloads: the playlists, albums and No Playlist songs saved with Stream download, with or without a connection</string>
     <string name="morphe_music_open_downloads_ready">Offline ready: %1$s of %2$s songs. Songs that are not ready fill in while you are online</string>
+    <string name="morphe_music_export_device_files_title">Export device files</string>
+    <string name="morphe_music_export_device_files_summary">Copy a saved device file or playlist to a folder you choose</string>
     <string name="morphe_music_stream_downloads_title">Stream downloads</string>
     <string name="morphe_music_stream_downloads_summary">%1$s songs saved for local playback, %2$s MB. Tap to delete them</string>
     <string name="morphe_music_stream_downloads_summary_videos">%1$s songs and %3$s videos saved for local playback, %2$s MB. Tap to delete them</string>
@@ -252,7 +255,7 @@ YouTube Music older than 9.00"</string>
     <string name="morphe_music_offline_library_not_ready">Could not start playback yet. Play any song first</string>
     <string name="morphe_music_player_unavailable_offline">Unavailable offline</string>
     <string name="morphe_music_not_in_playlist">Not in a playlist</string>
-    <string name="morphe_music_playlist_download_complete">Device files saved: %s tracks</string>
+    <string name="morphe_music_playlist_download_complete">Playlist ready in Device files: %s tracks</string>
     <string name="morphe_music_playlist_download_failed">Playlist download failed: %s</string>
     <string name="morphe_music_playlist_download_progress">Downloading track %1$s of %2$s</string>
     <string name="morphe_music_playlist_download_connect">Connect to the internet to continue this download</string>
@@ -1032,6 +1035,7 @@ Please download %2$s from the website"</string>
     <string name="revanced_hide_flyout_menu_delete_playlist_title">Hide Delete playlist menu</string>
     <string name="revanced_hide_flyout_menu_dismiss_queue_title">Hide Dismiss queue menu</string>
     <string name="revanced_hide_flyout_menu_download_title">Hide Download menu</string>
+    <string name="revanced_hide_flyout_menu_dont_recommend_artist_title">Hide “Don’t recommend artist”</string>
     <string name="revanced_hide_flyout_menu_edit_playlist_title">Hide Edit playlist menu</string>
     <string name="revanced_hide_flyout_menu_go_to_album_title">Hide Go to album menu</string>
     <string name="revanced_hide_flyout_menu_go_to_artist_title">Hide Go to artist menu</string>
@@ -1083,6 +1087,8 @@ Please download %2$s from the website"</string>
     <string name="revanced_hide_navigation_library_button_title">Hide Library button</string>
     <string name="revanced_hide_navigation_samples_button_summary">Hides the Samples button</string>
     <string name="revanced_hide_navigation_samples_button_title">Hide Samples button</string>
+    <string name="revanced_hide_navigation_search_tab_summary">Hides the native Search tab when it is available</string>
+    <string name="revanced_hide_navigation_search_tab_title">Hide Search tab</string>
     <string name="revanced_hide_navigation_upgrade_button_summary">Hides the Upgrade button</string>
     <string name="revanced_hide_navigation_upgrade_button_title">Hide Upgrade button</string>
     <string name="revanced_hide_notification_button_summary">Hides the Notifications button in the toolbar</string>
@@ -1114,6 +1120,8 @@ Please download %2$s from the website"</string>
     <string name="revanced_hide_song_video_toggle_title">Hide Song / Video toggle</string>
     <string name="revanced_hide_sound_search_button_summary">Hides the sound search button in the search bar</string>
     <string name="revanced_hide_sound_search_button_title">Hide sound search button</string>
+    <string name="revanced_hide_speed_dial_shelf_summary">Hides Speed dial on Home. Pin and Unpin stay in menus.</string>
+    <string name="revanced_hide_speed_dial_shelf_title">Hide Speed dial shelf</string>
     <string name="revanced_hide_tap_to_update_button_summary">Hides the Tap to update button</string>
     <string name="revanced_hide_tap_to_update_button_title">Hide Tap to update button</string>
     <string name="revanced_hide_terms_container_summary">Hides the Terms of Service container</string>

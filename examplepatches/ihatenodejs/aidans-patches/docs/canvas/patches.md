@@ -69,6 +69,23 @@ Meta-data is matched only among direct children: a document-wide `meta-data` sea
 3. Verify build with `./gradlew :patches:buildAndroid clean --no-daemon`.
 4. Verify metadata generation with `./gradlew generatePatchesList`.
 
+## Patch: Fix PDF Viewer Crash
+
+- **Name:** Fix PDF Viewer Crash
+- **Target Package:** `com.instructure.candroid`
+- **Supported Versions:** `8.12.0`
+- **Default State:** `true` (Enabled by default)
+- **Type:** Raw Resource Patch (`rawResourcePatch`)
+- **Options:** `removeEvaluationWatermark` (default `true`)
+
+### Behavior
+
+Canvas 8.12.0 aborts whenever a document is opened. Nutrient's bundled license grants **Form Viewing and Filling** but not **Forms Editing**, yet the native SDK calls its editing-only assertion `PDFC::Forms::checkLicenseForFormsAndThrowIfMissing()` from view-path methods. `FormProviderImpl.<init>` reaches it through `registerFormObserver`, and `FormProviderImpl.prepareFieldsCache` reaches it through `getFormFields`; both paths assert `Your license does not allow Forms editing.` and kill the process.
+
+The patch overwrites the entry point of that assertion with an immediate return in each shipped ABI (`arm64-v8a`, `armeabi-v7a`, `x86`, `x86_64`), so the licensed viewing/filling paths proceed. Java-side entitlement gates are unchanged. An unexpected library layout fails the patch instead of leaving the crash in place. The original APK and a cloned package (whose Nutrient license is rejected as a different bundle identifier) both hit the same assertion.
+
+`removeEvaluationWatermark` additionally overwrites the native `For Evaluation Purposes Only` string with spaces in each ABI. A cloned package cannot validate the original bundle identifier's Nutrient license, so the renderer otherwise stamps that watermark across every page. The option only blanks the watermark text; license evaluation and every other SDK behavior are unchanged.
+
 ## Patch: Show Remote Config Editor
 
 - **Name:** Show Remote Config Editor

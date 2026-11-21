@@ -16,6 +16,7 @@ public final class HomeThreadOrder {
     static final String KEYWORD_MENU="homeKeywordDisplayNameMenu";
     static boolean enabled(){Context c=Haiagaru.applicationContextForExtension();return c==null||SettingsProfiles.prefs(c).getBoolean(ENABLED,true);}
     private static final int MENU=0x48690133;
+    private static final int KEYWORD_DISPLAY_MENU=0x48690139;
     private static final Map<Integer,List<?>> latest=new HashMap<>();
     private static final Map<Object,Integer> modes=new WeakHashMap<>();
     private static final ThreadLocal<Integer> sortingMode=new ThreadLocal<>();
@@ -97,13 +98,13 @@ public final class HomeThreadOrder {
     public static void menu(Object fragment,Menu menu){
         ResponseNotes.homeMenu(fragment,menu);
         GlobalSearchHome.menu(fragment,menu);
-        if(menu!=null&&menu.findItem(0x48690139)==null){
-            menu.add(Menu.NONE,0x48690139,Menu.NONE,"キーワードの表示名を設定")
+        if(menu!=null&&menu.findItem(KEYWORD_DISPLAY_MENU)==null){
+            menu.add(Menu.NONE,KEYWORD_DISPLAY_MENU,Menu.NONE,"キーワードの表示名を設定")
                 .setOnMenuItemClickListener(item->{DisplayNames.showKeywords(Haiagaru.toolbarActivity(fragment));return true;});
         }
-        if(menu!=null&&menu.findItem(0x48690139)!=null){
+        if(menu!=null&&menu.findItem(KEYWORD_DISPLAY_MENU)!=null){
             Context context=Haiagaru.applicationContextForExtension();
-            menu.findItem(0x48690139).setVisible(context!=null&&SettingsProfiles.prefs(context).getBoolean(KEYWORD_MENU,false));
+            menu.findItem(KEYWORD_DISPLAY_MENU).setVisible(context!=null&&SettingsProfiles.prefs(context).getBoolean(KEYWORD_MENU,false));
         }
         if(menu==null)return;MenuItem item=menu.findItem(MENU);if(item==null){item=menu.add(Menu.NONE,MENU,Menu.NONE,"並び替える");item.setShowAsAction(MenuItem.SHOW_AS_ACTION_NEVER);item.setOnMenuItemClickListener(v->{show(Haiagaru.toolbarActivity(fragment),mode(fragment));return true;});}item.setVisible(enabled()&&target(mode(fragment)));
     }
@@ -129,6 +130,12 @@ public final class HomeThreadOrder {
         list.setOnItemLongClickListener((parent,view,position,id)->{String key=order.get(position);new HaiagaruDialog.Builder(activity).setTitle("位置を変更").setItems(new String[]{"一つ上へ","一つ下へ",pinned.contains(key)?"ピン留めを解除":"ピン留め"},(d,action)->{int at=order.indexOf(key);if(action==0&&at>0)Collections.swap(order,at,at-1);if(action==1&&at<order.size()-1)Collections.swap(order,at,at+1);if(action==2){if(!pinned.remove(key))pinned.add(key);}order.sort(Comparator.comparingInt(k->pinned.contains(k)?0:1));refresh.run();dialog.refresh();}).setNegativeButton("閉じる",null).show();return true;});refresh.run();dialog.show();
     }
     public static boolean click(Object fragment,int action){
+        if(action==KEYWORD_DISPLAY_MENU){
+            Activity activity=Haiagaru.toolbarActivity(fragment);
+            if(activity==null||activity.isFinishing())return false;
+            DisplayNames.showKeywords(activity);
+            return true;
+        }
         if(action!=MENU)return false;
         Activity activity=Haiagaru.toolbarActivity(fragment);
         if(activity!=null)show(activity,mode(fragment));

@@ -26,6 +26,15 @@ public final class InstantsStrings {
     private static final int VIDEO_FAILED = 8;
     private static final int VIDEO_SAVED_TO = 9; // %s = folder
     private static final int VIDEO_SAVE_FAILED = 10;
+    private static final int GO_BACK = 11;
+    private static final int POST_UNAVAILABLE = 12;
+    private static final int CROP_TITLE = 13;
+    private static final int CROP_HINT = 14;
+    private static final int CANCEL = 15;
+    private static final int USE_IMAGE = 16;
+    private static final int IMAGE_FAILED = 17;
+    private static final int SELECTION_CLEARED = 18;
+    private static final int OPEN_GALLERY = 19;
 
     private static final String[] EN = {
             "Save to gallery",
@@ -39,6 +48,15 @@ public final class InstantsStrings {
             "Couldn't load the video.",
             "Video saved to %s",
             "Couldn't save the video.",
+            "Go back",
+            "Couldn't load the post.",
+            "Adjust the square crop. Drag to move; use the corner to resize.",
+            "Drag inside the square to move it, outside to move the photo, and pinch to zoom.",
+            "Cancel",
+            "Use photo",
+            "Couldn't load or crop the image.",
+            "Pending selection cleared.",
+            "Open gallery",
     };
 
     private static final Map<String, String[]> TRANSLATIONS = new HashMap<>();
@@ -56,6 +74,15 @@ public final class InstantsStrings {
                 "Não foi possível carregar o vídeo.",
                 "Vídeo salvo em %s",
                 "Não foi possível salvar o vídeo.",
+                "Voltar",
+                "Não foi possível carregar o post.",
+                "Ajuste o recorte quadrado. Arraste para mover e use o canto para redimensionar.",
+                "Arraste dentro do quadrado para movê-lo, fora para mover a foto, e use dois dedos para ampliar.",
+                "Cancelar",
+                "Usar foto",
+                "Não foi possível carregar ou recortar a imagem.",
+                "Seleção pendente removida.",
+                "Abrir galeria",
         });
         TRANSLATIONS.put("es", new String[]{
                 "Guardar en la galería",
@@ -69,6 +96,15 @@ public final class InstantsStrings {
                 "No se pudo cargar el video.",
                 "Video guardado en %s",
                 "No se pudo guardar el video.",
+                "Volver",
+                "No se pudo cargar la publicación.",
+                "Ajusta el recorte cuadrado. Arrastra para moverlo y usa la esquina para cambiar el tamaño.",
+                "Arrastra dentro del cuadrado para moverlo, fuera para mover la foto y pellizca para ampliar.",
+                "Cancelar",
+                "Usar foto",
+                "No se pudo cargar o recortar la imagen.",
+                "Selección pendiente borrada.",
+                "Abrir galería",
         });
         TRANSLATIONS.put("fr", new String[]{
                 "Enregistrer dans la galerie",
@@ -82,6 +118,15 @@ public final class InstantsStrings {
                 "Impossible de charger la vidéo.",
                 "Vidéo enregistrée dans %s",
                 "Impossible d'enregistrer la vidéo.",
+                "Retour",
+                "Impossible de charger la publication.",
+                "Ajustez le carré. Faites-le glisser pour le déplacer et utilisez le coin pour le redimensionner.",
+                "Faites glisser dans le carré pour le déplacer, à l’extérieur pour déplacer la photo, et pincez pour zoomer.",
+                "Annuler",
+                "Utiliser la photo",
+                "Impossible de charger ou recadrer l’image.",
+                "Sélection en attente effacée.",
+                "Ouvrir la galerie",
         });
         TRANSLATIONS.put("de", new String[]{
                 "In Galerie speichern",
@@ -95,6 +140,15 @@ public final class InstantsStrings {
                 "Das Video konnte nicht geladen werden.",
                 "Video gespeichert in %s",
                 "Das Video konnte nicht gespeichert werden.",
+                "Zurück",
+                "Der Beitrag konnte nicht geladen werden.",
+                "Quadratischen Zuschnitt anpassen. Ziehen zum Verschieben, Ecke zum Ändern der Größe.",
+                "Ziehe im Quadrat, um es zu verschieben, außerhalb, um das Foto zu verschieben, und zoome mit zwei Fingern.",
+                "Abbrechen",
+                "Foto verwenden",
+                "Bild konnte nicht geladen oder zugeschnitten werden.",
+                "Auswahl gelöscht.",
+                "Galerie öffnen",
         });
         TRANSLATIONS.put("it", new String[]{
                 "Salva nella galleria",
@@ -108,6 +162,15 @@ public final class InstantsStrings {
                 "Impossibile caricare il video.",
                 "Video salvato in %s",
                 "Impossibile salvare il video.",
+                "Indietro",
+                "Impossibile caricare il post.",
+                "Regola il ritaglio quadrato. Trascina per spostarlo e usa l'angolo per ridimensionarlo.",
+                "Trascina dentro il quadrato per spostarlo, fuori per spostare la foto e usa due dita per ingrandire.",
+                "Annulla",
+                "Usa foto",
+                "Impossibile caricare o ritagliare l'immagine.",
+                "Selezione in sospeso rimossa.",
+                "Apri galleria",
         });
         TRANSLATIONS.put("ru", new String[]{
                 "Сохранить в галерею",
@@ -121,6 +184,15 @@ public final class InstantsStrings {
                 "Не удалось загрузить видео.",
                 "Видео сохранено в %s",
                 "Не удалось сохранить видео.",
+                "Назад",
+                "Не удалось загрузить публикацию.",
+                "Настройте квадратную обрезку. Перетащите, чтобы переместить, и потяните за угол, чтобы изменить размер.",
+                "Перетаскивайте внутри квадрата, чтобы переместить его, снаружи — чтобы переместить фото, и сжимайте двумя пальцами для масштаба.",
+                "Отмена",
+                "Использовать фото",
+                "Не удалось загрузить или обрезать изображение.",
+                "Отложенный выбор удалён.",
+                "Открыть галерею",
         });
         TRANSLATIONS.put("tr", new String[]{
                 "Galeriye kaydet",
@@ -134,8 +206,17 @@ public final class InstantsStrings {
                 "Video yüklenemedi.",
                 "Video %s klasörüne kaydedildi",
                 "Video kaydedilemedi.",
+                "Geri git",
+                "Gönderi yüklenemedi.",
+                "Kare kırpmayı ayarlayın. Taşımak için sürükleyin, boyutlandırmak için köşeyi kullanın.",
+                "Kareyi taşımak için içinden, fotoğrafı taşımak için dışından sürükleyin ve iki parmakla yakınlaştırın.",
+                "İptal",
+                "Fotoğrafı kullan",
+                "Görsel yüklenemedi veya kırpılamadı.",
+                "Bekleyen seçim temizlendi.",
+                "Galeriyi aç",
         });
-        TRANSLATIONS.put("in", new String[]{ // Android reports Indonesian as "in"
+        TRANSLATIONS.put("in", new String[]{
                 "Simpan ke galeri",
                 "Foto disimpan di %s",
                 "Foto tidak dapat disimpan.",
@@ -147,6 +228,15 @@ public final class InstantsStrings {
                 "Video tidak dapat dimuat.",
                 "Video disimpan di %s",
                 "Video tidak dapat disimpan.",
+                "Kembali",
+                "Postingan tidak dapat dimuat.",
+                "Sesuaikan potongan persegi. Seret untuk memindahkan, gunakan sudut untuk mengubah ukuran.",
+                "Seret di dalam persegi untuk memindahkannya, di luar untuk memindahkan foto, dan cubit dua jari untuk memperbesar.",
+                "Batal",
+                "Gunakan foto",
+                "Tidak dapat memuat atau memotong gambar.",
+                "Pilihan tertunda dihapus.",
+                "Buka galeri",
         });
         TRANSLATIONS.put("nl", new String[]{
                 "Opslaan in galerij",
@@ -160,6 +250,15 @@ public final class InstantsStrings {
                 "De video kon niet worden geladen.",
                 "Video opgeslagen in %s",
                 "De video kon niet worden opgeslagen.",
+                "Terug",
+                "De post kon niet worden geladen.",
+                "Pas het vierkante uitsnijden aan. Sleep om te verplaatsen en gebruik de hoek om de grootte te wijzigen.",
+                "Sleep in het vierkant om het te verplaatsen, erbuiten om de foto te verplaatsen, en knijp om te zoomen.",
+                "Annuleren",
+                "Foto gebruiken",
+                "De afbeelding kon niet worden geladen of bijgesneden.",
+                "Openstaande selectie gewist.",
+                "Galerij openen",
         });
         TRANSLATIONS.put("pl", new String[]{
                 "Zapisz w galerii",
@@ -173,6 +272,15 @@ public final class InstantsStrings {
                 "Nie udało się wczytać filmu.",
                 "Film zapisano w %s",
                 "Nie udało się zapisać filmu.",
+                "Wstecz",
+                "Nie udało się wczytać posta.",
+                "Dostosuj kwadratowy kadr. Przeciągnij, aby go przesunąć, i użyj rogu, aby zmienić rozmiar.",
+                "Przeciągnij wewnątrz kwadratu, aby go przesunąć, na zewnątrz, aby przesunąć zdjęcie, i uszczypnij, aby powiększyć.",
+                "Anuluj",
+                "Użyj zdjęcia",
+                "Nie udało się wczytać lub przyciąć obrazu.",
+                "Usunięto oczekujący wybór.",
+                "Otwórz galerię",
         });
         TRANSLATIONS.put("ja", new String[]{
                 "ギャラリーに保存",
@@ -186,6 +294,15 @@ public final class InstantsStrings {
                 "動画を読み込めませんでした。",
                 "動画を %s に保存しました",
                 "動画を保存できませんでした。",
+                "戻る",
+                "投稿を読み込めませんでした。",
+                "正方形の切り抜きを調整します。ドラッグで移動、角でサイズを変更します。",
+                "四角の内側をドラッグで移動、外側をドラッグで写真を移動、2本指でピンチして拡大します。",
+                "キャンセル",
+                "写真を使用",
+                "画像を読み込むか切り抜けませんでした。",
+                "保留中の選択を解除しました。",
+                "ギャラリーを開く",
         });
         TRANSLATIONS.put("ko", new String[]{
                 "갤러리에 저장",
@@ -199,6 +316,15 @@ public final class InstantsStrings {
                 "동영상을 불러오지 못했습니다.",
                 "동영상을 %s에 저장했습니다",
                 "동영상을 저장하지 못했습니다.",
+                "뒤로",
+                "게시물을 불러오지 못했습니다.",
+                "정사각형 자르기를 조정하세요. 드래그하여 이동하고 모서리로 크기를 조절하세요.",
+                "사각형 안쪽을 드래그하면 이동하고, 바깥쪽을 드래그하면 사진이 이동하며, 두 손가락으로 확대할 수 있습니다.",
+                "취소",
+                "사진 사용",
+                "이미지를 불러오거나 자르지 못했습니다.",
+                "보류 중인 선택을 지웠습니다.",
+                "갤러리 열기",
         });
         TRANSLATIONS.put("zh", new String[]{
                 "保存到相册",
@@ -212,6 +338,15 @@ public final class InstantsStrings {
                 "无法加载视频。",
                 "视频已保存到 %s",
                 "无法保存视频。",
+                "返回",
+                "无法加载帖子。",
+                "调整方形裁剪。拖动可移动，拖动角可调整大小。",
+                "在方框内拖动可移动方框，在方框外拖动可移动照片，双指捏合可缩放。",
+                "取消",
+                "使用照片",
+                "无法加载或裁剪图片。",
+                "已清除待处理的选择。",
+                "打开相册",
         });
         TRANSLATIONS.put("ar", new String[]{
                 "حفظ في المعرض",
@@ -225,6 +360,15 @@ public final class InstantsStrings {
                 "تعذّر تحميل الفيديو.",
                 "تم حفظ الفيديو في %s",
                 "تعذّر حفظ الفيديو.",
+                "رجوع",
+                "تعذّر تحميل المنشور.",
+                "اضبط الاقتصاص المربع. اسحب للتحريك واستخدم الزاوية لتغيير الحجم.",
+                "اسحب داخل المربع لتحريكه، وخارجه لتحريك الصورة، واقرص بإصبعين للتكبير.",
+                "إلغاء",
+                "استخدام الصورة",
+                "تعذّر تحميل الصورة أو اقتصاصها.",
+                "تم مسح التحديد المعلّق.",
+                "فتح المعرض",
         });
         TRANSLATIONS.put("hi", new String[]{
                 "गैलरी में सहेजें",
@@ -238,6 +382,15 @@ public final class InstantsStrings {
                 "वीडियो लोड नहीं हो सका।",
                 "वीडियो %s में सहेजा गया",
                 "वीडियो सहेजा नहीं जा सका।",
+                "वापस जाएं",
+                "पोस्ट लोड नहीं हो सका।",
+                "वर्गाकार क्रॉप समायोजित करें। हिलाने के लिए खींचें और आकार बदलने के लिए कोने का उपयोग करें।",
+                "वर्ग के अंदर खींचकर इसे घुमाएँ, बाहर खींचकर फ़ोटो घुमाएँ, और दो उँगियों से ज़ूम करें।",
+                "रद्द करें",
+                "फ़ोटो उपयोग करें",
+                "छवि लोड या क्रॉप नहीं हो सकी।",
+                "लंबित चयन हटा दिया गया।",
+                "गैलरी खोलें",
         });
         TRANSLATIONS.put("vi", new String[]{
                 "Lưu vào thư viện",
@@ -251,6 +404,15 @@ public final class InstantsStrings {
                 "Không thể tải video.",
                 "Đã lưu video vào %s",
                 "Không thể lưu video.",
+                "Quay lại",
+                "Không thể tải bài đăng.",
+                "Điều chỉnh khung vuông. Kéo để di chuyển và dùng góc để thay đổi kích thước.",
+                "Kéo bên trong khung để di chuyển khung, kéo bên ngoài để di chuyển ảnh và chụm hai ngón để phóng to.",
+                "Hủy",
+                "Dùng ảnh",
+                "Không thể tải hoặc cắt ảnh.",
+                "Đã xóa lựa chọn đang chờ.",
+                "Mở thư viện",
         });
     }
 
@@ -301,6 +463,22 @@ public final class InstantsStrings {
     static String videoSaveFailed(Context context) {
         return get(context, VIDEO_SAVE_FAILED);
     }
+
+    static String goBack(Context context) {
+        return get(context, GO_BACK);
+    }
+
+    static String postUnavailable(Context context) {
+        return get(context, POST_UNAVAILABLE);
+    }
+
+    static String cropTitle(Context c) { return get(c, CROP_TITLE); }
+    static String cropHint(Context c) { return get(c, CROP_HINT); }
+    static String cancel(Context c) { return get(c, CANCEL); }
+    static String useImage(Context c) { return get(c, USE_IMAGE); }
+    static String imageFailed(Context c) { return get(c, IMAGE_FAILED); }
+    static String selectionCleared(Context c) { return get(c, SELECTION_CLEARED); }
+    static String openGallery(Context c) { return get(c, OPEN_GALLERY); }
 
     private static String get(Context context, int index) {
         String[] texts = TRANSLATIONS.get(languageOf(context));

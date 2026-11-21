@@ -22,7 +22,7 @@ public final class WisprFlowSettingsFeature implements Feature {
                 List.of(new Section(getEntryTitle(), List.of(
                         new ActionRow(text(R.string.gboard_wispr_flow_keyboard_mode),
                                 text(R.string.gboard_wispr_flow_keyboard_mode_summary), true,
-                                () -> WisprFlowRuntime.send(host.getContext(), "keyboard")),
+                                () -> WisprFlowRuntime.send(host.getContext(), "inline")),
                         new ActionRow(text(R.string.gboard_wispr_flow_floating_mode),
                                 text(R.string.gboard_wispr_flow_floating_mode_summary), true,
                                 () -> WisprFlowRuntime.send(host.getContext(), "floating"))))));

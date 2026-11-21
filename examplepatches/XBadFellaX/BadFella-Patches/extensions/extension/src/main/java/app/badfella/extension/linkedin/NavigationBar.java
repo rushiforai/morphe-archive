@@ -19,7 +19,13 @@ import java.util.WeakHashMap;
  */
 public final class NavigationBar {
     /** HomeTabInfo constants that can be hidden from inside the app. Home always stays: it is the screen the app opens on. */
-    private static final String[] HIDEABLE_TABS = {"MORE", "JOBS", "RELATIONSHIPS", "NOTIFICATIONS"};
+    private static final String[] HIDEABLE_TABS = {
+            "MORE", "JOBS", "RELATIONSHIPS", "NOTIFICATIONS", "POST", "VIDEO", "NEWS",
+    };
+    static final String[][] SORTABLE_TABS = {
+            {"RELATIONSHIPS", "My Network"}, {"POST", "Post"}, {"NOTIFICATIONS", "Notifications"},
+            {"JOBS", "Jobs"}, {"VIDEO", "Video"}, {"NEWS", "News"}, {"MESSAGING", "Messaging"}, {"MORE", "More"},
+    };
     /** HomeTabInfo constants picked with the Morphe options, in the same order as their mask bits. */
     private static final String[] PRESET_TABS = {
             "RELATIONSHIPS", "POST", "NOTIFICATIONS", "JOBS", "VIDEO", "NEWS",
@@ -51,7 +57,26 @@ public final class NavigationBar {
         presetMask = mask;
     }
 
-    /** Injected at the returns of HomeNavTabsManager.getHomeNavTabs() and at SlimBottomBar.setItems(). */
+    /** Injected at the returns of HomeNavTabsManager.getHomeNavTabs(). */
+    public static List<Object> filterHomeTabs(List<Object> tabs) {
+        if (tabs == null || tabs.isEmpty() || !Settings.isNavigationBarIncluded()
+                || !Settings.get(Settings.SHOW_TAB_MESSAGING, false)) return filterTabs(tabs);
+        try {
+            Class<?> info = Class.forName("com.linkedin.android.home.HomeTabInfo");
+            Object messaging = info.getField("MESSAGING").get(null);
+            if (!tabs.contains(messaging)) {
+                List<Object> result = new ArrayList<>(tabs);
+                int index = result.indexOf(info.getField("MORE").get(null));
+                result.add(index < 0 ? result.size() : index, messaging);
+                return filterTabs(result);
+            }
+        } catch (ReflectiveOperationException failure) {
+            Diagnostics.error("Messaging tab unavailable", failure);
+        }
+        return filterTabs(tabs);
+    }
+
+    /** Filters the Home tab list and the inputs to SlimBottomBar.setItems(). */
     public static List<Object> filterTabs(List<Object> tabs) {
         if (tabs == null || tabs.isEmpty()) return tabs;
         try {
@@ -63,12 +88,39 @@ public final class NavigationBar {
             for (int i = 0; i < PRESET_TABS.length; i++) {
                 if ((presetMask & (1 << i)) != 0) changed |= removeTab(result, PRESET_TABS[i]);
             }
-            // Home cannot be hidden, so at least one tab is always left; this only guards against a changed build.
+            if (Settings.isNavigationBarIncluded()) changed |= sortTabs(result);
             return changed && !result.isEmpty() ? result : tabs;
         } catch (Throwable t) {
             Diagnostics.error("filterTabs failed", t);
             return tabs;
         }
+    }
+
+    private static boolean sortTabs(List<Object> tabs) throws ReflectiveOperationException {
+        String saved = Settings.getString(Settings.TAB_ORDER, "");
+        if (saved.isEmpty() || tabs.size() < 2) return false;
+        Class<?> info = Class.forName("com.linkedin.android.home.HomeTabInfo");
+        Object home = info.getField("FEED").get(null);
+        List<Object> ordered = new ArrayList<>();
+        if (tabs.contains(home)) ordered.add(home);
+        List<String> order = java.util.Arrays.asList(saved.split(","));
+        for (String name : order) {
+            for (String[] spec : SORTABLE_TABS) {
+                if (!spec[0].equals(name)) continue;
+                try {
+                    Object tab = info.getField(name).get(null);
+                    if (tabs.contains(tab) && !ordered.contains(tab)) ordered.add(tab);
+                } catch (NoSuchFieldException ignored) {
+                    // Some LinkedIn versions do not offer every tab.
+                }
+                break;
+            }
+        }
+        for (Object tab : tabs) if (!ordered.contains(tab)) ordered.add(tab);
+        if (ordered.equals(tabs) || ordered.size() != tabs.size()) return false;
+        tabs.clear();
+        tabs.addAll(ordered);
+        return true;
     }
 
     /** Removes the tab constant from the list, if this build has it. */

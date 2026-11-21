@@ -16,7 +16,7 @@ make everyday apps work the way you want.
 [![Latest release](https://img.shields.io/github/v/release/lokesh-sparrow/loki-patches?sort=semver&style=for-the-badge&label=release&labelColor=0d1117&color=22d3ee)](https://github.com/lokesh-sparrow/loki-patches/releases/latest)
 [![Downloads](https://img.shields.io/github/downloads/lokesh-sparrow/loki-patches/total?style=for-the-badge&labelColor=0d1117&color=0ea5e9)](https://github.com/lokesh-sparrow/loki-patches/releases)
 <!-- BADGES_START -->
-[![apps](https://img.shields.io/badge/apps-5-2563eb?style=for-the-badge&labelColor=0d1117)](#apps) [![patches](https://img.shields.io/badge/patches-41-14b8a6?style=for-the-badge&labelColor=0d1117)](#apps)
+[![apps](https://img.shields.io/badge/apps-6-2563eb?style=for-the-badge&labelColor=0d1117)](#apps) [![patches](https://img.shields.io/badge/patches-45-14b8a6?style=for-the-badge&labelColor=0d1117)](#apps)
 <!-- BADGES_END -->
 [![Morphe](https://img.shields.io/badge/patches%20for-Morphe-06b6d4?style=for-the-badge&labelColor=0d1117)](https://morphe.software)
 [![License](https://img.shields.io/github/license/lokesh-sparrow/loki-patches?style=for-the-badge&labelColor=0d1117&color=6e7681)](LICENSE)
@@ -45,7 +45,7 @@ Every app with its highlights, the version it is built for, and which file to do
 for its features, patches and FAQ.
 
 <!-- APPS_START -->
-> **[v3.3.0](https://github.com/lokesh-sparrow/loki-patches/releases/tag/v3.3.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;**5** apps&nbsp;&nbsp;•&nbsp;&nbsp;**41** patches
+> **[v3.4.0](https://github.com/lokesh-sparrow/loki-patches/releases/tag/v3.4.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;**6** apps&nbsp;&nbsp;•&nbsp;&nbsp;**45** patches
 
 ### Featured
 
@@ -61,11 +61,12 @@ for its features, patches and FAQ.
 
 ### All apps
 
-<sub>💎&nbsp;premium&nbsp;&nbsp;🚫&nbsp;ads&nbsp;&nbsp;🛡️&nbsp;tracking&nbsp;&nbsp;🎨&nbsp;look&nbsp;&nbsp;⬇️&nbsp;downloads&nbsp;&nbsp;🧹&nbsp;clutter&nbsp;&nbsp;📵&nbsp;call screens&nbsp;&nbsp;👯&nbsp;clone&nbsp;&nbsp;🔑&nbsp;Google sign-in&nbsp;&nbsp;🎞️&nbsp;codecs</sub>
+<sub>💎&nbsp;premium&nbsp;&nbsp;🚫&nbsp;ads&nbsp;&nbsp;🛡️&nbsp;tracking&nbsp;&nbsp;🎨&nbsp;look&nbsp;&nbsp;⬇️&nbsp;downloads&nbsp;&nbsp;🧹&nbsp;clutter&nbsp;&nbsp;📵&nbsp;call screens&nbsp;&nbsp;👯&nbsp;clone&nbsp;&nbsp;🔑&nbsp;Google sign-in&nbsp;&nbsp;🎞️&nbsp;codecs&nbsp;&nbsp;💾&nbsp;backup</sub>
 
 | App | Highlights | Patches | Version | File | Loki Patches menu |
 |---|---|:---:|---|---|---|
 | <img src="assets/icons/com.cv.docscanner.png" width="20" height="20" align="top" alt=""> [**Doc Scanner**](docs/apps/doc-scanner.md) | 💎 🧹 👯 🔑 | 5 | `6.9.14` | **APKM** | Side menu |
+| <img src="assets/icons/com.google.android.apps.photos.png" width="20" height="20" align="top" alt=""> [**Google Photos**](docs/apps/google-photos.md) | 💾 🔑 👯 | 4 | `8.1.0.1023737660` | **APKM (Android 8+)** | Account menu |
 | <img src="assets/icons/com.linkedin.android.svg" width="20" height="20" align="top" alt=""> [**LinkedIn**](docs/apps/linkedin.md) | 🚫 🛡️ 🎨 ⬇️ 🔑 | 23 | `4.1.1272` | **APK (Android 10+)** | Me panel |
 | <img src="assets/icons/com.mxtech.videoplayer.pro.png" width="20" height="20" align="top" alt=""> [**MX Player Pro**](docs/apps/mx-player-pro.md) | 💎 🎞️ | 3 | `1.93.4` | **APK** | Settings |
 | <img src="assets/icons/com.Splitwise.SplitwiseMobile.png" width="20" height="20" align="top" alt=""> [**Splitwise**](docs/apps/splitwise.md) | 💎 🚫 🛡️ 🎨 🔑 | 5 | `26.11.1` | **APK** | Account tab |

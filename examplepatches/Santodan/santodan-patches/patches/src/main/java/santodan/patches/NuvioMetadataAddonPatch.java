@@ -21,7 +21,11 @@ public final class NuvioMetadataAddonPatch {
     static final String ENRICHMENT = "Lya/p4;->invokeSuspend(Ljava/lang/Object;)Ljava/lang/Object;";
     static final String CLASSIC = "Lna/p1;->g(Lya/f0;ZZ)Ljava/lang/String;";
     static final String CARD = "Lya/p7;->a(Lya/f0;ZLcom/nuvio/tv/domain/model/DetailImdbRatingsVisibility;Ljava/lang/String;Ljava/lang/String;Landroid/content/Context;)Lya/m6;";
+    static final String SAVED_PROGRESS = "Lcom/nuvio/tv/data/local/s0;-><init>(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/String;JJJLjava/lang/Float;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Float;Ljava/util/List;Ljava/lang/String;Ljava/lang/String;Z)V";
+    static final String SAVED_NEXT = "Lcom/nuvio/tv/data/local/t0;-><init>(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;IILjava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ZLjava/lang/String;JLjava/lang/Float;Ljava/util/List;Ljava/lang/String;JLjava/lang/Long;ZZLjava/lang/Integer;Ljava/lang/Integer;Ljava/lang/String;Z)V";
     static final Map<String, String> HASHES = Map.of(
+        SAVED_PROGRESS, "116d1e6dc59a4f440964e6e95515f33d22afe54a5aba03f08940827922956c03",
+        SAVED_NEXT, "2096e1b2fb552ed9dca9b14694ac24aa49a98721a8fec48b782172fb02a5ece3",
         NuvioNative.REF_METADATA_INIT, "76394768c0fa86d59f0bdcb4de5b77a261af810cf7e686f9a9118077b3d95138",
         NuvioNative.REF_METADATA_LIBRARY_CARD, "800b82d66ce710038da4de9a390f4594172e54bc0367c98d22ab3d1edb3f62c4",
         ENRICHMENT, "80e409ed0717433e6ec34cfeaf42c8100adae668ff3f543beb87033038af0d06",
@@ -128,6 +132,21 @@ public final class NuvioMetadataAddonPatch {
         else throw new IllegalStateException("Unsupported metadata invoke");
     }
     static void install(Function<String, MutableClass> classes) {
+        for (String ref : List.of(SAVED_PROGRESS, SAVED_NEXT)) {
+            var constructor = method(classes, ref);
+            var code = NuvioRemainingEpisodesPatch.instructions(constructor);
+            for (int fieldIndex = 2; fieldIndex >= 0; fieldIndex--) {
+                String field = owner(ref) + "->" + (char)('d' + fieldIndex) + ":" + STRING;
+                int at = NuvioAnchors.reference(code, field, "native saved artwork field");
+                var store = (TwoRegisterInstruction) code.get(at);
+                if (store.getRegisterA() != 6 + fieldIndex || store.getRegisterB() != 2)
+                    throw new IllegalStateException("Native saved artwork registers changed");
+                String hook = List.of("retainedPoster", "retainedBackground", "retainedLogo").get(fieldIndex);
+                constructor.getImplementation().addInstruction(at, new BuilderInstruction35c(Opcode.INVOKE_STATIC,
+                    3, 3, 4, store.getRegisterA(), 0, 0, extension(hook, List.of(STRING, STRING, STRING), STRING)));
+                constructor.getImplementation().addInstruction(at + 1, new BuilderInstruction11x(Opcode.MOVE_RESULT_OBJECT, store.getRegisterA()));
+            }
+        }
         var repositoryInit = method(classes, NuvioNative.REF_METADATA_INIT);
         var initCode = NuvioRemainingEpisodesPatch.instructions(repositoryInit);
         int initReturn = NuvioAnchors.unique(initCode, i -> initCode.get(i).getOpcode() == Opcode.RETURN_VOID, "native metadata repository initialization");

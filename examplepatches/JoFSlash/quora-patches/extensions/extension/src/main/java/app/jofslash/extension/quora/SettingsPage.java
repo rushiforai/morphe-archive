@@ -41,6 +41,16 @@ final class SettingsPage {
 
     private static final String TAG = "JoFSlashPatches";
 
+    // The lists a backup holds, by their key in it.
+    private static final String LISTS_KEY = "lists";
+    private static final Map<String, ReadingHistory> LISTS = new LinkedHashMap<>();
+
+    static {
+        LISTS.put("history", ReadingHistory.HISTORY);
+        LISTS.put("bookmarks", ReadingHistory.BOOKMARKS);
+        LISTS.put("dismissed", ReadingHistory.DISMISSED);
+    }
+
     /** Switches whose change only shows after the app restarts. */
     private static final Set<String> RESTART = new HashSet<>(Arrays.asList(
             "hideTabs", "startTab", "textSize", "disablePullToRefresh", "disableSwipeBetweenFeeds"));
@@ -49,6 +59,7 @@ final class SettingsPage {
     private final float density;
     private final int text, secondary, background, section, divider, bar, accent;
     private final boolean dark;
+    private Dialog mainPage;
 
     private SettingsPage(Activity activity) {
         this.activity = activity;
@@ -108,7 +119,18 @@ final class SettingsPage {
         if (!texts.isEmpty()) {
             add(more, linkRow("Filters", "Keywords, authors and Spaces to hide.", () -> filters(prefs, texts)));
         }
-        add(more, linkRow("Backup", "Copy your settings as text, or restore them.", () -> backup(prefs)));
+        if (switches.containsKey("readingHistory")) {
+            add(more, linkRow("History", "Answers, posts and questions you opened.", this::history));
+        }
+        if (switches.containsKey("bookmarks")) {
+            add(more, linkRow("Bookmarks", "Answers and posts you saved.", this::bookmarks));
+        }
+        if (switches.containsKey("hideDismissedQuestions")) {
+            add(more, linkRow("Dismissed questions", "Questions whose answers the feed hides.", this::dismissedQuestions));
+        }
+        add(more, linkRow("Backup", "Your settings and lists as text, to keep or restore.", () -> backup(prefs)));
+        add(more, linkRow("Report a problem", "Copies the app details and opens a bug report on GitHub.",
+                () -> report(prefs, switches)));
         content.addView(more);
 
         if (switches.isEmpty() && texts.isEmpty()) {
@@ -117,14 +139,14 @@ final class SettingsPage {
         TextView none = note("No patch matches.");
         none.setVisibility(View.GONE);
         content.addView(none);
-        content.addView(search(content, none), 0);
+        content.addView(search(content, none, "Search patches"), 0);
 
-        show("Quora patches", content, () -> {
+        mainPage = show("Quora patches", content, () -> {
             if (changed.isEmpty()) return;
             PatchSettings.reload();
             for (String key : changed) {
                 if (RESTART.contains(key)) {
-                    Toast.makeText(activity, "Some changes show after restarting the app.", Toast.LENGTH_LONG).show();
+                    Toast.makeText(activity, Texts.t("Some changes show after restarting the app."), Toast.LENGTH_LONG).show();
                     break;
                 }
             }
@@ -137,7 +159,7 @@ final class SettingsPage {
         for (Map.Entry<String, String[]> entry : texts.entrySet()) {
             LinearLayout box = section(entry.getValue()[0]);
             EditText field = field(prefs.getString(entry.getKey(), entry.getValue()[1]));
-            field.setHint("Separate with commas");
+            field.setHint(Texts.t("Separate with commas"));
             box.addView(field);
             content.addView(box);
             fields.put(entry.getKey(), field);
@@ -159,6 +181,168 @@ final class SettingsPage {
         });
     }
 
+    private void history() {
+        itemList(ReadingHistory.HISTORY, "History",
+                "Nothing yet. Answers, posts and questions you open show up here.",
+                null, null, "Clear the whole history?", "History cleared.");
+    }
+
+    private void bookmarks() {
+        itemList(ReadingHistory.BOOKMARKS, "Bookmarks",
+                "Nothing saved yet. Tap the bookmark next to Share under an open answer or post.",
+                "Remove this bookmark?", "Removed from Bookmarks", null, null);
+    }
+
+    private void dismissedQuestions() {
+        itemList(ReadingHistory.DISMISSED, "Dismissed questions",
+                "Nothing yet. Questions you mark \"Not interested in this question\" show up here.",
+                "Show this question again?", "Removed from the list", "Clear the whole list?", "List cleared.");
+    }
+
+    /** "Answer by Jane" in the phone's language. */
+    private static String byline(String author) {
+        for (String kind : new String[]{"Answer by ", "Post by "}) {
+            if (author.startsWith(kind)) return Texts.t(kind) + author.substring(kind.length());
+        }
+        return Texts.t(author);
+    }
+
+    /**
+     * A list of answers, posts and questions that open in the app when tapped. When removeAsk is set,
+     * long-pressing one removes it; when clearAsk is set, Clear in the top bar empties the list.
+     */
+    private void itemList(ReadingHistory store, String title, String empty, String removeAsk, String removedToast,
+                          String clearAsk, String clearedToast) {
+        List<ReadingHistory.Item> items = store.load(activity);
+        LinearLayout content = column();
+        Dialog[] page = new Dialog[1];
+        if (items.isEmpty()) {
+            content.addView(note(empty));
+        } else {
+            if (removeAsk != null) {
+                LinearLayout hint = section(null);
+                hint.addView(note("Long-press one to remove it."));
+                content.addView(hint);
+            }
+            LinearLayout box = section(null);
+            long now = System.currentTimeMillis();
+            for (ReadingHistory.Item item : items) {
+                String when = now - item.time < android.text.format.DateUtils.MINUTE_IN_MILLIS
+                        ? Texts.t("Just now")
+                        : android.text.format.DateUtils.getRelativeTimeSpanString(
+                                item.time, now, android.text.format.DateUtils.MINUTE_IN_MILLIS).toString();
+                String line = item.author.isEmpty() ? when : byline(item.author) + " · " + when;
+                View row = linkRow(item.title, line, () -> {
+                    if (!ReadingHistory.isQuoraUrl(item.url)) return;
+                    try {
+                        // Quora opens its own links in the app.
+                        android.content.Intent open = new android.content.Intent(
+                                android.content.Intent.ACTION_VIEW, android.net.Uri.parse(item.url));
+                        open.setPackage(activity.getPackageName());
+                        activity.startActivity(open);
+                        if (page[0] != null) page[0].dismiss();
+                        if (mainPage != null) mainPage.dismiss();
+                    } catch (Exception ex) {
+                        Log.e(TAG, "Failed to open " + title, ex);
+                    }
+                });
+                if (removeAsk != null) {
+                    row.setOnLongClickListener((v) -> {
+                        confirm(removeAsk, "Remove", () -> {
+                            store.remove(activity, item.url);
+                            // The row and the divider line next to it.
+                            ViewGroup list = (ViewGroup) row.getParent();
+                            int index = list.indexOfChild(row);
+                            list.removeView(row);
+                            if (index > 0) list.removeViewAt(index - 1);
+                            else if (list.getChildCount() > 0) list.removeViewAt(0);
+                            Toast.makeText(activity, Texts.t(removedToast), Toast.LENGTH_SHORT).show();
+                        });
+                        return true;
+                    });
+                }
+                add(box, row);
+            }
+            content.addView(box);
+
+            LinearLayout actions = section(null);
+            add(actions, linkRow("Copy as text", "Every title with its link, to keep or share.", () -> {
+                StringBuilder list = new StringBuilder();
+                for (ReadingHistory.Item item : store.load(activity)) {
+                    list.append(item.title).append('\n').append(item.url).append("\n\n");
+                }
+                ClipboardManager clipboard = (ClipboardManager) activity.getSystemService(Context.CLIPBOARD_SERVICE);
+                if (clipboard == null) return;
+                clipboard.setPrimaryClip(ClipData.newPlainText(title, list.toString().trim()));
+                Toast.makeText(activity, Texts.t(title + " copied."), Toast.LENGTH_SHORT).show();
+            }));
+            content.addView(actions);
+
+            TextView none = note("Nothing matches.");
+            none.setVisibility(View.GONE);
+            content.addView(none);
+            content.addView(search(content, none, "Search " + title.toLowerCase()), 0);
+        }
+        Runnable clear = clearAsk == null || items.isEmpty() ? null : () -> confirm(clearAsk, "Clear", () -> {
+            store.clear(activity);
+            Toast.makeText(activity, Texts.t(clearedToast), Toast.LENGTH_SHORT).show();
+            if (page[0] != null) page[0].dismiss();
+        });
+        page[0] = show(title, content, null, "Clear", clear);
+    }
+
+    /**
+     * Copies what helps with a bug report (no account or personal details: versions, the patches
+     * that are on and the page check) and opens the bug report form.
+     */
+    private void report(SharedPreferences prefs, Map<String, String> switches) {
+        StringBuilder text = new StringBuilder();
+        String quora = "?";
+        try {
+            quora = activity.getPackageManager().getPackageInfo(activity.getPackageName(), 0).versionName;
+        } catch (Exception ignored) {
+            // Leave it as "?".
+        }
+        text.append("Quora: ").append(quora).append('\n');
+        text.append("Android: ").append(android.os.Build.VERSION.RELEASE)
+                .append(" (API ").append(android.os.Build.VERSION.SDK_INT).append(")\n");
+        List<String> on = new ArrayList<>();
+        List<String> off = new ArrayList<>();
+        for (Map.Entry<String, String> entry : switches.entrySet()) {
+            (prefs.getBoolean(entry.getKey(), true) ? on : off).add(entry.getValue());
+        }
+        java.util.Collections.sort(on, String.CASE_INSENSITIVE_ORDER);
+        java.util.Collections.sort(off, String.CASE_INSENSITIVE_ORDER);
+        text.append("On: ").append(on.isEmpty() ? "none" : android.text.TextUtils.join(", ", on)).append('\n');
+        text.append("Switched off: ").append(off.isEmpty() ? "none" : android.text.TextUtils.join(", ", off)).append('\n');
+        String status = PageCheck.status(prefs);
+        text.append(status == null ? "Page check: not run yet" : status).append('\n');
+        try {
+            ClipboardManager clipboard = (ClipboardManager) activity.getSystemService(Context.CLIPBOARD_SERVICE);
+            if (clipboard != null) clipboard.setPrimaryClip(ClipData.newPlainText("Quora patches", text.toString()));
+            Toast.makeText(activity, Texts.t("App details copied. Paste them into the report."), Toast.LENGTH_LONG).show();
+            android.content.Intent open = new android.content.Intent(android.content.Intent.ACTION_VIEW,
+                    android.net.Uri.parse("https://github.com/JoFSlash/quora-patches/issues/new?template=bug_report.yml"));
+            // A browser, not this app: Quora handles only quora.com links.
+            open.addCategory(android.content.Intent.CATEGORY_BROWSABLE);
+            activity.startActivity(open);
+        } catch (Exception ex) {
+            Log.e(TAG, "Failed to open the bug report", ex);
+            Toast.makeText(activity, Texts.t("App details copied. Open github.com/JoFSlash/quora-patches/issues to report."),
+                    Toast.LENGTH_LONG).show();
+        }
+    }
+
+    private void confirm(String message, String action, Runnable onConfirm) {
+        new android.app.AlertDialog.Builder(activity, dark
+                ? android.R.style.Theme_Material_Dialog_Alert
+                : android.R.style.Theme_Material_Light_Dialog_Alert)
+                .setMessage(Texts.t(message))
+                .setNegativeButton(Texts.t("Cancel"), null)
+                .setPositiveButton(Texts.t(action), (d, w) -> onConfirm.run())
+                .show();
+    }
+
     private void backup(SharedPreferences prefs) {
         JSONObject json = new JSONObject();
         try {
@@ -168,11 +352,18 @@ final class SettingsPage {
                 if (key.startsWith("check_") || key.startsWith("hint_")) continue;
                 json.put(key, entry.getValue());
             }
+            // History, Bookmarks and Dismissed questions, under one key that older versions skip.
+            JSONObject lists = new JSONObject();
+            for (Map.Entry<String, ReadingHistory> list : LISTS.entrySet()) {
+                org.json.JSONArray items = list.getValue().toJson(activity);
+                if (items.length() > 0) lists.put(list.getKey(), items);
+            }
+            if (lists.length() > 0) json.put(LISTS_KEY, lists);
         } catch (Exception ex) {
             Log.e(TAG, "Failed to write the backup", ex);
         }
         LinearLayout content = column();
-        LinearLayout box = section("Your settings");
+        LinearLayout box = section("Your settings and lists");
         EditText field = field(json.toString());
         box.addView(field);
         content.addView(box);
@@ -182,7 +373,7 @@ final class SettingsPage {
             ClipboardManager clipboard = (ClipboardManager) activity.getSystemService(Context.CLIPBOARD_SERVICE);
             if (clipboard == null) return;
             clipboard.setPrimaryClip(ClipData.newPlainText("Quora patches", field.getText().toString()));
-            Toast.makeText(activity, "Copied.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(activity, Texts.t("Copied."), Toast.LENGTH_SHORT).show();
         }));
         add(actions, linkRow("Restore", "Paste a saved text above first.", () -> {
             try {
@@ -196,9 +387,19 @@ final class SettingsPage {
                 }
                 editor.apply();
                 PatchSettings.reload();
-                Toast.makeText(activity, "Settings restored.", Toast.LENGTH_SHORT).show();
+                // Lists are merged: what is already on the phone stays.
+                int added = 0;
+                JSONObject lists = saved.optJSONObject(LISTS_KEY);
+                if (lists != null) {
+                    for (Map.Entry<String, ReadingHistory> list : LISTS.entrySet()) {
+                        added += list.getValue().merge(activity, lists.optJSONArray(list.getKey()));
+                    }
+                }
+                Toast.makeText(activity, added > 0
+                        ? Texts.t("Settings restored. Items added to your lists: ") + added
+                        : Texts.t("Settings restored."), Toast.LENGTH_SHORT).show();
             } catch (Exception ex) {
-                Toast.makeText(activity, "That is not a saved settings text.", Toast.LENGTH_LONG).show();
+                Toast.makeText(activity, Texts.t("That is not a saved settings text."), Toast.LENGTH_LONG).show();
             }
         }));
         content.addView(actions);
@@ -209,6 +410,11 @@ final class SettingsPage {
 
     /** A full screen window with a top bar; back (the arrow or the system back) closes it. */
     private Dialog show(String title, View content, Runnable onClose) {
+        return show(title, content, onClose, null, null);
+    }
+
+    /** As above, with a text button at the right end of the top bar. */
+    private Dialog show(String title, View content, Runnable onClose, String actionLabel, Runnable action) {
         Dialog dialog = new Dialog(activity, dark
                 ? android.R.style.Theme_Material_NoActionBar
                 : android.R.style.Theme_Material_Light_NoActionBar);
@@ -229,14 +435,25 @@ final class SettingsPage {
         back.setTextColor(text);
         back.setGravity(Gravity.CENTER);
         back.setOnClickListener((v) -> dialog.dismiss());
-        back.setContentDescription("Back");
+        back.setContentDescription(Texts.t("Back"));
         top.addView(back, new LinearLayout.LayoutParams(dp(56), dp(56)));
         TextView name = new TextView(activity);
-        name.setText(title);
+        name.setText(Texts.t(title));
         name.setTextSize(21);
         name.setTypeface(Typeface.DEFAULT_BOLD);
         name.setTextColor(text);
-        top.addView(name);
+        top.addView(name, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
+        if (actionLabel != null && action != null) {
+            TextView button = new TextView(activity);
+            button.setText(Texts.t(actionLabel));
+            button.setTextSize(16);
+            button.setTypeface(Typeface.DEFAULT_BOLD);
+            button.setTextColor(accent);
+            button.setGravity(Gravity.CENTER);
+            button.setPadding(dp(16), 0, dp(16), 0);
+            button.setOnClickListener((v) -> action.run());
+            top.addView(button, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, dp(56)));
+        }
         root.addView(top);
         View line = new View(activity);
         line.setBackgroundColor(divider);
@@ -298,7 +515,7 @@ final class SettingsPage {
         box.setLayoutParams(params);
         if (header != null) {
             TextView title = new TextView(activity);
-            title.setText(header);
+            title.setText(Texts.t(header));
             title.setTextSize(17);
             title.setTypeface(Typeface.DEFAULT_BOLD);
             title.setTextColor(text);
@@ -393,7 +610,7 @@ final class SettingsPage {
         row.setPadding(dp(16), dp(12), dp(16), dp(12));
         row.setMinimumHeight(dp(56));
         // What the search field looks in.
-        row.setTag((name + " " + (help == null ? "" : help)).toLowerCase());
+        row.setTag((name + " " + (help == null ? "" : help) + " " + Texts.t(name) + " " + (help == null ? "" : Texts.t(help))).toLowerCase());
         android.util.TypedValue ripple = new android.util.TypedValue();
         if (activity.getTheme().resolveAttribute(android.R.attr.selectableItemBackground, ripple, true)) {
             row.setForeground(activity.getDrawable(ripple.resourceId));
@@ -402,13 +619,13 @@ final class SettingsPage {
         LinearLayout texts = new LinearLayout(activity);
         texts.setOrientation(LinearLayout.VERTICAL);
         TextView title = new TextView(activity);
-        title.setText(name);
+        title.setText(Texts.t(name));
         title.setTextSize(16);
         title.setTextColor(text);
         texts.addView(title);
         if (help != null) {
             TextView line = new TextView(activity);
-            line.setText(help);
+            line.setText(Texts.t(help));
             line.setTextSize(13);
             line.setTextColor(secondary);
             line.setPadding(0, dp(2), dp(12), 0);
@@ -422,9 +639,9 @@ final class SettingsPage {
      * A search field that keeps only the rows whose name or line contains the words typed,
      * and hides the sections left empty.
      */
-    private View search(LinearLayout content, TextView none) {
+    private View search(LinearLayout content, TextView none, String hint) {
         EditText field = new EditText(activity);
-        field.setHint("Search patches");
+        field.setHint(Texts.t(hint));
         field.setSingleLine(true);
         field.setTextSize(16);
         field.setTextColor(text);
@@ -498,7 +715,7 @@ final class SettingsPage {
 
     private TextView note(String message) {
         TextView note = new TextView(activity);
-        note.setText(message);
+        note.setText(Texts.t(message));
         note.setTextSize(14);
         note.setTextColor(secondary);
         note.setPadding(dp(16), dp(14), dp(16), dp(14));

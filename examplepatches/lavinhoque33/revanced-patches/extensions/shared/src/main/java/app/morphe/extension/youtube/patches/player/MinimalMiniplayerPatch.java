@@ -6,7 +6,7 @@
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
  *
- * Modified by lavinhoque33, 2026-11-18
+ * Modified by lavinhoque33, 2026-11-20
  */
 
 package app.morphe.extension.youtube.patches.player;
@@ -34,6 +34,8 @@ import android.graphics.drawable.RippleDrawable;
 import android.graphics.drawable.ShapeDrawable;
 import android.graphics.drawable.shapes.OvalShape;
 import android.os.Build;
+import android.os.Handler;
+import android.os.Looper;
 import android.view.DisplayCutout;
 import android.view.MotionEvent;
 import android.view.View;
@@ -199,7 +201,6 @@ public final class MinimalMiniplayerPatch {
     private static String previousChannelTitle = "";
 
     private static boolean listenersInstalled;
-    private static boolean ticking;
     private static boolean playing;
     private static boolean morphing;
     private static float contentAlpha = 1f;
@@ -987,6 +988,11 @@ public final class MinimalMiniplayerPatch {
         listenersInstalled = true;
         slideStartedExpanded = PlayerType.getCurrent().isMaximizedOrFullscreen();
 
+        ShortsPlayerState.getOnChange().addObserver(state -> {
+            if (state.isClosed()) Utils.runOnMainThreadNowOrLater(MinimalMiniplayerPatch::refreshVisibleText);
+            return Unit.INSTANCE;
+        });
+
         PlayerType.getOnChange().addObserver((PlayerType type) -> {
             final boolean minimized = type == PlayerType.WATCH_WHILE_MINIMIZED;
 
@@ -996,7 +1002,7 @@ public final class MinimalMiniplayerPatch {
                     slideStartedExpanded = type.isMaximizedOrFullscreen();
                 }
 
-                startTicking(minimized);
+                setBarActive(minimized);
 
                 if (minimized) {
                     refreshContents();
@@ -1016,7 +1022,7 @@ public final class MinimalMiniplayerPatch {
                     }
                 }
 
-            updateVideoClip();
+                updateVideoClip();
             });
             return Unit.INSTANCE;
         });
@@ -1026,11 +1032,22 @@ public final class MinimalMiniplayerPatch {
         }
     }
 
+    private static void setBarActive(boolean active) {
+        VideoInformation.setDisplayMetadataListener(active ? MinimalMiniplayerPatch::refreshVisibleText : null);
+        BarRefresh.TICKER.setRunning(active);
+    }
+
+    private static void refreshVisibleText() {
+        if (PlayerType.getCurrent() == PlayerType.WATCH_WHILE_MINIMIZED && ShortsPlayerState.getCurrent().isClosed()) {
+            updateText();
+        }
+    }
+
     private static void updateBar() {
         final boolean minimized = PlayerType.getCurrent() == PlayerType.WATCH_WHILE_MINIMIZED;
 
         updateVideoClip();
-        startTicking(minimized);
+        setBarActive(minimized);
         refreshContents();
         showControls(minimized);
         if (minimized && !morphing) {
@@ -1223,25 +1240,42 @@ public final class MinimalMiniplayerPatch {
         updateVideoClip();
     }
 
-    private static void startTicking(boolean start) {
-        if (ticking == start) return;
-        ticking = start;
-
-        if (start) {
-            tick();
-        }
+    private static final class BarRefresh {
+        static final BarTicker TICKER = new BarTicker(MinimalMiniplayerPatch::updateVideoClip);
     }
 
-    /**
-     * Nothing announces a new video to the bar, so its contents are kept in step by polling.
-     */
-    private static void tick() {
-        if (!ticking) return;
+    /** Owned by the main thread. Starting the next session must not resume the previous timer. */
+    static final class BarTicker implements Runnable {
+        private final Handler handler = new Handler(Looper.getMainLooper());
+        private final Runnable refresh;
+        private boolean running;
 
-        updateText();
-        updateVideoClip();
+        BarTicker(Runnable refresh) {
+            this.refresh = refresh;
+        }
 
-        Utils.runOnMainThreadDelayed(MinimalMiniplayerPatch::tick, TICK_MILLIS);
+        void setRunning(boolean start) {
+            if (running == start) return;
+            running = start;
+            if (start) {
+                // Both entry paths refresh the bar immediately.
+                handler.postDelayed(this, TICK_MILLIS);
+            } else {
+                handler.removeCallbacks(this);
+            }
+        }
+
+        @Override
+        public void run() {
+            if (!running) return;
+            handler.postDelayed(this, TICK_MILLIS);
+            try {
+                refresh.run();
+            } catch (Exception ex) {
+                setRunning(false);
+                Logger.printException(() -> "Miniplayer refresh failed", ex);
+            }
+        }
     }
 
     /**

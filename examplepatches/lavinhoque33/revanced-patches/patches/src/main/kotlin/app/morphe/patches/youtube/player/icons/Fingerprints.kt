@@ -5,12 +5,13 @@
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
  *
- * Modified by lavinhoque33, 2026-10-25
+ * Modified by lavinhoque33, 2026-11-20
  */
 
 package app.morphe.patches.youtube.player.icons
 
 import app.morphe.patcher.Fingerprint
+import app.morphe.patcher.InstructionLocation.MatchAfterWithin
 import app.morphe.patcher.checkCast
 import app.morphe.patcher.methodCall
 import app.morphe.patches.shared.mapping.ResourceType
@@ -59,6 +60,23 @@ internal object PlayerControlIconLoaderFingerprint : Fingerprint(
     filters = listOf(
         methodCall(definingClass = "Landroid/content/res/Resources;", name = "getDrawable"),
     )
+)
+
+/**
+ * The watch player's fullscreen state selects a drawable before applying the white tint and shadow.
+ */
+internal object WatchPlayerFullscreenIconFingerprint : Fingerprint(
+    filters = listOf(
+        methodCall(smali = "Landroid/content/res/Resources;->getDrawable(I)Landroid/graphics/drawable/Drawable;"),
+        methodCall(
+            smali = "Landroid/graphics/drawable/Drawable;->setTintMode(Landroid/graphics/PorterDuff\$Mode;)V",
+            location = MatchAfterWithin(8),
+        ),
+        resourceLiteral(ResourceType.INTEGER, "shadow_icon_size"),
+        resourceLiteral(ResourceType.INTEGER, "modern_icon_shadow_offset_x"),
+        resourceLiteral(ResourceType.INTEGER, "modern_icon_shadow_offset_y"),
+        resourceLiteral(ResourceType.INTEGER, "modern_icon_shadow_alpha"),
+    ),
 )
 
 /**

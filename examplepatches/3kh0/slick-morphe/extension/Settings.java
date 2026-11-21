@@ -14,9 +14,20 @@ public final class Settings {
     CrashReports.install(app);
   }
 
+  public static String patched() {
+    return "|";
+  }
+
+  public static boolean available(String key) {
+    if (key.equals("crash")) return true;
+    if (key.equals("erase")) return available("message_logger") || available("last_seen");
+    return patched().contains("|" + key + "|");
+  }
+
   public static boolean enabled(String key) {
+    if (!available(key)) return false;
     SharedPreferences p = preferences;
-    boolean fallback = key.equals("silent_typing");
+    boolean fallback = key.equals("silent_typing") || key.equals("block_telemetry");
     return p == null ? fallback : p.getBoolean(key, fallback);
   }
 

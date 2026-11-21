@@ -32,7 +32,7 @@ public class NativeTapTest {
     @Test public void permissionGatewayPreventsRecording() throws Exception {
         Gate gate = new Gate(); gate.handled = true;
         Toggle toggle = new Toggle();
-        NativeTap.run(gate, toggle, new Sink());
+        assertFalse(NativeTap.run(gate, toggle, new Sink()));
         assertEquals(0, toggle.calls);
     }
 
@@ -40,7 +40,7 @@ public class NativeTapTest {
         Toggle toggle = new Toggle();
         toggle.result.event = new Object();
         Sink sink = new Sink();
-        NativeTap.run(new Gate(), toggle, sink);
+        assertTrue(NativeTap.run(new Gate(), toggle, sink));
         assertEquals(1, toggle.calls);
         assertEquals(Boolean.TRUE, toggle.submit);
         assertEquals(Boolean.FALSE, toggle.longPress);
@@ -51,5 +51,16 @@ public class NativeTapTest {
         Sink sink = new Sink();
         NativeTap.run(new Gate(), new Toggle(), sink);
         assertNull(sink.event);
+    }
+
+    @Test public void cancelPassesDiscardAndDispatchesTheNativeFollowUp() throws Exception {
+        Toggle toggle = new Toggle();
+        toggle.result.event = new Object();
+        Sink sink = new Sink();
+        NativeTap.toggle(toggle, sink, false);
+        assertEquals(1, toggle.calls);
+        assertEquals(Boolean.FALSE, toggle.submit);
+        assertEquals(Boolean.FALSE, toggle.longPress);
+        assertSame(toggle.result.event, sink.event);
     }
 }

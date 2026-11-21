@@ -38,9 +38,19 @@ final class SettingsCatalog {
         add("hideCommentPreviews", "Feed", "\"123 comments from … and more\" rows.");
         add("hideCredentials", "Feed", "The line under authors' names.");
         add("hideFollowButtons", "Feed", "The small Follow next to names.");
-        add("hideSurveys", "Feed", "\"How satisfied are you…\" boxes.");
+        add("hideSurveys", "Feed", "\"How satisfied are you…\" and \"Was this worth your time?\" boxes.");
+        add("hideAskBox", "Feed", "The \"What do you want to ask or share?\" box.");
+        add("hideMoreStories", "Feed", "The red \"More Stories\" button over the feed.");
+        add("hideDismissedQuestions", "Feed", "Answers to questions you marked \"Not interested\".");
+        add("hideCommentBox", "Reading", "The \"Add a comment…\" field under answers.");
 
         add("copyAnswerText", "Reading", "A Copy button next to Share under answers.");
+        add("shareAnswerText", "Reading", "A Share text button next to Share under answers.");
+        add("sortAnswers", "Reading", "Questions open with answers in the order set below.");
+        add("readingHistory", "Reading", "Remembers what you open (see History).");
+        add("bookmarks", "Reading", "A bookmark button under open answers (see Bookmarks).");
+        add("translateAnswerText", "Reading", "A Translate button next to Share under answers.");
+        add("fullscreenReading", "Reading", "Bars hide while you scroll down.");
         add("expandAnswers", "Reading", "Shortened answers open in full.");
         add("comfortableReading", "Reading", "More space between lines and paragraphs.");
         add("answerFont", "Reading", "Answers in the font set below.");

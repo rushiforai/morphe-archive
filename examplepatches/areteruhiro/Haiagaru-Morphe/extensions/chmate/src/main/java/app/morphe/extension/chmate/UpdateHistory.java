@@ -251,10 +251,14 @@ final class UpdateHistory {
                 TextView reporterCopyHelp=new TextView(activity);
                 reporterCopyHelp.setText("スレタイ長押しに「記者IDをコピー」を追加しました。エッヂの記者IDを含むNGThreadルールはスレ一覧でも照合します。");
                 content.addView(reporterCopyHelp);break;
+            case READING_POSITION_CARD_DEFAULT:
+                toggle(content,activity,main,"カード表示に連動した読書位置補助保存",ReadingPosition.ENABLED,
+                        ReadingPosition.defaultEnabled(main),null);break;
+            case EXTRA_QUICK_FILTERS:
+                toggle(content,activity,main,"フィルターにAA・自分・返信を追加",
+                        "quickFilterExtras",false,()->ExtraQuickFilters.updateOptions(activity));break;
             case HIDDEN_NG_NEW_ARRIVAL_COUNT:
-                String nativeVersion="";try{nativeVersion=activity.getPackageManager().getPackageInfo(activity.getPackageName(),0).versionName;}catch(Exception ignored){}
-                if(nativeVersion.contains(".242"))toggle(content,activity,main,"スレ更新後の新着件数から非表示NGのレスを除く",HiddenNgUnread.NEW_ARRIVAL_KEY,false,HiddenNgUnread::clear);
-                else {TextView unsupported=new TextView(activity);unsupported.setText("この新着件数オプションはChMate 0.8.10.242向けです。");content.addView(unsupported);}
+                toggle(content,activity,main,"スレ更新後の新着件数から非表示NGのレスを除く（191／226／242）",HiddenNgUnread.NEW_ARRIVAL_KEY,false,HiddenNgUnread::clear);
                 break;
             case LOCAL_IMAGES:
                 toggle(content, activity, LocalImageArchive.prefs(activity), "保存済み画像から表示",
@@ -316,9 +320,6 @@ final class UpdateHistory {
                         DeleteReadThreads.LONG_PRESS_KEY, true, null); break;
             case IP_WIFI: addIpNetwork(content, activity, main, "IP表示スレへの投稿前確認（Wi-Fi）", 1); break;
             case IP_MOBILE: addIpNetwork(content, activity, main, "IP表示スレへの投稿前確認（モバイル回線）", 2); break;
-            case THREAD_RENAME:
-                toggle(content, activity, FeatureSwitches.prefs(activity), "スレタイトル長押しに「スレの名前を変更」を表示",
-                        DisplayNames.SHOW_RENAME, true, null); break;
             case KEYWORD_NAMES:
                 Button names = new Button(activity);
                 names.setText("キーワードの表示名を設定");

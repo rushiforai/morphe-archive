@@ -36,6 +36,71 @@ public final class HideContentPatch {
     }
 
     /**
+     * Injection point: start of QWebViewClient.onPageFinished. The "What do you want to ask or share?"
+     * box with Ask, Answer and Post at the top of the feed.
+     */
+    public static void hideAskBox(WebView webView) {
+        if (!PatchSettings.active(webView, "hideAskBox", "Hide ask box")) return;
+        injectStyle(webView, "jofslash-hide-ask-box", "[class*=\"dom_annotate_multifeed_bundle_AskQuestionPromptBundle\"]");
+    }
+
+    /**
+     * Injection point: start of QWebViewClient.onPageFinished. The "Add a comment…" field under
+     * answers and posts. It has no class of its own, so it is found by its text, and only the
+     * smallest box that holds nothing else is hidden. Comments still open from the comment button.
+     */
+    public static void hideCommentBox(WebView webView) {
+        if (!PatchSettings.active(webView, "hideCommentBox", "Hide comment box")) return;
+        evaluate(webView, "(function(){"
+                + "if(window.__jofslashCommentBox)return;window.__jofslashCommentBox=1;"
+                + "var re=/^Add a comment(\\.\\.\\.|\\u2026)?$/;"
+                + "function t(e){return (e.textContent||'').replace(/\\s+/g,' ').trim();}"
+                + "function run(){document.querySelectorAll('div,span').forEach(function(e){"
+                + "if(e.children.length||e.hasAttribute('data-jofslash-hidden')||!re.test(t(e)))return;"
+                // Up to the box with the avatar and the field, but nothing else with text or buttons.
+                + "var box=e;while(box.parentElement&&box.parentElement!==document.body"
+                + "&&re.test(t(box.parentElement))&&!box.parentElement.querySelector('button,a[href]'))box=box.parentElement;"
+                + "box.setAttribute('data-jofslash-hidden','');box.style.setProperty('display','none','important');});}"
+                + observeScript("run")
+                + "})();", "comment box");
+    }
+
+    /**
+     * Injection point: start of QWebViewClient.onPageFinished. When you close a feed item with its ×
+     * and pick "Not interested in this question", remembers that question and hides the feed's
+     * answers to it from then on. Undo forgets it again. The list is kept by the app (Patch settings
+     * > Dismissed questions shows and clears it).
+     */
+    public static void hideDismissedQuestions(WebView webView) {
+        if (!PatchSettings.active(webView, "hideDismissedQuestions", "Hide dismissed questions")) return;
+        evaluate(webView, "(function(){"
+                + "if(window.__jofslashDismissed)return;window.__jofslashDismissed=1;"
+                + "var J=window.JoFSlashPatches;if(!J)return;"
+                + "function text(e){return (e&&(e.innerText||e.textContent)||'').replace(/\\s+/g,' ').trim();}"
+                + "function title(u){return text(u.querySelector('.puppeteer_test_question_title'));}"
+                // Read again until the bridge is there; a page can run this before it is.
+                + "var list=[],loaded=false;function load(){if(!J.ready())return;"
+                + "try{list=JSON.parse(J.dismissedQuestions())||[];loaded=true;}catch(e){list=[];}}"
+                + "document.addEventListener('click',function(ev){var t=ev.target;if(!t||!t.closest)return;"
+                // The ×: note the question now, as Quora replaces the item with a menu.
+                + "var x=t.closest('.dom_annotate_negative_feedback_hide');"
+                + "if(x){var u=x.closest('" + FEED_UNIT + "');var q=u?title(u):'';if(q)u.setAttribute('data-jofslash-q',q);return;}"
+                + "var m=t.closest('[data-jofslash-q]');if(!m)return;var q2=m.getAttribute('data-jofslash-q');"
+                // The menu option that was tapped: the nearest box with a short label.
+                + "var label='';for(var e=t;e&&e!==m;e=e.parentElement){var s=text(e);if(s){label=s;break;}}"
+                + "if(!J.ready())return;"
+                + "if(/^Not interested in this question$/i.test(label)){J.dismissQuestion(q2);load();}"
+                + "else if(/^Undo$/i.test(label)){J.undismissQuestion(q2);load();}},true);"
+                + "function run(){if(!loaded)load();if(!list.length)return;"
+                + "document.querySelectorAll('" + FEED_UNIT + "').forEach(function(u){"
+                + "if(u.hasAttribute('data-jofslash-hidden'))return;var q=title(u).toLowerCase();"
+                + "if(q&&list.indexOf(q)>=0){u.setAttribute('data-jofslash-hidden','');u.style.setProperty('display','none','important');}});}"
+                + "load();"
+                + observeScript("run")
+                + "})();", "dismissed questions");
+    }
+
+    /**
      * Injection point: start of QWebViewClient.onPageFinished.
      */
     public static void hideRelatedQuestions(WebView webView) {
@@ -316,10 +381,10 @@ public final class HideContentPatch {
         evaluate(webView, CREDENTIALS_SCRIPT, "credentials");
     }
 
-    // "How satisfied are you with your home feed experience today?" and similar boxes.
+    // "How satisfied are you with your home feed experience today?", "Was this worth your time?" and similar boxes.
     private static final String SURVEYS_SCRIPT = "(function(){"
             + "if(window.__jofslashSurveys)return;window.__jofslashSurveys=1;"
-            + "var re=/^(How (satisfied|likely|would you rate)|Rate your experience|Help us improve)/i;"
+            + "var re=/^(How (satisfied|likely|would you rate)|Rate your experience|Help us improve|Was this worth your time)/i;"
             + "function text(e){return (e.textContent||'').replace(/\\s+/g,' ').trim();}"
             + "function run(){document.querySelectorAll('div').forEach(function(d){"
             + "if(d.hasAttribute('data-jofslash-hidden'))return;var t=text(d);if(!re.test(t))return;"
@@ -327,6 +392,9 @@ public final class HideContentPatch {
             // The whole box: its wrappers start with the same question and stay short.
             + "var w=d;while(w.parentElement&&w.parentElement!==document.body){var p=text(w.parentElement);"
             + "if(p.indexOf(t)!==0||p.length>400)break;w=w.parentElement;}"
+            // "Was this worth your time?" under answers sits in a box that starts with "Your response is private".
+            + "while(w.parentElement&&w.parentElement!==document.body){var q=text(w.parentElement);"
+            + "if(!/^Your response is private/i.test(q)||q.indexOf(t)<0||q.length>300)break;w=w.parentElement;}"
             + "w.setAttribute('data-jofslash-hidden','');w.style.setProperty('display','none','important');});}"
             + observeScript("run")
             + "})();";
@@ -369,7 +437,8 @@ public final class HideContentPatch {
     private static void evaluate(WebView webView, String script, String what) {
         if (webView == null) return;
         try {
-            webView.evaluateJavascript(script, null);
+            // The bridge for our scripts, with its key; see PatchSettings.bridgeScript.
+            webView.evaluateJavascript(PatchSettings.bridgeScript() + script, null);
         } catch (Exception ex) {
             Log.e(TAG, "Failed to inject " + what, ex);
         }

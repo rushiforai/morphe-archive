@@ -9,7 +9,7 @@ import app.badfella.patches.util.writeIntLe
 
 /*
  * Reviewed Wanderlog HBC98 contracts. Every entry binds a whole-function SHA-256 fingerprint
- * (2.227 and 2.228) to edit offsets relative to the function start. Builds that move code or
+ * (2.227, 2.228 and 2.229) to edit offsets relative to the function start. Builds that move code or
  * change these bodies fail closed instead of writing at a guessed absolute offset.
  */
 private val roles = listOf(
@@ -24,6 +24,11 @@ private val roles = listOf(
             Hermes98Edit(177, hexBytes("5d44"), hexBytes("cd3e")),
             Hermes98Edit(327, hexBytes("17030503"), hexBytes("96039604")),
         )),
+        Hermes98Variant(339, "3c2038ac09695c4e899418999a05d23f97a558bd90a6ec356ff4a93bfe4b62ea", listOf(
+            Hermes98Edit(57, hexBytes("4644"), hexBytes("c13e")),
+            Hermes98Edit(177, hexBytes("4644"), hexBytes("c13e")),
+            Hermes98Edit(327, hexBytes("17030503"), hexBytes("96039604")),
+        )),
     )),
     Hermes98Role("shouldShowUpgradeOrResubscribeModal", "shouldShowUpgradeOrResubscribeModal", listOf(
         Hermes98Variant(311, "4b09b04dec4ef2ee2ec94c1e69d3c5d9329ed207c49d426e143aae80f9dd2639", listOf(
@@ -33,6 +38,10 @@ private val roles = listOf(
         Hermes98Variant(311, "d92da194edcee05092770782bba14c2f9583f1dfd632be15dc43ed7426f74b3f", listOf(
             Hermes98Edit(39, hexBytes("5d44"), hexBytes("cd3e")),
             Hermes98Edit(161, hexBytes("5d44"), hexBytes("cd3e")),
+        )),
+        Hermes98Variant(311, "a7a7dfa08150b74f253677afeda8b40e8910f6ecd35e577ad7d2e46ca70b4b36", listOf(
+            Hermes98Edit(39, hexBytes("4644"), hexBytes("c13e")),
+            Hermes98Edit(161, hexBytes("4644"), hexBytes("c13e")),
         )),
     )),
     Hermes98Role("shouldShowProBadge", "shouldShowProBadge", listOf(
@@ -44,6 +53,10 @@ private val roles = listOf(
             Hermes98Edit(46, hexBytes("5d44"), hexBytes("cd3e")),
             Hermes98Edit(168, hexBytes("5d44"), hexBytes("cd3e")),
         )),
+        Hermes98Variant(318, "a52cea4c1a384ff098bce025b752e992d8424865e2a036cf7971f05d5d178745", listOf(
+            Hermes98Edit(46, hexBytes("4644"), hexBytes("c13e")),
+            Hermes98Edit(168, hexBytes("4644"), hexBytes("c13e")),
+        )),
     )),
     Hermes98Role("canUserStartSubscription", "canUserStartSubscription", listOf(
         Hermes98Variant(317, "80f020f35bf5a9280dcbd742d767f8eda0c10cdd81995e333d2930eb0ec11fe5", listOf(
@@ -53,6 +66,10 @@ private val roles = listOf(
         Hermes98Variant(317, "908d413423430074a88764318542200d8e7ea2cf71c37467017c6b39205ae3c3", listOf(
             Hermes98Edit(33, hexBytes("5d44"), hexBytes("cd3e")),
             Hermes98Edit(155, hexBytes("5d44"), hexBytes("cd3e")),
+        )),
+        Hermes98Variant(317, "f21c85c57eedb65ede180e157f27a6b761a38e6c635d06f86359f73f6e954045", listOf(
+            Hermes98Edit(33, hexBytes("4644"), hexBytes("c13e")),
+            Hermes98Edit(155, hexBytes("4644"), hexBytes("c13e")),
         )),
     )),
     Hermes98Role("isTrialOrProUser", "isTrialOrProUser", listOf(
@@ -64,6 +81,10 @@ private val roles = listOf(
             Hermes98Edit(33, hexBytes("5d44"), hexBytes("cd3e")),
             Hermes98Edit(155, hexBytes("5d44"), hexBytes("cd3e")),
         )),
+        Hermes98Variant(305, "4da3f2057af05ba71d3e7bb3ed0f0d4d2ada1ed307a6b772500a5bfd6684d879", listOf(
+            Hermes98Edit(33, hexBytes("4644"), hexBytes("c13e")),
+            Hermes98Edit(155, hexBytes("4644"), hexBytes("c13e")),
+        )),
     )),
     Hermes98Role("getUserTierFromLatestSubscription", "getUserTierFromLatestSubscription", listOf(
         Hermes98Variant(256, "1e7cfae8215431f4324ad9a830ca094c6d76e03e4b0f27ca38aba45fc811cb8a", listOf(
@@ -74,12 +95,19 @@ private val roles = listOf(
             Hermes98Edit(33, hexBytes("5d44"), hexBytes("cd3e")),
             Hermes98Edit(152, hexBytes("5d44"), hexBytes("cd3e")),
         )),
+        Hermes98Variant(256, "a7067a58a040e11fe20956d73f92fb096a52904d204bd535224434f36edf4cf0", listOf(
+            Hermes98Edit(33, hexBytes("4644"), hexBytes("c13e")),
+            Hermes98Edit(152, hexBytes("4644"), hexBytes("c13e")),
+        )),
     )),
     Hermes98Role("RoundProButton", "RoundProButton", listOf(
         Hermes98Variant(549, "9177a98a0a239013429138728f08a0f6ea86f7a78c4ec68195de000d6466a880", listOf(
             Hermes98Edit(0, hexBytes("340700890301"), hexBytes("930076000000")),
         )),
         Hermes98Variant(549, "b2afb7a9948e9534b416a344c66630f3eb527d114b56515629ee310e686664b7", listOf(
+            Hermes98Edit(0, hexBytes("340700890301"), hexBytes("930076000000")),
+        )),
+        Hermes98Variant(549, "53393fd06d7c33366b0995b59df2c5100c2d50320871efe8b137241a1aa2d883", listOf(
             Hermes98Edit(0, hexBytes("340700890301"), hexBytes("930076000000")),
         )),
     )),
@@ -90,12 +118,18 @@ private val roles = listOf(
         Hermes98Variant(259, "2ac22edbe28c2858dc5b60e5c211806db9389200c9c12fa3f900ef518f7a9a61", listOf(
             Hermes98Edit(0, hexBytes("340b00890601"), hexBytes("930076000000")),
         )),
+        Hermes98Variant(259, "1621c8d5cd986c17ae052a7ad3c9fc22712f5144eccb2983f3fbb7b405661367", listOf(
+            Hermes98Edit(0, hexBytes("340b00890601"), hexBytes("930076000000")),
+        )),
     )),
     Hermes98Role("paywallGateA", "getCanAutoShowSubscribeModal_", listOf(
         Hermes98Variant(189, "f6f6deea8dfea57c88d7d79e565c8b6982e468d32522368da27333820fdf402f", listOf(
             Hermes98Edit(0, hexBytes("340400040389"), hexBytes("930076000000")),
         )),
         Hermes98Variant(189, "1cfb1c727104c6095c2cd3e22092533a4454121c717ec0895b08913d82af8e0d", listOf(
+            Hermes98Edit(0, hexBytes("340400040389"), hexBytes("930076000000")),
+        )),
+        Hermes98Variant(189, "29ad7e405452b06858c6da96dbe86ded4f04e6cbedb6cc0e58d40af4be9b1865", listOf(
             Hermes98Edit(0, hexBytes("340400040389"), hexBytes("930076000000")),
         )),
     )),
@@ -106,6 +140,9 @@ private val roles = listOf(
         Hermes98Variant(257, "0c7b1888fadf823a8341f1288bf976154edc1edb72fd2802c768b42e78015a6f", listOf(
             Hermes98Edit(0, hexBytes("340500340601"), hexBytes("930076000000")),
         )),
+        Hermes98Variant(257, "a1b2e254f5cbedc82d006895e772a6e3edf4e49d0bbc5d67340ff1f731dc0676", listOf(
+            Hermes98Edit(0, hexBytes("340500340601"), hexBytes("930076000000")),
+        )),
     )),
     Hermes98Role("DarkModeContextProvider", "DarkModeContextProvider", listOf(
         Hermes98Variant(297, "739b05e3096869916c618baf0fab4e0c6ec583b2d9c1087ed6b0d984adb62bb6", listOf(
@@ -113,6 +150,10 @@ private val roles = listOf(
             Hermes98Edit(229, hexBytes("d32a0809"), hexBytes("d3040809")),
         )),
         Hermes98Variant(297, "f0793d00d9421da5e815edb9033cdc5ba7b3374002cd6d5afeb8cdf6e56e25a8", listOf(
+            Hermes98Edit(190, hexBytes("b2510a"), hexBytes("b2030a")),
+            Hermes98Edit(229, hexBytes("d32a0809"), hexBytes("d3040809")),
+        )),
+        Hermes98Variant(297, "8efbbec175a4cc0fd4eb9659cf1fa146929abc578082f6bd6a00c2d674574e68", listOf(
             Hermes98Edit(190, hexBytes("b2510a"), hexBytes("b2030a")),
             Hermes98Edit(229, hexBytes("d32a0809"), hexBytes("d3040809")),
         )),

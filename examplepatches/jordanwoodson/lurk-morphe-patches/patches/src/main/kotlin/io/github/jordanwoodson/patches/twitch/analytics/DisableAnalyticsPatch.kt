@@ -21,19 +21,27 @@ import io.github.jordanwoodson.patches.twitch.shared.hex
 import io.github.jordanwoodson.patches.twitch.shared.twitchHermes
 import io.github.jordanwoodson.patches.twitch.shared.twitchHermesPatch
 import io.github.jordanwoodson.patches.twitch.shared.twitchMatch
+import io.github.jordanwoodson.patches.shared.invokeStatic
+import io.github.jordanwoodson.patches.shared.parameterRegister
+import io.github.jordanwoodson.patches.twitch.portals.PORTALS
+import io.github.jordanwoodson.patches.twitch.portals.portalClients
 
 private const val KEY = "disable_analytics"
 private const val PRIVACY = "Lio/github/jordanwoodson/extension/shared/twitch/TwitchPrivacy;"
+private const val PORTAL_TRACKER =
+    "$PORTALS->trackerResponse(Landroid/webkit/WebResourceRequest;)Landroid/webkit/WebResourceResponse;"
 
 @Suppress("unused")
 val disableAnalyticsPatch = bytecodePatch(
     name = "Disable analytics",
     description = "Stops Twitch's native and React Native Spade event uploads, denies local analytics SDK " +
         "consent, enables Branch's limited tracking mode, blocks Crashlytics uploads, Nielsen audience pings and Sprig surveys, " +
-        "and prevents Sentry initialization. Watch progress, viewing statistics and rewards may " +
-        "stop updating; with Auto-claim channel points or Auto-claim Drops on, the minute-watched event that earns " +
-        "channel points and progresses Drops still goes. Restart Twitch after changing this setting. Playback " +
-        "requests still run.",
+        "and prevents Sentry initialization. Twitch's in-app web pages (Create Clip, Report, Sign up) get an empty " +
+        "local answer for their requests to Sentry, Sprig, comScore and Nielsen; their Spade events go through " +
+        "Twitch's GraphQL API like the page's other requests and still go out. Keep watch time (on by default) " +
+        "still sends the minute-watched event that earns channel points and watch streaks and progresses Drops; " +
+        "with it off, those stop unless Auto-claim channel points or Auto-claim Drops is on. Restart Twitch after " +
+        "changing this setting. Playback requests still run.",
 ) {
     compatibleWith(COMPATIBILITY_TWITCH)
     dependsOn(twitchHermesPatch)
@@ -190,8 +198,25 @@ val disableAnalyticsPatch = bytecodePatch(
         NielsenPingFingerprint.twitchMatch("Nielsen ping").method.addInstructionsIfEnabled(KEY, "return-void")
         SprigConfigureFingerprint.twitchMatch("Sprig configuration").method.addInstructionsIfEnabled(KEY, "return-void")
 
+        // Twitch's in-app web pages (Create Clip, Report, Sign up) run its web client, which reports errors to Sentry,
+        // loads Sprig and, in the mod view's player, comScore and Nielsen pixels. Both portal WebViewClients answer
+        // those requests with an empty 204. The pages' Spade events are a GraphQL mutation to gql.twitch.tv, which
+        // shouldInterceptRequest can't tell apart (it has no request body).
+        portalClients().forEach { client ->
+            val intercept = client.intercept
+            intercept.addInstructionsIfEnabled(KEY, """
+                ${invokeStatic(PORTAL_TRACKER, intercept.parameterRegister(2))}
+                move-result-object v0
+                if-eqz v0, :lurk_off
+                return-object v0
+            """)
+        }
+
         twitchSettings.add(SwitchSetting(KEY, "Disable analytics",
-            "Stops Spade, Nielsen and Sprig, limits Branch tracking, denies SDK consent, disables Crashlytics uploads and Sentry. Watch progress/rewards may be affected; Auto-claim channel points and Auto-claim Drops keep the watch-time event that earns points and Drops.",
+            "Stops Spade, Nielsen and Sprig, limits Branch tracking, denies SDK consent, disables Crashlytics uploads and Sentry, and keeps the in-app web pages' Sentry, Sprig, comScore and Nielsen requests on the device.",
             Section.PRIVACY, restart = true))
+        twitchSettings.add(SwitchSetting("disable_analytics_watch_time", "Keep watch time",
+            "Still sends the minute-watched event, so channel points, watch streaks and Drops count your watch time. Every other analytics event stays blocked. Off: none of them count, unless an Auto-claim switch is on.",
+            Section.PRIVACY, default = true, parent = KEY))
     }
 }

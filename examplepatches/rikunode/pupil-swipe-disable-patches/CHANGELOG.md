@@ -1,3 +1,9 @@
+## [1.4.0](https://github.com/rikunode/pupil-swipe-disable-patches/compare/v1.3.0...v1.4.0) (2026-11-20)
+
+### ✨ New Features
+
+* reposition favorites random shortcut and add optional left button ([c178209](https://github.com/rikunode/pupil-swipe-disable-patches/commit/c178209231af2d6988da79ffbb460376f1db0a4c))
+
 ## [1.3.0](https://github.com/rikunode/pupil-swipe-disable-patches/compare/v1.2.0...v1.3.0) (2026-10-15)
 
 ### ✨ New Features

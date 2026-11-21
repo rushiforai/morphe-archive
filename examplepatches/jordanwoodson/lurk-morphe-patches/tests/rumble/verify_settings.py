@@ -37,6 +37,7 @@ DEFAULTS = {
     "hide_related_videos": "false",
     "hide_premium_only": "false",
     "player_gestures": "false",
+    "remote_keys": "true",
     "unlock_premium": "true",
     "block_update_prompts": "true",
     "exact_counts": "false",

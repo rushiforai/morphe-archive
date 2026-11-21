@@ -47,7 +47,7 @@ import java.util.regex.Pattern;
 import app.morphe.extension.shared.utils.Logger;
 import app.morphe.extension.shared.utils.ResourceUtils;
 import app.morphe.extension.shared.utils.Utils;
-import app.morphe.extension.shared.patches.components.Filter;
+import app.morphe.extension.shared.patches.components.LazyBufferFilter;
 import app.morphe.extension.shared.patches.components.LegacyLithoFilterPatch;
 import app.morphe.extension.shared.patches.components.StringFilterGroup;
 import app.morphe.extension.shared.ui.CustomDialog;
@@ -65,7 +65,7 @@ import app.morphe.extension.youtube.shared.EngagementPanel;
  * As the hidden comments do not fill the list, scrolling loads the next comments sooner.
  */
 @SuppressWarnings("unused")
-public final class CommentsSearchFilter extends Filter {
+public final class CommentsSearchFilter extends LazyBufferFilter {
 
     /**
      * Added during patching to the controller of section lists, such as the list of the comments panel.
@@ -197,10 +197,10 @@ public final class CommentsSearchFilter extends Filter {
     }
 
     @Override
-    public boolean isFiltered(String path,
+    public boolean isFilteredLazy(String path,
                               String identifier,
                               String accessibility,
-                              byte[] buffer,
+                              Buffer buffer,
                               StringFilterGroup matchedGroup,
                               FilterContentType contentType,
                               int contentIndex) {
@@ -219,7 +219,7 @@ public final class CommentsSearchFilter extends Filter {
         // The legacy parser buffer can belong to a different component. The converter hook
         // supplies the current FlatBuffer, including on versions before the v20.21 bridge.
         if (!IS_20_22_OR_GREATER) {
-            buffer = LegacyLithoFilterPatch.getDirectProtoBuffer();
+            buffer = LegacyLithoFilterPatch::getDirectProtoBuffer;
         }
 
         CommentDecision last = lastComment.get();
@@ -228,7 +228,7 @@ public final class CommentsSearchFilter extends Filter {
             if (path.contains(COMMENT_PATH)) {
                 return false; // Part of a comment.
             }
-            return isRepliesHidden(path, buffer, terms, last);
+            return isRepliesHidden(path, buffer.get(), terms, last);
         }
 
         if (last != null && last.terms == terms
@@ -237,17 +237,18 @@ public final class CommentsSearchFilter extends Filter {
             return last.hidden;
         }
 
-        if (buffer.length == 0) {
+        byte[] commentBytes = buffer.get();
+        if (commentBytes.length == 0) {
             return false; // Nothing to search, so the comment is left for its inner components.
         }
 
         // The buffer is not text, but the text of the comment is in it as UTF-8.
-        String text = foldCase(new String(buffer, StandardCharsets.UTF_8));
+        String text = foldCase(new String(commentBytes, StandardCharsets.UTF_8));
         final boolean hidden = !containsAllTerms(text, terms);
         String commentPath = path.toString();
         CommentDecision decision = new CommentDecision(commentPath, terms, hidden);
         lastComment.set(decision);
-        rememberIds(buffer, decision);
+        rememberIds(commentBytes, decision);
         Logger.printDebug(() -> (hidden ? "Hiding comment: " : "Showing comment: ") + commentPath);
         return hidden;
     }

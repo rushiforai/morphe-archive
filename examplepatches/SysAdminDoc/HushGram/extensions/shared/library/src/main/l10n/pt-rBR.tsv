@@ -1057,8 +1057,8 @@ Open a chat in Instagram, then come back here to lock it.	Abra uma conversa no I
 This collection is locked	Esta coleção está bloqueada
 Unlock this collection	Desbloquear esta coleção
 Locked collections	Coleções bloqueadas
-Lock single collections in Saved. A locked collection opens only once you unlock it the way Unlock with says. Saving a post to it never asks.	Bloqueia coleções dos Salvos uma a uma. Uma coleção bloqueada só abre depois que você a desbloqueia do jeito que Desbloquear com diz. Salvar um post nela nunca pede nada.
-Open a collection in Saved, then come back here to lock it.	Abra uma coleção nos Salvos e volte aqui para bloqueá-la.
+Lock single collections in Saved. Long press one there to lock it or take its lock off. A locked collection opens only once you unlock it the way Unlock with says. Saving a post to it never asks.	Bloqueia coleções dos Salvos uma a uma. Mantenha uma coleção pressionada lá para bloqueá-la ou tirar o bloqueio. Uma coleção bloqueada só abre depois que você a desbloqueia do jeito que Desbloquear com diz. Salvar um post nela nunca pede nada.
+Long press a collection in Saved to lock it, or open one and come back here.	Mantenha uma coleção pressionada nos Salvos para bloqueá-la, ou abra uma e volte aqui.
 %1$s (opened last)	%1$s (aberta por último)
 %1$s is locked	%1$s está bloqueada
 %1$s is unlocked	%1$s está desbloqueada
@@ -1945,7 +1945,7 @@ That isn't a picture.	Isso não é uma imagem.
 That picture is over %1$d MB.	Essa imagem passa de %1$d MB.
 Couldn't save the picture.	Não foi possível salvar a imagem.
 Open a chat, tap the clock button next to the call buttons at the top, or long press the chat's name, and pick Jump to the first message or Jump to a date. The chat loads its older messages on its own, with a count and a Cancel button.	Abra uma conversa, toque no botão de relógio ao lado dos botões de chamada no topo, ou mantenha o nome da conversa pressionado, e escolha Ir para a primeira mensagem ou Ir para uma data. A conversa carrega as mensagens mais antigas sozinha, com uma contagem e um botão Cancelar.
-Open a chat, tap the clock button next to the call buttons at the top, or long press the chat's name, and pick Export chat. The whole chat is saved as a text file in Downloads, HushGram folder, one line per message.	Abra uma conversa, toque no botão de relógio ao lado dos botões de chamada no topo, ou mantenha o nome da conversa pressionado, e escolha Exportar conversa. A conversa inteira é salva como arquivo de texto em Downloads, pasta HushGram, com uma linha por mensagem.
+Open a chat, tap the clock button next to the call buttons at the top, or long press the chat's name, and pick Export chat. The whole chat is saved as a text file in Downloads, HushGram folder, one line per message. Select messages in the same menu lets you tick messages to copy, share or save.	Abra uma conversa, toque no botão de relógio ao lado dos botões de chamada no topo, ou mantenha o nome da conversa pressionado, e escolha Exportar conversa. A conversa inteira é salva como arquivo de texto em Downloads, pasta HushGram, com uma linha por mensagem. Em Selecionar mensagens, no mesmo menu, você marca mensagens para copiar, compartilhar ou salvar.
 Instagram stopped loading older messages.	O Instagram parou de carregar mensagens antigas.
 Black settings page	Página de configurações preta
 Black rows and dialogs, with HushGram's name at the top.	Linhas e caixas de diálogo pretas, com o nome do HushGram no topo.
@@ -2706,3 +2706,46 @@ Newest first	Mais recentes primeiro
 Puts each page of reels in the order they were posted, newest on top.	Ordena cada página de reels pela data de postagem, com os mais recentes no topo.
 # context: summary of the Also on Home switch under those rows; the posts it leaves out are Home's suggested posts (#780)
 Leaves out suggested posts on Home outside the same numbers too. Pull down on Home to refresh after changing it.	Tira também do Início os posts sugeridos fora dos mesmos números. Puxe o Início para baixo para atualizar depois de mudar.
+# context: the chat menu's entry that opens a list of the chat's messages to tick, and that list's title
+Select messages	Selecionar mensagens
+# context: Select messages' title switch; it ticks every message
+Select all	Selecionar tudo
+# context: the same switch once every message is ticked; it unticks them all
+Clear	Desmarcar tudo
+# context: a button of Select messages; it copies the ticked messages to the clipboard
+Copy	Copiar
+# context: a button of Select messages; it opens Android's share sheet with the ticked messages
+Share	Compartilhar
+# context: a toast when Copy, Share or Save is tapped with no message ticked
+Pick a message first.	Escolha uma mensagem primeiro.
+# context: a toast after Copy in Select messages when the count is exactly one; %1$d is the number
+Copied %1$d message.	%1$d mensagem copiada.
+# context: the same toast for any other count; %1$d is how many
+Copied %1$d messages.	%1$d mensagens copiadas.
+# context: the one item in the menu a long press on a collection's tile in Saved opens; Remove lock is that item for a collection that's locked already (#678)
+Lock collection	Bloquear coleção
+Remove lock	Tirar bloqueio
+# context: toast when locking a collection or taking its lock off couldn't be saved (#678)
+Couldn't change the lock. Try again.	Bloqueio não mudou. Tente de novo.
+# context: the switch under HushGram settings > Notifications that gives a chat's message notification Android's bubble (#747); Android's own name for the feature
+Chat bubbles	Balões de chat
+# context: that switch's summary (#747)
+A chat's message notification gets Android's bubble button, so the chat can float over other apps. Hidden and locked chats never get one. Needs Android 11 or newer.	A notificação de uma mensagem de chat ganha o botão de balão do Android, para o chat flutuar sobre outros apps. Chats ocultos e conversas bloqueadas nunca ganham um. Precisa do Android 11 ou mais recente.
+# context: the Notifications category's summary when Chat bubbles is the only patch in it (#747)
+Let a chat's notifications open as a bubble over other apps.	Deixe as notificações de um chat abrirem como balão sobre outros apps.
+# context: the switch under HushGram settings > Messages that puts a Record button on Instagram's call screen (#732)
+Record calls	Gravar chamadas
+# context: that switch's summary; Record is the button's own label, the next row (#732)
+Adds a Record button to the call screen. It saves the call's sound, both sides, as an audio file on your phone. Some places require everyone on the call to agree to being recorded.	Adiciona um botão Gravar à tela da chamada. Ele salva o som da chamada, dos dois lados, como um arquivo de áudio no seu celular. Em alguns lugares, todos na chamada precisam concordar em ser gravados.
+# context: the button over Instagram's call screen that starts recording the call, a verb, kept short (#732)
+Record	Gravar
+# context: what a screen reader says for that button before a recording starts (#732)
+Record this call	Gravar esta chamada
+# context: what a screen reader says for that button while it records; its text is then a dot and the time (#732)
+Stop recording	Parar de gravar
+# context: a toast when the Record button can't start a recording (#732)
+Couldn't start recording this call	Não foi possível começar a gravar a chamada
+# context: a toast when a finished call recording can't be saved to the phone (#732)
+Couldn't save the call recording	Não foi possível salvar a gravação da chamada
+# context: a toast when a recording ends with no sound in it (#732)
+Nothing was recorded	Nada foi gravado

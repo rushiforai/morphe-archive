@@ -12,6 +12,7 @@ import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.booleanOption
 import app.morphe.patcher.patch.bytecodePatch
 import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 
 private const val EXTENSION_CLASS = "Lapp/jofslash/extension/quora/NativeTweaksPatch;"
 
@@ -28,7 +29,7 @@ val blockPromotionalNotificationsPatch = bytecodePatch(
     name = "Block promotional notifications",
     description = "Drops digest and promotional push notifications. Replies, comments and other " +
             "notifications about you still arrive.",
-    default = false
+    default = true
 ) {
     category("App")
     compatibleWith(COMPATIBILITY_QUORA)
@@ -147,7 +148,7 @@ val blockBranchTrackingPatch = bytecodePatch(
     name = "Block Branch tracking",
     description = "Turns on Branch's \"disable tracking\" mode and turns off its debug mode. " +
             "Branch tracks where installs come from. Quora's quora.app.link links may open with less detail.",
-    default = false
+    default = true
 ) {
     category("Privacy")
     compatibleWith(COMPATIBILITY_QUORA)
@@ -200,5 +201,48 @@ val keepPlaceOnReturnPatch = bytecodePatch(
                 nop
             """
         )
+    }
+}
+
+// Whether Quora follows the device theme. A new install has no stored value, so this
+// returns false while the bars still follow the device: dark bars around light pages.
+internal object UseDeviceThemeFingerprint : Fingerprint(
+    definingClass = "Lcom/quora/android/util/QThemeUtil;",
+    name = "getUseDeviceTheme",
+    returnType = "Z",
+    parameters = listOf(),
+    filters = listOf(
+        methodCall(definingClass = "Lcom/quora/android/model/QKeyValueStore;", name = "getBoolean"),
+    )
+)
+
+@Suppress("unused")
+val fixDeviceThemePatch = bytecodePatch(
+    name = "Fix device theme",
+    description = "On a new install, follows the device's dark or light theme everywhere. " +
+            "Without it, Quora shows dark bars around light pages until you pick a theme again.",
+    default = true
+) {
+    category("App")
+    compatibleWith(COMPATIBILITY_QUORA)
+
+    extendWith("extensions/extension.mpe")
+
+    execute {
+        UseDeviceThemeFingerprint.let {
+            it.method.apply {
+                val index = it.instructionMatches.first().index + 1
+                val moveResult = getInstruction(index)
+                if (moveResult.opcode != Opcode.MOVE_RESULT_OBJECT) throw PatchException("No stored theme result")
+                val register = (moveResult as OneRegisterInstruction).registerA
+                addInstructions(
+                    index + 1,
+                    """
+                        invoke-static { v$register }, $EXTENSION_CLASS->useDeviceThemeOrDefault(Ljava/lang/Boolean;)Ljava/lang/Boolean;
+                        move-result-object v$register
+                    """
+                )
+            }
+        }
     }
 }

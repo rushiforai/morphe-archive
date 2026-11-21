@@ -100,6 +100,7 @@ lateinit var addLithoFilter: (String) -> Unit
     private set
 
 private const val EXTENSION_LITHO_FILTER_CLASS_DESCRIPTOR = "$COMPONENTS_PATH/LithoFilterPatch;"
+private const val EXTENSION_ENCODABLE_ELEMENT = "$COMPONENTS_PATH/LithoFilterPatch\$EncodableElement;"
 private const val EXTENSION_LEGACY_LITHO_FILTER_CLASS_DESCRIPTOR = "$COMPONENTS_PATH/LegacyLithoFilterPatch;"
 internal const val EXTENSION_FILTER_ARRAY_DESCRIPTOR = "[$COMPONENTS_PATH/Filter;"
 internal var emptyComponentLabel = ""
@@ -221,6 +222,34 @@ val lithoFilterPatch = bytecodePatch(
             }
 
             val protoBufferEncodeMethod = ProtobufBufferEncodeFingerprint.method
+            if (!isYouTubeMusic) {
+                // Keep the native encoder on the exact element passed to ComponentCreate. Adding
+                // a bridge avoids per-component suppliers and never encodes a parser/root buffer.
+                mutableClassDefBy(protoBufferEncodeMethod.definingClass).apply {
+                    interfaces.add(EXTENSION_ENCODABLE_ELEMENT)
+                    methods.add(
+                        ImmutableMethod(
+                            type,
+                            "patch_encodeElement",
+                            emptyList(),
+                            "[B",
+                            AccessFlags.PUBLIC.value or AccessFlags.FINAL.value,
+                            null,
+                            null,
+                            MutableMethodImplementation(2),
+                        ).toMutable().apply {
+                            addInstructions(
+                                0,
+                                """
+                                invoke-virtual { p0 }, $protoBufferEncodeMethod
+                                move-result-object v0
+                                return-object v0
+                                """
+                            )
+                        }
+                    )
+                }
+            }
 
             val flatBufferElementReferences = if (isYouTubeMusic) {
                 val elementInterface = ComponentCreateFingerprint.method.parameterTypes[2].toString()
@@ -360,12 +389,20 @@ val lithoFilterPatch = bytecodePatch(
                 val accessibilityIdRegister = accessibilityRegisterProvider.getFreeRegister()
                 val accessibilityTextRegister = accessibilityRegisterProvider.getFreeRegister()
 
-                // YouTube Music 9.15 can pass either an UPB or FlatBuffer-backed element. Read the
-                // current FlatBuffer directly because the generic parser hook can run on another
-                // thread and direct ByteBuffers do not expose their backing bytes.
-                val unsupportedDirectBufferInstructions = if (flatBufferElementReferences != null) {
+                val filterInstructions = if (flatBufferElementReferences != null) {
+                    // Music can pass either an UPB or a FlatBuffer-backed element. Preserve the
+                    // existing direct buffer and its copy cache for that parser.
                     with(flatBufferElementReferences) {
                         """
+                        move-object/from16 v$bufferRegister, p3
+                        instance-of v$freeRegister, v$bufferRegister, ${protoBufferEncodeMethod.definingClass}
+                        if-eqz v$freeRegister, :flat_buffer
+                        check-cast v$bufferRegister, ${protoBufferEncodeMethod.definingClass}
+                        invoke-virtual { v$bufferRegister }, $protoBufferEncodeMethod
+                        move-result-object v$bufferRegister
+                        goto :set_direct_buffer
+
+                        :flat_buffer
                         instance-of v$freeRegister, v$bufferRegister, $elementClass
                         if-eqz v$freeRegister, :missing_buffer
                         check-cast v$bufferRegister, $elementClass
@@ -377,47 +414,35 @@ val lithoFilterPatch = bytecodePatch(
                         :missing_buffer
                         const/4 v$freeRegister, 0x0
                         new-array v$bufferRegister, v$freeRegister, [B
-                        """.trimIndent()
+
+                        :set_direct_buffer
+                        invoke-static { v$bufferRegister }, $EXTENSION_LITHO_FILTER_CLASS_DESCRIPTOR->setDirectProtoBuffer([B)V
+
+                        :filter
+                        move-object/from16 v$freeRegister, p2
+                        instance-of v$identifierRegister, v$freeRegister, ${conversionContextClass.type}
+                        if-eqz v$identifierRegister, :unfiltered
+
+                        iget-object v$identifierRegister, v$freeRegister, $conversionContextIdentifierField
+                        iget-object v$pathRegister, v$freeRegister, $conversionContextPathBuilderField
+                        invoke-static { v$identifierRegister, v$accessibilityIdRegister, v$accessibilityTextRegister, v$pathRegister, v$freeRegister }, $EXTENSION_LITHO_FILTER_CLASS_DESCRIPTOR->isFiltered(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/StringBuilder;Ljava/lang/Object;)Z
+                        """
                     }
                 } else {
                     """
-                    const/4 v$freeRegister, 0x0
-                    new-array v$bufferRegister, v$freeRegister, [B
+                    move-object/from16 v$freeRegister, p2
+                    instance-of v$identifierRegister, v$freeRegister, ${conversionContextClass.type}
+                    if-eqz v$identifierRegister, :unfiltered
+
+                    move-object/from16 v$bufferRegister, p3
+                    invoke-static { v$freeRegister, v$accessibilityIdRegister, v$accessibilityTextRegister, v$bufferRegister }, $EXTENSION_LITHO_FILTER_CLASS_DESCRIPTOR->isFilteredElement(Ljava/lang/Object;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Object;)Z
                     """.trimIndent()
                 }
 
                 addInstructionsAtControlFlowLabel(
                     insertIndex,
                     """
-                    move-object/from16 v$bufferRegister, p3
-
-                    # Use the current component buffer directly. Reusing buffers by identifier can
-                    # collide for repeated components such as fullscreen quick action buttons.
-                    instance-of v$freeRegister, v$bufferRegister, ${protoBufferEncodeMethod.definingClass}
-                    if-eqz v$freeRegister, :empty_buffer
-
-                    check-cast v$bufferRegister, ${protoBufferEncodeMethod.definingClass}
-                    invoke-virtual { v$bufferRegister }, $protoBufferEncodeMethod
-                    move-result-object v$bufferRegister
-                    goto :set_direct_buffer
-
-                    :empty_buffer
-                    $unsupportedDirectBufferInstructions
-
-                    :set_direct_buffer
-                    invoke-static { v$bufferRegister }, $EXTENSION_LITHO_FILTER_CLASS_DESCRIPTOR->setDirectProtoBuffer([B)V
-
-                    :filter
-                    move-object/from16 v$freeRegister, p2
-                    
-                    # 20.41 field is the abstract superclass.
-                    # Verify it's the expected subclass just in case. 
-                    instance-of v$identifierRegister, v$freeRegister, ${conversionContextClass.type}
-                    if-eqz v$identifierRegister, :unfiltered
-                    
-                    iget-object v$identifierRegister, v$freeRegister, $conversionContextIdentifierField
-                    iget-object v$pathRegister, v$freeRegister, $conversionContextPathBuilderField
-                    invoke-static { v$identifierRegister, v$accessibilityIdRegister, v$accessibilityTextRegister, v$pathRegister, v$freeRegister }, $EXTENSION_LITHO_FILTER_CLASS_DESCRIPTOR->isFiltered(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/StringBuilder;Ljava/lang/Object;)Z
+                    $filterInstructions
                     move-result v$freeRegister
                     if-eqz v$freeRegister, :unfiltered
                     

@@ -1,7 +1,7 @@
 """Verify Wanderlog APKM output: reviewed HBC98 edits, footer, OTA guard and unchanged payloads.
 
 The expected bundle is rebuilt from the stock bundle using function names and semantic site
-patterns, so both reviewed versions (2.227 and 2.228) are checked without absolute offsets.
+patterns, so every reviewed version (2.227, 2.228 and 2.229) is checked without absolute offsets.
 """
 import argparse
 import hashlib

@@ -1,10 +1,10 @@
 package app.wagg.patches.pinterest.trash
 
+// ATENÇÃO: ajuste os imports/DSL à versão do Morphe patcher usada no seu repo.
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
-import app.morphe.patcher.patch.ApkFileType
 import app.morphe.patcher.patch.AppTarget
 import app.morphe.patcher.patch.Compatibility
 import app.morphe.patcher.patch.PatchException
@@ -12,41 +12,34 @@ import app.morphe.patcher.patch.bytecodePatch
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 
-private val PINTEREST_COMPATIBILITY = Compatibility(
-    name = "Pinterest",
-    packageName = "com.pinterest",
-    apkFileType = ApkFileType.APK,
-    targets = listOf(
-        AppTarget(version = "14.39.0"),
-        AppTarget(version = "14.40.0"),
-        AppTarget(version = "14.41.0"),
-    ),
-)
-
 private const val EXT = "Lapp/morphe/extension/pinterest/TrashBubble;"
 private const val ITEM_VIEW = "Lcom/pinterest/ui/menu/ContextMenuItemView;"
 private const val PIN_SERVICE = "Lcom/pinterest/repository/pin/PinService;"
 
+// Iguais nas versões suportadas
 private const val PIN_OWNED_BY_VIEWER = "W5()Ljava/lang/Boolean;" // is_owned_by_viewer
 private const val PIN_UID = "c()Ljava/lang/String;"               // uid
 private const val FIELD_M = "m"                                   // ContextMenuItemView.m (boolean)
 private const val FIELD_N = "n"                                   // ContextMenuItemView.n (boolean)
 private const val FIELD_R = "r"                                   // ContextMenuItemView.r (int)
-private const val METHOD_SET_ICON = "f(I)V"
 
+/** Nomes ofuscados que mudam entre versões do Pinterest. */
 private data class PinterestNames(
     val pinModel: String,      // classe Pin
     val iconEnum: String,      // enum de ícones gestalt (tem TRASH_CAN + drawableRes(Context))
     val deleteConfirm: String, // R.string.delete_confirm ("Excluir")
+    val setIcon: String,       // ContextMenuItemView: setter de ícone por resource id
     val setLabel: String,      // ContextMenuItemView: setter de rótulo por resource id
 )
 
+/** Chave = classe que define o método que monta a bolha do WhatsApp. */
 private val NAMES_BY_BUBBLE_CLASS = mapOf(
     // 14.39.0
     "La/a;" to PinterestNames(
         pinModel = "Lcom/pinterest/api/model/oe;",
         iconEnum = "Lzx1/n0;",
         deleteConfirm = "Loi0/b;->delete_confirm:I",
+        setIcon = "f(I)V",
         setLabel = "i(I)V",
     ),
     // 14.40.0
@@ -54,6 +47,7 @@ private val NAMES_BY_BUBBLE_CLASS = mapOf(
         pinModel = "Lcom/pinterest/api/model/pe;",
         iconEnum = "Lfy1/o0;",
         deleteConfirm = "Lri0/b;->delete_confirm:I",
+        setIcon = "f(I)V",
         setLabel = "h(I)V",
     ),
     // 14.41.0 (a bolha agora fica numa classe do pacote kotlin.jvm.internal, efeito do R8)
@@ -61,11 +55,28 @@ private val NAMES_BY_BUBBLE_CLASS = mapOf(
         pinModel = "Lcom/pinterest/api/model/pe;",
         iconEnum = "Lyy1/n0;",
         deleteConfirm = "Ldj0/b;->delete_confirm:I",
+        setIcon = "f(I)V",
         setLabel = "h(I)V",
+    ),
+    // 14.44.0
+    "Lxb3/f;" to PinterestNames(
+        pinModel = "Lcom/pinterest/api/model/pe;",
+        iconEnum = "Lk02/o0;",
+        deleteConfirm = "Lkk0/b;->delete_confirm:I",
+        setIcon = "f(I)V",
+        setLabel = "h(I)V",
+    ),
+    // 14.45.0 (os setters do ContextMenuItemView foram renomeados: ícone g, rótulo i)
+    "Lm93/d;" to PinterestNames(
+        pinModel = "Lcom/pinterest/api/model/uu;",
+        iconEnum = "Ld52/o0;",
+        deleteConfirm = "Lrl0/b;->delete_confirm:I",
+        setIcon = "g(I)V",
+        setLabel = "i(I)V",
     ),
 )
 
-/** Monta a bolha "compartilhar no app recente" (WhatsApp). Casa em 14.39, 14.40 e 14.41. */
+/** Monta a bolha "compartilhar no app recente" (WhatsApp). Casa em 14.39, 14.40, 14.41, 14.44 e 14.45. */
 private object RecentShareBubbleFingerprint : Fingerprint(
     // Sem accessFlags: o método é public static FINAL e o Morphe exige igualdade exata.
     returnType = ITEM_VIEW,
@@ -88,7 +99,19 @@ val pinterestTrashBubblePatch = bytecodePatch(
     description = "Replaces the WhatsApp button in the menu that opens when you press and hold " +
         "your saved pin with a trash button that deletes it.",
 ) {
-    compatibleWith(PINTEREST_COMPATIBILITY)
+    compatibleWith(
+        Compatibility(
+            name = "Pinterest",
+            packageName = "com.pinterest",
+            targets = listOf(
+                AppTarget(version = "14.39.0"),
+                AppTarget(version = "14.40.0"),
+                AppTarget(version = "14.41.0"),
+                AppTarget(version = "14.44.0"),
+                AppTarget(version = "14.45.0"),
+            ),
+        ),
+    )
 
     // OBRIGATÓRIO: leva a classe TrashBubble para o APK (use o mesmo caminho dos seus outros patches).
     extendWith("extensions/extension.mpe")
@@ -98,7 +121,7 @@ val pinterestTrashBubblePatch = bytecodePatch(
         val names = NAMES_BY_BUBBLE_CLASS[bubbleMethod.definingClass]
             ?: throw PatchException(
                 "Versão do Pinterest não suportada (classe da bolha: ${bubbleMethod.definingClass}). " +
-                    "Suportadas: 14.39.0, 14.40.0 e 14.41.0.",
+                    "Suportadas: 14.39.0, 14.40.0, 14.41.0, 14.44.0 e 14.45.0.",
             )
 
         // 1) Guardar o PinService quando o apresentador do long-press é criado.
@@ -144,7 +167,7 @@ val pinterestTrashBubblePatch = bytecodePatch(
                 move-object/from16 v2, p1
                 invoke-virtual { v1, v2 }, ${names.iconEnum}->drawableRes(Landroid/content/Context;)I
                 move-result v1
-                invoke-virtual { v$view, v1 }, $ITEM_VIEW->$METHOD_SET_ICON
+                invoke-virtual { v$view, v1 }, $ITEM_VIEW->${names.setIcon}
                 sget v1, ${names.deleteConfirm}
                 invoke-virtual { v$view, v1 }, $ITEM_VIEW->${names.setLabel}
 

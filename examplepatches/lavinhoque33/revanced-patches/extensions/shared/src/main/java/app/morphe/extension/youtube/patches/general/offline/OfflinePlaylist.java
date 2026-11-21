@@ -5,6 +5,7 @@
  * https://github.com/anddea/revanced-patches
  *
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-20.
  * Modified by lavinhoque33, 2026-11-05.
  * Written by lavinhoque33, 2026-10-23.
  */
@@ -21,7 +22,6 @@ import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -100,8 +100,8 @@ final class OfflinePlaylist {
     private static Result fetch(String playlistId, boolean authenticated) {
         try {
             final Locale locale = new Locale(Locale.getDefault().getLanguage());
-            // Keyed by id: a playlist may contain a video more than once.
-            Map<String, Entry> entries = new LinkedHashMap<>();
+            // Keep playlist positions, including repeated videos. The download picker deduplicates tasks separately.
+            List<Entry> entries = new ArrayList<>();
             Set<String> seenTokens = new HashSet<>();
             String title = "";
             byte[] body = ChannelSearchRoutes.createChannelBody("VL" + playlistId, locale);
@@ -111,10 +111,8 @@ final class OfflinePlaylist {
                 if (json == null) return null;
                 if (page == 0) title = parseTitle(json);
 
-                List<Entry> found = new ArrayList<>();
                 List<String> tokens = new ArrayList<>();
-                collect(json, found, tokens);
-                for (Entry entry : found) entries.putIfAbsent(entry.videoId(), entry);
+                collect(json, entries, tokens);
 
                 // The last token of a page continues the list; earlier ones belong to sort menus.
                 String token = tokens.isEmpty() ? null : tokens.get(tokens.size() - 1);
@@ -129,7 +127,7 @@ final class OfflinePlaylist {
             }
             final int count = entries.size();
             Logger.printInfo(() -> "Playlist " + playlistId + ": " + count + " videos");
-            return new Result(title, new ArrayList<>(entries.values()));
+            return new Result(title, entries);
         } catch (Exception ex) {
             Logger.printException(() -> "Could not load playlist " + playlistId, ex);
             return null;

@@ -2,15 +2,18 @@ package app.morphe.patches.youtube.layout.dimming
 
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.InstructionLocation.MatchAfterImmediately
+import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.methodCall
+import app.morphe.patcher.opcode
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.ResourcePatchContext
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.getReference
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patches.shared.mapping.ResourceType
+import app.morphe.patches.shared.mapping.hasResourceId
 import app.morphe.patches.shared.mapping.resourceLiteral
 import app.morphe.patches.shared.mapping.resourceMappingPatch
 import app.morphe.patches.youtube.utils.compatibility.Constants.COMPATIBILITY_YOUTUBE
@@ -21,6 +24,8 @@ import app.morphe.patches.youtube.utils.playservice.versionCheckPatch
 import app.morphe.patches.youtube.utils.settings.ResourceUtils.addPreference
 import app.morphe.patches.youtube.utils.settings.ResourceUtils.getContext
 import app.morphe.patches.youtube.utils.settings.settingsPatch
+import app.morphe.patches.youtube.utils.toolbar.hookToolBarWithImageView
+import app.morphe.patches.youtube.utils.toolbar.toolBarHookPatch
 import app.morphe.util.Utils.printWarn
 import app.morphe.util.asSequence
 import com.android.tools.smali.dexlib2.Opcode
@@ -33,10 +38,24 @@ import org.w3c.dom.Document
 import org.w3c.dom.Element
 
 private const val SCRIM_VIEW = "app.morphe.extension.youtube.patches.shorts.ShortsScrimView"
+private const val PRESENTATION = "Lapp/morphe/extension/youtube/patches/shorts/ShortsPresentation;"
 private const val VERTICAL_SCRIMS = "reel_player_overlay_v2_scrims_vertical"
 private const val SHORTS_BOTTOM_SCRIM = "reel_scrim_shorts_while_bottom_gradient"
 private const val SHORTS_TOP_SCRIM = "reel_scrim_shorts_while_top"
 private const val CONTEXT_CONSTRUCTOR = "<init>(Landroid/content/Context;)V"
+
+private object ShortsWatchPlayerFingerprint : Fingerprint(
+    parameters = listOf("Landroid/view/LayoutInflater;", "Landroid/view/ViewGroup;", "Landroid/os/Bundle;"),
+    returnType = "Landroid/view/View;",
+    filters = listOf(
+        resourceLiteral(ResourceType.ID, "reel_watch_player"),
+        methodCall(
+            smali = "Landroid/view/View;->findViewById(I)Landroid/view/View;",
+            location = MatchAfterImmediately(),
+        ),
+        opcode(Opcode.MOVE_RESULT_OBJECT, location = MatchAfterImmediately()),
+    ),
+)
 
 private object ProgrammaticShortsScrimFingerprint : Fingerprint(
     name = "<init>",
@@ -127,6 +146,36 @@ private fun ResourcePatchContext.installScrimViews(): Boolean {
     return true
 }
 
+private fun BytecodePatchContext.installPresentation() {
+    val watchPlayer = if (hasResourceId(ResourceType.ID, "reel_watch_player")) {
+        ShortsWatchPlayerFingerprint.matchOrNull()
+    } else null
+    if (watchPlayer == null || !hasResourceId(ResourceType.ID, "reel_watch_fragment_root")) {
+        printWarn("Shorts presentation settings are unavailable: cannot find the native Shorts watch view.")
+        return
+    }
+
+    val result = watchPlayer.instructionMatches.last().index
+    val register = watchPlayer.method.getInstruction<OneRegisterInstruction>(result).registerA
+    watchPlayer.method.addInstruction(
+        result + 1,
+        "invoke-static/range {v$register .. v$register}, $PRESENTATION->onReelCreated(Landroid/view/View;)V",
+    )
+    addPreference(
+        arrayOf("PREFERENCE_SCREEN: SHORTS", "SETTINGS: SHORTS_IMMERSIVE_STATUS_BAR"),
+        HIDE_SHORTS_DIMMING,
+    )
+
+    if (hasResourceId(ResourceType.ID, "reel_player_delegated_overlay") &&
+        hasResourceId(ResourceType.ID, "reel_player_footer_container")
+    ) {
+        hookToolBarWithImageView("$PRESENTATION->onToolbarIconBound")
+        addPreference(arrayOf("PREFERENCE_SCREEN: SHORTS", "SETTINGS: SHORTS_OVERLAY_OPACITY"))
+    } else {
+        printWarn("Shorts overlay opacity is unavailable: cannot find the native Shorts overlay controls.")
+    }
+}
+
 @Suppress("unused")
 val shortsDimmingPatch = bytecodePatch(
     HIDE_SHORTS_DIMMING.title,
@@ -134,9 +183,11 @@ val shortsDimmingPatch = bytecodePatch(
 ) {
     compatibleWith(COMPATIBILITY_YOUTUBE)
 
-    dependsOn(settingsPatch, sharedExtensionPatch, resourceMappingPatch, versionCheckPatch)
+    dependsOn(settingsPatch, sharedExtensionPatch, resourceMappingPatch, versionCheckPatch, toolBarHookPatch)
 
     execute {
+        installPresentation()
+
         val programmaticScrim = findProgrammaticScrim()
         if (is_21_39_or_greater && programmaticScrim == null) {
             printWarn("\"${HIDE_SHORTS_DIMMING.title}\" cannot find the Shorts bottom scrim constructor.")

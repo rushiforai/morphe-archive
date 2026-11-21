@@ -3,13 +3,10 @@ package app.stylus.extension.bitwarden.patches;
 import android.content.res.Resources;
 import android.graphics.Typeface;
 
-import java.util.Locale;
-
 @SuppressWarnings("unused")
 public final class ForceSystemFontPatch {
 
-    private static final String UI_FONT_RESOURCE_PREFIX = "dm_sans";
-    private static final String CUSTOM_UI_FONT_RESOURCE = "custom_ui_font";
+    private static final String UI_FONT_RESOURCE_NAME = "inter_variable";
 
     private ForceSystemFontPatch() {
     }
@@ -17,10 +14,8 @@ public final class ForceSystemFontPatch {
     /**
      * Injection point.
      *
-     * <p>Returns the system default {@link Typeface} for the bundled DM Sans UI
-     * fonts so the app renders using the device's system font. Monospace fonts
-     * (passwords, TOTP codes, recovery codes, ...) are intentionally left
-     * untouched, and a user-selected custom UI font always wins.
+     * <p>Returns the system default {@link Typeface} for the bundled UI font.
+     * Custom UI and monospace fonts use the app's normal resource loader.
      *
      * @param resources  Resources used to resolve the font resource name.
      * @param resourceId Font resource id that is being loaded.
@@ -29,33 +24,20 @@ public final class ForceSystemFontPatch {
      *         the app load its bundled font.
      */
     public static Typeface getSystemTypeface(Resources resources, int resourceId, int style) {
-        if (resources == null) {
+        if (resources == null || hasCustomUiFont()) {
             return null;
         }
 
-        String resourceName = resolveResourceName(resources, resourceId);
-        if (resourceName == null) {
-            return null;
-        }
-
-        String lowerCaseName = resourceName.toLowerCase(Locale.ROOT);
-
-        // Monospace text must keep the bundled monospace font so that it stays
-        // aligned and readable.
-        if (lowerCaseName.contains("mono")) {
-            return null;
-        }
-
-        // A user-selected custom UI font wins over the system font.
-        if (lowerCaseName.contains(CUSTOM_UI_FONT_RESOURCE)) {
-            return null;
-        }
-
-        if (lowerCaseName.contains(UI_FONT_RESOURCE_PREFIX)) {
+        if (UI_FONT_RESOURCE_NAME.equals(resolveResourceName(resources, resourceId))) {
             return Typeface.create(Typeface.DEFAULT, style);
         }
 
         return null;
+    }
+
+    // Custom font changes this at patch time because it keeps Inter's resource ID and name.
+    private static boolean hasCustomUiFont() {
+        return false;
     }
 
     private static String resolveResourceName(Resources resources, int resourceId) {

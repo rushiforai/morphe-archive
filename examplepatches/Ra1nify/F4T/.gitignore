@@ -1,0 +1,51 @@
+.gradle
+**/build/
+!src/**/build/
+
+# Ignore Gradle GUI config
+gradle-app.setting
+
+# Avoid ignoring Gradle wrapper jar file (.jar files are usually ignored)
+!gradle-wrapper.jar
+
+# Avoid ignore Gradle wrappper properties
+!gradle-wrapper.properties
+
+# Cache of project
+.gradletasknamecache
+
+# Eclipse Gradle plugin generated files
+# Eclipse Core
+.project
+# JDT-specific (Eclipse Java Development Tools)
+.classpath
+
+# Local / scratch
+local.properties
+morphe-data/
+
+# IDE: share only the run configurations (toolbar buttons), never user state
+.idea/*
+!.idea/runConfigurations/
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editors
+.vscode/
+*.iml
+*.swp
+
+# Temp
+*.tmp
+*.bak
+*~
+
+# Bundle signing key (never commit)
+morphe-signing.key
+/docs/dev
+
+# Python bytecode of the release scripts
+__pycache__/
+*.pyc

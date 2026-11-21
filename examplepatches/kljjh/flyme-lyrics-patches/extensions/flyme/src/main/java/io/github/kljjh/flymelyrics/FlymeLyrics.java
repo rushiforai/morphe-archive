@@ -26,6 +26,8 @@ public final class FlymeLyrics {
     private static String lastTitle;
     private static String lastArtist;
 
+    static boolean supported() { return SHOW > 0 && UPDATE > 0; }
+
     private FlymeLyrics() { }
 
     private static int readFlag(String name) {

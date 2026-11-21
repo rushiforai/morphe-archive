@@ -1,0 +1,16 @@
+package app.fakh.patches.confluence
+
+import app.fakh.patches.confluence.shared.Constants.COMPATIBILITY_CONFLUENCE
+import app.fakh.patches.shared.pairip.pairipLicenseCheckPatch
+import app.morphe.patcher.patch.patch
+
+@Suppress("unused")
+val licenseCheckPatch = patch(
+    name = "Disable Play license check",
+    description = "Stops the Google Play license check from blocking the patched app with a \"Get this app from Play\" screen.",
+    default = true,
+) {
+    compatibleWith(COMPATIBILITY_CONFLUENCE)
+    category("Feature")
+    dependsOn(pairipLicenseCheckPatch)
+}

@@ -46,8 +46,6 @@ import app.morphe.extension.shared.ui.CustomDialog;
 
 @SuppressWarnings("unused")
 public class GmsCoreSupportPatch {
-    private static final String GMS_CORE_PACKAGE_NAME
-            = getGmsCoreVendorGroupId() + ".android.gms";
     private static final Uri GMS_CORE_PROVIDER
             = Uri.parse("content://" + getGmsCoreVendorGroupId() + ".android.gsf.gservices/prefix");
     private static final String DONT_KILL_MY_APP_URL
@@ -163,7 +161,7 @@ public class GmsCoreSupportPatch {
             // Verify GmsCore is installed.
             try {
                 PackageManager manager = context.getPackageManager();
-                manager.getPackageInfo(GMS_CORE_PACKAGE_NAME, PackageManager.GET_ACTIVITIES);
+                manager.getPackageInfo(context.getPackageName(), PackageManager.GET_ACTIVITIES); // MicroG is embedded in Maps NMAX
             } catch (PackageManager.NameNotFoundException exception) {
                 Logger.printInfo(() -> "GmsCore was not found");
                 // Cannot show a dialog and must show a toast,
@@ -217,7 +215,7 @@ public class GmsCoreSupportPatch {
     @SuppressLint("BatteryLife") // Permission is part of GmsCore
     private static void openGmsCoreDisableBatteryOptimizationsIntent(Activity activity) {
         Intent intent = new Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS);
-        intent.setData(Uri.fromParts("package", GMS_CORE_PACKAGE_NAME, null));
+        intent.setData(Uri.fromParts("package", activity.getPackageName(), null));
         activity.startActivityForResult(intent, 0);
     }
 
@@ -273,7 +271,7 @@ public class GmsCoreSupportPatch {
             return false;
         }
         var powerManager = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
-        return !powerManager.isIgnoringBatteryOptimizations(GMS_CORE_PACKAGE_NAME);
+        return !powerManager.isIgnoringBatteryOptimizations(context.getPackageName());
     }
 
     private static boolean isAndroidAutomotive(Context context) {

@@ -6,9 +6,15 @@
 package app.badfella.extension.linkedin;
 
 import android.app.Activity;
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -147,13 +153,14 @@ public final class DocumentPdf {
         WORKER.execute(() -> {
             String name = "linkedin_document_" + doc.id + ".pdf";
             try {
+                Uri saved;
                 if (doc.downloadSuffix != null) {
                     // The original PDF, offered because the author allows downloads.
                     byte[] pdf = fetch(doc.rootUrl + doc.downloadSuffix);
-                    writeToDownloads(context, name, out -> out.write(pdf));
+                    saved = writeToDownloads(context, name, out -> out.write(pdf));
                 } else if (doc.slices.size() == 1) {
                     byte[] pdf = fetch(resolve(doc.rootUrl, doc.slices.get(0).suffix));
-                    writeToDownloads(context, name, out -> out.write(pdf));
+                    saved = writeToDownloads(context, name, out -> out.write(pdf));
                 } else {
                     List<File> files = new ArrayList<>();
                     try {
@@ -164,12 +171,13 @@ public final class DocumentPdf {
                                 out.write(fetch(resolve(doc.rootUrl, slice.suffix)));
                             }
                         }
-                        writeToDownloads(context, name, out -> combine(files, out));
+                        saved = writeToDownloads(context, name, out -> combine(files, out));
                     } finally {
                         for (File file : files) //noinspection ResultOfMethodCallIgnored
                             file.delete();
                     }
                 }
+                notifySaved(context, name, saved);
                 MAIN.post(() -> Downloads.toast(context, I18n.f("Document saved to %1$s", location())));
             } catch (Throwable t) {
                 Diagnostics.error("document save failed", t);
@@ -215,7 +223,7 @@ public final class DocumentPdf {
     }
 
     /** Writes a PDF into Download/{folder}, where documents always go. */
-    private static void writeToDownloads(Context context, String name, Writer writer) throws Exception {
+    private static Uri writeToDownloads(Context context, String name, Writer writer) throws Exception {
         String folder = Settings.downloadFolder();
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             ContentValues values = new ContentValues();
@@ -237,6 +245,7 @@ public final class DocumentPdf {
             values.clear();
             values.put(MediaStore.MediaColumns.IS_PENDING, 0);
             resolver.update(uri, values, null, null);
+            return uri;
         } else {
             File dir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), folder);
             //noinspection ResultOfMethodCallIgnored
@@ -244,6 +253,30 @@ public final class DocumentPdf {
             try (OutputStream out = new FileOutputStream(new File(dir, name))) {
                 writer.write(out);
             }
+            return null;
+        }
+    }
+
+    private static void notifySaved(Context context, String name, Uri uri) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return;
+        if (Build.VERSION.SDK_INT >= 33
+                && context.checkSelfPermission("android.permission.POST_NOTIFICATIONS") != PackageManager.PERMISSION_GRANTED) return;
+        try {
+            NotificationManager manager = context.getSystemService(NotificationManager.class);
+            String channel = "badfella_downloads";
+            manager.createNotificationChannel(new NotificationChannel(channel, I18n.tr("Downloads"),
+                    NotificationManager.IMPORTANCE_LOW));
+            Notification.Builder notification = new Notification.Builder(context, channel)
+                    .setSmallIcon(android.R.drawable.stat_sys_download_done)
+                    .setContentTitle(I18n.tr("Document saved")).setContentText(name).setAutoCancel(true);
+            if (uri != null) {
+                Intent open = new Intent(Intent.ACTION_VIEW).setDataAndType(uri, "application/pdf")
+                        .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                notification.setContentIntent(PendingIntent.getActivity(context, 0, open, PendingIntent.FLAG_IMMUTABLE));
+            }
+            manager.notify(uri == null ? name : uri.toString(), 1, notification.build());
+        } catch (RuntimeException failure) {
+            Diagnostics.error("document notification failed", failure);
         }
     }
 

@@ -316,6 +316,17 @@ internal object AppCompatibilities {
         ),
     )
 
+    val BLOSSOM_BLAST_SAGA = Compatibility(
+        name = "Blossom Blast Saga",
+        packageName = "com.king.blossomblast",
+        apkFileType = ApkFileType.APKS_REQUIRED,
+        appIconColor = 0x32C4EB,
+        signatures = setOf(
+            "ac7f3b3537e8e6797be7270fa4f9f6a2414e660f51a86efd47c75f00603bc328",
+        ),
+        targets = listOf(AppTarget(version = "100.234.0.1", versionCode = 625, minSdk = 24)),
+    )
+
     val BLURWALL = Compatibility(
         name = "BlurWall",
         packageName = "apps.automan.blurwallpaper",
@@ -647,6 +658,16 @@ internal object AppCompatibilities {
         ),
     )
 
+    val FLIPACLIP = Compatibility(
+        name = "FlipaClip",
+        packageName = "com.vblast.flipaclip",
+        apkFileType = ApkFileType.APKS_REQUIRED,
+        signatures = setOf(
+            "9addfb5e975ac696d02c1a6b9c0d5035be76d587761ba3ddac1bf551b2b6a0cd",
+        ),
+        targets = listOf(AppTarget(version = "5.0.3", versionCode = 962, minSdk = 24)),
+    )
+
     val FLIGHTS25 = Compatibility(
         name = "Flights25",
         packageName = "de.app.flighttracker",
@@ -656,6 +677,17 @@ internal object AppCompatibilities {
             "0f3d745866700174774015eca5da32a5b385fd9d6d4212253ac70f5962f6105b",
         ),
         targets = listOf(AppTarget(version = "1.4.7", versionCode = 82, minSdk = 24)),
+    )
+
+    val FLIPBOARD = Compatibility(
+        name = "Flipboard",
+        packageName = "flipboard.app",
+        apkFileType = ApkFileType.APKS_REQUIRED,
+        appIconColor = 0xF52828,
+        signatures = setOf(
+            "a6785fa9b3da2a1da4ac1a6f70656046dd7cdda0a442e9f1b50d97076905fca5",
+        ),
+        targets = listOf(AppTarget(version = "4.3.68", versionCode = 5526, minSdk = 24)),
     )
 
     val FOCUS_NOW = Compatibility(
@@ -1224,6 +1256,17 @@ internal object AppCompatibilities {
             "3961d83e6d20d3363e07c6fe330601ef6ece07d44cda2fe46a0048bc70eacdaf",
         ),
         targets = listOf(AppTarget(version = "5.1", versionCode = 19502, minSdk = 29)),
+    )
+
+    val NETWORKFLOW = Compatibility(
+        name = "NetworkFlow",
+        packageName = "com.evozi.network",
+        apkFileType = ApkFileType.APKS_REQUIRED,
+        appIconColor = 0x11B2F9,
+        signatures = setOf(
+            "58d881e0c06db0d715cee5c281c84ccb571fc3a109ce5f05b796154c76c0748a",
+        ),
+        targets = listOf(AppTarget(version = "3.1.0", versionCode = 118, minSdk = 24)),
     )
 
     val NOTEIN = Compatibility(
@@ -2129,7 +2172,13 @@ internal object AppCompatibilities {
         packageName = "com.nextdoor",
         apkFileType = ApkFileType.APKS_REQUIRED,
         appIconColor = 0x1B8751,
-        signatures = setOf("6b0039757b3666404626f2d606ee17b56ad47770f5aebad2d7b7326882190dbd"),
-        targets = listOf(AppTarget(version = "5.39.2", versionCode = 1254760, minSdk = 26)),
+        signatures = setOf(
+            "6b0039757b3666404626f2d606ee17b56ad47770f5aebad2d7b7326882190dbd",
+            "8c9c1bb5ffab26c1d2e7b0132ed74d58b11898b336c090133d8968e50192a448",
+        ),
+        targets = listOf(
+            AppTarget(version = "5.38.1", versionCode = 1254609, minSdk = 26),
+            AppTarget(version = "5.39.2", versionCode = 1254760, minSdk = 26),
+        ),
     )
 }

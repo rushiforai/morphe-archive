@@ -2,6 +2,7 @@ package app.bin0culars.patches.reddit.layout.autoscroll
 
 import app.bin0culars.patches.reddit.layout.tabletgrid.ListFeedFingerprint
 import app.bin0culars.patches.reddit.layout.tabletgrid.MasonryFeedFingerprint
+import app.bin0culars.patches.reddit.layout.tabletgrid.firstParameterIndex
 import app.bin0culars.patches.reddit.misc.settings.BinocularsModsChoice
 import app.bin0culars.patches.reddit.misc.settings.BinocularsModsSection.FEED
 import app.bin0culars.patches.reddit.misc.settings.BinocularsModsSetting
@@ -105,13 +106,8 @@ val feedAutoScrollPatch =
                 ?: throw PatchException("ListFeedFingerprint has no implementation")
 
             val listParams = listFeedMethod.parameterTypes.map { it.toString() }
-            val stateIndex = listParams.indexOfFirst { it == "Landroidx/compose/foundation/lazy/b;" }
-            if (stateIndex == -1) {
-                throw PatchException("Could not find state parameter in ListFeedFingerprint")
-            }
-            if (listParams.size < 2 || !listParams[1].startsWith("L")) {
-                throw PatchException("Parameter 1 in ${listFeedMethod.name} is not an object type: ${listParams.getOrNull(1)}")
-            }
+            val stateIndex = firstParameterIndex(listParams, "Landroidx/compose/foundation/lazy/b;")
+            val sinkIndex = firstParameterIndex(listParams, MasonryFeedFingerprint.method.parameterTypes[1].toString())
 
             val paramRegCount = listFeedMethod.parameterTypes.sumOf {
                 if (it.toString() == "J" || it.toString() == "D") 2 else 1
@@ -125,7 +121,7 @@ val feedAutoScrollPatch =
                 0,
                 """
                     move-object/from16 v0, p$stateIndex
-                    move-object/from16 v1, p1
+                    move-object/from16 v1, p$sinkIndex
                     invoke-static {v0, v1}, $EXTENSION_CLASS->onListFeed(Ljava/lang/Object;Ljava/lang/Object;)V
                 """,
             )
@@ -182,9 +178,14 @@ val feedAutoScrollPatch =
             }
             postPagerMethod.addInstructions(inflateResultIndex + 1, invokePostPage)
 
-            NavBarStateChangeFingerprint.method.addInstructions(
+            val navBarMethod = NavBarStateChangeFingerprint.method
+            val floatIndex = navBarMethod.parameterTypes.indexOfFirst { it.toString() == "F" }
+            if (floatIndex == -1) {
+                throw PatchException("Could not find float parameter in onNavBarStateChange constructor")
+            }
+            navBarMethod.addInstructions(
                 0,
-                "invoke-static { p1 }, $EXTENSION_CLASS->onNavBarFraction(F)V",
+                "invoke-static { p${floatIndex + 1} }, $EXTENSION_CLASS->onNavBarFraction(F)V",
             )
 
             MainActivityResumeFingerprint.method.addInstructions(

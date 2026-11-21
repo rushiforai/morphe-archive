@@ -36,6 +36,26 @@ public final class VerifyNuvioMetadataAddon {
         }
         reject(() -> NuvioMetadataAddonPatch.validate(type -> { if (type.equals("Lba/x2;")) throw new IllegalStateException("Missing"); return lookup.apply(type); }));
         NuvioMetadataAddonPatch.install(lookup);
+        for (String ref : List.of(NuvioMetadataAddonPatch.SAVED_PROGRESS, NuvioMetadataAddonPatch.SAVED_NEXT)) {
+            var constructor = new MutableMethod(NuvioMetadataAddonPatch.method(lookup, ref));
+            var code = NuvioRemainingEpisodesPatch.instructions(constructor);
+            int artworkHooks = 0;
+            for (int index = code.size() - 1; index >= 0; index--) {
+                String targetRef = NuvioPlaybackButtonsPatch.reference(code.get(index));
+                if (!targetRef.startsWith(NuvioMetadataAddonPatch.EXT)) continue;
+                var call = (com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction) code.get(index);
+                check(call.getRegisterCount() == 3 && call.getRegisterC() == 3 && call.getRegisterD() == 4);
+                int imageRegister = targetRef.contains("retainedPoster") ? 6 : targetRef.contains("retainedBackground") ? 7 : 8;
+                check(call.getRegisterE() == imageRegister);
+                check(code.get(index + 1).getOpcode() == com.android.tools.smali.dexlib2.Opcode.MOVE_RESULT_OBJECT);
+                check(((com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction) code.get(index + 1)).getRegisterA() == imageRegister);
+                constructor.getImplementation().removeInstruction(index + 1);
+                constructor.getImplementation().removeInstruction(index);
+                artworkHooks++;
+            }
+            check(artworkHooks == 3);
+            check(NuvioPlaybackButtonsPatch.fingerprint(constructor).equals(NuvioMetadataAddonPatch.HASHES.get(ref)));
+        }
         reject(() -> NuvioMetadataAddonPatch.validate(lookup));
         NuvioMetadataAddonPatch.register(lookup.apply("Lq8/e;"));
         reject(() -> NuvioMetadataAddonPatch.register(lookup.apply("Lq8/e;")));
@@ -48,7 +68,7 @@ public final class VerifyNuvioMetadataAddon {
                 if (!NuvioPlaybackButtonsPatch.fingerprint(m).equals(NuvioPlaybackButtonsPatch.fingerprint(old))) changed.add(m.toString());
             }
         }
-        check(changed.size() == 9 && changed.containsAll(NuvioMetadataAddonPatch.HASHES.keySet()));
+        check(changed.size() == 11 && changed.containsAll(NuvioMetadataAddonPatch.HASHES.keySet()));
         File target = new File(args[1]); target.getParentFile().mkdirs();
         DexPool.writeTo(target.toString(), new ImmutableDexFile(com.android.tools.smali.dexlib2.Opcodes.getDefault(), output));
         int hooks = 0;
@@ -57,7 +77,7 @@ public final class VerifyNuvioMetadataAddon {
                 for (var m : c.getMethods()) if (m.getImplementation() != null)
                     for (var ins : m.getImplementation().getInstructions()) if (NuvioPlaybackButtonsPatch.reference(ins).startsWith(NuvioMetadataAddonPatch.EXT)) hooks++;
         }
-        check(hooks == 12);
-        System.out.println("PASS: original 1.1.0 contracts, changed/missing/duplicate rejection, nine-method mutation scope and twelve routing/artwork hooks survive DEX write/reload");
+        check(hooks == 18);
+        System.out.println("PASS: original 1.1.0 contracts, changed/missing/duplicate rejection, eleven-method mutation scope and eighteen routing/artwork hooks survive DEX write/reload");
     }
 }

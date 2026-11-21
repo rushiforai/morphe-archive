@@ -5,7 +5,7 @@
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
  *
- * Modified by lavinhoque33, 2026-11-05
+ * Modified by lavinhoque33, 2026-11-20
  */
 
 package app.morphe.patches.youtube.player.icons
@@ -34,6 +34,7 @@ import app.morphe.patches.youtube.utils.compatibility.Constants.COMPATIBILITY_YO
 import app.morphe.patches.youtube.utils.extension.sharedExtensionPatch
 import app.morphe.patches.youtube.utils.patch.PatchList.PLAYER_ICON_STYLE
 import app.morphe.patches.youtube.utils.playservice.is_20_49_or_greater
+import app.morphe.patches.youtube.utils.playservice.is_21_13_or_greater
 import app.morphe.patches.youtube.utils.playservice.versionCheckPatch
 import app.morphe.patches.youtube.utils.settings.ResourceUtils.addPreference
 import app.morphe.patches.youtube.utils.settings.settingsPatch
@@ -292,6 +293,8 @@ internal const val PLAYER_ICONS_RESOURCE_DIRECTORY = "youtube/playericons"
 
 private const val APP_PLAYER_ICON_DRAWABLE =
     "app.morphe.extension.youtube.videoplayer.AppPlayerIconDrawable"
+private const val APP_PLAYER_ICON_DRAWABLE_DESCRIPTOR =
+    "Lapp/morphe/extension/youtube/videoplayer/AppPlayerIconDrawable;"
 
 /**
  * An app icon, the name its original is moved to, and the wrapper that takes its place.
@@ -314,16 +317,11 @@ private val appPlayerIcons = listOf(
         "morphe_yt_player_full_enter_portrait",
         "FullscreenEnterPortrait"
     ),
-    AppPlayerIcon(
-        "yt_outline_experimental_player_full_exit_vd_theme_24",
-        "morphe_yt_player_full_exit",
-        "FullscreenExit"
-    ),
-    AppPlayerIcon(
-        "yt_outline_experimental_player_full_exit_alt_vd_theme_24",
-        "morphe_yt_player_full_exit_alt",
-        "FullscreenExitAlt"
-    ),
+)
+
+private val fullscreenExitWrappers = listOf(
+    "yt_outline_experimental_player_full_exit_vd_theme_24" to "FullscreenExit",
+    "yt_outline_experimental_player_full_exit_alt_vd_theme_24" to "FullscreenExitAlt",
 )
 
 /** Other resource consumers need the original vector, not the runtime player-style wrapper. */
@@ -338,8 +336,6 @@ private val appPlayerBitmapIcons = listOf(
     "yt_outline_experimental_player_full_enter_black_24" to "FullscreenEnter",
     "yt_outline_experimental_player_full_enter_alt_black_24" to "FullscreenEnterAlt",
     "yt_outline_experimental_player_full_enter_portrait_black_24" to "FullscreenEnterPortrait",
-    "yt_outline_experimental_player_full_exit_black_24" to "FullscreenExit",
-    "yt_outline_experimental_player_full_exit_alt_black_24" to "FullscreenExitAlt",
 )
 
 // Selectors the skip buttons show without the bold player, and the wrapper of their icons.
@@ -440,6 +436,14 @@ private fun ResourcePatchContext.wrapAppFullscreenIcons() {
     // A bitmap wrapper falls back to the vector copy, so it is only safe where that copy exists.
     appPlayerBitmapIcons.filter { (_, wrapperClass) -> wrapperClass in wrapped }
         .forEach { (appName, wrapperClass) -> wrapAppBitmapIcon(appName, wrapperClass) }
+
+    // The app's icon catalog also supplies Elements buttons such as Shorts Restore screen.
+    // Only the watch player's drawable loader requests these wrappers.
+    fullscreenExitWrappers.forEach { (appName, wrapperClass) ->
+        if (get("res/drawable/$appName.xml").isFile) {
+            get("res/drawable/morphe_$appName.xml").writeText(appPlayerIconWrapper(wrapperClass))
+        }
+    }
 }
 
 /**
@@ -586,6 +590,22 @@ private fun BytecodePatchContext.hookIconsSetFromCode(fingerprint: Fingerprint, 
     }
 
     classDef.hookIconsSetFromCode()
+}
+
+private fun BytecodePatchContext.hookWatchPlayerFullscreenIcon() {
+    val match = WatchPlayerFullscreenIconFingerprint.matchAll(0..Int.MAX_VALUE).singleOrNull()
+    if (match == null) {
+        printWarn("Player icon style: the watch player's fullscreen exit icon loader was not found.")
+        return
+    }
+
+    val method = match.method
+    val loadIndex = match.instructionMatches.first().index
+    method.replaceInstruction(
+        loadIndex,
+        "invoke-static { ${method.invokeRegisters(loadIndex)} }, $APP_PLAYER_ICON_DRAWABLE_DESCRIPTOR->" +
+                "loadWatchPlayerFullscreenIcon(Landroid/content/res/Resources;I)$DRAWABLE_TYPE",
+    )
 }
 
 /**
@@ -769,6 +789,9 @@ private val playerButtonIconStylePatch = bytecodePatch {
         if (is_20_49_or_greater) {
             hookIconsSetFromCode(PlayerControlIconLoaderFingerprint, "player control icon loader")
         }
+        if (is_21_13_or_greater) {
+            hookWatchPlayerFullscreenIcon()
+        }
         hookIconsSetFromCode(PlayerCaptionsButtonFingerprint, "captions button icons")
 
         val castButtonClass = mutableClassDefByOrNull(MDX_ENTRY_POINT_BUTTON_CLASS)
@@ -797,6 +820,7 @@ val playerIconStylePatch = resourcePatch(
         settingsPatch,
         versionCheckPatch,
         playerButtonIconStylePatch,
+        shortsClearScreenIconPatch,
     )
 
     compatibleWith(COMPATIBILITY_YOUTUBE)

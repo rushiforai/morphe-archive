@@ -5,7 +5,7 @@
  * https://github.com/anddea/revanced-patches
  *
  * Licensed under the GNU General Public License v3.0.
- * Modified by lavinhoque33, 2026-11-11.
+ * Modified by lavinhoque33, 2026-11-20
  * Written by lavinhoque33, 2026-10-29
  *
  * ------------------------------------------------------------------------
@@ -40,8 +40,8 @@
 package app.morphe.patches.youtube.layout.visual
 
 /**
- * Screen-entry and About row keys to names inside yt_outline_experimental_<name>_vd_theme_24.
- * Other leaf settings deliberately have no mapping or generated fallback in the YouTube style.
+ * Screen-entry, About, and selected SponsorBlock row keys to names inside yt_outline_experimental_<name>_vd_theme_24.
+ * Other leaf settings have no mapping or generated fallback in the YouTube style.
  */
 internal val youtubeStockIcons = mapOf(
     "about_key" to "info_circle",
@@ -112,6 +112,9 @@ internal val youtubeStockIcons = mapOf(
     "revanced_preference_screen_vot_google" to "translate",
     "revanced_preference_screen_vot_yandex" to "translate",
     "revanced_preference_screen_watch_history" to "history",
+    "sb_auto_hide_skip_button_duration" to "clock",
+    "sb_create_new_segment_step" to "adjust",
+    "sb_toast_on_skip_duration" to "hourglass",
     "subscription_product_setting_key" to "price_tag",
     "time_management_key" to "chart_bar_square",
     "video_quality_settings_key" to "hd",

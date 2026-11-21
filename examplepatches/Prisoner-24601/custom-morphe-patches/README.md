@@ -1,6 +1,6 @@
 # 🧩 Custom Morphe Patches
 
-Add-on YouTube patches for use with [Morphe](https://morphe.software):
+Add-on YouTube and Reddit patches for use with [Morphe](https://morphe.software):
 
 - **Keyboard speed shortcuts**: the `-` and `=` keys of a hardware keyboard decrease and increase
   the playback speed, like `<` and `>` on the YouTube website.
@@ -8,14 +8,17 @@ Add-on YouTube patches for use with [Morphe](https://morphe.software):
 - **Keyboard fullscreen shortcut**: the `F` key enters and exits fullscreen.
 - **Keyboard minimize shortcut**: the `Esc` key minimizes the video to the miniplayer.
 - **Keyboard frame step shortcuts**: the `,` and `.` keys step the video one frame back and forward.
+- **Keyboard SponsorBlock skip shortcut**: the `Enter` key presses the SponsorBlock skip button.
 - **DeArrow original titles**: videos with a DeArrow title show both the DeArrow title and the
   original title, such as `Clear, descriptive title | YOU WON'T BELIEVE WHAT HAPPENED`.
 - **Comments menu item**: the menu of a video in a feed or list, such as the Home feed, the watch
   history and playlists, has a Comments item that opens the comments without playing the video.
 - **Monitor caption size**: one caption size on the phone and another on a monitor, such as with
   Samsung DeX or a USB-C dock, without changing any setting when docking.
+- **Mouse and arrow key swipes** (Reddit): dragging with a mouse swipes like a finger, such as between
+  the images of a post, and the left and right arrow keys move one image at a time.
 
-This bundle is an add-on. Its patches work through the official Morphe YouTube patches, so
+This bundle is an add-on. Its patches work through the official Morphe patches, so
 apply it **together with** the official "Morphe Patches" source, never on its own.
 
 ### How to use these patches
@@ -57,6 +60,17 @@ apply it **together with** the official "Morphe Patches" source, never on its ow
 - The length of a frame comes from the video quality, such as 60 fps for 1080p60, and 30 fps
   if the quality has no frame rate. The **Frame rate** patch option sets a fixed frame rate instead.
 - `<` and `>` (with Shift) keep their default action.
+
+### Keyboard SponsorBlock skip shortcut
+
+- `Enter` (or the `Enter` key of the numpad) presses the skip button of SponsorBlock while it is shown,
+  such as **Skip sponsor**. If the **Skip to highlight** button is shown instead, it presses that one.
+- It also works while the skip button is hidden with the player controls (the **Auto hide skip button**
+  setting of Morphe), as long as the video is still in the segment, so the controls don't need to be shown first.
+- Without a skip button, `Enter` keeps its usual action.
+- The key is its **Key** patch option, like the other shortcuts. No Morphe patch uses `Enter`.
+- Needs the **SponsorBlock** patch of the Morphe Patches source, with the skip button shown
+  (segments set to **Show a skip button** in Settings → Morphe → SponsorBlock).
 
 ### DeArrow original titles
 
@@ -100,6 +114,17 @@ apply it **together with** the official "Morphe Patches" source, never on its ow
 - A monitor is a screen of at least 600 dp in both directions or the desktop of Samsung DeX, so a
   tablet also counts as a monitor.
 
+### Mouse and arrow key swipes
+
+- For Reddit. Reddit ignores dragging with a mouse in its swipeable parts, such as the images of a post with several
+  images, because they are made for fingers. With this patch, dragging with the left mouse button works like
+  a finger, and clicking still works as a tap. A right-click is left alone.
+- The left and right arrow keys swipe once under the mouse pointer: put the pointer on the images of a post
+  and press an arrow key to see the previous or next image, one image per press.
+- Without a mouse pointer on the screen, and while typing (such as a comment), the arrow keys keep their
+  usual action. Holding an arrow key swipes once.
+- Made for Samsung DeX or another mouse and keyboard; on the phone screen it changes nothing.
+
 ### Tip: one giant video at a time on a monitor
 
 - On a monitor, such as with Samsung DeX or a USB-C dock, YouTube normally shows the home feed as
@@ -112,21 +137,32 @@ apply it **together with** the official "Morphe Patches" source, never on its ow
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.10.0](https://github.com/Prisoner-24601/custom-morphe-patches/releases/tag/v1.10.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;8 patches total
+> **[v1.12.0](https://github.com/Prisoner-24601/custom-morphe-patches/releases/tag/v1.12.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;10 patches total
 <details open>
-<summary>📦 YouTube&nbsp;&nbsp;•&nbsp;&nbsp;8 patches</summary>
+<summary>📦 YouTube&nbsp;&nbsp;•&nbsp;&nbsp;9 patches</summary>
 <br>
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
 | [Comments menu item](#comments-menu-item) | Adds a Comments item to the menu of videos in feeds and lists, such as the Home feed, the watch history and playlists, which opens the comments of the video without playing it. Apply together with the Morphe YouTube patches. |  |
 | [DeArrow original titles](#dearrow-original-titles) | Shows both the DeArrow title and the original title, instead of only the DeArrow title. Apply together with the Morphe YouTube patches, and turn on DeArrow titles in the Morphe settings. | • Separator<br>• Title order |
+| [Keyboard SponsorBlock skip shortcut](#keyboard-sponsorblock-skip-shortcut) | Makes a key of a hardware keyboard (Enter by default) press the skip button of SponsorBlock while it is shown or hidden with the player controls. Apply together with the SponsorBlock patch of the Morphe YouTube patches. | • Key |
 | [Keyboard comments shortcut](#keyboard-comments-shortcut) | Makes a key of a hardware keyboard (M by default) show and hide the comments of the video. Apply together with the Morphe YouTube patches 2.2 or newer, which this patch uses to show the comments. | • Key |
 | [Keyboard frame step shortcuts](#keyboard-frame-step-shortcuts) | Makes the , and . keys of a hardware keyboard pause the video and step one frame back and forward, like on the YouTube website. Holding a key repeats the step. | • Frame rate |
 | [Keyboard fullscreen shortcut](#keyboard-fullscreen-shortcut) | Makes a key of a hardware keyboard (F by default) enter and exit fullscreen while a video is open. | • Key |
 | [Keyboard minimize shortcut](#keyboard-minimize-shortcut) | Makes a key of a hardware keyboard (Esc by default) minimize the open video to the miniplayer, also from fullscreen or with the comments open. | • Key |
 | [Keyboard speed shortcuts](#keyboard-speed-shortcuts) | Makes the - and = keys of a hardware keyboard decrease and increase the playback speed. Apply together with the Morphe YouTube patches, which this patch uses to change the speed. | • Speed step |
 | [Monitor caption size](#monitor-caption-size) | Sets the caption size by the screen the app is on: one size on the screen of the phone, another on a monitor, such as with Samsung DeX or a USB-C dock. Replaces the caption size setting of Morphe. | • Caption size on the phone<br>• Caption size on a monitor |
+
+</details>
+
+<details open>
+<summary>📦 Reddit&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Mouse and arrow key swipes](#mouse-and-arrow-key-swipes) | Makes dragging with a mouse swipe like a finger, such as between the images of a post, and makes the left and right arrow keys of a keyboard swipe once under the mouse pointer. |  |
 
 </details>
 

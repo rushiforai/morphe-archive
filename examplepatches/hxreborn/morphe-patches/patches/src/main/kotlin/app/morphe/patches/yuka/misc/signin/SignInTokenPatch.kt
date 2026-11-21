@@ -19,33 +19,35 @@ import app.morphe.patches.yuka.misc.pairip.guardVirtualizedTasksPatch
 import java.security.MessageDigest
 import java.time.Instant
 import java.util.Base64
+import app.morphe.patches.shared.misc.extension.sharedSignInTokenExtensionPatch
 
 internal const val TOKEN_SEED_CLASS = "Lapp/hxreborn/extension/shared/AppCheckTokenSeed;"
 
 private val APP_CHECK_TOKEN_FORMAT = Regex("^[\\w-]+\\.[\\w-]+\\.[\\w-]+$")
+
+private const val STEPS_URL = "github.com/hxreborn/morphe-patches/blob/dev/PATCHES.md#yuka-ioyukaandroid"
 
 private val EXPIRY_CLAIM = Regex("\"exp\"\\s*:\\s*(\\d+)")
 
 @Suppress("unused")
 val signInTokenPatch = bytecodePatch(
     name = "Sign-in token",
-    description = "Signs in on a standard install with an App Check token. " +
+    description = "Signs in with an App Check token. " +
         "Requires a token copied from Yuka installed from Google Play on a rooted phone. " +
-        "Steps are in the Yuka section of the README.",
+        "Steps are in the Yuka section of PATCHES.md.",
     default = false,
 ) {
+    dependsOn(sharedSignInTokenExtensionPatch)
     compatibleWith(AppCompatibilities.YUKA)
 
     availability(requireArm64StandardInstall)
 
     dependsOn(guardVirtualizedTasksPatch, removePairipProtectionPatch)
 
-    extendWith("extensions/extension.mpe")
-
     val appCheckToken by stringOption(
         key = "appCheckToken",
         title = "App Check token",
-        description = "Copy it from Yuka installed from Google Play on a rooted phone. Steps: github.com/hxreborn/morphe-patches#yuka",
+        description = "Copy it from Yuka installed from Google Play on a rooted phone. Steps: $STEPS_URL",
         required = true,
     ) {
         it != null && APP_CHECK_TOKEN_FORMAT.matches(it.trim())
@@ -57,7 +59,7 @@ val signInTokenPatch = bytecodePatch(
         } catch (e: OptionException) {
             throw PatchException(
                 "App Check token is missing or malformed. Copy it from Yuka installed from Google Play " +
-                    "on a rooted phone. Steps: github.com/hxreborn/morphe-patches#yuka",
+                    "on a rooted phone. Steps: $STEPS_URL",
                 e,
             )
         }

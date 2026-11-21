@@ -87,9 +87,9 @@ public final class PreviewTest {
         check(XPostPreview.parse(note, "123").text.equals(longText), "Long-form note text retained");
         String nearLimitReply = new org.json.JSONObject(json).put("text", "@a " + "漢".repeat(139))
                 .put("in_reply_to_status_id_str", "1").put("note_tweet", new org.json.JSONObject().put("id", "stub")).toString();
-        Haiagar.warningMode=1;
+        Haiagaru.warningMode=1;
         check(!XPostPreview.parse(nearLimitReply,"123").possiblyTruncated,"420-byte mode ignores reply handle and metadata-only note stub");
-        Haiagar.warningMode=0;
+        Haiagaru.warningMode=0;
         check(!XPostPreview.parse(nearLimitReply,"123").possiblyTruncated,"280-point mode ignores reply handle");
         String exact280=new org.json.JSONObject(json).put("text","漢".repeat(140)).toString();
         check(!XPostPreview.parse(exact280,"123").possiblyTruncated,"Detailed 280-point boundary remains displayable");
@@ -102,7 +102,7 @@ public final class PreviewTest {
                 .put("in_reply_to_status_id_str","1")
                 .put("entities",new org.json.JSONObject().put("media",new org.json.JSONArray()
                         .put(new org.json.JSONObject().put("indices",new org.json.JSONArray().put(mediaStart).put(quoteAndImage.length())))));
-        Haiagar.warningMode=0;
+        Haiagaru.warningMode=0;
         check(!XPostPreview.parse(mediaPost.toString(),"123").possiblyTruncated,
                 "Detailed score excludes reply handle and attached t.co, counting quote-post URLs");
         org.json.JSONObject noMediaMetadata=new org.json.JSONObject(json).put("text",quoteAndImage)
@@ -110,8 +110,21 @@ public final class PreviewTest {
         check(XPostPreview.parse(noMediaMetadata.toString(),"123").possiblyTruncated,
                 "Detailed score counts quoted URLs and an unclassified t.co as text URLs");
         String exact420 = new org.json.JSONObject(json).put("text", "漢".repeat(140)).toString();
-        Haiagar.warningMode=1;
-        check(XPostPreview.parse(exact420,"123").possiblyTruncated,"420-byte boundary warns at threshold");
+        Haiagaru.warningMode=1;
+        check(!XPostPreview.parse(exact420,"123").possiblyTruncated,"420-byte boundary remains displayable in simple mode");
+        String above420 = new org.json.JSONObject(json).put("text", "漢".repeat(140)+"a").toString();
+        check(XPostPreview.parse(above420,"123").possiblyTruncated,"Simple warning starts above 420 visible bytes");
+        String attachedAtLimit="漢".repeat(140)+" https://t.co/image";
+        int attachedStart=attachedAtLimit.indexOf("https://t.co/image");
+        org.json.JSONObject attachmentAtLimit=new org.json.JSONObject(json).put("text",attachedAtLimit)
+                .put("entities",new org.json.JSONObject().put("media",new org.json.JSONArray()
+                        .put(new org.json.JSONObject().put("indices",new org.json.JSONArray().put(attachedStart).put(attachedAtLimit.length())))));
+        XPostPreview.Data attachmentData=XPostPreview.parse(attachmentAtLimit.toString(),"123");
+        check(attachmentData.visibleBytes==420&&!attachmentData.possiblyTruncated,
+                "Attachment t.co and its preceding ASCII space do not trigger the 420-byte warning");
+        check(attachmentData.text.equals("漢".repeat(140)),"Attached t.co URL and its separator are omitted from preview text");
+        check(XPostLength.detailedPoints(attachedAtLimit,attachmentAtLimit)==280,
+                "Attachment t.co separator is excluded from detailed point counting too");
         String legacy = new org.json.JSONObject(json).put("text", "短文")
                 .put("legacy",new org.json.JSONObject().put("full_text",longText)).toString();
         check(XPostPreview.parse(legacy,"123").text.equals(longText),"Legacy full_text takes precedence over excerpt");
@@ -138,6 +151,22 @@ public final class PreviewTest {
         check(view.getText().toString().contains("投稿者  @example"), "Author shown");
         check(view.getText().toString().contains(data.text), "Tweet literal content shown");
         check(!Haiagaru.full,"Full text option defaults OFF in isolated settings fixture");
+        dataField.set(entry,attachmentData);
+        RecordingContext attachmentRecording=new RecordingContext(context);
+        TextView attachmentView=new ShownTextView(attachmentRecording);
+        attachmentView.setText("https://x.com/example/status/123",TextView.BufferType.SPANNABLE);
+        XPostPreview.apply(attachmentView);
+        Spanned attachmentPreview=(Spanned)attachmentView.getText();
+        check(!attachmentPreview.toString().contains("https://t.co/image"),"Attached media URL is absent from rendered X preview");
+        XPostPreviewTouch.PostLink[] attachmentLinks=attachmentPreview.getSpans(0,attachmentPreview.length(),XPostPreviewTouch.PostLink.class);
+        boolean attachedLink=false;for(XPostPreviewTouch.PostLink candidate:attachmentLinks)
+            if(candidate.getURL().contains("t.co/image"))attachedLink=true;
+        check(!attachedLink,"Attached media URL is not linkified as an empty website card");
+        java.lang.reflect.Method extractCards=Class.forName("app.morphe.extension.chmate.SiteCards").getDeclaredMethod("urls",CharSequence.class);
+        extractCards.setAccessible(true);
+        java.util.List<?> attachmentCards=(java.util.List<?>)extractCards.invoke(null,attachmentPreview);
+        check(!attachmentCards.contains("https://t.co/image"),"Attached t.co is not submitted for a URL-only website card");
+        dataField.set(entry,data);
         check(source.toString().equals(original), "Native source not mutated");
         Spanned displayed = (Spanned) view.getText();
         check(displayed.getSpanStart(originalLink) == start && displayed.getSpanEnd(originalLink) == end,

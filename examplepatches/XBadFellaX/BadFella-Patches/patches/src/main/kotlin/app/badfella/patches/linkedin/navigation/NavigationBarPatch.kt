@@ -52,7 +52,7 @@ internal val navigationHooksPatch = bytecodePatch {
                 replaceInstruction(
                     index,
                     "invoke-static/range { v$register .. v$register }, " +
-                        "$EXTENSION_CLASS->filterTabs(Ljava/util/List;)Ljava/util/List;"
+                        "$EXTENSION_CLASS->filterHomeTabs(Ljava/util/List;)Ljava/util/List;"
                 )
                 addInstructions(
                     index + 1,
@@ -140,8 +140,7 @@ val alwaysShowNavigationBarPatch = bytecodePatch(
 @Suppress("unused")
 val navigationBarPatch = bytecodePatch(
     name = "Navigation bar",
-    description = "Adds options (turned on in BadFella Patches) to hide the More, Jobs, Network and Notifications " +
-        "tabs of the navigation bar, its count badges and its labels.",
+    description = "Reorders tabs with Home first and lets you hide tabs, labels and badges.",
     default = true
 ) {
     compatibleWith(COMPATIBILITY_LINKEDIN)

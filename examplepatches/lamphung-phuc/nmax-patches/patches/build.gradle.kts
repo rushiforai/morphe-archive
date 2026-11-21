@@ -18,6 +18,9 @@ patches {
 dependencies {
     // Android API stubs defined here.
     compileOnly(project(":patches:stub"))
+    // EmbedGms: the versions morphe-patcher 2.0.0 brings at run time.
+    compileOnly("com.github.MorpheApp:ARSCLib:10d0708212")
+    compileOnly("com.github.MorpheApp.smali:smali-dexlib2:4220ae75f7")
 }
 
 kotlin {
@@ -25,6 +28,9 @@ kotlin {
         freeCompilerArgs = listOf("-Xcontext-parameters")
     }
 }
+
+// EmbedGms.java (NmaxConnect runs it on the phone): same bytecode target as the Kotlin code.
+tasks.withType<JavaCompile>().configureEach { options.release = 11 }
 
 // Separate configuration so Gson is available when generating patches-list.json
 // without bundling it into the patch artifact.

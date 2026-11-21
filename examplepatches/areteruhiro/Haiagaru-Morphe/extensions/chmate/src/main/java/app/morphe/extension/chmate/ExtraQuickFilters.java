@@ -214,8 +214,6 @@ public final class ExtraQuickFilters {
         final android.os.Handler handler=new android.os.Handler(android.os.Looper.getMainLooper());
         final Runnable render=this::layout;BottomControls panel;View list;int originalPadding,appliedPadding=-1;
         int originalMargin,appliedMargin=-1;boolean closed,queued,reservationChanged;
-        boolean previouslyShown;
-        long lastVisibilityRecovery;
         final Map<View,int[]> popupPaddings=new WeakHashMap<>();
         PinnedPanel(Activity activity,Object fragment,View root){
             this.activity=activity;this.fragment=new WeakReference<>(fragment);this.root=root;host=activity.findViewById(android.R.id.content);
@@ -338,15 +336,12 @@ public final class ExtraQuickFilters {
         public void onGlobalLayout(){schedule();}
         public boolean onPreDraw(){
             if(closed)return true;
-            // Retained tablet pages can become visible again without a fresh
-            // layout callback. Also recover an overlay removed by its host.
-            boolean shown=root.isShown();
-            long now=android.os.SystemClock.uptimeMillis();
-            if(shown&&(!previouslyShown||now-lastVisibilityRecovery>=250)
-                    &&(!previouslyShown||panel==null||panel.getParent()!=host||panel.getVisibility()!=View.VISIBLE)) {
-                lastVisibilityRecovery=now;schedule();
-            }
-            previouslyShown=shown;
+            // A native refresh can reattach the response list while retaining the
+            // fragment root. Recover the overlay in this draw pass; throttling this
+            // check leaves an empty strip below the list until the next layout.
+            View current=FilterPosition.findList(root);android.graphics.Rect bounds=new android.graphics.Rect();
+            boolean shown=root.isShown()&&current!=null&&current.isShown()&&current.getGlobalVisibleRect(bounds);
+            if(shown&&(panel==null||panel.getParent()!=host||panel.getVisibility()!=View.VISIBLE||list!=current))schedule();
             if(queued){handler.removeCallbacks(render);layout();}
             boolean changed=reservationChanged;reservationChanged=false;
             return !changed; // Never expose a frame whose native viewport is still full height.

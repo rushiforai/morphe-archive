@@ -94,6 +94,7 @@ baseline name, not a requirement to replace newer apps with 3.7.8 code.
 - https://github.com/laurent22/joplin/tree/android-v3.7.8
 - https://github.com/laurent22/joplin/tree/android-v3.7.10
 - https://github.com/laurent22/joplin/tree/android-v3.7.11
+- https://github.com/laurent22/joplin/tree/android-v3.7.12
 
 Do not include Gradle credentials, signing keys, private fonts, or notes in
 source distributions. Existing non-Joplin project changes are not part of this

@@ -40,20 +40,30 @@ public final class SongRemoval {
     private static final long STALE_MS = 3_000;
     /** A session heard nothing for this long (the stream was left, or paused): ended, its song's copy let go. */
     private static final long IDLE_MS = 3 * 60_000;
-    static final String WAITING = "Waiting for the stream's sound";
+    static final String WAITING = StatusWords.WAITING;
 
-    /** What the filter is doing, for the player's Options. */
+    /**
+     * What the filter is doing, for the pill and the player's Options: the step in a few words, a problem as
+     * "few words | the whole sentence" ({@link StatusWords}), and when either's countdown ends
+     * (SystemClock.elapsedRealtime ms, 0: none).
+     */
     public static final class Status {
         public final boolean filtering;
         public final String step;
+        public final long stepEndsAt;
         public final String problem;
-        public final int readyIn;
+        public final long problemEndsAt;
 
-        Status(boolean filtering, String step, String problem, int readyIn) {
+        Status(boolean filtering, String step, long stepEndsAt, String problem, long problemEndsAt) {
             this.filtering = filtering;
             this.step = step;
+            this.stepEndsAt = stepEndsAt;
             this.problem = problem;
-            this.readyIn = readyIn;
+            this.problemEndsAt = problemEndsAt;
+        }
+
+        Status(boolean filtering, String step, String problem) {
+            this(filtering, step, 0, problem, 0);
         }
     }
 
@@ -65,7 +75,7 @@ public final class SongRemoval {
     private static final Map<Object, Renderer> RENDERERS = new WeakHashMap<>();
     private static volatile Session session;
     private static volatile String streamKey = "";
-    private static volatile Status status = new Status(false, WAITING, null, 0);
+    private static volatile Status status = new Status(false, WAITING, null);
     private static Budget budget; // Shazam's, shared by every stream (one connection)
     private static SongLibrary library;
     private static volatile Field formatField, volumeField;
@@ -75,6 +85,8 @@ public final class SongRemoval {
      * filtered): kept, so a later "waiting" status never hides it. Cleared when a usable renderer comes.
      */
     static volatile String soundProblem;
+    /** The songs can't be kept (storage): stays true for the launch, shown whenever nothing else is. */
+    static volatile String libraryProblem;
     private static String lastToast;
     private static long lastToastAt;
 
@@ -125,6 +137,10 @@ public final class SongRemoval {
     /** One renderer's delay line and filter, and the buffer its filtered sound is handed back in. */
     static final class Renderer {
         final int rate, channels;
+        /** The stream it was made for ("" until one is known): a player still playing the last stream's sound. */
+        String stream = "";
+        boolean otherStreamTold;
+        long otherFrames; // sound heard from it since it last played its own stream's
         final boolean usable;
         final Filter filter;
         float[][] queue = {new float[QUEUE], new float[QUEUE]};
@@ -157,10 +173,16 @@ public final class SongRemoval {
         }
     }
 
+    /** The cancellers broke: the sound plays unfiltered until a new player (a new filter) comes, and says so. */
     private static void filterBroke(String text) {
+        soundProblem = text; // (over when a new player comes: it has a new filter)
         Session current = session;
-        if (current != null) current.problem(text);
-        else problem(text);
+        if (current != null) {
+            current.refresh();
+            toast(text);
+        } else {
+            problem(text);
+        }
     }
 
     /**
@@ -182,14 +204,16 @@ public final class SongRemoval {
             Log.e(App.TAG, "Song removal failed", t);
             if (state == null) { // the renderer itself can't be read: off for good, told once
                 reflectionFailed = true;
-                soundProblem = "Song removal can't read the player's sound (Twitch changed it): " + Messages.of(t);
+                soundProblem = StatusWords.problem("Can't read sound",
+                        "Song removal can't read the player's sound (Twitch changed it): " + Messages.of(t));
                 problem(soundProblem);
                 return buffer;
             }
             synchronized (state) {
                 state.failed = true;
             }
-            soundProblem = "Song removal broke, the sound plays unfiltered: " + Messages.of(t);
+            soundProblem = StatusWords.problem("Filter broke",
+                    "Song removal broke, the sound plays unfiltered: " + Messages.of(t));
             problem(soundProblem);
             try {
                 synchronized (state) {
@@ -219,19 +243,62 @@ public final class SongRemoval {
             MediaFormat format = format(renderer);
             if (format == null) return null;
             state = new Renderer(format.getInteger(MediaFormat.KEY_SAMPLE_RATE), format.getInteger(MediaFormat.KEY_CHANNEL_COUNT));
+            state.stream = streamKey;
             RENDERERS.put(renderer, state);
             DebugLog.log("Song removal: audio " + state.rate + " Hz, " + state.channels + " channels"
                     + (state.usable ? "" : " (not filtered)"));
             if (state.usable) {
                 soundProblem = null; // a new player whose sound can be filtered: what was wrong is over
             } else {
-                soundProblem = "Song removal works on 48 kHz mono or stereo sound only, this stream's is "
-                        + state.rate + " Hz with " + state.channels + (state.channels == 1 ? " channel" : " channels");
+                soundProblem = StatusWords.problem("Sound not supported",
+                        "Song removal works on 48 kHz mono or stereo sound only, this stream's is " + state.rate
+                                + " Hz with " + state.channels + (state.channels == 1 ? " channel" : " channels"));
                 if (PatchSettings.songRemoval()) problem(soundProblem);
             }
             return state;
         }
     }
+
+    /** Whether the renderer plays this stream: the one it was made for (the first one known, if it came first). */
+    static boolean playsStream(Renderer state, String key, int frames, long nowMs) {
+        if (state.stream.isEmpty()) state.stream = key;
+        if (state.stream.equals(key)) {
+            if (frames > 0) {
+                keyPlayedAt = nowMs; // (the time first: read with the key, never older than it)
+                keyPlayedKey = key;
+            }
+            state.otherFrames = 0;
+            state.otherStreamTold = false;
+            return true;
+        }
+        // A player that goes on playing long after the stream changed, while no player of the new stream does,
+        // was given the new stream without a flush (a raid, a redirect): it's the new stream's from then on.
+        // A player left over only plays out what it buffered, a few seconds, and the new one plays meanwhile.
+        if (key.equals(keyPlayedKey) && nowMs - keyPlayedAt < ADOPT_MS) { // the new stream's player plays
+            state.otherFrames = 0;
+            return false;
+        }
+        state.otherFrames += frames;
+        if (state.otherFrames >= (long) ADOPT_MS * state.rate / 1000) {
+            DebugLog.log("Song removal: the player of " + state.stream + " goes on playing, it's " + key + "'s now");
+            state.stream = key;
+            state.otherFrames = 0;
+            state.otherStreamTold = false;
+            return true;
+        }
+        return false;
+    }
+
+    /** The frames of 16-bit sound in a buffer of size bytes that count as heard (none while muted). */
+    static int heardFrames(boolean audible, int size, int channels) {
+        return audible ? size / (2 * channels) : 0;
+    }
+
+    /** How long a player plays another stream's sound, with none of the new stream's playing, until it's taken as the new one's. */
+    static final long ADOPT_MS = 8_000;
+    /** The stream a player of its own last played sound for, and when (uptime ms). */
+    static volatile String keyPlayedKey = "";
+    static volatile long keyPlayedAt;
 
     /** Injected at the start of AudioTrackRenderer.flush(): what was queued belongs to the old position. */
     public static void flush(Object renderer) {
@@ -260,7 +327,15 @@ public final class SongRemoval {
         boolean on = PatchSettings.songRemoval();
         boolean audible = volume(renderer) > 0.001f;
         // Only the stream opened to watch (not a preview on the home or Following page), while it plays with sound.
-        Session current = on && audible && Watching.active() ? sessionFor(streamKey) : null;
+        String key = streamKey;
+        // A player left from the stream before (its last buffered sound) is never listened to as this one's.
+        boolean thisStream = playsStream(state, key, heardFrames(audible, size, state.channels),
+                android.os.SystemClock.uptimeMillis());
+        if (!thisStream && !state.otherStreamTold) {
+            state.otherStreamTold = true;
+            DebugLog.log("Song removal: a player of " + state.stream + " still plays, not listened to for " + key);
+        }
+        Session current = on && audible && thisStream && Watching.active() ? sessionFor(key) : null;
         if (current != state.feeding) {
             if (current != null) {
                 current.attached();
@@ -416,10 +491,12 @@ public final class SongRemoval {
                     return file;
                 }
             }, new AndroidDecoder());
-            made.onProblem(text -> { // told once a launch: in the Options and on screen, never dropped
+            made.onProblem((text, lasting) -> { // told once a launch: in the Options and on screen, never dropped
                 Session current = session;
-                if (current != null) current.problem(text, false);
-                else problem(text, false);
+                if (lasting) libraryProblem = text; // stays true: shown whenever nothing else is
+                if (current == null) problem(text, false);
+                else if (lasting) current.refresh();
+                else current.told(text, false, 0);
                 toast(text, true); // the one toast
             });
             synchronized (SongRemoval.class) {
@@ -428,7 +505,7 @@ public final class SongRemoval {
         } catch (Throwable t) {
             Log.e(App.TAG, "Song removal setup failed", t);
             setupFailedAt = System.currentTimeMillis();
-            problem("Song removal couldn't start: " + Messages.of(t));
+            problem(StatusWords.problem("Song removal error", "Song removal couldn't start: " + Messages.of(t)));
         } finally {
             settingUp = false;
         }
@@ -439,12 +516,26 @@ public final class SongRemoval {
         session = null;
         if (current != null) current.stop();
         Align.forget();
-        publish(new Status(false, step, soundProblem, 0));
+        publish(new Status(false, step, soundProblem));
+    }
+
+    /**
+     * The problem shown: the tracker's own while it has one (it may count down), else one that stays true (the
+     * filter broke, the songs can't be kept), else what's wrong with the player's sound.
+     */
+    static String shownProblem(String tracker, String lasting, String sound) {
+        return tracker != null ? tracker : lasting != null ? lasting : sound;
+    }
+
+    /** Told again as it was (the same words, ending within a second of the same time): nothing to show anew. */
+    static boolean unchanged(String was, long wasEndsAt, String text, long endsAt) {
+        boolean same = text == null ? was == null : text.equals(was);
+        return same && Math.abs(endsAt - wasEndsAt) < 1000;
     }
 
     /** Waiting for sound to listen to, with whatever stays wrong with the player's sound. */
     static Status waiting() {
-        return new Status(false, WAITING, soundProblem, 0);
+        return new Status(false, WAITING, soundProblem);
     }
 
     /** A session that heard nothing for a while ends; the next sound starts a new one. */
@@ -460,8 +551,9 @@ public final class SongRemoval {
         final Tracker tracker;
         private volatile boolean running = true;
         private boolean filtering;
-        private String step = "Listening for music", problem;
-        private int readyIn;
+        private String step = StatusWords.LISTENING, problem;
+        private long stepEndsAt, problemEndsAt;
+        private volatile Thread thread;
 
         Session(String key) {
             this.key = key;
@@ -470,11 +562,10 @@ public final class SongRemoval {
 
         void start() {
             DebugLog.log("Song removal: listening to " + key);
-            publish(new Status(false, step, null, 0));
-            Thread thread = new Thread(() -> {
+            publish(new Status(false, step, null));
+            thread = new Thread(() -> {
                 // Background priority (as other app work): the lowest would leave it starved for minutes.
                 android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_BACKGROUND);
-                tracker.tellReady();
                 long lastTotal = -1, changedAt = System.currentTimeMillis();
                 while (running) {
                     // Nothing new heard (the stream was left, paused or muted): nothing to look at, and Shazam
@@ -505,46 +596,65 @@ public final class SongRemoval {
 
         void stop() {
             running = false;
+            tracker.stop();
+            Thread working = thread;
+            if (working != null) working.interrupt(); // a download or decoding for a stream left: stopped
             DebugLog.log("Song removal: stopped for " + key);
         }
 
         private void update() {
-            if (running && session == this) publish(new Status(filtering, step, problem, readyIn));
+            if (!running || session != this) return;
+            String shown = shownProblem(problem, libraryProblem, soundProblem);
+            publish(new Status(filtering, step, stepEndsAt, shown, shown != null && shown.equals(problem) ? problemEndsAt : 0));
         }
 
         @Override
         public synchronized void state(boolean filtering) {
             this.filtering = filtering;
-            if (filtering) problem = null;
+            if (filtering) {
+                problem = null;
+                problemEndsAt = 0;
+            }
+            update();
+        }
+
+        /** Shown again: a problem from outside the tracker (soundProblem, libraryProblem) changed. */
+        synchronized void refresh() {
             update();
         }
 
         @Override
-        public void problem(String text) {
-            problem(text, true);
+        public void problem(String text, double countdown) {
+            told(text, true, countdown);
         }
 
         /** toast: also shown on screen (false: the caller shows it). */
-        synchronized void problem(String text, boolean toast) {
-            if (text == null ? problem == null : text.equals(problem)) return;
+        synchronized void told(String text, boolean toast, double countdown) {
+            long endsAt = text == null ? 0 : endsAt(countdown);
+            boolean same = text == null ? problem == null : text.equals(problem);
+            if (unchanged(problem, problemEndsAt, text, endsAt)) return;
             problem = text;
-            DebugLog.log("Song removal: " + (text == null ? "fine again" : "PROBLEM " + text));
+            problemEndsAt = endsAt;
+            if (!same) DebugLog.log("Song removal: " + (text == null ? "fine again" : "PROBLEM " + text));
             update();
-            if (toast && text != null && running && session == this) SongRemoval.toast(text);
+            if (!same && toast && text != null && running && session == this) SongRemoval.toast(text);
         }
 
         @Override
-        public synchronized void ready(int seconds) {
-            readyIn = Math.max(0, seconds);
-            update();
-        }
-
-        @Override
-        public synchronized void step(String text) {
-            if (text.equals(step)) return;
+        public synchronized void step(String text, double countdown) {
+            long endsAt = endsAt(countdown);
+            boolean same = text.equals(step);
+            if (unchanged(step, stepEndsAt, text, endsAt)) return;
             step = text;
-            DebugLog.log("Song removal: " + text);
+            stepEndsAt = endsAt;
+            if (!same || countdown > 0) {
+                DebugLog.log("Song removal: " + text + (countdown > 0 ? " (" + Math.round(countdown) + " s)" : ""));
+            }
             update();
+        }
+
+        private static long endsAt(double countdown) {
+            return countdown > 0 ? android.os.SystemClock.elapsedRealtime() + Math.round(countdown * 1000) : 0;
         }
 
         @Override
@@ -568,7 +678,7 @@ public final class SongRemoval {
     private static void problem(String text, boolean toast) {
         DebugLog.log("Song removal: PROBLEM " + text);
         Status now = status;
-        publish(new Status(now.filtering, now.step, text, now.readyIn));
+        publish(new Status(now.filtering, now.step, now.stepEndsAt, text, 0));
         if (toast) toast(text);
     }
 
@@ -588,7 +698,8 @@ public final class SongRemoval {
         }
         App.onMain(() -> {
             Context context = App.application();
-            String shown = text.startsWith("Song removal") ? text : "Song removal: " + text;
+            String detail = StatusWords.detail(text);
+            String shown = detail.startsWith("Song removal") ? detail : "Song removal: " + detail;
             if (context != null) Toast.makeText(context, shown, Toast.LENGTH_LONG).show();
         });
     }

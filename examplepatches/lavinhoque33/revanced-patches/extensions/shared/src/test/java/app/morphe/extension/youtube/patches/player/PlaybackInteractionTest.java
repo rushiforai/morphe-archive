@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2026 lavinhoque33
  * Licensed under the GNU General Public License v3.0 or later.
- * Modified by lavinhoque33, 2026-11-17.
+ * Modified by lavinhoque33, 2026-11-20.
  * Written by lavinhoque33, 2026-11-17.
  */
 package app.morphe.extension.youtube.patches.player;
@@ -128,6 +128,31 @@ public class PlaybackInteractionTest {
         assertFalse(PlayerPatch.enableDoubleTapChaptersConfig(false));
         assertTrue(PlayerPatch.disableDoubleTapChaptersFeatureFlag(false));
         assertFalse(PlayerPatch.disableDoubleTapChapters(true));
+    }
+
+    @Test
+    public void directionalDoubleTapSeekKeepsNativeDefaultsAndIndependentOverrides() {
+        assertEquals(0, DoubleTapSeekPatch.getOverrideSeconds(1));
+        assertEquals(0, DoubleTapSeekPatch.getOverrideSeconds(2));
+
+        Settings.DOUBLE_TAP_SEEK_FORWARD.save(30);
+        assertEquals(30, DoubleTapSeekPatch.getOverrideSeconds(1));
+        assertEquals(0, DoubleTapSeekPatch.getOverrideSeconds(2));
+
+        Settings.DOUBLE_TAP_SEEK_BACKWARD.save(5);
+        Settings.DISABLE_CHAPTER_SKIP_DOUBLE_TAP.save(true);
+        assertEquals(30, DoubleTapSeekPatch.getOverrideSeconds(1));
+        assertEquals(-5, DoubleTapSeekPatch.getOverrideSeconds(2));
+        assertEquals(0, DoubleTapSeekPatch.getOverrideSeconds(0));
+
+        Settings.DOUBLE_TAP_SEEK_FORWARD.save(0);
+        assertEquals(0, DoubleTapSeekPatch.getOverrideSeconds(1));
+        assertEquals(-5, DoubleTapSeekPatch.getOverrideSeconds(2));
+
+        Settings.DOUBLE_TAP_SEEK_FORWARD.save(Integer.MAX_VALUE);
+        Settings.DOUBLE_TAP_SEEK_BACKWARD.save(-5);
+        assertEquals(0, DoubleTapSeekPatch.getOverrideSeconds(1));
+        assertEquals(0, DoubleTapSeekPatch.getOverrideSeconds(2));
     }
 
     @Test

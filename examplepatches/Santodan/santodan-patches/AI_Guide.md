@@ -78,6 +78,10 @@ effects with bounded IO requests and retain native posters until artwork loads.
 Native private repositories preserve fetching/caching/cancellation;
 modern and Classic/Grid artwork overrides leave saved progress untouched. Restored
 enrichment overlays must allow native refresh when selected-source art is absent.
+Selected CW artwork is retained through the native `s0`/`t0` enrichment-record
+constructors, changing only poster, landscape/background and logo inputs. Do not
+add a second persistent artwork cache. Preserve the remaining constructor body
+and native per-profile serialization, and keep restored records refreshable.
 Run `verifyNuvioMetadataAddon`, `verifyNuvioMetadataRuntime`,
 `verifyNuvioMetadataSettingsRuntime` and the latest standalone/combined bundle
 checks; these are included in `verifyNuvioLatest`.

@@ -1,3 +1,31 @@
+## [1.9.0](https://github.com/JoFSlash/quora-patches/compare/v1.8.0...v1.9.0) (2026-11-20)
+
+### New features
+
+* Turn on 14 more patches by default ([f34b0ec](https://github.com/JoFSlash/quora-patches/commit/f34b0ec407987a98a5df7dc6dc08373d865e0a9a))
+
+### Documentation
+
+* Google sign-in through MicroG-RE and keeping the official app ([925b5dc](https://github.com/JoFSlash/quora-patches/commit/925b5dcfc2acb44314fa41ff8bbd48a03d0a4192))
+
+## [1.8.0](https://github.com/JoFSlash/quora-patches/compare/v1.7.1...v1.8.0) (2026-11-20)
+
+### New features
+
+* Clone app and GmsCore support patches ([9e61d62](https://github.com/JoFSlash/quora-patches/commit/9e61d62328f97501fdf282402bb0e123dc18827d)), closes [#22](https://github.com/JoFSlash/quora-patches/issues/22) [#21](https://github.com/JoFSlash/quora-patches/issues/21)
+* Copy and Share text under Spaces posts, previews, fullscreen on answer pages ([567d76e](https://github.com/JoFSlash/quora-patches/commit/567d76ed903c8f4652920fab9080890c68ae3985))
+* Fix device theme, Fix push notifications, clone app name ([f85bd1e](https://github.com/JoFSlash/quora-patches/commit/f85bd1e4bbe23c4994d546c5218dab148025e19c))
+* Reading and feed patches, Branch tracking blocked by default ([6cbd8cf](https://github.com/JoFSlash/quora-patches/commit/6cbd8cf336045b40dd155689a6809aee70b7b617))
+
+### Bug fixes
+
+* Drop Quora 3.2.30 from the supported versions ([d64e211](https://github.com/JoFSlash/quora-patches/commit/d64e211a6baead48f5ee696cd1e7d1768054f402))
+* Report Quora's package and certificate to Firebase Installations ([6ffae93](https://github.com/JoFSlash/quora-patches/commit/6ffae937efaa677596a56ca1213a0e2fd0b2c54c))
+
+### Documentation
+
+* Suggest a first set of patches, explain links opening in the browser ([5d5357f](https://github.com/JoFSlash/quora-patches/commit/5d5357f83ab7a9334175ddedd6f3430f4ee7a4e4))
+
 ## [1.7.1](https://github.com/JoFSlash/quora-patches/compare/v1.7.0...v1.7.1) (2026-11-18)
 
 ### Documentation

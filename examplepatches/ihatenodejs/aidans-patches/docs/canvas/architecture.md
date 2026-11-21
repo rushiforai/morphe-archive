@@ -70,6 +70,7 @@ flowchart LR
 2. **`ShowRemoteConfigEditorPatch.kt` (`bytecodePatch`):** Appends `SettingsItem.REMOTE_CONFIG` to the `Preferences` section of `StudentSettingsBehaviour.getSettingsItems()`.
 3. **`UnlockNotebookAndOfflineContentPatch.kt` (`bytecodePatch`):** Forces `FeatureFlagProvider.notebookEnabled` and `offlineEnabled` to return `Boolean.TRUE`.
 4. **`DisableAiStudyToolsPatch.kt` (`bytecodePatch`):** Stubs `StudyToolsViewModel.checkStudyToolsAvailability` and forces `StudyToolsUiState.getAvailable()` to `false`.
+5. **`FixPdfViewerCrashPatch.kt` (`rawResourcePatch`):** Makes `PDFC::Forms::checkLicenseForFormsAndThrowIfMissing()` return immediately in every shipped ABI's `libpspdfkit.so`. The bundled license permits form viewing/filling but not editing, yet the SDK asserts the editing entitlement from view-path calls (`registerFormObserver`, `getFormFields`), aborting on every document open. Its `removeEvaluationWatermark` option blanks the native `For Evaluation Purposes Only` string, which a cloned package's rejected license otherwise stamps across every page.
 
 ## Hidden Client Gates
 

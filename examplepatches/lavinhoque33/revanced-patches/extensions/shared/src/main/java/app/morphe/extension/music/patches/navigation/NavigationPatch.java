@@ -13,6 +13,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.List;
 
@@ -25,6 +26,11 @@ import app.morphe.extension.shared.utils.Utils;
 
 @SuppressWarnings("unused")
 public class NavigationPatch {
+    /** Implemented by the stock pivot-tab model at patch time. */
+    public interface PivotTab {
+        String rvxPivotBrowseId();
+    }
+
     private static final int colorGrey12 = PatchStatus.DarkTheme()
             ? ResourceUtils.getColor("ytm_color_grey_12")
             : ResourceUtils.getColor("revanced_color_grey_12");
@@ -91,6 +97,40 @@ public class NavigationPatch {
                 hideViewUnderCondition(button.hidden, view);
             }
         }
+    }
+
+    /** Called before assigning the modern pivot list used by the tab bar and toolbar presence check. */
+    public static List<?> filterSearchTab(List<?> tabs) {
+        return filterSearchTab(tabs, "FEsearch");
+    }
+
+    /** Older Music clients recognize a different native pivot ID. */
+    public static List<?> filterLegacySearchTab(List<?> tabs) {
+        return filterSearchTab(tabs, "FEmusic_search");
+    }
+
+    private static List<?> filterSearchTab(@Nullable List<?> tabs, String searchId) {
+        if (tabs == null || !Settings.HIDE_NAVIGATION_SEARCH_TAB.get()) {
+            return tabs;
+        }
+
+        List<Object> visibleTabs = null;
+        int size = tabs.size();
+        for (int index = 0; index < size; index++) {
+            Object tab = tabs.get(index);
+            if (tab instanceof PivotTab pivotTab && searchId.equals(pivotTab.rvxPivotBrowseId())) {
+                if (visibleTabs == null) {
+                    visibleTabs = new ArrayList<>(size - 1);
+                    for (int previous = 0; previous < index; previous++) {
+                        visibleTabs.add(tabs.get(previous));
+                    }
+                }
+            } else if (visibleTabs != null) {
+                visibleTabs.add(tab);
+            }
+        }
+
+        return visibleTabs == null ? tabs : visibleTabs;
     }
 
     public static String replaceBrowseId(Object component, String browseId, String fieldName) {

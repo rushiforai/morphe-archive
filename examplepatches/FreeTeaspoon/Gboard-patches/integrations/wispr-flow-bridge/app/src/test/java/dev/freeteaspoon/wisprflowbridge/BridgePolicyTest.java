@@ -27,4 +27,25 @@ public class BridgePolicyTest {
         assertFalse(BridgePolicy.showOverlay(true, "FlowBubble"));
         assertTrue(BridgePolicy.showOverlay(false, "Idle"));
     }
+
+    @Test public void stoppingCannotAccidentallyStartAnotherDictation() {
+        for (String status : new String[]{"Idle", "Error", "Dismissed"}) {
+            assertTrue(status, BridgePolicy.canStart(status));
+            assertFalse(status, BridgePolicy.canStop(status, true));
+            assertFalse(status, BridgePolicy.canStop(status, false));
+        }
+        assertFalse(BridgePolicy.canStart("Processing"));
+        assertFalse(BridgePolicy.canStop("Processing", false));
+        assertFalse(BridgePolicy.canStop("Initializing", true));
+        assertTrue(BridgePolicy.canStop("Initializing", false));
+        assertTrue(BridgePolicy.canStop("Listening", true));
+        assertTrue(BridgePolicy.canStop("Listening", false));
+    }
+
+    @Test public void wisprMeterMapsOntoGboardWaveformRange() {
+        assertEquals(0, BridgePolicy.voiceLevel(-0.1f));
+        assertEquals(0, BridgePolicy.voiceLevel(Float.NaN));
+        assertEquals(37, BridgePolicy.voiceLevel(0.37f));
+        assertEquals(100, BridgePolicy.voiceLevel(1.1f));
+    }
 }

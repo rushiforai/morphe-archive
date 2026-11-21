@@ -245,6 +245,19 @@ once-call Lapp/hushgram/extension/instagram/direct/ChatLocks;->opened(Ljava/lang
 start-call Lapp/hushgram/extension/instagram/direct/ChatLocks;->closed(Ljava/lang/Object;)V in instance ()V holding DirectThreadController.onPause
 once-call Lapp/hushgram/extension/instagram/direct/ChatLocks;->closed(Ljava/lang/Object;)V in instance ()V holding DirectThreadController.onPause
 once-call Lapp/hushgram/extension/instagram/direct/ChatLocks;->track(Landroid/app/Notification;Landroid/app/Notification;Ljava/util/Map;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Z in instance (L*;L*;Ljava/lang/Runnable;Ljava/lang/String;I)V holding is_alert_only_once notification_displayed
+# Chat bubbles (#747) hands the same push display to ChatBubbles.offer once, at its own start next
+# to the lock's hook, with the notification, its group summary, the other notifications, the push's
+# action, both thread ids and the account it came for. Left out, no chat's notification gets a
+# bubble; twice or elsewhere, it isn't the hook the patch wrote.
+once-call Lapp/hushgram/extension/instagram/direct/ChatBubbles;->offer(Landroid/app/Notification;Landroid/app/Notification;Ljava/util/Map;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V in instance (L*;L*;Ljava/lang/Runnable;Ljava/lang/String;I)V holding is_alert_only_once notification_displayed
+# Record calls (#732) hands the call engine's audio API to CallRecorder.audioApi right before its
+# constructor returns, the one constructor storing the engine's native holder, and every state of
+# a call to CallRecorder.callModel right before CallModel's constructor returns, the one storing
+# the person you are on the call. Both constructors return once on 456. Left out, the Record
+# button can't start: it has no engine to add its sinks to, or no call to name the people by;
+# twice or elsewhere, it isn't the hook the patch wrote.
+once-call Lapp/hushgram/extension/instagram/download/CallRecorder;->audioApi(Ljava/lang/Object;)V in instance (Lcom/facebook/simplejni/NativeHolder;)V holding Lcom/facebook/rsys/audio/gen/AudioApi$CProxy;->mNativeHolder:Lcom/facebook/simplejni/NativeHolder;
+once-call Lapp/hushgram/extension/instagram/download/CallRecorder;->callModel(Ljava/lang/Object;)V in instance (IJJJJZZII*)V holding Lcom/facebook/rsys/call/gen/CallModel;->selfParticipant:Lcom/facebook/rsys/call/gen/CallParticipant;
 # The locked and hidden chats are kept for each account apart, so every screen hands itself to
 # ChatAccounts.resumed first in Instagram's base screen's onResume (IgFragment, 0Dij on 450), the
 # one method logging IgFragment.onResume, which reads the account off the screen's own session.
@@ -290,6 +303,12 @@ once-call Lapp/hushgram/extension/instagram/feed/HomeLeftSwipe;->touch(Landroid/
 # #661) have no rule: the patch leaves the row out with a warning when a build's menu has moved, so a
 # required call would fail a build the patch handles. HiddenChatMenuHookTest proves the four hooks,
 # and that the offer lands after ChatPreview's, so Preview's start-call rule above holds either way.
+# Lock collection on a Saved collection's long press (CollectionLockMenu.tile, #678) has no rule: the
+# patch leaves the long press out with a warning when a build's tile makers have moved, so a required
+# call would fail a build the patch handles. CollectionTilesHookTest proves both makers (the See
+# all grid's row binder and the Saved home row's adapter, each loading id/saved_collection_thumbnail)
+# hand their tile over once, just before its thumbnail lookup and ahead of the binder's
+# accessibility setup (which keeps the long click flag it finds), on every declared build.
 # View live anonymously asks LiveSeen.hold(broadcast id) first where the live heartbeat manager's
 # tick asks for a viewer's or guest's heartbeat (IgLiveHeartbeatManager.A00 calling 036w.A00 on 450,
 # the request adding live_with_eligibility), and the tick returns its plain result while the switch

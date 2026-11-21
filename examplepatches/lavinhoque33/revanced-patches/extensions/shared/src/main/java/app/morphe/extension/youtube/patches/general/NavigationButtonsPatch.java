@@ -12,7 +12,7 @@
  *
  * See the included NOTICE file for GPLv3 §7(b) and §7(c) terms that apply to Morphe contributions.
  *
- * Modified by lavinhoque33, 2026-11-16.
+ * Modified by lavinhoque33, 2026-11-20.
  */
 
 package app.morphe.extension.youtube.patches.general;
@@ -30,6 +30,7 @@ import android.os.Build;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewStub;
+import android.view.Window;
 import android.view.WindowInsets;
 import androidx.annotation.ChecksSdkIntAtLeast;
 import app.morphe.extension.shared.ui.Dim;
@@ -335,13 +336,16 @@ public final class NavigationButtonsPatch {
     /**
      * Injection point.
      *
-     * @param original The color the app theme gives the system navigation buttons.
+     * @param original The system navigation bar color supplied by the YouTube theme.
      */
-    public static int getSystemNavigationBarColor(int original) {
-        if (NAVIGATION_BAR_STYLE != NavigationBarStyle.OPAQUE) return original;
-
+    public static int getSystemNavigationBarColor(Window window, int original) {
         try {
-            return OpaqueSystemBars.systemNavigationBarColor(original);
+            // Global Opaque still paints the in-app bars and always wins for the system bar.
+            if (NAVIGATION_BAR_STYLE == NavigationBarStyle.OPAQUE) {
+                return OpaqueSystemBars.systemNavigationBarColor(original);
+            }
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return original;
+            return SystemNavigationBarAppearance.getColor(window, original);
         } catch (Exception ex) {
             Logger.printException(() -> "getSystemNavigationBarColor failure", ex);
             return original;

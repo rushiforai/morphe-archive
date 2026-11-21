@@ -26,7 +26,11 @@ public final class TwitchProvidersProbe {
         Constructor<?> e = Class.forName(ROOT + "TwitchEmotes$Entry").getDeclaredConstructors()[0]; e.setAccessible(true);
         // Reflection reaches a private Entry type; only this known String-keyed cache write needs the cast.
         @SuppressWarnings("unchecked") Map<String,Object> sets = (Map<String,Object>)field("TwitchEmotes","SETS");
-        sets.put("7:" + scope,e.newInstance(array,Long.MAX_VALUE));
+        sets.put("7:" + scope,e.newInstance(array,Long.MAX_VALUE,0,0L));
+    }
+    /** Where a provider's requests run: its own lane for emote lists, the shared pool for badges. */
+    static ThreadPoolExecutor emoteLane(int provider) throws Exception {
+        return (ThreadPoolExecutor)((Object[])field("TwitchEmotes","LANES"))[provider];
     }
     public static void main(String[] args) throws Exception {
         switch (args[0]) {
@@ -41,11 +45,12 @@ public final class TwitchProvidersProbe {
                 break;
             }
             case "queue-rejection": {
-                ThreadPoolExecutor pool=(ThreadPoolExecutor)field("TwitchThirdParty","POOL");
-                CountDownLatch started=new CountDownLatch(3),release=new CountDownLatch(1);
-                for(int i=0;i<3;i++)pool.execute(()->{started.countDown();try{release.await();}catch(InterruptedException e){Thread.currentThread().interrupt();}});
+                ThreadPoolExecutor pool=emoteLane(0);
+                int threads=pool.getMaximumPoolSize();
+                CountDownLatch started=new CountDownLatch(threads),release=new CountDownLatch(1);
+                for(int i=0;i<threads;i++)pool.execute(()->{started.countDown();try{release.await();}catch(InterruptedException e){Thread.currentThread().interrupt();}});
                 check(started.await(2,TimeUnit.SECONDS),"workers occupied");
-                for(int i=0;i<50;i++)pool.execute(()->{});
+                while(pool.getQueue().remainingCapacity()>0)pool.execute(()->{});
                 Settings.values.put("emotes_7tv","true");TwitchEmotes.onChatChannel("123");
                 check(((Set)field("TwitchEmotes","LOADING")).isEmpty(),"rejection clears loading");
                 check(((Map)field("TwitchEmotes","RN_REQUESTS")).isEmpty(),"rejection clears demand");
@@ -84,8 +89,9 @@ public final class TwitchProvidersProbe {
                     }; }
                 } : null);
                 boolean pronouns=args[0].equals("rn-pronouns-dispose"), badges=args[0].equals("rn-badges-dispose");
-                ThreadPoolExecutor pool=(ThreadPoolExecutor)field(pronouns?"TwitchPronouns":"TwitchThirdParty",pronouns?"LOOKUPS":"POOL");
-                int threads=pronouns?1:3;
+                ThreadPoolExecutor pool=pronouns?(ThreadPoolExecutor)field("TwitchPronouns","LOOKUPS")
+                    :badges?(ThreadPoolExecutor)field("TwitchThirdParty","POOL"):emoteLane(0);
+                int threads=pool.getMaximumPoolSize();
                 CountDownLatch started=new CountDownLatch(threads),release=new CountDownLatch(1);
                 for(int i=0;i<threads;i++)pool.execute(()->{started.countDown();try{release.await();}catch(InterruptedException e){Thread.currentThread().interrupt();}});
                 check(started.await(2,TimeUnit.SECONDS),"workers occupied");
@@ -153,9 +159,11 @@ public final class TwitchProvidersProbe {
                     }; }
                 } : null);
                 boolean pronouns=args[0].equals("pronouns-disable"), badges=args[0].equals("badges-disable");
-                ThreadPoolExecutor pool=(ThreadPoolExecutor)field(pronouns?"TwitchPronouns":"TwitchThirdParty",pronouns?"LOOKUPS":"POOL");
-                CountDownLatch started=new CountDownLatch(pronouns?1:3),release=new CountDownLatch(1);
-                for(int i=0;i<(pronouns?1:3);i++)pool.execute(()->{started.countDown();try{release.await();}catch(InterruptedException e){Thread.currentThread().interrupt();}});
+                ThreadPoolExecutor pool=pronouns?(ThreadPoolExecutor)field("TwitchPronouns","LOOKUPS")
+                    :badges?(ThreadPoolExecutor)field("TwitchThirdParty","POOL"):emoteLane(0);
+                int threads=pool.getMaximumPoolSize();
+                CountDownLatch started=new CountDownLatch(threads),release=new CountDownLatch(1);
+                for(int i=0;i<threads;i++)pool.execute(()->{started.countDown();try{release.await();}catch(InterruptedException e){Thread.currentThread().interrupt();}});
                 check(started.await(2,TimeUnit.SECONDS),"workers occupied");
                 String key=pronouns?"badges_pronouns":badges?"badges_chatterino":"emotes_7tv";
                 Settings.values.put(key,"true");

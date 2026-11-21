@@ -40,7 +40,9 @@ val thirdPartyEmotesPatch = bytecodePatch(
     name = "Third-party emotes",
     description = "Adds switches that show 7TV, BetterTTV and FrankerFaceZ emotes in chat, Twitch's chat history " +
         "and VOD chat replay. When on, each sends the ID of the channel you watch to that service (7tv.io, " +
-        "api.betterttv.net, api.frankerfacez.com) for its emote lists and loads the emote images from its CDN. " +
+        "api.betterttv.net, api.frankerfacez.com) for its emote lists and loads the emote images from its CDN; " +
+        "while api.frankerfacez.com doesn't answer, FrankerFaceZ's lists and images come from BetterTTV's copy of " +
+        "them (api.betterttv.net, cdn.betterttv.net). " +
         "\"Emotes in the picker\" also lists them in the emote picker, one section per service, and in " +
         "autocomplete after ':', from the same lists; that part was checked with Twitch's own picker and " +
         "autocomplete code on Android's runtime, not in the app, which needs an account to open the picker. " +
@@ -70,7 +72,8 @@ val thirdPartyEmotesPatch = bytecodePatch(
                 "Shows BetterTTV emotes in chat. Sends the ID of the channel you watch to api.betterttv.net and loads images from cdn.betterttv.net.",
                 Section.CHAT, default = false),
             SwitchSetting("emotes_ffz", "FrankerFaceZ emotes",
-                "Shows FrankerFaceZ emotes in chat. Sends the ID of the channel you watch to api.frankerfacez.com and loads images from cdn.frankerfacez.com.",
+                "Shows FrankerFaceZ emotes in chat. Sends the ID of the channel you watch to api.frankerfacez.com and loads images from cdn.frankerfacez.com. " +
+                    "While FrankerFaceZ doesn't answer, gets the same lists from BetterTTV's copy instead: sends the channel's ID to api.betterttv.net and loads images from cdn.betterttv.net.",
                 Section.CHAT, default = false),
             SwitchSetting("emotes_picker", "Emotes in the picker",
                 "Lists the emotes of the services turned on above in the emote picker, one section each, and in " +

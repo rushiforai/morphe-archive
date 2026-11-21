@@ -1,0 +1,3 @@
+package app.morphe.extension.music.patches.lyrics; public class LyricsManager { public static final LyricsManager INSTANCE=new LyricsManager(); public static LyricsManager getInstance(){return INSTANCE;} public app.morphe.extension.music.patches.lyrics.model.TrackInfo getCurrentTrack(){return new app.morphe.extension.music.patches.lyrics.model.TrackInfo();} public boolean synced=true; public boolean areLyricsSynced(){return synced;} public String line="line\ntranslation"; public boolean timeline,fail; public int playback=1000, official=400;
+ public String getCurrentLineText(){if(fail)throw new IllegalStateException(); if(!timeline)return line;
+ return playback-io.github.kljjh.flymelyrics.FlymeTiming.offset(official)>=1500 ? "next" : "previous";} }

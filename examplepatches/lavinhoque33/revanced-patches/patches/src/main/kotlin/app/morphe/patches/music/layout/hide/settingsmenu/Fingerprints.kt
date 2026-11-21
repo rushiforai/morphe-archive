@@ -3,13 +3,14 @@
  * https://github.com/MorpheApp/morphe-patches/pull/2029
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
- * Modified by lavinhoque33, 2026-11-14
+ * Modified by lavinhoque33, 2026-11-20
  */
 
 package app.morphe.patches.music.layout.hide.settingsmenu
 
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.fieldAccess
+import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 
 private const val SETTINGS_HEADERS_FRAGMENT_CLASS =
@@ -30,4 +31,19 @@ internal object SettingsHeadersOnCreatePreferencesFingerprint : Fingerprint(
             type = SETTINGS_HEADERS_FRAGMENT_CLASS
         )
     )
+)
+
+/** Recursive PreferenceGroup.findPreference(CharSequence) compares the actual AndroidX key. */
+internal object MusicPreferenceFindByKeyFingerprint : Fingerprint(
+    definingClass = "Landroidx/preference/PreferenceGroup;",
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
+    parameters = listOf("Ljava/lang/CharSequence;"),
+    returnType = "Landroidx/preference/Preference;",
+    filters = listOf(
+        fieldAccess(
+            opcode = Opcode.IGET_OBJECT,
+            definingClass = "Landroidx/preference/Preference;",
+            type = "Ljava/lang/String;",
+        ),
+    ),
 )

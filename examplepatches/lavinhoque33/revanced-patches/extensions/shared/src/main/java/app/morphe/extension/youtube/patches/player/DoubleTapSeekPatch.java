@@ -1,0 +1,32 @@
+/*
+ * Copyright (C) 2026 lavinhoque33
+ * Licensed under the GNU General Public License v3.0 or later.
+ * Written by lavinhoque33, 2026-11-20.
+ */
+package app.morphe.extension.youtube.patches.player;
+
+import app.morphe.extension.youtube.settings.Settings;
+
+public final class DoubleTapSeekPatch {
+    private static final int FORWARD = 1;
+    private static final int BACKWARD = 2;
+    // Keep even the largest custom step representable as a signed millisecond offset.
+    private static final int MAX_SEEK_SECONDS = Integer.MAX_VALUE / 1_000;
+
+    private DoubleTapSeekPatch() {
+    }
+
+    /** Injection point: signed seconds, or zero to keep the original YouTube duration object. */
+    public static int getOverrideSeconds(int direction) {
+        int seconds = switch (direction) {
+            case FORWARD -> Settings.DOUBLE_TAP_SEEK_FORWARD.get();
+            case BACKWARD -> Settings.DOUBLE_TAP_SEEK_BACKWARD.get();
+            default -> 0;
+        };
+        if (seconds <= 0 || seconds > MAX_SEEK_SECONDS) {
+            return 0;
+        }
+
+        return direction == BACKWARD ? -seconds : seconds;
+    }
+}

@@ -110,7 +110,10 @@ object NuvioMetadataAddon {
                     if (result.javaClass.name == "b9.r") {
                         val meta = field(result, "a")!!
                         if (selection(cw) != selected) throw CancellationException("Metadata selection changed")
-                        val art = Art(getter(meta, "getPoster"), getter(meta, "getLandscapePoster"), getter(meta, "getBackground"), getter(meta, "getLogo"))
+                        val art = Art(getter(meta, "getPoster")?.takeIf { it.isNotBlank() },
+                            getter(meta, "getLandscapePoster")?.takeIf { it.isNotBlank() },
+                            getter(meta, "getBackground")?.takeIf { it.isNotBlank() },
+                            getter(meta, "getLogo")?.takeIf { it.isNotBlank() })
                         synchronized(artwork) { artwork[cacheKey] = art }
                         synchronized(failures) { failures.remove(cacheKey) }
                         succeeded = true
@@ -132,8 +135,17 @@ object NuvioMetadataAddon {
         val progress = info.javaClass.name == "com.nuvio.tv.domain.model.WatchProgress"
         val id = if (progress) getter(info, "getContentId")!! else field(info, "a") as String
         val type = if (progress) getter(info, "getContentType")!! else field(info, "b") as String
-        return synchronized(artwork) { artwork[key(selected, type, id)] }
+        val cacheKey = key(selected, type, id)
+        return synchronized(artwork) { artwork[cacheKey] }
     }
+    private fun retainedImage(id: String, type: String, original: String?, kind: Int): String? = try {
+        val selected = selection(true)
+        val art = selected?.let { synchronized(artwork) { artwork[key(it, type, id)] } }
+        when (kind) { 0 -> art?.poster; 1 -> art?.landscape ?: art?.background; else -> art?.logo } ?: original
+    } catch (error: Exception) { Log.e("SantodanMetadata", "Cannot select native saved artwork", error); original }
+    @JvmStatic fun retainedPoster(id: String, type: String, original: String?): String? = retainedImage(id, type, original, 0)
+    @JvmStatic fun retainedBackground(id: String, type: String, original: String?): String? = retainedImage(id, type, original, 1)
+    @JvmStatic fun retainedLogo(id: String, type: String, original: String?): String? = retainedImage(id, type, original, 2)
     private fun image(art: Art?, poster: Boolean): String? =
         (if (poster) art?.poster else art?.landscape ?: art?.background ?: art?.poster)?.takeIf { it.isNotBlank() }
 

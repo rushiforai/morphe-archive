@@ -1,0 +1,188 @@
+name: Feed test
+
+# Signs in to Quora with a test account in the patched app on an emulator and checks the page
+# patches on the real feed and on an answer: the ask box is hidden, no promoted items, Copy and
+# Share text buttons under answers, the bookmark button and the app's bookmark list.
+#
+# The weekly release (release.yml) runs it first and releases only when it passes; it also runs by
+# hand. Not on pull requests or daily: frequent sign-ins from new emulators could get the test
+# account locked.
+#
+# A run on main that doesn't pass (a failed check, or a skip because the session no longer works)
+# opens the issue "Feed test needs attention", or comments on it; the next run that passes closes it.
+# It needs these secrets:
+#   QUORA_APKS_TOKEN     read access to JoFSlash/quora-apks (see emulator.yml)
+#   QUORA_TEST_EMAIL     a Quora account made only for this test
+#   QUORA_TEST_PASSWORD  its password
+#   QUORA_TEST_COOKIES   a signed-in session of that account (m-b=…; m-b_lax=…; …), used instead of
+#                        signing in: Quora asks every new device for a code sent by email, and each
+#                        run is a new emulator. See CONTRIBUTING.md for how to get it.
+# Without a session or a password the test is skipped. When Quora clearly asks for more than a
+# password (a captcha or a code) the test is skipped with a warning; any other failure fails it.
+#
+# The scripts are reached over WebView debugging, so this build adds one line that turns it on
+# and leaves out "Disable WebView debugging". That build is only used here and is never released.
+# It also leaves out "Start tab": that patch opens the app on Following, where there is no feed
+# with answers to open.
+
+on:
+  workflow_dispatch:
+  workflow_call:
+    outputs:
+      result:
+        description: 'passed, skipped or failed'
+        value: ${{ jobs.feed.outputs.result }}
+
+permissions:
+  contents: read
+  packages: read
+  issues: write
+
+jobs:
+  feed:
+    name: Feed with a test account
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    # One sign-in at a time, so two runs don't use the test account at once.
+    concurrency:
+      group: feed-test
+      cancel-in-progress: false
+    outputs:
+      result: ${{ steps.outcome.outputs.result }}
+    steps:
+      - name: Check the secrets
+        id: secrets
+        env:
+          TOKEN: ${{ secrets.QUORA_APKS_TOKEN }}
+          EMAIL: ${{ secrets.QUORA_TEST_EMAIL }}
+          PASSWORD: ${{ secrets.QUORA_TEST_PASSWORD }}
+          COOKIES: ${{ secrets.QUORA_TEST_COOKIES }}
+        run: |
+          if [ -z "$TOKEN" ] || { [ -z "$COOKIES" ] && { [ -z "$EMAIL" ] || [ -z "$PASSWORD" ]; }; }; then
+            echo "::notice::QUORA_APKS_TOKEN, or QUORA_TEST_COOKIES or QUORA_TEST_EMAIL and QUORA_TEST_PASSWORD, aren't set, so the feed test is skipped."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Checkout
+        if: steps.secrets.outputs.skip != 'true'
+        uses: actions/checkout@v7
+
+      - name: Setup Java
+        if: steps.secrets.outputs.skip != 'true'
+        uses: actions/setup-java@v6
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Setup Node
+        if: steps.secrets.outputs.skip != 'true'
+        uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+
+      - name: Turn on WebView debugging for this test build
+        if: steps.secrets.outputs.skip != 'true'
+        run: |
+          file=extensions/extension/src/main/java/app/jofslash/extension/quora/RemoveAdsPatch.java
+          line='    public static void onPageFinished(WebView webView) {'
+          grep -qF "$line" "$file" || { echo "::error::onPageFinished not found in RemoveAdsPatch.java"; exit 1; }
+          sed -i "s|^$line\$|&\n        WebView.setWebContentsDebuggingEnabled(true); // feed test build only|" "$file"
+          grep -c 'feed test build only' "$file"
+
+      - name: Build
+        if: steps.secrets.outputs.skip != 'true'
+        env:
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: ./gradlew :patches:buildAndroid --no-daemon
+
+      - name: Download Quora and the Morphe CLI
+        if: steps.secrets.outputs.skip != 'true'
+        env:
+          APKS_TOKEN: ${{ secrets.QUORA_APKS_TOKEN }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          MORPHE_CLI_VERSION=$(cat .github/morphe-cli-version)
+          echo "Morphe CLI $MORPHE_CLI_VERSION"
+          # The newest version listed as supported in Constants.kt.
+          QUORA_VERSION=$(grep -oE 'AppTarget\(version = "[0-9.]+"' patches/src/main/kotlin/app/jofslash/patches/quora/shared/Constants.kt \
+            | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | sort -V | tail -1)
+          echo "Quora $QUORA_VERSION"
+          GH_TOKEN="$APKS_TOKEN" gh release download "quora-$QUORA_VERSION" -R JoFSlash/quora-apks \
+            -p "quora-$QUORA_VERSION.apkm" -O "$RUNNER_TEMP/quora.apkm"
+          gh release download "$MORPHE_CLI_VERSION" -R MorpheApp/morphe-cli -p 'morphe-desktop-*-all.jar' \
+            -O "$RUNNER_TEMP/morphe-cli.jar"
+
+      - name: Enable KVM
+        if: steps.secrets.outputs.skip != 'true'
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Install the emulator
+        if: steps.secrets.outputs.skip != 'true'
+        uses: ./.github/actions/install-emulator
+        with:
+          api-level: 36
+
+      - name: Patch, install, sign in and check the feed
+        if: steps.secrets.outputs.skip != 'true'
+        uses: reactivecircus/android-emulator-runner@v2
+        env:
+          QUORA_TEST_EMAIL: ${{ secrets.QUORA_TEST_EMAIL }}
+          QUORA_TEST_PASSWORD: ${{ secrets.QUORA_TEST_PASSWORD }}
+          QUORA_TEST_COOKIES: ${{ secrets.QUORA_TEST_COOKIES }}
+          FEED_TEST_RESULT: ${{ runner.temp }}/feed-result.txt
+        with:
+          api-level: 36
+          target: google_apis
+          arch: x86_64
+          disable-animations: true
+          script: python3 .github/scripts/check_quora_version.py "$RUNNER_TEMP/quora.apkm" --cli "$RUNNER_TEMP/morphe-cli.jar" --install --expect-login --exclude "Disable WebView debugging" --exclude "Start tab" --adb adb && node .github/scripts/feed-test.mjs
+
+      # passed / skipped / failed, from what feed-test.mjs wrote. No file: the app didn't patch,
+      # install or start (check_quora_version.py failed), or the run stopped early.
+      - name: Outcome
+        id: outcome
+        if: always()
+        env:
+          SKIPPED: ${{ steps.secrets.outputs.skip }}
+          FILE: ${{ runner.temp }}/feed-result.txt
+        run: |
+          if [ "$SKIPPED" = "true" ]; then
+            line="skipped: the secrets for the feed test aren't set"
+          elif [ -s "$FILE" ]; then
+            line=$(head -n 1 "$FILE")
+          else
+            line="failed: the patched app didn't install or start, or the test stopped early; see the log"
+          fi
+          echo "$line"
+          echo "result=${line%%:*}" >> "$GITHUB_OUTPUT"
+          { echo 'detail<<EOF_DETAIL'; echo "$line"; echo 'EOF_DETAIL'; } >> "$GITHUB_OUTPUT"
+
+      - name: Open or close the issue
+        if: always() && github.ref == 'refs/heads/main' && steps.outcome.outputs.result != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RESULT: ${{ steps.outcome.outputs.result }}
+          DETAIL: ${{ steps.outcome.outputs.detail }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          title="Feed test needs attention"
+          existing=$(gh issue list --state open --search "\"$title\" in:title" --json number,title --jq ".[] | select(.title == \"$title\") | .number" | head -1)
+          if [ "$RESULT" = "passed" ]; then
+            if [ -n "$existing" ]; then
+              gh issue close "$existing" --comment "The feed test passed again ([run]($RUN_URL))."
+            fi
+            exit 0
+          fi
+          body=$(printf '%s\n\n%s\n\n%s\n' \
+            "The feed test didn't pass, so the weekly release waits until it does." \
+            "> $DETAIL" \
+            "[Workflow run]($RUN_URL). Fix it, then run the Feed test by hand; a run that passes closes this issue.")
+          if [ -n "$existing" ]; then
+            gh issue comment "$existing" --body "$body"
+          else
+            gh issue create --title "$title" --label bug --body "$body"
+          fi

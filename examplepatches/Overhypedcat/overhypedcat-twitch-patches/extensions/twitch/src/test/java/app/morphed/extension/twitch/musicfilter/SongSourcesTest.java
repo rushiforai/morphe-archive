@@ -162,8 +162,24 @@ public class SongSourcesTest {
             assertTrue(expected.problem.getMessage().contains("refused"));
         }
 
-        SongCopy copy = library.load("m1");
+        List<String> stages = new ArrayList<>();
+        Tracker.Stages told = new Tracker.Stages() {
+            @Override
+            public void downloading() {
+                stages.add("downloading");
+            }
+
+            @Override
+            public void decoding() {
+                stages.add("decoding");
+            }
+        };
+        SongCopy copy = library.load("m1", told);
         assertEquals("m1", copy.videoId);
+        assertEquals(Arrays.asList("downloading", "decoding"), stages);
+        stages.clear();
+        library.load("m1", told);
+        assertEquals("kept already: no download told", Collections.singletonList("decoding"), stages);
         library.keepPrint("m1", new float[]{1, 2, 3});
         library.remember(song, "m1");
         List<Tracker.Known> known = new SongLibrary(folder.getRoot(), source, null).heardBefore();
@@ -212,10 +228,15 @@ public class SongSourcesTest {
         }
         SongLibrary library = new SongLibrary(folder.getRoot(), new FakeSource(), null);
         List<String> told = new ArrayList<>();
-        library.onProblem(told::add);
+        List<Boolean> lasting = new ArrayList<>();
+        library.onProblem((text, stays) -> {
+            told.add(text);
+            lasting.add(stays);
+        });
         assertEquals(1, told.size());
-        assertTrue(told.get(0), told.get(0).startsWith("The list of songs found before couldn't be read"));
-        library.onProblem(told::add);
+        assertTrue(told.get(0), told.get(0).startsWith("Song list unreadable | The list of songs found before couldn't be read"));
+        assertEquals("over once told: songs are looked up afresh", Boolean.FALSE, lasting.get(0));
+        library.onProblem((text, stays) -> told.add(text));
         assertEquals("told once", 1, told.size());
     }
 
@@ -224,12 +245,17 @@ public class SongSourcesTest {
         File notAFolder = folder.newFile("songs"); // the library's folder can't be made: every save fails
         SongLibrary library = new SongLibrary(notAFolder, new FakeSource(), null);
         List<String> told = new ArrayList<>();
-        library.onProblem(told::add);
+        List<Boolean> lasting = new ArrayList<>();
+        library.onProblem((text, stays) -> {
+            told.add(text);
+            lasting.add(stays);
+        });
         library.keepPrint("a", new float[]{1});
         library.keepPrint("b", new float[]{1});
         library.remember(new Song("k", "T", "A"), "a");
         assertEquals(told.toString(), 1, told.size());
-        assertTrue(told.get(0), told.get(0).startsWith("Songs can't be kept"));
+        assertTrue(told.get(0), told.get(0).startsWith("Can't keep songs | Songs can't be kept"));
+        assertEquals("stays true", Boolean.TRUE, lasting.get(0));
     }
 
     @Test

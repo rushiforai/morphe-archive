@@ -293,6 +293,8 @@ Para corrigir isso, ative 'Simular streams de vídeo' e altere o 'Cliente padrã
     <string name="morphe_playback_in_feeds_entry_wifi_only">Somente Wi-Fi</string>
     <string name="morphe_playback_in_feeds_title">Reprodução nos feeds</string>
     <string name="morphe_player_control_buttons_background_opacity_summary">Ajuste a opacidade do fundo atrás dos botões de controle do player e da barra de tempo (0 é invisível, 100 é sólido)</string>
+    <string name="morphe_center_playback_button_size_summary">Ajusta o tamanho do botão de reproduzir, pausar e reproduzir novamente e da sua área de toque. 100% mantém o tamanho original.</string>
+    <string name="morphe_center_playback_button_size_title">Tamanho do botão de reprodução</string>
     <string name="morphe_player_control_buttons_background_opacity_title">Opacidade do fundo dos botões de controle</string>
     <string name="morphe_playlist_hide_removal_snackbar_summary">A confirmação não é exibida após um vídeo ser removido de uma playlist</string>
     <string name="morphe_playlist_hide_removal_snackbar_title">Ocultar snackbar de remoção de playlist</string>
@@ -1990,6 +1992,9 @@ Toque e segure para redefinir a velocidade do vídeo para 1.0x
 Toque e segure novamente para redefinir para a velocidade padrão"</string>
     <string name="revanced_overlay_button_speed_dialog_title">Exibir botão de velocidade</string>
     <string name="revanced_overlay_button_speed_dialog_type_title">Modo de diálogo rápido</string>
+    <string name="revanced_overlay_button_video_quality_label">Qualidade do vídeo</string>
+    <string name="revanced_overlay_button_video_quality_summary">Abre a qualidade do vídeo direto pelos controles do player.</string>
+    <string name="revanced_overlay_button_video_quality_title">Exibir botão de qualidade do vídeo</string>
     <string name="revanced_overlay_button_vot_summary">Exibir botão sobreposto para ativar/desativar a tradução por voz do vídeo atual</string>
     <string name="revanced_overlay_button_vot_title">Tradução de voz</string>
     <string name="revanced_overlay_button_whitelist_summary">Toque para abrir a caixa de diálogo da lista branca

@@ -20,7 +20,7 @@ import io.github.jordanwoodson.patches.twitch.tipping.INTERFACE_CLASS
 @Suppress("unused")
 val hideClipsPatch = bytecodePatch(
     name = "Hide Clips",
-    description = "Hides the Clips discovery tab and clip shelves such as \"Clips for you\" on Home, and the Clips tab on native channel profiles. Shared clip links still open.",
+    description = "Hides the Clips discovery tab and clip shelves such as \"Clips for you\" on Home, and the Clips tab on native channel profiles. Keep Clips on channel pages, a second switch, leaves the channel tab. Shared clip links still open.",
     default = false,
 ) {
     compatibleWith(COMPATIBILITY_TWITCH)
@@ -46,6 +46,12 @@ val hideClipsPatch = bytecodePatch(
             move-result-object v$register
             check-cast v$register, Lkotlin/enums/EnumEntries;
         """)
-        twitchSettings.add(SwitchSetting("hide_clips", "Hide Clips", "Clips discovery and clip shelves on Home, and the native channel profile tab. Shared links still open.", Section.INTERFACE, restart = true))
+        twitchSettings.add(
+            SwitchSetting("hide_clips", "Hide Clips", "Clips discovery and clip shelves on Home, and the native channel profile tab. Shared links still open.", Section.INTERFACE, restart = true),
+            // Issue 93: clips stay reachable from a channel's own page.
+            SwitchSetting("hide_clips_keep_channel", "Keep Clips on channel pages",
+                "Channel pages keep their Clips tab; Home stays without clips. Applies to channel pages opened afterwards.",
+                Section.INTERFACE, default = false, parent = "hide_clips"),
+        )
     }
 }

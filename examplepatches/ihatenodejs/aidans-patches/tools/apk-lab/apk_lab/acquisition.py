@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import shutil
 import subprocess
 import tempfile
@@ -35,6 +36,17 @@ class AcquisitionSource(str, Enum):
 
 
 FIXED_ZIP_DATETIME = (2026, 1, 1, 0, 0, 0)
+STDERR_DIAGNOSTIC_LIMIT = 300
+
+
+def _sanitize_stderr(stderr: str, account: GooglePlayAccount | None) -> str:
+    """Redacts account credentials, then truncates the diagnostic output."""
+    if account is not None:
+        if account.aas_token:
+            stderr = stderr.replace(account.aas_token, "[REDACTED_TOKEN]")
+        if account.email:
+            stderr = stderr.replace(account.email, account.redacted_email)
+    return stderr[:STDERR_DIAGNOSTIC_LIMIT]
 
 
 APKMIRROR_APP_MAP: dict[str, dict[str, str]] = {
@@ -113,6 +125,21 @@ def build_goopdl_cmd(
     elif expected_version is not None:
         cmd.extend(["--version", expected_version])
     return cmd
+
+
+def build_goopdl_env(
+    account: GooglePlayAccount | None = None,
+    base_env: dict[str, str] | None = None,
+) -> dict[str, str]:
+    """Returns a subprocess environment for goopdl direct Google authentication.
+
+    Only aas_et tokens are usable by goopdl; anything else leaves the dispenser path intact.
+    """
+    env = dict(os.environ if base_env is None else base_env)
+    if account is not None and account.aas_token.startswith("aas_et/"):
+        env["GOOPDL_ACCOUNT_EMAIL"] = account.email
+        env["GOOPDL_AAS_TOKEN"] = account.aas_token
+    return env
 
 
 def normalize_apks_to_apkm(apk_files: list[Path], out_apkm_path: Path) -> Path:
@@ -273,12 +300,8 @@ def acquire_with_apkeep(
             cmd = build_apkeep_cmd(package_name, ini_path, attempt_path)
             res = tool_mgr.run_tool_cmd("apkeep", cmd)
             if res.returncode != 0:
-                # Sanitize error output so tokens or emails are never leaked
-                sanitized_stderr = res.stderr.replace(
-                    aas_token, "[REDACTED_TOKEN]"
-                ).replace(email, account.redacted_email)
                 raise AcquisitionError(
-                    f"apkeep download failed for account [{label}]: {sanitized_stderr[:300]}",
+                    f"apkeep download failed for account [{label}]: {_sanitize_stderr(res.stderr, account)}",
                     ExitCode.INFRASTRUCTURE_FAILURE,
                 )
 
@@ -321,6 +344,7 @@ def acquire_with_goopdl(
     out_dir: Path,
     expected_version: str | None = None,
     expected_version_code: int | None = None,
+    account: GooglePlayAccount | None = None,
 ) -> Path:
     """Acquires APK using goopdl fallback."""
     out_dir = Path(out_dir).resolve()
@@ -342,10 +366,11 @@ def acquire_with_goopdl(
                 text=True,
                 timeout=180,
                 check=False,
+                env=build_goopdl_env(account),
             )
             if res.returncode != 0:
                 raise AcquisitionError(
-                    f"goopdl failed: {res.stderr[:300]}",
+                    f"goopdl failed: {_sanitize_stderr(res.stderr, account)}",
                     ExitCode.INFRASTRUCTURE_FAILURE,
                 )
         except (subprocess.SubprocessError, OSError) as e:
@@ -529,11 +554,20 @@ def acquire_artifact(
 ) -> tuple[Path, AcquisitionSource]:
     """Tries apkeep, then goopdl, then apkmirror on delivery failure or version mismatch."""
     tool_mgr = tool_mgr or ToolManager()
+    failures: list[str] = []
+    last_err: AcquisitionError | None = None
     accounts_file = None
     try:
         accounts_file = load_google_play_accounts()
     except GooglePlayAccountError as e:
         last_err = AcquisitionError(f"Failed to load Google Play accounts: {e}")
+        failures.append(str(last_err))
+
+    enabled_accounts = (
+        [acc for acc in accounts_file.accounts if acc.enabled]
+        if accounts_file is not None
+        else []
+    )
 
     can_use_apkeep = (
         (
@@ -544,10 +578,9 @@ def acquire_artifact(
         and accounts_file is not None
     )
 
-    if can_use_apkeep and accounts_file is not None:
+    if can_use_apkeep:
         out_dir = Path(out_dir).resolve()
         out_dir.mkdir(parents=True, exist_ok=True)
-        enabled_accounts = [acc for acc in accounts_file.accounts if acc.enabled]
         for account in enabled_accounts:
             try:
                 with tempfile.TemporaryDirectory(
@@ -567,17 +600,39 @@ def acquire_artifact(
                     return final_path, AcquisitionSource.APKEEP
             except AcquisitionError as e:
                 last_err = e
-                continue
-    try:
-        apkm = acquire_with_goopdl(
-            package_name,
-            out_dir,
-            expected_version=expected_version,
-            expected_version_code=expected_version_code,
-        )
-        return apkm, AcquisitionSource.GOOPDL
-    except AcquisitionError as e:
-        last_err = e
+                failures.append(f"apkeep [{account.label}]: {e}")
+
+    direct_accounts = [
+        account
+        for account in enabled_accounts
+        if account.aas_token.startswith("aas_et/")
+    ]
+    for account in direct_accounts:
+        try:
+            apkm = acquire_with_goopdl(
+                package_name,
+                out_dir,
+                expected_version=expected_version,
+                expected_version_code=expected_version_code,
+                account=account,
+            )
+            return apkm, AcquisitionSource.GOOPDL
+        except AcquisitionError as e:
+            last_err = e
+            failures.append(f"goopdl [{account.label}] direct auth: {e}")
+
+    if not direct_accounts:
+        try:
+            apkm = acquire_with_goopdl(
+                package_name,
+                out_dir,
+                expected_version=expected_version,
+                expected_version_code=expected_version_code,
+            )
+            return apkm, AcquisitionSource.GOOPDL
+        except AcquisitionError as e:
+            last_err = e
+            failures.append(f"goopdl: {e}")
 
     try:
         apkm = acquire_with_apkmirror(
@@ -587,7 +642,12 @@ def acquire_artifact(
             expected_version_code=expected_version_code,
         )
         return apkm, AcquisitionSource.APKMIRROR
-    except AcquisitionError:
-        if last_err is not None:
-            raise last_err
-        raise
+    except AcquisitionError as e:
+        last_err = e
+        failures.append(f"apkmirror: {e}")
+
+    reason = "; ".join(failures) or "no acquisition source is available"
+    raise AcquisitionError(
+        f"All acquisition sources failed for {package_name}: {reason}",
+        last_err.exit_code if last_err is not None else ExitCode.INFRASTRUCTURE_FAILURE,
+    )

@@ -1,64 +1,96 @@
 <h1 align="center">Quwi's Chess Patches</h1>
 
 <p align="center">
-  A fork of <a href="https://github.com/ImNoammm/Noams-Morphe-Patches">Noam's Morphe Patches</a> for chess.com only,
-  with Game Review on your own computer as an add-on patch.
+  A fork of <a href="https://github.com/ImNoammm/Noams-Morphe-Patches">Noam's Morphe Patches</a> for chess.com only,<br>
+  with Game Review on your own computer, Great/Brilliant marks, and Discord Rich Presence.
 </p>
 
 <p align="center">
   <a href="https://github.com/quwi26/Quwis-Patches/releases/latest"><img alt="Latest release" src="https://img.shields.io/github/v/release/quwi26/Quwis-Patches?label=release"></a>
+  <a href="https://github.com/quwi26/Quwis-Patches/releases"><img alt="Downloads" src="https://img.shields.io/github/downloads/quwi26/Quwis-Patches/total"></a>
+  <a href="https://github.com/quwi26/Quwis-Patches/commits/main"><img alt="Last commit" src="https://img.shields.io/github/last-commit/quwi26/Quwis-Patches"></a>
+</p>
+
+<p align="center">
   <img alt="Morphe patches" src="https://img.shields.io/badge/Morphe-patches-3DDC84?logo=android&logoColor=white">
   <a href="LICENSE"><img alt="GPL-3.0" src="https://img.shields.io/badge/license-GPL--3.0-lightgrey"></a>
 </p>
 
-Add this source to [Morphe](https://morphe.software) Manager once -
-[Add to Morphe](https://morphe.software/add-source?github=quwi26/Quwis-Patches) - or paste the URL:
+<p align="center"><sub>If you found this project helpful, please consider giving it a ⭐ on GitHub!</sub></p>
 
-```
-https://raw.githubusercontent.com/quwi26/Quwis-Patches/main/patches-bundle.json
-```
+## Install
+
+1. Add this source to [Morphe](https://morphe.software) Manager once -
+   [Add to Morphe](https://morphe.software/add-source?github=quwi26/Quwis-Patches) - or paste the URL into
+   **Sources**:
+
+   ```
+   https://raw.githubusercontent.com/quwi26/Quwis-Patches/main/patches-bundle.json
+   ```
+
+2. Patch chess.com **4.10.28** or **4.10.27**. **Unlimited Game Review** and its two add-ons are selected by
+   default; uncheck the add-ons for a plain Unlimited Game Review.
+
+3. Sign in with an email and a password, not with Google - see
+   [Signing in after patching](#signing-in-after-patching).
 
 ## What this fork adds
 
-Four patches, all for chess.com:
+Six patches, all for chess.com:
+
+- **Great and Brilliant moves analysis** - marks chess.com's “!” and “!!” in a review by Local Stockfish or by
+  Stockfish on your computer. Great is the engine's own best move when it was also the only one that kept the
+  game good (PrathxmOp's `greatFind` rule, on the second-best line's expected points); Brilliant is a best or
+  nearly best move that offers material for good (the sacrifice is read by static exchange on the position
+  after the move - in the engine's line an ordinary trade is briefly down a piece too, which used to mark
+  quiet moves). Great needs two lines from the engine, so it has a switch in the settings; Lichess's own
+  reviews stay as Lichess sends them. The settings list the brilliant moves the saved reviews found -
+  chess.com counts its own Insights on its servers, and only for Diamond.
 
 - **Unlimited Game Review** - the base. Game Review asks who reviews the game: chess.com, Lichess's servers
   (with your Lichess account) or, with Stockfish analysis, Stockfish on your phone, offline and without the
   daily limit. The phone and Lichess judge moves the Lichess way (?! ? ??, accuracy and centipawn loss) in
   chess.com's own review screen, and the phone marks the rest Best, Excellent or Good, as chess.com does.
-  A review by Local Stockfish also marks chess.com's “!” and “!!”. Great is the engine's own best move when
-  it was also the only one that kept the game good (PrathxmOp's `greatFind` rule, on the second-best line's
-  expected points); Brilliant is a best or nearly best move that offers material for good (the sacrifice is
-  read by static exchange on the position after the move - in the engine's line an ordinary trade is briefly
-  down a piece too, which used to mark quiet moves). Great needs two lines from the engine, so it has a
-  switch in the settings; Lichess's own reviews stay as Lichess sends them. The settings list the brilliant
-  moves the saved reviews found - chess.com counts its own Insights on its servers, and only for Diamond.
   Reviews are saved, so a game opens straight away the next time.
+
 - **Game Review on your computer** - adds the fourth reviewer, “Stockfish on your computer”: instead of
   searching on the phone, the review is searched by [`sf-bridge`](#stockfish-on-your-computer) on your
   computer over the local network, with the same Stockfish 19 and the same Lichess-style marks. A review that
   took a minute on the phone takes seconds. It has its own depth (Fast 100k, Standard 300k, Deep 1M, Maximum
   5M nodes a move) and thread count, and a benchmark in the settings.
+
 - **Arrows in reviews** - Arrows and Clear in Game Review's own bottom bar and on the Analysis boards, so arrows
   and marked squares can be drawn while analysing a game. Noam's **Arrows in games** stays separate.
+
 - **Global Crash Handler** - if the app crashes, a screen of its own shows what went wrong, with the details
   ready to copy into a report. Turn it off for chess.com's usual crash dialog.
 
-The add-on works only with **Unlimited Game Review from this bundle**: select it too. Two Unlimited Game
-Review patches, one from this bundle and one from Noam's or hyzor's, cannot be applied to the same app - they
-hook the same methods and share the same extension, so the second one fails.
+- **Discord Rich Presence** - shows what you are doing on chess.com in Discord: a game, a review, a puzzle
+  or just browsing, plus how long you have been on. The account is connected once on Discord's own page
+  in the browser, so no password is typed into chess.com and no computer is involved. Discord shows the
+  activity under this bundle's own Discord application name, not chess.com, and while the phone is
+  connected the status picked in the settings stays on every device. Switch it off under Quwi's Patches.
 
-The add-on is selected by default. Uncheck it for a plain Unlimited Game Review, the way Noam's and hyzor's
-patch is.
+> **The two add-ons** work only with **Unlimited Game Review from this bundle**: select it too. Two Unlimited
+> Game Review patches, one from this bundle and one from Noam's or hyzor's, cannot be applied to the same app -
+> they hook the same methods and share the same extension, so the second one fails.
 
 The patches for other apps (Block Blast, Gboard, Geocaching) are **not** in this bundle.
 
-Everything else is Noam's work, unchanged: chess.com 4.10.27, 4.10.23 and 4.10.18 with arrows in games and in
-reviews, board and accent colours,
-AMOLED black, the website's Arcade animations, custom Home and bottom bar, time controls under a minute,
-offline Stockfish analysis on the phone, Lichess reviews and offline Lichess puzzles, every bot unlocked,
-no daily Play Coach limit, Premium content, no ads or rating prompts — all switched on and off under
-**More → Quwi's Patches**.
+Everything else is Noam's work, unchanged:
+
+- chess.com 4.10.28 and 4.10.27
+- arrows in games and in reviews
+- board and accent colours, AMOLED black
+- the website's Arcade animations
+- custom Home and bottom bar
+- time controls under a minute
+- offline Stockfish analysis on the phone
+- Lichess reviews and offline Lichess puzzles
+- every bot unlocked
+- no daily Play Coach limit, Premium content, no ads or rating prompts
+
+All of it is switched on and off under **More → Quwi's Patches**.
 
 ## Fair play
 
@@ -95,6 +127,24 @@ To get in, add a password to the account once and then use it in the app:
 3. in the patched app, log in with that email (or username) and password.
 
 If the account already has a password, the usual **Forgot password?** email works as well.
+
+## Discord Rich Presence
+
+**More → Quwi's Patches → Discord Rich Presence → Connect Discord** opens Discord's own page in the browser.
+After **Authorize**, the app comes back connected and friends see what you are doing on your profile:
+
+- the screen you are on - a game, a review, a puzzle, a lesson or just browsing - and how long you have been on;
+- the card reads **Playing Chess.com**, under this bundle's own Discord application;
+- while the phone is connected, the status picked in the settings (Online, Idle or Do Not Disturb) stays on every
+  device you use. **Invisible** is not offered, because it would hide the activity too.
+
+No password is typed into chess.com and no computer is involved: the page is Discord's own, and the app keeps the
+token Discord gives it. Only the line above is sent - not the moves, the opponent or the result, and no chess.com
+account is linked. The connection can be removed at any time with **Disconnect** in the same settings page, or in
+Discord under **Settings → Authorized Apps**.
+
+The phone needs a working route to Discord, the same as the Discord app itself. The activity disappears when
+chess.com is closed, because the session lives only while the app does.
 
 ## Stockfish on your computer
 
@@ -140,11 +190,12 @@ phone talks to your computer on that network only.
 All patches are [Noam's](https://github.com/ImNoammm/Noams-Morphe-Patches) (GPL-3.0), which itself builds on
 PrathxmOp's work; the computer reviewer was added in this fork. Without Noam's Morphe Patches this project
 would not exist: the whole patch tree and extension are his work, and this fork only adds the Game Review
-features on top. The chess.com 4.10.23 and 4.10.27 support follows
+features on top. The chess.com 4.10.27 support follows
 [hyzor's port](https://github.com/hyzor/hyzor-morphe-patches) (GPL-3.0) of the same patches. The crash screen
 is [PrathxmOp's crash handler](https://github.com/PrathxmOp/Prathxm-Patches) (GPL-3.0), renamed so Morphe sees
-it as the same patch when both bundles are added. If you want the patches for other apps too, use Noam's own
-source.
+it as the same patch when both bundles are added. Discord Rich Presence follows the OAuth2 and gateway recipe of
+[ArchiveTune](https://github.com/rukamori/ArchiveTune) (GPL-3.0), rewritten for this extension. If you want the
+patches for other apps too, use Noam's own source.
 
 ## Building
 

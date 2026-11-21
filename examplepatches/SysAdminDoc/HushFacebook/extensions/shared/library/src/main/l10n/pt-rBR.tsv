@@ -1948,6 +1948,8 @@ Comments will open where Facebook stops them.	Os comentários vão abrir onde o 
 Hide the status bar	Ocultar a barra de status
 # context: summary of that switch; a swipe down from the top edge shows the bar briefly
 Takes the phone's status bar, with the time and battery, off Facebook's main screen, so the app gets the whole screen. Swipe down from the top edge to see it for a moment.	Tira a barra de status do celular, com a hora e a bateria, da tela principal do Facebook, para que o app use a tela inteira. Deslize para baixo a partir da borda de cima para vê-la por um momento.
+Center the feed on big screens	Centralizar o feed em telas grandes
+On a tablet or an unfolded phone, the feed and Facebook's other lists stay in a column down the middle of the screen instead of stretching from edge to edge. Reels keep the whole screen.	Em um tablet ou um celular dobrável aberto, o feed e as outras listas do Facebook ficam em uma coluna no meio da tela, em vez de se esticarem de uma borda à outra. Os reels continuam com a tela inteira.
 # context: switch title under Reels and Watch; on, a video tapped in the news feed opens alone in the full-screen player instead of leading into endless reels
 Open feed videos on their own	Abrir vídeos do feed sozinhos
 # context: summary of that switch; the Reels tab itself still scrolls normally
@@ -2953,3 +2955,25 @@ Video buffer will be set to %1$s.	O buffer de vídeo será %1$s.
 Recently watched in the Menu	Assistidos recentemente no Menu
 Adds a Recently watched row at the end of Settings and privacy in Facebook's Menu. It opens the list that Remember what you watch keeps.	Adiciona uma linha Assistidos recentemente no fim de “Configurações e privacidade” no Menu do Facebook. Ela abre a lista que Lembrar o que você assiste guarda.
 Recently watched can't open here.	Assistidos recentemente não pode ser aberto aqui.
+Header text font	Fonte do texto do cabeçalho
+Bold	Negrito
+Regular	Normal
+Serif	Serifada
+Script	Cursiva
+Monospace	Monoespaçada
+Your font	Sua fonte
+The bold font the words have always had.	A fonte em negrito que o texto sempre teve.
+The phone's font at its regular weight.	A fonte do celular com espessura normal.
+A bold font with serifs, like a newspaper's.	Uma fonte em negrito com serifas, como a de um jornal.
+Joined-up handwriting.	Letra cursiva, escrita à mão.
+Every letter the same width, like a typewriter.	Todas as letras com a mesma largura, como numa máquina de escrever.
+The font file picked under Font file, in bold. Bold until one is picked.	O arquivo escolhido em Arquivo de fonte, em negrito. Negrito até você escolher um.
+Header text font will be set to %1$s.	A fonte do texto do cabeçalho será %1$s.
+Hide songs under names	Ocultar músicas abaixo dos nomes
+The line under the poster's name leaves out the song a post plays, with no gap where it was.	A linha abaixo do nome de quem publicou deixa de fora a música que a publicação toca, sem deixar um espaço onde ela estava.
+Bold post times	Horário da publicação em negrito
+The time or date under the poster's name is bold, like the name.	O horário ou a data abaixo do nome de quem publicou fica em negrito, como o nome.
+Show full names	Mostrar nomes completos
+A long name at the top of a post wraps onto the next line instead of ending in "...". A name that fits still takes one line.	Um nome longo no topo de uma publicação continua na linha seguinte em vez de terminar em "...". Um nome que cabe continua ocupando uma linha só.
+Dark box behind feed video names	Caixa escura atrás dos nomes em vídeos do feed
+When a video in your feed has the poster's name on top of the video, that name sits on the same dark box. A change shows on the posts drawn after it.	Quando um vídeo do seu feed mostra o nome de quem publicou em cima do vídeo, esse nome fica sobre a mesma caixa escura. A mudança aparece nas publicações carregadas depois.

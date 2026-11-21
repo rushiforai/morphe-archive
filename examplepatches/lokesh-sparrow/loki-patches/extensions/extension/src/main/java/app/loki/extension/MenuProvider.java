@@ -25,6 +25,12 @@ import java.util.Collections;
 public final class MenuProvider extends ContentProvider {
     @Override
     public boolean onCreate() {
+        LokiLog.attach(getContext());
+        // Written on purpose at every start: a report that arrives empty cannot be diagnosed, and this line alone
+        // says whether the patched code ran at all.
+        // audit: keep
+        /* audit: keep */ LokiLog.note("loki: extension started in " + (getContext() == null ? "?" : getContext().getPackageName())
+                + " (SDK " + Build.VERSION.SDK_INT + ")");
         // Splitwise's AMOLED switch layers its theme overlay onto every screen; registered before any activity.
         LokiSwitches.installAmoled(getContext());
         // A provider is created while the app is still in the background, and Android drops or throttles

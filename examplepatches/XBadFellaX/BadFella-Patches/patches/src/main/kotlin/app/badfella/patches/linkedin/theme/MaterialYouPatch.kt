@@ -468,11 +468,14 @@ private const val COMPOSE_BORDER_FIELD = "borderFaint"
 
 /**
  * Divider components of server drawn lists: (class, method or null for every method) to the color getter whose
- * result they draw with. The getters are shared with other components, so only these calls are made transparent.
+ * result they draw with. From 4.1.1276 both use the divider token. The getters are shared with other components,
+ * so only these calls are made transparent.
  */
 private val COMPOSE_DIVIDERS = mapOf(
-    ("Lcom/linkedin/android/infra/sdui/components/DividerKt;" to null) to "getBackgroundFaint-0d7_KjU",
-    ("Lcom/linkedin/android/infra/sdui/components/LazyColumnItemsKt;" to "ListDivider") to "getBorderFaint-0d7_KjU",
+    ("Lcom/linkedin/android/infra/sdui/components/DividerKt;" to null) to
+        setOf("getBackgroundFaint-0d7_KjU", "getDivider-0d7_KjU"),
+    ("Lcom/linkedin/android/infra/sdui/components/LazyColumnItemsKt;" to "ListDivider") to
+        setOf("getBorderFaint-0d7_KjU", "getDivider-0d7_KjU"),
 )
 
 /** LinkedIn's Application. */
@@ -568,19 +571,19 @@ private fun BytecodePatchContext.mutableClass(type: String): MutableClass =
 
 /**
  * In the methods of [type] named [method] (every method when null), adds [smali] (for the result register) after
- * each wide result of a call to a method named [called]. Returns how many calls were found.
+ * each wide result of a call to a method named in [called]. Returns how many calls were found.
  */
 private fun BytecodePatchContext.afterCallResults(
     type: String,
     method: String?,
-    called: String,
+    called: Set<String>,
     smali: (Int) -> String,
 ): Int {
     var found = 0
     mutableClass(type).methods.filter { method == null || it.name == method }.forEach { mutableMethod ->
         val instructions = mutableMethod.implementation?.instructions?.toList() ?: return@forEach
         instructions.withIndex().filter { (_, instruction) ->
-            ((instruction as? ReferenceInstruction)?.reference as? MethodReference)?.name == called
+            ((instruction as? ReferenceInstruction)?.reference as? MethodReference)?.name in called
         }.reversed().forEach { (index, _) ->
             val result = instructions.getOrNull(index + 1) as? OneRegisterInstruction ?: return@forEach
             if (instructions[index + 1].opcode != Opcode.MOVE_RESULT_WIDE) return@forEach

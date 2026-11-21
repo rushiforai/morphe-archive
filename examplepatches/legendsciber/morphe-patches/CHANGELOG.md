@@ -1,3 +1,9 @@
+## [1.56.0](https://github.com/legendsciber/morphe-patches/compare/v1.55.0...v1.56.0) (2026-11-21)
+
+### ✨ New Features
+
+* **newstarsoccer:** update to 4.34 ([234b8df](https://github.com/legendsciber/morphe-patches/commit/234b8dfedb21718695602879694bf7def0f096be))
+
 ## [1.55.0](https://github.com/legendsciber/morphe-patches/compare/v1.54.2...v1.55.0) (2026-11-15)
 
 ### ✨ New Features

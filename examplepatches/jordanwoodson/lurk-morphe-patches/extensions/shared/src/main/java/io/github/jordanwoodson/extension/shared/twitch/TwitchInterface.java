@@ -1,6 +1,8 @@
 package io.github.jordanwoodson.extension.shared.twitch;
 
 import android.os.Bundle;
+import android.view.View;
+import io.github.jordanwoodson.extension.shared.Logger;
 import io.github.jordanwoodson.extension.shared.settings.Settings;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -91,9 +93,40 @@ public final class TwitchInterface {
         return stock && !Settings.isEnabled("hide_tipping");
     }
 
-    /** A subscription upsell flag (the chat header's Upgrade button), off while Hide subscription upsells is on. */
+    /**
+     * A subscription upsell flag, off while Hide subscription upsells is on: the chat header's Upgrade button, and
+     * the Subscribe, Gift a Sub and Upgrade buttons under the stream title (issue 92).
+     */
     public static boolean subscriptionUpsellVisible(boolean stock) {
         return stock && !Settings.isEnabled("hide_subscription_upsells");
+    }
+
+    /**
+     * Injection point: Twitch's Turbo offer as it becomes Visible, the state "Try Ad-Free" and "Go Ad-Free" (your own
+     * channel page) are shown from (issue 92). While Hide subscription upsells is on it becomes the state Twitch
+     * uses when there is no offer.
+     */
+    public static Object turboIngress(Object visible) {
+        if (!Settings.isEnabled("hide_subscription_upsells")) return visible;
+        Object hidden = turboIngressHidden();
+        if (hidden == null) return visible;
+        Logger.d("upsells: hid Twitch's Turbo offer (Try Ad-Free)");
+        return hidden;
+    }
+
+    /** Twitch's hidden Turbo offer state (a patch-time bridge). */
+    private static Object turboIngressHidden() {
+        return null;
+    }
+
+    /**
+     * Injection point: the player's "Intended for certain audiences" label is about to show (issue 92). While Hide
+     * content label is on, the label's view is hidden and true is returned, so Twitch doesn't show it.
+     */
+    public static boolean hideContentLabel(View label) {
+        if (!Settings.isEnabled("hide_content_label")) return false;
+        if (label != null) label.setVisibility(View.GONE);
+        return true;
     }
 
     /**
@@ -166,7 +199,8 @@ public final class TwitchInterface {
     }
 
     public static Object clipTabs(Object stock, Bundle arguments) {
-        if (!Settings.isEnabled("hide_clips") || !(stock instanceof List)) return stock;
+        if (!Settings.isEnabled("hide_clips") || Settings.isEnabled("hide_clips_keep_channel") ||
+                !(stock instanceof List)) return stock;
         // The profile pager also hosts explicitly opened clips. Its caller selects CLIPS for
         // these argument values, so retain the full tab list in that context.
         if (arguments != null && (arguments.getString("clipId") != null ||

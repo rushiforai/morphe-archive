@@ -86,6 +86,7 @@ public final class SduiMediaDownload {
 
             Activity activity = activity(fragment);
             if (activity == null) return;
+            if (Settings.isVideoTabIncluded()) VideoTab.onScreen(activity, screen, fragment);
             PremiumTakeover.onScreenResumed(activity, fragment, screen);
             WhatsNew.maybeShow(activity);
             GmsCoreCheck.check(activity);
@@ -110,10 +111,11 @@ public final class SduiMediaDownload {
 
     public static void onFragmentPaused(Object fragment) {
         try {
+            Activity activity = activity(fragment);
+            if (activity != null && Settings.isVideoTabIncluded()) VideoTab.hide(activity, fragment);
             if (resumedFragment != fragment) return;
             resumedFragment = null;
             resumedIsMedia = false;
-            Activity activity = activity(fragment);
             if (activity == null) return;
             removeView(activity, DOWNLOAD_TAG);
         } catch (Throwable t) {

@@ -15,6 +15,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public final class AutoClaimCoupons {
 
@@ -67,55 +68,65 @@ public final class AutoClaimCoupons {
             factoryField = fragment.getClass().getField("p");
         }
 
-        Object factory = factoryField.get(fragment);
+        final Object factory = factoryField.get(fragment);
         if (factory == null) {
             Log.e(TAG, "CouponPresenterFactory is null");
             return;
         }
 
-        Method createPresenterMethod = factory.getClass().getMethod("a");
-        final Object presenter = createPresenterMethod.invoke(factory);
-        if (presenter == null) {
+        final Method createPresenterMethod = factory.getClass().getMethod("a");
+        Object testPresenter = createPresenterMethod.invoke(factory);
+        if (testPresenter == null) {
             Log.e(TAG, "CouponPresenter is null");
             return;
         }
 
         Class<?> displayInterface = Class.forName("de.rossmann.app.android.ui.coupon.CouponDisplay");
-        Object dummyDisplay = Proxy.newProxyInstance(
+        final Object dummyDisplay = Proxy.newProxyInstance(
             displayInterface.getClassLoader(),
             new Class<?>[]{displayInterface},
             new InvocationHandler() {
                 @Override
                 public Object invoke(Object proxy, Method method, Object[] args) {
-                    if ("m".equals(method.getName())) {
+                    if ("m".equals(method.getName()) || boolean.class.equals(method.getReturnType())) {
                         return Boolean.FALSE;
-                    }
-                    if (method.getReturnType().equals(boolean.class)) {
-                        return Boolean.FALSE;
-                    }
-                    if (method.getReturnType().equals(void.class)) {
-                        return null;
                     }
                     return null;
                 }
             }
         );
 
-        Field displayField = null;
-        Class<?> current = presenter.getClass();
-        while (current != null && displayField == null) {
-            for (Field f : current.getDeclaredFields()) {
-                if (f.getType().equals(displayInterface) || f.getName().equals("f41627a")) {
-                    displayField = f;
+        Field displayFieldCandidate = null;
+        Class<?> curr = testPresenter.getClass();
+        while (curr != null && displayFieldCandidate == null) {
+            for (Field f : curr.getDeclaredFields()) {
+                if ("a".equals(f.getName()) || "f41627a".equals(f.getName()) || displayInterface.isAssignableFrom(f.getType())) {
+                    displayFieldCandidate = f;
                     break;
                 }
             }
-            current = current.getSuperclass();
+            curr = curr.getSuperclass();
         }
-        if (displayField != null) {
-            displayField.setAccessible(true);
-            displayField.set(presenter, dummyDisplay);
+        if (displayFieldCandidate == null) {
+            displayFieldCandidate = testPresenter.getClass().getField("a");
         }
+        displayFieldCandidate.setAccessible(true);
+        final Field displayField = displayFieldCandidate;
+
+        Method activateMethodCandidate = null;
+        for (Method m : testPresenter.getClass().getDeclaredMethods()) {
+            Class<?>[] params = m.getParameterTypes();
+            if (params.length == 2 && params[0].getName().contains("CouponDisplayModel") && Context.class.isAssignableFrom(params[1])) {
+                activateMethodCandidate = m;
+                break;
+            }
+        }
+        if (activateMethodCandidate == null) {
+            Log.e(TAG, "Activation method j(CouponDisplayModel, Context) not found on presenter");
+            return;
+        }
+        final Method activateMethod = activateMethodCandidate;
+        activateMethod.setAccessible(true);
 
         List<Object> allCoupons = new ArrayList<>();
 
@@ -171,23 +182,7 @@ public final class AutoClaimCoupons {
 
         Log.i(TAG, "Found " + toClaim.size() + " coupons to auto-activate");
 
-        Method activateMethodCandidate = null;
-        for (Method m : presenter.getClass().getDeclaredMethods()) {
-            Class<?>[] params = m.getParameterTypes();
-            if (params.length == 2 && params[0].getName().contains("CouponDisplayModel") && Context.class.isAssignableFrom(params[1])) {
-                activateMethodCandidate = m;
-                break;
-            }
-        }
-        if (activateMethodCandidate == null) {
-            Log.e(TAG, "Activation method j(CouponDisplayModel, Context) not found on presenter");
-            return;
-        }
-        final Method activateMethod = activateMethodCandidate;
-        activateMethod.setAccessible(true);
-
         isProcessing = true;
-        final int totalCount = toClaim.size();
 
         for (Object c : toClaim) {
             try {
@@ -199,18 +194,23 @@ public final class AutoClaimCoupons {
             }
         }
 
-        processQueue(0, toClaim, presenter, activateMethod, context, fragment, getCouponIdMethod, totalCount);
+        final AtomicInteger successCount = new AtomicInteger(0);
+
+        processQueue(0, toClaim, factory, createPresenterMethod, displayField, dummyDisplay, activateMethod, context, fragment, getCouponIdMethod, successCount);
     }
 
     private static void processQueue(
         final int index,
         final List<Object> queue,
-        final Object presenter,
+        final Object factory,
+        final Method createPresenterMethod,
+        final Field displayField,
+        final Object dummyDisplay,
         final Method activateMethod,
         final Context context,
         final Object fragment,
         final Method getCouponIdMethod,
-        final int totalCount
+        final AtomicInteger successCount
     ) {
         if (index >= queue.size()) {
             isProcessing = false;
@@ -222,7 +222,7 @@ public final class AutoClaimCoupons {
                     try {
                         Field adapterField = null;
                         for (Field f : fragment.getClass().getFields()) {
-                            if (f.getName().equals("w") || f.getType().getName().contains("LegacyCouponsAdapter")) {
+                            if ("w".equals(f.getName()) || f.getType().getName().contains("LegacyCouponsAdapter")) {
                                 adapterField = f;
                                 break;
                             }
@@ -238,11 +238,14 @@ public final class AutoClaimCoupons {
                         Log.d(TAG, "Could not notify adapter", t);
                     }
 
-                    Toast.makeText(
-                        context,
-                        "DecontaPatches: " + totalCount + " Coupons automatisch aktiviert!",
-                        Toast.LENGTH_SHORT
-                    ).show();
+                    int total = successCount.get();
+                    if (total > 0) {
+                        Toast.makeText(
+                            context,
+                            "DecontaPatches: " + total + " Coupons automatisch aktiviert!",
+                            Toast.LENGTH_SHORT
+                        ).show();
+                    }
                 }
             });
             return;
@@ -251,16 +254,21 @@ public final class AutoClaimCoupons {
         Object coupon = queue.get(index);
         try {
             String id = (String) getCouponIdMethod.invoke(coupon);
+            Object presenter = createPresenterMethod.invoke(factory);
+            if (displayField != null) {
+                displayField.set(presenter, dummyDisplay);
+            }
             activateMethod.invoke(presenter, coupon, context);
-            Log.d(TAG, "Activated coupon: " + id);
+            successCount.incrementAndGet();
+            Log.d(TAG, "Successfully activated coupon: " + id);
         } catch (Throwable t) {
-            Log.w(TAG, "Failed activating coupon index " + index, t);
+            Log.e(TAG, "Failed activating coupon index " + index, t);
         }
 
         MAIN.postDelayed(new Runnable() {
             @Override
             public void run() {
-                processQueue(index + 1, queue, presenter, activateMethod, context, fragment, getCouponIdMethod, totalCount);
+                processQueue(index + 1, queue, factory, createPresenterMethod, displayField, dummyDisplay, activateMethod, context, fragment, getCouponIdMethod, successCount);
             }
         }, ACTIVATION_DELAY_MS);
     }

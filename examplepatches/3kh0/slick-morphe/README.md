@@ -14,6 +14,7 @@ Slack should not be awful to use on Android. Let's fix that!
 
 ## Features
 
+- Block telemetry: stop Slack usage events, performance traces and Sentry reports
 - Silent typing: don't send typing indicators
 - Message logger: keep deleted messages and edit history
 - AMOLED theme: true black dark mode for the night owls
@@ -27,6 +28,12 @@ Slack should not be awful to use on Android. Let's fix that!
 
 Open your profile in the top right, then **Preferences > Slick settings**. The older profile menu also has a direct **Slick settings** shortcut.
 
+## Selecting the right patch
+
+For most people, **Slick Android** is the only patch you will need. It includes every individual patch, has ways of toggling features on and off within the app, and has the most polish.
+
+If you want to create a custom build, enable [Morphe's **Expert mode**](https://github.com/MorpheApp/morphe-manager/blob/main/docs/patching-expert-mode.md), deselect **Slick Android**, and select only the individual patches you want. This is not recommended unless you know what you're doing.
+
 ## Build from source
 
 You will wanna nab a copy of JDK 21+ on Linux or macOS. I made a few handy scripts that will all the goodies into `work/`.
@@ -39,4 +46,4 @@ bash lint.sh    # format and lint (--fix to apply!)
 
 ## License
 
-GPLv3, see [`LICENSE`](LICENSE). Lexend is under the [SIL Open Font License 1.1](fonts/Lexend-OFL.txt). The feature flags patch and general inspiration are from [`HagiaHaya/morphe-patches`](https://github.com/HagiaHaya/morphe-patches) (GPLv3).
+GPLv3, see [`LICENSE`](LICENSE). Lexend is under the [SIL Open Font License 1.1](fonts/Lexend-OFL.txt). The feature flags and telemetry patches and general inspiration are from [`HagiaHaya/morphe-patches`](https://github.com/HagiaHaya/morphe-patches) (GPLv3).

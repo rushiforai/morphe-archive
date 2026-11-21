@@ -47,10 +47,15 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.removeInstruction
+import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
+import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
+import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.getFreeRegisterProvider
 import app.morphe.patcher.util.getReference
 import app.morphe.patcher.util.smali.ExternalLabel
+import app.morphe.patches.shared.litho.relayout.LithoTextMountFingerprint
+import app.morphe.patches.shared.litho.relayout.lithoRelayoutPatch
 import app.morphe.patches.shared.textcomponent.hookTextComponent
 import app.morphe.patches.shared.textcomponent.textComponentPatch
 import app.morphe.patches.youtube.shared.WatchNextResponseParserFingerprint
@@ -73,17 +78,23 @@ import app.morphe.patches.youtube.video.information.videoInformationPatch
 import app.morphe.patches.youtube.video.videoid.hookPlayerResponseVideoId
 import app.morphe.patches.youtube.video.videoid.hookVideoId
 import app.morphe.patches.youtube.player.action.restoreOldVideoActionBarPatch
+import app.morphe.util.Utils.printWarn
+import app.morphe.util.addFreeRegisters
+import app.morphe.util.indexOfFirstInstruction
 import app.morphe.util.findInstructionIndicesReversedOrThrow
 import app.morphe.util.findMethodOrThrow
 import app.morphe.util.fingerprint.methodOrThrow
 import app.morphe.util.indexOfFirstInstructionOrThrow
+import app.morphe.util.numberOfParameterRegisters
 import app.morphe.util.indexOfFirstLiteralInstruction
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 
 private const val EXTENSION_RYD_CLASS_DESCRIPTOR =
     "$UTILS_PATH/ReturnYouTubeDislikePatch;"
@@ -99,44 +110,36 @@ private val returnYouTubeDislikeRollingNumberPatch = bytecodePatch(
         }
 
         RollingNumberSetterFingerprint.let {
-            it.method.apply {
-                val rollingNumberClassIndex = it.instructionMatches.first().index
-                val rollingNumberClassReference =
-                    getInstruction<ReferenceInstruction>(rollingNumberClassIndex).reference.toString()
-                val rollingNumberConstructorMethod =
-                    findMethodOrThrow(rollingNumberClassReference)
-                val charSequenceFieldReference = with(rollingNumberConstructorMethod) {
-                    getInstruction<ReferenceInstruction>(
-                        indexOfFirstInstructionOrThrow(Opcode.IPUT_OBJECT)
-                    ).reference
-                }
+            val method = it.method
+            val modelCast = it.instructionMatches.first().index
+            val modelClass = method.getInstruction<ReferenceInstruction>(modelCast).reference.toString()
+            val constructor = findMethodOrThrow(modelClass)
+            val textField = constructor.getInstruction<ReferenceInstruction>(
+                constructor.indexOfFirstInstructionOrThrow(Opcode.IPUT_OBJECT)
+            ).reference
+            val readText = method.indexOfFirstInstruction(modelCast + 1) {
+                opcode == Opcode.IGET_OBJECT && getReference<FieldReference>() == textField
+            }
+            if (readText < 0 || (textField as? FieldReference)?.type != "Ljava/lang/String;") {
+                printWarn("Return YouTube Dislike: native rolling count model unavailable.")
+                return@execute
+            }
 
-                val insertIndex = rollingNumberClassIndex + 1
-                val charSequenceInstanceRegister =
-                    getInstruction<OneRegisterInstruction>(rollingNumberClassIndex).registerA
+            // Preserve the conversion context parameter. Native code reuses its original register
+            // before it reads the string for the rolling model. Leave the shared proto untouched.
+            val context = method.implementation!!.registerCount
+            val scratchText = context + 1
+            val (converter, offset) = method.addFreeRegisters(method.numberOfParameterRegisters + 2)
+            converter.apply {
+                val index = readText + offset
+                val text = getInstruction<TwoRegisterInstruction>(index).registerA
 
-                val conversionContextRegister = implementation!!.registerCount - parameters.size + 1
-                val freeRegisters = getFreeRegisterProvider(
-                    insertIndex,
-                    if (conversionContextRegister < 16) 1 else 2,
-                    (16 until implementation!!.registerCount).toList() +
-                            listOf(charSequenceInstanceRegister, conversionContextRegister)
-                )
-                val freeRegister = freeRegisters.getFreeRegister()
-                val contextRegister = if (conversionContextRegister < 16) conversionContextRegister
-                    else freeRegisters.getFreeRegister()
-                val contextLoad = if (contextRegister == conversionContextRegister) "" else
-                    "move-object/from16 v$contextRegister, v$conversionContextRegister"
-
-                addInstructions(
-                    insertIndex, """
-                        iget-object v$freeRegister, v$charSequenceInstanceRegister, $charSequenceFieldReference
-                        $contextLoad
-                        invoke-static {v$contextRegister, v$freeRegister}, $EXTENSION_RYD_CLASS_DESCRIPTOR->onRollingNumberLoaded(Ljava/lang/Object;Ljava/lang/String;)Ljava/lang/String;
-                        move-result-object v$freeRegister
-                        iput-object v$freeRegister, v$charSequenceInstanceRegister, $charSequenceFieldReference
-                        """
-                )
+                addInstructions(index + 1, """
+                    move-object/from16 v$context, p2
+                    move-object/from16 v$scratchText, v$text
+                    invoke-static/range {v$context .. v$scratchText}, $EXTENSION_RYD_CLASS_DESCRIPTOR->onRollingNumberLoaded(Ljava/lang/Object;Ljava/lang/String;)Ljava/lang/String;
+                    move-result-object v$text
+                """)
             }
         }
 
@@ -165,6 +168,7 @@ private val returnYouTubeDislikeRollingNumberPatch = bytecodePatch(
                         if-ge v${ifGeInstruction.registerA}, v${ifGeInstruction.registerB}, :jump
                         """, ExternalLabel("jump", getInstruction(endIndex))
                 )
+                hookRollingMeasureText()
             }
         }
 
@@ -180,44 +184,124 @@ private val returnYouTubeDislikeRollingNumberPatch = bytecodePatch(
                         invoke-static {p1, v$freeRegister}, $EXTENSION_RYD_CLASS_DESCRIPTOR->onRollingNumberMeasured(Ljava/lang/String;F)F
                         """
                 )
+                hookRollingMeasureText()
             }
         }
 
         // The rolling number Span is missing styling since it's initially set as a String.
         // Modify the UI text view and use the styled like/dislike Span.
         arrayOf(
-            // Initial TextView is set in this method.
-            rollingNumberTextViewFingerprint
-                .methodOrThrow(),
-
-            // Video less than 24 hours after uploaded, like counts will be updated in real time.
-            // Whenever like counts are updated, TextView is set in this method.
-            rollingNumberTextViewAnimationUpdateFingerprint
-                .methodOrThrow(rollingNumberTextViewFingerprint)
-        ).forEach { method ->
-            method.apply {
-                // YouTube 21.39 added a two-line branch with its own setText before the bitmap
-                // ImageSpan setText, so hooking only the first call left the regular path showing
-                // YouTube's bitmap of the raw text (separator placeholder visible).
-                // Hook every setText, in reverse order so earlier indices stay valid.
-                findInstructionIndicesReversedOrThrow {
-                    getReference<MethodReference>()?.name == "setText"
-                }.forEach { setTextIndex ->
-                    val textViewRegister =
-                        getInstruction<FiveRegisterInstruction>(setTextIndex).registerC
-                    val textSpanRegister =
-                        getInstruction<FiveRegisterInstruction>(setTextIndex).registerD
-
-                    addInstructions(
-                        setTextIndex, """
-                            invoke-static {v$textViewRegister, v$textSpanRegister}, $EXTENSION_RYD_CLASS_DESCRIPTOR->updateRollingNumber(Landroid/widget/TextView;Ljava/lang/CharSequence;)Ljava/lang/CharSequence;
-                            move-result-object v$textSpanRegister
-                            """
-                    )
-                }
+            rollingNumberTextViewFingerprint.methodOrThrow() to "bindRollingNumber",
+            rollingNumberTextViewAnimationUpdateFingerprint.methodOrThrow(rollingNumberTextViewFingerprint)
+                    to "updateRollingNumber",
+        ).forEach { (method, hook) ->
+            // Recent versions have both a static label and a bitmap animation branch.
+            method.findInstructionIndicesReversedOrThrow {
+                val reference = getReference<MethodReference>()
+                reference?.name == "setText" && reference.parameterTypes == listOf("Ljava/lang/CharSequence;")
+            }.forEach { index ->
+                val instruction = method.getInstruction<FiveRegisterInstruction>(index)
+                method.replaceInstruction(index,
+                    "invoke-static {v${instruction.registerC}, v${instruction.registerD}}, " +
+                            "$EXTENSION_RYD_CLASS_DESCRIPTOR->$hook(Landroid/widget/TextView;Ljava/lang/CharSequence;)V")
             }
         }
     }
+}
+
+private fun MutableMethod.hookRollingMeasureText() {
+    addInstructions(0, """
+        invoke-static/range {p1 .. p1}, $EXTENSION_RYD_CLASS_DESCRIPTOR->rollingNumberTextForMeasure(Ljava/lang/String;)Ljava/lang/String;
+        move-result-object p1
+    """)
+}
+
+context(_: BytecodePatchContext)
+private fun hookSegmentedCountResolution() {
+    val mount = LithoTextMountFingerprint.method
+    val component = LithoTextMountFingerprint.classDef
+    val contextType = mount.parameterTypes.first()
+    val layoutDataType = mount.parameterTypes.last()
+    val layoutMethods = component.methods.filter {
+        it.returnType == "V" && it.parameterTypes.size >= 3 && it.parameterTypes.first() == contextType &&
+                it.parameterTypes.last() == layoutDataType && it.parameterTypes[1] != "Ljava/lang/Object;"
+    }
+    val measure = layoutMethods.singleOrNull { it.parameterTypes.size == 3 }
+    val layout = layoutMethods.singleOrNull {
+        it.parameterTypes.size == 6 && it.parameterTypes[1] == measure?.parameterTypes?.get(1) &&
+                it.parameterTypes.subList(2, 4) == listOf("I", "I")
+    }
+    if (measure == null || layout == null) {
+        printWarn("Return YouTube Dislike: native segmented count layout unavailable.")
+        return
+    }
+
+    // Both native sizing passes read text before the separately stored content description.
+    val reads = listOf(measure, layout).map { method ->
+        val index = method.indexOfFirstInstruction {
+            val reference = getReference<FieldReference>()
+            opcode == Opcode.IGET_OBJECT && reference?.definingClass == component.type &&
+                    reference.type == "Ljava/lang/CharSequence;"
+        }
+        method to index
+    }
+    if (reads.any { (_, index) -> index < 0 } ||
+        reads.map { (method, index) -> method.getInstruction<ReferenceInstruction>(index).reference }.distinct().size != 1
+    ) {
+        printWarn("Return YouTube Dislike: native segmented count text field unavailable.")
+        return
+    }
+
+    // The three-parameter pass can reuse layouts from the preceding sizing pass when specs
+    // match. Reject only a cached layout whose marked RYD presentation has since changed.
+    val (cacheMethod, textIndex) = reads.first()
+    val textRegister = cacheMethod.getInstruction<TwoRegisterInstruction>(textIndex).registerA
+    val implementation = cacheMethod.implementation!!
+    val instructions = implementation.instructions
+    val dataParameterRegister = implementation.registerCount - 1
+    val dataCast = instructions.withIndex().filter { (index, instruction) ->
+        if (index <= textIndex || instruction.opcode != Opcode.CHECK_CAST) {
+            return@filter false
+        }
+        val input = instructions[index - 1]
+        input.opcode == Opcode.MOVE_OBJECT_FROM16 && input is TwoRegisterInstruction &&
+                input.registerB == dataParameterRegister &&
+                input.registerA == (instruction as OneRegisterInstruction).registerA
+    }.singleOrNull()
+    // The parameter's declared type is a common base type; the Layout fields live on its cast.
+    val dataClass = dataCast?.value?.getReference<TypeReference>()?.type
+    val dataRegister = (dataCast?.value as? OneRegisterInstruction)?.registerA
+    val cacheReads = instructions.withIndex().filter { (index, instruction) ->
+        if (dataCast == null || index <= dataCast.index || instruction.opcode != Opcode.IGET_OBJECT) {
+            return@filter false
+        }
+        val reference = instruction.getReference<FieldReference>()
+        reference?.definingClass == dataClass && reference?.type == "Landroid/text/Layout;" &&
+                (instruction as TwoRegisterInstruction).registerB == dataRegister
+    }
+    if (cacheReads.size != 2 || cacheReads.any { (_, instruction) ->
+            (instruction as TwoRegisterInstruction).registerA == textRegister
+        }
+    ) {
+        printWarn("Return YouTube Dislike: native segmented count layout cache unavailable.")
+        return
+    }
+    for ((index, instruction) in cacheReads.asReversed()) {
+        val cachedLayout = (instruction as TwoRegisterInstruction).registerA
+        cacheMethod.addInstructions(index + 1, """
+            invoke-static {v$cachedLayout, v$textRegister}, $EXTENSION_RYD_CLASS_DESCRIPTOR->reuseSegmentedCountLayout(Landroid/text/Layout;Ljava/lang/CharSequence;)Landroid/text/Layout;
+            move-result-object v$cachedLayout
+        """)
+    }
+
+    for ((method, index) in reads) {
+        val register = method.getInstruction<TwoRegisterInstruction>(index).registerA
+        method.addInstructions(index + 1, """
+            invoke-static {v$register}, $EXTENSION_RYD_CLASS_DESCRIPTOR->resolveSegmentedCount(Ljava/lang/CharSequence;)Ljava/lang/CharSequence;
+            move-result-object v$register
+        """)
+    }
+    hookTextComponent(EXTENSION_RYD_CLASS_DESCRIPTOR)
 }
 
 @Suppress("unused")
@@ -232,6 +316,7 @@ val returnYouTubeDislikePatch = bytecodePatch(
         returnYouTubeDislikeRollingNumberPatch,
         textComponentPatch,
         lithoLayoutPatch,
+        lithoRelayoutPatch,
         restoreOldVideoActionBarPatch,
         videoInformationPatch,
         lazilyConvertedElementHookPatch,
@@ -288,7 +373,7 @@ val returnYouTubeDislikePatch = bytecodePatch(
             }
         }
 
-        hookTextComponent(EXTENSION_RYD_CLASS_DESCRIPTOR)
+        hookSegmentedCountResolution()
         hookElementList("$EXTENSION_RYD_CLASS_DESCRIPTOR->onLazilyConvertedElementLoaded")
         hookDislikePill()
 

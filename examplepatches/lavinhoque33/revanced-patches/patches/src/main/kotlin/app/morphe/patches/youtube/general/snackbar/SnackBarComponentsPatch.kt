@@ -11,7 +11,7 @@
  * - MondayNitro (https://github.com/MondayNitro)
  *
  * Licensed under the GNU General Public License v3.0.
- * Modified by lavinhoque33, 2026-11-18.
+ * Modified by lavinhoque33, 2026-11-20.
  *
  * ------------------------------------------------------------------------
  * GPLv3 Section 7 – Additional Terms & Attribution Requirements
@@ -370,6 +370,14 @@ val snackBarComponentsPatch = resourcePatch(
 
         document("res/drawable/playlist_entry_point_corner_drawable.xml").use { document ->
             document.useRuntimeDrawable(document.documentElement, "$DRAWABLE_CLASS\$Playlist")
+        }
+
+        // Newer FAB-style playlist bars use a separate round background with its own outline.
+        val roundedPlaylistBackground = "res/drawable/playlist_entry_point_rounded_drawable.xml"
+        if (get(roundedPlaylistBackground).exists()) {
+            document(roundedPlaylistBackground).use { document ->
+                document.useRuntimeDrawable(document.documentElement, "$DRAWABLE_CLASS\$RoundedPlaylist")
+            }
         }
 
         // Media picker already uses this same radius, but has its own fill and insets.

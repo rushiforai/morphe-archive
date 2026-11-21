@@ -34,45 +34,59 @@ val clonePatch = resourcePatch(
     ) { it != null && Regex("""\.[A-Za-z][A-Za-z0-9_]*""").matches(it) }
 
     execute {
-        val old = OriginalApp.packageName
-        val new = old + suffix
-        document("AndroidManifest.xml").use { document ->
-            val root = document.documentElement
-            if (old.isEmpty() || root.getAttribute("package") != old) return@use // nothing safe to rename
-            val all = document.getElementsByTagName("*")
-            val elements = (0 until all.length).map { all.item(it) as Element }
+        renamePackage(suffix!!)
+    }
+}
 
-            // Names written as ".Foo" resolve against the package, so spell them out before the package changes.
-            for (element in elements) for (attribute in CLASS_ATTRIBUTES) {
-                val value = element.getAttribute("android:$attribute")
-                if (value.startsWith(".")) element.setAttribute("android:$attribute", old + value)
-            }
+/**
+ * Renames the app's package to its original name plus [suffix], with everything that would clash with the original
+ * app (provider authorities, the app's own permissions). Returns the provider authorities it renamed, old to new, so
+ * an app-specific patch can rewrite the same names where the app's code spells them out. Does nothing, and returns
+ * nothing, if the package was already renamed.
+ */
+internal fun app.morphe.patcher.patch.ResourcePatchContext.renamePackage(suffix: String): Map<String, String> {
+    val old = OriginalApp.packageName
+    val new = old + suffix
+    val authorities = mutableMapOf<String, String>()
+    document("AndroidManifest.xml").use { document ->
+        val root = document.documentElement
+        if (old.isEmpty() || root.getAttribute("package") != old) return@use // nothing safe to rename
+        val all = document.getElementsByTagName("*")
+        val elements = (0 until all.length).map { all.item(it) as Element }
 
-            // What would clash with the original app, which stays installed: content provider authorities and
-            // the app's own permissions.
-            for (element in elements) when (element.tagName) {
-                "provider" -> element.setAttribute(
-                    "android:authorities",
-                    element.getAttribute("android:authorities").split(";").joinToString(";") { it.renameIn(old, new) },
-                )
-                "permission", "uses-permission", "uses-permission-sdk-23" -> element.setAttribute(
-                    "android:name", element.getAttribute("android:name").renameIn(old, new),
-                )
-            }
-            for (element in elements) {
-                val guard = element.getAttribute("android:permission")
-                if (guard.isNotEmpty()) element.setAttribute("android:permission", guard.renameIn(old, new))
-            }
+        // Names written as ".Foo" resolve against the package, so spell them out before the package changes.
+        for (element in elements) for (attribute in CLASS_ATTRIBUTES) {
+            val value = element.getAttribute("android:$attribute")
+            if (value.startsWith(".")) element.setAttribute("android:$attribute", old + value)
+        }
 
-            root.setAttribute("package", new)
-            (document.getElementsByTagName("application").item(0) as Element).appendChild(
-                document.createElement("meta-data").also {
-                    it.setAttribute("android:name", "app.loki.menu.clone")
-                    it.setAttribute("android:value", "true")
+        // What would clash with the original app, which stays installed: content provider authorities and
+        // the app's own permissions.
+        for (element in elements) when (element.tagName) {
+            "provider" -> element.setAttribute(
+                "android:authorities",
+                element.getAttribute("android:authorities").split(";").joinToString(";") { authority ->
+                    authority.renameIn(old, new).also { if (it != authority) authorities[authority] = it }
                 },
             )
+            "permission", "uses-permission", "uses-permission-sdk-23" -> element.setAttribute(
+                "android:name", element.getAttribute("android:name").renameIn(old, new),
+            )
         }
+        for (element in elements) {
+            val guard = element.getAttribute("android:permission")
+            if (guard.isNotEmpty()) element.setAttribute("android:permission", guard.renameIn(old, new))
+        }
+
+        root.setAttribute("package", new)
+        (document.getElementsByTagName("application").item(0) as Element).appendChild(
+            document.createElement("meta-data").also {
+                it.setAttribute("android:name", "app.loki.menu.clone")
+                it.setAttribute("android:value", "true")
+            },
+        )
     }
+    return authorities
 }
 
 /** Renames [old] where it is the whole value or a dotted prefix of it. */

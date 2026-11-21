@@ -56,7 +56,7 @@ app data. Upstream attribution is in `NOTICE`.
 ## Patches
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.6.0-dev.6](https://github.com/XBadFellaX/BadFella-Patches/releases/tag/v1.6.0-dev.6)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;53 patches total
+> **[v1.6.0](https://github.com/XBadFellaX/BadFella-Patches/releases/tag/v1.6.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;58 patches total
 <details open>
 <summary>📦 Ultimea&nbsp;&nbsp;•&nbsp;&nbsp;6 patches</summary>
 <br>
@@ -78,14 +78,14 @@ app data. Upstream attribution is in `NOTICE`.
 </details>
 
 <details open>
-<summary>📦 LinkedIn&nbsp;&nbsp;•&nbsp;&nbsp;34 patches</summary>
+<summary>📦 LinkedIn&nbsp;&nbsp;•&nbsp;&nbsp;37 patches</summary>
 <br>
 
 **🎯 Supported versions:**
 
-| 4.1.1267 | 4.1.1271 | 4.1.1272 |
-| :---: | :---: | :---: |
-|  | Version 4.1.1271, build 217900. | Version 4.1.1272, build 218000. | Any version (experimental). Every patch verifies its own anchors. |
+| 4.1.1267 | 4.1.1271 | 4.1.1272 | 4.1.1275 | 4.1.1276 |
+| :---: | :---: | :---: | :---: | :---: |
+|  | Version 4.1.1271, build 217900. | Version 4.1.1272, build 218000. | Version 4.1.1275 beta, build 218300. | Version 4.1.1276 beta, build 218400. | Any version (experimental). Every patch verifies its own anchors. |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
@@ -97,24 +97,26 @@ app data. Upstream attribution is in `NOTICE`.
 | [Customize navigation bar](#customize-navigation-bar) | Takes the bottom navigation buttons you pick off the bar, such as My Network, Post, Notifications, Jobs, Video or News. Each page still opens from the Menu and from links. Restart LinkedIn after changing the selection. | • Hide My Network<br>• Hide Post<br>• Hide Notifications<br>• Hide Jobs<br>• Hide Video<br>• Hide News |
 | [Dark app icon](#dark-app-icon) | Black launcher icon with the white "in", instead of LinkedIn's blue. Chosen when patching: a launcher icon cannot switch with dark mode on its own. |  |
 | [Disable double-tap like](#disable-double-tap-like) | Stops double tapping a post or photo from liking it. |  |
+| [Disable screenshot share sheet](#disable-screenshot-share-sheet) | Stops LinkedIn from opening its share sheet when you take a screenshot of a post. |  |
 | [Download media](#download-media) | Adds a download button to the full screen photo, video and document viewer. Documents (PDFs and carousels) are saved as one PDF. |  |
 | [Expand posts](#expand-posts) | Adds an option (off by default, turned on in BadFella Patches) to show posts expanded by default. Tapping the text collapses them. |  |
 | [Feed filters](#feed-filters) | Adds optional filters (off by default, turned on in BadFella Patches): focus mode, celebrations, job cards, reposts, posts from others' activity, "Recommended for you", video posts, games, the "New posts" pill and "See translation". |  |
 | [Glass navigation bar](#glass-navigation-bar) | Draws the navigation bar as a floating, translucent capsule with a spring selection pill and no press ripple. |  |
-| [GmsCore support](#gmscore-support) | Makes "Continue with Google" work in patched LinkedIn by signing in through microG RE (GmsCore) instead of Google Play services. Needs microG RE installed and signed in to a Google account. |  |
+| [GmsCore support](#gmscore-support) | Routes Google sign-in and push notifications through microG RE instead of Google Play services. Needs microG RE installed and allowed to run in the background. Google sign-in also needs a Google account. Leave disabled to keep Google Play services. |  |
 | [Hide Premium upsells](#hide-premium-upsells) | Removes Premium and AI upsell cards and banners, including on profiles and the Me panel. |  |
 | [Hide ads](#hide-ads) | Removes promoted, boosted and sponsored posts from the feed. |  |
 | [Hide bottom tabs](#hide-bottom-tabs) | Adds switches to take My Network and Jobs out of the bottom bar. |  |
 | [Hide promoted jobs](#hide-promoted-jobs) | Removes promoted job listings from the Jobs tab and job search. |  |
 | [Hide suggested posts](#hide-suggested-posts) | Removes "Suggested" posts from outside your network from the feed. |  |
+| [Hide top bar buttons](#hide-top-bar-buttons) | Lets you hide Post and Messaging in the Home top bar. |  |
 | [Icon-only post actions](#icon-only-post-actions) | Adds a switch in BadFella Patches to show the Like, Comment, Repost and Send buttons under posts without their labels. |  |
 | [Install next to LinkedIn](#install-next-to-linkedin) | Installs this build as a second LinkedIn beside your normal one, with its own data and sign-in. Pick its package name and app name in the patch's options. Works as soon as you patch it in. | • Package name<br>• App name |
-| [Keep feed on reopen](#keep-feed-on-reopen) | Keeps your place in the feed when you come back to LinkedIn, instead of reloading it. Pull down or tap the "New posts" button to load new posts. |  |
+| [Keep feed on reopen](#keep-feed-on-reopen) | Keeps your place in the feed when you come back to LinkedIn, instead of reloading it. Off by default. Pull down or tap the "New posts" button to load new posts. |  |
 | [Material You](#material-you) | Uses wallpaper colors (Android 12+) or a preset/custom accent color (Android 10+) instead of LinkedIn blue and the green of selected filters, and Material 3 surface colors for backgrounds, cards, bars and borders. Some screens drawn by LinkedIn's servers may keep their own colors. |  |
 | [Material icons in the bottom bar](#material-icons-in-the-bottom-bar) | Replaces LinkedIn's Home, My Network, Notifications, Jobs and Video tab icons with Material icons (filled when selected, outlined otherwise). Chosen when patching. | • Material icons |
 | [Messaging](#messaging) | Hides sponsored messages, and adds an optional ghost mode that does not send typing indicators or read status. |  |
 | [More tab](#more-tab) | Lets you hide items of the More tab (Puzzle games, Groups, Events, Newsletters), or list them at the bottom of the profile menu. |  |
-| [Navigation bar](#navigation-bar) | Adds options (turned on in BadFella Patches) to hide the More, Jobs, Network and Notifications tabs of the navigation bar, its count badges and its labels. |  |
+| [Navigation bar](#navigation-bar) | Reorders tabs with Home first and lets you hide tabs, labels and badges. |  |
 | [Open links directly](#open-links-directly) | Opens external links without LinkedIn's safety/go warning page. |  |
 | [Pitch black](#pitch-black) | Replaces the gray backgrounds of dark mode with black, and cards with a slightly lighter black, across the entire app. Takes effect when the system is in dark mode. Works with or without Material You. |  |
 | [Post menu items](#post-menu-items) | Adds Copy text, Download photos and videos, and Save document as PDF to the ⋯ menu of posts, each with its own icon. |  |
@@ -123,6 +125,7 @@ app data. Upstream attribution is in `NOTICE`.
 | [Swipe between feeds](#swipe-between-feeds) | Swipe left and right on the home feed to switch between For you and Network, like on X. |  |
 | [Swipe between tabs](#swipe-between-tabs) | Swipe sideways to go to the next or previous tab of the navigation bar. |  |
 | [Tap to hide in viewers](#tap-to-hide-in-viewers) | Tap a video or document in full screen to hide the caption and buttons, like photos. |  |
+| [Video tab](#video-tab) | Shows playback time and can advance to the next video when playback ends. |  |
 
 </details>
 
@@ -158,6 +161,24 @@ app data. Upstream attribution is in `NOTICE`.
 | [Restore notifications](#restore-notifications) | Restores Firebase certificate metadata on re-signed apps, with an Android 17 compatible token setup. Push delivery still requires device testing. |  |
 | [Restore reminder alarms](#restore-reminder-alarms) | Restores task/reminder alarm scheduling on re-signed apps. |  |
 | [TickTick Premium](#ticktick-premium) | Enables client-side premium features and limits. Does not grant server-side AI access or a subscription. |  |
+
+</details>
+
+<details open>
+<summary>📦 Remote for Android TV&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 6.1.0 |
+| :---: |
+| Version 6.1.0, build 45. |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Disable remote page swipes](#disable-remote-page-swipes) | Disables swiping between the D-pad or touchpad and number pad. Keeps the switch button and setup page swipes. Requires Remote ATV ad-free. Supports version 6.1.0, build 45. |  |
+| [Increase D-pad hold tolerance](#increase-d-pad-hold-tolerance) | Keeps a held D-pad arrow pressed while your finger moves. Stops on release or cancellation. Requires Disable remote page swipes and Remote ATV ad-free. Supports version 6.1.0, build 45. |  |
+| [Remote ATV ad-free](#remote-atv-ad-free) | Disables advertising, restores startup and replaces premium activation with a local ad-free status. Removes the home banner and its spacing. Does not create a server subscription. |  |
 
 </details>
 
@@ -199,22 +220,6 @@ app data. Upstream attribution is in `NOTICE`.
 </details>
 
 <details open>
-<summary>📦 Remote for Android TV&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
-<br>
-
-**🎯 Supported versions:**
-
-| 6.1.0 |
-| :---: |
-| Version 6.1.0, build 45. |
-
-| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
-|----------|----------------|-----------|
-| [Remote ATV ad-free](#remote-atv-ad-free) | Disables advertising, restores startup and replaces premium activation with a local ad-free status. Removes the home banner and its spacing. Does not create a server subscription. |  |
-
-</details>
-
-<details open>
 <summary>📦 Science News Daily&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
 
@@ -243,6 +248,12 @@ app data. Upstream attribution is in `NOTICE`.
 <details open>
 <summary>📦 Wanderlog&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
+
+**🎯 Supported versions:**
+
+| 2.227 | 2.228 | 2.229 |
+| :---: | :---: | :---: |
+| Any version (experimental). Every patch verifies its own anchors. | Version 2.227, build 2026102307 (universal). | Version 2.228, build 2026110208 (universal). | Version 2.229, build 2026111701 (universal). |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
@@ -274,6 +285,15 @@ state is unchanged.
 
 [GPLv3](LICENSE) · [Copyright and license notices](NOTICE) · [Issues](https://github.com/XBadFellaX/BadFella-Patches/issues)
 
+### LinkedIn notifications
+
+The LinkedIn patches restore the original Firebase package and certificate
+headers on re-signed builds, including builds using regular Google Play services. Keep **GmsCore
+support** disabled to retain Google Play services. If selected, Google sign-in
+and push are routed through microG RE; it must be installed and allowed to run
+in the background. Notification permission and LinkedIn's notification settings
+still apply. End-to-end push delivery requires device verification.
+
 ### LinkedIn diagnostics (development preview)
 
 Open **BadFella Patches → Diagnostics** to start a 20-second performance capture,
@@ -284,3 +304,11 @@ error locations. Account identity, post/message text, URLs, cookies, tokens and
 custom setting text are excluded. Nothing is uploaded automatically. Review the
 file before attaching it to a GitHub issue. Results cover the current app process
 and disappear when it ends. Capturing adds some overhead; it does not fix lag.
+
+## App update alerts
+
+A daily check posts new upstream listings to the
+[app update thread](https://github.com/XBadFellaX/BadFella-Patches/issues/12).
+Subscribe to that thread for GitHub email alerts. Beta listings are included
+where the source exposes them; unchanged checks send no alert. A new listing
+still needs patch compatibility testing.

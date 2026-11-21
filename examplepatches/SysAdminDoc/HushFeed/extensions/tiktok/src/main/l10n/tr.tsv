@@ -2451,8 +2451,6 @@ QR code	QR kodu
 Share profile	Profili paylaş
 TikTok Plus	TikTok Plus
 Invite friends	Arkadaşlarını davet et
-Inbox mode	Gelen kutusu modu
-Audience controls	Kitle kontrolleri
 Background audio	Arka planda ses
 Display	Ekran
 Commercial content library	Ticari içerik kütüphanesi
@@ -2464,7 +2462,6 @@ Shake to report	Bildirmek için salla
 Free up space	Yer aç
 Data Saver	Veri Tasarrufu
 Free data	Ücretsiz veri
-Live wallpaper	Canlı duvar kağıdı
 Check for updates	Güncellemeleri kontrol et
 Lite mode	Lite modu
 TikTok Beta	TikTok Beta
@@ -2478,6 +2475,16 @@ Policy updates	Politika güncellemeleri
 What's new on TikTok	TikTok'taki yenilikler
 Switch account	Hesap değiştir
 Log out	Çıkış yap
+Mentions	Bahsedilmeler
+Direct messages	Doğrudan mesajlar
+Reuse of content	İçeriği yeniden kullanma
+Display profile when sharing links	Bağlantı paylaşırken profili göster
+Following list	Takipte listesi
+Viewers	İzleyiciler
+Inbox & Messaging	Gelen Kutusu ve Mesajlaşma
+Audience control	Kitle kontrolü
+Wallpaper	Duvar kağıdı
+Help Center	Yardım Merkezi
 Open the search page	Arama sayfasını aç
 Search didn't open. Restart TikTok and try again.	Arama açılmadı. TikTok'u yeniden başlatıp dene.
 Fold the search into a button	Aramayı bir düğmeye katla
@@ -2511,6 +2518,16 @@ Leave after no touch	Dokunulmazsa uygulamadan çık
 Zero switches this off. After that many minutes with no touch on the screen, the video stops and TikTok goes to the background, for when you fall asleep watching. Any touch starts the wait over.	Sıfır bunu kapatır. Ekrana o kadar dakika dokunulmazsa video durur ve TikTok arka plana geçer, izlerken uyuyakaldığın durumlar için. Herhangi bir dokunuş beklemeyi baştan başlatır.
 Left TikTok after no touch	Dokunulmadığı için TikTok'tan çıkıldı
 Show when an account was made	Hesabın ne zaman açıldığını göster
+Show what changed since your last visit	Son ziyaretinizden beri değişenleri göster
+Under the @username on a profile, show how its followers, following, likes and videos changed since you last opened it. The counts are kept on this phone only.	Bir profilde @kullanıcı adının altında, onu son açışınızdan bu yana takipçilerin, takip edilenlerin, beğenilerin ve videoların nasıl değiştiğini gösterir. Sayılar yalnızca bu telefonda tutulur.
+Since %1$s: %2$s	Son ziyaret %1$s: %2$s
+No changes since %1$s	Değişiklik yok (son ziyaret %1$s)
+%1$s, %2$s	%1$s, %2$s
+%1$s follower	%1$s takipçi
+%1$s followers	%1$s takipçi
+%1$s following	%1$s takip
+%1$s like	%1$s beğeni
+%1$s likes	%1$s beğeni
 Under the @username on someone else's profile, show the month and year the account was made. It's read from the account's ID, so very old accounts show nothing.	Başka birinin profilinde @kullanıcı adının altında hesabın açıldığı ayı ve yılı göster. Bu bilgi hesabın kimliğinden okunur, bu yüzden çok eski hesaplarda hiçbir şey görünmez.
 Joined %s	Katıldı: %s
 Keep unsent messages	Geri alınan mesajları koru
@@ -2670,6 +2687,18 @@ Remove selected comments	Seçili yorumları kaldır
 Pick comments from your comment history to delete.	Yorum geçmişinden silinecek yorumları seç.
 Removing all comments in %1$d	Yorumlar kaldırılıyor: %1$d
 Removing the picked comments in %1$d	Seçili yorumlar kaldırılıyor: %1$d
+Unfollow accounts that don't follow you back	Sizi geri takip etmeyen hesapları takipten çık
+Checks your followers first and says how many it found, then unfollows them one after another. Accounts that follow you back stay.	Önce takipçilerinizi kontrol eder ve kaç tane bulduğunu söyler, sonra onları tek tek takipten çıkar. Sizi geri takip eden hesaplar kalır.
+Checking who you follow: %1$d	Takip ettikleriniz kontrol ediliyor: %1$d
+Checking your followers: %1$d	Takipçileriniz kontrol ediliyor: %1$d
+Everyone you follow follows you back	Takip ettiğiniz herkes sizi geri takip ediyor
+Couldn't check who follows you back. Try again.	Sizi kimin geri takip ettiği kontrol edilemedi. Tekrar deneyin.
+Accounts to unfollow: %1$d. Starting in %2$d	Takipten çıkılacak hesaplar: %1$d. Başlamasına %2$d
+Unfollowed: %1$d	Takipten çıkıldı: %1$d
+Done. %1$d unfollowed.	Bitti. %1$d hesap takipten çıkıldı.
+Stopped. %1$d unfollowed.	Durduruldu. %1$d hesap takipten çıkıldı.
+TikTok refused. %1$d unfollowed.	TikTok reddetti. %1$d hesap takipten çıkıldı.
+Network error. %1$d unfollowed.	Ağ hatası. %1$d hesap takipten çıkıldı.
 Comments removed: %1$d	Kaldırılan yorumlar: %1$d
 TikTok refused to list your comments	TikTok yorumlarını listelemeyi reddetti
 Couldn't load your comments. Try again.	Yorumların yüklenemedi. Tekrar dene.
@@ -2955,6 +2984,44 @@ Crop and stretch to fill the screen	Ekranı doldurmak için kırp ve uzat
 Cover the whole window with half the crop of Fill and half the stretch of Stretch, so neither is easy to spot. A video far from the screen's shape keeps TikTok's size.	Tüm pencereyi Doldur'un yarısı kadar kırpma ve Uzat'ın yarısı kadar uzatmayla kaplar, böylece ikisi de pek fark edilmez. Şekli ekrandan çok farklı olan bir video TikTok'un boyutunu korur.
 Watch LIVEs unseen	LIVE'ları görünmeden izle
 You stay off the viewer list of LIVEs you open. Tap the eye in a LIVE to let that host see you. Needs Ghost mode on.	Açtığın LIVE'ların izleyici listesinde görünmezsin. Sunucunun seni görmesi için LIVE'da göze dokun. Hayalet modu açık olmalı.
+Keep likes on this phone	Beğenileri bu telefonda tut
+A like you give a video stays on this phone. The heart turns red, but TikTok isn't told, so the creator never sees it and it isn't on your profile. Needs Ghost mode on.	Bir videoya verdiğin beğeni bu telefonda kalır. Kalp kırmızı olur ama TikTok'a bildirilmez, bu yüzden içerik üreticisi bunu hiç görmez ve profilinde görünmez. Hayalet modu açık olmalı.
+My likes on this phone	Bu telefondaki beğenilerim
+Find and reopen the videos you liked only on this phone	Yalnızca bu telefonda beğendiğin videoları bul ve yeniden aç
+Videos you like on this phone show up here	Bu telefonda beğendiğin videolar burada görünür
+Likes cleared	Beğeniler temizlendi
+Export followers and following	Takipçileri ve takip edilenleri dışa aktar
+Saves the accounts that follow you, or the ones you follow, as a CSV file in Download/Hushfeed. They're read at about the pace of scrolling the list, up to %1$s at a time.	Seni takip eden hesapları ya da senin takip ettiklerini Download/Hushfeed klasörüne CSV dosyası olarak kaydeder. Listeyi kaydırma hızına yakın bir hızla, bir seferde en fazla %1$s tane okunur.
+A list is already being read	Zaten bir liste okunuyor
+Reading your followers (%1$s)	Takipçilerin okunuyor (%1$s)
+Reading who you follow (%1$s)	Takip ettiklerin okunuyor (%1$s)
+Couldn't read the list. Try again in a moment.	Liste okunamadı. Birazdan tekrar dene.
+Stopped before anyone was read	Kimse okunmadan durduruldu
+Nobody follows this account yet	Bu hesabı henüz kimse takip etmiyor
+This account doesn't follow anyone yet	Bu hesap henüz kimseyi takip etmiyor
+The file couldn't be saved. Try again.	Dosya kaydedilemedi. Tekrar dene.
+Saved one account to %2$s	Bir hesap %2$s konumuna kaydedildi
+Saved %1$s accounts to %2$s	%1$s hesap %2$s konumuna kaydedildi
+It stopped before the end of the list, so the file is partial.	Listenin sonuna gelmeden durdu, bu yüzden dosya eksik.
+TikTok stopped answering before the end of the list, so the file is partial.	TikTok listenin sonuna gelmeden yanıt vermeyi bıraktı, bu yüzden dosya eksik.
+Only the first %1$s are in the file.	Dosyada yalnızca ilk %1$s hesap var.
+Save your likes from a TikTok data export	Beğenilerini TikTok veri dışa aktarımından kaydet
+Pick the export TikTok sends from Settings and privacy > Account > Download your data, in JSON format. The videos it lists as liked or favorited are saved like picked videos, up to %1$s at a time.	TikTok'un Ayarlar ve gizlilik > Hesap > Verilerini indir bölümünden gönderdiği dışa aktarımı JSON biçiminde seç. Beğenilen veya favorilere eklenen olarak listelediği videolar, seçilen videolar gibi, bir seferde en fazla %1$s tane kaydedilir.
+Reading the data export	Veri dışa aktarımı okunuyor
+Liked videos (%1$s)	Beğenilen videolar (%1$s)
+Favorites (%1$s)	Favoriler (%1$s)
+That export lists no liked or favorited videos	Bu dışa aktarımda beğenilen veya favori video yok
+Couldn't start saving. Try again in a moment.	Kaydetme başlatılamadı. Birazdan tekrar dene.
+You've already saved every one of these videos here	Bu videoların hepsini burada zaten kaydettin
+Saving one video	Bir video kaydediliyor
+Saving %1$s videos	%1$s video kaydediliyor
+One you saved before is left out	Daha önce kaydettiğin bir video atlandı
+%1$s you saved before are left out	Daha önce kaydettiğin %1$s video atlandı
+Choose the file again after this run to save the other %1$s	Diğer %1$s videoyu kaydetmek için bu turdan sonra dosyayı yeniden seç
+That file is larger than %1$s MB. Choose the JSON file from the export.	Bu dosya %1$s MB'tan büyük. Dışa aktarımdaki JSON dosyasını seç.
+That isn't a TikTok data export in JSON format. Choose user_data_tiktok.json or the zip it came in.	Bu, JSON biçiminde bir TikTok veri dışa aktarımı değil. user_data_tiktok.json dosyasını ya da geldiği zip dosyasını seç.
+One isn't on TikTok anymore	Biri artık TikTok'ta yok
+%1$s aren't on TikTok anymore	%1$s tanesi artık TikTok'ta yok
 The host can see you	Sunucu seni görüyor
 Let the host see you	Sunucu seni görsün
 Couldn't tell which LIVE this is. Open it again.	Hangi LIVE olduğu anlaşılamadı. Tekrar aç.

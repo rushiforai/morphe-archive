@@ -11,7 +11,7 @@
  * - Jav1x (https://github.com/Jav1x)
  *
  * Licensed under the GNU General Public License v3.0.
- * Modified by lavinhoque33, 2026-11-13
+ * Modified by lavinhoque33, 2026-11-20
  *
  * ------------------------------------------------------------------------
  * GPLv3 Section 7 – Additional Terms & Attribution Requirements
@@ -128,6 +128,8 @@ public final class VideoInformation {
     private static boolean videoIdSet;
     @NonNull
     private static String videoTitle = "";
+    @Nullable
+    private static volatile Runnable displayMetadataListener;
     private static long videoLength = 0;
     private static boolean videoIsLiveStream;
     private static long videoTime = -1;
@@ -368,6 +370,16 @@ public final class VideoInformation {
         }
     }
 
+    /** The Minimal bar observes only while visible; metadata may arrive on a player thread. */
+    public static void setDisplayMetadataListener(@Nullable Runnable listener) {
+        displayMetadataListener = listener;
+    }
+
+    private static void notifyDisplayMetadataChanged() {
+        Runnable listener = displayMetadataListener;
+        if (listener != null) Utils.runOnMainThreadNowOrLater(listener);
+    }
+
     /**
      * Injection point used by the YouTube 21.04 player-response path.
      */
@@ -387,6 +399,8 @@ public final class VideoInformation {
      */
     public static void setVideoTitle(@Nullable String newlyLoadedVideoTitle) {
         videoTitle = newlyLoadedVideoTitle != null ? newlyLoadedVideoTitle : "";
+        // The modern player-response hook has already supplied the matching channel name.
+        notifyDisplayMetadataChanged();
         Logger.printDebug(() -> "Extracted Video Title: " + videoTitle);
     }
 
@@ -417,7 +431,7 @@ public final class VideoInformation {
         videoTitle = newlyLoadedVideoTitle;
         videoLength = newlyLoadedVideoLength;
         videoIsLiveStream = newlyLoadedLiveStreamValue;
-        // modified by lavinhoque33, 2026-10-20: another video ends the playback of a downloaded file.
+        notifyDisplayMetadataChanged();
         app.morphe.extension.youtube.patches.general.offline.OfflineStreamSource.onVideoLoaded(newlyLoadedVideoId);
 
         if (!videoChanged)

@@ -10,7 +10,7 @@
  * - Jav1x (https://github.com/Jav1x)
  *
  * Licensed under the GNU General Public License v3.0.
- * Modified by lavinhoque33, 2026-11-10
+ * Modified by lavinhoque33, 2026-11-20
  *
  * ------------------------------------------------------------------------
  * GPLv3 Section 7 – Additional Terms & Attribution Requirements
@@ -97,6 +97,7 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.view.animation.Animation;
 import android.view.animation.TranslateAnimation;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.GridLayout;
@@ -139,6 +140,7 @@ import app.morphe.extension.youtube.patches.video.CustomPlaybackSpeedPatch;
 import app.morphe.extension.youtube.patches.video.CustomPlaybackSpeedPatch.PlaybackSpeedMenuType;
 import app.morphe.extension.youtube.patches.video.PlaybackSpeedPatch;
 import app.morphe.extension.youtube.patches.video.VideoQualityPatch;
+import app.morphe.extension.youtube.patches.video.VideoQualityPatch.AutomaticVideoQualityMenu;
 import app.morphe.extension.youtube.patches.video.VideoQualityPatch.VideoQualityInterface;
 import app.morphe.extension.youtube.patches.video.VideoQualityPatch.VideoQualityMenuInterface;
 import app.morphe.extension.youtube.patches.voiceovertranslation.VoiceOverTranslationPatch;
@@ -565,14 +567,24 @@ public class VideoUtils extends IntentUtils {
     }
 
     public static void showCustomVideoQualityFlyoutMenu(Context context) {
+        showVideoQualityDialog(context, false);
+    }
+
+    public static void showOverlayVideoQualityDialog(Context context) {
+        showVideoQualityDialog(context, true);
+    }
+
+    private static void showVideoQualityDialog(Context context, boolean fromOverlayButton) {
         try {
             VideoQualityInterface[] currentQualities = VideoQualityPatch.getCurrentQualities();
-            VideoQualityInterface currentQuality = VideoQualityPatch.getCurrentQuality();
-            if (currentQualities == null || currentQuality == null) {
+            VideoQualityInterface currentQuality = fromOverlayButton
+                    ? VideoQualityPatch.getEffectiveQuality()
+                    : VideoQualityPatch.getCurrentQuality();
+            if (currentQualities == null || (!fromOverlayButton && currentQuality == null)) {
                 Logger.printDebug(() -> "Cannot show qualities dialog, videoQualities is null");
                 return;
             }
-            if (currentQualities.length < 2) {
+            if (currentQualities.length < (fromOverlayButton ? 1 : 2)) {
                 // Should never happen.
                 Logger.printException(() -> "Cannot show qualities dialog, no qualities available");
                 return;
@@ -583,20 +595,31 @@ public class VideoUtils extends IntentUtils {
                 return;
             }
 
-            // -1 adjustment for automatic quality at first index.
-            int listViewSelectedIndex = -1;
-            for (VideoQualityInterface quality : currentQualities) {
-                if (quality.patch_getQualityName().equals(currentQuality.patch_getQualityName())) {
-                    break;
-                }
-                listViewSelectedIndex++;
-            }
+            boolean hasAutoEntry = currentQualities[0].patch_getResolution() == AUTOMATIC_VIDEO_QUALITY_VALUE;
+            boolean showAuto = fromOverlayButton && hasAutoEntry && menu instanceof AutomaticVideoQualityMenu;
+            int firstIndex = fromOverlayButton ? (hasAutoEntry && !showAuto ? 1 : 0) : 1;
+            if (firstIndex == currentQualities.length) return;
 
-            List<String> qualityLabels = new ArrayList<>(currentQualities.length - 1);
-            for (VideoQualityInterface availableQuality : currentQualities) {
-                if (availableQuality.patch_getResolution() != AUTOMATIC_VIDEO_QUALITY_VALUE) {
-                    qualityLabels.add(availableQuality.patch_getQualityName());
+            String videoId = fromOverlayButton ? VideoInformation.getVideoId() : null;
+            if (fromOverlayButton && videoId.isEmpty()) return;
+            int listViewSelectedIndex = -1;
+            VideoQualityInterface selectedQuality = fromOverlayButton
+                    ? VideoQualityPatch.getOverlayQualityChoice() : currentQuality;
+            List<String> qualityLabels = new ArrayList<>(currentQualities.length - firstIndex);
+            for (int i = firstIndex; i < currentQualities.length; i++) {
+                VideoQualityInterface quality = currentQualities[i];
+                boolean isAuto = quality.patch_getResolution() == AUTOMATIC_VIDEO_QUALITY_VALUE;
+                if (isAuto && !fromOverlayButton) continue;
+
+                String label = isAuto ? str("video_quality_quick_menu_auto_toast") : quality.patch_getQualityName();
+                boolean selected = selectedQuality != null && (fromOverlayButton
+                        ? selectedQuality.patch_getResolution() == quality.patch_getResolution()
+                            && (isAuto || label.equals(selectedQuality.patch_getQualityName()))
+                        : label.equals(selectedQuality.patch_getQualityName()));
+                if (selected && listViewSelectedIndex == -1) {
+                    listViewSelectedIndex = qualityLabels.size();
                 }
+                qualityLabels.add(label);
             }
 
             Dialog dialog = new Dialog(context);
@@ -635,7 +658,7 @@ public class VideoUtils extends IntentUtils {
             handleBar.setLayoutParams(handleParams);
             mainLayout.addView(handleBar);
 
-            if (!Settings.HIDE_PLAYER_FLYOUT_MENU_QUALITY_HEADER.get()) {
+            if (currentQuality != null && !Settings.HIDE_PLAYER_FLYOUT_MENU_QUALITY_HEADER.get()) {
                 // Create SpannableStringBuilder for formatted text.
                 SpannableStringBuilder spannableTitle = new SpannableStringBuilder();
                 String titlePart = str("video_quality_quick_menu_title");
@@ -688,26 +711,37 @@ public class VideoUtils extends IntentUtils {
             }
 
             ListView listView = new ListView(context);
-            ExtendedUtils.CustomAdapter adapter = new ExtendedUtils.CustomAdapter(context, qualityLabels);
-            adapter.setSelectedPosition(listViewSelectedIndex);
-            listView.setAdapter(adapter);
+            if (fromOverlayButton) {
+                listView.setId(android.R.id.list);
+                listView.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
+                listView.setAdapter(new ArrayAdapter<>(context, android.R.layout.simple_list_item_single_choice,
+                        android.R.id.text1, qualityLabels));
+                if (listViewSelectedIndex >= 0) {
+                    listView.setItemChecked(listViewSelectedIndex, true);
+                }
+            } else {
+                ExtendedUtils.CustomAdapter adapter = new ExtendedUtils.CustomAdapter(context, qualityLabels);
+                adapter.setSelectedPosition(listViewSelectedIndex);
+                listView.setAdapter(adapter);
+            }
             listView.setDivider(null);
             listView.setPadding(dip16, 0, 0, 0);
 
             listView.setOnItemClickListener((parent, view, which, id) -> {
                 try {
-                    final int originalIndex = which + 1; // Adjust for automatic.
-                    VideoQualityInterface selectedQuality = currentQualities[originalIndex];
-                    Logger.printDebug(() -> "User clicked on quality: " + selectedQuality);
-
-                    if (VideoQualityPatch.shouldRememberVideoQuality()) {
-                        VideoQualityPatch.saveDefaultQuality(selectedQuality.patch_getResolution());
+                    int originalIndex = firstIndex + which;
+                    if (fromOverlayButton) {
+                        VideoQualityPatch.applyOverlayQuality(videoId, currentQualities, menu, originalIndex);
+                    } else {
+                        VideoQualityInterface timestampChoice = currentQualities[originalIndex];
+                        Logger.printDebug(() -> "User clicked on quality: " + timestampChoice);
+                        if (VideoQualityPatch.shouldRememberVideoQuality()) {
+                            VideoQualityPatch.saveDefaultQuality(timestampChoice.patch_getResolution());
+                        }
+                        VideoQualityPatch.onTimestampQualitySelected(timestampChoice.patch_getResolution());
+                        menu.patch_setQuality(timestampChoice);
+                        setCurrentQuality(timestampChoice);
                     }
-                    // Don't update button icon now. Icon will update when the actual
-                    // quality is changed by YT.  This is needed to ensure the icon is correct
-                    // if YT ignores changing from 1080p Premium to regular 1080p.
-                    menu.patch_setQuality(selectedQuality);
-                    setCurrentQuality(selectedQuality);
 
                     dialog.dismiss();
                 } catch (Exception ex) {
@@ -814,7 +848,9 @@ public class VideoUtils extends IntentUtils {
         } catch (Exception ex) {
             Logger.printException(() -> "showCustomVideoQualityFlyoutMenu failure", ex);
         }
-        showYouTubeLegacyVideoQualityFlyoutMenu();
+        if (!fromOverlayButton) {
+            showYouTubeLegacyVideoQualityFlyoutMenu();
+        }
     }
 
     /**

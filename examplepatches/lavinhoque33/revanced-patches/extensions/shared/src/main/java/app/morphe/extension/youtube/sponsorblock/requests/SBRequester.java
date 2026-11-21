@@ -112,19 +112,61 @@ public class SBRequester {
             if (connection != null) connection.disconnect();
         }
     }
+
+    public record PlaybackRequest(String videoId, String endpoint, String categories, long minDurationMs) {
+    }
+
+    private record SegmentData(SegmentCategory category, String uuid, long start, long end, boolean locked) {
+    }
+
+    /** Playback data only. Incomplete responses can be displayed but must never be reused. */
+    public static final class PlaybackResponse {
+        private static final SponsorSegment[] NO_SEGMENTS = new SponsorSegment[0];
+        private static final PlaybackResponse EMPTY = new PlaybackResponse(true, List.of());
+
+        private final boolean confirmed;
+        private final List<SegmentData> segments;
+
+        private PlaybackResponse(boolean confirmed, List<SegmentData> segments) {
+            this.confirmed = confirmed;
+            this.segments = List.copyOf(segments);
+        }
+
+        public boolean isConfirmed() {
+            return confirmed;
+        }
+
+        public SponsorSegment[] newSegments() {
+            if (segments.isEmpty()) {
+                return NO_SEGMENTS;
+            }
+
+            SponsorSegment[] result = new SponsorSegment[segments.size()];
+            for (int i = 0; i < result.length; i++) {
+                SegmentData data = segments.get(i);
+                result[i] = new SponsorSegment(data.category, data.uuid, data.start, data.end, data.locked);
+            }
+            return result;
+        }
+    }
+
     @NonNull
-    public static SponsorSegment[] getSegments(String videoId) {
+    public static PlaybackResponse fetchPlaybackSegments(PlaybackRequest request) {
         Utils.verifyOffMainThread();
-        List<SponsorSegment> segments = new ArrayList<>();
+        List<SegmentData> segments = List.of();
         try {
-            HttpURLConnection connection = getConnectionFromRoute(SBRoutes.GET_SEGMENTS, videoId, SegmentCategory.sponsorBlockAPIFetchCategories);
+            HttpURLConnection connection = configureConnection(Requester.getConnectionFromRoute(request.endpoint(),
+                    SBRoutes.GET_SEGMENTS, request.videoId(), request.categories()));
             final int responseCode = connection.getResponseCode();
 
             if (responseCode == HTTP_STATUS_CODE_SUCCESS) {
                 JSONArray responseArray = Requester.parseJSONArray(connection);
-                final long minSegmentDuration = (long) (Settings.SB_SEGMENT_MIN_DURATION.get() * 1000);
+                if (responseArray.length() != 0) {
+                    segments = new ArrayList<>(responseArray.length());
+                }
+                boolean confirmed = true;
                 for (int i = 0, length = responseArray.length(); i < length; i++) {
-                    JSONObject obj = (JSONObject) responseArray.get(i);
+                    JSONObject obj = responseArray.getJSONObject(i);
                     JSONArray segment = obj.getJSONArray("segment");
                     final long start = (long) (segment.getDouble(0) * 1000);
                     final long end = (long) (segment.getDouble(1) * 1000);
@@ -134,82 +176,36 @@ public class SBRequester {
                     String categoryKey = obj.getString("category");
                     SegmentCategory category = SegmentCategory.byCategoryKey(categoryKey);
                     if (category == null) {
-                        Logger.printException(() -> "Received unknown category: " + categoryKey); // should never happen
-                    } else if ((end - start) >= minSegmentDuration || category == SegmentCategory.HIGHLIGHT) {
-                        segments.add(new SponsorSegment(category, uuid, start, end, locked));
+                        confirmed = false;
+                        Logger.printException(() -> "Received unknown category: " + categoryKey);
+                    } else if ((end - start) >= request.minDurationMs() || category == SegmentCategory.HIGHLIGHT) {
+                        segments.add(new SegmentData(category, uuid, start, end, locked));
                     }
                 }
-                Logger.printDebug(() -> {
-                    StringBuilder builder = new StringBuilder("Downloaded segments:");
-                    for (SponsorSegment segment : segments) {
-                        builder.append('\n').append(segment);
-                    }
-                    return builder.toString();
-                });
+
+                PlaybackResponse response = confirmed && segments.isEmpty()
+                        ? PlaybackResponse.EMPTY : new PlaybackResponse(confirmed, segments);
+                Logger.printDebug(() -> "Downloaded " + response.segments.size() + " segments for " + request.videoId());
                 runVipCheckInBackgroundIfNeeded();
-            } else if (responseCode == 404) {
-                // no segments are found.  a normal response
-                Logger.printDebug(() -> "No segments found for video: " + videoId);
-            } else {
-                handleConnectionError(str("revanced_sb_sponsorblock_connection_failure_status", responseCode), null);
-                connection.disconnect(); // something went wrong, might as well disconnect
+                return response;
             }
+
+            if (responseCode == Requester.HTTP_STATUS_CODE_NOT_FOUND) {
+                Logger.printDebug(() -> "No segments found for video: " + request.videoId());
+                return PlaybackResponse.EMPTY;
+            }
+
+            handleConnectionError(str("revanced_sb_sponsorblock_connection_failure_status", responseCode), null);
+            connection.disconnect();
         } catch (SocketTimeoutException ex) {
             handleConnectionError(str("revanced_sb_sponsorblock_connection_failure_timeout"), ex);
         } catch (IOException ex) {
             handleConnectionError(str("revanced_sb_sponsorblock_connection_failure_generic"), ex);
         } catch (Exception ex) {
-            // Should never happen
             Logger.printException(() -> "getSegments failure", ex);
         }
 
-        // Crude debug tests to verify random features.
-        // Could benefit from:
-        // 1) Collection of YouTube videos with test segment times (verify client skip timing matches the video, verify seekbar draws correctly).
-        // 2) Unit tests (verify everything else).
-        //noinspection ConstantValue
-        if (false) {
-            segments.clear();
-            // Test auto-hide skip button:
-            // Button should appear only once
-            segments.add(new SponsorSegment(SegmentCategory.INTRO, "debug", 5000, 120000, false));
-            // Button should appear only once
-            segments.add(new SponsorSegment(SegmentCategory.SELF_PROMO, "debug", 10000, 60000, false));
-            // Button should appear only once
-            segments.add(new SponsorSegment(SegmentCategory.INTERACTION, "debug", 15000, 20000, false));
-            // Button should appear _twice_ (at 21s and 27s)
-            segments.add(new SponsorSegment(SegmentCategory.SPONSOR, "debug", 21000, 30000, false));
-            // Button should appear only once
-            segments.add(new SponsorSegment(SegmentCategory.OUTRO, "debug", 24000, 27000, false));
-
-            // Test seekbar visibility:
-            // All three segments should be viewable on the seekbar
-            segments.add(new SponsorSegment(SegmentCategory.MUSIC_OFFTOPIC, "debug", 200000, 300000, false));
-            segments.add(new SponsorSegment(SegmentCategory.SPONSOR, "debug", 200000, 250000, false));
-            segments.add(new SponsorSegment(SegmentCategory.SELF_PROMO, "debug", 200000, 330000, false));
-        }
-
-        // Test undo skip functionality.
-        // To test enable 'Autoskip always' for intro and self promo.
-        //noinspection ConstantValue
-        if (false) {
-            // Should autoskip to 12 seconds.
-            // Undoing skip should seek to 2 seconds.
-            // Skip button should show at 2 seconds, and again at 8 seconds.
-            // Self promo at 8 second time should not autoskip.
-            segments.clear();
-            segments.add(new SponsorSegment(SegmentCategory.INTRO, "debug", 2000, 12000, false));
-            segments.add(new SponsorSegment(SegmentCategory.SELF_PROMO, "debug", 8000, 15000, false));
-
-            // Test multiple autoskip dialogs rapidly showing.
-            // Only one toast should be shown at anytime.
-            segments.add(new SponsorSegment(SegmentCategory.INTRO, "debug", 16000, 17000, false));
-            segments.add(new SponsorSegment(SegmentCategory.INTRO, "debug", 18000, 19000, false));
-            segments.add(new SponsorSegment(SegmentCategory.INTRO, "debug", 20000, 21000, false));
-            segments.add(new SponsorSegment(SegmentCategory.INTRO, "debug", 22000, 23000, false));
-        }
-
-        return segments.toArray(new SponsorSegment[0]);
+        return new PlaybackResponse(false, segments);
     }
 
     public static void submitSegments(String videoId, SegmentCategory category, SegmentSubmitAction action,
@@ -392,7 +388,10 @@ public class SBRequester {
     // helpers
 
     private static HttpURLConnection getConnectionFromRoute(Route route, String... params) throws IOException {
-        HttpURLConnection connection = Requester.getConnectionFromRoute(Settings.SB_API_URL.get(), route, params);
+        return configureConnection(Requester.getConnectionFromRoute(Settings.SB_API_URL.get(), route, params));
+    }
+
+    private static HttpURLConnection configureConnection(HttpURLConnection connection) {
         connection.setConnectTimeout(TIMEOUT_TCP_DEFAULT_MILLISECONDS);
         connection.setReadTimeout(TIMEOUT_HTTP_DEFAULT_MILLISECONDS);
         return connection;

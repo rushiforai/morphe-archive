@@ -253,5 +253,18 @@
   "Text under the navigation bar icons.": "Text under the navigation bar icons.",
   "The count on the navigation bar tabs.": "The count on the navigation bar tabs.",
   "Post text copied": "Post text copied",
-  "A floating, translucent navigation bar.": "A floating, translucent navigation bar."
+  "A floating, translucent navigation bar.": "A floating, translucent navigation bar.",
+  "Reorder tabs": "Reorder tabs",
+  "Move %1$s up": "Move %1$s up",
+  "Move %1$s down": "Move %1$s down",
+  "Save settings backup": "Save settings backup",
+  "Restore settings backup": "Restore settings backup",
+  "Disable screenshot share sheet": "Disable screenshot share sheet",
+  "Top bar": "Top bar",
+  "Video tab": "Video tab",
+  "Show video time": "Show video time",
+  "Advance after playback": "Advance after playback",
+  "Document saved": "Document saved",
+  "Battery optimization reminder": "Battery optimization reminder",
+  "Don't remind me": "Don't remind me"
 }

@@ -1,3 +1,9 @@
+## [1.1.1](https://github.com/Deconta/deconta-patches/compare/v1.1.0...v1.1.1) (2026-11-20)
+
+### 🐛 Bug Fixes
+
+* resolve field a on Presenter to prevent NullPointerException and fix coupon activation ([431e918](https://github.com/Deconta/deconta-patches/commit/431e918e0119b74b0cbf45cd14c3e88929f2ac35))
+
 ## [1.1.0](https://github.com/Deconta/deconta-patches/compare/v1.0.0...v1.1.0) (2026-11-19)
 
 ### ✨ New Features

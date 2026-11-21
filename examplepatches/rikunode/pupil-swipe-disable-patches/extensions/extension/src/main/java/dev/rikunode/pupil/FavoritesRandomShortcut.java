@@ -18,7 +18,9 @@ public final class FavoritesRandomShortcut {
             "xyz.quaver.pupil.ui.viewmodel.FavoritesViewModel";
     private static Object viewModel;
     private static Function1 showDetail;
-    private static WeakReference<ImageButton> shortcutButton = new WeakReference<>(null);
+    private static WeakReference<ImageButton> rightButton = new WeakReference<>(null);
+    private static WeakReference<ImageButton> leftButton = new WeakReference<>(null);
+    private static boolean openingRandom;
     private static boolean onFavorites;
     private static boolean detailVisible;
 
@@ -51,15 +53,27 @@ public final class FavoritesRandomShortcut {
     }
 
     public static void install(Activity activity) {
+        installButtons(activity, false);
+    }
+
+    public static void installWithLeftButton(Activity activity) {
+        installButtons(activity, true);
+    }
+
+    private static void installButtons(Activity activity, boolean showLeft) {
         FrameLayout root = activity.findViewById(android.R.id.content);
         if (root == null) return;
 
-        ImageButton existing = shortcutButton.get();
-        if (existing != null && existing.getParent() == root) {
-            refreshVisibility();
-            return;
+        if (rightButton.get() == null || rightButton.get().getParent() != root) {
+            rightButton = new WeakReference<>(createButton(activity, root, false));
         }
+        if (showLeft && (leftButton.get() == null || leftButton.get().getParent() != root)) {
+            leftButton = new WeakReference<>(createButton(activity, root, true));
+        }
+        refreshVisibility();
+    }
 
+    private static ImageButton createButton(Activity activity, FrameLayout root, boolean left) {
         int iconId = activity.getResources().getIdentifier(
                 "shuffle_variant", "drawable", activity.getPackageName());
         if (iconId == 0) iconId = android.R.drawable.ic_menu_rotate;
@@ -80,34 +94,37 @@ public final class FavoritesRandomShortcut {
         button.setVisibility(View.GONE);
 
         FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(size, size);
-        params.gravity = Gravity.END | Gravity.BOTTOM;
-        params.rightMargin = dp(activity, 16);
-        params.bottomMargin = dp(activity, 92);
+        params.gravity = (left ? Gravity.START : Gravity.END) | Gravity.BOTTOM;
+        if (left) params.leftMargin = dp(activity, 16);
+        else params.rightMargin = dp(activity, 16);
+        params.bottomMargin = dp(activity, 146);
         root.addView(button, params);
-        shortcutButton = new WeakReference<>(button);
         button.addOnAttachStateChangeListener(new View.OnAttachStateChangeListener() {
             @Override
             public void onViewAttachedToWindow(View view) {}
 
             @Override
             public void onViewDetachedFromWindow(View view) {
-                if (shortcutButton.get() == view) {
-                    shortcutButton.clear();
+                if (rightButton.get() == view) rightButton.clear();
+                if (leftButton.get() == view) leftButton.clear();
+                if (rightButton.get() == null && leftButton.get() == null) {
                     viewModel = null;
                     showDetail = null;
                     onFavorites = false;
                     detailVisible = false;
+                    openingRandom = false;
                 }
             }
         });
-        refreshVisibility();
+        return button;
     }
 
     private static void openRandom(ImageButton button) {
         Object model = viewModel;
         Function1 detail = showDetail;
-        if (!onFavorites || detailVisible || model == null || detail == null) return;
+        if (!onFavorites || detailVisible || openingRandom || model == null || detail == null) return;
 
+        openingRandom = true;
         button.setEnabled(false);
         try {
             Object galleryId = model.getClass().getMethod("randomGalleryID").invoke(model);
@@ -120,16 +137,18 @@ public final class FavoritesRandomShortcut {
             refreshVisibility();
             Toast.makeText(button.getContext(), "ランダム表示を開けませんでした", Toast.LENGTH_SHORT).show();
         } finally {
+            openingRandom = false;
             button.setEnabled(true);
         }
     }
 
     private static void refreshVisibility() {
-        ImageButton button = shortcutButton.get();
-        if (button != null) {
-            button.setVisibility(onFavorites && !detailVisible && viewModel != null && showDetail != null
-                    ? View.VISIBLE : View.GONE);
-        }
+        int visibility = onFavorites && !detailVisible && viewModel != null && showDetail != null
+                ? View.VISIBLE : View.GONE;
+        ImageButton right = rightButton.get();
+        ImageButton left = leftButton.get();
+        if (right != null) right.setVisibility(visibility);
+        if (left != null) left.setVisibility(visibility);
     }
 
     private static int dp(Activity activity, int value) {

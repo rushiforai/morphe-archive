@@ -1,0 +1,32 @@
+# Remote ATV 6.1.0 build 45; optional page-swipe patch after ad-free/status restoration.
+# Fields: input SHA-256 / output SHA-256, then file offset / expected bytes / replacement bytes.
+# Constructor marks only the two remote PageViews via pageSnapping=false.
+# Physics hook tail-calls existing NeverScrollableScrollPhysics.applyTo for those views.
+# Tail branches preserve original GC safepoints and allocation sizes; setup paging is unchanged.
+# Caller checks use PC-relative differences, so library load alignment does not affect them.
+# 0x8100f0: lea r11, [rip - 7]
+# 0x8100f7: neg r11
+# 0x8100fa: add r11, qword ptr [rbp + 8]
+# 0x8100fe: movzx r11d, r11w
+# 0x810102: cmp r11d, 0x86b1
+# 0x810109: je 0x81011a
+# 0x81010b: cmp r11d, 0xa4fe
+# 0x810112: je 0x81011a
+# 0x810114: mov dword ptr [rdi + 0x23], r9d
+# 0x810118: jmp 0x81011e
+# 0x81011a: mov dword ptr [rdi + 0x23], r10d
+# 0x81011e: mov dword ptr [rdi + 0x2f], r8d
+# 0x810122: jmp 0x575c90
+# 0x810127: mov rax, qword ptr [rbp - 8]
+# 0x81012b: mov eax, dword ptr [rax + 0xb]
+# 0x81012e: add rax, qword ptr [r14 + 0x48]
+# 0x810132: mov eax, dword ptr [rax + 0x23]
+# 0x810135: cmp eax, dword ptr [r14 + 0x80]
+# 0x81013c: je 0x697ac0
+# 0x810142: jmp 0x697c54
+cb36a443217cd5bce6246364ff38a7c0a68c050338d9fb5cf0557cc3dd1d95fb	3c1e2bb05c4032c884d0b5aab07eeca495d5601f9f7741ccaa57c95fc89e7052
+575c88	44894f234489472f	e963a42900909090
+5d1cea	e8d15d0c00	e838e42300
+8100f0	000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000	4c8d1df9ffffff49f7db4c035d08450fb7db4181fbb1860000740f4181fbfea40000740644894f23eb04448957234489472fe9695bd6ff488b45f88b400b490346488b4023413b86800000000f847e79e8ffe90d7be8ff
+d0	f0005d0000000000	47015d0000000000
+d8	f0005d0000000000	47015d0000000000

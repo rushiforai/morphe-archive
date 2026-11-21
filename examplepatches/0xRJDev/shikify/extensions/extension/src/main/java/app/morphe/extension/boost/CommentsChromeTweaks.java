@@ -68,6 +68,7 @@ public final class CommentsChromeTweaks {
     public static boolean hideDividersEnabled() { return false; }
     public static boolean swipeActionsEnabled() { return false; }
     public static void onCommentBind(Object holder) {
+        try { ShareShortcuts.comment(holder); } catch (RuntimeException | LinkageError ignored) { }
         if(materialYouEnabled()){CommentsScreenTweaks.bindComment(holder);Haptics.tap(field(holder,"voteUpButton"));Haptics.tap(field(holder,"voteDownButton"));}
         if (commentLayoutEnabled()) CommentLayoutTweaks.bind(holder);
         MediaPreviewTweaks.bindComment(holder);

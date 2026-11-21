@@ -1,3 +1,53 @@
+## 2.1.5 (2026-11-20)
+
+### ✨ New Features
+
+* **nicoid:** Add Select multiple to video-list menus for search results, rankings, related videos, public Mylists, and other supported video lists
+* **nicoid:** Allow multiple selected videos to be added together to local playlists and folders, account Mylists, or the Temporary Mylist
+* **nicoid:** Support choosing an existing account Mylist or creating a new Mylist when registering multiple videos
+* **nicoid:** Add a persistent multi-selection button beside the sort control in local playlists, Mylists, the Temporary Mylist, viewing histories, and the cache list
+
+### 🐛 Bug Fixes
+
+* **nicoid:** Fix scrolling-comment rendering being limited to approximately 39–40fps even when 60fps was selected, by synchronizing drawing with the display VSYNC
+* **nicoid:** Fix a Media3 playback stall where seeking could leave playback in BUFFERING without progress, using a bounded recovery that preserves the playback position and the user's play/pause intent
+* **nicoid:** Prevent stalled-seek recovery from affecting paused playback, active scrubbing, a changed media item, or a player being handed off or released
+* **nicoid:** Fix stale comment frame callbacks interfering with new scheduling when switching or restoring playback views
+* **nicoid:** Fix scrolling-comment layout inconsistencies when the viewport or comment display dimensions change, while preserving the timing, lane, and lifetime of comments already on screen
+* **nicoid:** Prevent newly arriving scrolling comments from unnecessarily overlapping when Prevent comments from overlapping is enabled, waiting briefly for space and omitting only comments that still cannot be placed
+* **nicoid:** Fix Select multiple in video-list menus failing to start the native selection mode in certain lists
+* **nicoid:** Remove the inappropriate Delete action from multi-selection footers in discovery lists such as search results and rankings, replacing it with Add
+* **nicoid:** Avoid displaying a redundant Add action in Mylists and saved lists that already provide the relevant Move operation
+* **nicoid:** Fix multi-selection controls failing to follow the current selection state after entering the mode through an alternate action
+* **nicoid:** Fix the cache-list selection button targeting a hidden sort control instead of the currently visible sort bar
+* **nicoid:** Improve local-playlist deletion confirmation text so it identifies the number of selected videos and, where available, the affected titles instead of showing only a number
+* **nicoid:** Fix untranslated Playback queue, Select multiple, Select all, Deselect all, Move, Done, and related video-list actions and dialogs
+* **nicoid:** Fix newly added selection and registration dialogs not consistently following the language selected inside the app
+* **nicoid:** Fix incorrect localization of uploader video-list titles in English and Traditional Chinese
+* **nicoid:** Fix a duplicated Refresh action in the NicoReport three-dot menu
+* **nicoid:** Fix the NicoReport three-dot menu showing items left over from a previously opened tab, including playlist-specific actions, instead of its own Refresh action
+
+### 🔧 Improvements
+
+* **nicoid:** Let the selection button switch between entering multi-selection mode and finishing it, with synchronized icons and selection state
+* **nicoid:** Add Add to multi-selection actions in both local and account viewing histories while retaining their existing Delete action
+* **nicoid:** Show the selection count and provide Select all, Deselect all, and Done controls when selecting videos in supported lists
+* **nicoid:** Add a cache/storage icon to the left of the Cache list tab title in the bottom tab bar
+* **nicoid:** Use `Choreographer.FrameCallback` and nanosecond-based frame deadlines for more consistent comment rendering across supported screen refresh rates and configured frame rates
+* **nicoid:** Skip obsolete frame deadlines rather than issuing rapid catch-up draws when rendering falls behind
+* **nicoid:** Retain the optimized direct-text comment renderer and remove the experimental Bitmap cache and its temporary comparison setting after performance evaluation
+* **nicoid:** Reduce unnecessary comment overlap in normal scenes while preserving dense danmaku when overlap prevention is disabled; previously retrieved comments remain available in the comment list
+* **nicoid:** Improve admission of scrolling comments under crowded conditions by checking additional pending entries instead of allowing a blocked leading entry to stall the queue
+* **nicoid:** Refine comment rendering diagnostics to help distinguish frame pacing, glyph-drawing time, and total drawing-call time
+* **nicoid:** Display the currently selected value before the existing Drawing frame rate setting description, without changing its wording, available choices, stored value, or default
+* **nicoid:** Improve the readability and touch accessibility of multi-selection controls
+* **nicoid:** Keep existing list sorting, custom playlist order, and Move behavior while providing faster access to multi-selection
+* **nicoid:** Deduplicate selected video IDs before batch registration while preserving their displayed order and available video metadata
+* **nicoid:** Process account Mylist additions sequentially, guard against duplicate concurrent submissions, and report successful, skipped, and failed registrations as applicable
+* **nicoid:** Preserve existing playlist storage and duplicate-detection behavior when adding several videos to a local playlist
+* **nicoid:** Improve Japanese, English, and Traditional Chinese labels for multi-selection, playback queue, registration actions, deletion confirmations, and related dialogs
+* **nicoid:** Improve Media3 seek recovery safeguards and isolate network-client resources by media source while retaining existing playback and handoff behavior
+
 ## 2.1.4 (2026-11-20)
 
 ### 🐛 Bug Fixes
@@ -30,7 +80,7 @@
 ### ✨ New Features
 
 * **nicoid:** Add independent app-resume behavior settings for background and popup playback, allowing each playback mode to have its own return action
-* **nicoid:** Extend **Export settings** and **Import settings** to back up and restore local playlists, including folders, video entries, sorting preferences, customized video titles, and additional user settings such as ranking presets, gesture assignments, playback preferences, and NG comment lists
+* **nicoid:** Extend Export settings and Import settings to back up and restore local playlists, including folders, video entries, sorting preferences, customized video titles, and additional user settings such as ranking presets, gesture assignments, playback preferences, and NG comment lists
 
 ### 🐛 Bug Fixes
 
@@ -77,7 +127,7 @@
 * **nicoid:** Improve backup consistency by synchronizing export and import operations with pending local playlist changes
 * **nicoid:** Improve backup restoration reliability with rollback protection for customized video titles when settings restoration fails
 * **nicoid:** Maintain compatibility with existing settings backup files while preserving data not included in older backups
-* **nicoid:** Add explanatory descriptions to **Export settings** and **Import settings**
+* **nicoid:** Add explanatory descriptions to Export settings and Import settings
 * **nicoid:** Maintain the existing settings, user preferences, and default values while improving backup coverage and restoration behavior
 
 ## 2.1.1 (2026-11-18)
@@ -86,7 +136,7 @@
 
 * **nicoid:** Add support for moving multiple selected videos between folders in Mylist and local playlists
 * **nicoid:** Add a confirmation dialog after choosing a destination for multiple selected videos
-* **nicoid:** Add an **Open in new tab** action to folder long-press menus in Mylist and local playlists
+* **nicoid:** Add an Open in new tab action to folder long-press menus in Mylist and local playlists
 * **nicoid:** Allow local playlist folders to remain open in separate tabs for easier browsing
 * **nicoid:** Add distinct tab icons for Mylist, Temporary Mylist, local playlists, and NicoReport
 
@@ -113,8 +163,8 @@
 * **nicoid:** Avoid unnecessary ambient compositing outside the visible glow and reduce temporary rendering layers
 * **nicoid:** Reuse ambient gradients when their positions and colors are unchanged, and update transparency without rebuilding gradients
 * **nicoid:** Improve ambient rendering for both transparent and non-transparent controls
-* **nicoid:** Unify the **Video/Audio Save** button rendering with other customizable playback controls
-* **nicoid:** Enable the popup-only **Normal playback** control by default and when restoring default control settings
+* **nicoid:** Unify the Video/Audio Save button rendering with other customizable playback controls
+* **nicoid:** Enable the popup-only Normal playback control by default and when restoring default control settings
 * **nicoid:** Preserve explicitly disabled popup controls and customized button order
 * **nicoid:** Consolidate popup control refreshes and cancel pending redraws when the control view is detached
 * **nicoid:** Keep the selected videos consistent throughout Mylist and playlist destination selection and confirmation
@@ -133,12 +183,12 @@
 * **nicoid:** Add a movable, resizable in-app mini-player that keeps the current video visible while browsing other screens
 * **nicoid:** Add mini-player actions for returning to the player, play/pause, popup playback, background playback, and closing the player
 * **nicoid:** Support double-tap expansion, dragging, and pinch-to-resize gestures for the in-app mini-player
-* **nicoid:** Add a **Background playback display** setting with **Mini player** and **Bottom panel** options, with Mini player selected by default
-* **nicoid:** Add **Spread across the entire screen** to Ambient Mode settings, allowing the glow to extend beyond the immediate video margins while retaining the existing display when disabled (default: off)
-* **nicoid:** Add **Prevent comments from overlapping** to comment display settings, allowing scrolling comments to wait for available space while retaining the existing dense-comment behavior by default (default: off)
+* **nicoid:** Add a Background playback display setting with Mini player and Bottom panel options, with Mini player selected by default
+* **nicoid:** Add Spread across the entire screen to Ambient Mode settings, allowing the glow to extend beyond the immediate video margins while retaining the existing display when disabled (default: off)
+* **nicoid:** Add Prevent comments from overlapping to comment display settings, allowing scrolling comments to wait for available space while retaining the existing dense-comment behavior by default (default: off)
 * **nicoid:** Redesign the Shorts browsing screen with a search field, a two-column video grid, clearer navigation, and a simpler action layout
 * **nicoid:** Add vertical swipe navigation to move between short videos while watching
-* **nicoid:** Add a dedicated **Loaded Shorts** list for reviewing videos retrieved from the Shorts feed
+* **nicoid:** Add a dedicated Loaded Shorts list for reviewing videos retrieved from the Shorts feed
 * **nicoid:** Add sorting for loaded Shorts by feed order, most viewed, newest, most liked, random order, and saved order
 * **nicoid:** Add manual rearrangement and saving of the order of loaded Shorts
 * **nicoid:** Add video actions to Shorts through thumbnail long-press and the video menu
@@ -146,11 +196,11 @@
 * **nicoid:** Add playback counts, like counts, and publication dates to the redesigned Shorts list
 * **nicoid:** Display publication timestamps with calendar dates and times instead of relative-day labels in the loaded Shorts list
 * **nicoid:** Add the ability to customize video titles in playlists, mylists, the temporary mylist, and the cache list
-* **nicoid:** Add a **Rename video title** action to applicable video menus
+* **nicoid:** Add a Rename video title action to applicable video menus
 * **nicoid:** Add an option for placing videos in the temporary mylist from the customizable video menu
 * **nicoid:** Mark customized video titles with an edit indicator and restore the original title when an empty title is saved
 * **nicoid:** Add a dedicated Niconico Live settings category, connected to the settings available from the live playback screen
-* **nicoid:** Add **Resume catch-up playback in Niconico Live**, returning to the previous position when reopening the same available program
+* **nicoid:** Add Resume catch-up playback in Niconico Live, returning to the previous position when reopening the same available program
 * **nicoid:** Add Niconico Live settings for the refresh button, exit confirmation, initial tab, time display, tap action, and app bar placement
 
 ### 🐛 Bug Fixes
@@ -177,7 +227,7 @@
 * **nicoid:** Fix scrolling comments using only a narrow central area when playing portrait Shorts
 * **nicoid:** Fix missing playback controls when casting portrait videos
 * **nicoid:** Fix ambient lighting missing or appearing weaker along the right side of portrait videos
-* **nicoid:** Fix gaps and uneven brightness when **Spread across the entire screen** is enabled
+* **nicoid:** Fix gaps and uneven brightness when Spread across the entire screen is enabled
 * **nicoid:** Fix expanded ambient lighting appearing over video titles, information, or playback controls
 * **nicoid:** Fix portrait-video ambient effects being calculated from an incorrect picture area
 * **nicoid:** Fix missing like counts for cached videos shown in local viewing history

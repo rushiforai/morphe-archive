@@ -1,6 +1,8 @@
 package app.morphe.patches.instaprime.premium
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
+import app.morphe.patcher.patch.AppTarget
+import app.morphe.patcher.patch.Compatibility
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import com.android.tools.smali.dexlib2.AccessFlags
@@ -23,16 +25,19 @@ private const val CLONE_NEW = "Clone PREMIUM)"
 // ---- entradas "Follow us" a esconder (todas menos tg_channel) ----
 private val HIDDEN_KEYS = listOf("ig_page", "official_site", "wa_channel", "tg_group", "yt_channel")
 
-internal object InstaPrimeAboutPatch {
-    @Suppress("unused")
-    val patch = bytecodePatch(
-        name = "Custom About screen",
-        description = "Tela Sobre do InstaPrime: só o Telegram Channel (t.me/wagg13mods) e textos personalizados.",
-    ) {
-        compatibleWith("com.instaprime.android"("435.0.0.37.76"))
+@Suppress("unused")
+internal val instaPrimeAboutPatch = bytecodePatch {
+        compatibleWith(
+            Compatibility(
+                name = "InstaPrime",
+                packageName = "com.instaprime.android",
+                targets = listOf(AppTarget(version = "435.0.0.37.76")),
+            ),
+        )
 
         execute {
-            val category = mutableClassDefBy(CATEGORY)
+            // V7.2 only: no V8 as classes com.primemods.* estao cifradas em assets/fonts.
+            val category = mutableClassDefByOrNull(CATEGORY) ?: return@execute
             val prefType = "Landroid/preference/Preference;"
             val staticPublic = AccessFlags.PUBLIC.value or AccessFlags.STATIC.value
 
@@ -244,4 +249,3 @@ internal object InstaPrimeAboutPatch {
             category.methods.add(findPreference)
         }
     }
-}

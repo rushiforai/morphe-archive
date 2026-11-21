@@ -3,7 +3,7 @@
  * https://github.com/MorpheApp/morphe-patches/pull/2182
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
- * Modified by lavinhoque33, 2026-11-17.
+ * Modified by lavinhoque33, 2026-11-17 and 2026-11-20.
  */
 
 package app.morphe.extension.youtube.patches;
@@ -35,6 +35,7 @@ import android.widget.TextView;
 
 import androidx.annotation.Nullable;
 
+import java.lang.ref.WeakReference;
 import java.util.Locale;
 
 import app.morphe.extension.shared.utils.Logger;
@@ -115,14 +116,35 @@ public class SeekbarThumbnailPreviewPatch {
     private static SeekbarViews seekbarViews;
     private static Bitmap fineScrubbingPreviewBitmap;
     private static boolean scalePreviewFrame = true;
-    private static boolean isFineScrubbingStarted;
-    private static Rect seekbarRectangle;
+    // Stock fills this synchronously on the UI thread; reuse it for eligible moves only.
+    private static final Point previewPoint = new Point();
+    @SuppressLint("StaticFieldLeak")
+    private static View pointOwner;
+    @SuppressLint("StaticFieldLeak")
+    private static View touchOwner;
+    @SuppressLint("StaticFieldLeak")
+    private static View seekbarOwner;
     private static int previewWidthPx = -1;
     private static int previewHeightPx = -1;
     private static Bitmap lastAppliedBitmap;
     private static int lastX = -1;
+    // Cache the weak identity across taps; only an active preview owns attached views.
+    private static WeakReference<View> touchCandidate = new WeakReference<>(null);
+    private static long touchDownTime = -1;
     private static float touchEventInitialX;
-    private static float touchEventInitialY = -1;
+    private static float touchEventInitialY;
+
+    private static final View.OnAttachStateChangeListener previewAttachment = new View.OnAttachStateChangeListener() {
+        @Override
+        public void onViewAttachedToWindow(View view) {}
+
+        @Override
+        public void onViewDetachedFromWindow(View view) {
+            if (view == touchOwner || view == seekbarOwner) {
+                endThumbnailPreview();
+            }
+        }
+    };
 
     /**
      * Injection point.
@@ -172,22 +194,31 @@ public class SeekbarThumbnailPreviewPatch {
     }
 
     /**
-     * Injection point.
+     * Injection point, before any RVX coordinate lookup in the stock touch handlers.
      */
-    public static void setSeekbarRectangle(View seekbarView) {
-        if (!Settings.THUMBNAIL_PREVIEW.get() ||
-                seekbarView == null ||
-                !PlayerType.getCurrent().isMaximizedOrFullscreen() ||
-                ShortsPlayerState.getCurrent().isOpen()) {
-            return;
+    @Nullable
+    public static Point prepareThumbnailPreview(View view, MotionEvent event) {
+        try {
+            if (isThumbnailMotionActive(view, event)) {
+                // The slide proxy can have no active bar and leave the Point untouched.
+                previewPoint.set(0, 0);
+                pointOwner = null;
+                return previewPoint;
+            }
+        } catch (Exception ex) {
+            Logger.printException(() -> "prepareThumbnailPreview failure", ex);
         }
+        return null;
+    }
 
-        seekbarRectangle = new Rect(
-                seekbarView.getLeft(),
-                seekbarView.getTop(),
-                seekbarView.getRight(),
-                seekbarView.getBottom()
-        );
+    /**
+     * Injection point in the concrete timebar's point writer. On the slide-to-seek path the
+     * interface can be a proxy. Bind the bounds to the view that actually writes this point.
+     */
+    public static void bindThumbnailCoordinates(View seekbar, Point point) {
+        if (point == previewPoint) {
+            pointOwner = seekbar;
+        }
     }
 
     private static SeekbarViews setThumbnailPreviewRef(View trackBall) {
@@ -228,6 +259,7 @@ public class SeekbarThumbnailPreviewPatch {
                 LinearLayout.LayoutParams.WRAP_CONTENT, false);
         thumbnailPreviewPopup.setTouchable(false);
         thumbnailPreviewPopup.setBackgroundDrawable(transparentBackgroundDrawable);
+        thumbnailPreviewPopup.setOnDismissListener(SeekbarThumbnailPreviewPatch::endThumbnailPreview);
 
         return seekbarViews = new SeekbarViews(
                 previewFrame,
@@ -379,87 +411,135 @@ public class SeekbarThumbnailPreviewPatch {
                 : String.format(Locale.getDefault(), "%02d:%02d", minutes, seconds);
     }
 
+    private static void endThumbnailPreview() {
+        if (touchDownTime == -1) {
+            return;
+        }
+
+        final boolean hadActivePreview = touchOwner != null;
+        if (hadActivePreview) {
+            touchOwner.removeOnAttachStateChangeListener(previewAttachment);
+        }
+        if (seekbarOwner != null && seekbarOwner != touchOwner) {
+            seekbarOwner.removeOnAttachStateChangeListener(previewAttachment);
+        }
+        touchOwner = null;
+        seekbarOwner = null;
+        pointOwner = null;
+        touchDownTime = -1;
+        lastX = -1;
+        fineScrubbingPreviewBitmap = null;
+        lastAppliedBitmap = null;
+        scalePreviewFrame = true;
+        previewWidthPx = -1;
+        previewHeightPx = -1;
+
+        final SeekbarViews views = seekbarViews;
+        if (hadActivePreview && views != null) {
+            if (views.thumbnailPreviewPopup.isShowing()) {
+                views.thumbnailPreviewPopup.dismiss();
+            }
+            views.thumbnailPreview.setImageDrawable(null);
+            views.timestampPreview.setVisibility(View.GONE);
+            views.heatMapPeakPointPreview.setVisibility(View.GONE);
+            views.chapterPreview.setVisibility(View.GONE);
+        }
+    }
+
+    private static boolean isThumbnailMotionActive(View view, MotionEvent event) {
+        final int action = event.getActionMasked();
+        if (!Settings.THUMBNAIL_PREVIEW.get()
+                || !PlayerType.getCurrent().isMaximizedOrFullscreen()
+                || ShortsPlayerState.getCurrent().isOpen()) {
+            endThumbnailPreview();
+            return false;
+        }
+
+        final long downTime = event.getDownTime();
+        final View candidate = touchCandidate.get();
+        if (action == MotionEvent.ACTION_DOWN) {
+            if (touchDownTime == downTime && candidate == view) {
+                return false;
+            }
+
+            endThumbnailPreview();
+            if (view != null && view.isAttachedToWindow()) {
+                if (candidate != view) {
+                    touchCandidate = new WeakReference<>(view);
+                }
+                touchDownTime = downTime;
+                touchEventInitialX = event.getX();
+                touchEventInitialY = event.getY();
+            }
+            return false;
+        }
+
+        if (candidate == null || candidate != view || touchDownTime != downTime) {
+            return false;
+        }
+
+        if (event.getPointerCount() > 1
+                || action == MotionEvent.ACTION_UP
+                || action == MotionEvent.ACTION_CANCEL
+                || action == MotionEvent.ACTION_POINTER_DOWN
+                || (action == MotionEvent.ACTION_MOVE && touchEventInitialY - event.getY() > DIP15)) {
+            endThumbnailPreview();
+            return false;
+        }
+
+        if (action != MotionEvent.ACTION_MOVE || touchEventInitialX <= -1 || touchEventInitialY <= -1) {
+            return false;
+        }
+
+        if (touchOwner == null && Math.abs(event.getX() - touchEventInitialX) > DIP15) {
+            if (!view.isAttachedToWindow()) {
+                endThumbnailPreview();
+                return false;
+            }
+            touchOwner = view;
+            touchOwner.addOnAttachStateChangeListener(previewAttachment);
+        }
+        return touchOwner != null;
+    }
+
+    private static boolean bindSeekbarOwner(@Nullable View seekbar) {
+        if (seekbar == null || !seekbar.isAttachedToWindow()
+                || (seekbarOwner != null && seekbarOwner != seekbar)) {
+            if (seekbarOwner != null) {
+                endThumbnailPreview();
+            }
+            return false;
+        }
+
+        if (seekbarOwner == null) {
+            seekbarOwner = seekbar;
+            if (seekbar != touchOwner) {
+                seekbar.addOnAttachStateChangeListener(previewAttachment);
+            }
+        }
+        return true;
+    }
+
     /**
      * Injection point.
      */
-    public static void updateThumbnailPreview(
-            View trackBall,
-            MotionEvent trackBallMotionEvent,
-            Point trackballPos) {
+    public static void updateThumbnailPreview(View trackBall, Point trackballPos) {
+        final View seekbar = trackballPos == previewPoint ? pointOwner : null;
+        pointOwner = null;
+
         try {
-            if (!Settings.THUMBNAIL_PREVIEW.get() ||
-                    !PlayerType.getCurrent().isMaximizedOrFullscreen() ||
-                    ShortsPlayerState.getCurrent().isOpen()) {
-                return;
-            }
-
-            final int actionMasked = trackBallMotionEvent.getActionMasked();
-
-            SeekbarViews views = setThumbnailPreviewRef(trackBall);
-
-            if (actionMasked == MotionEvent.ACTION_DOWN) {
-                isFineScrubbingStarted = false;
-                touchEventInitialX = trackBallMotionEvent.getX();
-                touchEventInitialY = trackBallMotionEvent.getY();
-                return;
-            }
-
-            if (trackBallMotionEvent.getPointerCount() > 1
-                    || actionMasked == MotionEvent.ACTION_UP
-                    || actionMasked == MotionEvent.ACTION_CANCEL
-                    || actionMasked == MotionEvent.ACTION_POINTER_DOWN
-                    || (actionMasked == MotionEvent.ACTION_MOVE &&
-                    touchEventInitialY > -1 &&
-                    (touchEventInitialY - trackBallMotionEvent.getY()) > DIP15)) {
-                lastX = -1;
-                touchEventInitialX = -1;
-                touchEventInitialY = -1;
-                fineScrubbingPreviewBitmap = null;
-                scalePreviewFrame = true;
-                isFineScrubbingStarted = false;
-                lastAppliedBitmap = null;
-                previewWidthPx = -1;
-                previewHeightPx = -1;
-                if (views != null) {
-                    if (views.timestampPreview != null) {
-                        views.timestampPreview.setVisibility(View.GONE);
-                    }
-                    if (views.heatMapPeakPointPreview != null) {
-                        views.heatMapPeakPointPreview.setVisibility(View.GONE);
-                    }
-                    if (views.chapterPreview != null) {
-                        views.chapterPreview.setVisibility(View.GONE);
-                    }
-                    if (views.thumbnailPreviewPopup != null) {
-                        if (views.thumbnailPreviewPopup.isShowing()) {
-                            views.thumbnailPreviewPopup.dismiss();
-                        }
-                    }
-                }
-                return;
-            }
-
-            if (actionMasked == MotionEvent.ACTION_MOVE &&
-                    views != null &&
-                    touchEventInitialX > -1 &&
-                    touchEventInitialY > -1) {
-                if (!isFineScrubbingStarted) {
-                    final float deltaTouchX = Math.abs(trackBallMotionEvent.getX() - touchEventInitialX);
-
-                    if (deltaTouchX > DIP15) {
-                        isFineScrubbingStarted = true;
-                    } else {
-                        return;
-                    }
-                }
-
+            if (touchOwner == trackBall && bindSeekbarOwner(seekbar)) {
                 final int trackballPosX = trackballPos.x;
                 final int trackballPosY = trackballPos.y;
 
-                if (trackballPosX == lastX || (trackballPosX == 0 && trackballPosY == 0)) {
+                final boolean awaitingFirstBitmap = lastAppliedBitmap == null && fineScrubbingPreviewBitmap != null;
+                if ((trackballPosX == lastX && !awaitingFirstBitmap)
+                        || (trackballPosX == 0 && trackballPosY == 0)) {
                     return;
                 }
                 lastX = trackballPosX;
+
+                final SeekbarViews views = setThumbnailPreviewRef(trackBall);
 
                 if (fineScrubbingPreviewBitmap != null) {
                     if (fineScrubbingPreviewBitmap != lastAppliedBitmap) {
@@ -477,13 +557,13 @@ public class SeekbarThumbnailPreviewPatch {
                     views.previewFrame.setLayoutParams(THUMBNAIL_PREVIEW_DEFAULT_PARAMS);
                 }
 
-                if (trackballPosX >= 0 && seekbarRectangle != null) {
-                    final int seekbarWidth = seekbarRectangle.width();
+                if (trackballPosX >= 0) {
+                    final int seekbarWidth = seekbar.getWidth();
                     final long totalVideoMillis = VideoInformation.getVideoLength();
 
                     if (totalVideoMillis > 0 && seekbarWidth > 0) {
                         final int relativeTrackballPosX = Utils.clamp(
-                                trackballPosX - seekbarRectangle.left,
+                                trackballPosX - seekbar.getLeft(),
                                 0,
                                 seekbarWidth
                         );

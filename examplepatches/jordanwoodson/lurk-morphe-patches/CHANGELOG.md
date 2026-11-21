@@ -1,3 +1,89 @@
+## [1.21.0](https://github.com/jordanwoodson/lurk-morphe-patches/compare/v1.20.0...v1.21.0) (2026-11-20)
+
+### Rumble
+
+#### ✨ New Features
+
+* add **Remote control** ([b279d95](https://github.com/jordanwoodson/lurk-morphe-patches/commit/b279d9559a94830a24b3f0ba5644b0d25b5af1b2))
+
+### Twitch
+
+#### ✨ New Features
+
+* **Disable analytics** answers the in-app web pages' trackers locally ([2468530](https://github.com/jordanwoodson/lurk-morphe-patches/commit/2468530c2ca939ed5b659acbf1ef7a656dac7810))
+
+#### 🐛 Bug Fixes
+
+* FrankerFaceZ emotes fall back to BetterTTV's copy of them ([cb169fc](https://github.com/jordanwoodson/lurk-morphe-patches/commit/cb169fc6a687c01490d68267b012f2323192701a))
+* Hide extensions also removes the chat header it leaves empty ([88d17fb](https://github.com/jordanwoodson/lurk-morphe-patches/commit/88d17fb0949c1af49b9f842aec683669beba04ae))
+* keep Home's tabs in place after scrolling with Hide Stories ([3b914b1](https://github.com/jordanwoodson/lurk-morphe-patches/commit/3b914b19f9ecd8842aa20e0a128ce4e7a37899cb))
+* keep in-app web pages open after another host's certificate error ([819f240](https://github.com/jordanwoodson/lurk-morphe-patches/commit/819f240d2361f3a9006a7b98a0ea4d6f8c522459))
+* Keep watch time so channel points and watch streaks count ([c873193](https://github.com/jordanwoodson/lurk-morphe-patches/commit/c873193dd42d445dc54394cae47143a815682d7f))
+* **Latency badge** reads the stream's timing tags when the player's latency is lost ([0076523](https://github.com/jordanwoodson/lurk-morphe-patches/commit/007652329a11649dcc7537accb013df6d57bdcbe))
+* **Third-party emotes** retry a failed channel list within seconds ([ced954b](https://github.com/jordanwoodson/lurk-morphe-patches/commit/ced954bb1c50d895dbcdd1e7f91ebb4492ca2454))
+
+## [1.21.0-dev.1](https://github.com/jordanwoodson/lurk-morphe-patches/compare/v1.20.0...v1.21.0-dev.1) (2026-11-20)
+
+### Rumble
+
+#### ✨ New Features
+
+* add **Remote control** ([b279d95](https://github.com/jordanwoodson/lurk-morphe-patches/commit/b279d9559a94830a24b3f0ba5644b0d25b5af1b2))
+
+### Twitch
+
+#### ✨ New Features
+
+* **Disable analytics** answers the in-app web pages' trackers locally ([2468530](https://github.com/jordanwoodson/lurk-morphe-patches/commit/2468530c2ca939ed5b659acbf1ef7a656dac7810))
+
+#### 🐛 Bug Fixes
+
+* FrankerFaceZ emotes fall back to BetterTTV's copy of them ([cb169fc](https://github.com/jordanwoodson/lurk-morphe-patches/commit/cb169fc6a687c01490d68267b012f2323192701a))
+* Hide extensions also removes the chat header it leaves empty ([88d17fb](https://github.com/jordanwoodson/lurk-morphe-patches/commit/88d17fb0949c1af49b9f842aec683669beba04ae))
+* keep Home's tabs in place after scrolling with Hide Stories ([3b914b1](https://github.com/jordanwoodson/lurk-morphe-patches/commit/3b914b19f9ecd8842aa20e0a128ce4e7a37899cb))
+* keep in-app web pages open after another host's certificate error ([819f240](https://github.com/jordanwoodson/lurk-morphe-patches/commit/819f240d2361f3a9006a7b98a0ea4d6f8c522459))
+* Keep watch time so channel points and watch streaks count ([c873193](https://github.com/jordanwoodson/lurk-morphe-patches/commit/c873193dd42d445dc54394cae47143a815682d7f))
+* **Latency badge** reads the stream's timing tags when the player's latency is lost ([0076523](https://github.com/jordanwoodson/lurk-morphe-patches/commit/007652329a11649dcc7537accb013df6d57bdcbe))
+* **Third-party emotes** retry a failed channel list within seconds ([ced954b](https://github.com/jordanwoodson/lurk-morphe-patches/commit/ced954bb1c50d895dbcdd1e7f91ebb4492ca2454))
+
+## [1.20.0](https://github.com/jordanwoodson/lurk-morphe-patches/compare/v1.19.0...v1.20.0) (2026-11-20)
+
+### Kick
+
+#### 🐛 Bug Fixes
+
+* cap **Default video quality** below every rendition, and offer 160p ([f4048ce](https://github.com/jordanwoodson/lurk-morphe-patches/commit/f4048ce1f697dfc4c44de89aeb6f34a62fca1ec2))
+
+### Twitch
+
+#### ✨ New Features
+
+* **Hide Clips** can keep the Clips tab on channel pages ([7867dcc](https://github.com/jordanwoodson/lurk-morphe-patches/commit/7867dcc9eaa27c4807aa889222d9d39de8cf7cee))
+* **Hide content label** ([dd60672](https://github.com/jordanwoodson/lurk-morphe-patches/commit/dd60672e64cb9a2d8694215fc067d8728dee9c9e))
+
+#### 🐛 Bug Fixes
+
+* **Hide subscription upsells** covers the stream title row, channel pages and Try Ad-Free ([09ba96a](https://github.com/jordanwoodson/lurk-morphe-patches/commit/09ba96ab47213a4d97322549b19cdaf40ba90736))
+
+## [1.20.0-dev.1](https://github.com/jordanwoodson/lurk-morphe-patches/compare/v1.19.0...v1.20.0-dev.1) (2026-11-19)
+
+### Kick
+
+#### 🐛 Bug Fixes
+
+* cap **Default video quality** below every rendition, and offer 160p ([f4048ce](https://github.com/jordanwoodson/lurk-morphe-patches/commit/f4048ce1f697dfc4c44de89aeb6f34a62fca1ec2))
+
+### Twitch
+
+#### ✨ New Features
+
+* **Hide Clips** can keep the Clips tab on channel pages ([7867dcc](https://github.com/jordanwoodson/lurk-morphe-patches/commit/7867dcc9eaa27c4807aa889222d9d39de8cf7cee))
+* **Hide content label** ([dd60672](https://github.com/jordanwoodson/lurk-morphe-patches/commit/dd60672e64cb9a2d8694215fc067d8728dee9c9e))
+
+#### 🐛 Bug Fixes
+
+* **Hide subscription upsells** covers the stream title row, channel pages and Try Ad-Free ([09ba96a](https://github.com/jordanwoodson/lurk-morphe-patches/commit/09ba96ab47213a4d97322549b19cdaf40ba90736))
+
 ## [1.19.0](https://github.com/jordanwoodson/lurk-morphe-patches/compare/v1.18.0...v1.19.0) (2026-11-19)
 
 ### Twitch

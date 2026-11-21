@@ -5,6 +5,7 @@
  * https://github.com/anddea/revanced-patches
  *
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-20.
  * Modified by lavinhoque33, 2026-11-05.
  * Written by lavinhoque33, 2026-10-10.
  * Modified by lavinhoque33, 2026-10-25.
@@ -54,6 +55,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Function;
 import java.util.regex.Pattern;
 
 import app.morphe.extension.music.patches.downloads.AudioTagger;
@@ -446,7 +448,7 @@ public final class OfflineDownloader {
         try {
             sheet.showPlaylist(playlist, items, selected -> {
                 sheet.dismiss();
-                enqueuePlaylist(playlist.title(), selected, sheet.playlistSubtitles(), sheet.sponsorSelection());
+                enqueuePlaylist(playlistId, playlist, selected, sheet.playlistSubtitles(), sheet.sponsorSelection());
             });
             Logger.printInfo(() -> "Offline playlist " + playlistId + ": selection sheet ready");
         } catch (Exception ex) {
@@ -456,10 +458,12 @@ public final class OfflineDownloader {
         }
     }
 
-    private static void enqueuePlaylist(String playlistTitle, List<OfflinePlaylistSelection.Item> selected,
+    private static void enqueuePlaylist(String playlistId, OfflinePlaylist.Result playlist,
+                                        List<OfflinePlaylistSelection.Item> selected,
                                         OfflineCaptions.Selection subtitles, OfflineSponsorBlock.Selection sponsor) {
         Utils.runOnBackgroundThread(() -> {
             final Context context = Utils.getContext();
+            final String playlistTitle = playlist.title();
             List<OfflinePlaylistSelection.Item> pending = new ArrayList<>();
             int alreadyDownloaded = 0;
             for (OfflinePlaylistSelection.Item item : selected) {
@@ -484,6 +488,7 @@ public final class OfflineDownloader {
                     }
                 }
             }
+            OfflineExportPlaylists.remember(playlistId, playlist, selected);
 
             final int count = queued;
             final int skipped = alreadyDownloaded;
@@ -704,15 +709,7 @@ public final class OfflineDownloader {
             if (task.resolved == null) chooseBatchStream(task);
 
             downloadWithFallback(task, work, files);
-            checkCancelled(task);
-
-            OfflineVideo saved = task.stream.isAudioOnly()
-                    ? saveAudio(context, task, files[0])
-                    : saveVideo(context, task, files[0], files[1]);
-            OfflineCaptions.download(context, saved, task);
-            if (sponsorResult != null) OfflineSponsorBlock.save(saved, task.sponsor, sponsorResult);
-            OfflineIndex.put(saved);
-            if (OfflineOptions.saveThumbnailWithDownloads()) saveThumbnailCopy(context, task);
+            saveDownload(context, task, files, sponsorResult, OfflineThumbnails::fetchOriginal);
 
             task.succeeded = true;
             // A playlist reports once at its end instead of once per video.
@@ -1290,6 +1287,31 @@ public final class OfflineDownloader {
         }
     }
 
+    static void saveDownload(Context context, Task task, File[] files,
+                             @Nullable OfflineSponsorBlock.Result sponsorResult,
+                             Function<String, OfflineThumbnails.Image> fetchOriginal) throws IOException {
+        checkCancelled(task);
+
+        final OfflineThumbnails.Image audioThumbnail;
+        final OfflineVideo saved;
+        if (task.stream.isAudioOnly()) {
+            task.state = State.SAVING;
+            notifyChanged(true);
+            audioThumbnail = fetchOriginal.apply(task.videoId);
+            saved = saveAudio(context, task, files[0], audioThumbnail);
+        } else {
+            audioThumbnail = null;
+            saved = saveVideo(context, task, files[0], files[1]);
+        }
+
+        OfflineCaptions.download(context, saved, task);
+        if (sponsorResult != null) OfflineSponsorBlock.save(saved, task.sponsor, sponsorResult);
+        OfflineIndex.put(saved);
+        if (OfflineOptions.saveThumbnailWithDownloads()) {
+            saveThumbnailCopy(context, saved, audioThumbnail, fetchOriginal);
+        }
+    }
+
     // Merge straight into the pending MediaStore item.
     private static OfflineVideo saveVideo(Context context, Task task, File videoFile, File audioFile)
             throws IOException {
@@ -1331,14 +1353,13 @@ public final class OfflineDownloader {
      * Opus is repackaged into tagged Ogg Opus, AAC into tagged M4A, the same way YouTube Music's
      * downloads are, so music players show the title, the channel and the thumbnail.
      */
-    private static OfflineVideo saveAudio(Context context, Task task, File audioFile) throws IOException {
+    private static OfflineVideo saveAudio(Context context, Task task, File audioFile,
+                                          @Nullable OfflineThumbnails.Image thumbnailImage) throws IOException {
         final OfflineFormats.Resolved resolved = task.resolved;
         final OfflineFormats.Stream audio = task.stream;
-        task.state = State.SAVING;
-        notifyChanged(true);
 
         final AudioTagger.Tags tags = new AudioTagger.Tags(resolved.title(), resolved.author(), null,
-                artwork(task.videoId));
+                artwork(thumbnailImage));
         final String displayName = displayName(resolved.title(), task.videoId, audio.fileExtension());
         OfflineMediaStore.Pending pending = OfflineMediaStore.create(context, OfflineMediaStore.Collection.AUDIO,
                 OfflineOptions.audioFolder(), displayName);
@@ -1357,21 +1378,23 @@ public final class OfflineDownloader {
 
     /** @return The thumbnail as embedded cover art (JPEG or PNG only), or null. */
     @Nullable
-    private static byte[] artwork(String videoId) {
-        OfflineThumbnails.Image image = OfflineThumbnails.fetchOriginal(videoId);
+    private static byte[] artwork(@Nullable OfflineThumbnails.Image image) {
         if (image == null || AudioTagger.imageMimeType(image.bytes()) == null) return null;
         return image.bytes();
     }
 
     /** "Save thumbnail with downloads". The download is already saved, so a failure here is only logged. */
-    private static void saveThumbnailCopy(Context context, Task task) {
+    private static void saveThumbnailCopy(Context context, OfflineVideo saved,
+                                          @Nullable OfflineThumbnails.Image audioThumbnail,
+                                          Function<String, OfflineThumbnails.Image> fetchOriginal) {
         try {
-            OfflineThumbnails.Image image = OfflineThumbnails.fetchOriginal(task.videoId);
+            // Audio already looked for an original, even when none was available.
+            OfflineThumbnails.Image image = saved.audioOnly ? audioThumbnail : fetchOriginal.apply(saved.videoId);
             if (image == null) throw new IOException("No thumbnail");
-            Uri uri = OfflineThumbnails.save(context, image, baseName(task.resolved.title(), task.videoId));
-            Logger.printInfo(() -> "Saved the thumbnail of " + task.key + " to " + uri);
+            Uri uri = OfflineThumbnails.save(context, image, baseName(saved.title, saved.videoId));
+            Logger.printInfo(() -> "Saved the thumbnail of " + saved.key() + " to " + uri);
         } catch (Exception ex) {
-            Logger.printInfo(() -> "Could not save the thumbnail of " + task.key, ex);
+            Logger.printInfo(() -> "Could not save the thumbnail of " + saved.key(), ex);
         }
     }
 

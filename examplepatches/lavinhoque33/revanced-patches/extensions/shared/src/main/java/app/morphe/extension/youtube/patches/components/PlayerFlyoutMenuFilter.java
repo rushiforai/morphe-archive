@@ -16,7 +16,7 @@ import static app.morphe.extension.youtube.utils.ExtendedUtils.isSpoofingToLessT
 
 import app.morphe.extension.shared.patches.components.ByteArrayFilterGroup;
 import app.morphe.extension.shared.patches.components.ByteArrayFilterGroupList;
-import app.morphe.extension.shared.patches.components.Filter;
+import app.morphe.extension.shared.patches.components.LazyBufferFilter;
 import app.morphe.extension.shared.patches.components.StringFilterGroup;
 import app.morphe.extension.shared.settings.BooleanSetting;
 import app.morphe.extension.shared.utils.ByteTrieSearch;
@@ -28,7 +28,7 @@ import app.morphe.extension.youtube.shared.ShortsPlayerState;
 import java.util.Arrays;
 
 @SuppressWarnings("unused")
-public final class PlayerFlyoutMenuFilter extends Filter {
+public final class PlayerFlyoutMenuFilter extends LazyBufferFilter {
     private static boolean topFlyoutMenuVisible;
     public static boolean getTopFlyoutMenuVisible() {
         return topFlyoutMenuVisible;
@@ -289,7 +289,7 @@ public final class PlayerFlyoutMenuFilter extends Filter {
     }
 
     @Override
-    public boolean isFiltered(String path, String identifier, String allValue, byte[] buffer,
+    public boolean isFilteredLazy(String path, String identifier, String allValue, Buffer buffer,
                               StringFilterGroup matchedGroup, FilterContentType contentType, int contentIndex) {
         if (matchedGroup == playerFlyoutMenu) {
             // Overflow menu is always the start of the path.
@@ -302,9 +302,9 @@ public final class PlayerFlyoutMenuFilter extends Filter {
             // The path already starts with the overflow menu item, while the buffer
             // does not always contain it (20.21 keeps it in a separate buffer).
             boolean videoPlayerFlyout = PlayerType.getCurrent().isMaximizedOrFullscreen()
-                    && videoPlayerSettingsQualityButton.check(buffer).isFiltered();
+                    && videoPlayerSettingsQualityButton.check(buffer.get()).isFiltered();
             boolean shortsPlayerFlyout = ShortsPlayerState.getCurrent().isOpen()
-                    && shortsPlayerSettingsCaptionsButton.check(buffer).isFiltered();
+                    && shortsPlayerSettingsCaptionsButton.check(buffer.get()).isFiltered();
             if (videoPlayerFlyout || shortsPlayerFlyout) {
                 topFlyoutMenuVisible = true;
             }
@@ -312,7 +312,7 @@ public final class PlayerFlyoutMenuFilter extends Filter {
             // Shorts also use this player flyout panel
             if (PlayerType.getCurrent().isNoneOrHidden() || ShortsPlayerState.getCurrent().isOpen()) {
                 return Settings.HIDE_PLAYER_FLYOUT_MENU_CAPTIONS.get()
-                        && shortsPlayerSettingsCaptionsButton.check(buffer).isFiltered();
+                        && shortsPlayerSettingsCaptionsButton.check(buffer.get()).isFiltered();
             }
 
             if (IS_20_31_OR_GREATER && pathBuilderException.matches(path)) {
@@ -320,29 +320,29 @@ public final class PlayerFlyoutMenuFilter extends Filter {
             }
 
             if (Settings.HIDE_PLAYER_FLYOUT_MENU_QUALITY.get()
-                    && qualityMenuButton.check(buffer).isFiltered()) {
+                    && qualityMenuButton.check(buffer.get()).isFiltered()) {
                 return true;
             }
 
-            if (byteArrayException.check(buffer).isFiltered()) {
+            if (byteArrayException.check(buffer.get()).isFiltered()) {
                 return false;
             }
 
-            if (additionalSettingsMenu.check(buffer).isFiltered() && shouldHideAdditionalSettings()) {
+            if (additionalSettingsMenu.check(buffer.get()).isFiltered() && shouldHideAdditionalSettings()) {
                 return true;
             }
 
             if (Settings.HIDE_PLAYER_FLYOUT_ON_THE_GO.get()
-                    && onTheGoUpsellParameters.check(buffer).isFiltered()
-                    && premiumUpsell.check(buffer).isFiltered()) {
+                    && onTheGoUpsellParameters.check(buffer.get()).isFiltered()
+                    && premiumUpsell.check(buffer.get()).isFiltered()) {
                 return true;
             }
 
-            if (Settings.HIDE_PLAYER_FLYOUT_MENU_LOOP.get() && flyoutLoopVideoButton.check(buffer).isFiltered()) {
+            if (Settings.HIDE_PLAYER_FLYOUT_MENU_LOOP.get() && flyoutLoopVideoButton.check(buffer.get()).isFiltered()) {
                 return true;
             }
 
-            return flyoutFilterGroupList.check(buffer).isFiltered();
+            return flyoutFilterGroupList.check(buffer.get()).isFiltered();
         } else if (matchedGroup == qualityFooter) {
             return true;
         } else if (matchedGroup == divider) {

@@ -5,6 +5,7 @@
  * https://github.com/anddea/revanced-patches
  *
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-20.
  * Modified by lavinhoque33, 2026-11-05.
  * Written by lavinhoque33, 2026-10-10.
  * Modified by lavinhoque33, 2026-10-26.
@@ -27,6 +28,7 @@ import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
 import android.net.Uri;
+import android.os.Build;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.text.TextUtils;
@@ -62,8 +64,12 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Consumer;
 import java.util.function.IntConsumer;
+import java.util.function.Supplier;
 
+import app.morphe.extension.shared.downloads.PortableExport;
+import app.morphe.extension.shared.downloads.PortableExportDialog;
 import app.morphe.extension.shared.ui.CustomDialog;
 import app.morphe.extension.shared.utils.BaseThemeUtils;
 import app.morphe.extension.shared.utils.Logger;
@@ -191,9 +197,17 @@ final class OfflineLibraryScreen implements OfflineScreens.Screen {
         playlistItem.setIcon(OfflineUi.icon(activity, "download", foreground));
         playlistItem.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
         playlistItem.setOnMenuItemClickListener(clicked -> {
-            askPlaylist();
+            askPlaylist(false);
             return true;
         });
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            MenuItem exportPlaylist = menu.add(str("rvx_export_playlist"));
+            exportPlaylist.setShowAsAction(MenuItem.SHOW_AS_ACTION_NEVER);
+            exportPlaylist.setOnMenuItemClickListener(clicked -> {
+                showExportPlaylists();
+                return true;
+            });
+        }
 
         FrameLayout content = new FrameLayout(activity);
         ListView list = new ListView(activity);
@@ -433,12 +447,15 @@ final class OfflineLibraryScreen implements OfflineScreens.Screen {
         // A tap opens YouTube's player, so the built-in one gets an entry.
         final boolean builtInEntry = Settings.OFFLINE_USE_YOUTUBE_PLAYER.get();
         final int offset = builtInEntry ? 1 : 0;
-        String[] actions = new String[4 + offset];
+        Uri uri = Uri.parse(video.contentUri);
+        boolean canExport = PortableExport.isPublicMedia(uri);
+        String[] actions = new String[4 + offset + (canExport ? 1 : 0)];
         if (builtInEntry) actions[0] = str("revanced_offline_action_play_builtin");
         actions[offset] = str("revanced_offline_action_play_background");
         actions[offset + 1] = str("revanced_offline_action_share");
         actions[offset + 2] = str("revanced_offline_action_open_youtube");
         actions[offset + 3] = str("revanced_offline_action_delete");
+        if (canExport) actions[offset + 4] = str("rvx_export_file");
         showLibraryChoices(video.title, actions, -1, which -> {
             if (builtInEntry && which == 0) {
                 OfflineScreens.openBuiltInPlayer(activity, video.key());
@@ -453,6 +470,8 @@ final class OfflineLibraryScreen implements OfflineScreens.Screen {
                 case 1 -> share(video);
                 case 2 -> openOnYouTube(video);
                 case 3 -> confirmDelete(video);
+                case 4 -> PortableExportDialog.show(activity,
+                        new PortableExport.Request(video.title, false, List.of(uri)));
                 default -> {
                 }
             }
@@ -508,8 +527,8 @@ final class OfflineLibraryScreen implements OfflineScreens.Screen {
                 null, () -> OfflineDownloader.cancelAll(false)).first.show();
     }
 
-    /** YouTube shows its own playlist download button only to some accounts, so the library offers a way in. */
-    private void askPlaylist() {
+    /** Both existing download and explicit export accept a playlist link or identifier. */
+    private void askPlaylist(boolean export) {
         EditText input = CustomDialog.createEditText(activity);
         input.setHintTextColor(secondary);
         input.setHint(str("revanced_offline_batch_input_hint"));
@@ -527,16 +546,71 @@ final class OfflineLibraryScreen implements OfflineScreens.Screen {
         } catch (Exception ex) {
             Logger.printException(() -> "Could not read the playlist clipboard", ex);
         }
-        createLibraryDialog(str("revanced_offline_batch_menu"),
-                str("revanced_offline_batch_input_message"), input, () -> {
+        createLibraryDialog(str(export ? "rvx_export_lookup_playlist" : "revanced_offline_batch_menu"),
+                str(export ? "rvx_export_lookup_message" : "revanced_offline_batch_input_message"), input, () -> {
                     String playlistId = OfflinePlaylist.parseId(input.getText().toString());
                     Logger.printInfo(() -> "Library playlist dialog confirmed, parsed id: " + playlistId);
                     if (playlistId == null) {
                         Utils.showToastLong(str("revanced_offline_batch_input_invalid"));
+                    } else if (export) {
+                        findExportPlaylist(playlistId);
                     } else {
                         OfflineDownloader.downloadPlaylist(activity, playlistId);
                     }
                 }).first.show();
+    }
+
+    private void showExportPlaylists() {
+        loadExportChoices(OfflineExportPlaylists::saved, choices -> {
+            String[] labels = new String[choices.size() + 1];
+            for (int index = 0; index < choices.size(); index++) {
+                var choice = choices.get(index);
+                labels[index] = str("rvx_export_playlist_choice", choice.title(), choice.media().size());
+            }
+            labels[choices.size()] = str("rvx_export_lookup_playlist");
+            showLibraryChoices(str("rvx_export_playlist"), labels, -1, which -> {
+                if (which == choices.size()) askPlaylist(true);
+                else PortableExportDialog.show(activity, choices.get(which));
+            });
+        });
+    }
+
+    private void findExportPlaylist(String playlistId) {
+        loadExportChoices(() -> {
+            OfflinePlaylist.Result playlist = OfflinePlaylist.fetch(playlistId);
+            if (!OfflinePlaylist.hasVideos(playlist)) throw new IllegalStateException("Playlist metadata unavailable");
+            PortableExport.Request request = OfflineExportPlaylists.resolve(playlist);
+            return request == null ? List.of() : List.of(request);
+        }, choices -> {
+            if (choices.isEmpty()) {
+                Utils.showToastLong(str("rvx_export_no_playlists"));
+            } else {
+                PortableExportDialog.show(activity, choices.get(0));
+            }
+        });
+    }
+
+    private void loadExportChoices(Supplier<List<PortableExport.Request>> load,
+                                   Consumer<List<PortableExport.Request>> show) {
+        Dialog loading = createLibraryDialog(str("rvx_export_playlist"), str("rvx_export_loading"), null, null).first;
+        loading.show();
+        Utils.runOnBackgroundThread(() -> {
+            try {
+                List<PortableExport.Request> choices = load.get();
+                Utils.runOnMainThread(() -> {
+                    if (destroyed || !loading.isShowing()) return;
+                    loading.dismiss();
+                    show.accept(choices);
+                });
+            } catch (RuntimeException ex) {
+                Logger.printDebug(() -> "Could not collect the playlist's published downloads", ex);
+                Utils.runOnMainThread(() -> {
+                    if (destroyed || !loading.isShowing()) return;
+                    loading.dismiss();
+                    Utils.showToastLong(str("rvx_export_lookup_failed"));
+                });
+            }
+        });
     }
 
     // endregion

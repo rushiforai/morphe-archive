@@ -86,15 +86,21 @@ public final class AndroidDecoder implements SongLibrary.Decoder {
                     // released with its failure
                 }
             }
+            boolean interrupted = Thread.interrupted(); // (the wait below must happen even when stopped)
             if (thread != null) {
                 thread.quitSafely();
-                try {
-                    thread.join(1000); // a callback still reading must be done before the extractor goes
-                } catch (InterruptedException interrupted) {
-                    Thread.currentThread().interrupt();
+                long until = System.currentTimeMillis() + 1000;
+                while (thread.isAlive() && System.currentTimeMillis() < until) {
+                    try {
+                        // a callback still reading must be done before the extractor goes
+                        thread.join(Math.max(1, until - System.currentTimeMillis()));
+                    } catch (InterruptedException again) {
+                        interrupted = true;
+                    }
                 }
             }
             extractor.release();
+            if (interrupted) Thread.currentThread().interrupt();
         }
     }
 

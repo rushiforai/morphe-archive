@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Copyright (C) 2026 lavinhoque33
+  Licensed under the GNU General Public License v3.0.
+  Written by lavinhoque33, 2026-11-20.
+-->
+<resources>
+    <string name="rvx_export_file">Export file</string>
+    <string name="rvx_export_playlist">Export playlist</string>
+    <string name="rvx_export_choose_folder">Choose folder</string>
+    <string name="rvx_export_use_previous">Use previous folder</string>
+    <string name="rvx_export_ready">%1$s\n%2$d entries to copy. Original files stay in place.</string>
+    <string name="rvx_export_picking">Choose a writable folder in the file picker.</string>
+    <string name="rvx_export_picker_failed">Could not open the system folder picker.</string>
+    <string name="rvx_export_no_grant">Folder permission is missing. Choose a writable folder again.</string>
+    <string name="rvx_export_interrupted">Export was interrupted. Start it again from your downloads.</string>
+    <string name="rvx_export_progress">Processed %1$d of %2$d entries · %3$d exported</string>
+    <string name="rvx_export_cancelling">Cancelling… Processed %1$d of %2$d entries · %3$d exported</string>
+    <string name="rvx_export_bytes">%1$s of %2$s</string>
+    <string name="rvx_export_complete">Export complete: %1$d of %2$d entries.</string>
+    <string name="rvx_export_partial">Partial export: %1$d of %2$d entries.</string>
+    <string name="rvx_export_no_sources">No files exported (%1$d of %2$d entries).</string>
+    <string name="rvx_export_cancelled">Export cancelled. %1$d of %2$d entries were kept in the destination.</string>
+    <string name="rvx_export_destination_failed">The folder became unavailable or could not be written. %1$d of %2$d entries were exported. Choose a folder to start again; completed copies will not be removed.</string>
+    <string name="rvx_export_missing">Source files unavailable: %1$d entries.</string>
+    <string name="rvx_export_folder">Folder: %1$s</string>
+    <string name="rvx_export_playlist_not_written">The M3U8 playlist was not written.</string>
+    <string name="rvx_export_cleanup_failed">The provider could not remove %1$d incomplete items. Check the destination.</string>
+    <string name="rvx_export_no_files">No published device files are available to export.</string>
+    <string name="rvx_export_no_playlists">No playlists with published device files are available to export.</string>
+    <string name="rvx_export_loading">Finding published device files…</string>
+    <string name="rvx_export_playlist_choice">%1$s (%2$d entries)</string>
+    <string name="rvx_export_list_failed">Could not read the device files.</string>
+    <string name="rvx_export_lookup_playlist">Find playlist by link</string>
+    <string name="rvx_export_lookup_message">For a playlist not listed here, enter its link or ID. This looks up the order online and only exports files already in your Downloads.</string>
+    <string name="rvx_export_lookup_failed">Could not read playlist information. Check the link and Internet connection.</string>
+</resources>

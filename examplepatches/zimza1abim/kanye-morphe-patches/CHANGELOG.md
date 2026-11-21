@@ -1,3 +1,31 @@
+## [0.1.6](https://github.com/zimza1abim/kanye-morphe-patches/compare/v0.1.5...v0.1.6) (2026-11-20)
+
+### 🚀 Updated App Support
+
+* support OpenBot 1.4.12
+
+
+## [0.1.5](https://github.com/zimza1abim/kanye-morphe-patches/compare/v0.1.4...v0.1.5) (2026-11-20)
+
+### 🐛 Bug Fixes
+
+* support Titanium 158.0.8127.42
+
+
+## [0.1.4](https://github.com/zimza1abim/kanye-morphe-patches/compare/v0.1.3...v0.1.4) (2026-11-20)
+
+### 🚀 Updated App Support
+
+* support Brave 1.100.58
+
+
+## [0.1.3](https://github.com/zimza1abim/kanye-morphe-patches/compare/v0.1.2...v0.1.3) (2026-11-20)
+
+### 🚀 Updated App Support
+
+* support Joplin 3.7.12 and drop 3.7.8
+
+
 ## [0.1.2](https://github.com/zimza1abim/kanye-morphe-patches/compare/v0.1.1...v0.1.2) (2026-11-20)
 
 ### 🚀 Updated App Support

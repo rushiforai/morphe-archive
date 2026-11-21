@@ -31,6 +31,8 @@ public final class NmaxSettings {
     static final String LOCK_PORTRAIT = "lock_portrait";
     static final String NO_PIP = "no_pip";
     private static final String ROW_KEY = "nmax_patch";
+    private static final String GMS_ROW_KEY = "nmax_gms";
+    private static final String GMS_SETTINGS = "org.microg.gms.ui.MainSettingsActivity";
     private static final String ICON = "gs_two_wheeler_vd_theme_24";
     private static final int ICON_GROUP = 0x4e4d4158; // "NMAX": the icon's Compose group key
 
@@ -126,6 +128,23 @@ public final class NmaxSettings {
         }));
         group.getMethod(d[10], preference).invoke(screen, row);
         Log.i(TAG, "NMAX settings row attached");
+
+        // MicroG-RE is embedded in Maps NMAX (no app of its own): its settings open from here.
+        Object gms = Class.forName("com.google.android.apps.gmm.settings.CustomSettingsPreference", false, loader)
+            .getConstructor(Context.class, String.class, String.class, String.class, iconType)
+            .newInstance(context, GMS_ROW_KEY, "microG",
+                vi() ? "Tài khoản Google, vị trí" : "Google account, location", icon(activity, iconType, loader));
+        preference.getMethod(d[7], click).invoke(gms, listener(loader, click, d[9], "gms", pref -> {
+            Object f = owner.get();
+            if (f == null) return;
+            try {
+                Activity a = (Activity) f.getClass().getMethod(d[2]).invoke(f);
+                a.startActivity(new android.content.Intent().setClassName(a.getPackageName(), GMS_SETTINGS));
+            } catch (Exception error) {
+                Log.w(TAG, "microG settings unavailable", error);
+            }
+        }));
+        group.getMethod(d[10], preference).invoke(screen, gms);
     }
 
     /** Opens a fresh Settings fragment as our page, through the host Maps opens its sub-pages with. */

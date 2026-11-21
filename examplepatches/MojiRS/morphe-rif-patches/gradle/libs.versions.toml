@@ -3,8 +3,11 @@
 morphe-patcher = "2.0.0"
 #noinspection GradleDependency
 smali = "4220ae75f7"
+# Only for the patches-list.json generator (src/patchList in :patches); same pin as morphe-patches-template.
+gson = "2.15.0"
 
 [libraries]
+gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
 # The Gradle plugin adds these dependencies during the build; the declarations are required
 # by the plugin (it looks the aliases up) and let dependabot see them.
 #noinspection UnusedVersionCatalogEntry

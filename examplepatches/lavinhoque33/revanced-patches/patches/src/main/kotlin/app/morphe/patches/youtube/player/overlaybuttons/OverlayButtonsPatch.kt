@@ -26,7 +26,7 @@
  *
  * Licensed under the GNU General Public License v3.0.
  *
- * Modified by lavinhoque33, 2026-10-25
+ * Modified by lavinhoque33, 2026-11-20
  *
  * ------------------------------------------------------------------------
  * GPLv3 Section 7 – Additional Terms & Attribution Requirements
@@ -71,8 +71,11 @@ import app.morphe.patcher.util.findFreeRegister
 import app.morphe.patcher.util.getReference
 import app.morphe.patcher.util.smali.ExternalLabel
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
+import app.morphe.patches.shared.mapping.ResourceType
+import app.morphe.patches.shared.mapping.hasResourceId
 import app.morphe.patches.youtube.player.icons.PLAYER_ICONS_RESOURCE_DIRECTORY
 import app.morphe.patches.youtube.player.icons.copyPlayerIconStyles
+import app.morphe.patches.youtube.player.icons.shortsClearScreenIconResourcePatch
 import app.morphe.patches.youtube.utils.compatibility.Constants.COMPATIBILITY_YOUTUBE
 import app.morphe.patches.youtube.utils.dismiss.dismissPlayerHookPatch
 import app.morphe.patches.youtube.utils.dismiss.hookDismissObserver
@@ -254,6 +257,7 @@ val overlayButtonsPatch = resourcePatch(
         playlistPatch,
         sharedResourceIdPatch,
         settingsPatch,
+        shortsClearScreenIconResourcePatch,
     )
 
     val iconTypeOption = stringOption(
@@ -352,9 +356,24 @@ val overlayButtonsPatch = resourcePatch(
                 "revanced_mute_volume_button.xml",
                 "revanced_loop_segment_button.xml",
                 "revanced_repeat_button.xml",
+                "revanced_video_quality_dialog_button.xml",
                 "revanced_vot_button.xml",
             )
         )
+
+        val bottomControlsLayoutFileNames = arrayOf(
+            "youtube_controls_bottom_ui_container.xml",
+            "youtube_video_exploder_controls_bottom_ui_container.xml",
+        )
+        val hasQualityButton = bottomControlsLayoutFileNames.any { get("res/layout/$it").exists() } &&
+            hasResourceId(ResourceType.ID, "fullscreen_button") &&
+            hasResourceId(ResourceType.STRING, "video_quality_quick_menu_auto_toast")
+
+        if (hasQualityButton) {
+            injectControl("$OVERLAY_BUTTONS_PATH/VideoQualityDialogButton;", topControl = false)
+        } else {
+            printWarn("Video quality button: bottom overlay or stock quality resources are missing; keeping it hidden.")
+        }
 
         // Only the style variants are added when the player icon style patch is included.
         // The Automatic, Thin and Bold styles keep the icons of the selected icon type.
@@ -433,10 +452,6 @@ val overlayButtonsPatch = resourcePatch(
 
         // Merge XML nodes from the host to their respective XML files.
         val overlayButtonsHostLayoutFileName = "layout/youtube_controls_bottom_ui_container.xml"
-        val bottomControlsLayoutFileNames = arrayOf(
-            "youtube_controls_bottom_ui_container.xml",
-            "youtube_video_exploder_controls_bottom_ui_container.xml",
-        )
 
         bottomControlsLayoutFileNames.forEach { xmlFile ->
             val targetXml = get("res/layout/$xmlFile")
@@ -660,6 +675,10 @@ val overlayButtonsPatch = resourcePatch(
             ),
             OVERLAY_BUTTONS
         )
+
+        if (hasQualityButton) {
+            addPreference(arrayOf("SETTINGS: OVERLAY_VIDEO_QUALITY_BUTTON"))
+        }
 
         // endregion
 

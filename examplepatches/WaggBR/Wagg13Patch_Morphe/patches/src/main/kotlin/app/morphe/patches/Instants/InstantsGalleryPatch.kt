@@ -1,13 +1,19 @@
 package app.morphe.patches.instants
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
+import app.morphe.patcher.util.smali.ExternalLabel
 import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.builder.instruction.BuilderPackedSwitchPayload
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.TypeReference
+
+// Cases of the app's "save to photos" switch: Bitmap, JPEG bytes and video file.
+private val SAVE_CASES = setOf(16, 17, 18)
 
 /**
  * Gallery upload: a gallery button on the camera screen; the picked image replaces the captured
@@ -74,7 +80,45 @@ val instantsGalleryPatch = bytecodePatch {  // unnamed: only loaded through [ins
             """.trimIndent(),
         )
 
-        // 4) Hide the gallery button outside the camera. The navigator wrapper reports every route
+        // 4) "Save to photos": the app writes the capture to the camera roll from three cases of a
+        //    coroutine switch (Bitmap, JPEG bytes and video file). A photo or video picked from the
+        //    gallery is already on the device, so those cases return before saving. The mark is set by
+        //    the two substitutions above and cleared by the next capture, so real captures still save.
+        val save = GallerySaveFingerprint.method
+        val saveInstructions = save.implementation!!.instructions.toList()
+        val payload = saveInstructions.filterIsInstance<BuilderPackedSwitchPayload>().singleOrNull()
+            ?: error("Instants: save switch payload not found")
+        val saveCases = payload.switchElements
+            .filter { it.key in SAVE_CASES }
+            .map { element -> element.key to element.target.location.index }
+            .sortedByDescending { (_, index) -> index }
+        check(saveCases.size == SAVE_CASES.size) { "Instants: save switch cases not found" }
+        for ((key, index) in saveCases) {
+            val earlyReturn = if (key == 16) {
+                // The Bitmap case returns Unit; nobody reads it.
+                """
+                const/4 v0, 0x0
+                return-object v0
+                """
+            } else {
+                """
+                sget-object v0, Ljava/lang/Boolean;->FALSE:Ljava/lang/Boolean;
+                return-object v0
+                """
+            }
+            save.addInstructionsWithLabels(
+                index,
+                """
+                invoke-static {}, $GALLERY_HELPER->isGalleryCapture()Z
+                move-result v0
+                if-eqz v0, :morphe_keep_saving
+                ${earlyReturn.trimIndent()}
+                """.trimIndent(),
+                ExternalLabel("morphe_keep_saving", saveInstructions[index]),
+            )
+        }
+
+        // 5) Hide the gallery button outside the camera. The navigator wrapper reports every route
         //    change; the helper shows the button only while the Home route is on top.
         val forward = NavigateForwardFingerprint.method
         val forwardIndex = forward.delegateCallIndex()

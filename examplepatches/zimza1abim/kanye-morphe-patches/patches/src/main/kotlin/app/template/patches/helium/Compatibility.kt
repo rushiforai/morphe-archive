@@ -11,9 +11,9 @@ internal const val TITANIUM_PACKAGE_NAME = "io.github.jqssun.helium"
  * .github/workflows/compat-check.yml appends new versions through a pull request.
  */
 internal val TITANIUM_VERSIONS = listOf(
-    "157.0.8103.38",
     "157.0.8103.50",
     "157.0.8103.78",
+    "158.0.8127.42",
 )
 
 internal fun titaniumCompatibility() = Compatibility(

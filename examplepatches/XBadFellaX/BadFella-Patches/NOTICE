@@ -1,6 +1,16 @@
 Morphe NOTICE
 =============
 
+App update monitor protocol references
+-------------------------------------
+APKPure request schemas were reviewed against APKUpdater (GPLv3),
+https://github.com/DmitryN71/apkupdater, revision
+3492cfba3bd84a10cff499d3c95eeecec06c1ebd. Public Google Play metadata field
+mapping follows google-play-scraper's ElementSpecs.Detail.version:
+https://github.com/JoMingyu/google-play-scraper/blob/master/google_play_scraper/constants/element.py.
+Credit belongs to those projects' contributors. The monitor uses Python's
+standard library and does not include APKUpdater's embedded service credential.
+
 7c. Project Name Restriction
 ----------------------------
 
@@ -44,9 +54,12 @@ No affiliation or endorsement is claimed.
 
 LinkedIn patches adapt GPLv3 work from lokesh-sparrow/loki-patches
 (https://github.com/lokesh-sparrow/loki-patches), revision
-23f86fdda9bb824e069f3b00229badcf189dbca4; amfakh/fakh-patches
+23f86fdda9bb824e069f3b00229badcf189dbca4 and
+8083636450; amfakh/fakh-patches
 (https://github.com/amfakh/fakh-patches), revision
-c1512f414cb6701f480b260b84acc69bf920a1f8; and heyymichii/michii-patches
+c1512f414cb6701f480b260b84acc69bf920a1f8 and
+b4168d2f4203b16c52190f03fd7d9c2e683d3051 and
+5c5f5d0e416e0aa4b14cdf81de8fd840bb8d2535; and heyymichii/michii-patches
 (https://github.com/heyymichii/michii-patches), revision
 d4d591e5347113e5cfc3e049e391b2fd36871469.
 Original copyright and SPDX notices are retained in the ported source files.

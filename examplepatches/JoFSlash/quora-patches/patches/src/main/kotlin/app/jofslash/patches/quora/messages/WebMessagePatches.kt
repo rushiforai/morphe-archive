@@ -103,7 +103,7 @@ val disableSignInPromptsPatch = blockWebMessagesPatch(
     patchCategory = "App",
     description = "Stops Google's \"Save password?\" and automatic Google sign-in prompts. " +
             "You can still sign in with the buttons on the login page.",
-    default = false,
+    default = true,
     messages = listOf("SAVE_CREDENTIALS", "AUTO_LOGIN_WITH_GOOGLE_ACCOUNT"),
     settingKey = "disableSignInPrompts",
 )
@@ -117,3 +117,71 @@ val disableTabPrefetchingPatch = blockWebMessagesPatch(
     messages = listOf("PREFETCH_TABS"),
     settingKey = "disableTabPrefetching",
 )
+
+private const val WEB_VIEW_CONTROLLER = "Lcom/quora/android/fragments/qwvf/QWebViewController;"
+private const val SETTINGS_CLASS = "Lapp/jofslash/extension/quora/PatchSettings;"
+
+// The page shows the button with the updateNewStoriesButton message. The controller handles that
+// message itself, so it never reaches QMessageBroadcaster.handle.
+internal object UpdateNewStoriesButtonFingerprint : Fingerprint(
+    definingClass = WEB_VIEW_CONTROLLER,
+    name = "updateNewStoriesButton",
+    returnType = "V",
+    parameters = listOf("Lcom/quora/android/util/QJSONObject;"),
+)
+
+// The app shows the button itself when you come back after a while.
+internal object NewStoriesButtonVisibilityFingerprint : Fingerprint(
+    definingClass = WEB_VIEW_CONTROLLER,
+    name = "updateNewStoriesButtonVisibility",
+    returnType = "V",
+    parameters = listOf("Z"),
+)
+
+@Suppress("unused")
+val hideMoreStoriesPatch = bytecodePatch(
+    name = "Hide More Stories button",
+    description = "Hides the red \"More Stories\" button that appears over the feed. " +
+            "Pull down to load new stories.",
+    default = true
+) {
+    category("Feed")
+    compatibleWith(COMPATIBILITY_QUORA)
+
+    extendWith("extensions/extension.mpe")
+
+    execute {
+        registerSetting("hideMoreStories", "Hide More Stories button")
+        // v0 is free at the start of both methods. p1 is the message; only "visible": true is dropped,
+        // so the page can still hide a button that showed before the setting was switched on.
+        UpdateNewStoriesButtonFingerprint.method.addInstructionsWithLabels(
+            0,
+            """
+                const-string v0, "hideMoreStories"
+                invoke-static { v0 }, $SETTINGS_CLASS->on(Ljava/lang/String;)Z
+                move-result v0
+                if-eqz v0, :show
+                const-string v0, "visible"
+                invoke-virtual { p1, v0 }, Lorg/json/JSONObject;->optBoolean(Ljava/lang/String;)Z
+                move-result v0
+                if-eqz v0, :show
+                return-void
+                :show
+                nop
+            """
+        )
+        // p1 is whether to show it; hiding it still goes through.
+        NewStoriesButtonVisibilityFingerprint.method.addInstructionsWithLabels(
+            0,
+            """
+                const-string v0, "hideMoreStories"
+                invoke-static { v0 }, $SETTINGS_CLASS->on(Ljava/lang/String;)Z
+                move-result v0
+                if-eqz v0, :keep
+                const/4 p1, 0x0
+                :keep
+                nop
+            """
+        )
+    }
+}

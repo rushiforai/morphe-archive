@@ -1,3 +1,10 @@
+# dead
+please use https://github.com/aeongdesu/seamless-patches
+
+---
+
+
+
 # Worthless Morphe patches
 YES please go away
 

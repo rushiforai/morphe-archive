@@ -50,6 +50,7 @@ final class MessagesCategory {
                 || build.contains(PatchFamily.PREVIEW_CHATS)
                 || build.contains(PatchFamily.ASK_BEFORE_CALL)
                 || build.contains(PatchFamily.CALL_BLOCKER)
+                || build.contains(PatchFamily.CALL_RECORDER)
                 || build.contains(PatchFamily.KINDNESS_REMINDER)
                 || build.contains(PatchFamily.MESSAGE_BOX)
                 || build.contains(PatchFamily.PLUS_MENU)
@@ -212,7 +213,8 @@ final class MessagesCategory {
                 messages.addPreference(toggle(context, Settings.EXPORT_CHAT, L10n.t("Export a chat as text"),
                         L10n.t("Open a chat, tap the clock button next to the call buttons at the top, or long press "
                                 + "the chat's name, and pick Export chat. The whole chat is saved as a text file in "
-                                + "Downloads, HushGram folder, one line per message.")));
+                                + "Downloads, HushGram folder, one line per message. Select messages in the same menu lets "
+                                + "you tick messages to copy, share or save.")));
             }
             if (build.contains(PatchFamily.ASK_BEFORE_CALL)) {
                 messages.addPreference(toggle(context, Settings.ASK_BEFORE_CALL, L10n.t("Ask before a call"),
@@ -235,6 +237,12 @@ final class MessagesCategory {
                 messages.addPreference(toggle(context, Settings.CALL_BLOCK_DECLINE, L10n.t("Decline calls that don't ring"),
                         L10n.t("Calls kept quiet by Who can call you are also declined, the same as tapping Decline, "
                                 + "instead of being left unanswered.")));
+            }
+            if (build.contains(PatchFamily.CALL_RECORDER)) {
+                messages.addPreference(toggle(context, Settings.CALL_RECORDER, L10n.t("Record calls"),
+                        L10n.t("Adds a Record button to the call screen. It saves the call's sound, both sides, as an "
+                                + "audio file on your phone. Some places require everyone on the call to agree to "
+                                + "being recorded.")));
             }
             if (build.contains(PatchFamily.KINDNESS_REMINDER)) {
                 messages.addPreference(toggle(context, Settings.HIDE_KINDNESS_REMINDER, L10n.t("Hide the Community Standards reminder"),

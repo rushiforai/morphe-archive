@@ -16,7 +16,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
-import java.util.function.Consumer;
+import java.util.function.BiConsumer;
 
 import app.morphed.extension.twitch.net.JsonParser;
 
@@ -57,18 +57,19 @@ public final class SongLibrary implements Tracker.Library {
     }
 
     /** Where a failure to keep something goes (the app's log, and the screen for saves); nowhere in tests. */
-    private volatile Consumer<String> problems = text -> { };
+    private volatile BiConsumer<String, Boolean> problems = (text, lasting) -> { };
     private boolean saveFailTold;
     private String indexProblem; // the index is read before anyone listens: told once someone does
 
-    void onProblem(Consumer<String> problems) {
+    /** Where problems go: (text, whether it stays true for the launch). */
+    void onProblem(BiConsumer<String, Boolean> problems) {
         this.problems = problems;
         String waiting;
         synchronized (this) {
             waiting = indexProblem;
             indexProblem = null;
         }
-        if (waiting != null) problems.accept(waiting);
+        if (waiting != null) problems.accept(waiting, false); // (songs are looked up afresh: over once told)
     }
 
     private synchronized void readIndex() {
@@ -86,7 +87,7 @@ public final class SongLibrary implements Tracker.Library {
             }
         } catch (IOException | IllegalArgumentException broken) {
             index.clear(); // a broken index: songs are told again by Shazam
-            indexProblem = "The list of songs found before couldn't be read (" + broken.getMessage()
+            indexProblem = "Song list unreadable | The list of songs found before couldn't be read (" + broken.getMessage()
                     + "), songs are looked up afresh";
         }
     }
@@ -233,8 +234,8 @@ public final class SongLibrary implements Tracker.Library {
     private synchronized void saveFailed(String what, IOException failed) {
         if (saveFailTold) return;
         saveFailTold = true;
-        problems.accept("Songs can't be kept (saving " + what + " failed: " + failed.getMessage()
-                + "), they're looked up again each time. Is the phone's storage full?");
+        problems.accept("Can't keep songs | Songs can't be kept (saving " + what + " failed: " + failed.getMessage()
+                + "), they're looked up again each time. Is the phone's storage full?", true);
     }
 
     /** The downloaded copy of this video, if it's here. */
@@ -247,15 +248,17 @@ public final class SongLibrary implements Tracker.Library {
     }
 
     @Override
-    public SongCopy load(String videoId) throws SongProblem {
+    public SongCopy load(String videoId, Tracker.Stages stages) throws SongProblem {
         File file = path(videoId);
         if (file != null) {
             //noinspection ResultOfMethodCallIgnored
             file.setLastModified(System.currentTimeMillis()); // used: the last to go when making room
         } else {
+            stages.downloading();
             file = source.download(videoId, root);
             makeRoom(KEEP_BYTES);
         }
+        stages.decoding();
         return decoder.decode(videoId, file);
     }
 

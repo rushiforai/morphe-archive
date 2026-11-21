@@ -28,10 +28,9 @@ import app.template.patches.shared.Constants.FIREFOX_COMPATIBILITY
 @Suppress("unused")
 val improveStartupPerformancePatch = bytecodePatch(
     name = "Improve startup performance",
-    description = "Skips two launch-time routines whose only job is metrics/experiments upkeep: the " +
-        "4k-line startup-metrics coroutine (pure telemetry writes, ~64 metric writes per launch) and the " +
-        "forced Nimbus experiment fetch right after first render. Less launch I/O = faster, smoother " +
-        "open/close. Browser features unchanged.",
+    description = "Removes two cold-start chores that only feed metrics and experiments: the startup-metrics " +
+        "coroutine and the forced Nimbus fetch after first paint. Launch does less work; browser features " +
+        "are unchanged.",
     default = true,
 ) {
     compatibleWith(FIREFOX_COMPATIBILITY)

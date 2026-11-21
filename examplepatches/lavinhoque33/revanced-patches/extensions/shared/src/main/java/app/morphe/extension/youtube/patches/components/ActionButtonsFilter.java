@@ -65,7 +65,7 @@ import java.util.Map;
 
 import app.morphe.extension.shared.patches.components.ByteArrayFilterGroup;
 import app.morphe.extension.shared.patches.components.ByteArrayFilterGroupList;
-import app.morphe.extension.shared.patches.components.Filter;
+import app.morphe.extension.shared.patches.components.LazyBufferFilter;
 import app.morphe.extension.shared.patches.components.StringFilterGroup;
 import app.morphe.extension.shared.patches.components.StringFilterGroupList;
 import app.morphe.extension.shared.utils.Logger;
@@ -79,7 +79,7 @@ import app.morphe.extension.youtube.patches.components.VideoActionBarButtons.Act
 import app.morphe.extension.youtube.shared.VideoInformation;
 
 @SuppressWarnings("unused")
-public final class ActionButtonsFilter extends Filter {
+public final class ActionButtonsFilter extends LazyBufferFilter {
     private static final java.util.Set<ActionButton> hiddenButtons = java.util.EnumSet.noneOf(ActionButton.class);
 
     static {
@@ -193,7 +193,7 @@ public final class ActionButtonsFilter extends Filter {
 
 
     @Override
-    public boolean isFiltered(String path, String identifier, String allValue, byte[] buffer,
+    public boolean isFilteredLazy(String path, String identifier, String allValue, Buffer buffer,
                               StringFilterGroup matchedGroup, FilterContentType contentType, int contentIndex) {
         if (matchedGroup == likeSubscribeGlow) {
             return StringUtils.startsWithAny(
@@ -229,16 +229,17 @@ public final class ActionButtonsFilter extends Filter {
             // Filtering that buffer would hide the entire More button instead of one menu entry.
             return !path.contains(MORE_BUTTON_PATH)
                     && accessibility.startsWith(ELEMENT_BUTTON_ID)
-                    && bufferGroupList.check(buffer).isFiltered();
+                    && bufferGroupList.check(buffer.get()).isFiltered();
         }
 
         return true;
     }
 
     @Override
-    public boolean isFiltered(Object contextSource, String identifier, String accessibility, String path, byte[] buffer,
+    public boolean isFilteredLazy(Object contextSource, String identifier, String accessibility,
+                                  String path, Buffer buffer,
                               StringFilterGroup matchedGroup, FilterContentType contentType, int contentIndex) {
-        return isFiltered(path, identifier, accessibility, buffer, matchedGroup, contentType, contentIndex);
+        return isFilteredLazy(path, identifier, accessibility, buffer, matchedGroup, contentType, contentIndex);
     }
 
     /**

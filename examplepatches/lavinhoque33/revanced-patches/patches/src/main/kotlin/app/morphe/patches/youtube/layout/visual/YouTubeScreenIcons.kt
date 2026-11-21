@@ -5,7 +5,7 @@
  * https://github.com/anddea/revanced-patches
  *
  * Licensed under the GNU General Public License v3.0.
- * Modified by lavinhoque33, 2026-11-11
+ * Modified by lavinhoque33, 2026-11-20
  * Written by lavinhoque33, 2026-10-30
  *
  * ------------------------------------------------------------------------
@@ -104,7 +104,10 @@ private fun screenRows(screen: Element): List<Element> = buildList {
 }
 
 /** Apply after all feature patches have populated the preference tree. */
-internal fun ResourcePatchContext.applyYouTubeScreenIcons(resourceMap: Map<String, String>) {
+internal fun ResourcePatchContext.applyYouTubeScreenIcons(
+    resourceMap: Map<String, String>,
+    runtimeIconKeys: Set<String>,
+) {
     val iconKeys = linkedSetOf<String>()
     document(RVX_PREFERENCES).use { document ->
         document.doRecursively { node ->
@@ -116,6 +119,7 @@ internal fun ResourcePatchContext.applyYouTubeScreenIcons(resourceMap: Map<Strin
 
     // Native main Settings entries retain their existing icons, including the legacy-menu runtime fix.
     iconKeys.addAll(youtubeStockIcons.keys.filter { it.endsWith("_key") })
+    iconKeys.addAll(runtimeIconKeys)
     copyPreferenceIconsWithStockGlyphs("youtube/visual/icons", resourceMap, youtubeStockIcons, iconKeys) {
         originalAppPlayerIconName(it)
     }
@@ -171,7 +175,6 @@ private fun ResourcePatchContext.setRvxScreenIcons() {
             }
         }
     }
-    // No sb_enabled_icon is generated: SponsorBlock's existing runtime decorator returns before adding leaf icons.
 }
 
 private fun ResourcePatchContext.setNativeScreenIcons(iconKeys: Set<String>) {

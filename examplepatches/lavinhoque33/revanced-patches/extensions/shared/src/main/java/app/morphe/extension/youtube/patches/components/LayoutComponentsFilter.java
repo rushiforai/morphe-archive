@@ -23,7 +23,7 @@ import android.net.Uri;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
-import app.morphe.extension.shared.patches.components.Filter;
+import app.morphe.extension.shared.patches.components.LazyBufferFilter;
 import app.morphe.extension.shared.patches.components.StringFilterGroup;
 import app.morphe.extension.shared.utils.ResourceType;
 import app.morphe.extension.shared.utils.ResourceUtils;
@@ -32,7 +32,7 @@ import app.morphe.extension.youtube.settings.Settings;
 import app.morphe.extension.youtube.shared.NavigationBar.NavigationButton;
 
 @SuppressWarnings("unused")
-public final class LayoutComponentsFilter extends Filter {
+public final class LayoutComponentsFilter extends LazyBufferFilter {
     private static final String ACCOUNT_HEADER_PATH = "account_header.";
     private static final String HANDLE_PATH = "|CellType|ContainerType|ContainerType|ContainerType|TextType|";
 
@@ -77,7 +77,7 @@ public final class LayoutComponentsFilter extends Filter {
     }
 
     @Override
-    public boolean isFiltered(String path, String identifier, String allValue, byte[] buffer,
+    public boolean isFilteredLazy(String path, String identifier, String allValue, Buffer buffer,
                               StringFilterGroup matchedGroup, FilterContentType contentType, int contentIndex) {
         if (matchedGroup == postDislikeButton || matchedGroup == postCommentsPreview) {
             return true;

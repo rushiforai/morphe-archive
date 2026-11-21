@@ -41,7 +41,7 @@ public final class ThreadTitleActions {
         String server=(String)NativeFields.find(info.getClass(),old?"i":middle?"g":"f").get(info);
         String board=(String)NativeFields.find(info.getClass(),old?"b":middle?"f":"g").get(info);
         Object id=NativeFields.find(info.getClass(),middle?"c":"e").get(info);
-        String title=args.getString("threadTitle");if(title==null)title=DisplayNames.threadTitle(fragment);
+        String title=args.getString("threadTitle");if(title==null)title=DisplayNames.nativeThreadTitle(fragment);
         ReporterArchiveLookup.request(a,server,board,id,title);
         String reporter=EdgeReporterId.reporterId(EdgeReporterHistory.resolveTitle(info,title));
         return new MenuThread(info,ThreadWatchRules.fromParts(server,board,id),reporter);
@@ -124,10 +124,6 @@ public final class ThreadTitleActions {
             }
             if(target!=null&&FeatureSwitches.enabled(SHOW_AUTH,true)&&ReadingAuth.eligible(target.url)){
                 labels.add("エッヂの閲覧認証");actions.add(()->ReadingAuth.open(a,target.url));
-            }
-            if(FeatureSwitches.enabled(DisplayNames.SHOW_RENAME,true)){
-                labels.add("スレの名前を変更");
-                actions.add(()->DisplayNames.editThread(a,menu.info,DisplayNames.threadTitle(fragment)));
             }
             if(menu.reporterId!=null){labels.add("記者IDをコピー");actions.add(()->copyReporterId(a,menu.reporterId));}
             if(labels.isEmpty())return middle?twoNativeColumns(original):original;
@@ -254,8 +250,6 @@ public final class ThreadTitleActions {
             entries.add(legacyItem(template,"このスレの新着通知",()->ThreadWatch.show(a,t)));
         if(t!=null&&FeatureSwitches.enabled(SHOW_AUTH,true)&&ReadingAuth.eligible(t.url))
             entries.add(legacyItem(template,"エッヂの閲覧認証",()->ReadingAuth.open(a,t.url)));
-        if(FeatureSwitches.enabled(DisplayNames.SHOW_RENAME,true))
-            entries.add(legacyItem(template,"スレの名前を変更",()->DisplayNames.editThread(a,menu.info,DisplayNames.threadTitle(fragment))));
         if(menu.reporterId!=null)
             entries.add(legacyItem(template,"記者IDをコピー",()->copyReporterId(a,menu.reporterId)));
         int leftCount=visibleItems(left),rightCount=visibleItems(right);

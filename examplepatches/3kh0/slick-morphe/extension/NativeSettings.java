@@ -126,6 +126,7 @@ public final class NativeSettings {
     final Set<String> selectedCaches = new HashSet<>();
     CacheCleaner.Snapshot cache;
     boolean cacheBusy;
+    String pendingSection;
     String cacheNotice = "Scanning disposable caches…";
 
     Session(Activity activity, List<?> stock) throws ReflectiveOperationException {
@@ -225,6 +226,13 @@ public final class NativeSettings {
       section(items, "Privacy");
       row(
           items,
+          "block_telemetry",
+          "flag",
+          "Block telemetry",
+          "Block Slack usage tracking, performance traces and Sentry reports. Restart to apply.",
+          true);
+      row(
+          items,
           "silent_typing",
           "keyboard",
           "Silent typing",
@@ -296,7 +304,12 @@ public final class NativeSettings {
       return items;
     }
 
-    private void section(List<Object> items, String label) throws ReflectiveOperationException {
+    private void section(List<Object> items, String label) {
+      pendingSection = label;
+    }
+
+    private void appendSection(List<Object> items, String label)
+        throws ReflectiveOperationException {
       if (!items.isEmpty())
         items.add(make(MODELS + "SKListDividerPresentationObject", 2, "slick_divider_" + label, 6));
       items.add(
@@ -317,6 +330,7 @@ public final class NativeSettings {
     private void row(
         List<Object> items, String key, String icon, String title, String summary, boolean toggle)
         throws ReflectiveOperationException {
+      if (!cachePage && !Settings.available(key)) return;
       row(items, key, icon, title, summary, toggle, Settings.enabled(key), true);
     }
 
@@ -330,6 +344,10 @@ public final class NativeSettings {
         boolean selected,
         boolean enabled)
         throws ReflectiveOperationException {
+      if (pendingSection != null) {
+        appendSection(items, pendingSection);
+        pendingSection = null;
+      }
       Object template = toggle ? toggleTemplate : actionTemplate;
       Object options = Host.get(template, "options");
       if (toggle || !enabled) {

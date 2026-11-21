@@ -30,6 +30,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v7
         with:
+          ref: dev
           persist-credentials: false
 
       - name: Setup Python

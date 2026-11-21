@@ -84,7 +84,7 @@ Targeted tools: `asm`, `il2cpp`, `unity`, `inspect-code`, `validate-smali`, `res
 `apk-lab check ... --all` tests the baseline patch configuration plus each independent boolean-option inversion and verifies:
 
 - Morphe reports success and produces an APK.
-- Package name and version code remain unchanged.
+- Package name and version code remain unchanged, except when the case declares a `packageName` option (for example Clone App); the output must match that declared package.
 - Android `dexdump -c` structural verification passes.
 - At least one patchable member (DEX, manifest/resources, assets/lib) is modified in the output.
 - Injected extension classes are inventoried when present.

@@ -14,19 +14,21 @@ How each app delivers ads, where our patches cut in, and what proves it worked. 
 | Engine | Apps | How ads arrive | Seams that port within the family |
 |---|---|---|---|
 | **Google IMA / DAI client SDK** | paramount, mlbtv, tubi, foxone, rte, vix | The app's player asks Google's IMA SDK (client-side) or DAI (server-stitched pods) for ad breaks. The ad schedule surfaces in Java/Kotlin as cue points, ad-break lists or an AdsManager. | Empty the cue-point / ad-break accessor; neuter AdsManager.start; null the SSAI AdsLoader getter; redirect live pods to a slate. Seams found in one IMA app usually port to the next (Fox One = Tubi-class). |
-| **Server-side stitching (SSAI) via manifest** | hbomax, pluto, espn, peacock | The CDN stitches ads into the stream itself. The only client-visible trace is the manifest (ad periods, DateRanges, ID3/beacon tags) and the host names that serve it. | Force a clean manifest (origin block, CDN fallback, ad-free URL swap); strip ad periods; or, for live passthrough SSAI, detect the break and MASK it (slate + mute). |
-| **Proprietary native / JS ad engine** | primevideo, netflix, disney, twitchatv, mediaset | The ad decision lives in the app's own runtime — a native library, a JS VM inside a .so, or a WebView — not in a standard SDK. | Find where the ad schedule crosses into the player (a response buffer, a JS function, an insertion-point accessor) and empty it there; native seams need re-pointing per version. |
+| **Server-side stitching (SSAI) via manifest** | hbomax, pluto, espn, peacock, discoveryplus | The CDN stitches ads into the stream itself. The only client-visible trace is the manifest (ad periods, DateRanges, ID3/beacon tags) and the host names that serve it. | Force a clean manifest (origin block, CDN fallback, ad-free URL swap); strip ad periods; or, for live passthrough SSAI, detect the break and MASK it (slate + mute). |
+| **Proprietary native / JS ad engine** | primevideo, netflix, disney, twitchatv, mediaset, joyn | The ad decision lives in the app's own runtime — a native library, a JS VM inside a .so, or a WebView — not in a standard SDK. | Find where the ad schedule crosses into the player (a response buffer, a JS function, an insertion-point accessor) and empty it there; native seams need re-pointing per version. |
 
 ## Coverage
 
 | App | Engine | Targets | Patches | Fingerprints | Patch evidence logged | Device signature known |
 |---|---|---|---:|---:|---|---|
+| [discoveryplus](#discoveryplus) | Server-side stitching (SSAI) via manifest | 22.1.0.71 | 4 | 6 | yes (3 lines) | yes |
 | [disney](#disney) | Proprietary native / JS ad engine | 26.20.0+rc3-2026.11.02, 26.16.0+rc2-2026.09.08, 26.12.1+rc1-2026.07.15 | 2 | 6 | **no** | yes |
 | [espn](#espn) | Server-side stitching (SSAI) via manifest | 6.11.1 | 4 | 7 | yes (50 lines) | **no** |
 | [f1tv](#f1tv) | ? | 3.0.49.4-SP166.4.1-release-R54.2-tv | 1 | 5 | **no** | **no** |
 | [foxone](#foxone) | Google IMA / DAI client SDK | 1.9.2 | 1 | 8 | **no** | **no** |
 | [future](#future) | ? | 19.7, 20.1 | 2 | 5 | **no** | **no** |
 | [hbomax](#hbomax) | Server-side stitching (SSAI) via manifest | 7.14.0.69, 7.9.0.61, 7.7.0.78, 7.5.0.73, 7.2.0.41 | 5 | 12 | yes (23 lines) | **no** |
+| [joyn](#joyn) | Proprietary native / JS ad engine | 6.5.2-ATV-605282491 | 1 | 1 | **no** | **no** |
 | [mediaset](#mediaset) | Proprietary native / JS ad engine | 8.1.20, 8.1.13 | 1 | 1 | yes (2 lines) | **no** |
 | [mlbtv](#mlbtv) | Google IMA / DAI client SDK | 26.8.1.1 | 1 | 9 | yes (7 lines) | **no** |
 | [netflix](#netflix) | Proprietary native / JS ad engine | 13.0.1 build 25028, 13.2.1 build 27207, 13.2.2 build 27250 | 7 | 2 | **no** | **no** |
@@ -41,6 +43,41 @@ How each app delivers ads, where our patches cut in, and what proves it worked. 
 | [vix](#vix) | Google IMA / DAI client SDK | 4.46.0_tv, 4.47.2_tv, 4.50.1_tv, 4.51.0_tv, 4.52.0_tv | 3 | 3 | yes (1 lines) | **no** |
 | [xumo](#xumo) | ? | 4.9.147 | 1 | 2 | **no** | **no** |
 | [youtubetv](#youtubetv) | ? | 7.31.300, 7.05.301 | 4 | 7 | yes (4 lines) | **no** |
+
+## discoveryplus
+
+**Package** `com.discovery.dplay` · **Targets** `22.1.0.71` · **Engine** Server-side stitching (SSAI) via manifest
+
+| Layer | |
+|---|---|
+| Runtime | WBD Bolt/Beam player shared with HBO Max (`com.discovery.player.*`, `com.wbd.beam.player.*`, `com.wbd.adtech.bolt.*`); UI is You.i Engine (`CYI*` native logs). |
+| Delivery | SSAI: ads stitched server-side into the DASH stream; ad-break timeline built from the GMSS/AdSparx payload. Nonlinear (overlay/pause) ads fetched by BoltDynamicAdFetcher. |
+| Code seam | `PlayableKt.getStreamInfo` (PRIMARY → FALLBACK remap), `TimelineStateKt.isAdBreakAlreadyWatched` (Beam GMSS seek mediator watched-state check), Bolt nonlinear request/fetch, live preroll entry builder. Free-tier gate: `IapManager.onStoreMarketplaceRetrievalCompleted` (Play storefront country → native PlatformIAPBroker → server-side welcome CTAs). |
+| Patch action | Prefer the ad-free FALLBACK stream (verified present on the Italian free tier); otherwise mark every ad break watched so GmssSeekMediator.onRangeEnded skips it. Opt-in Store Country Override reports IT so the "Naviga gratis" free tier is offered. |
+| Patch evidence | `I/DplayStreamSelector: remapping PRIMARY -> FALLBACK stream` on every stream lookup; `W/PlatformIAPBroker: Country code available: IT` with Store Country Override. |
+| Device signature | Clean start: `c2.amlogic.avc.decoder.secure` from the first frame, BUFFERING → PLAYING at position 0 within ~1 s (onn 4K Plus, 2026-11-20). |
+| Drift history | 22.1.0.71 is the first target. SsaiInfoTimelineBuilder is deliberately NOT suppressed (without a manifest filter the stitched ads would play as content). The welcome-screen options depend on the Google Play storefront country, not the IP: a US Play account or a re-signed app hides "Naviga gratis" even on an Italian IP (#334). |
+
+**Gaps:** Mid-roll breaks not reached in device testing (three ~30 s plays). · Non-DRM titles not tested. · Store Country Override effect on subscribers outside Italy unknown (kept opt-in).
+
+<details><summary>Patches and fingerprints (generated)</summary>
+
+| Patch | Fingerprint | Class / method | Returns | Strings | Action |
+|---|---|---|---|---|---|
+| discovery+ - Prefer Ad-Free Stream | `DplayGetStreamInfoFingerprint` | `(custom matcher)`.— | — |  | addInstructions |
+| discovery+ - Skip Ad Breaks | `DplayIsAdBreakAlreadyWatchedFingerprint` | `(custom matcher)`.— | `Z` |  | addInstructions `                 const/4 p0, 0x1                 return p0             ` |
+| discovery+ - Disable Ads | `DplayBoltNonLinearAdsRequestWriteSelfFingerprint` | `(custom matcher)`.— | — |  | addInstructions `return-void` |
+| discovery+ - Disable Ads | `DplayBoltDynamicAdFetcherInvokeSuspendFingerprint` | `(custom matcher)`.— | — |  | apply |
+| discovery+ - Disable Ads | `DplayGenerateLiveTimelineEntriesForAdBreakFingerprint` | `(custom matcher)`.— | — |  | addInstructions |
+| discovery+ - Store Country Override _(opt-in)_ | `DplayStoreMarketplaceFingerprint` | `(custom matcher)`.— | `V` |  | addInstructions `Store country set by Morphe patch` |
+
+Runtime evidence (tags `DplayStreamSelector`; first 12 of 3):
+
+- I `remapping PRIMARY -> FALLBACK stream` — DplayStreamSelector.java:44
+- I `no FALLBACK stream (` — DplayStreamSelector.java:48
+- W `preferFallbackType failed; using requested type` — DplayStreamSelector.java:50
+
+</details>
 
 ## disney
 
@@ -248,6 +285,31 @@ Runtime evidence (tags `HboManifestFilter`, `HboStreamSelector`, `HboSpeed`; fir
 - W `read failed: ` — HboManifestFilter.java:317
 - W `filter failed, passing manifest through: ` — HboManifestFilter.java:325
 - I `manifest ` — HboManifestFilter.java:337
+
+</details>
+
+## joyn
+
+**Package** `de.prosiebensat1digital.seventv` · **Targets** `6.5.2-ATV-605282491` · **Engine** Proprietary native / JS ad engine
+
+| Layer | |
+|---|---|
+| Runtime | Native Kotlin app (R8-obfuscated). Ads come from ProSiebenSat.1's own "Ads Wrapper" Ad SDK: a JS bundle in assets driven over a JS bridge (`AdSdkSender`/`AdSdkReceiver`). No Google IMA. |
+| Delivery | Client-side: the Ad SDK instance is attached to the player when the player is built and drives the pre/mid-roll ad pods. The app has its own ad-free branch that logs "Ads are disabled; skipping Ad SDK setup on the player". |
+| Code seam | The player setup method (6.5.2-ATV: `Lv30/e;->c()`) reads an "ads enabled" Boolean and either attaches the Ad SDK or takes the ads-disabled branch. Anchored by reference: the class holding the ads-disabled log string (R8-merged log lambda, 6.5.2: `Lr30/y;`), then the method that constructs it and calls `Boolean.booleanValue()`, then the last booleanValue + move-result before the first lambda construction. |
+| Patch action | Replace that move-result with `const/4 vX, 0x0`, so the player always takes the app's own ads-disabled branch and the Ad SDK is never attached. Same seam as hxreborn's phone "Hide ads" patch. |
+| Patch evidence | _unknown_ |
+| Device signature | _unknown_ |
+| Drift history | 6.5.2-ATV-605282491 is the first target. hxreborn's phone patch fails on this TV build (#328): R8 merged the three log lambdas into one top-level switch class (no `$` suffix) and inlined the player factory into its caller. |
+
+**Gaps:** Not device-verified: playback needs a Joyn account, and NordVPN on the test TV could not get a German IP. The patched app installs and reaches the home screen on an onn 4K Plus. · Expected device signature (unconfirmed): the app's own log line "Ads are disabled; skipping Ad SDK setup on the player" at playback start. · Unknown whether live channels carry server-stitched ads that the Ad SDK only tracks.
+
+<details><summary>Patches and fingerprints (generated)</summary>
+
+| Patch | Fingerprint | Class / method | Returns | Strings | Action |
+|---|---|---|---|---|---|
+| Skip ads | `AdsDisabledLogFingerprint` | `(custom matcher)`.— | — | `Ads are disabled; skipping Ad SDK setup on the player` | instructions |
+| Skip ads | `adSdkSetupFingerprint` | — | — |  | passed to helper/list |
 
 </details>
 

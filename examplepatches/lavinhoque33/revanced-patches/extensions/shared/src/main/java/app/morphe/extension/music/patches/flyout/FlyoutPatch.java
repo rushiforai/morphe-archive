@@ -10,7 +10,7 @@
  * - inotia00 (https://github.com/inotia00)
  *
  * Licensed under the GNU General Public License v3.0.
- * Modified by lavinhoque33, 2026-11-10
+ * Modified by lavinhoque33, 2026-11-20.
  *
  * ------------------------------------------------------------------------
  * GPLv3 Section 7 – Additional Terms & Attribution Requirements
@@ -274,11 +274,20 @@ public class FlyoutPatch {
     }
 
     public static boolean hideComponents(@Nullable Enum<?> flyoutMenuEnum) {
+        return hideComponents(flyoutMenuEnum, false);
+    }
+
+    public static boolean hideComponentsWithArtistRule(@Nullable Enum<?> flyoutMenuEnum) {
+        return hideComponents(flyoutMenuEnum, true);
+    }
+
+    private static boolean hideComponents(@Nullable Enum<?> flyoutMenuEnum, boolean artistRuleAvailable) {
         if (flyoutMenuEnum != null) {
             final String flyoutMenuName = flyoutMenuEnum.name();
             for (FlyoutPanelComponent component : FlyoutPanelComponent.values()) {
                 if (component.name().equals(flyoutMenuName)) {
-                    final boolean hidden = component.shouldHide();
+                    final boolean hidden = (artistRuleAvailable || component != FlyoutPanelComponent.PERSON_CIRCLE_SLASH)
+                            && component.shouldHide();
                     Logger.printDebug(() -> "flyoutMenu loaded: " + flyoutMenuName +
                             ", hidden: " + hidden);
                     return hidden;
@@ -382,6 +391,7 @@ public class FlyoutPatch {
         MOON_Z(Settings.HIDE_FLYOUT_MENU_SLEEP_TIMER),
         OFFLINE_DOWNLOAD(Settings.HIDE_FLYOUT_MENU_DOWNLOAD),
         PEOPLE_GROUP(Settings.HIDE_FLYOUT_MENU_VIEW_SONG_CREDIT),
+        PERSON_CIRCLE_SLASH(Settings.HIDE_FLYOUT_MENU_DONT_RECOMMEND_ARTIST),
         PIN_OFF_OUTLINE(Settings.HIDE_FLYOUT_MENU_UNPIN_FROM_SPEED_DIAL),
         PIN_OUTLINE(Settings.HIDE_FLYOUT_MENU_PIN_TO_SPEED_DIAL),
         PLANNER_REVIEW(Settings.HIDE_FLYOUT_MENU_STATS_FOR_NERDS),

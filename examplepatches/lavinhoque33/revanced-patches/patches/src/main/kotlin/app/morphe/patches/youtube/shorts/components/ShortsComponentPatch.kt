@@ -55,8 +55,10 @@ package app.morphe.patches.youtube.shorts.components
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.InstructionLocation.MatchAfterImmediately
 import app.morphe.patcher.fieldAccess
+import app.morphe.patcher.literal
 import app.morphe.patcher.opcode
 import app.morphe.patches.shared.misc.fix.proto.fixProtoLibraryPatch
+import app.morphe.patches.shared.mapping.getResourceId
 import app.morphe.patches.shared.mapping.ResourceType
 import app.morphe.patches.shared.mapping.resourceLiteral
 import app.morphe.patches.youtube.utils.playservice.is_20_51_or_greater
@@ -69,6 +71,7 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLa
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.removeInstructions
 import app.morphe.patcher.methodCall
+import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.resourcePatch
@@ -122,6 +125,7 @@ import app.morphe.patches.youtube.utils.playservice.is_21_07_or_greater
 import app.morphe.patches.youtube.utils.playservice.is_21_10_or_greater
 import app.morphe.patches.youtube.utils.playservice.is_21_17_or_greater
 import app.morphe.patches.youtube.utils.playservice.is_21_25_or_greater
+import app.morphe.patches.youtube.utils.playservice.is_21_39_or_greater
 import app.morphe.patches.youtube.utils.playservice.versionCheckPatch
 import app.morphe.patches.youtube.utils.recyclerview.recyclerViewTreeObserverHook
 import app.morphe.patches.youtube.utils.recyclerview.recyclerViewTreeObserverPatch
@@ -165,6 +169,7 @@ import app.morphe.util.findInstructionIndicesReversedOrThrow
 import app.morphe.util.findMethodOrThrow
 import app.morphe.util.findMutableMethodOf
 import app.morphe.util.fingerprint.injectLiteralInstructionBooleanCall
+import app.morphe.util.fingerprint.matchOrNull
 import app.morphe.util.fingerprint.matchOrThrow
 import app.morphe.util.fingerprint.methodOrNull
 import app.morphe.util.fingerprint.methodOrThrow
@@ -190,6 +195,7 @@ import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.WideLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
 import com.android.tools.smali.dexlib2.util.MethodUtil
@@ -199,6 +205,70 @@ private const val EXTENSION_ANIMATION_FEEDBACK_CLASS_DESCRIPTOR =
     "$SHORTS_PATH/AnimationFeedbackPatch;"
 private const val EXTENSION_VOT_CLASS_DESCRIPTOR =
     "$EXTENSION_PATH/patches/voiceovertranslation/VoiceOverTranslationPatch;"
+
+context(_: BytecodePatchContext)
+private fun hookShortsSpeedEducation(): Boolean {
+    val stubId = getResourceId(ResourceType.ID, "reel_speedmaster_edu_stub") ?: return false
+    val stubType = "Landroid/view/ViewStub;"
+    val binding = Fingerprint(
+        name = "<init>",
+        filters = listOf(
+            literal(stubId),
+            methodCall(
+                opcode = Opcode.INVOKE_VIRTUAL,
+                name = "findViewById",
+                parameters = listOf("I"),
+                returnType = "Landroid/view/View;",
+                location = MatchAfterImmediately(),
+            ),
+            opcode(Opcode.MOVE_RESULT_OBJECT, location = MatchAfterImmediately()),
+            opcode(Opcode.CHECK_CAST, location = MatchAfterImmediately()),
+            fieldAccess(opcode = Opcode.IPUT_OBJECT, type = stubType, location = MatchAfterImmediately()),
+        ),
+    ).matchOrNull() ?: return false
+
+    val instructions = binding.instructionMatches
+    val resourceRegister = instructions[0].getInstruction<OneRegisterInstruction>().registerA
+    val findView = instructions[1].getInstruction<FiveRegisterInstruction>()
+    val stubRegister = instructions[2].getInstruction<OneRegisterInstruction>().registerA
+    val cast = instructions[3].getInstruction<OneRegisterInstruction>()
+    val store = instructions.last().getInstruction<TwoRegisterInstruction>()
+    val field = instructions.last().fieldReference
+    val castType = instructions[3].instruction.getReference<TypeReference>()?.type
+    if (findView.registerD != resourceRegister || cast.registerA != stubRegister || store.registerA != stubRegister
+        || castType != stubType || field.definingClass != binding.method.definingClass
+    ) return false
+
+    // Verify the UI accepts an absent stub. Both layout implementations go through this binding.
+    val consumer = Fingerprint(
+        returnType = "V",
+        parameters = listOf("Z"),
+        filters = listOf(
+            fieldAccess(opcode = Opcode.IGET_OBJECT, reference = field),
+            opcode(Opcode.IF_EQZ, location = MatchAfterImmediately()),
+            methodCall(
+                smali = "$stubType->inflate()Landroid/view/View;",
+                location = MatchAfterImmediately(),
+            ),
+        ),
+    ).matchOrNull(binding.originalClassDef) ?: return false
+
+    val guard = consumer.instructionMatches
+    val readRegister = guard[0].getInstruction<TwoRegisterInstruction>().registerA
+    if (guard[1].getInstruction<OneRegisterInstruction>().registerA != readRegister
+        || guard[2].getInstruction<FiveRegisterInstruction>().registerC != readRegister
+    ) return false
+
+    val filterStub = "$SHORTS_CLASS_DESCRIPTOR->getShortsSpeedEducationStub($stubType)$stubType"
+    binding.method.addInstructions(
+        instructions.last().index,
+        """
+            invoke-static/range { v$stubRegister .. v$stubRegister }, $filterStub
+            move-result-object v$stubRegister
+        """,
+    )
+    return true
+}
 
 private fun MutableMethod.findFeedbackViewFieldReference(literal: Long): FieldReference {
     val literalIndex = indexOfFirstLiteralInstructionOrThrow(literal)
@@ -1335,6 +1405,12 @@ val shortsComponentPatch = bytecodePatch(
         }
 
         if (!is_20_40_or_greater) settingArray += "SETTINGS: SHORTS_HIDE_TOOLBAR"
+
+        if (is_21_39_or_greater && hookShortsSpeedEducation()) {
+            settingArray += "SETTINGS: HIDE_SHORTS_SPEED_EDUCATION"
+        } else {
+            printWarn("Hiding the Shorts 2× tutorial is not supported on this YouTube version.")
+        }
 
         // region patch for hide comments button (non-litho)
 

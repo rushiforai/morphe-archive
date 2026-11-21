@@ -247,14 +247,7 @@ public class SponsorBlockUtils {
             }
             SegmentSubmitAction submitAction = isHighlight ? SegmentSubmitAction.HIGHLIGHT : SegmentSubmitAction.SKIP;
             clearUnsubmittedSegmentTimes();
-            Utils.runOnBackgroundThread(() -> {
-                try {
-                    SBRequester.submitSegments(videoId, segmentCategory, submitAction, start, end, videoLength);
-                    SegmentPlaybackController.executeDownloadSegments(videoId);
-                } catch (Exception ex) {
-                    Logger.printException(() -> "submitNewSegment failure", ex);
-                }
-            });
+            SegmentPlaybackController.submitSegments(videoId, segmentCategory, submitAction, start, end, videoLength);
         } catch (Exception ex) {
             Logger.printException(() -> "submitNewSegment failure", ex);
         }

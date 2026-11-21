@@ -46,6 +46,76 @@ PLATFORM = {
       public static long elapsedRealtime(){return java.lang.System.nanoTime()/1000000;}}''',
 }
 
+# Emote loading (TwitchEmoteLoadingProbe) reads whole provider bodies: a small JsonReader that tokenizes them the
+# way Android's does (names, strings, numbers, booleans, null), and a clock the probe moves forward.
+LOADING = dict(PLATFORM)
+LOADING['android/util/JsonReader.java'] = r'''package android.util;
+public class JsonReader implements AutoCloseable {
+  private final java.util.List<Object[]> tokens = new java.util.ArrayList<>(); private int at;
+  public JsonReader(java.io.Reader in) throws java.io.IOException {
+    StringBuilder text = new StringBuilder(); char[] buffer = new char[4096]; int n;
+    while ((n = in.read(buffer)) > 0) text.append(buffer, 0, n);
+    String s = text.toString(); int i = 0;
+    while (i < s.length()) {
+      char c = s.charAt(i);
+      if (c == '{') { tokens.add(new Object[]{JsonToken.BEGIN_OBJECT}); i++; }
+      else if (c == '}') { tokens.add(new Object[]{JsonToken.END_OBJECT}); i++; }
+      else if (c == '[') { tokens.add(new Object[]{JsonToken.BEGIN_ARRAY}); i++; }
+      else if (c == ']') { tokens.add(new Object[]{JsonToken.END_ARRAY}); i++; }
+      else if (c == ',' || c == ':' || Character.isWhitespace(c)) i++;
+      else if (c == '"') {
+        StringBuilder value = new StringBuilder(); i++;
+        while (s.charAt(i) != '"') {
+          char d = s.charAt(i++);
+          if (d == '\\') {
+            char e = s.charAt(i++);
+            if (e == 'u') { value.append((char) Integer.parseInt(s.substring(i, i + 4), 16)); i += 4; }
+            else value.append(e == 'n' ? '\n' : e == 't' ? '\t' : e == 'r' ? '\r' : e == 'b' ? '\b' : e == 'f' ? '\f' : e);
+          } else value.append(d);
+        }
+        i++;
+        int j = i; while (j < s.length() && Character.isWhitespace(s.charAt(j))) j++;
+        tokens.add(new Object[]{j < s.length() && s.charAt(j) == ':' ? JsonToken.NAME : JsonToken.STRING, value.toString()});
+      } else {
+        int j = i; while (j < s.length() && ",:]} \n\r\t".indexOf(s.charAt(j)) < 0) j++;
+        String word = s.substring(i, j); i = j;
+        if (word.equals("true") || word.equals("false")) tokens.add(new Object[]{JsonToken.BOOLEAN, word});
+        else if (word.equals("null")) tokens.add(new Object[]{JsonToken.NULL});
+        else if (word.matches("-?[0-9.eE+-]+")) tokens.add(new Object[]{JsonToken.NUMBER, word});
+        else throw new java.io.IOException("malformed JSON at " + word);
+      }
+    }
+  }
+  public void setLenient(boolean lenient) {}
+  public JsonToken peek() { return at < tokens.size() ? (JsonToken) tokens.get(at)[0] : JsonToken.END_DOCUMENT; }
+  private Object[] next(JsonToken... expected) throws java.io.IOException {
+    JsonToken token = peek();
+    for (JsonToken e : expected) if (e == token) return tokens.get(at++);
+    throw new IllegalStateException("expected " + java.util.Arrays.toString(expected) + " but was " + token);
+  }
+  public void beginObject() throws java.io.IOException { next(JsonToken.BEGIN_OBJECT); }
+  public void endObject() throws java.io.IOException { next(JsonToken.END_OBJECT); }
+  public void beginArray() throws java.io.IOException { next(JsonToken.BEGIN_ARRAY); }
+  public void endArray() throws java.io.IOException { next(JsonToken.END_ARRAY); }
+  public boolean hasNext() { JsonToken t = peek(); return t != JsonToken.END_OBJECT && t != JsonToken.END_ARRAY && t != JsonToken.END_DOCUMENT; }
+  public String nextName() throws java.io.IOException { return (String) next(JsonToken.NAME)[1]; }
+  public String nextString() throws java.io.IOException { return (String) next(JsonToken.STRING, JsonToken.NUMBER)[1]; }
+  public boolean nextBoolean() throws java.io.IOException { return Boolean.parseBoolean((String) next(JsonToken.BOOLEAN)[1]); }
+  public long nextLong() throws java.io.IOException { return Long.parseLong((String) next(JsonToken.NUMBER)[1]); }
+  public void nextNull() throws java.io.IOException { next(JsonToken.NULL); }
+  public void skipValue() throws java.io.IOException {
+    int depth = 0;
+    do {
+      JsonToken t = peek(); at++;
+      if (t == JsonToken.BEGIN_OBJECT || t == JsonToken.BEGIN_ARRAY) depth++;
+      else if (t == JsonToken.END_OBJECT || t == JsonToken.END_ARRAY) depth--;
+    } while (depth > 0);
+  }
+  public void close() {} }'''
+LOADING['android/os/SystemClock.java'] = '''package android.os; public class SystemClock {
+  public static volatile long offset;
+  public static long elapsedRealtime(){return java.lang.System.nanoTime()/1000000+offset;}}'''
+
 if __name__ == '__main__':
     run('TwitchProvidersProbe', ['twitch/TwitchEmotes.java', 'twitch/TwitchThirdParty.java', 'twitch/TwitchImageCache.java', 'twitch/TwitchContext.java', 'twitch/TwitchEmoteFavorites.java',
         'twitch/TwitchBadges.java', 'twitch/TwitchPronouns.java', 'twitch/TwitchSevenTvBadges.java'],
@@ -53,6 +123,13 @@ if __name__ == '__main__':
         sys.argv[1:] or ['unicode', 'multiline', 'queued-disable', 'badges-disable', 'pronouns-disable', 'rn-dispose', 'rn-native-demand', 'rn-badges-dispose',
             'rn-pronouns-dispose', 'rn-frame-passive', 'rn-passive', 'cache-bound', 'demand-reacquire', 'queue-rejection',
             'describe'], extra=PLATFORM | JSON_DOUBLE)
+
+    # Issues 97 and 100: FrankerFaceZ's fallback to BetterTTV's copy, services loading independently of each
+    # other and of the shared pool, retries after a failure, and cancelled loads stored as nothing.
+    run('TwitchEmoteLoadingProbe', ['twitch/TwitchEmotes.java', 'twitch/TwitchThirdParty.java', 'twitch/TwitchImageCache.java', 'twitch/TwitchContext.java', 'twitch/TwitchEmoteFavorites.java',
+        'twitch/TwitchBadges.java', 'twitch/TwitchPronouns.java', 'twitch/TwitchSevenTvBadges.java'],
+        Path(__file__).with_name('TwitchEmoteLoadingProbe.java').read_text(),
+        ['ffz-fallback', 'independent', 'retry', 'cancelled'], extra=LOADING | JSON_DOUBLE)
 
     # Completion ordering uses tokenized HTTP bodies and a drawing boundary; cache/scheduling code is production.
     completion=dict(PLATFORM)

@@ -2057,6 +2057,8 @@ Comments will open where Facebook stops them.	评论将在 Facebook 默认的位
 Hide the status bar	隐藏状态栏
 # context: summary of that switch; a swipe down from the top edge shows the bar briefly
 Takes the phone's status bar, with the time and battery, off Facebook's main screen, so the app gets the whole screen. Swipe down from the top edge to see it for a moment.	在 Facebook 主界面隐藏手机的状态栏（时间和电量），让应用占满整个屏幕。从屏幕顶部边缘向下滑动可暂时查看。
+Center the feed on big screens	大屏幕上让动态消息居中
+On a tablet or an unfolded phone, the feed and Facebook's other lists stay in a column down the middle of the screen instead of stretching from edge to edge. Reels keep the whole screen.	在平板或展开的折叠屏手机上，动态消息和 Facebook 的其他列表会保持在屏幕中间的一列，而不是从一边拉伸到另一边。Reels 仍占满整个屏幕。
 # context: switch title under Reels and Watch; on, a video tapped in the news feed opens alone in the full-screen player instead of leading into endless reels
 Open feed videos on their own	单独打开动态中的视频
 # context: summary of that switch; the Reels tab itself still scrolls normally
@@ -3062,3 +3064,25 @@ Video buffer will be set to %1$s.	视频缓冲将设为 %1$s。
 Recently watched in the Menu	菜单中的最近观看
 Adds a Recently watched row at the end of Settings and privacy in Facebook's Menu. It opens the list that Remember what you watch keeps.	在 Facebook 菜单的“设置和隐私”末尾添加“最近观看”一行，打开“记住我看过的内容”保存的列表。
 Recently watched can't open here.	无法在这里打开“最近观看”。
+Header text font	顶部文字字体
+Bold	粗体
+Regular	常规
+Serif	衬线
+Script	手写体
+Monospace	等宽
+Your font	你的字体
+The bold font the words have always had.	文字一直以来使用的粗体字体。
+The phone's font at its regular weight.	手机的字体，常规粗细。
+A bold font with serifs, like a newspaper's.	带衬线的粗体字体，像报纸上的字。
+Joined-up handwriting.	连笔手写体。
+Every letter the same width, like a typewriter.	每个字母宽度相同，像打字机。
+The font file picked under Font file, in bold. Bold until one is picked.	在“字体文件”中选的文件，以粗体显示。选好之前为粗体。
+Header text font will be set to %1$s.	顶部文字字体将设为 %1$s。
+Hide songs under names	隐藏名字下方的歌曲
+The line under the poster's name leaves out the song a post plays, with no gap where it was.	发布者姓名下方的那一行不再显示帖子播放的歌曲，原位置也不会留空。
+Bold post times	帖子时间加粗
+The time or date under the poster's name is bold, like the name.	发布者姓名下方的时间或日期会像姓名一样加粗显示。
+Show full names	显示完整名字
+A long name at the top of a post wraps onto the next line instead of ending in "...". A name that fits still takes one line.	帖子顶部的长名字会换到下一行，而不是以“...”结尾。放得下的名字仍只占一行。
+Dark box behind feed video names	动态消息视频名字的深色底框
+When a video in your feed has the poster's name on top of the video, that name sits on the same dark box. A change shows on the posts drawn after it.	当动态消息中的视频把发布者姓名显示在视频上时，这个名字也会显示在同样的深色底框上。更改在之后加载的帖子上生效。

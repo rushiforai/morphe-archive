@@ -9,7 +9,7 @@ A collection of font-related [Morphe](https://morphe.software) patches to improv
 ## 🩹 Patches list
 
 <!-- PATCHES_START -->
-> **[v1.11.0](https://github.com/ch3thanhs/stylus/releases/tag/v1.11.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;9 patches total
+> **[v1.12.0](https://github.com/ch3thanhs/stylus/releases/tag/v1.12.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;11 patches total
 <details open>
 <summary>📦 Bitwarden&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
 <br>
@@ -18,14 +18,32 @@ A collection of font-related [Morphe](https://morphe.software) patches to improv
 
 **🎯 Supported versions:**
 
-| 2026.10.1 |
+| 2026.11.1 |
 | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
-| [Custom font](#custom-font) | Replaces the bundled DM Sans UI fonts with your own font. | • Custom font<br>• Font feature settings |
+| [Custom font](#custom-font) | Replaces the bundled Inter UI font with your own font. | • Custom font<br>• Font feature settings |
 | [Custom monospace font](#custom-monospace-font) | Replaces the bundled Roboto Mono font with your own monospace font. | • Custom monospace font |
 | [Force system font](#force-system-font) | Uses the device's system font for UI text. Monospace text keeps its bundled font. |  |
+
+</details>
+
+<details open>
+<summary>📦 ChatGPT&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
+<br>
+
+**Package name:** `com.openai.chatgpt`
+
+**🎯 Supported versions:**
+
+| 1.2026.321 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Custom font](#custom-font) | Replaces ChatGPT's UI fonts with your own font. | • Custom font<br>• Font feature settings |
+| [Custom monospace font](#custom-monospace-font) | Replaces ChatGPT's monospace fonts with your own monospace font. | • Custom monospace font |
 
 </details>
 
@@ -37,7 +55,7 @@ A collection of font-related [Morphe](https://morphe.software) patches to improv
 
 **🎯 Supported versions:**
 
-| 1.283.0 |
+| 1.284.0 |
 | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
@@ -57,7 +75,7 @@ A collection of font-related [Morphe](https://morphe.software) patches to improv
 
 **🎯 Supported versions:**
 
-| 7.1.5.974952539 |
+| 7.1.5.1012928357 |
 | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |

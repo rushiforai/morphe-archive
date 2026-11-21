@@ -3,18 +3,19 @@
  * https://github.com/MorpheApp/morphe-patches
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
+ * Modified by lavinhoque33, 2026-11-20.
  */
 
 package app.morphe.extension.youtube.patches.components;
 
 import app.morphe.extension.shared.patches.components.ByteArrayFilterGroup;
 import app.morphe.extension.shared.patches.components.ByteArrayFilterGroupList;
-import app.morphe.extension.shared.patches.components.Filter;
+import app.morphe.extension.shared.patches.components.LazyBufferFilter;
 import app.morphe.extension.shared.patches.components.StringFilterGroup;
 import app.morphe.extension.youtube.settings.Settings;
 
 @SuppressWarnings("unused")
-public final class ExploreMenuFilter extends Filter {
+public final class ExploreMenuFilter extends LazyBufferFilter {
 
     private final StringFilterGroup divider;
     private final StringFilterGroup exploreMenu;
@@ -163,7 +164,7 @@ public final class ExploreMenuFilter extends Filter {
     }
 
     @Override
-    public boolean isFiltered(String path, String identifier, String allValue, byte[] buffer,
+    public boolean isFilteredLazy(String path, String identifier, String allValue, Buffer buffer,
                               StringFilterGroup matchedGroup, FilterContentType contentType, int contentIndex) {
 
         if (matchedGroup == divider) {
@@ -171,11 +172,12 @@ public final class ExploreMenuFilter extends Filter {
         }
 
         if (matchedGroup == exploreMenu) {
-            return path.startsWith("more_drawer.e") && exploreMenuGroupList.check(buffer).isFiltered();
+            return path.startsWith("more_drawer.e") && exploreMenuGroupList.check(buffer.get()).isFiltered();
         }
 
         if (matchedGroup == incognitoExploreButton) {
-            return path.startsWith("search_bar_entry_point.e") && incognitoExploreButtonBuffer.check(buffer).isFiltered();
+            return path.startsWith("search_bar_entry_point.e")
+                    && incognitoExploreButtonBuffer.check(buffer.get()).isFiltered();
         }
 
         return true;

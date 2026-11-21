@@ -2620,7 +2620,7 @@ Manage posts	Управление публикациями
 Content preferences	Настройки контента
 Notifications	Уведомления
 Time and well-being	Время и благополучие
-Family Pairing	Семейный режим
+Family Pairing	Привязка аккаунтов семьи
 Sign up	Регистрация
 Account	Аккаунт
 Security & permissions	Безопасность и разрешения
@@ -2631,8 +2631,6 @@ QR code	QR-код
 Share profile	Поделиться профилем
 TikTok Plus	TikTok Plus
 Invite friends	Пригласить друзей
-Inbox mode	Режим входящих
-Audience controls	Управление аудиторией
 Background audio	Фоновое аудио
 Display	Экран
 Commercial content library	Библиотека коммерческого контента
@@ -2644,7 +2642,6 @@ Shake to report	Встряхнуть, чтобы сообщить
 Free up space	Освободить место
 Data Saver	Экономия трафика
 Free data	Бесплатный трафик
-Live wallpaper	Живые обои
 Check for updates	Проверить обновления
 Lite mode	Облегчённый режим
 TikTok Beta	TikTok Beta
@@ -2658,6 +2655,16 @@ Policy updates	Обновления правил
 What's new on TikTok	Новое в TikTok
 Switch account	Сменить аккаунт
 Log out	Выйти
+Mentions	Упоминания
+Direct messages	Личные сообщения
+Reuse of content	Повторное использование контента
+Display profile when sharing links	Показывать профиль при отправке ссылок
+Following list	Список подписок
+Viewers	Зрители
+Inbox & Messaging	Входящие и обмен сообщениями
+Audience control	Ограничение аудитории
+Wallpaper	Обои
+Help Center	Центр поддержки
 Open the search page	Открыть страницу поиска
 Search didn't open. Restart TikTok and try again.	Поиск не открылся. Перезапустите TikTok.
 Fold the search into a button	Свернуть поиск в кнопку
@@ -2691,6 +2698,22 @@ Leave after no touch	Выходить, если нет касаний
 Zero switches this off. After that many minutes with no touch on the screen, the video stops and TikTok goes to the background, for when you fall asleep watching. Any touch starts the wait over.	Ноль отключает это. Если столько минут не касаться экрана, видео останавливается и TikTok уходит в фон, на случай если вы уснули за просмотром. Любое касание начинает ожидание заново.
 Left TikTok after no touch	TikTok свёрнут: не было касаний
 Show when an account was made	Показывать дату создания аккаунта
+Show what changed since your last visit	Показывать, что изменилось с прошлого визита
+Under the @username on a profile, show how its followers, following, likes and videos changed since you last opened it. The counts are kept on this phone only.	Под @именем пользователя в профиле показывает, как изменились подписчики, подписки, лайки и видео с тех пор, как вы открывали его в последний раз. Числа хранятся только на этом телефоне.
+Since %1$s: %2$s	С %1$s: %2$s
+No changes since %1$s	Без изменений с %1$s
+%1$s, %2$s	%1$s, %2$s
+%1$s follower	%1$s подписчик
+%1$s followers	%1$s подписчиков
+%1$s following	подписки: %1$s
+%1$s like	%1$s лайк
+%1$s likes	%1$s лайков
+%1$s followers|one	%1$s подписчик
+%1$s likes|one	%1$s лайк
+%1$s followers|few	%1$s подписчика
+%1$s likes|few	%1$s лайка
+%1$s followers|many	%1$s подписчиков
+%1$s likes|many	%1$s лайков
 Under the @username on someone else's profile, show the month and year the account was made. It's read from the account's ID, so very old accounts show nothing.	Под @именем пользователя в чужом профиле показывать месяц и год создания аккаунта. Дата берётся из ID аккаунта, поэтому у очень старых аккаунтов ничего не показывается.
 Joined %s	Создан: %s
 Keep unsent messages	Сохранять отозванные сообщения
@@ -2850,6 +2873,18 @@ Remove selected comments	Удалить выбранные комментари�
 Pick comments from your comment history to delete.	Выберите в истории комментариев те, что нужно удалить.
 Removing all comments in %1$d	Удаление всех комментариев через %1$d
 Removing the picked comments in %1$d	Удаление выбранных комментариев через %1$d
+Unfollow accounts that don't follow you back	Отписаться от тех, кто не подписан на вас
+Checks your followers first and says how many it found, then unfollows them one after another. Accounts that follow you back stay.	Сначала проверяет ваших подписчиков и сообщает, сколько нашлось, затем отписывается от них по одному. Подписки на тех, кто подписан на вас, остаются.
+Checking who you follow: %1$d	Проверка ваших подписок: %1$d
+Checking your followers: %1$d	Проверка ваших подписчиков: %1$d
+Everyone you follow follows you back	Все, на кого вы подписаны, подписаны на вас
+Couldn't check who follows you back. Try again.	Не удалось проверить, кто подписан на вас. Попробуйте ещё раз.
+Accounts to unfollow: %1$d. Starting in %2$d	Аккаунтов для отписки: %1$d. Начало через %2$d
+Unfollowed: %1$d	Отписано: %1$d
+Done. %1$d unfollowed.	Готово. Отписано: %1$d.
+Stopped. %1$d unfollowed.	Остановлено. Отписано: %1$d.
+TikTok refused. %1$d unfollowed.	TikTok отказал. Отписано: %1$d.
+Network error. %1$d unfollowed.	Ошибка сети. Отписано: %1$d.
 Comments removed: %1$d	Удалено комментариев: %1$d
 TikTok refused to list your comments	TikTok отказался показать ваши комментарии
 Couldn't load your comments. Try again.	Не удалось загрузить ваши комментарии. Попробуйте ещё раз.
@@ -3138,6 +3173,56 @@ Crop and stretch to fill the screen	Обрезать и растягивать �
 Cover the whole window with half the crop of Fill and half the stretch of Stretch, so neither is easy to spot. A video far from the screen's shape keeps TikTok's size.	Заполняет всё окно, обрезая вдвое меньше, чем «Заполнять», и растягивая вдвое меньше, чем «Растягивать», так что ни то, ни другое почти не заметно. Видео, форма которого сильно отличается от экрана, сохраняет размер TikTok.
 Watch LIVEs unseen	Смотреть LIVE незаметно
 You stay off the viewer list of LIVEs you open. Tap the eye in a LIVE to let that host see you. Needs Ghost mode on.	Вас не будет в списке зрителей LIVE, которые вы открываете. Нажмите на глаз в LIVE, чтобы ведущий вас увидел. Нужен включённый режим призрака.
+Keep likes on this phone	Хранить лайки на этом телефоне
+A like you give a video stays on this phone. The heart turns red, but TikTok isn't told, so the creator never sees it and it isn't on your profile. Needs Ghost mode on.	Лайк, который вы ставите видео, остаётся на этом телефоне. Сердечко становится красным, но TikTok об этом не узнаёт, поэтому автор его не увидит и в вашем профиле его не будет. Нужен включённый режим призрака.
+My likes on this phone	Мои лайки на этом телефоне
+Find and reopen the videos you liked only on this phone	Находите и снова открывайте видео, которые вы лайкнули только на этом телефоне
+Videos you like on this phone show up here	Здесь появятся видео, которые вы лайкнули на этом телефоне
+Likes cleared	Лайки очищены
+Export followers and following	Экспорт подписчиков и подписок
+Saves the accounts that follow you, or the ones you follow, as a CSV file in Download/Hushfeed. They're read at about the pace of scrolling the list, up to %1$s at a time.	Сохраняет аккаунты, которые на вас подписаны, или те, на которые подписаны вы, в CSV-файл в папке Download/Hushfeed. Они читаются примерно с той скоростью, с какой листают список, до %1$s за раз.
+A list is already being read	Список уже читается
+Reading your followers (%1$s)	Читаем ваших подписчиков (%1$s)
+Reading who you follow (%1$s)	Читаем ваши подписки (%1$s)
+Couldn't read the list. Try again in a moment.	Не удалось прочитать список. Попробуйте ещё раз чуть позже.
+Stopped before anyone was read	Остановлено до того, как кто-то был прочитан
+Nobody follows this account yet	На этот аккаунт пока никто не подписан
+This account doesn't follow anyone yet	Этот аккаунт пока ни на кого не подписан
+The file couldn't be saved. Try again.	Не удалось сохранить файл. Попробуйте ещё раз.
+Saved one account to %2$s	Один аккаунт сохранён в %2$s
+Saved %1$s accounts to %2$s	Сохранено аккаунтов в %2$s: %1$s
+It stopped before the end of the list, so the file is partial.	Чтение остановлено до конца списка, поэтому файл неполный.
+TikTok stopped answering before the end of the list, so the file is partial.	TikTok перестал отвечать до конца списка, поэтому файл неполный.
+Only the first %1$s are in the file.	В файле только первые %1$s.
+Saved %1$s accounts to %2$s|one	Сохранён %1$s аккаунт в %2$s
+Saved %1$s accounts to %2$s|few	Сохранено %1$s аккаунта в %2$s
+Saved %1$s accounts to %2$s|many	Сохранено %1$s аккаунтов в %2$s
+Save your likes from a TikTok data export	Сохранить ваши лайки из экспорта данных TikTok
+Pick the export TikTok sends from Settings and privacy > Account > Download your data, in JSON format. The videos it lists as liked or favorited are saved like picked videos, up to %1$s at a time.	Выберите экспорт, который TikTok присылает из раздела Настройки и конфиденциальность > Аккаунт > Скачать свои данные, в формате JSON. Видео, которые в нём отмечены как понравившиеся или избранные, сохраняются как выбранные видео, до %1$s за раз.
+Reading the data export	Читаем экспорт данных
+Liked videos (%1$s)	Понравившиеся видео (%1$s)
+Favorites (%1$s)	Избранное (%1$s)
+That export lists no liked or favorited videos	В этом экспорте нет понравившихся или избранных видео
+Couldn't start saving. Try again in a moment.	Не удалось начать сохранение. Попробуйте ещё раз чуть позже.
+You've already saved every one of these videos here	Вы уже сохранили здесь все эти видео
+Saving one video	Сохраняем одно видео
+Saving %1$s videos	Сохраняем %1$s видео
+One you saved before is left out	Одно уже сохранённое видео пропущено
+%1$s you saved before are left out	Пропущено уже сохранённых видео: %1$s
+Choose the file again after this run to save the other %1$s	Выберите файл снова после этого прохода, чтобы сохранить остальные %1$s
+That file is larger than %1$s MB. Choose the JSON file from the export.	Этот файл больше %1$s МБ. Выберите JSON-файл из экспорта.
+That isn't a TikTok data export in JSON format. Choose user_data_tiktok.json or the zip it came in.	Это не экспорт данных TikTok в формате JSON. Выберите user_data_tiktok.json или zip-архив, в котором он пришёл.
+One isn't on TikTok anymore	Одного видео больше нет в TikTok
+%1$s aren't on TikTok anymore	Видео, которых больше нет в TikTok: %1$s
+Saving %1$s videos|one	Сохраняем %1$s видео
+%1$s you saved before are left out|one	Пропущено уже сохранённых видео: %1$s
+%1$s aren't on TikTok anymore|one	Видео, которых больше нет в TikTok: %1$s
+Saving %1$s videos|few	Сохраняем %1$s видео
+%1$s you saved before are left out|few	Пропущено уже сохранённых видео: %1$s
+%1$s aren't on TikTok anymore|few	Видео, которых больше нет в TikTok: %1$s
+Saving %1$s videos|many	Сохраняем %1$s видео
+%1$s you saved before are left out|many	Пропущено уже сохранённых видео: %1$s
+%1$s aren't on TikTok anymore|many	Видео, которых больше нет в TikTok: %1$s
 The host can see you	Ведущий вас видит
 Let the host see you	Показаться ведущему
 Couldn't tell which LIVE this is. Open it again.	Непонятно, какой это LIVE. Откройте его снова.

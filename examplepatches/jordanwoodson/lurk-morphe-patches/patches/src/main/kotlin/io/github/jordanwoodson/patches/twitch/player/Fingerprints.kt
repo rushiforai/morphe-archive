@@ -21,6 +21,18 @@ internal object NativePlayerLatencyFingerprint : Fingerprint(
     ),
 )
 
+// The IVS wrapper turning a timed ID3 metadata cue (its TXXX frames' JSON commands) into Twitch's player event.
+internal object PlayerId3MetadataFingerprint : Fingerprint(
+    returnType = "V", parameters = listOf("Lorg/json/JSONObject;"),
+    strings = listOf("ID3", "TXXX", "stream_loudness", "cmd"),
+)
+
+// Twitch's parser of one ID3 command: ld_lat_data's transc_r, the transcoder's wall clock time, gives the
+// delay behind the broadcast (now minus transc_r) that Twitch reports as the broadcaster latency.
+internal object Id3LatencyCommandFingerprint : Fingerprint(
+    returnType = "V", strings = listOf("ld_lat_data", "stream_offset", "transc_r"),
+)
+
 // The base class of the native player presenters (live, VOD, clips, vertical): its property delegates
 // keep their Kotlin names.
 internal object PlayerPresenterFingerprint : Fingerprint(

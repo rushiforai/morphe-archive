@@ -1,5 +1,7 @@
 package app.morphe.patches.instaprime.premium
 
+import app.morphe.patcher.patch.AppTarget
+import app.morphe.patcher.patch.Compatibility
 import app.morphe.patcher.patch.resourcePatch
 import java.util.Base64
 
@@ -20,17 +22,18 @@ private val BANNER_DARK =
 
 private fun decode(parts: List<String>): ByteArray = Base64.getDecoder().decode(parts.joinToString(""))
 
-internal object InstaPrimeBanner {
-    @Suppress("unused")
-    val patch = resourcePatch(
-        name = "Custom banner",
-        description = "Troca o texto do banner do InstaPrime por 'Cracked by Wagg13'.",
-    ) {
-        compatibleWith("com.instaprime.android"("435.0.0.37.76"))
+@Suppress("unused")
+internal val instaPrimeBannerPatch = resourcePatch {
+        compatibleWith(
+            Compatibility(
+                name = "InstaPrime",
+                packageName = "com.instaprime.android",
+                targets = listOf(AppTarget(version = "451.0.0.53.80")),
+            ),
+        )
 
         execute {
             get("assets/resources/drawables/123abc.enc").writeBytes(decode(BANNER_LIGHT))
             get("assets/resources/drawables/abc123.enc").writeBytes(decode(BANNER_DARK))
         }
     }
-}

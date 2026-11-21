@@ -19,6 +19,8 @@ public class Context {
  public Context getApplicationContext() { return this; }
  public java.io.File getCacheDir() { return cache; }
  public ContentResolver getContentResolver() { throw new AssertionError("Unexpected MediaStore write"); }
+ public int checkSelfPermission(String name) { return -1; }
+ public <T> T getSystemService(Class<T> type) { throw new AssertionError("Unexpected Android service"); }
 }''',
     'android/app/Activity.java': '''package android.app;
 public class Activity extends android.content.Context {
@@ -34,13 +36,15 @@ public class Handler {
     'app/badfella/extension/linkedin/Boundaries.java': '''package app.badfella.extension.linkedin;
 class Settings {
  static boolean postMenu() { return true; }
+ static boolean postMenuCopy() { return true; }
+ static boolean postMenuDownload() { return true; }
  static boolean downloadMedia() { return true; }
  static String downloadFolder() { return ""; }
  static void debugLog(String value) {}
 }
 class Downloads { static void toast(android.content.Context c, String s) {} }
 class Diagnostics { static volatile int errors; static void error(String s, Throwable t) { errors++; } }
-class I18n { static String f(String s, Object... args) { return String.format(s, args); } }
+class I18n { static String tr(String s) { return s; } static String f(String s, Object... args) { return String.format(s, args); } }
 class SduiMediaDownload { static void offerDocument(DocumentPdf.Doc doc) {} }
 ''',
 }

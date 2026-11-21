@@ -42,6 +42,10 @@ public final class InstantsGalleryHelper {
     private static boolean videoSizeApplied;
     private static int videoSizeA;
     private static int videoSizeB;
+    // True while the capture being posted is the gallery's, so the app's "save to photos" leaves the
+    // camera roll alone (the picked photo or video is already on the device). Set by every
+    // substitution, so the next real capture clears it again.
+    private static boolean galleryCapture;
     // False while a screen other than the camera (Home) is on top of the navigation stack.
     private static volatile boolean cameraRoute = true;
     private static ImageButton button;
@@ -64,15 +68,31 @@ public final class InstantsGalleryHelper {
     public static void onRoute(Object route) {
         cameraRoute = route == null || route.getClass().getName().endsWith("MoonshotRoute$Home");
         MAIN.post(InstantsGalleryHelper::applyVisibility);
+        InstantsGoBack.onRoute();
     }
 
+    /** True while the Home route (camera and friends' viewer) is on top of the navigation stack. */
+    static boolean isHomeRoute() {
+        return cameraRoute;
+    }
+
+    // The button belongs to the camera: it is hidden on other routes and while the friends' viewer
+    // is what the Home route shows (the viewer has its reply bar where the button sits).
     private static void applyVisibility() {
         ImageButton b = button;
-        if (b != null) b.setVisibility(cameraRoute ? View.VISIBLE : View.GONE);
+        if (b != null) {
+            b.setVisibility(cameraRoute && !InstantsGoBack.isViewerOnScreen() ? View.VISIBLE : View.GONE);
+        }
+    }
+
+    /** Re-applies the visibility, for when the screen shown by the Home route changes. */
+    static void refreshVisibility() {
+        applyVisibility();
     }
 
     /** Called every time the camera's control buttons are composed. */
     public static void onCameraComposed() {
+        InstantsGoBack.onCameraComposed();
         ensureGalleryButton();
     }
 
@@ -84,31 +104,58 @@ public final class InstantsGalleryHelper {
      */
     public static synchronized Bitmap substituteCaptured(Bitmap original) {
         Bitmap source = pendingBitmap;
+        galleryCapture = source != null;
         if (source == null) return original;
         Bitmap copy = source.copy(Bitmap.Config.ARGB_8888, true);
+        if (copy == null) {
+            galleryCapture = false;
+            return original;
+        }
         pendingBitmap = null;
-        MAIN.post(InstantsGalleryHelper::showGalleryIcon);
-        return copy != null ? copy : original;
+        refreshButton(source);
+        return copy;
+    }
+
+    /**
+     * Called by the patched "save to photos" step before it writes the capture to the gallery.
+     * True when the capture being saved came from the gallery. Not cleared here: one capture can
+     * try more than one save (the JPEG path falls back to the Bitmap one), and all must be skipped.
+     */
+    public static synchronized boolean isGalleryCapture() {
+        return galleryCapture;
     }
 
     public static synchronized void setPendingBitmap(Bitmap bitmap) {
+        Bitmap old = pendingBitmap;
+        Bitmap oldThumbnail = takePendingVideo();
         pendingBitmap = bitmap;
-        clearPendingVideo();
-        MAIN.post(InstantsGalleryHelper::showGalleryIcon);
+        refreshButton(old, oldThumbnail);
+    }
+
+    /** Long-pressing the gallery shortcut cancels the pending media selection. */
+    public static synchronized void clearPendingMedia() {
+        Bitmap old = pendingBitmap;
+        pendingBitmap = null;
+        refreshButton(old, takePendingVideo());
     }
 
     public static synchronized void setPendingVideo(File file, Bitmap thumbnail, int width, int height) {
+        Bitmap old = pendingBitmap;
+        Bitmap oldThumbnail = takePendingVideo();
         pendingBitmap = null;
         pendingVideoFile = file;
         pendingVideoThumbnail = thumbnail;
         pendingVideoWidth = width;
         pendingVideoHeight = height;
-        MAIN.post(InstantsGalleryHelper::showGalleryIcon);
+        refreshButton(old, oldThumbnail);
     }
 
-    private static void clearPendingVideo() {
+    /** Clears the pending video and returns its thumbnail, which the caller must release later. */
+    private static Bitmap takePendingVideo() {
         pendingVideoFile = null;
+        Bitmap thumbnail = pendingVideoThumbnail;
         pendingVideoThumbnail = null;
+        return thumbnail;
     }
 
     /**
@@ -119,6 +166,7 @@ public final class InstantsGalleryHelper {
     public static synchronized File substituteVideo(File recording, int a, int b) {
         videoSizeApplied = false;
         File replacement = pendingVideoFile;
+        galleryCapture = replacement != null && replacement.exists();
         if (replacement == null || !replacement.exists()) return recording;
 
         // The step also receives the video's size, as the recorder reports it. Keep the same
@@ -135,8 +183,7 @@ public final class InstantsGalleryHelper {
         }
         Log.i(GalleryPickerFragment.TAG, "video replaced; reported size " + a + "x" + b
                 + (videoSizeApplied ? " -> " + videoSizeA + "x" + videoSizeB : " kept"));
-        clearPendingVideo();
-        MAIN.post(InstantsGalleryHelper::showGalleryIcon);
+        refreshButton(takePendingVideo());
         return replacement;
     }
 
@@ -169,8 +216,25 @@ public final class InstantsGalleryHelper {
         }
     }
 
-    // While a gallery image is waiting to be sent, the button shows its thumbnail so it
-    // is obvious that the next shutter press will send that image instead of the camera.
+    /**
+     * Updates the button on the main thread and only then releases bitmaps that are no longer
+     * pending. The button can be showing one of them; recycling it before the image is replaced
+     * would make the next frame draw a recycled bitmap and crash.
+     */
+    private static void refreshButton(Bitmap... release) {
+        MAIN.post(() -> {
+            showGalleryIcon();
+            for (Bitmap bitmap : release) {
+                if (bitmap != null && bitmap != pendingBitmap && bitmap != pendingVideoThumbnail
+                        && !bitmap.isRecycled()) {
+                    bitmap.recycle();
+                }
+            }
+        });
+    }
+
+    // While a gallery image is waiting to be sent, the button shows its thumbnail so it is obvious
+    // that the next shutter press will send that image instead of the camera.
     private static void showGalleryIcon() {
         ImageButton b = button;
         Bitmap pending = pendingBitmap != null ? pendingBitmap : pendingVideoThumbnail;
@@ -207,7 +271,7 @@ public final class InstantsGalleryHelper {
 
             ImageButton gallery = new ImageButton(current);
             gallery.setId(BUTTON_ID);
-            gallery.setContentDescription("Abrir galeria");
+            gallery.setContentDescription(InstantsStrings.openGallery(current));
             gallery.setImageResource(android.R.drawable.ic_menu_gallery);
             gallery.setScaleType(ImageButton.ScaleType.CENTER_INSIDE);
             gallery.setPadding(dp(current, 12), dp(current, 12), dp(current, 12), dp(current, 12));
@@ -224,6 +288,11 @@ public final class InstantsGalleryHelper {
                 }
             });
             gallery.setOnClickListener(v -> openGallery(current));
+            gallery.setOnLongClickListener(v -> {
+                clearPendingMedia();
+                android.widget.Toast.makeText(current, InstantsStrings.selectionCleared(current), android.widget.Toast.LENGTH_SHORT).show();
+                return true;
+            });
 
             // Same height as the audience pill ("AMIGOS"), vertically centered with it.
             // Anchored to the left screen edge instead of the screen center: the pill's

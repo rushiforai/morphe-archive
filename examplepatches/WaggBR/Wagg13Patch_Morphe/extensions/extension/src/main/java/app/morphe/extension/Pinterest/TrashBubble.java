@@ -13,7 +13,7 @@ import java.lang.reflect.Proxy;
 import java.util.Locale;
 
 /**
- * Extension do patch "Trash bubble on pin long press" (Pinterest 14.39.0).
+ * Extension do patch "Trash bubble on pin long press" (Pinterest 14.39 a 14.44).
  *
  * Independente de versão: PinService não é ofuscado e os tipos Action/Consumer do RxJava são
  * descobertos por reflexão (interface com run() / interface com accept(Object)).
@@ -29,7 +29,7 @@ public final class TrashBubble {
     private static final Handler MAIN = new Handler(Looper.getMainLooper());
     private static volatile Object pinService;
 
-    /** Chamado no construtor do apresentador do long-press (x03.p0). */
+    /** Chamado no construtor do apresentador do long-press (Presenter, nome ofuscado muda por versão). */
     public static void setPinService(Object service) {
         if (service != null) pinService = service;
     }

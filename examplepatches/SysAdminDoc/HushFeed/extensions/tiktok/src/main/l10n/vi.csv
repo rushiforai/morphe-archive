@@ -856,8 +856,6 @@ QR code,Mã QR
 Share profile,Chia sẻ hồ sơ
 TikTok Plus,TikTok Plus
 Invite friends,Mời bạn bè
-Inbox mode,Chế độ hộp thư
-Audience controls,Kiểm soát người xem
 Background audio,Âm thanh nền
 Display,Hiển thị
 Commercial content library,Thư viện nội dung thương mại
@@ -869,7 +867,6 @@ Shake to report,Lắc để báo cáo
 Free up space,Giải phóng dung lượng
 Data Saver,Tiết kiệm dữ liệu
 Free data,Dữ liệu miễn phí
-Live wallpaper,Hình nền động
 Check for updates,Kiểm tra bản cập nhật
 Lite mode,Chế độ Lite
 TikTok Beta,TikTok Beta
@@ -883,6 +880,16 @@ Policy updates,Cập nhật chính sách
 What's new on TikTok,Có gì mới trên TikTok
 Switch account,Chuyển tài khoản
 Log out,Đăng xuất
+Mentions,Nhắc đến
+Direct messages,Tin nhắn trực tiếp
+Reuse of content,Sử dụng lại nội dung
+Display profile when sharing links,Hiển thị hồ sơ khi chia sẻ liên kết
+Following list,Danh sách Đã follow
+Viewers,Người xem
+Inbox & Messaging,Hộp thư & tin nhắn
+Audience control,Kiểm soát khán giả
+Wallpaper,Hình nền
+Help Center,Trung tâm trợ giúp
 Hide the Inbox search button,Ẩn nút tìm kiếm trong Hộp thư đến
 Hide the LIVE bubble,Ẩn bong bóng LIVE
 Hide the LIVE button,Ẩn nút LIVE
@@ -1866,6 +1873,16 @@ Show video length on profile grids,Hiển thị thời lượng video trên lư�
 Show what is left of the budget,Hiển thị phần ngân sách còn lại
 "Show when a video was posted down to the second, with your time zone, in place of TikTok's short date by the creator's name.","Hiển thị thời điểm video được đăng chính xác đến từng giây kèm múi giờ của bạn, thay cho mốc ngày định dạng ngắn của TikTok bên cạnh tên nhà sáng tạo."
 Show when an account was made,Hiển thị thời điểm tạo tài khoản
+Show what changed since your last visit,Hiện những gì đã thay đổi kể từ lần ghé thăm trước
+"Under the @username on a profile, show how its followers, following, likes and videos changed since you last opened it. The counts are kept on this phone only.","Bên dưới @tên người dùng trên hồ sơ, hiện số người theo dõi, đang theo dõi, lượt thích và video đã thay đổi thế nào kể từ lần cuối bạn mở. Các con số chỉ được lưu trên điện thoại này."
+Since %1$s: %2$s,Từ %1$s: %2$s
+No changes since %1$s,Không có thay đổi từ %1$s
+"%1$s, %2$s","%1$s, %2$s"
+%1$s follower,%1$s người theo dõi
+%1$s followers,%1$s người theo dõi
+%1$s following,%1$s đang theo dõi
+%1$s like,%1$s lượt thích
+%1$s likes,%1$s lượt thích
 Show when the camera or microphone is in use,Hiển thị khi máy ảnh hoặc micrô đang được sử dụng
 Show where a video was posted,Hiển thị nơi đăng video
 Show where commenters are from,Hiển thị quốc gia/khu vực của người bình luận
@@ -2612,6 +2629,18 @@ Remove selected comments,Xóa bình luận đã chọn
 Pick comments from your comment history to delete.,Chọn bình luận trong lịch sử bình luận để xóa.
 Removing all comments in %1$d,Xóa tất cả bình luận sau %1$d
 Removing the picked comments in %1$d,Xóa bình luận đã chọn sau %1$d
+Unfollow accounts that don't follow you back,Bỏ theo dõi tài khoản không theo dõi lại bạn
+"Checks your followers first and says how many it found, then unfollows them one after another. Accounts that follow you back stay.","Kiểm tra người theo dõi của bạn trước và cho biết tìm thấy bao nhiêu, rồi bỏ theo dõi từng tài khoản một. Tài khoản theo dõi lại bạn vẫn được giữ."
+Checking who you follow: %1$d,Đang kiểm tra người bạn theo dõi: %1$d
+Checking your followers: %1$d,Đang kiểm tra người theo dõi bạn: %1$d
+Everyone you follow follows you back,Mọi người bạn theo dõi đều theo dõi lại bạn
+Couldn't check who follows you back. Try again.,Không thể kiểm tra ai theo dõi lại bạn. Hãy thử lại.
+Accounts to unfollow: %1$d. Starting in %2$d,Tài khoản sẽ bỏ theo dõi: %1$d. Bắt đầu sau %2$d
+Unfollowed: %1$d,Đã bỏ theo dõi: %1$d
+Done. %1$d unfollowed.,Xong. Đã bỏ theo dõi %1$d.
+Stopped. %1$d unfollowed.,Đã dừng. Đã bỏ theo dõi %1$d.
+TikTok refused. %1$d unfollowed.,TikTok đã từ chối. Đã bỏ theo dõi %1$d.
+Network error. %1$d unfollowed.,Lỗi mạng. Đã bỏ theo dõi %1$d.
 Comments removed: %1$d,Đã xóa bình luận: %1$d
 TikTok refused to list your comments,TikTok từ chối liệt kê bình luận của bạn
 Couldn't load your comments. Try again.,Không tải được bình luận của bạn. Hãy thử lại.
@@ -2803,6 +2832,44 @@ Crop and stretch to fill the screen,Cắt và kéo giãn để lấp đầy màn
 "Cover the whole window with half the crop of Fill and half the stretch of Stretch, so neither is easy to spot. A video far from the screen's shape keeps TikTok's size.","Phủ kín cả cửa sổ với một nửa phần cắt của Lấp đầy và một nửa độ giãn của Kéo giãn, nên cả hai đều khó nhận ra. Video có hình dạng khác xa màn hình sẽ giữ kích thước của TikTok."
 Watch LIVEs unseen,Xem LIVE mà không bị thấy
 You stay off the viewer list of LIVEs you open. Tap the eye in a LIVE to let that host see you. Needs Ghost mode on.,Bạn sẽ không có tên trong danh sách người xem của những LIVE bạn mở. Chạm vào con mắt trong LIVE để chủ phòng thấy bạn. Yêu cầu bật Chế độ ẩn danh.
+Keep likes on this phone,Giữ lượt thích trên điện thoại này
+"A like you give a video stays on this phone. The heart turns red, but TikTok isn't told, so the creator never sees it and it isn't on your profile. Needs Ghost mode on.","Lượt thích bạn dành cho video chỉ ở trên điện thoại này. Trái tim chuyển đỏ nhưng TikTok không được báo, nên nhà sáng tạo không bao giờ thấy và nó không có trên hồ sơ của bạn. Yêu cầu bật Chế độ ẩn danh."
+My likes on this phone,Lượt thích của tôi trên điện thoại này
+Find and reopen the videos you liked only on this phone,Tìm và mở lại các video bạn chỉ thích trên điện thoại này
+Videos you like on this phone show up here,Các video bạn thích trên điện thoại này sẽ hiện ở đây
+Likes cleared,Đã xóa lượt thích
+Export followers and following,Xuất danh sách người theo dõi và đang theo dõi
+"Saves the accounts that follow you, or the ones you follow, as a CSV file in Download/Hushfeed. They're read at about the pace of scrolling the list, up to %1$s at a time.","Lưu các tài khoản theo dõi bạn, hoặc các tài khoản bạn theo dõi, thành tệp CSV trong Download/Hushfeed. Chúng được đọc với tốc độ gần bằng tốc độ cuộn danh sách, tối đa %1$s tài khoản mỗi lần."
+A list is already being read,Đang đọc một danh sách rồi
+Reading your followers (%1$s),Đang đọc người theo dõi bạn (%1$s)
+Reading who you follow (%1$s),Đang đọc những người bạn theo dõi (%1$s)
+Couldn't read the list. Try again in a moment.,Không đọc được danh sách. Hãy thử lại sau giây lát.
+Stopped before anyone was read,Đã dừng trước khi đọc được ai
+Nobody follows this account yet,Chưa có ai theo dõi tài khoản này
+This account doesn't follow anyone yet,Tài khoản này chưa theo dõi ai
+The file couldn't be saved. Try again.,Không lưu được tệp. Hãy thử lại.
+Saved one account to %2$s,Đã lưu một tài khoản vào %2$s
+Saved %1$s accounts to %2$s,Đã lưu %1$s tài khoản vào %2$s
+"It stopped before the end of the list, so the file is partial.",Đã dừng trước khi hết danh sách nên tệp chưa đầy đủ.
+"TikTok stopped answering before the end of the list, so the file is partial.",TikTok ngừng phản hồi trước khi hết danh sách nên tệp chưa đầy đủ.
+Only the first %1$s are in the file.,Tệp chỉ có %1$s tài khoản đầu tiên.
+Save your likes from a TikTok data export,Lưu lượt thích của bạn từ bản xuất dữ liệu TikTok
+"Pick the export TikTok sends from Settings and privacy > Account > Download your data, in JSON format. The videos it lists as liked or favorited are saved like picked videos, up to %1$s at a time.","Chọn bản xuất TikTok gửi từ Cài đặt và quyền riêng tư > Tài khoản > Tải dữ liệu của bạn xuống, ở định dạng JSON. Các video mà bản này liệt kê là đã thích hoặc yêu thích sẽ được lưu như video đã chọn, tối đa %1$s video mỗi lần."
+Reading the data export,Đang đọc bản xuất dữ liệu
+Liked videos (%1$s),Video đã thích (%1$s)
+Favorites (%1$s),Yêu thích (%1$s)
+That export lists no liked or favorited videos,Bản xuất đó không có video đã thích hay yêu thích nào
+Couldn't start saving. Try again in a moment.,Không thể bắt đầu lưu. Hãy thử lại sau giây lát.
+You've already saved every one of these videos here,Bạn đã lưu tất cả các video này ở đây rồi
+Saving one video,Đang lưu một video
+Saving %1$s videos,Đang lưu %1$s video
+One you saved before is left out,Bỏ qua một video bạn đã lưu trước đó
+%1$s you saved before are left out,Bỏ qua %1$s video bạn đã lưu trước đó
+Choose the file again after this run to save the other %1$s,Chọn lại tệp sau lượt này để lưu %1$s video còn lại
+That file is larger than %1$s MB. Choose the JSON file from the export.,Tệp đó lớn hơn %1$s MB. Hãy chọn tệp JSON trong bản xuất.
+That isn't a TikTok data export in JSON format. Choose user_data_tiktok.json or the zip it came in.,Đó không phải bản xuất dữ liệu TikTok ở định dạng JSON. Hãy chọn user_data_tiktok.json hoặc tệp zip chứa nó.
+One isn't on TikTok anymore,Một video không còn trên TikTok nữa
+%1$s aren't on TikTok anymore,%1$s video không còn trên TikTok nữa
 The host can see you,Chủ phòng thấy bạn
 Let the host see you,Cho chủ phòng thấy bạn
 Couldn't tell which LIVE this is. Open it again.,Không rõ đây là LIVE nào. Hãy mở lại.

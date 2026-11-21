@@ -5,6 +5,8 @@ extension {
 android {
     namespace = "app.windowshopper.extension.meesho"
     testOptions.unitTests.isReturnDefaultValues = true
+    buildFeatures.buildConfig = true
+    defaultConfig.buildConfigField("String", "PATCHES_VERSION", "\"${project.version}\"")
 }
 
 dependencies {

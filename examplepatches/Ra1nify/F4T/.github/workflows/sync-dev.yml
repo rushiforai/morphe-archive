@@ -1,0 +1,79 @@
+name: Sync dev
+
+# Keeps `dev` in step with `main`.
+#
+# `dev` only ever owns patches-bundle.json: the sources, the workflows and the docs all come from
+# main. This workflow merges main into dev (the manifest is preserved by the `merge=ours` attribute)
+# and then asks CI to rebuild the dev pre-release, because a push made with GITHUB_TOKEN does not
+# start workflows on its own.
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    # Safety net, twice a day. A release commits to main with GITHUB_TOKEN, and that kind of push
+    # starts no workflow at all, so the push trigger never sees it. The scheduled run converges dev
+    # regardless.
+    - cron: "0 3,15 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: write
+
+concurrency:
+  group: sync-dev
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Merge main into dev
+        id: merge
+        run: |
+          # `merge=ours` in .gitattributes is inert until the driver is registered, so dev's
+          # manifest is kept explicitly rather than by luck.
+          git config merge.ours.driver true
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          if ! git rev-parse --verify origin/dev > /dev/null 2>&1; then
+            echo "dev does not exist yet, nothing to sync"
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          # Always by refspec. `dev` is also a tag name, so a bare `git checkout dev` resolves to the
+          # tag and leaves the runner on a detached HEAD.
+          git checkout -B dev refs/remotes/origin/dev
+
+          if git merge-base --is-ancestor origin/main HEAD; then
+            echo "dev already contains main"
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          # dev and main can end up without a common ancestor when either side is amended or reset,
+          # and git refuses to merge such histories by default. Both branches carry the same tree
+          # layout, so merging the unrelated histories is the intended recovery here; the manifest
+          # stays dev's own because of the `ours` driver.
+          git merge --no-edit --allow-unrelated-histories origin/main
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+
+      - name: Push dev
+        if: steps.merge.outputs.changed == 'true'
+        run: git push origin HEAD:refs/heads/dev
+
+      # A push made with GITHUB_TOKEN starts no workflow, and that restriction covers every event
+      # except workflow_dispatch and repository_dispatch, so the dev build is dispatched by hand.
+      - name: Trigger dev build
+        if: steps.merge.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh workflow run ci.yml --ref dev

@@ -42,7 +42,8 @@ jobs:
           [[ -s "$note" ]] || { echo "Missing release note: $note"; exit 1; }
           gh release view "$TAG" --json body -q .body > /tmp/current-release-body
           if head -n 1 "$note" | grep -q '^## '; then
-            cp "$note" /tmp/edited-release-body
+            head -n 1 /tmp/current-release-body | tr -d '\r' > /tmp/edited-release-body
+            tail -n +2 "$note" >> /tmp/edited-release-body
           else
             head -n 1 /tmp/current-release-body > /tmp/edited-release-body
             printf '\n' >> /tmp/edited-release-body

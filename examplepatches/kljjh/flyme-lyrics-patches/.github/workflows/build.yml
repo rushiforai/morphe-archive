@@ -83,16 +83,22 @@ jobs:
           TAG: ${{ github.ref_name }}
         run: |
           cat > release-notes.md <<'EOF'
-          Independent Flyme add-on: this source now contains only **Flyme status bar lyrics**.
+          YouTube Music 魅族状态栏歌词补丁。请与 Morphe 官方 **Third-party lyrics** 一起修补。状态栏歌词默认开启，默认跟随 MediaSession 时间偏移，取消跟随后可单独调整。
 
-          In the same patching run, select **Third-party lyrics from the OFFICIAL Morphe source** and **Flyme status bar lyrics from this source**. Enable the official third-party lyrics setting and **Show mini-player lyrics**. The add-on reads the official mini-player text, so the official mini-player lyrics switch is required. Missing official hooks produce an explicit patch error; Morphe cannot auto-select dependencies across sources.
-
-          Validation: notification behavior tests, integration against the unmodified official v2.1.0 extension DEX, DEX round-trip and dexdump, full Android compilation, and checks that no official patches or extensions are bundled. Real Flyme device and full YT Music APK patch/install verification are still required.
+          [添加到 Morphe](https://morphe.software/add-source?github=kljjh/flyme-lyrics-patches&name=Flyme%20Lyrics&app=com.google.android.apps.youtube.music&appName=YouTube%20Music)，或下载下方的 `.mpp` 在 Morphe 中本地导入。
           EOF
           gh release create "$TAG" dist/* --title "Flyme Lyrics Patches $TAG" --notes-file release-notes.md --verify-tag
+          # Serve the exact release bytes on the same host as the working metadata URL.
+          # Publish both in one commit so an updated source never points to a missing file.
+          mkdir -p bundles
+          bundle="flyme-lyrics-patches-${TAG#v}.mpp"
+          (cd dist && sha256sum --check SHA256SUMS.txt)
+          if [[ -f "bundles/$bundle" ]]; then cmp "dist/$bundle" "bundles/$bundle"; fi
+          cp "dist/$bundle" "bundles/$bundle"
           cp dist/patches-bundle.json patches-bundle.json
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -f "bundles/$bundle"
           git add patches-bundle.json
           git commit -m "chore: publish source for $TAG [skip ci]"
           git push origin main

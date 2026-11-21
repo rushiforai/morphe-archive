@@ -1,6 +1,6 @@
 // CTW Mod Menu backend for GTA: Chinatown Wars 4.4.243 (arm64). The menu itself (WebView panel and MOD button) is
 // the Java class ctw.menu.Menu in the patches' extension; it calls these natives, which queue game actions that run on
-// the game thread from cPlayer::ProcessAlways (once per frame). Addresses: libGame.so 4.4.243 symbols and globals.
+// the game thread from cPlayer::ProcessAlways (once per frame). Functions and globals: libGame.so exported symbols.
 #include <mod/amlmod.h>
 #include <mod/logger.h>
 
@@ -13,14 +13,13 @@
 #include <mutex>
 #include <string>
 #include <vector>
-#include <unordered_map>
 
 MYMOD(net.razorrzr0.ctwmenu, CTW Mod Menu, 1.0, RAZORRZR0)
 NEEDGAME(com.rockstargames.gtactw)
 
 struct V3 { int32_t x, y, z; };                  // tv3d<cFixed<20,12>>: 4096 = 1 m
 struct VehRet { void *a, *b, *c; };               // Vehicle (24 bytes), returned through x8
-static uintptr_t gLib, gEnd;
+static void* gBulletAmmo;                          // cBulletBasedWeapon::Ammo, identifies weapons with an ammo count
 static void* gPlayer;                              // cPlayer*, set on the game thread
 
 // libGame functions
@@ -47,12 +46,12 @@ static void (*VehicleCtor)(void* v, void* cveh);
 static void (*SetDensity[3])(void* world, int value, uint32_t player);  // Car, Ped, Cop
 static const int kDensityOff[3] = {0x3ee, 0x3c5, 0x3da};                  // byte in cPlayer each setter writes
 
-// libGame globals: GOT slots holding the object addresses
-static void* global(uintptr_t slot) { return *(void**)(gLib + slot); }
-static void* World() { return global(0xdcef20); }
-static void* TimeCycle() { return global(0xdce850); }
-static uint8_t* MapState() { return (uint8_t*)global(0xdcedf8); }    // +0xa90/+0xa94 waypoint x,y; +0xab9 set
-static uint8_t* VehicleInfo() { return (uint8_t*)global(0xdce750); } // +0x20 count, +0x28 0x138-byte entries
+// libGame globals, by exported symbol
+static void *gWorld, *gTimeCycle, *gRadar, *gVehInfoMgr;
+static void* World() { return gWorld; }
+static void* TimeCycle() { return gTimeCycle; }
+static uint8_t* MapState() { return (uint8_t*)gRadar; }           // +0xa90/+0xa94 waypoint x,y; +0xab9 set
+static uint8_t* VehicleInfo() { return (uint8_t*)gVehInfoMgr; }   // +0x20 count, +0x28 0x138-byte entries
 
 template <class T> static T& at(void* p, uintptr_t off) { return *(T*)((uint8_t*)p + off); }
 
@@ -117,23 +116,20 @@ static void Density(int kind, int step)
     SetDensity[kind](World(), step == 0 ? 0 : step == 1 ? n : std::min(255, n * 3), 0);
 }
 
-// Infinite ammo: top up every weapon in the player's cWeaponManager (+0x20 slot table).
-// cWeapon: +0x14 s16 ammo, +0x16 u8 clip; vtable +0x48 Ammo() (-1 = melee), +0x38 Type().
-static std::unordered_map<void*, uint8_t> gClipMax;
-static int vcall(void* w, uintptr_t off) { return (*(int (**)(void*))(*(uint8_t**)w + off))(w); }
+// Infinite ammo: top up every gun in the player's cWeaponManager. Its weapon slots are 11 cWeapon* at +0x20..+0x70
+// (cWeaponManager ctor, ClearAllWeapons); +0x78 is state, not a slot. Only cBulletBasedWeapon has the ammo fields
+// (+0x14 s16 total, +0x16 u8 clip), so other weapons (fists, vehicle bomb) are matched by their Ammo() and skipped.
+// Values as the game's own Reload/Unload use them: cWeaponInfo +4 max ammo, +8 clip size.
 static void Refill(uint8_t* mgr)
 {
-    for (int s = 0; s < 12; s++) {
+    for (int s = 0; s < 11; s++) {
         void* w = *(void**)(mgr + 0x20 + s * 8);
-        if (!w) continue;
-        uintptr_t vt = *(uintptr_t*)w;
-        if (vt < gLib || vt >= gEnd || vcall(w, 0x48) == -1) continue;
-        void* info = GetWeaponInfo(vcall(w, 0x38));
-        int max = info ? at<int32_t>(info, 4) : 0;
-        if (max > 0) at<int16_t>(w, 0x14) = (int16_t)std::min(max, 32767);
-        uint8_t& top = gClipMax[w];
-        top = std::max(top, at<uint8_t>(w, 0x16));
-        if (top) at<uint8_t>(w, 0x16) = top;
+        if (!w || (*(void***)w)[0x48 / 8] != gBulletAmmo || at<int16_t>(w, 0x14) == -1) continue;  // -1: unlimited
+        int type = (*(int (**)(void*))(*(uint8_t**)w + 0x38))(w);  // vtable +0x38 Type()
+        uint8_t* info = (uint8_t*)GetWeaponInfo(type);
+        if (!info) continue;
+        if (int max = at<int32_t>(info, 4); max > 0) at<int16_t>(w, 0x14) = (int16_t)std::min(max, 32767);
+        at<uint8_t>(w, 0x16) = at<uint8_t>(info, 8);
     }
 }
 
@@ -242,9 +238,7 @@ extern "C" void OnModLoad()
 {
     logger->SetTag("CTW Mod Menu");
     void* h = aml->GetLibHandle("libGame.so");
-    gLib = aml->GetLib("libGame.so");
-    if (!h || !gLib) { logger->Error("libGame.so not loaded"); return; }
-    gEnd = gLib + aml->GetLibLength("libGame.so");
+    if (!h) { logger->Error("libGame.so not loaded"); return; }
     gOn[WARP] = true;
 
     int ok = sym(h, HealthCheat, "_Z11HealthCheatj") & sym(h, ArmourCheat, "_Z11ArmourCheatj") &
@@ -266,7 +260,10 @@ extern "C" void OnModLoad()
         sym(h, WarpInto, "_ZNK3Ped15WarpIntoVehicleE7Vehicle4Seatb") & sym(h, VehicleCtor, "_ZN7VehicleC1ER8cVehicle") &
         sym(h, SetDensity[0], "_ZNK9WorldImpl13SetCarDensityEi9ePlayerId") &
         sym(h, SetDensity[1], "_ZNK9WorldImpl13SetPedDensityEi9ePlayerId") &
-        sym(h, SetDensity[2], "_ZNK9WorldImpl13SetCopDensityEi9ePlayerId");
+        sym(h, SetDensity[2], "_ZNK9WorldImpl13SetCopDensityEi9ePlayerId") &
+        sym(h, gBulletAmmo, "_ZNK18cBulletBasedWeapon4AmmoEv") &
+        sym(h, gWorld, "World") & sym(h, gTimeCycle, "gTimeCycle") & sym(h, gRadar, "gRadar") &
+        sym(h, gVehInfoMgr, "gVehInfoMgr");
     if (!ok) { logger->Error("unsupported game version: menu disabled"); return; }
 
     HOOK(ProcessAlways, aml->GetSym(h, "_ZN7cPlayer13ProcessAlwaysEv"));

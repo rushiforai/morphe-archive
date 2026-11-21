@@ -210,13 +210,13 @@ class InlineMediaPredicatePatchTest {
         val code = emitted
         val importantCalls = code.mapIndexedNotNull { index, instruction ->
             val reference = instruction.getReference<MethodReference>() ?: return@mapIndexedNotNull null
-            if (reference.name !in setOf("isHttpUrl", "iterator", "hasNext", "next", "isHttpMp4Variant")) {
+            if (reference.name !in setOf("isHttpUrl", "iterator", "hasNext", "next", "isDownloadableVariant")) {
                 return@mapIndexedNotNull null
             }
             index to reference
         }
         assertEquals(
-            setOf("isHttpUrl", "iterator", "hasNext", "next", "isHttpMp4Variant"),
+            setOf("isHttpUrl", "iterator", "hasNext", "next", "isDownloadableVariant"),
             importantCalls.map { it.second.name }.toSet(),
         )
         importantCalls.forEach { (index, reference) ->

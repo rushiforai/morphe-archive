@@ -7,28 +7,25 @@
  * https://github.com/anddea/revanced-patches
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
+ *
+ * Modified by lavinhoque33, 2026-11-20
  */
 
 package app.morphe.extension.youtube.patches;
 
 import android.app.Activity;
-import android.os.Build;
-import android.util.DisplayMetrics;
 import android.view.SurfaceView;
 import android.view.TextureView;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 import android.view.Window;
-import android.view.WindowMetrics;
 
 import androidx.annotation.Nullable;
 
 import java.lang.ref.WeakReference;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
-import java.util.ArrayList;
-import java.util.List;
 
 import app.morphe.extension.shared.utils.Logger;
 import app.morphe.extension.shared.utils.Utils;
@@ -67,22 +64,19 @@ public class FullscreenVideoScalePatch {
      */
     private static final float DEFAULT_VIDEO_ASPECT = 16f / 9f;
 
-    private static WeakReference<View> overlayRef = new WeakReference<>(null);
-    private static WeakReference<View> playerViewRef = new WeakReference<>(null);
-    private static WeakReference<View> scaledViewRef = new WeakReference<>(null);
+    private static final int MAX_CLIP_DEPTH = 16;
+    private static final float[] rootPoint = new float[2];
 
+    private static final View.OnLayoutChangeListener overlayLayoutListener =
+            (v, l, t, r, b, ol, ot, or, ob) -> applyScale();
+
+    private static volatile WeakReference<View> overlayRef = new WeakReference<>(null);
+    private static volatile WeakReference<View> playerViewRef = new WeakReference<>(null);
     private static volatile float videoAspectRatio = DEFAULT_VIDEO_ASPECT;
 
+    // Only the main thread changes the owner or the views it owns.
     @Nullable
-    private static ViewTreeObserver.OnPreDrawListener preDrawListener;
-    private static WeakReference<View> preDrawHostRef = new WeakReference<>(null);
-    private static boolean preDrawAttached;
-
-    /**
-     * Clip flags disabled while scaled, restored when leaving fullscreen.
-     */
-    @Nullable
-    private static List<SavedClipState> savedClipStates;
+    private static volatile ScaleOwner activeScale;
 
     static {
         PlayerType.getOnChange().addObserver((PlayerType type) -> {
@@ -102,9 +96,10 @@ public class FullscreenVideoScalePatch {
             View previous = overlayRef.get();
             if (previous != overlay) {
                 overlayRef = new WeakReference<>(overlay);
-                overlay.addOnLayoutChangeListener(
-                        (v, l, t, r, b, ol, ot, or, ob) -> applyScale()
-                );
+                if (previous != null) {
+                    previous.removeOnLayoutChangeListener(overlayLayoutListener);
+                }
+                overlay.addOnLayoutChangeListener(overlayLayoutListener);
             }
             applyScale();
         } catch (Exception ex) {
@@ -121,8 +116,10 @@ public class FullscreenVideoScalePatch {
             if (playerView == null) {
                 return;
             }
-            playerViewRef = new WeakReference<>(playerView);
-            applyScaleOnMainThread();
+            if (playerViewRef.get() != playerView) {
+                playerViewRef = new WeakReference<>(playerView);
+            }
+            applyScale();
         } catch (Exception ex) {
             Logger.printException(() -> "onPlayerViewLayout failure", ex);
         }
@@ -138,54 +135,59 @@ public class FullscreenVideoScalePatch {
     }
 
     public static void applyScale() {
-        Utils.runOnMainThread(FullscreenVideoScalePatch::applyScaleOnMainThread);
+        if (activeScale == null && getActiveMode() == VideoScaleMode.DEFAULT) {
+            return;
+        }
+        Utils.runOnMainThreadNowOrLater(FullscreenVideoScalePatch::applyScaleOnMainThread);
     }
 
     private static void applyScaleOnMainThread() {
         try {
-            View target = resolvePlayerView();
-
-            if (!shouldScale() || Settings.FULLSCREEN_VIDEO_SCALE.get() == VideoScaleMode.DEFAULT) {
-                detachPreDraw();
-                restoreDefaultTransform(target);
+            VideoScaleMode mode = getActiveMode();
+            if (mode == VideoScaleMode.DEFAULT) {
+                releaseScale();
                 return;
             }
 
-            if (target == null) {
-                Logger.printDebug(() -> "Stretch: no player view found");
-                return;
-            }
-
-            View previous = scaledViewRef.get();
-            if (previous != null && previous != target) {
-                resetViewTransform(previous);
-            }
-            scaledViewRef = new WeakReference<>(target);
-
-            // Scale the player view itself so the SurfaceView hardware layer follows
-            // the parent transform. Scaling only the SurfaceView is ignored on some OEMs.
-            disableClipping(target);
-            mapContentToDisplay(target);
-            attachPreDraw(target);
+            updateScale(resolvePlayerView(), mode);
         } catch (Exception ex) {
+            releaseScale();
             Logger.printException(() -> "applyScale failure", ex);
         }
+    }
+
+    private static void updateScale(@Nullable View target, VideoScaleMode mode) {
+        if (mode == VideoScaleMode.DEFAULT || target == null || !target.isAttachedToWindow()) {
+            releaseScale();
+            return;
+        }
+
+        ScaleOwner owner = activeScale;
+        ViewTreeObserver observer = target.getViewTreeObserver();
+        if (owner != null && (owner.targetRef.get() != target || owner.observerRef.get() != observer)) {
+            releaseScale();
+        }
+
+        View root = target.getRootView();
+        int displayW = root.getWidth();
+        int displayH = root.getHeight();
+        int viewW = target.getWidth();
+        int viewH = target.getHeight();
+        if (!observer.isAlive() || displayW <= 0 || displayH <= 0 || viewW <= 0 || viewH <= 0) {
+            releaseScale();
+            return;
+        }
+
+        mapContentToDisplay(target, observer, root, displayW, displayH, viewW, viewH, mode);
     }
 
     /**
      * Scale {@code view} so the letterboxed video content fills the current window.
      * Does not change layout bounds (that would make the native player letterbox again).
      */
-    private static void mapContentToDisplay(View view) {
-        int[] display = getDisplaySize();
-        final int displayW = display[0];
-        final int displayH = display[1];
-        final int viewW = view.getWidth();
-        final int viewH = view.getHeight();
-        if (displayW <= 0 || displayH <= 0 || viewW <= 0 || viewH <= 0) {
-            return;
-        }
-
+    private static void mapContentToDisplay(View view, ViewTreeObserver observer, View root,
+                                            int displayW, int displayH, int viewW, int viewH,
+                                            VideoScaleMode mode) {
         final float videoAR = getVideoAspectRatio(view, viewW, viewH);
         final float viewAR = viewW / (float) viewH;
 
@@ -199,40 +201,34 @@ public class FullscreenVideoScalePatch {
             contentW = viewH * videoAR;
         }
         if (contentW < 1f || contentH < 1f) {
+            releaseScale();
             return;
         }
 
         final float contentLeft = (viewW - contentW) / 2f;
         final float contentTop = (viewH - contentH) / 2f;
 
-        // Location must ignore the transform we apply; clear it first (still before draw).
-        view.setTranslationX(0f);
-        view.setTranslationY(0f);
-        view.setScaleX(1f);
-        view.setScaleY(1f);
-        int[] loc = new int[2];
-        view.getLocationOnScreen(loc);
+        getUnscaledRootLocation(view, root);
 
-        VideoScaleMode mode = Settings.FULLSCREEN_VIDEO_SCALE.get();
-        if (mode == VideoScaleMode.ZOOM) {
-            final float scale = Math.max(displayW / contentW, displayH / contentH);
-            view.setPivotX(contentLeft + contentW / 2f);
-            view.setPivotY(contentTop + contentH / 2f);
-            view.setScaleX(scale);
-            view.setScaleY(scale);
-            final float contentCenterX = loc[0] + contentLeft + contentW / 2f;
-            final float contentCenterY = loc[1] + contentTop + contentH / 2f;
-            view.setTranslationX(displayW / 2f - contentCenterX);
-            view.setTranslationY(displayH / 2f - contentCenterY);
-            return;
+        ScaleOwner owner = activeScale;
+        if (owner == null) {
+            // Scale the player itself: some devices ignore a transform on the SurfaceView alone.
+            owner = new ScaleOwner(view, observer);
+            activeScale = owner;
+            view.addOnAttachStateChangeListener(owner);
+            observer.addOnPreDrawListener(owner);
         }
+        owner.disableClipping(view);
 
-        view.setPivotX(contentLeft);
-        view.setPivotY(contentTop);
-        view.setScaleX(displayW / contentW);
-        view.setScaleY(displayH / contentH);
-        view.setTranslationX(-(loc[0] + contentLeft));
-        view.setTranslationY(-(loc[1] + contentTop));
+        final float scaleX = displayW / contentW;
+        final float scaleY = displayH / contentH;
+        if (mode == VideoScaleMode.ZOOM) {
+            final float scale = Math.max(scaleX, scaleY);
+            owner.applyTransform(view, scale, scale, contentLeft + contentW / 2f, contentTop + contentH / 2f,
+                    displayW / 2f, displayH / 2f);
+        } else {
+            owner.applyTransform(view, scaleX, scaleY, contentLeft, contentTop, 0f, 0f);
+        }
     }
 
     private static float getVideoAspectRatio(View view, int viewW, int viewH) {
@@ -252,166 +248,34 @@ public class FullscreenVideoScalePatch {
     }
 
     /**
-     * Snapshot clip flags on the first call so restore can put back YouTube's values
-     * instead of leaving {@code clipChildren=false} on the watch-page ancestors.
+     * Maps the player's layout origin into the root viewport, excluding both views' own transforms.
      */
-    private static void disableClipping(View view) {
-        List<SavedClipState> saved = savedClipStates;
-        final boolean snapshot = saved == null;
-        if (saved == null) {
-            saved = new ArrayList<>();
-            savedClipStates = saved;
+    private static void getUnscaledRootLocation(View view, View root) {
+        if (view == root) {
+            rootPoint[0] = 0f;
+            rootPoint[1] = 0f;
+            return;
         }
-        View current = view;
-        for (int i = 0; i < 16 && current != null; i++) {
-            if (snapshot) {
-                saved.add(new SavedClipState(current));
+
+        rootPoint[0] = view.getLeft();
+        rootPoint[1] = view.getTop();
+        for (View current = view; current.getParent() instanceof View parent; current = parent) {
+            rootPoint[0] -= parent.getScrollX();
+            rootPoint[1] -= parent.getScrollY();
+            if (parent == root) {
+                return;
             }
-            current.setClipToOutline(false);
-            if (current instanceof ViewGroup group) {
-                group.setClipChildren(false);
-                group.setClipToPadding(false);
-            }
-            if (!(current.getParent() instanceof View parent)) {
-                break;
-            }
-            current = parent;
+            parent.getMatrix().mapPoints(rootPoint);
+            rootPoint[0] += parent.getLeft();
+            rootPoint[1] += parent.getTop();
         }
     }
 
-    private static void restoreClipping() {
-        List<SavedClipState> saved = savedClipStates;
-        savedClipStates = null;
-        if (saved == null) {
-            return;
-        }
-        for (int i = saved.size() - 1; i >= 0; i--) {
-            saved.get(i).restore();
-        }
-    }
-
-    private static int[] getDisplaySize() {
-        int[] size = new int[]{0, 0};
-        Activity activity = Utils.getActivity();
-
-        if (activity != null) {
-            Window window = activity.getWindow();
-            if (window != null) {
-                View decor = window.getDecorView();
-                if (decor.getWidth() > 0 && decor.getHeight() > 0) {
-                    size[0] = decor.getWidth();
-                    size[1] = decor.getHeight();
-                    return size;
-                }
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                    WindowMetrics metrics = activity.getWindowManager().getCurrentWindowMetrics();
-                    size[0] = metrics.getBounds().width();
-                    size[1] = metrics.getBounds().height();
-                    return size;
-                }
-                DisplayMetrics displayMetrics = activity.getResources().getDisplayMetrics();
-                size[0] = displayMetrics.widthPixels;
-                size[1] = displayMetrics.heightPixels;
-                return size;
-            }
-        }
-
-        View playerView = playerViewRef.get();
-        if (playerView != null) {
-            View root = playerView.getRootView();
-            size[0] = root.getWidth();
-            size[1] = root.getHeight();
-            return size;
-        }
-        View overlay = overlayRef.get();
-        if (overlay != null) {
-            View root = overlay.getRootView();
-            size[0] = root.getWidth();
-            size[1] = root.getHeight();
-        }
-        return size;
-    }
-
-    private static void restoreDefaultTransform(@Nullable View playerView) {
-        resetViewTransform(playerView);
-        View previous = scaledViewRef.get();
-        if (previous != playerView) {
-            resetViewTransform(previous);
-        }
-        scaledViewRef = new WeakReference<>(null);
-        restoreClipping();
-    }
-
-    private static void resetViewTransform(@Nullable View view) {
-        if (view == null) {
-            return;
-        }
-        view.setPivotX(view.getWidth() / 2f);
-        view.setPivotY(view.getHeight() / 2f);
-        view.setScaleX(1);
-        view.setScaleY(1);
-        view.setTranslationX(0);
-        view.setTranslationY(0);
-    }
-
-    private static void attachPreDraw(View host) {
-        View preDrawHost = preDrawHostRef.get();
-        if (preDrawAttached && preDrawHost == host) {
-            return;
-        }
-        detachPreDraw();
-        ViewTreeObserver observer = host.getViewTreeObserver();
-        if (observer == null || !observer.isAlive()) {
-            return;
-        }
-
-        preDrawListener = () -> {
-            try {
-                if (!shouldScale() || Settings.FULLSCREEN_VIDEO_SCALE.get() == VideoScaleMode.DEFAULT) {
-                    View target = scaledViewRef.get();
-                    if (target == null) {
-                        target = resolvePlayerView();
-                    }
-                    detachPreDraw();
-                    restoreDefaultTransform(target);
-                    return true;
-                }
-                View target = scaledViewRef.get();
-                if (target == null || !target.isAttachedToWindow()) {
-                    target = resolvePlayerView();
-                    if (target != null) {
-                        scaledViewRef = new WeakReference<>(target);
-                    }
-                }
-                if (target != null) {
-                    disableClipping(target);
-                    mapContentToDisplay(target);
-                }
-            } catch (Exception ex) {
-                Logger.printException(() -> "stretch pre-draw failure", ex);
-            }
-            return true;
-        };
-        observer.addOnPreDrawListener(preDrawListener);
-        preDrawHostRef = new WeakReference<>(host);
-        preDrawAttached = true;
-    }
-
-    private static void detachPreDraw() {
-        if (!preDrawAttached) {
-            return;
-        }
-        ViewTreeObserver.OnPreDrawListener listener = preDrawListener;
-        View preDrawHost = preDrawHostRef.get();
-        preDrawListener = null;
-        preDrawHostRef = new WeakReference<>(null);
-        preDrawAttached = false;
-        if (listener == null || preDrawHost == null) {
-            return;
-        }
-        ViewTreeObserver observer = preDrawHost.getViewTreeObserver();
-        if (observer != null && observer.isAlive()) {
-            observer.removeOnPreDrawListener(listener);
+    private static void releaseScale() {
+        ScaleOwner owner = activeScale;
+        if (owner != null) {
+            activeScale = null;
+            owner.release();
         }
     }
 
@@ -429,15 +293,16 @@ public class FullscreenVideoScalePatch {
      *
      * @see <a href="https://github.com/MorpheApp/morphe-patches/issues/2652">#2652</a>
      */
-    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
-    private static boolean shouldScale() {
-        return PlayerType.getCurrent() == PlayerType.WATCH_WHILE_FULLSCREEN;
+    private static VideoScaleMode getActiveMode() {
+        return PlayerType.getCurrent() == PlayerType.WATCH_WHILE_FULLSCREEN
+                ? Settings.FULLSCREEN_VIDEO_SCALE.get()
+                : VideoScaleMode.DEFAULT;
     }
 
     @Nullable
     private static View resolvePlayerView() {
         View cached = playerViewRef.get();
-        if (cached != null && cached.isAttachedToWindow() && cached.getWidth() > 0) {
+        if (cached != null && cached.isAttachedToWindow()) {
             return cached;
         }
 
@@ -470,8 +335,8 @@ public class FullscreenVideoScalePatch {
             return null;
         }
         String name = view.getClass().getName();
-        if (name.endsWith("YouTubePlayerViewNotForReflection")
-                || name.endsWith("player.ui.PlayerView")) {
+        if (view.isAttachedToWindow()
+                && (name.endsWith("YouTubePlayerViewNotForReflection") || name.endsWith("player.ui.PlayerView"))) {
             return view;
         }
         if (!(view instanceof ViewGroup group)) {
@@ -542,23 +407,167 @@ public class FullscreenVideoScalePatch {
         return view instanceof TextureView || view instanceof SurfaceView;
     }
 
-    private static final class SavedClipState {
-        final WeakReference<View> viewRef;
-        final boolean clipToOutline;
-        final boolean clipChildren;
-        final boolean clipToPadding;
-        final boolean isGroup;
+    private static final class ScaleOwner implements ViewTreeObserver.OnPreDrawListener,
+            View.OnAttachStateChangeListener {
+        final WeakReference<View> targetRef;
+        final WeakReference<ViewTreeObserver> observerRef;
+        private final ClipState[] clipStates = new ClipState[MAX_CLIP_DEPTH];
+        private int clipCount;
 
-        SavedClipState(View view) {
+        private final TransformValue scaleX = new TransformValue();
+        private final TransformValue scaleY = new TransformValue();
+        private final TransformValue translationX = new TransformValue();
+        private final TransformValue translationY = new TransformValue();
+
+        ScaleOwner(View target, ViewTreeObserver observer) {
+            targetRef = new WeakReference<>(target);
+            observerRef = new WeakReference<>(observer);
+        }
+
+        @Override
+        public boolean onPreDraw() {
+            if (activeScale == this) {
+                try {
+                    updateScale(targetRef.get(), getActiveMode());
+                } catch (Exception ex) {
+                    releaseScale();
+                    Logger.printException(() -> "fullscreen video scale pre-draw failure", ex);
+                }
+            }
+            return true;
+        }
+
+        @Override
+        public void onViewAttachedToWindow(View target) {
+            // Ownership only starts on an attached target.
+        }
+
+        @Override
+        public void onViewDetachedFromWindow(View target) {
+            if (activeScale == this) {
+                releaseScale();
+            }
+        }
+
+        void applyTransform(View view, float xScale, float yScale,
+                            float contentX, float contentY, float displayX, float displayY) {
+            // Adjust location for the existing pivot rather than setting it. Even an automatic
+            // pivot remains automatic when switching modes, resizing, or leaving fullscreen.
+            float xTranslation = displayX - rootPoint[0] - contentX
+                    - (contentX - view.getPivotX()) * (xScale - 1f);
+            float yTranslation = displayY - rootPoint[1] - contentY
+                    - (contentY - view.getPivotY()) * (yScale - 1f);
+
+            if (scaleX.update(view.getScaleX(), xScale)) {
+                view.setScaleX(xScale);
+            }
+            if (scaleY.update(view.getScaleY(), yScale)) {
+                view.setScaleY(yScale);
+            }
+            if (translationX.update(view.getTranslationX(), xTranslation)) {
+                view.setTranslationX(xTranslation);
+            }
+            if (translationY.update(view.getTranslationY(), yTranslation)) {
+                view.setTranslationY(yTranslation);
+            }
+        }
+
+        void disableClipping(View target) {
+            View current = target;
+            int depth = 0;
+            while (current != null && depth < MAX_CLIP_DEPTH) {
+                if (depth < clipCount && clipStates[depth].viewRef.get() != current) {
+                    restoreClippingFrom(depth);
+                }
+                if (depth == clipCount) {
+                    clipStates[clipCount++] = new ClipState(current);
+                }
+                clipStates[depth++].disable(current);
+                current = current.getParent() instanceof View parent ? parent : null;
+            }
+            restoreClippingFrom(depth);
+        }
+
+        private void restoreClippingFrom(int depth) {
+            while (clipCount > depth) {
+                ClipState state = clipStates[--clipCount];
+                clipStates[clipCount] = null;
+                state.restore();
+            }
+        }
+
+        void release() {
+            // Remove from the exact observer used at registration, even after the host has detached.
+            ViewTreeObserver observer = observerRef.get();
+            if (observer != null && observer.isAlive()) {
+                observer.removeOnPreDrawListener(this);
+            }
+            View target = targetRef.get();
+            if (target != null) {
+                target.removeOnAttachStateChangeListener(this);
+                restoreTransform(target);
+            }
+            restoreClippingFrom(0);
+        }
+
+        private void restoreTransform(View view) {
+            if (scaleX.canRestore(view.getScaleX())) {
+                view.setScaleX(scaleX.original);
+            }
+            if (scaleY.canRestore(view.getScaleY())) {
+                view.setScaleY(scaleY.original);
+            }
+            if (translationX.canRestore(view.getTranslationX())) {
+                view.setTranslationX(translationX.original);
+            }
+            if (translationY.canRestore(view.getTranslationY())) {
+                view.setTranslationY(translationY.original);
+            }
+        }
+    }
+
+    private static final class TransformValue {
+        float original;
+        float applied;
+
+        boolean update(float current, float next) {
+            if (current != applied) {
+                // Any intervening native write becomes the value to restore.
+                original = current;
+            }
+            applied = next;
+            return current != next;
+        }
+
+        boolean canRestore(float current) {
+            return original != applied && current == applied;
+        }
+    }
+
+    private static final class ClipState {
+        final WeakReference<View> viewRef;
+        private boolean outlineChanged;
+        private boolean childrenChanged;
+        private boolean paddingChanged;
+
+        ClipState(View view) {
             viewRef = new WeakReference<>(view);
-            clipToOutline = view.getClipToOutline();
-            isGroup = view instanceof ViewGroup;
+        }
+
+        void disable(View view) {
+            if (view.getClipToOutline()) {
+                outlineChanged = true;
+                view.setClipToOutline(false);
+            }
             if (view instanceof ViewGroup group) {
-                clipChildren = group.getClipChildren();
-                clipToPadding = group.getClipToPadding();
-            } else {
-                clipChildren = false;
-                clipToPadding = false;
+                if (group.getClipChildren()) {
+                    childrenChanged = true;
+                    group.setClipChildren(false);
+                }
+                if (group.getClipToPadding()) {
+                    paddingChanged = true;
+                    group.setClipToPadding(false);
+                }
             }
         }
 
@@ -567,10 +576,17 @@ public class FullscreenVideoScalePatch {
             if (view == null) {
                 return;
             }
-            view.setClipToOutline(clipToOutline);
-            if (isGroup && view instanceof ViewGroup group) {
-                group.setClipChildren(clipChildren);
-                group.setClipToPadding(clipToPadding);
+
+            if (outlineChanged && !view.getClipToOutline()) {
+                view.setClipToOutline(true);
+            }
+            if (view instanceof ViewGroup group) {
+                if (childrenChanged && !group.getClipChildren()) {
+                    group.setClipChildren(true);
+                }
+                if (paddingChanged && !group.getClipToPadding()) {
+                    group.setClipToPadding(true);
+                }
             }
         }
     }

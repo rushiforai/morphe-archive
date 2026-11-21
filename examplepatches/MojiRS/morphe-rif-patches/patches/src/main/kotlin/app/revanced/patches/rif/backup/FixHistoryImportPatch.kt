@@ -1,5 +1,9 @@
 package app.revanced.patches.rif.backup
 
+import app.revanced.patches.rif.shared.PatchedditFeatures
+import app.revanced.patches.rif.shared.skipForPatcheddit
+import app.revanced.patches.rif.shared.skipResourcesForPatcheddit
+import app.revanced.patches.rif.shared.switchOffForPatcheddit
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.instructions
 import app.morphe.patcher.fingerprint
@@ -44,6 +48,8 @@ private val historyImportStringsPatch = resourcePatch(
     compatibleWith(*RIF_COMPATIBILITY)
 
     execute {
+        if (skipResourcesForPatcheddit(PatchedditFeatures.FIX_HISTORY_IMPORT)) return@execute
+
         document("res/values/strings.xml").use { doc ->
             val nodes = doc.getElementsByTagName("string")
             var changed = 0
@@ -70,7 +76,13 @@ val fixHistoryImportPatch = bytecodePatch(
     dependsOn(historyImportStringsPatch, revancedSettingsPatch)
     extendWith("extensions/extension.mpe")
 
+    finalize {
+        switchOffForPatcheddit(PatchedditFeatures.FIX_HISTORY_IMPORT)
+    }
+
     execute {
+        if (skipForPatcheddit(PatchedditFeatures.FIX_HISTORY_IMPORT)) return@execute
+
         val method = importTaskFingerprint.method
         val instructions = method.instructions.toList()
 

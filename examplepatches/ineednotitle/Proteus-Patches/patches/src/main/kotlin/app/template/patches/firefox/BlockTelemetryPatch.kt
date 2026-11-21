@@ -49,11 +49,9 @@ import com.android.tools.smali.dexlib2.AccessFlags
 @Suppress("unused")
 val blockTelemetryPatch = bytecodePatch(
     name = "Block Firefox telemetry",
-    description = "IronFox-style hardening: never initializes Glean telemetry, Nimbus experiments, Sentry crash " +
-        "reporting, or Adjust attribution at startup; kills Mozilla-side server traffic during browsing " +
-        "(Firefox Suggest/Merino, sponsored shortcuts/Contile, Pocket feed + sponsored stories, search " +
-        "suggestion streaming incl. private tabs, studies previews); and makes the telemetry toggles in " +
-        "Settings read OFF. Browsing, Sync and add-ons keep working; local-only suggestions untouched.",
+    description = "IronFox-style hardening: Glean, Nimbus, Sentry and Adjust never start; Mozilla-side " +
+        "suggestion, sponsored and study traffic is cut while browsing; and the telemetry toggles read " +
+        "OFF. Browsing, Sync and add-ons keep working; local-only suggestions stay untouched.",
     default = true,
 ) {
     compatibleWith(FIREFOX_COMPATIBILITY)

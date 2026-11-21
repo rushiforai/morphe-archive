@@ -55,6 +55,42 @@ public final class ProvidersAndroidProbe {
   check(call("TwitchPronouns","label",labelTypes,labels,"he","they").equals("he/they"),"alternate pronoun label");
   check(call("TwitchPronouns","label",labelTypes,labels,"any",null).equals("any"),"singular pronoun label");
   check(call("TwitchPronouns","label",labelTypes,labels,"unknown",null)==null,"unknown pronoun remains absent");
-  System.out.println("PASS actual Android provider parsers: empty/malformed/truncated payloads, Unicode-safe metadata, modifiers, badge URL/fallback and pronoun nulls");
+  ffzCopy(cdnTypes);
+  System.out.println("PASS actual Android provider parsers: empty/malformed/truncated payloads, Unicode-safe metadata, modifiers, badge URL/fallback, pronoun nulls"
+   +" and FrankerFaceZ's fallback to BetterTTV's copy");
+ }
+
+ /** Issue 97: FrankerFaceZ's lists from BetterTTV's copy when FrankerFaceZ's API fails, over controlled HTTPS. */
+ static void ffzCopy(Class<?>[] cdnTypes)throws Exception {
+  // BetterTTV's copy as it answered on 2026-11-20: FrankerFaceZ's IDs in BetterTTV's format.
+  String body="[{\"id\":246878,\"user\":{\"id\":54361,\"name\":\"fabulouspotato69\",\"displayName\":\"FabulousPotato69\"},\"code\":\"WideHard\","
+   +"\"images\":{\"1x\":\"https://cdn.betterttv.net/frankerfacez_emote/246878/1\",\"2x\":\"https://cdn.betterttv.net/frankerfacez_emote/246878/2\",\"4x\":\"https://cdn.betterttv.net/frankerfacez_emote/246878/4\"},"
+   +"\"imageType\":\"png\",\"animated\":false,\"modifier\":false},{\"id\":739826,\"user\":{\"displayName\":\"SerApollyon\"},\"code\":\"fallDamage\","
+   +"\"images\":{\"1x\":\"https://cdn.betterttv.net/frankerfacez_emote/739826/animated/1\",\"1x_static\":\"https://cdn.betterttv.net/frankerfacez_emote/739826/1\"},"
+   +"\"imageType\":\"gif\",\"animated\":true,\"modifier\":false},{\"id\":720507,\"code\":\"ffzW\",\"animated\":false,\"modifier\":true},null,{\"id\":\"../x\",\"code\":\"Bad\"}]";
+  for(String json:new String[]{"{}","null","[]"})check(length(parse("TwitchEmotes","parseFfzMirror",json))==0,"FFZ copy empty/wrong root");
+  Object copy=parse("TwitchEmotes","parseFfzMirror",body);
+  check(length(copy)==2&&field(Array.get(copy,0),"id").equals("lurkzs_246878")&&field(Array.get(copy,1),"id").equals("lurkza_739826")
+   &&field(Array.get(copy,0),"owner").equals("FabulousPotato69"),"FFZ copy: IDs, animation, owner, modifier and bad IDs left out");
+  check(call("TwitchEmotes","cdnUrl",cdnTypes,"lurkzs_246878",true,4f).equals("https://cdn.betterttv.net/frankerfacez_emote/246878/4"),"FFZ copy static image");
+  check(call("TwitchEmotes","cdnUrl",cdnTypes,"lurkza_739826",true,4f).equals("https://cdn.betterttv.net/frankerfacez_emote/739826/animated/2.gif"),"FFZ copy animated image");
+  java.util.concurrent.ConcurrentHashMap<String,Integer> calls=new java.util.concurrent.ConcurrentHashMap<>();
+  java.net.URL.setURLStreamHandlerFactory(protocol->"https".equals(protocol)?new java.net.URLStreamHandler(){
+   protected java.net.URLConnection openConnection(java.net.URL url){
+    String key=url.toString();calls.merge(key,1,Integer::sum);
+    return new java.net.HttpURLConnection(url){
+     public void connect(){} public void disconnect(){} public boolean usingProxy(){return false;}
+     public int getResponseCode(){return key.startsWith("https://api.frankerfacez.com/")?522:200;}
+     public java.io.InputStream getInputStream(){return new java.io.ByteArrayInputStream((key.endsWith("/emotes/global")?"[]":body).getBytes(java.nio.charset.StandardCharsets.UTF_8));}
+    };
+   }
+  }:null);
+  Class<?>[] channel={String.class};
+  Object fetched=call("TwitchEmotes","fetchFfz",channel,"123");
+  check(length(fetched)==2&&field(Array.get(fetched,0),"id").equals("lurkzs_246878"),"FFZ 522: list from BetterTTV's copy");
+  check(calls.get("https://api.frankerfacez.com/v1/room/id/123")==1&&calls.get("https://api.betterttv.net/3/cached/frankerfacez/users/twitch/123")==1,"FFZ asked first, then the copy");
+  fetched=call("TwitchEmotes","fetchFfz",channel,(Object)null);
+  check(length(fetched)==0&&calls.get("https://api.betterttv.net/3/cached/frankerfacez/emotes/global")==1
+   &&!calls.containsKey("https://api.frankerfacez.com/v1/set/global"),"while FFZ is down the copy is asked first");
  }
 }

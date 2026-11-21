@@ -10,7 +10,7 @@ private val REPO = "https://github.com/lokesh-sparrow/loki-patches"
 patches {
     about {
         name = "Loki Patches"
-        description = "LinkedIn, Splitwise, Truecaller, Doc Scanner and MX Player Pro patches, plus patches that work on any app, for use with Morphe"
+        description = "LinkedIn, Splitwise, Truecaller, Doc Scanner, MX Player Pro and Google Photos patches, plus patches that work on any app, for use with Morphe"
         source = REPO
         author = "Lokesh Sparrow"
         contact = "na"

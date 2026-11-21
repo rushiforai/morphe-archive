@@ -3921,8 +3921,8 @@
         <translation locale="zh-Hant">Wispr Flow 鍵盤橋接需要 Android 14 以上版本。</translation>
     </string>
     <string name="gboard_wispr_flow_bridge_unavailable">
-        <translation locale="en">Open Wispr Flow once and enable the Wispr Flow bridge in LSPosed. This bridge supports Wispr Flow 2.8.5.</translation>
-        <translation locale="zh-Hant">請先開啟 Wispr Flow，並在 LSPosed 啟用 Wispr Flow 橋接模組。此橋接支援 Wispr Flow 2.8.5。</translation>
+        <translation locale="en">Enable bridge 0.3.0 or later in LSPosed and open Wispr Flow 2.8.5 or 2.8.7.</translation>
+        <translation locale="zh-Hant">請在 LSPosed 啟用 0.3.0 以上版本的橋接模組，並開啟 Wispr Flow 2.8.5 或 2.8.7。</translation>
     </string>
     <string name="gboard_wispr_flow_mode_updated">
         <translation locale="en">Wispr Flow launcher updated.</translation>
@@ -3933,8 +3933,8 @@
         <translation locale="zh-Hant">使用鍵盤按鈕</translation>
     </string>
     <string name="gboard_wispr_flow_keyboard_mode_summary">
-        <translation locale="en">Hide the idle floating bubble. Recording and transcription controls still appear while dictating.</translation>
-        <translation locale="zh-Hant">隱藏待機懸浮按鈕。語音輸入時仍會顯示錄音與轉錄控制項。</translation>
+        <translation locale="en">Hide the floating controls and dictate from Gboard.</translation>
+        <translation locale="zh-Hant">隱藏 Wispr Flow 的懸浮控制項，改用 Gboard 進行語音輸入。</translation>
     </string>
     <string name="gboard_wispr_flow_floating_mode">
         <translation locale="en">Restore the floating bubble</translation>
@@ -3943,5 +3943,41 @@
     <string name="gboard_wispr_flow_floating_mode_summary">
         <translation locale="en">Show the normal Wispr Flow launcher again.</translation>
         <translation locale="zh-Hant">重新顯示原本的 Wispr Flow 懸浮按鈕。</translation>
+    </string>
+    <string name="gboard_wispr_flow_header_unavailable">
+        <translation locale="en">Open a text field with the Gboard toolbar visible, then try Wispr Flow again.</translation>
+        <translation locale="zh-Hant">請開啟文字欄位並顯示 Gboard 工具列，再試一次 Wispr Flow。</translation>
+    </string>
+    <string name="gboard_wispr_flow_dictation_failed">
+        <translation locale="en">Wispr Flow could not complete dictation. Open Wispr Flow to check what happened.</translation>
+        <translation locale="zh-Hant">Wispr Flow 無法完成語音輸入。請開啟 Wispr Flow 查看原因。</translation>
+    </string>
+    <string name="gboard_wispr_flow_insert_failed">
+        <translation locale="en">Gboard couldn’t insert the text. You can find it in Wispr Flow history.</translation>
+        <translation locale="zh-Hant">Gboard 無法插入文字。你可以在 Wispr Flow 的歷史記錄中找到它。</translation>
+    </string>
+    <string name="gboard_wispr_flow_cancel">
+        <translation locale="en">Discard Wispr Flow dictation</translation>
+        <translation locale="zh-Hant">捨棄 Wispr Flow 語音輸入</translation>
+    </string>
+    <string name="gboard_wispr_flow_finish">
+        <translation locale="en">Finish Wispr Flow dictation</translation>
+        <translation locale="zh-Hant">完成 Wispr Flow 語音輸入</translation>
+    </string>
+    <string name="gboard_wispr_flow_starting">
+        <translation locale="en">Starting…</translation>
+        <translation locale="zh-Hant">啟動中…</translation>
+    </string>
+    <string name="gboard_wispr_flow_listening">
+        <translation locale="en">Listening</translation>
+        <translation locale="zh-Hant">聆聽中</translation>
+    </string>
+    <string name="gboard_wispr_flow_processing">
+        <translation locale="en">Transcribing…</translation>
+        <translation locale="zh-Hant">轉錄中…</translation>
+    </string>
+    <string name="gboard_wispr_flow_canceling">
+        <translation locale="en">Discarding…</translation>
+        <translation locale="zh-Hant">捨棄中…</translation>
     </string>
 </settings-text>

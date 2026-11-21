@@ -65,6 +65,26 @@ def inspect(bundle: Path, version: str, baseline: Path | None = None) -> dict:
             native = archive.read("nicoid/method-delta.dex")
             require(helpers.startswith(b"dex\n"), "Invalid helper DEX signature")
             require(native.startswith(b"dex\n"), "Invalid native DEX signature")
+            if version == "2.1.5":
+                require(b"2.1.5" in helpers, "v2.1.5 runtime version missing")
+                require(b"2.1.5-dev.17" not in helpers, "Development version leaked into stable MPP")
+                require(b"v2.1.5 @chikuwadon" in helpers, "Shorts still shows older patch version")
+                require(b"v2.1.4 @chikuwadon" not in helpers, "Obsolete Shorts version")
+                extension = archive.read("extensions/extension.mpe")
+                require(extension.startswith(b"dex\n"), "Invalid extension DEX")
+                require(b"v2.1.5 @chikuwadon" in extension, "Extension still shows older patch version")
+                require(b"v2.1.5-dev.17 @chikuwadon" not in extension, "Development extension version leaked")
+                for marker in (
+                    b"BulkVideoActions215", b"LocalePatch215", b"CommentFrames",
+                    b"CommentFpsSummary211", b"ScrollingComments267",
+                    b"ScrollingTimeline267", b"Media3Diagnostics276",
+                    b"LocalPlaylists", b"VideoHttpSource",
+                ):
+                    require(marker in helpers, f"Missing reviewed v2.1.5 helper: {marker!r}")
+                original = baseline or ROOT / "patches/src/main/resources/nicoid/helpers.mpe"
+                if original.is_file() and b"2.1.5" not in original.read_bytes():
+                    require(sha256(helpers) != sha256(original.read_bytes()),
+                            "Unstaged v2.1.5 MPP used instead of approved payload")
             if version == "2.1.4":
                 require(b"2.1.4" in helpers, "v2.1.4 runtime version missing")
                 require(b"2.1.4-dev.3" not in helpers, "Development version leaked into stable MPP")

@@ -1,5 +1,9 @@
 package app.revanced.patches.rif.feed
 
+import app.revanced.patches.rif.shared.PatchedditFeatures
+import app.revanced.patches.rif.shared.skipForPatcheddit
+import app.revanced.patches.rif.shared.skipResourcesForPatcheddit
+import app.revanced.patches.rif.shared.switchOffForPatcheddit
 import app.morphe.patcher.util.smali.ExternalLabel
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
@@ -60,7 +64,13 @@ val explainRedditBlocksPatch = bytecodePatch(
     compatibleWith(*RIF_COMPATIBILITY)
     extendWith("extensions/extension.mpe")
 
+    finalize {
+        switchOffForPatcheddit(PatchedditFeatures.EXPLAIN_REDDIT_BLOCKS)
+    }
+
     execute {
+        if (skipForPatcheddit(PatchedditFeatures.EXPLAIN_REDDIT_BLOCKS)) return@execute
+
         // 0. Remember, per worker thread and on every error response, whether the request was
         // signed in (p3). A logged-out rif gets the block page for every listing; it keeps rif's text.
         requestErrorFingerprint.method.addInstructions(

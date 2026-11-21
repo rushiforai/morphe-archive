@@ -28,7 +28,6 @@ NEEDGAME(com.rockstargames.gtactw)
 static std::string gDir;             // Android/data/<pkg>/files/
 static std::string gDxt;             // gDir + "DXT.bin" when present
 static bool gRadio;                  // gDir + "radio/" exists
-static uintptr_t gLib;
 struct Entry { uint32_t off, size; const uint8_t* mem; };  // mem: served from memory instead of CTWHD.bin
 static std::unordered_map<uint32_t, Entry> gHd;  // CTWHD.bin index and radio_menu.png
 static std::vector<uint8_t> gMenuLogos;
@@ -60,11 +59,22 @@ DECL_HOOKp(NvFOpen, const char* name)
 }
 
 // TryDXTSize is a 16-byte leaf (a table read), so the original is read directly instead of called through a trampoline.
+static uint32_t* gDxtSizes;  // the table it reads, decoded from its code by DxtSizeTable
 DECL_HOOK(uint32_t, TryDXTSize, uint32_t id)
 {
     auto e = gHd.find(id);
     if (e != gHd.end()) return e->second.size;
-    return id < 0x2000 ? ((uint32_t*)(gLib + 0x10af178))[id] : 0;
+    return id < 0x2000 ? gDxtSizes[id] : 0;
+}
+
+// Matches `adrp x8, T; add x8, x8, #:lo12:T; ldr w0, [x8, w0, uxtw #2]` and returns T, or null if the code differs.
+static uint32_t* DxtSizeTable(uintptr_t fn)
+{
+    const uint32_t* i = (const uint32_t*)fn;
+    if ((i[0] & 0x9f00001f) != 0x90000008 || (i[1] & 0xffc003ff) != 0x91000108 || i[2] != 0xb8605900) return nullptr;
+    uint64_t imm = (((i[0] >> 5) & 0x7ffff) << 2) | ((i[0] >> 29) & 3);
+    int64_t page = (int64_t)(imm << 43) >> 31;  // signed imm21 << 12
+    return (uint32_t*)((fn & ~(uintptr_t)0xfff) + page + ((i[1] >> 10) & 0xfff));
 }
 
 // The game sizes the resource buffer with TryDXTSize, then copies GetDXTData's malloc'd block into it and frees it.
@@ -152,9 +162,8 @@ extern "C" void OnModLoad()
 {
     logger->SetTag("CTW Packs");
     if (!registerRadioConverter(aml->GetJNIEnvironment())) logger->Error("radio converter not registered");
-    gLib = aml->GetLib("libGame.so");
     void* h = aml->GetLibHandle("libGame.so");
-    if (!gLib || !h) { logger->Error("libGame.so not loaded"); return; }
+    if (!h) { logger->Error("libGame.so not loaded"); return; }
     gDir = std::string(aml->GetAndroidDataPath()) + "/";
 
     if (readable(gDir + "DXT.bin")) gDxt = gDir + "DXT.bin";
@@ -169,7 +178,9 @@ extern "C" void OnModLoad()
               data = aml->GetSym(h, "_Z10GetDXTDatajPj"), init = aml->GetSym(h, "_Z14InitGlobalTextPKc");
     GlobalText = (void* (*)())aml->GetSym(h, "_Z10GlobalTextv");
     if ((!gDxt.empty() || gRadio) && open) HOOK(NvFOpen, open);
-    if (!gHd.empty() && size && data) { HOOK(TryDXTSize, size); HOOK(GetDXTData, data); }
+    gDxtSizes = size ? DxtSizeTable(size) : nullptr;
+    if (!gHd.empty() && gDxtSizes && data) { HOOK(TryDXTSize, size); HOOK(GetDXTData, data); }
+    else if (!gHd.empty()) logger->Error("TryDXTSize not recognised: HD textures disabled");
     if (!gNames.empty() && init && GlobalText) HOOK(InitGlobalText, init);
     logger->Info("DXT.bin %s, %zu HD textures, radio folder %s, %zu names, menu logos %s",
                  gDxt.empty() ? "absent" : "loaded", gHd.size(), gRadio ? "found" : "absent", gNames.size(),

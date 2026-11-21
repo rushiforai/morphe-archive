@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2026 lavinhoque33
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-20.
  * Modified by lavinhoque33, 2026-11-19.
  * Modified by lavinhoque33, 2026-11-18.
  * Modified by lavinhoque33, 2026-11-07.
@@ -222,7 +223,8 @@ public final class PlaylistDownloads {
             if (run.mode.streamCopy()) {
                 downloadStream(playlistId, header, tracks, available, skipped, quality, run);
             } else {
-                downloadDeviceFiles(playlistId, header.title(), available, skipped, quality, run);
+                downloadDeviceFiles(playlistId, header.title(), available, skipped, quality, run,
+                        AlbumFileTracks.batch(browseId, first));
             }
         } catch (Exception ex) {
             if (run.removed) return;
@@ -257,18 +259,28 @@ public final class PlaylistDownloads {
     }
 
     private static void downloadDeviceFiles(String playlistId, String title, List<String> tracks,
-                                            int skipped, DownloadQuality quality, Run run) throws Exception {
+                                            int skipped, DownloadQuality quality, Run run,
+                                            AlbumFileTracks albumTracks) throws Exception {
         List<Long> mediaIds = new ArrayList<>(tracks.size());
+        LocalDownloadManager.Saved onlyNewFile = null;
+        int newFiles = 0;
         for (int index = 0; index < tracks.size(); index++) {
-            run.hold.progress(title, index * 100 / tracks.size(),
-                    str("morphe_music_playlist_download_progress", index + 1, tracks.size()));
-            LocalDownloadManager.Saved saved = LocalDownloadManager.download(tracks.get(index), run.mode, quality);
+            if (DownloadKeepAlive.supported() || LocalDownloadManager.canPostProgress()) {
+                run.hold.progress(title, index * 100 / tracks.size(),
+                        str("morphe_music_playlist_download_progress", index + 1, tracks.size()));
+            }
+            LocalDownloadManager.Saved saved = LocalDownloadManager.downloadDeviceFile(tracks.get(index), quality,
+                    albumTracks);
+            if (saved.downloaded()) {
+                newFiles++;
+                onlyNewFile = newFiles == 1 ? saved : null;
+            }
             mediaIds.add(NativeAudioStore.mediaId(saved.nativeTrack()));
         }
         if (!run.hold.finish()) throw new IOException("Playlist download stopped");
         NativePlaylistStore.save(playlistId, title, mediaIds);
         reportComplete(run, playlistId, title, completionText(run.mode, 0, tracks.size(), skipped,
-                VideoCopyDownloader.Outcome.NONE));
+                VideoCopyDownloader.Outcome.NONE), onlyNewFile);
     }
 
     private static void downloadStream(String playlistId, SourceHeader header, List<String> tracks,
@@ -319,7 +331,7 @@ public final class PlaylistDownloads {
         }
         if (completed) {
             reportComplete(run, playlistId, title, completionText(run.mode, transfer.downloaded(), result.total(),
-                    skipped, videos));
+                    skipped, videos), null);
         } else {
             int failed = 0;
             for (String id : available) if (failures.contains(canonical.apply(id))) failed++;
@@ -362,13 +374,14 @@ public final class PlaylistDownloads {
                 progress.ready(), progress.total());
     }
 
-    private static void reportComplete(Run run, String playlistId, String title, String text) {
+    private static void reportComplete(Run run, String playlistId, String title, String text,
+                                       @Nullable LocalDownloadManager.Saved onlyNewFile) {
         run.hold.close();
         LocalDownloadManager.awaitNotificationSlot();
         if (run.removed) return;
 
         Logger.printInfo(() -> "PlaylistDownloads: completed " + playlistId);
-        LocalDownloadManager.showDownloadNotification("playlist:" + playlistId, title, 100, false, text);
+        LocalDownloadManager.showDownloadNotification("playlist:" + playlistId, title, 100, false, text, onlyNewFile);
         if (!run.automatic) Utils.showToastShort(text);
     }
 

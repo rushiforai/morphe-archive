@@ -10,12 +10,12 @@ This document specifies patches for **Pro Metronome** (`com.eumlab.android.prome
 
 - **Name:** Remove Tracking
 - **Target Package:** `com.eumlab.android.prometronome`
-- **Supported Versions:** `1.0.12`
+- **Supported Versions:** `1.14`
 - **Default State:** `true` (Enabled by default)
 - **Type:** Dalvik Bytecode Patch (`bytecodePatch`)
 - **Category:** `Privacy`
 - **Dependencies:** None
-- **Compatibility:** `COMPATIBILITY_PRO_METRONOME` (`ApkFileType.APKM`, target `1.0.12`, `minSdk` 23)
+- **Compatibility:** `COMPATIBILITY_PRO_METRONOME` (`ApkFileType.APKM`, target `1.14`, `minSdk` 23)
 - **Options:**
   - `Disable Facebook App Events` (`disableFacebookEvents`, default `true`): Neutralizes Facebook SDK session logging, purchase tracking, and attribution identifiers.
   - `Zero Advertising ID` (`zeroAdvertisingId`, default `true`): Spoofs the Google Play Advertising ID client to return an all-zero identifier (`00000000-0000-0000-0000-000000000000`) and force limit-ad-tracking.
@@ -86,12 +86,12 @@ Pro Metronome incorporates several telemetry trackers and fingerprinting routine
 
 - **Name:** Unlock Pro
 - **Target Package:** `com.eumlab.android.prometronome`
-- **Supported Versions:** `1.0.12`
+- **Supported Versions:** `1.14`
 - **Default State:** `true` (Enabled by default)
 - **Type:** Dalvik Bytecode Patch (`bytecodePatch`)
 - **Category:** `Features`
 - **Dependencies:** None
-- **Compatibility:** `COMPATIBILITY_PRO_METRONOME` (`ApkFileType.APKM`, target `1.0.12`, `minSdk` 23)
+- **Compatibility:** `COMPATIBILITY_PRO_METRONOME` (`ApkFileType.APKM`, target `1.14`, `minSdk` 23)
 - **Options:** None
 
 ### 1. Motivation & Purpose

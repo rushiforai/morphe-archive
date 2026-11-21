@@ -2,7 +2,7 @@ package app.morphe.extension.youtube.patches.components;
 
 import app.morphe.extension.shared.patches.components.ByteArrayFilterGroup;
 import app.morphe.extension.shared.patches.components.ByteArrayFilterGroupList;
-import app.morphe.extension.shared.patches.components.Filter;
+import app.morphe.extension.shared.patches.components.LazyBufferFilter;
 import app.morphe.extension.shared.patches.components.StringFilterGroup;
 import app.morphe.extension.shared.patches.components.StringFilterGroupList;
 import app.morphe.extension.shared.utils.StringTrieSearch;
@@ -11,7 +11,7 @@ import app.morphe.extension.youtube.shared.PlayerType;
 import app.morphe.extension.youtube.shared.RootView;
 
 @SuppressWarnings("unused")
-public final class PlayerComponentsFilter extends Filter {
+public final class PlayerComponentsFilter extends LazyBufferFilter {
     private final StringFilterGroupList channelBarGroupList = new StringFilterGroupList();
     private final StringFilterGroup channelBar;
     private final StringFilterGroup seekMessage;
@@ -146,7 +146,7 @@ public final class PlayerComponentsFilter extends Filter {
     }
 
     @Override
-    public boolean isFiltered(String path, String identifier, String allValue, byte[] buffer,
+    public boolean isFilteredLazy(String path, String identifier, String allValue, Buffer buffer,
                               StringFilterGroup matchedGroup, FilterContentType contentType, int contentIndex) {
         // This identifier is used not only in players but also in search results:
         // https://github.com/ReVanced/revanced-patches/issues/3245
@@ -162,10 +162,10 @@ public final class PlayerComponentsFilter extends Filter {
         } else if (matchedGroup == channelBar) {
             return channelBarGroupList.check(path).isFiltered();
         } else if (matchedGroup == seekMessage) {
-            if (seekMessageGroupExceptions.check(buffer).isFiltered()) {
+            if (seekMessageGroupExceptions.check(buffer.get()).isFiltered()) {
                 return false;
             }
-            return isEveryFilterGroupEnabled() || seekMessageGroupList.check(buffer).isFiltered();
+            return isEveryFilterGroupEnabled() || seekMessageGroupList.check(buffer.get()).isFiltered();
         }
 
         return true;

@@ -27,6 +27,10 @@ import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 
 private const val PREMIUM = "${Constants.EXTENSION_PACKAGE}/premium/Premium;"
 
+/** The Kotlin flowOf implementation 4.10.28 keeps under its inline name. */
+private const val FLOW_OF =
+    "Lkotlinx/coroutines/flow/FlowKt__BuildersKt\$flowOf\$\$inlined\$unsafeFlow\$1;"
+
 context(context: BytecodePatchContext)
 private fun findMethodOrNull(predicate: (ClassDef, Method) -> Boolean): Pair<ClassDef, Method>? {
     val found = mutableListOf<Pair<ClassDef, Method>>()
@@ -190,6 +194,32 @@ val hidePremiumPatch = bytecodePatch(
                 )
             }
 
+        // 4.10.28 draws the More screen's Try Premium banner from HomeBannerProvider's
+        // getMoreBannerFlow, and the fixed composable above is gone. Emit a single null banner
+        // instead, which is what a Premium member's app shows.
+        mutableClassDefByOrNull("Lcom/chess/gopremium/home/HomeBannerProvider;")?.methods
+            ?.singleOrNull { method ->
+                method.name == "b" && method.returnType == "Lcom/google/android/rc2;" &&
+                    method.parameterTypes.isEmpty()
+            }
+            ?.apply {
+                addInstructionsWithLabels(
+                    0,
+                    """
+                        invoke-static { }, $PREMIUM->hideBanner()Z
+                        move-result v0
+                        if-eqz v0, :morphe_more_banner
+                        const/4 v0, 0x0
+                        filled-new-array { v0 }, [Ljava/lang/Object;
+                        move-result-object v0
+                        new-instance v1, $FLOW_OF
+                        invoke-direct { v1, v0 }, $FLOW_OF-><init>([Ljava/lang/Object;)V
+                        return-object v1
+                    """,
+                    ExternalLabel("morphe_more_banner", getInstruction(0)),
+                )
+            }
+
         // Home toolbar: the placement collector; null = no Premium icon (what members get).
         // 4.10.23 dropped the icon.
         ToolbarPremiumIconFingerprint.matchOrNull()?.method?.apply {
@@ -282,9 +312,12 @@ val hidePremiumPatch = bytecodePatch(
         mutableClassDefBy(HomeContentToStringFingerprint.originalClassDef).methods
             .filter { it.name == "<init>" }.maxByOrNull { it.parameterTypes.size }!!.apply {
                 // 4.10.27 replaced the paywall Offer parameter with the banner state model
-                // (internal/paywall/a$b); older builds keep the paywall Offer.
-                val banner = parameterTypes.indexOfFirst { it.toString() == "Lcom/chess/internal/paywall/a\$b;" }
+                // (internal/paywall/a$b), 4.10.28 moved it to the Go Premium package
+                // (gopremium/home/a$a); older builds keep the paywall Offer.
+                val banner = parameterTypes.indexOfFirst { it.toString() == "Lcom/chess/gopremium/home/a\$a;" }
                     .takeIf { it >= 0 }
+                    ?: parameterTypes.indexOfFirst { it.toString() == "Lcom/chess/internal/paywall/a\$b;" }
+                        .takeIf { it >= 0 }
                     ?: parameterTypes.indexOfFirst { it.toString() == "Lcom/chess/features/paywall/Offer;" }
                 if (banner < 0) throw PatchException("The Home sale banner was not found")
                 nullOffer(0, "p${banner + 1}", parameterTypes[banner].toString())

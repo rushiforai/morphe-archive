@@ -1,0 +1,46 @@
+name: Patch request
+description: A patch you would like to see, or a change to one of the existing ones.
+title: "[Request]: "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Ideas are welcome, big or small ;3
+
+        The bundle is for analysing games that are already over: Game Review, the analysis boards and finished
+        games. That is the only thing the engine here is meant to do, so a request outside that will just be a
+        "no, sorry".
+
+  - type: textarea
+    id: what
+    attributes:
+      label: What you would like
+      description: One or two sentences are enough.
+    validations:
+      required: true
+
+  - type: textarea
+    id: why
+    attributes:
+      label: Why it helps
+      description: What is awkward or missing today, and what the patch would change for you.
+    validations:
+      required: false
+
+  - type: input
+    id: where
+    attributes:
+      label: Which screen or patch it touches
+      description: For example the review screen, the settings page, or one of the existing patches. Optional.
+      placeholder: Unlimited Game Review - the review screen
+    validations:
+      required: false
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Anything you tried instead
+      description: Another app or patch that already does it, or a workaround. Screenshots are fine. Optional.
+    validations:
+      required: false

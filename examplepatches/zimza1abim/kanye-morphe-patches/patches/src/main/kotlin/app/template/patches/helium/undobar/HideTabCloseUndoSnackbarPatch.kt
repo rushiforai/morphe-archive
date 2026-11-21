@@ -22,7 +22,6 @@ import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
 private const val OBJECT = "Ljava/lang/Object;"
 private const val CHAR_SEQUENCE = "Ljava/lang/CharSequence;"
 // Chromium keeps these public tab API class names; member names are obfuscated.
-private const val TAB = "Lorg/chromium/chrome/browser/tab/Tab;"
 private const val TAB_MODEL = "Lorg/chromium/chrome/browser/tabmodel/TabModel;"
 private const val COMMIT_HELPER = "titaniumCommitClosedTabs"
 
@@ -84,8 +83,12 @@ val hideTabCloseUndoSnackbarPatch = bytecodePatch(
             }
             if (callbacks.size != 2 || !callbacks.all { callback ->
                     val calls = callback.calls()
-                    calls.any { it.definingClass == TAB && it.returnType == "I" && it.parameterTypes.isEmpty() } &&
-                        calls.any { it.definingClass == TAB_MODEL && it.params() == listOf("I") }
+                    // Both callbacks commit the pending closures through TabModel(I).
+                    // Up to 157 that came with Tab getter calls; 158 carries the ids in the
+                    // pending-closure record instead and no longer touches Tab here, so the
+                    // TabModel commit is the part every build shares. The single-site check
+                    // below and the unique controller/dismiss/snackbar shapes keep it pinned.
+                    calls.any { it.definingClass == TAB_MODEL && it.params() == listOf("I") }
                 }) return@classDefForEach
 
             classDef.methods.forEach { method ->

@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2026 lavinhoque33
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-20.
  * Modified by lavinhoque33, 2026-11-18.
  * Written by lavinhoque33, 2026-11-08.
  */
@@ -64,12 +65,22 @@ final class PlaylistPage {
 
     /** Read the entire current list before changing saved membership, including when resuming. */
     static List<String> readPlaylist(@Nullable String sourceId, JSONObject first, Browse browse) throws Exception {
+        return readPlaylist(sourceId, first, browse, false);
+    }
+
+    /** An album tag must come from the one unambiguous shelf for the verified album playlist. */
+    static List<String> readAlbum(String sourceId, JSONObject first, Browse browse) throws Exception {
+        return readPlaylist(sourceId, first, browse, true);
+    }
+
+    private static List<String> readPlaylist(@Nullable String sourceId, JSONObject first, Browse browse,
+                                             boolean album) throws Exception {
         List<String> tracks = new ArrayList<>();
         Set<String> continuations = new HashSet<>();
         JSONObject response = first;
         boolean continuation = false;
         while (true) {
-            Page page = read(response, sourceId, continuation);
+            Page page = read(response, sourceId, continuation, album);
             tracks.addAll(page.videoIds());
             String token = page.continuation();
             if (token == null) return tracks;
@@ -81,15 +92,16 @@ final class PlaylistPage {
     }
 
     static Page read(JSONObject response) throws IOException {
-        return read(response, null, false);
+        return read(response, null, false, false);
     }
 
-    private static Page read(JSONObject response, @Nullable String source, boolean continuation) throws IOException {
+    private static Page read(JSONObject response, @Nullable String source, boolean continuation, boolean album)
+            throws IOException {
         List<String> ids = new ArrayList<>();
         String[] next = new String[1];
         boolean[] found = new boolean[1];
-        collectShelves(response, ids, next, found, false, source, continuation);
-        if (!found[0]) collectShelves(response, ids, next, found, true, source, continuation);
+        collectShelves(response, ids, next, found, false, source, continuation, album);
+        if (!album && !found[0]) collectShelves(response, ids, next, found, true, source, continuation, false);
         if (!found[0] || source != null && continuation && ids.isEmpty()) {
             throw new IOException("Music did not return a complete playlist shelf");
         }
@@ -97,7 +109,8 @@ final class PlaylistPage {
     }
 
     private static void collectShelves(Object node, List<String> ids, String[] next, boolean[] found,
-                                      boolean legacyShelf, @Nullable String source, boolean continuation)
+                                      boolean legacyShelf, @Nullable String source, boolean continuation,
+                                      boolean album)
             throws IOException {
         if (node instanceof JSONObject object) {
             Iterator<String> keys = object.keys();
@@ -114,16 +127,25 @@ final class PlaylistPage {
                         if (continuation != (append || key.endsWith("Continuation"))) continue;
                         validateShelf(value, source, append ? "continuationItems" : "contents");
                     }
+                    if (album && found[0]) throw new IOException("Music returned multiple album shelves");
                     found[0] = true;
-                    collectItems(value, ids, next, source != null);
+                    if (album) {
+                        JSONObject albumShelf = (JSONObject) value;
+                        boolean identified = !albumShelf.optString("playlistId").isEmpty();
+                        collectItems(albumShelf.optJSONArray(append ? "continuationItems" : "contents"),
+                                ids, next, true, source, identified);
+                        collectItems(albumShelf.optJSONArray("continuations"), ids, next, true, source, identified);
+                    } else {
+                        collectItems(value, ids, next, source != null, null, false);
+                    }
                 } else if (!key.equals("header") && !key.equals("menu") && !key.equals("menus")
                         && !key.equals("frameworkUpdates") && !key.equals("musicCarouselShelfRenderer")) {
-                    collectShelves(value, ids, next, found, legacyShelf, source, continuation);
+                    collectShelves(value, ids, next, found, legacyShelf, source, continuation, album);
                 }
             }
         } else if (node instanceof JSONArray array) {
             for (int i = 0; i < array.length(); i++) {
-                collectShelves(array.opt(i), ids, next, found, legacyShelf, source, continuation);
+                collectShelves(array.opt(i), ids, next, found, legacyShelf, source, continuation, album);
             }
         }
     }
@@ -138,23 +160,33 @@ final class PlaylistPage {
         }
     }
 
-    private static void collectItems(Object node, List<String> ids, String[] next, boolean strict) throws IOException {
+    private static void collectItems(Object node, List<String> ids, String[] next, boolean strict,
+                                     @Nullable String albumId, boolean identifiedShelf) throws IOException {
         if (node instanceof JSONObject object) {
             for (String key : ROW_RENDERERS) {
                 JSONObject row = object.optJSONObject(key);
                 if (row == null) continue;
                 JSONObject itemData = row.optJSONObject("playlistItemData");
                 String id = itemData == null ? "" : itemData.optString("videoId");
+                JSONObject endpoint = id.isEmpty() || albumId != null ? row.optJSONObject("navigationEndpoint") : null;
+                JSONObject watch = endpoint == null ? null : endpoint.optJSONObject("watchEndpoint");
                 if (id.isEmpty()) {
-                    JSONObject endpoint = row.optJSONObject("navigationEndpoint");
                     // an owned playlist lists an "Add a song" search row, not a track.
                     if (itemData == null && endpoint != null && endpoint.has("searchEndpoint")) return;
-                    JSONObject watch = endpoint == null ? null : endpoint.optJSONObject("watchEndpoint");
                     if (watch != null) id = watch.optString("videoId");
                 }
                 if (id.isEmpty() && !isGreyedOut(row)) throw new IOException("A playlist track has no video id");
                 if (strict && !id.isEmpty() && !RawAudioFiles.validId(id)) {
                     throw new IOException("A playlist track has an invalid video id");
+                }
+                if (albumId != null && !id.isEmpty()) {
+                    String rowPlaylist = watch == null ? "" : watch.optString("playlistId");
+                    if (!rowPlaylist.equals(albumId) && (!rowPlaylist.isEmpty() || !identifiedShelf)) {
+                        throw new IOException("Album track belongs to an unverified playlist");
+                    }
+                    if (watch != null && !id.equals(watch.optString("videoId"))) {
+                        throw new IOException("Album track has conflicting video ids");
+                    }
                 }
                 // Deliberate duplicate positions must remain in the playlist, and so must the position of an
                 // unavailable track: the app numbers the rows after it with it counted.
@@ -172,9 +204,13 @@ final class PlaylistPage {
                 return;
             }
             Iterator<String> keys = object.keys();
-            while (keys.hasNext()) collectItems(object.opt(keys.next()), ids, next, strict);
+            while (keys.hasNext()) {
+                collectItems(object.opt(keys.next()), ids, next, strict, albumId, identifiedShelf);
+            }
         } else if (node instanceof JSONArray array) {
-            for (int i = 0; i < array.length(); i++) collectItems(array.opt(i), ids, next, strict);
+            for (int i = 0; i < array.length(); i++) {
+                collectItems(array.opt(i), ids, next, strict, albumId, identifiedShelf);
+            }
         }
     }
 }

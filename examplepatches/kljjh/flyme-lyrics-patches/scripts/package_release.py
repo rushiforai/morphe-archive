@@ -19,7 +19,7 @@ def package(repository):
         if bundle.testzip() is not None:
             raise RuntimeError("Invalid bundle: corrupt ZIP entry")
         names = bundle.namelist()
-        required = ["classes.dex", "io/github/kljjh/flymelyrics/FlymeLyricsPatchKt.class", "community/LICENSE", "community/NOTICE", "community/UPSTREAM.md"]
+        required = ["classes.dex", "io/github/kljjh/flymelyrics/FlymeLyricsPatchKt.class", "community/LICENSE", "community/NOTICE"]
         for name in required:
             if name not in names:
                 raise RuntimeError(f"Invalid bundle: missing {name}")
@@ -49,13 +49,13 @@ def package(repository):
         "version": version,
         # Morphe's LocalDateTime parser expects an ISO timestamp without a zone suffix.
         "created_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S"),
-        "description": f"Independent Flyme add-on. Also select Third-party lyrics from the OFFICIAL Morphe source. Tested against official {config['official_version']}. Does not bundle official patches. Device validation pending.",
-        "download_url": f"https://github.com/{repository}/releases/download/v{version}/{target.name}",
+        "description": "Flyme status bar lyrics for YouTube Music. Requires official Third-party lyrics. Includes independent timing control.",
+        "download_url": f"https://raw.githubusercontent.com/{repository}/main/bundles/{target.name}",
         "signature_download_url": "",
         "public_key": None,
     }
     (dist / "patches-bundle.json").write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
-    for name in ("LICENSE", "NOTICE", "UPSTREAM.md"):
+    for name in ("LICENSE", "NOTICE"):
         shutil.copy2(ROOT / name, dist / name)
     # Only this independent project's corresponding source; the official fixture is excluded.
     paths = subprocess.check_output(
@@ -64,7 +64,7 @@ def package(repository):
     with tarfile.open(dist / f"flyme-lyrics-patches-{version}-sources.tar.gz", "w:gz") as archive:
         for name in sorted(set(filter(None, paths))):
             path = ROOT / name
-            if path.is_file():
+            if path.is_file() and not name.startswith("bundles/"):
                 archive.add(path, arcname=f"flyme-lyrics-patches-{version}/{name}")
     print(f"Validated {target.name}: {digest}")
 

@@ -42,7 +42,7 @@ public final class SettingsProfiles {
         numberKey(ThreadListThumbnail.REGISTERED_ACTION,0,3);defaultValue(ThreadListThumbnail.REGISTERED_ACTION,0);
         booleanKey(PostingSettingLinks.KEY);defaultValue(PostingSettingLinks.KEY,false);
         booleanKey(StockChmatePosting.ALWAYS);defaultValue(StockChmatePosting.ALWAYS,false);
-        for(String key:new String[]{ThreadTitleActions.SHOW_REFRESH,ThreadTitleActions.SHOW_WATCH,ThreadTitleActions.SHOW_AUTH,DisplayNames.SHOW_RENAME}){booleanKey(key);defaultValue(key,true);}
+        for(String key:new String[]{ThreadTitleActions.SHOW_REFRESH,ThreadTitleActions.SHOW_WATCH,ThreadTitleActions.SHOW_AUTH}){booleanKey(key);defaultValue(key,true);}
         booleanKey(StockChmatePosting.LONG_PRESS);defaultValue(StockChmatePosting.LONG_PRESS,false);
         booleanKey(StockChmatePosting.SKIP_CONFIRM);defaultValue(StockChmatePosting.SKIP_CONFIRM,false);
         booleanKey(StockChmatePosting.SHOW_MENU);defaultValue(StockChmatePosting.SHOW_MENU,true);
@@ -96,6 +96,7 @@ public final class SettingsProfiles {
         numberKey(HaiagaruSettingsGestures.SENSITIVITY,50,200);
         defaultValue(HaiagaruSettingsGestures.SENSITIVITY,100);
         defaultValue(ExpertSettings.KEY,false);
+        defaultValue("quickFilterExtras",false);
         for(String key:EXTRA_BOOLEAN)booleanKey(key);
         for(String key:new String[]{ThreadSearchOptions.MENU_SEARCH,ThreadSearchOptions.MENU_SELECTION}){booleanKey(key);defaultValue(key,true);}
         for(String key:new String[]{ThreadSearchOptions.ID,ThreadSearchOptions.WACCHOI,ThreadSearchOptions.NAME}){booleanKey(key);defaultValue(key,false);}
@@ -141,7 +142,6 @@ public final class SettingsProfiles {
         booleanKey(XPostPreviewPosition.ENABLED);
         defaultValue(XPostPreviewPosition.ENABLED,true);
         booleanKey(ReadingPosition.ENABLED);
-        defaultValue(ReadingPosition.ENABLED,true);
         booleanKey(EmojiFontFallback.ENABLED);
         defaultValue(EmojiFontFallback.ENABLED,true);
         booleanKey(ThreadRefreshOptions.KEY);

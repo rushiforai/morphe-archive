@@ -39,8 +39,11 @@ val clonePatch = resourcePatch(
 ) {
     compatibleWith(Constants.COMPATIBILITY)
 
-    val suffixOption = stringOption(
-        key = "cloneSuffix",
+    // Morphe recognizes a clone by an option keyed "packageName": it reads the key, not the value,
+    // and marks the install it builds as a copy (see PatchRunTargeting.kt in the manager). The
+    // value stays just the last package segment, after com.chess.
+    val packageNameOption = stringOption(
+        key = "packageName",
         default = DEFAULT_SUFFIX,
         title = "Package name suffix",
         description = "The last part of the package name, after com.chess. Default: $DEFAULT_SUFFIX.",
@@ -48,7 +51,7 @@ val clonePatch = resourcePatch(
     )
 
     finalize {
-        val suffix = normalizeSuffix(suffixOption.value)
+        val suffix = normalizeSuffix(packageNameOption.value)
         val packageName = packageMetadata.packageName
         val newPackageName = "$packageName.$suffix"
         val providerStrings = mutableSetOf<String>()

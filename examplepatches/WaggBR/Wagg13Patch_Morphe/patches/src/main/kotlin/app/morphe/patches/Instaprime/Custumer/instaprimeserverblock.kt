@@ -1,6 +1,8 @@
 package app.morphe.patches.instaprime.premium
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
+import app.morphe.patcher.patch.AppTarget
+import app.morphe.patcher.patch.Compatibility
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import com.android.tools.smali.dexlib2.AccessFlags
@@ -47,18 +49,22 @@ private fun listActivityBody(innerClass: String, outerClass: String) = """
     return-void
 """
 
-
-internal object InstaPrimeServerBlock {
-    @Suppress("unused")
-    val patch = bytecodePatch(
-        name = "Server block message",
-        description = "Troca o texto que o servidor do InstaPrime manda ao recusar um recurso por um aviso de bloqueio por servidor.",
-    ) {
-        compatibleWith("com.instaprime.android"("435.0.0.37.76"))
+@Suppress("unused")
+internal val instaPrimeServerBlockMessagePatch = bytecodePatch {
+        compatibleWith(
+            Compatibility(
+                name = "InstaPrime",
+                packageName = "com.instaprime.android",
+                targets = listOf(AppTarget(version = "435.0.0.37.76")),
+            ),
+        )
 
         execute {
 		
-            mutableClassDefBy("Lcom/primemods/utils/IGUtils$1;").methods.rebuild(
+            // V7.2 only: no V8 as classes com.primemods.* estao cifradas em assets/fonts.
+            val igUtilsCallback = mutableClassDefByOrNull("Lcom/primemods/utils/IGUtils$1;") ?: return@execute
+
+            igUtilsCallback.methods.rebuild(
                 "lambda\$onResponse\$0", listOf("Ljava/lang/String;"), 2,
                 """
                     const-string v0, "$SERVER_BLOCK_MSG"
@@ -67,7 +73,7 @@ internal object InstaPrimeServerBlock {
                 """,
             )
 
-            mutableClassDefBy("Lcom/primemods/module/profile/activity/HighlightCoverListActivity$1;").methods.rebuild(
+            mutableClassDefBy("Lcom/primemods/module/profile/activity/HighlightCoverListActivity$1;")?.methods?.rebuild(
                 "lambda\$onResponse\$0\$com-primemods-module-profile-activity-HighlightCoverListActivity\$1",
                 listOf("Ljava/lang/String;"), 3,
                 listActivityBody(
@@ -76,7 +82,7 @@ internal object InstaPrimeServerBlock {
                 ),
             )
 
-            mutableClassDefBy("Lcom/primemods/module/profile/activity/PostListActivity$2;").methods.rebuild(
+            mutableClassDefBy("Lcom/primemods/module/profile/activity/PostListActivity$2;")?.methods?.rebuild(
                 "lambda\$onResponse\$1\$com-primemods-module-profile-activity-PostListActivity\$2",
                 listOf("Ljava/lang/String;"), 3,
                 listActivityBody(
@@ -85,7 +91,7 @@ internal object InstaPrimeServerBlock {
                 ),
             )
 
-            mutableClassDefBy("Lcom/primemods/module/profile/activity/StoryListActivity$2;").methods.rebuild(
+            mutableClassDefBy("Lcom/primemods/module/profile/activity/StoryListActivity$2;")?.methods?.rebuild(
                 "lambda\$onResponse\$0\$com-primemods-module-profile-activity-StoryListActivity\$2",
                 listOf("Ljava/lang/String;"), 3,
                 listActivityBody(
@@ -95,4 +101,3 @@ internal object InstaPrimeServerBlock {
             )
         }
     }
-}

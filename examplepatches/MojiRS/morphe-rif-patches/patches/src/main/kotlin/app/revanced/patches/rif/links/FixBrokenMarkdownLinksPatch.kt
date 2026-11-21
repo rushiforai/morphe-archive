@@ -1,5 +1,9 @@
 package app.revanced.patches.rif.links
 
+import app.revanced.patches.rif.shared.PatchedditFeatures
+import app.revanced.patches.rif.shared.skipForPatcheddit
+import app.revanced.patches.rif.shared.skipResourcesForPatcheddit
+import app.revanced.patches.rif.shared.switchOffForPatcheddit
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.instructions
 import app.morphe.patcher.fingerprint
@@ -49,7 +53,13 @@ val fixBrokenMarkdownLinksPatch = bytecodePatch(
     dependsOn(platinumAdSlotFixPatch)
     extendWith("extensions/extension.mpe")
 
+    finalize {
+        switchOffForPatcheddit(PatchedditFeatures.FIX_BROKEN_MARKDOWN_LINKS)
+    }
+
     execute {
+        if (skipForPatcheddit(PatchedditFeatures.FIX_BROKEN_MARKDOWN_LINKS)) return@execute
+
         val render = bodyRenderFingerprint.method
         val index = linkStepIndex(render.instructions, render.definingClass)
         // Before the link step, so it builds rif's link spans and the links sheet's lists from the

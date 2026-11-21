@@ -15,6 +15,6 @@ val COMPATIBILITY_PRO_METRONOME = Compatibility(
         "67ba64147a05aedb766363801f77a59e04f37ab8785062a12c5678dadf8b7c35"
     ),
     targets = listOf(
-        AppTarget(version = "1.0.12", minSdk = 23)
+        AppTarget(version = "1.14", minSdk = 23)
     )
 )

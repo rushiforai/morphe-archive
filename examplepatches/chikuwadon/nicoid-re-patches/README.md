@@ -8,7 +8,7 @@
 
 <p>
 <a href="https://github.com/chikuwadon/nicoid-re-patches/releases/latest"><img alt="最新リリース" src="https://img.shields.io/github/v/release/chikuwadon/nicoid-re-patches?style=flat-square&amp;color=167D8D"></a>
-<img alt="対象アプリ nicoid 6.49" src="https://img.shields.io/badge/nicoid-6.49-167D8D?style=flat-square">
+<a href="#supported-apk"><img alt="対象アプリ nicoid v6.49（対応APK情報へ）" src="https://img.shields.io/badge/nicoid-v6.49-167D8D?style=flat-square"></a>
 <a href="LICENSE"><img alt="ライセンス GPL v3" src="https://img.shields.io/badge/License-GPL_v3-687078?style=flat-square"></a>
 </p>
 
@@ -19,7 +19,7 @@
 
 </div>
 
-nicoid Reは、nicoidを現在のニコニコ動画の再生形式に対応させ、再生・コメント・検索・動画管理の機能を拡張するパッチです。nicoid 6.49の元APKにMorphe Managerでパッチを適用すると、nicoid Reとして利用できます。
+nicoid Reは、nicoidを現在のニコニコ動画の再生形式に対応させ、再生・コメント・検索・動画管理の機能を拡張するパッチです。nicoid v6.49の元APKにMorphe Managerでパッチを適用すると、nicoid Reとして利用できます。
 
 ---
 
@@ -27,13 +27,13 @@ nicoid Reは、nicoidを現在のニコニコ動画の再生形式に対応さ�
 
 ## 導入・更新
 
-nicoid **6.49**の元APKと、Android端末にインストールした**Morphe Manager**を使用します。
+nicoid **v6.49**の元APKと、Android端末にインストールした**Morphe Manager**を使用します。
 
 ### 初めて利用する
 
 1. [Morphe Managerへの追加リンク](https://morphe.software/add-source?github=chikuwadon%2Fnicoid-re-patches&name=nicoid%20Re)を開きます。
 2. ソース名とURLを確認し、「追加」をタップします。
-3. nicoid **6.49**の元APKを選び、パッチを適用します。
+3. nicoid **v6.49**の元APKを選び、パッチを適用します。
 4. 生成されたアプリをインストールします。
 
 ### 更新する
@@ -212,11 +212,13 @@ nicoid-re_log_yyyyMMddHHmmss.txt
 
 ---
 
+<a id="supported-apk"></a>
+
 ## 対応APK
 
 | 項目 | 内容 |
 |---|---|
-| 対象アプリ | nicoid **6.49** |
+| 対象アプリ | nicoid **v6.49** |
 | 元のパッケージ名 | `com.sauzask.nicoid` |
 | 適用後のアプリ名 | **nicoid Re** |
 | 適用後のパッケージ名 | `com.sauzask.nicoid.hls` |
@@ -243,7 +245,7 @@ nicoid-re_log_yyyyMMddHHmmss.txt
 
 <!-- PATCHES_START COMPACT -->
 [nicoid Reの最新パッチ](https://github.com/chikuwadon/nicoid-re-patches/releases/latest)<br>
-対応アプリ：nicoid 6.49
+対応アプリ：nicoid v6.49
 <!-- PATCHES_END -->
 
 ---

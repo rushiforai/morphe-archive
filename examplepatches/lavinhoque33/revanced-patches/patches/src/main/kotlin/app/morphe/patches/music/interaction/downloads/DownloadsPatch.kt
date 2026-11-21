@@ -3,6 +3,7 @@
  * https://github.com/MorpheApp/morphe-patches/pull/1881
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to Morphe contributions.
+ * Modified by lavinhoque33, 2026-11-20.
  * Modified by lavinhoque33, 2026-11-19.
  *
  * Modified by lavinhoque33, 2026-11-11.
@@ -39,6 +40,7 @@ import app.morphe.patches.shared.misc.fix.proto.fixProtoLibraryPatch
 import app.morphe.patches.shared.misc.fix.proto.parseByteArrayMethodRef
 import app.morphe.patches.shared.misc.media.MediaSessionSetMetadataFingerprint
 import app.morphe.patches.shared.misc.media.hookMediaSessionArgument
+import app.morphe.patches.shared.misc.portableexport.portableExportResources
 import app.morphe.patches.shared.misc.request.authHeadersPatch
 import app.morphe.util.Utils.printWarn
 import com.android.tools.smali.dexlib2.AccessFlags
@@ -110,6 +112,7 @@ private val DOWNLOAD_PREFERENCE_KEYS = listOf(
     "morphe_music_downloaded_checkmarks",
     "morphe_music_start_downloaded_in_audio",
     "morphe_music_open_downloads",
+    "morphe_music_export_device_files",
     "morphe_music_stream_downloads",
 )
 
@@ -173,6 +176,7 @@ val downloadsPatch = bytecodePatch(
         downloadsResourcePatch,
         fixProtoLibraryPatch,
         flyoutMenuComponentsPatch,
+        portableExportResources,
         settingsPatch,
         sharedExtensionPatch,
     )
@@ -180,6 +184,14 @@ val downloadsPatch = bytecodePatch(
     compatibleWith(COMPATIBILITY_YOUTUBE_MUSIC)
 
     execute {
+        if (is_7_25_or_greater) {
+            addCustomPreference(
+                CategoryType.MISC,
+                "morphe_music_export_device_files",
+                "app.morphe.extension.music.settings.preference.ExportDeviceFilesPreference",
+            )
+        }
+
         // After the patches this one depends on added their rows, so the external downloader rows are grouped too.
         groupDownloadPreferences()
 

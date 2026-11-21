@@ -63,7 +63,7 @@ Get the original APKs from each app's official GitHub releases.
 <tr>
 <th width="33%">🌍 Browsers (Brave · Bare · Titanium)</th>
 <th width="33%">📝 Notes (Notesnook · Joplin)</th>
-<th width="33%">🧩 Anytype</th>
+<th width="33%">🧩 Anytype · 🤖 OpenBot</th>
 </tr>
 <tr valign="top">
 <td>
@@ -84,8 +84,9 @@ Get the original APKs from each app's official GitHub releases.
 <td>
 
 - Adds a **Font** row to the settings
-- Pick a TTF or OTF file to use across the app
-- The file is validated and copied into the app's private storage
+- Anytype: pick a TTF or OTF file
+- OpenBot: follow the phone font, or use an installed **font APK** or a **TTF file**
+- The chosen file is validated and copied into the app's private storage
 
 </td>
 </tr>
@@ -171,13 +172,13 @@ Each listed version passed patching and verification. Other versions may fail to
 | App | Package | Supported versions |
 |---|---|---|
 | Anytype | `io.anytype.app` | `0.48.10` `0.49.0` `0.50.4` |
-| Titanium Browser | `io.github.jqssun.helium` | `157.0.8103.38` `157.0.8103.50` `157.0.8103.78` |
+| Titanium Browser | `io.github.jqssun.helium` | `157.0.8103.50` `157.0.8103.78` `158.0.8127.42` |
 | Bare Browser | `org.barebrowser` | `2.0.4` `2.0.5` `2.0.7` |
 | Bitwarden | `com.x8bit.bitwarden` | `2026.10.1` `2026.11.1` |
-| Brave Browser | `com.brave.browser` | `1.98.63` `1.99.55` `1.100.56` |
-| Joplin | `net.cozic.joplin` | `3.7.8` `3.7.10` `3.7.11` |
+| Brave Browser | `com.brave.browser` | `1.99.55` `1.100.56` `1.100.58` |
+| Joplin | `net.cozic.joplin` | `3.7.10` `3.7.11` `3.7.12` |
 | Notesnook | `com.streetwriters.notesnook` | `3.4.14` `3.4.15` `3.4.16` |
-| OpenBot | `run.openbot.mobile` | `1.4.11` |
+| OpenBot | `run.openbot.mobile` | `1.4.12` |
 <!-- VERSIONS_END -->
 
 > [!NOTE]
@@ -186,7 +187,7 @@ Each listed version passed patching and verification. Other versions may fail to
 ## 🩹 Patches
 
 <!-- PATCHES_START -->
-> **[v0.1.2](../../releases/tag/v0.1.2)**&nbsp;&nbsp;•&nbsp;&nbsp;18 patches total
+> **[v0.1.6](../../releases/tag/v0.1.6)**&nbsp;&nbsp;•&nbsp;&nbsp;18 patches total
 <details>
 <summary>📦 Anytype&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
@@ -208,7 +209,7 @@ Each listed version passed patching and verification. Other versions may fail to
 
 **🎯 Supported versions:**
 
-| 157.0.8103.38 | 157.0.8103.50 | 157.0.8103.78 |
+| 157.0.8103.50 | 157.0.8103.78 | 158.0.8127.42 |
 | :---: | :---: | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
@@ -261,7 +262,7 @@ Each listed version passed patching and verification. Other versions may fail to
 
 **🎯 Supported versions:**
 
-| 1.98.63 | 1.99.55 | 1.100.56 |
+| 1.99.55 | 1.100.56 | 1.100.58 |
 | :---: | :---: | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
@@ -278,7 +279,7 @@ Each listed version passed patching and verification. Other versions may fail to
 
 **🎯 Supported versions:**
 
-| 3.7.8 | 3.7.10 | 3.7.11 |
+| 3.7.10 | 3.7.11 | 3.7.12 |
 | :---: | :---: | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
@@ -308,7 +309,7 @@ Each listed version passed patching and verification. Other versions may fail to
 
 **🎯 Supported versions:**
 
-| 1.4.11 |
+| 1.4.12 |
 | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |

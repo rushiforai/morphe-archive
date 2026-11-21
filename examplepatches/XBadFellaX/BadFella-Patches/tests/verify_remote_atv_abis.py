@@ -13,6 +13,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     for name in ["stock", "bundle"]: parser.add_argument(name, type=Path)
     for name in ["java", "dexlib-jar", "aapt2"]: parser.add_argument("--" + name, type=Path, required=True)
+    parser.add_argument("--page-swipes", action="store_true", help="Also select Disable remote page swipes")
     args = parser.parse_args()
     args.dexlib_jar = args.dexlib_jar.resolve()
     args.bundle = args.bundle.resolve()
@@ -30,8 +31,9 @@ def main():
                     target.writestr(item, source.read(item))
             result = work / (abi + ".json")
             output = work / (abi + ".apk")
+            selection = ["-e", "Disable remote page swipes"] if args.page_swipes else []
             run = subprocess.run([str(args.java), "-Xmx3g", "-jar", str(args.dexlib_jar), "patch",
-                "-p", str(args.bundle), "--validate", "--unsigned", "-o", str(output),
+                "-p", str(args.bundle), *selection, "--validate", "--unsigned", "-o", str(output),
                 "-r", str(result), str(candidate)], capture_output=True, text=True)
             assert result.is_file(), run.stdout[-2000:] + run.stderr[-2000:]
             report = json.loads(result.read_text())
@@ -43,7 +45,7 @@ def main():
             assert run.returncode == 0 and report["success"], report.get("failureReason", run.stderr[-2000:])
             print("Checking architecture selection:", abi, flush=True)
             verify(argparse.Namespace(stock=candidate, output=output, java=args.java,
-                dexlib_jar=args.dexlib_jar, aapt2=args.aapt2))
+                dexlib_jar=args.dexlib_jar, aapt2=args.aapt2, page_swipes=args.page_swipes))
     print("PASS: universal and all 3 single-ABI selections; no-native input rejected")
 
 

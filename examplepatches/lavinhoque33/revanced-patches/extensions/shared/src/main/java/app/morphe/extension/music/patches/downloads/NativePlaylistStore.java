@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2026 lavinhoque33
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-20.
  * Modified by lavinhoque33, 2026-11-10
  */
 package app.morphe.extension.music.patches.downloads;
@@ -11,6 +12,7 @@ import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.DatabaseUtils;
 import android.database.sqlite.SQLiteDatabase;
+import android.net.Uri;
 
 import java.io.File;
 import java.io.IOException;
@@ -25,6 +27,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import app.morphe.extension.music.patches.androidauto.AndroidAutoPatch;
 import app.morphe.extension.music.settings.Settings;
+import app.morphe.extension.shared.downloads.PortableExport;
 import app.morphe.extension.shared.utils.Logger;
 import app.morphe.extension.shared.utils.Utils;
 
@@ -45,6 +48,7 @@ public final class NativePlaylistStore {
     private static final String UNSORTED = "rvx:not_in_playlist";
     private static final String DATABASE_NAME = "music_sideloaded_playlist_database";
     private static final AtomicBoolean refreshQueued = new AtomicBoolean();
+    private static final AtomicBoolean refreshRequested = new AtomicBoolean();
 
     private NativePlaylistStore() {}
 
@@ -119,13 +123,77 @@ public final class NativePlaylistStore {
         return playlists;
     }
 
+    /** Read membership, including loose downloads not yet materialized by Music's lazy playlist repository. */
+    static List<PortableExport.Request> publishedPlaylistsForExport(Map<Long, Uri> published) {
+        Utils.verifyOffMainThread();
+        if (published.isEmpty()) return List.of();
+        var context = Utils.getContext();
+        return exportPlaylists(context.getDatabasePath(DATABASE_NAME), context.getSharedPreferences(PREFERENCES, 0),
+                published, NativeAudioStore.downloadedNewestFirst());
+    }
+
+    static List<PortableExport.Request> exportPlaylists(File file, SharedPreferences preferences,
+                                                        Map<Long, Uri> published, List<Long> newestFirst) {
+        List<PortableExport.Request> playlists = new ArrayList<>();
+        Set<Long> assigned = new HashSet<>();
+        if (file.isFile()) readExportMembership(file, preferences, published, assigned, playlists);
+
+        List<Uri> loose = new ArrayList<>();
+        for (long id : newestFirst) {
+            Uri uri = published.get(id);
+            if (uri != null && !assigned.contains(id)) loose.add(uri);
+        }
+        if (!loose.isEmpty()) playlists.add(new PortableExport.Request(str("morphe_music_not_in_playlist"), true, loose));
+        return playlists;
+    }
+
+    private static void readExportMembership(File file, SharedPreferences preferences, Map<Long, Uri> published,
+                                             Set<Long> assigned, List<PortableExport.Request> playlists) {
+        long derivedPlaylist = preferences.getLong(UNSORTED, -1);
+        Set<Long> saved = new HashSet<>();
+        preferences.getAll().forEach((key, value) -> {
+            if (value instanceof Long id && id >= 0 && !key.equals(UNSORTED)) saved.add(id);
+        });
+
+        try (SQLiteDatabase db = SQLiteDatabase.openDatabase(file.getPath(), null,
+                SQLiteDatabase.OPEN_READONLY | SQLiteDatabase.NO_LOCALIZED_COLLATORS);
+             Cursor cursor = db.rawQuery("SELECT p.id, p.title, t.audio_media_id FROM music_sideloaded_playlist p"
+                     + " JOIN music_sideloaded_playlist_track t ON p.id = t.playlist_id"
+                     + " ORDER BY p.title COLLATE NOCASE, p.id, t.position", null)) {
+            long playlistId = -1;
+            String title = "";
+            List<Uri> tracks = new ArrayList<>();
+            while (cursor.moveToNext()) {
+                long id = cursor.getLong(0);
+                if (id == derivedPlaylist) continue;
+                long mediaId = cursor.getLong(2);
+                Uri uri = published.get(mediaId);
+                if (uri == null) continue;
+                // Membership of a user-created playlist also makes the track non-loose.
+                assigned.add(mediaId);
+                if (!saved.contains(id)) continue;
+                if (id != playlistId) {
+                    if (!tracks.isEmpty()) playlists.add(new PortableExport.Request(title, true, tracks));
+                    tracks.clear();
+                    playlistId = id;
+                    title = cursor.getString(1);
+                    if (title == null || title.isBlank()) title = str("rvx_export_playlist");
+                }
+                tracks.add(uri);
+            }
+            if (!tracks.isEmpty()) playlists.add(new PortableExport.Request(title, true, tracks));
+        }
+    }
+
     private static boolean filesChosen() {
         return Settings.DOWNLOAD_METHOD.get() == DownloadMethod.DEVICE_FILES;
     }
 
     /** Refreshes "Not in a playlist" in the background; requests made while one is queued are merged. */
     static void refreshUnsortedLater() {
-        if (!filesChosen() || !refreshQueued.compareAndSet(false, true)) return;
+        if (filesChosen()) refreshRequested.set(true);
+        // The constructor hook drains pending work, even if the download method changed in the meantime.
+        if (database == null || !refreshRequested.getAndSet(false) || !refreshQueued.compareAndSet(false, true)) return;
         Utils.submitOnBackgroundThread(() -> {
             refreshQueued.set(false);
             try {

@@ -25,7 +25,7 @@ import java.util.stream.Stream;
 
 import app.morphe.extension.shared.patches.components.ByteArrayFilterGroup;
 import app.morphe.extension.shared.patches.components.ByteArrayFilterGroupList;
-import app.morphe.extension.shared.patches.components.Filter;
+import app.morphe.extension.shared.patches.components.LazyBufferFilter;
 import app.morphe.extension.shared.patches.components.BufferAsciiStrings;
 import app.morphe.extension.shared.patches.components.FilterGroup.FilterGroupResult;
 import app.morphe.extension.youtube.patches.utils.ProtoNode;
@@ -41,7 +41,7 @@ import app.morphe.extension.youtube.shared.RootView;
 import app.morphe.extension.youtube.utils.ExtendedUtils;
 
 @SuppressWarnings({"deprecation", "unused", "FieldCanBeLocal"})
-public final class FeedComponentsFilter extends Filter {
+public final class FeedComponentsFilter extends LazyBufferFilter {
     /**
      * Browse id of the community page of a channel, which shows only community posts.
      */
@@ -638,10 +638,11 @@ public final class FeedComponentsFilter extends Filter {
     }
 
     @Override
-    public boolean isFiltered(String path, String accessibility, String allValue, byte[] buffer,
+    public boolean isFilteredLazy(String path, String accessibility, String allValue, Buffer buffer,
                               StringFilterGroup matchedGroup, FilterContentType contentType, int contentIndex) {
         if (matchedGroup == channelProfileSubscribeButton) {
-            return isChannelProfileSubscribeButtonHidden(path, buffer, new BufferAsciiStrings(buffer));
+            byte[] bytes = buffer.get();
+            return isChannelProfileSubscribeButtonHidden(path, bytes, new BufferAsciiStrings(bytes));
         }
 
         if (matchedGroup == chipBar) {
@@ -697,10 +698,11 @@ public final class FeedComponentsFilter extends Filter {
             ExpandableCardStyle style = Settings.HIDE_EXPANDABLE_CARD.get();
             return switch (style) {
                 case HIDE_ALL -> true;
-                case HIDE_PRODUCT_ONLY -> productCardBuffer.check(buffer).isFiltered();
-                case HIDE_SUMMARY_ONLY -> summaryCardBuffer.check(buffer).isFiltered();
+                case HIDE_PRODUCT_ONLY -> productCardBuffer.check(buffer.get()).isFiltered();
+                case HIDE_SUMMARY_ONLY -> summaryCardBuffer.check(buffer.get()).isFiltered();
                 case HIDE_PRODUCT_AND_SUMMARY ->
-                        productCardBuffer.check(buffer).isFiltered() || summaryCardBuffer.check(buffer).isFiltered();
+                        productCardBuffer.check(buffer.get()).isFiltered()
+                                || summaryCardBuffer.check(buffer.get()).isFiltered();
                 default -> false;
             };
         }
@@ -715,12 +717,12 @@ public final class FeedComponentsFilter extends Filter {
                 // modified by lavinhoque33, 2026-10-16: Hide History shelf (ported from Morphe).
                 // The History page itself is never hidden, only its shelf in the You tab.
                 return (!BROWSE_ID_HISTORY.equals(RootView.getBrowseId())
-                        && historyShelfBuffer.check(buffer).isFiltered())
-                        || playablesBuffer.check(buffer).isFiltered()
-                        || ticketShelfBuffer.check(buffer).isFiltered()
+                        && historyShelfBuffer.check(buffer.get()).isFiltered())
+                        || playablesBuffer.check(buffer.get()).isFiltered()
+                        || ticketShelfBuffer.check(buffer.get()).isFiltered()
                         // The movies of the Movies page are its content.
                         || (!MOVIES_PAGE_BROWSE_ID.equals(browseId)
-                        && movieShelfBuffer.check(buffer).isFiltered())
+                        && movieShelfBuffer.check(buffer.get()).isFiltered())
                         || (!carouselShelfExceptions.matches(path) && hideShelves());
             }
             return false;
@@ -732,7 +734,7 @@ public final class FeedComponentsFilter extends Filter {
                 return false;
             }
 
-            if (!inviteToMessageCardBuffer.check(buffer).isFiltered()) {
+            if (!inviteToMessageCardBuffer.check(buffer.get()).isFiltered()) {
                 return false;
             }
 
@@ -743,7 +745,7 @@ public final class FeedComponentsFilter extends Filter {
         if (matchedGroup == liveStream) {
             // Only check the whole lockup. The buffers of its nested components include
             // a shared list of icon names that also has the 'LIVE' badge icon.
-            return isLockupRoot(path) && liveStreamBuffer.check(buffer).isFiltered();
+            return isLockupRoot(path) && liveStreamBuffer.check(buffer.get()).isFiltered();
         }
 
         // modified by lavinhoque33, 2026-10-16: Hide channel names in subscribed channels bar (ported from Morphe).
@@ -752,7 +754,7 @@ public final class FeedComponentsFilter extends Filter {
         }
 
         if (matchedGroup == videoLabels) {
-            return ExtendedUtils.IS_20_31_OR_GREATER && videoLabelsGroupList.check(buffer).isFiltered();
+            return ExtendedUtils.IS_20_31_OR_GREATER && videoLabelsGroupList.check(buffer.get()).isFiltered();
         }
 
         if (matchedGroup == videoRecommendationLabels) {

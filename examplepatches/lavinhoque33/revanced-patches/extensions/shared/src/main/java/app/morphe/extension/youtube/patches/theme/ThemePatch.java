@@ -8,7 +8,7 @@
  * - anddea (https://github.com/anddea)
  *
  * Licensed under the GNU General Public License v3.0.
- * Modified by lavinhoque33, 2026-11-17
+ * Modified by lavinhoque33, 2026-11-20
  *
  * ------------------------------------------------------------------------
  * GPLv3 Section 7 – Additional Terms & Attribution Requirements
@@ -92,7 +92,7 @@ import app.morphe.extension.youtube.settings.Settings;
 
 @SuppressWarnings({"unused", "deprecation"})
 public final class ThemePatch {
-    public static final String DEFAULT_DARK_THEME = "stock";
+    public static final String DEFAULT_DARK_THEME = "amoled_black";
     public static final String DEFAULT_LIGHT_THEME = "white";
     public static final String DEFAULT_DARK_THEME_CUSTOM_COLOR = "#FF000000";
     public static final String DEFAULT_LIGHT_THEME_CUSTOM_COLOR = "#FFFFFFFF";

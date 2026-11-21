@@ -240,7 +240,7 @@ details and validation follow.
 | Clone app | No | None (patch time) | Separate package, permissions and 13 provider authorities; defaults to `com.kick.mobile.lurk`. |
 | Disable analytics | Yes | On; Block device fingerprinting, off | Firebase collection/event bridge, Insider initialization/events/queued jobs, Datadog initialization, Mux/Datazoom and PAL nonce suppression; optionally FingerprintJS Pro. Promise completion is preserved. |
 | Disable autoplay | Yes | On | Changes the initial feed-preview preference; saved preferences and Kick's own toggle take precedence. |
-| Default video quality | No | On; quality on mobile data, Same as on Wi-Fi | Configurable adaptive default/Auto ceiling, consistently applied to initialization, reset and cleanup. Explicit player selections retain Kick's normal rules. A lower starting ceiling can be set for mobile data. |
+| Default video quality | No | On; quality on mobile data, Same as on Wi-Fi | Configurable adaptive default/Auto ceiling (1080p to 160p): the tallest rendition at or below the chosen height, or the lowest one when every rendition is taller. Explicit player selections retain Kick's normal rules. A lower starting ceiling can be set for mobile data. |
 | Hide KICKs tipping | Yes | Off | Gift-shop, purchase and leaderboard tipping entry points; received gifts remain. |
 | Hide subscription upsells | Yes | Off | Subscribe/gift-subscription prompts, preserving the subscribed badge. |
 | Hide Clips | Yes | Off | Browse/channel/category tabs and channel clip rail. Direct playback routes remain. |
@@ -792,17 +792,43 @@ emulator, signed out, with the timer set to one minute through the settings file
 more): a live stream started at 11:51:48 was paused at 11:52:48 (`sleep timer: paused 1 player`, the media session
 PAUSED and Kick's controls showing Play).
 
+### Default video quality
+
+Kick's player store starts every stream, and goes back to it on Auto, through `setDefaultMaxResolution`: it reduces
+the player's `availableVideoTracks` to the tallest one no taller than `PlayerConfig.settings.defaultMaxAutoQualityHeight`
+(720) and makes that track's size the player's `maxResolution`, which the native player turns into Media3's
+`setMaxVideoSize`. The patch rewrites the reducer, the closure `setDefaultMaxResolution` creates: the chain that reads
+the default (the closure's environment, `PlayerConfig`, `settings`, the read) becomes, in the same 25 bytes, the chosen
+height and two more comparisons, so the reducer keeps the tallest track no taller than the height and, when every track
+is taller, the lowest one. Its jumps land on Kick's own comparisons and on the new size; nothing else in the function
+moves. Every live stream and VOD checked had 1080, 720, 480, 360 and 160 renditions (clips have one), so 240p starts
+at 160p.
+
+Stock Kick sets no ceiling at all when every track is taller than its default: the reduce keeps its `{width: 0, height:
+0}` start, `setDefaultMaxResolution` returns without a size, and the stream plays uncapped. Before the fallback a chosen
+height below every track did the same. Kick 40.34 and earlier passed the height to IVS's `setAutoMaxQuality`, which
+applied only a rendition of exactly that height (`findQualityByHeight`), so there 240p, which Kick doesn't have, played
+uncapped (issue #91).
+
+Checked on 2026-11-19 on the emulator (`emulator-5580`, the four-architecture bundle), signed out, with the video stats
+panel: at 240p and at 160p a live stream (tracks 1080, 720, 480, 360, 160) started at 160p (284x160), picking 480p
+played 480p and Auto went back to 160p; a single-rendition 1080p clip now gets its only track as the ceiling. At 1080p
+the starting ceiling is 1920x1080 (on mobile data with "Quality on mobile data" at 360p it logged `starting ceiling
+1080 -> 360` and played 360p). On Wi-Fi the emulator's adaptive choice stayed at 480p, as it did after picking 720p
+in a VOD, so 1080p playback itself wasn't seen there.
+
 ### Quality on mobile data
 
 Part of Default video quality. Kick's player store sets the player's `maxResolution` (a video size) for every ceiling:
 the starting one and Auto (`setDefaultMaxResolution`: the tallest video track no taller than the default ceiling) and a
 picked quality (`setUserSelectedMaxResolution`). The patch hooks the start of `VideoPlayer.setMaxResolution(VideoSize)`.
-On a metered network the choice caps a starting ceiling: none, or the tallest track up to Kick's 720 or the patch's own
-height, which is what Kick's player store picks, read from Kick's own track list (`getAvailableVideoTracks`; Media3's
-own tracks can't be read there, as React Native sets the ceiling on its own thread). The capped size keeps the
-ceiling's shape. Any other size is a pick and passes through, and Kick's stored values aren't changed. Picking exactly
-the starting track on mobile data can't be told apart from a start and is capped too. It applies when the ceiling is
-next set (a stream load), not on a network change mid-stream.
+On a metered network the choice caps a starting ceiling: none, the tallest track up to Kick's 720, or the track the
+patched reducer picks for the patch's own height (the tallest up to it, or the lowest when every track is taller),
+worked out from Kick's own track list (`getAvailableVideoTracks`; Media3's own tracks can't be read there, as React
+Native sets the ceiling on its own thread). The capped size keeps the ceiling's shape. Any other size is a pick and
+passes through, and Kick's stored values aren't changed. Picking exactly the starting track on mobile data can't be
+told apart from a start and is capped too. It applies when the ceiling is next set (a stream load), not on a network
+change mid-stream.
 
 Checked: `verify_player.py` covers the decision table with Kick-shaped track lists. On the emulator with Wi-Fi off (on
 its metered cellular network), "Quality on mobile data" at 360p and Default video quality at 1080p, a live stream
@@ -1268,7 +1294,9 @@ The edit helpers, all equal-length and fail-closed:
   `preferencesSettingsSlice` with `replaceBody` (its body size and offsets are pinned, so any
   change fails the patch), and Hide subscription upsells finds `ChannelSubButton`'s unsubscribed
   path from the `subscription` read and the forward `JmpTrue` (or `JmpTrueLong`) on its register: the
-  instructions after the jump become `return null`. Opcodes are named in `HermesOp`.
+  instructions after the jump become `return null`. Default video quality rewrites the environment chain to the
+  track reducer's default read with `replaceInstructions`, after checking the comparisons around it by register flow;
+  its new jumps land only on Kick's instructions after the chain. Opcodes are named in `HermesOp`.
 - `closures` / `closureUsing`: the functions a named function creates with `CreateClosure`, for anonymous producers
   and callbacks (Hide Clips' category list, Default video quality's track reducer).
 - `shortLiteralOffset` / `shortNullsOffset`: a value-buffer offset below 64 KiB for the short `NewObjectWithBuffer`
@@ -1359,9 +1387,10 @@ version bump edits them in `Hermes.kt` and `Constants.kt` only.
   registers Hide Clips overwrites with undefined hold undefined there in stock code; the patch
   checks the same at patch time (every instruction naming the register first must load
   undefined or return it).
-- `tests/kick/verify_quality.py`: finds every read of the default ceiling, checks the patch edits only the one in
-  `setDefaultMaxResolution`'s track reducer (the quality picker's two sign-in gates keep 720), and runs that reducer:
-  720 stock, the chosen height patched, the next one down without it.
+- `tests/kick/verify_quality.py`: finds every read of the default ceiling, checks the patch edits only the chain to
+  the one in `setDefaultMaxResolution`'s track reducer (the quality picker's two sign-in gates keep 720), and runs that
+  reducer: 720 stock (none when every track is taller), and patched the chosen height in every track order, the next
+  one down without it, the lowest track when every one is taller.
 - `tests/kick/verify_analytics_jobs.py`: compares actual decoded job methods with
   stock, including unchanged instructions, branches and exception handlers when off.
 - `tests/kick/test_chat_page.py`: the chat page script in headless Chrome, offline, on a copy
@@ -1369,8 +1398,8 @@ version bump edits them in `Hermes.kt` and `Constants.kt` only.
   clears (with a control), 7TV words in old and new messages, global emotes only without a known
   owner (and no request to Kick), and no referrer or cookies on its requests (with a control).
 - `tests/kick/verify_player.py`: production `KickPlayer` with boundary doubles: the
-  mobile-data ceiling's decision table (with and without a Default video quality
-  height), normal latency and the background audio decisions.
+  mobile-data ceiling's decision table (without a Default video quality height, at 1080, and
+  at 160 on a stream whose every track is taller), normal latency and the background audio decisions.
 
 The combined APK was built and patched with all twelve patches. Its resource,
 signature and alignment checks passed. Native-only and Clips-only combinations

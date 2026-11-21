@@ -14,6 +14,8 @@ import android.view.SurfaceView;
 import android.view.View;
 import android.view.ViewGroup;
 
+import java.util.ArrayList;
+
 /**
  * The Liquid Glass look of a {@link GlassCapsule}: what is behind the bar, blurred, inside the capsule (Android 12 and
  * newer), its rim bending that backdrop the way the edge of glass does, and a lens that magnifies it under the pill
@@ -232,30 +234,41 @@ final class LiquidGlass {
 
     /**
      * Draws into {@code canvas}, in {@code bar}'s coordinates, every view the window draws before it: at each level
-     * up to the window, the siblings that come before the bar's branch. A SurfaceView is left out, as its video is a
-     * layer under the window that views can't draw.
+     * up to the window, the siblings that come before the bar's branch, outermost level first as the window draws
+     * them. A SurfaceView is left out, as its video is a layer under the window that views can't draw.
      */
     private static void drawBehind(Canvas canvas, View bar) {
+        ArrayList<ViewGroup> parents = new ArrayList<>();
+        ArrayList<View> branches = new ArrayList<>();
+        for (View branch = bar; branch.getParent() instanceof ViewGroup; branch = (ViewGroup) branch.getParent()) {
+            parents.add((ViewGroup) branch.getParent());
+            branches.add(branch);
+        }
+        // Where each parent's top left corner is, measured from the bar's.
+        float[] xs = new float[parents.size()];
+        float[] ys = new float[parents.size()];
         float x = 0;
         float y = 0;
-        View branch = bar;
-        while (branch.getParent() instanceof ViewGroup) {
-            ViewGroup parent = (ViewGroup) branch.getParent();
-            // Where the parent's top left corner is, measured from the bar's.
-            x -= branch.getLeft() + branch.getTranslationX() - parent.getScrollX();
-            y -= branch.getTop() + branch.getTranslationY() - parent.getScrollY();
-            int index = parent.indexOfChild(branch);
+        for (int level = 0; level < parents.size(); level++) {
+            x -= branches.get(level).getLeft() + branches.get(level).getTranslationX() - parents.get(level).getScrollX();
+            y -= branches.get(level).getTop() + branches.get(level).getTranslationY() - parents.get(level).getScrollY();
+            xs[level] = x;
+            ys[level] = y;
+        }
+        for (int level = parents.size() - 1; level >= 0; level--) {
+            ViewGroup parent = parents.get(level);
+            int index = parent.indexOfChild(branches.get(level));
             for (int i = 0; i < index; i++) {
                 View view = parent.getChildAt(i);
                 if (view.getVisibility() != View.VISIBLE || view.getAlpha() <= 0 || view instanceof SurfaceView) continue;
                 int saved = canvas.save();
-                canvas.translate(x + view.getLeft() - parent.getScrollX(), y + view.getTop() - parent.getScrollY());
+                canvas.translate(xs[level] + view.getLeft() - parent.getScrollX(),
+                        ys[level] + view.getTop() - parent.getScrollY());
                 if (!view.getMatrix().isIdentity()) canvas.concat(view.getMatrix());
                 canvas.translate(-view.getScrollX(), -view.getScrollY());
                 view.draw(canvas);
                 canvas.restoreToCount(saved);
             }
-            branch = parent;
         }
     }
 }

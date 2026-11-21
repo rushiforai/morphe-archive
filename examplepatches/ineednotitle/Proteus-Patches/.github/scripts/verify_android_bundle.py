@@ -34,6 +34,16 @@ EXPECTED_EXTENSION_CLASSES = (
     "RedditDiagHook",
     "RedditFeedHelper",
     "SignatureHookApp",
+    "SpotifyAdBreakDisabler",
+    "SpotifyAdSectionFilter",
+    "SpotifyAdViewHider",
+    "SpotifyAudioAdMuter",
+    "SpotifyContextMenuFilter",
+    "SpotifyDiagHook",
+    "SpotifyLinkSanitizer",
+    "SpotifyNavTabFilter",
+    "SpotifyPlayerAdFilter",
+    "SpotifyPopupAdFilter",
 )
 
 EXTENSION_DESCRIPTOR_PREFIX = b"Lapp/template/extension/extension/"

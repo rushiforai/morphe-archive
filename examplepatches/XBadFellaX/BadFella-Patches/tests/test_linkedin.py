@@ -19,6 +19,8 @@ EXPECTED_LINKEDIN_PATCHES = {
     "Customize navigation bar",
     "Dark app icon",
     "Disable double-tap like",
+    "Disable screenshot share sheet",
+    "Hide top bar buttons",
     "Download media",
     "Expand posts",
     "Feed filters",
@@ -45,9 +47,11 @@ EXPECTED_LINKEDIN_PATCHES = {
     "Swipe between feeds",
     "Swipe between tabs",
     "Tap to hide in viewers",
+    "Video tab",
 }
 
 NON_DEFAULT_PATCHES = {
+    "Video tab",
     "Dark app icon",
     "Pitch black",
     "Glass navigation bar",
@@ -68,14 +72,14 @@ class LinkedInCatalogTests(unittest.TestCase):
                    for compat in patch["compatiblePackages"] or [])
         }
 
-    def test_all_34_patches_declared(self):
+    def test_all_37_patches_declared(self):
         self.assertEqual(set(self.patches.keys()), EXPECTED_LINKEDIN_PATCHES)
-        self.assertEqual(len(self.patches), 34)
+        self.assertEqual(len(self.patches), 37)
 
     def test_reviewed_targets_and_version_agnosticism(self):
         for name, patch in self.patches.items():
             targets = patch["compatiblePackages"][0]["targets"]
-            self.assertEqual(len(targets), 4, f"{name} should have 4 targets")
+            self.assertEqual(len(targets), 6, f"{name} should have 6 targets")
             self.assertEqual(targets[0]["version"], "4.1.1267")
             self.assertEqual(targets[1]["version"], "4.1.1271")
             self.assertEqual(set(targets[1]["versionCodes"].values()), {217900})
@@ -83,9 +87,15 @@ class LinkedInCatalogTests(unittest.TestCase):
             self.assertEqual(targets[2]["version"], "4.1.1272")
             self.assertEqual(set(targets[2]["versionCodes"].values()), {218000})
             self.assertFalse(targets[2]["isExperimental"])
-            # Fourth target is experimental wildcard for future version support
-            self.assertIsNone(targets[3]["version"])
-            self.assertTrue(targets[3]["isExperimental"])
+            self.assertEqual(targets[3]["version"], "4.1.1275")
+            self.assertEqual(set(targets[3]["versionCodes"].values()), {218300})
+            self.assertFalse(targets[3]["isExperimental"])
+            self.assertEqual(targets[4]["version"], "4.1.1276")
+            self.assertEqual(set(targets[4]["versionCodes"].values()), {218400})
+            self.assertFalse(targets[4]["isExperimental"])
+            # The last target is the experimental wildcard for future version support.
+            self.assertIsNone(targets[5]["version"])
+            self.assertTrue(targets[5]["isExperimental"])
 
     def test_default_patches(self):
         for name, patch in self.patches.items():
@@ -109,6 +119,8 @@ class LinkedInSourceTests(unittest.TestCase):
         self.assertIn('versionCode = 217900', constants_kt)
         self.assertIn('"4.1.1272"', constants_kt)
         self.assertIn('versionCode = 218000', constants_kt)
+        self.assertIn('"4.1.1275"', constants_kt)
+        self.assertIn('versionCode = 218300', constants_kt)
         self.assertIn('isExperimental = true', constants_kt)
         self.assertIn('EXTENSION_PACKAGE = "Lapp/badfella/extension/linkedin"', constants_kt)
 
@@ -194,7 +206,7 @@ class LinkedInSourceTests(unittest.TestCase):
                        "urn:li:adCreative:", "urn:li:adUpdate:", "urn:li:promotedUpdate:",
                        "sponsoredcontent", "sponsoredcreative", "leadgen"):
             self.assertIn(f'"{marker}"', sdui_src)
-        self.assertIn("hasPromotedLabel(scanner.strings)", sdui_src)
+        self.assertIn("hasFieldStartingWith(payload, 60, PROMOTED_LABEL_WORDS)", sdui_src)
         self.assertIn('"Promoted"', sdui_src)
         self.assertIn('"Sponsored"', sdui_src)
         self.assertIn('"Dipromosikan"', sdui_src)

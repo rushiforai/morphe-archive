@@ -134,6 +134,12 @@ public final class HissiMenuCompatibility {
             intent.setClass(owner,OpenUrlActivity.class);
             return;
         }
+        if(owner!=null&&intent.getComponent()==null
+                &&(intent.getPackage()==null||owner.getPackageName().equals(intent.getPackage()))
+                &&isTaisakuSite(uri)){
+            intent.setClassName(owner,"jp.syoboi.a2chMate.activity.WebViewActivity");
+            return;
+        }
         if (owner != null && intent.getComponent() == null
                 && owner.getPackageName().equals(intent.getPackage()) && uri != null
                 && HissiLinkRouting.isThreadUrl(uri.toString())) {
@@ -170,6 +176,13 @@ public final class HissiMenuCompatibility {
             intent.setData(uri.buildUpon().scheme("haiagaru-hissis".equalsIgnoreCase(scheme)
                     ? "https" : "http").build());
         }
+    }
+
+    static boolean isTaisakuSite(Uri uri){
+        if(uri==null||uri.getHost()==null||uri.getUserInfo()!=null||uri.getPort()!=-1)return false;
+        String scheme=uri.getScheme();
+        return ("http".equalsIgnoreCase(scheme)||"https".equalsIgnoreCase(scheme))
+                &&"taisaku.5ch.io".equalsIgnoreCase(uri.getHost());
     }
 
     private static boolean isEddiArchiveUrl(String value) {

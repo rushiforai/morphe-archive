@@ -9,14 +9,20 @@ final class QuickFilterOptions {
     static final String TRANSPARENT="bottomQuickFilterTransparent";
     static boolean resizeHandle(){return FeatureSwitches.enabled(HANDLE,true);}
     static boolean counts(){return FeatureSwitches.enabled("quickFilterCounts",false);}
-    static boolean extras(){return FeatureSwitches.enabled("quickFilterExtras",true);}
+    static boolean extras(){
+        android.content.Context context=Haiagaru.applicationContextForExtension();
+        return context!=null&&extras(FeatureSwitches.prefs(context));
+    }
+    static boolean extras(android.content.SharedPreferences preferences){
+        return preferences!=null&&preferences.getBoolean("quickFilterExtras",false);
+    }
     static boolean bottom(){return FeatureSwitches.enabled("bottomQuickFilterPanel",false);}
     static boolean pinned(){return FeatureSwitches.enabled("persistentBottomQuickFilters",false);}
     static boolean visible(int index){return index>=0&&index<7&&(index<4 || extras()&&FeatureSwitches.enabled(new String[]{"quickFilterAA","quickFilterMine","quickFilterReplies"}[index-4],true));}
     static void addSettings(LinearLayout root,Activity activity){
         add(root,activity,"quickFilterCounts","フィルターに件数を表示",false);
         add(root,activity,ExtraQuickFilters.OPTIMIZATION,"フィルターの抽出・位置保持・件数集計を最適化",false);
-        Switch extra=add(root,activity,"quickFilterExtras","フィルターにAA・自分・返信を追加",true);
+        Switch extra=add(root,activity,"quickFilterExtras","フィルターにAA・自分・返信を追加",false);
         SettingsSection kinds=SettingsSection.add(root,"追加するフィルターの種類","AA・自分・返信を個別に選択",true);
         kinds.available=extra::isChecked;kinds.unavailableMessage="上の「AA・自分・返信を追加」をオンにすると変更できます。";
         add(kinds,activity,"quickFilterAA","AAフィルターを追加",true);

@@ -18,4 +18,17 @@ object Constants {
             AppTarget(version = null),
         ),
     )
+
+    val COMPATIBILITY_REDDIT = Compatibility(
+        name = "Reddit",
+        packageName = "com.reddit.frontpage",
+        // Must match the official Morphe Reddit patches.
+        apkFileType = ApkFileType.APKM,
+        appIconColor = 0xFF4500,
+        targets = listOf(
+            // The patches only change the unobfuscated FrontpageApplication, so they follow whatever version
+            // the Morphe Reddit patches they are applied with support.
+            AppTarget(version = null),
+        ),
+    )
 }

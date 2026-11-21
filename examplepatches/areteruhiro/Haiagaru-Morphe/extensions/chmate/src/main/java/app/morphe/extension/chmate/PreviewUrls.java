@@ -7,7 +7,9 @@ import java.util.regex.*;
 /** Normalizes displayed links only; never rewrites a response or outgoing message. */
 final class PreviewUrls {
     private static final String LABEL="[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?";
-    private static final Pattern LINKS=Pattern.compile("(?<![\\p{L}\\p{N}_@/.:+-])"
+    // Japanese prose can touch an explicit URL without whitespace. Keep a URL-token
+    // boundary for ASCII text, while not treating adjacent Japanese as part of the URL.
+    private static final Pattern LINKS=Pattern.compile("(?<![A-Za-z0-9_@/.:+-])"
             +"(?:(?:https?|ttps?|tps?)://|//)?(?:"+LABEL+"\\.)+[a-z]{2,63}"
             +"(?::[0-9]{1,5})?(?:[/?#][^\\s<>\"'()（）]*)?(?![A-Za-z0-9_.-])",Pattern.CASE_INSENSITIVE);
     private static final Pattern IDS=Pattern.compile("(?<![\\p{L}\\p{N}_])ID[ \\t]*[:：][ \\t]*[A-Za-z0-9+/_!.-]+",Pattern.CASE_INSENSITIVE);

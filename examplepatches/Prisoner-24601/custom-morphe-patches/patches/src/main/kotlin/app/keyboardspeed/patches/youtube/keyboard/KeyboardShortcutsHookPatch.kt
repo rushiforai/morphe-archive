@@ -21,6 +21,7 @@ internal const val EXTENSION_COMMENTS_CLASS = "Lapp/keyboardspeed/extension/Keyb
 internal const val EXTENSION_FULLSCREEN_CLASS = "Lapp/keyboardspeed/extension/KeyboardFullscreenPatch;"
 internal const val EXTENSION_MINIMIZE_CLASS = "Lapp/keyboardspeed/extension/KeyboardMinimizePatch;"
 internal const val EXTENSION_FRAME_STEP_CLASS = "Lapp/keyboardspeed/extension/KeyboardFrameStepPatch;"
+internal const val EXTENSION_SPONSORBLOCK_SKIP_CLASS = "Lapp/keyboardspeed/extension/KeyboardSponsorBlockSkipPatch;"
 
 private const val EXTENSION_DISPATCH_KEY_EVENT =
     "$EXTENSION_SHORTCUTS_CLASS->dispatchKeyEvent(Landroid/app/Activity;Landroid/view/KeyEvent;)Z"
@@ -35,6 +36,7 @@ private val NAMED_KEY_CODES = mapOf(
     "ESCAPE" to 111,
     "BACKSPACE" to 67, // KeyEvent.KEYCODE_DEL
     "TAB" to 61, // KeyEvent.KEYCODE_TAB
+    "ENTER" to 66, // KeyEvent.KEYCODE_ENTER, also the Enter key of the numpad
 )
 
 private fun MutableMethod.isMethod(name: String, returnType: String, parameters: String) =
@@ -92,7 +94,7 @@ private fun keyCodeOrNull(key: String?): Int? {
  * @return The Android key code of a letter, digit or named key, such as KEYCODE_M for "M" or KEYCODE_ESCAPE for "Esc".
  */
 internal fun keyCodeOf(key: String): Int =
-    keyCodeOrNull(key) ?: throw PatchException("The key must be a single letter or digit, Esc, Backspace or Tab: '$key'")
+    keyCodeOrNull(key) ?: throw PatchException("The key must be a single letter or digit, Esc, Enter, Backspace or Tab: '$key'")
 
 internal fun isValidKey(key: String?) = keyCodeOrNull(key) != null
 

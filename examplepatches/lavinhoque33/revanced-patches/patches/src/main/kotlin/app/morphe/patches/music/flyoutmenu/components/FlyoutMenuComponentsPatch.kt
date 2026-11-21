@@ -11,7 +11,7 @@
  * - inotia00 (https://github.com/inotia00)
  *
  * Licensed under the GNU General Public License v3.0.
- * Modified by lavinhoque33, 2026-11-14
+ * Modified by lavinhoque33, 2026-11-20.
  *
  * ------------------------------------------------------------------------
  * GPLv3 Section 7 – Additional Terms & Attribution Requirements
@@ -59,6 +59,7 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
+import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.resourcePatch
 import app.morphe.patcher.util.getReference
@@ -85,6 +86,8 @@ import app.morphe.patches.music.utils.videotype.videoTypeHookPatch
 import app.morphe.patches.music.video.information.videoInformationPatch
 import app.morphe.patches.shared.litho.addLithoFilter
 import app.morphe.patches.shared.litho.lithoFilterPatch
+import app.morphe.patches.shared.mapping.ResourceType
+import app.morphe.patches.shared.mapping.hasResourceId
 import app.morphe.patches.shared.misc.fix.proto.fixProtoLibraryPatch
 import app.morphe.util.ResourceGroup
 import app.morphe.util.cloneMutable
@@ -105,6 +108,7 @@ import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 
 private val resourceFileArray = arrayOf(
@@ -304,6 +308,13 @@ val flyoutMenuComponentsPatch = bytecodePatch(
         val enumIndex = iconMatches.last().index
         val enumRegister = iconMethod.getInstruction<OneRegisterInstruction>(enumIndex).registerA
 
+        // A shared enum entry alone does not mean this Music target can render the menu icon.
+        val artistIconSupported = hasResourceId(
+            ResourceType.DRAWABLE,
+            "yt_outline_experimental_person_circle_slash_vd_theme_24",
+        ) && hasArtistExclusionIcon(iconTypeResolver as MethodReference)
+        val hideComponentsMethod = if (artistIconSupported) "hideComponentsWithArtistRule" else "hideComponents"
+
         val textViewIndex = iconMethod.indexOfFirstInstructionOrThrow {
             opcode == Opcode.CHECK_CAST &&
                     getReference<TypeReference>()?.type == "Landroid/widget/TextView;"
@@ -334,7 +345,7 @@ val flyoutMenuComponentsPatch = bytecodePatch(
                     iget v$register, v$register, $iconTypeField
                     invoke-static {v$register}, $iconTypeResolver
                     move-result-object v$register
-                    invoke-static {v$register}, $FLYOUT_CLASS_DESCRIPTOR->hideComponents(Ljava/lang/Enum;)Z
+                    invoke-static {v$register}, $FLYOUT_CLASS_DESCRIPTOR->$hideComponentsMethod(Ljava/lang/Enum;)Z
                     move-result v$register
                     if-nez v$register, :hide
                     :show
@@ -477,6 +488,13 @@ val flyoutMenuComponentsPatch = bytecodePatch(
             "false",
             false
         )
+        if (artistIconSupported) {
+            addSwitchPreference(CategoryType.FLYOUT, "revanced_hide_flyout_menu_dont_recommend_artist", "false", false)
+        } else {
+            printWarn(
+                "Hide Don't recommend artist: native Music menu icon unavailable on ${packageMetadata.versionName}."
+            )
+        }
         addSwitchPreference(
             CategoryType.FLYOUT,
             "revanced_hide_flyout_menu_go_to_album",
@@ -641,4 +659,14 @@ val flyoutMenuComponentsPatch = bytecodePatch(
         updatePatchStatus(FLYOUT_MENU_COMPONENTS)
 
     }
+}
+
+private fun BytecodePatchContext.hasArtistExclusionIcon(resolver: MethodReference): Boolean {
+    val iconEnum = classDefByOrNull(resolver.returnType) ?: return false
+    if (!AccessFlags.ENUM.isSet(iconEnum.accessFlags)) return false
+
+    val initializer = iconEnum.methods.firstOrNull { it.name == "<clinit>" } ?: return false
+    return initializer.implementation?.instructions?.any {
+        it.getReference<StringReference>()?.string == "PERSON_CIRCLE_SLASH"
+    } == true
 }

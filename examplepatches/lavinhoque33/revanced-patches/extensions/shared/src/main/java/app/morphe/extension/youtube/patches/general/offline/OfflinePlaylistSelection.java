@@ -5,12 +5,15 @@
  * https://github.com/anddea/revanced-patches
  *
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-20.
  * Written by lavinhoque33, 2026-11-05.
  */
 package app.morphe.extension.youtube.patches.general.offline;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Predicate;
 
 /** Immutable item snapshots preserve playlist order and distinguish audio/video library keys. */
@@ -45,11 +48,12 @@ final class OfflinePlaylistSelection {
 
     static List<Item> from(List<OfflinePlaylist.Entry> entries, Predicate<String> downloaded) {
         List<Item> result = new ArrayList<>();
-        for (int index = 0; index < entries.size(); index++) {
-            OfflinePlaylist.Entry entry = entries.get(index);
+        Set<String> added = new HashSet<>();
+        for (OfflinePlaylist.Entry entry : entries) {
+            if (!added.add(entry.videoId())) continue;
             boolean video = downloaded.test(OfflineVideo.keyOf(entry.videoId(), false));
             boolean audio = downloaded.test(OfflineVideo.keyOf(entry.videoId(), true));
-            result.add(new Item(entry.videoId(), entry.title(), entry.lengthMs(), index + 1, !video, false,
+            result.add(new Item(entry.videoId(), entry.title(), entry.lengthMs(), result.size() + 1, !video, false,
                     Integer.MAX_VALUE, video, audio));
         }
         return List.copyOf(result);

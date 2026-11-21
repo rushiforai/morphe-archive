@@ -18,6 +18,7 @@ import app.morphe.patcher.util.getReference
 import app.morphe.patcher.util.matchSingle
 import app.morphe.patcher.util.p0Register
 import app.morphe.patches.protonvpn.misc.anchors.VpnUserIsFreeUserFingerprint
+import app.morphe.patches.protonvpn.misc.anchors.isFreeUserCall
 import app.morphe.patches.protonvpn.misc.anchors.propertyGetter
 import app.morphe.patches.protonvpn.misc.anchors.vpnUserType
 import app.morphe.patches.protonvpn.misc.profiles.VpnCountryToStringFingerprint
@@ -28,6 +29,7 @@ import app.morphe.patches.protonvpn.misc.restrictions.clearFreeUserCheckInLambda
 import app.morphe.patches.protonvpn.misc.restrictions.keepUserSetting
 import app.morphe.patches.protonvpn.misc.settings.patchesSettingsPatch
 import app.morphe.patches.shared.compat.AppCompatibilities
+import app.morphe.patches.shared.misc.proton.VPN_SETTINGS_CLASS
 import app.morphe.patches.shared.misc.proton.markPatchApplied
 import app.morphe.patches.shared.misc.smali.descriptor
 import app.morphe.patches.shared.misc.smali.replaceStub
@@ -37,6 +39,7 @@ import com.android.tools.smali.dexlib2.builder.instruction.BuilderInstruction20t
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+import app.morphe.patches.shared.misc.extension.protonUnlockConnectionPreferencesExtensionPatch
 
 private const val EXCLUDED_LOCATIONS_CLASS = "Lapp/hxreborn/extension/protonvpn/ExcludedLocations;"
 private const val VPN_USER_ARGUMENT_OFFSET = 2
@@ -48,14 +51,15 @@ val unlockConnectionPreferencesPatch: BytecodePatch = bytecodePatch(
     name = "Unlock connection preferences",
     description = "Unlocks the default connection, recent connections and excluded locations on free plans.",
 ) {
+    dependsOn(protonUnlockConnectionPreferencesExtensionPatch)
     compatibleWith(AppCompatibilities.PROTON_VPN)
     dependsOn(patchesSettingsPatch)
 
     execute {
-        markPatchApplied("unlockConnectionPreferences", unlockConnectionPreferencesPatch)
+        markPatchApplied(VPN_SETTINGS_CLASS, "unlockConnectionPreferences", unlockConnectionPreferencesPatch)
         clearConstructorProperty(ConnectionPreferencesToStringFingerprint, "isFreeUser")
         keepUserSetting(defaultConnectionRestrictionFingerprint())
-        clearFreeUserCheck(recentsRecordingFingerprint())
+        clearRecentsRecordingFreeUserCheck()
         clearFreeUserCheckInLambdaOf(RecentsListViewStateFlowFingerprint)
         clearLastFreeUserCheckBefore(defaultConnectionRecentsFingerprint().matchSingle())
         clearFreeUserCheck(quickConnectIntentFingerprint())
@@ -177,6 +181,28 @@ private fun BytecodePatchContext.excludeLocationsFromFreeUserConnections() {
             return v0
         """,
     )
+}
+
+private fun BytecodePatchContext.clearRecentsRecordingFreeUserCheck() {
+    val method = recentsRecordingFingerprint().matchSingle().method
+    val instructions = method.instructions.toList()
+    val isFreeUser = isFreeUserCall()
+    val recentsDao = recentsDaoReference()
+    val sites = instructions.indices.filter { index ->
+        val freeUserResult = instructions.getOrNull(index + 1)
+        val freeUserBranch = instructions.getOrNull(index + 2)
+        isFreeUser.matches(method, instructions[index]) &&
+            freeUserResult?.opcode == Opcode.MOVE_RESULT &&
+            freeUserBranch?.opcode == Opcode.IF_NEZ &&
+            (freeUserResult as OneRegisterInstruction).registerA == (freeUserBranch as OneRegisterInstruction).registerA &&
+            instructions.subList(index + 3, maxOf(index + 3, (freeUserBranch as BuilderOffsetInstruction).target.location.index))
+                .takeWhile { it.opcode.canContinue() }
+                .any { recentsDao.matches(method, it) }
+    }
+    val site = sites.singleOrNull()
+        ?: throw PatchException("Expected one Recents recording branch in $method, found ${sites.size}")
+    val register = (instructions[site + 1] as OneRegisterInstruction).registerA
+    method.addInstruction(site + 2, "const/16 v$register, 0x0")
 }
 
 private fun Match.requireThisInP0() {

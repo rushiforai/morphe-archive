@@ -1,3 +1,25 @@
+## [1.10.0](https://github.com/bin0culars/bin0culars-patches/compare/v1.9.0...v1.10.0) (2026-11-21)
+
+### ✨ New Features
+
+* **reddit:** global content filter (experimental) ([#38](https://github.com/bin0culars/bin0culars-patches/issues/38)) ([ad531ad](https://github.com/bin0culars/bin0culars-patches/commit/ad531ad13d3bf649fb34c2729c04a0fc77f0ff94))
+
+### 🐛 Bug Fixes
+
+* **reddit:** support Reddit 2026.47.0 ([#41](https://github.com/bin0culars/bin0culars-patches/issues/41)) ([9f6f0bc](https://github.com/bin0culars/bin0culars-patches/commit/9f6f0bc2ba97b85f332156f4eab7db5f216070e0))
+
+## [1.10.0-dev.2](https://github.com/bin0culars/bin0culars-patches/compare/v1.10.0-dev.1...v1.10.0-dev.2) (2026-11-21)
+
+### 🐛 Bug Fixes
+
+* **reddit:** support Reddit 2026.47.0 ([#41](https://github.com/bin0culars/bin0culars-patches/issues/41)) ([9f6f0bc](https://github.com/bin0culars/bin0culars-patches/commit/9f6f0bc2ba97b85f332156f4eab7db5f216070e0))
+
+## [1.10.0-dev.1](https://github.com/bin0culars/bin0culars-patches/compare/v1.9.0...v1.10.0-dev.1) (2026-11-20)
+
+### ✨ New Features
+
+* **reddit:** global content filter (experimental) ([#38](https://github.com/bin0culars/bin0culars-patches/issues/38)) ([ad531ad](https://github.com/bin0culars/bin0culars-patches/commit/ad531ad13d3bf649fb34c2729c04a0fc77f0ff94))
+
 ## [1.9.0](https://github.com/bin0culars/bin0culars-patches/compare/v1.8.0...v1.9.0) (2026-11-19)
 
 ### ✨ New Features

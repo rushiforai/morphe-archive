@@ -2,6 +2,7 @@ package app.template.extension.extension;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
@@ -48,5 +49,36 @@ public class MereframeIntegrityHookTest {
     @Test(expected = IllegalStateException.class)
     public void voidHandlerAlsoRethrowsUnrelatedThrowable() {
         MereframeIntegrityHook.failOpenVoid(new IllegalStateException("unrelated native failure"));
+    }
+
+    @Test
+    public void containmentLabelNamesTheGuardedWrapper() {
+        Throwable t = new SecurityException("Protected operation unavailable");
+        String label = MereframeIntegrityHook.containmentLabel("wrapper integrity throw contained", t);
+
+        // The site must come from the throw location (this test method), not
+        // from the hook itself — docs/MEREFRAME.md triage reads that name.
+        assertTrue("label should carry the prefix: " + label,
+                label.startsWith("wrapper integrity throw contained at "));
+        assertTrue("label should name this test class: " + label,
+                label.contains("MereframeIntegrityHookTest"));
+    }
+
+    @Test
+    public void callSiteSkipsHookFrames() {
+        Throwable t = new SecurityException("app integrity check failed");
+        String site = MereframeIntegrityHook.callSite(t);
+
+        assertTrue("site should be this test method: " + site,
+                site.startsWith("org.junit") || site.contains("MereframeIntegrityHookTest"));
+    }
+
+    @Test
+    public void repeatedContainmentsAreLoggedOncePerSite() {
+        String site = "app.unnamed.rawrecording.b.B1e6ad8077f6880e309d8da4b.p";
+
+        assertTrue(MereframeIntegrityHook.shouldLogSite(site));
+        assertFalse(MereframeIntegrityHook.shouldLogSite(site));
+        assertFalse(MereframeIntegrityHook.shouldLogSite(site));
     }
 }

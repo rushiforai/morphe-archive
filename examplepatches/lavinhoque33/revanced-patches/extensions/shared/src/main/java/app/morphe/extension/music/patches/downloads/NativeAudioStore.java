@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2026 lavinhoque33
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-20.
  * Modified by lavinhoque33, 2026-11-07.
  */
 package app.morphe.extension.music.patches.downloads;
@@ -34,6 +35,7 @@ import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import app.morphe.extension.shared.downloads.PortableExport;
 import app.morphe.extension.shared.utils.Logger;
 import app.morphe.extension.shared.utils.Utils;
 
@@ -139,6 +141,19 @@ final class NativeAudioStore {
             }
         }
         return videoIds;
+    }
+
+    /** Read-only snapshot; unlike find(), exporting must not prune stale source or stream indexes. */
+    static Map<Long, Uri> publishedAudioForExport() {
+        Map<Long, Uri> media = new HashMap<>();
+        for (Object value : preferences().getAll().values()) {
+            if (!(value instanceof String saved)) continue;
+            Uri uri = Uri.parse(saved);
+            if (PortableExport.isPublicMedia(uri) && "audio".equals(uri.getPathSegments().get(1))) {
+                media.put(ContentUris.parseId(uri), uri);
+            }
+        }
+        return media;
     }
 
     private static String displayName(String videoId, String title, String artist) {

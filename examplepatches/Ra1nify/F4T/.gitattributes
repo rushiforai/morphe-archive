@@ -1,0 +1,13 @@
+#
+# https://help.github.com/articles/dealing-with-line-endings/
+#
+# Linux start script should use lf
+/gradlew        text eol=lf
+
+# These are Windows script files and should use crlf
+*.bat           text eol=crlf
+
+# Both the stable (main) and the dev branch keep their own patches-bundle.json. Merging one into the
+# other would make Morphe offer the wrong channel, so a merge keeps whichever version is checked out.
+patches-bundle.json merge=ours
+

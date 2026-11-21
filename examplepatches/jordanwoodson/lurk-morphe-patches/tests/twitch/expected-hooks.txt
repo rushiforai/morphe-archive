@@ -54,6 +54,12 @@ TwitchPrivacy.allowAnalyticsCollectionBoxed
 TwitchPrivacy.disableBranchTracking
 TwitchPrivacy.keepSpadeBatch
 TwitchPrivacy.keepSpadeEvent
+# The in-app web pages' (portals') tracker requests, in both portal WebViewClients.
+TwitchPortals.trackerResponse
+
+# if fix_web_pages
+# Certificate errors on other hosts than a web page's own, in both portal WebViewClients.
+TwitchPortals.sslError
 
 # if block_cookie_notice
 TwitchPrivacy.showCookieNotice
@@ -198,9 +204,14 @@ TwitchInterface.bitsVisible
 TwitchInterface.exactCount
 
 # if hide_subscription_upsells
-# The chat header's Subscribe, Gift A Sub and Upgrade buttons.
+# The chat header's Subscribe, Gift A Sub and Upgrade buttons, and the same buttons under the stream title.
 TwitchInterface.subscriptionButtons
 TwitchInterface.subscriptionUpsellVisible
+# Twitch's Turbo offer (Try Ad-Free on your own channel page).
+TwitchInterface.turboIngress
+
+# if hide_content_label
+TwitchInterface.hideContentLabel
 
 # if clip_download
 TwitchClips.overflowMenu
@@ -268,6 +279,10 @@ TwitchPlayer.seekForwardMillis
 TwitchPlayer.seekSeconds
 TwitchPlayer.swipeIntercept
 TwitchPlayer.swipeTouch
+
+# if latency_badge
+# Latency badge: the IVS wrapper's ID3 timing tags, read while the player's own latency is negative (issue 99).
+TwitchLatency.id3
 
 # if normal_latency
 TwitchPlayer.loadLatency

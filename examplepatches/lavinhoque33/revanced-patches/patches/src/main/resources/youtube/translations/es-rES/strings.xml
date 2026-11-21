@@ -294,6 +294,8 @@ Para solucionarlo, activa 'Falsificar transmisiones de vídeo' y cambia 'Cliente
     <string name="morphe_playback_in_feeds_entry_wifi_only">Solo con Wi-Fi</string>
     <string name="morphe_playback_in_feeds_title">Reproducción en feeds</string>
     <string name="morphe_player_control_buttons_background_opacity_summary">Ajusta la opacidad del fondo detrás de los botones de control del reproductor y la barra de tiempo (0 es invisible, 100 es opaco)</string>
+    <string name="morphe_center_playback_button_size_summary">Cambia el tamaño del botón de reproducir, pausar y volver a reproducir, y el de su zona táctil. El 100 % conserva el tamaño original.</string>
+    <string name="morphe_center_playback_button_size_title">Tamaño del botón de reproducción</string>
     <string name="morphe_player_control_buttons_background_opacity_title">Opacidad del fondo de los botones de control</string>
     <string name="morphe_playlist_hide_removal_snackbar_summary">La confirmación no se muestra después de que un vídeo se elimina de una lista de reproducción</string>
     <string name="morphe_playlist_hide_removal_snackbar_title">Ocultar mensaje emergente de eliminación de la lista de reproducción</string>
@@ -2073,6 +2075,9 @@ Información:
 Mantén pulsado para establecer la velocidad de reproducción en 1.0x"</string>
     <string name="revanced_overlay_button_speed_dialog_title">Mostrar botón de diálogo de velocidad</string>
     <string name="revanced_overlay_button_speed_dialog_type_title">Tipo de diálogo de velocidad</string>
+    <string name="revanced_overlay_button_video_quality_label">Calidad del vídeo</string>
+    <string name="revanced_overlay_button_video_quality_summary">Abre el menú de calidad del vídeo desde los controles del reproductor.</string>
+    <string name="revanced_overlay_button_video_quality_title">Mostrar botón de calidad del vídeo</string>
     <string name="revanced_overlay_button_vot_summary">Mostrar botón de superposición para alternar la traducción de voz en el video actual</string>
     <string name="revanced_overlay_button_vot_title">Traductor De Voz</string>
     <string name="revanced_overlay_button_whitelist_summary">\"Toque para abrir el diálogo de la lista blanca

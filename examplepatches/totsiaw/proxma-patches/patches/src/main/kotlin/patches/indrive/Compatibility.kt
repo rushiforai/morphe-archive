@@ -19,5 +19,9 @@ internal val COMPATIBILITY_INDRIVE = Compatibility(
             version = "5.189.0",
             minSdk = 29,
         ),
+        AppTarget(
+            version = "5.193.0",
+            minSdk = 29,
+        ),
     ),
 )

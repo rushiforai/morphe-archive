@@ -20,7 +20,8 @@ internal fun BytecodePatchContext.method(
     type: String,
     name: String,
     match: (MutableMethod) -> Boolean = { true },
-) = (mutableClassDefByOrNull(type) ?: moved(type, name)).methods.single { it.name == name && match(it) }
+) = mutableClassDefByOrNull(type)?.methods?.singleOrNull { it.name == name && match(it) }
+    ?: moved(type, name, match).methods.single { it.name == name && match(it) }
 
 internal fun BytecodePatchContext.findMethod(
     name: String,
@@ -38,11 +39,13 @@ internal fun BytecodePatchContext.findMethod(
 private fun BytecodePatchContext.moved(
     type: String,
     name: String,
+    match: (MutableMethod) -> Boolean,
 ): MutableClass {
     val found = mutableListOf<ClassDef>()
     classDefForEach { c -> if (c.methods.any { it.name == name && it.implementation != null }) found += c }
     val outer = type.substringBefore('$') + '$'
-    val c = found.filter { it.type.startsWith(outer) }.singleOrNull() ?: found.singleOrNull()
+    val candidates = found.filter { c -> mutableClassDefBy(c).methods.any { it.name == name && match(it) } }
+    val c = candidates.filter { it.type.startsWith(outer) }.singleOrNull() ?: candidates.singleOrNull()
     checkNotNull(c) { "Could not find class: $type (${found.size} classes implement $name: ${found.take(10).map { it.type }})" }
     return mutableClassDefBy(c)
 }

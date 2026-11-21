@@ -1,4 +1,5 @@
 version: 2
+# Pull requests go to dev, like every change; main only gets the weekly stable release.
 updates:
   - package-ecosystem: github-actions
     labels: []

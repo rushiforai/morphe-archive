@@ -557,10 +557,17 @@ private val gmsCoreSupportResourcePatch = resourcePatch {
  * Each app declares its own patch with this, named "GmsCore support (<App>)". LinkedIn and Truecaller keep their own
  * copies, which carry extra app-specific steps.
  */
-internal fun appGmsCoreSupportPatch(name: String, description: String, compatibility: Compatibility) = bytecodePatch(
+internal fun appGmsCoreSupportPatch(
+    name: String,
+    description: String,
+    compatibility: Compatibility,
+    default: Boolean = false,
+    /** Steps only this app needs; they belong to this patch, never to a separate tick the user could remove. */
+    extra: (BytecodePatchContext.() -> Unit)? = null,
+) = bytecodePatch(
     name = name,
     description = description,
-    default = false,
+    default = default,
 ) {
     compatibleWith(compatibility)
     dependsOn(gmsCoreSupportResourcePatch)
@@ -590,7 +597,8 @@ internal fun appGmsCoreSupportPatch(name: String, description: String, compatibi
 
         // The patched app is signed with another key, so Google's signature checks on the Play services package
         // would fail. Report Play services as present and current instead; GmsCore answers the actual calls.
-        mutableClassOrNull(PLAY_SERVICES_UTIL)?.methods?.forEach { method ->
+        val util = mutableClassOrNull(PLAY_SERVICES_UTIL)
+        util?.methods?.forEach { method ->
             when (method.name) {
                 "isGooglePlayServicesAvailable" -> method.addInstructions(
                     0,
@@ -602,12 +610,80 @@ internal fun appGmsCoreSupportPatch(name: String, description: String, compatibi
                 "ensurePlayServicesAvailable" -> method.addInstructions(0, "return-void")
             }
         }
+        // Google's own apps (Photos) ship the same check fully obfuscated, so it has no name to find. It is found by
+        // what it reads instead, the way Morphe finds it for YouTube; without this the app sees GmsCore as invalid
+        // Play services and refuses the account GmsCore holds.
+        if (util == null) patchObfuscatedAvailabilityCheck()
+
+        // GmsCore answers Google's device-certification question with "not compliant", and the app then hides itself
+        // behind "This device isn't Play Protect certified". When the check cannot be answered Google's code already
+        // continues, so a GmsCore answer is read the same way (Morphe's YouTube GmsCore fix, #2977, does likewise).
+        ignoreComplianceVerdict()
 
         // Push needs a Firebase installation first, and Google only issues one when the request names the
         // certificate the app's API key is bound to. The patched app is signed with another key, so the request is
         // refused (API_KEY_ANDROID_APP_BLOCKED), push registration then fails with FIS_AUTH_ERROR, and the app never
         // gets notifications. The header gets the original certificate, the same one GmsCore already presents.
         if (originalSignatureSha1.isNotEmpty()) spoofFirebaseCertificate(originalSignatureSha1.uppercase())
+
+        extra?.invoke(this)
+    }
+}
+
+/**
+ * `isGooglePlayServicesAvailable(Context, int)` in an obfuscated app: the only static (Context, int) -> int method that
+ * reads both the "com.google.app.id" and "com.google.android.gms.version" manifest entries. It then checks that the
+ * Play services package is signed by Google, which GmsCore is not; answering 0 (SUCCESS) is what the named patch does.
+ */
+private fun BytecodePatchContext.patchObfuscatedAvailabilityCheck() {
+    fun Method.isAvailabilityCheck(): Boolean {
+        if (returnType != "I" || parameterTypes.map { it.toString() } != listOf("Landroid/content/Context;", "I")) {
+            return false
+        }
+        val strings = implementation?.instructions?.mapNotNull { it.stringConstant() }?.toSet() ?: return false
+        return "com.google.app.id" in strings && "com.google.android.gms.version" in strings
+    }
+    val holders = mutableListOf<ClassDef>()
+    classDefForEach { classDef -> if (classDef.methods.any { it.isAvailabilityCheck() }) holders += classDef }
+    holders.forEach { classDef ->
+        mutableClassDefBy(classDef).methods.filter { it.isAvailabilityCheck() }.forEach { method ->
+            method.addInstructions(
+                0,
+                """
+                    const/4 v0, 0x0
+                    return v0
+                """,
+            )
+        }
+    }
+}
+
+/**
+ * Google's device-compliance verdict (`gmscompliance` client): a small value class whose toString names its states
+ * ENFORCE / DO_NOT_ENFORCE / NOT_SET / UNKNOWN, with one no-argument boolean getter that is true for ENFORCE. That getter
+ * now answers false, which is what the app already does when the check fails. Apps without the client are untouched.
+ */
+private fun BytecodePatchContext.ignoreComplianceVerdict() {
+    fun ClassDef.isVerdict(): Boolean {
+        val strings = methods.firstOrNull { it.name == "toString" && it.parameterTypes.isEmpty() }
+            ?.implementation?.instructions?.mapNotNull { it.stringConstant() }?.toSet() ?: return false
+        return "DO_NOT_ENFORCE" in strings && "ENFORCE" in strings && "NOT_SET" in strings
+    }
+    val holders = mutableListOf<ClassDef>()
+    classDefForEach { classDef -> if (classDef.isVerdict()) holders += classDef }
+    holders.forEach { classDef ->
+        mutableClassDefBy(classDef).methods.filter {
+            it.returnType == "Z" && it.parameterTypes.isEmpty() && !AccessFlags.STATIC.isSet(it.accessFlags) &&
+                it.implementation != null
+        }.forEach { method ->
+            method.addInstructions(
+                0,
+                """
+                    const/4 v0, 0x0
+                    return v0
+                """,
+            )
+        }
     }
 }
 
@@ -619,7 +695,7 @@ private fun BytecodePatchContext.mutableClassOrNull(type: String): MutableClass?
 }
 
 /** Rewrites every string constant [rename] knows; returns how many were rewritten. */
-private fun BytecodePatchContext.replaceStrings(rename: (String) -> String?): Int {
+internal fun BytecodePatchContext.replaceStrings(rename: (String) -> String?): Int {
     val holders = mutableListOf<ClassDef>()
     classDefForEach { classDef ->
         // The module loader talks to the Play services package by name; leaving it alone keeps ML Kit

@@ -8,7 +8,7 @@
  * - anddea (https://github.com/anddea)
  *
  * Licensed under the GNU General Public License v3.0.
- * Modified by lavinhoque33, 2026-10-29
+ * Modified by lavinhoque33, 2026-11-20
  *
  * ------------------------------------------------------------------------
  * GPLv3 Section 7 – Additional Terms & Attribution Requirements
@@ -52,12 +52,13 @@
 
 package app.morphe.extension.shared.patches;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.res.Resources;
-import android.content.pm.PackageManager;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.ColorFilter;
@@ -70,6 +71,9 @@ import android.graphics.drawable.AnimatedVectorDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Bundle;
+import android.system.ErrnoException;
+import android.system.Os;
+import android.system.StructStat;
 import android.view.Gravity;
 import android.view.ViewGroup;
 import android.view.animation.AlphaAnimation;
@@ -82,12 +86,7 @@ import android.widget.ImageView;
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
+import app.morphe.extension.music.patches.utils.DrawableColorPatch;
 import app.morphe.extension.shared.settings.Setting;
 import app.morphe.extension.shared.settings.SharedYouTubeSettings;
 import app.morphe.extension.shared.settings.preference.IconListPreference;
@@ -95,6 +94,7 @@ import app.morphe.extension.shared.utils.BaseThemeUtils;
 import app.morphe.extension.shared.utils.ResourceType;
 import app.morphe.extension.shared.utils.ResourceUtils;
 import app.morphe.extension.shared.utils.Utils;
+import app.morphe.extension.youtube.patches.theme.ThemePatch;
 
 /**
  * Enables the launcher alias selected in the custom branding settings.
@@ -108,7 +108,6 @@ import app.morphe.extension.shared.utils.Utils;
 public final class CustomBrandingPatch {
     private static final String ICON_VALUES_RESOURCE = "morphe_custom_branding_icon_entry_values";
     private static final String NAME_ENTRIES_RESOURCE = "morphe_custom_branding_name_entries";
-    private static final String NAME_VALUES_RESOURCE = "morphe_custom_branding_name_entry_values";
     private static final String DEFAULT_ICON_RESOURCE = "morphe_custom_branding_default_icon";
     private static final String DEFAULT_NAME_INDEX_RESOURCE = "morphe_custom_branding_default_name_index";
     private static final String MAIN_ACTIVITY_RESOURCE = "morphe_custom_branding_main_activity";
@@ -118,8 +117,9 @@ public final class CustomBrandingPatch {
     private static final String SPLASH_RESOURCE_PREFIX = "morphe_custom_branding_splash_";
     private static final String SYSTEM_SPLASH_STYLE_PREFIX =
             "morphe_custom_branding_system_splash_";
-    private static final String SYSTEM_SPLASH_THEME_KEY =
-            "morphe_custom_branding_system_splash_theme_icon";
+    private static final String BRANDING_STATE = "morphe_branding_state";
+    private static final String SYSTEM_SPLASH_STAMP = "system_splash_install_and_theme";
+    private static final String LEGACY_SYSTEM_SPLASH_THEME_KEY = "morphe_custom_branding_system_splash_theme_icon";
     private static final String SYSTEM_SPLASH_THEME_SEPARATOR = "__";
     private static final String YOUTUBE_DARK_SPLASH_THEME_PREFIX =
             "morphe_theme_splash_dark_";
@@ -129,7 +129,6 @@ public final class CustomBrandingPatch {
     private static final String DARK_THEME_KEY = "morphe_dark_theme";
     private static final String LIGHT_THEME_KEY = "morphe_light_theme";
     private static final String LAST_USED_DARK_THEME_KEY = "morphe_theme_last_used_dark_mode";
-    private static final String SYSTEM_SPLASH_ALIAS_SUFFIX = "_system";
     private static final String SPLASH_OVERLAY_TAG = "morphe_custom_branding_splash_overlay";
     private static final String SPLASH_SCREEN_STYLE_OPTION =
             "android.activity.splashScreenStyle";
@@ -141,11 +140,9 @@ public final class CustomBrandingPatch {
             "revanced_disable_cairo_splash_animation";
     private static final String SPLASH_ANIMATION_STYLE_60_BLACK_AND_WHITE = "FPS_60_BLACK_AND_WHITE";
     private static final String SPLASH_ANIMATION_STYLE_30_BLACK_AND_WHITE = "FPS_30_BLACK_AND_WHITE";
-    private static final String CUSTOM_ICON_ALIAS = "custom";
     private static final String LAUNCHER_RESOURCE_PREFIX = "morphe_launcher_";
     private static final float RVX_SETTINGS_ICON_SCALE = 0.6f;
     private static final float MUSIC_CUSTOM_RVX_SETTINGS_ICON_HORIZONTAL_OFFSET_DP = -3.0f;
-    private static final int NAME_ALIAS_COUNT = 5;
     private static boolean systemSplashThemePreparedBeforeLaunch;
     private static final ColorFilter MONOCHROME_SPLASH_FILTER = new ColorMatrixColorFilter(
             new ColorMatrix(new float[]{
@@ -228,110 +225,54 @@ public final class CustomBrandingPatch {
     /** Entry point injected into the main activity's {@code onCreate}. */
     public static void setBranding(Activity activity) {
         systemSplashThemePreparedBeforeLaunch = false;
+        Context context = activity != null ? activity : Utils.getContext();
+        if (context != null) applyBranding(context, activity, true);
+    }
+
+    /** Applies imported or changed launcher selections before the settings restart resolves a launch intent. */
+    public static void prepareLauncherRestart(Context context) {
+        Activity activity = context instanceof Activity host ? host : Utils.getActivity();
+        applyBranding(context, activity, false);
+    }
+
+    private static void applyBranding(Context context, Activity activity, boolean starting) {
         try {
-            Context context = activity != null ? activity : Utils.getContext();
-            if (context == null) return;
-
             String[] iconValues = getStringArray(context, ICON_VALUES_RESOURCE);
-            String[] nameValues = getStringArray(context, NAME_VALUES_RESOURCE);
-            if (iconValues.length == 0 || nameValues.length == 0) return;
+            String[] nameEntries = getStringArray(context, NAME_ENTRIES_RESOURCE);
+            if (iconValues.length == 0 || nameEntries.length == 0) return;
 
-            String defaultIcon = getString(context, DEFAULT_ICON_RESOURCE, "original");
-            int defaultNameIndex = parseInt(
-                    getString(context, DEFAULT_NAME_INDEX_RESOURCE, "1"));
-
-            // A value equal to a Setting's default is intentionally removed from
-            // SharedPreferences. Do not materialize the generated resource default here: doing
-            // so would turn a deliberate selection of the stock icon/name into the old patch
-            // default on the next launch.
+            // A value equal to a Setting's default is intentionally absent from SharedPreferences.
+            // Only correct an unavailable selection (for example custom assets omitted after a repatch).
             String selectedIcon = SharedYouTubeSettings.CUSTOM_BRANDING_ICON.get();
-            int selectedNameIndex = SharedYouTubeSettings.CUSTOM_BRANDING_NAME.get();
-
-            Set<String> validIcons = new HashSet<>(Arrays.asList(iconValues));
-            if (!validIcons.contains(selectedIcon)) {
-                selectedIcon = defaultIcon;
-                if (!validIcons.contains(selectedIcon)) selectedIcon = iconValues[0];
+            if (!hasIcon(iconValues, selectedIcon)) {
+                selectedIcon = getString(context, DEFAULT_ICON_RESOURCE, "original");
+                if (!hasIcon(iconValues, selectedIcon)) selectedIcon = iconValues[0];
                 SharedYouTubeSettings.CUSTOM_BRANDING_ICON.save(selectedIcon);
             }
-            if (selectedNameIndex < 1 || selectedNameIndex > nameValues.length) {
-                selectedNameIndex = defaultNameIndex;
-                if (selectedNameIndex < 1 || selectedNameIndex > nameValues.length) {
-                    selectedNameIndex = 1;
-                }
+            int selectedNameIndex = SharedYouTubeSettings.CUSTOM_BRANDING_NAME.get();
+            if (selectedNameIndex < 1 || selectedNameIndex > nameEntries.length) {
+                selectedNameIndex = getDefaultAppNameIndex();
+                if (selectedNameIndex < 1 || selectedNameIndex > nameEntries.length) selectedNameIndex = 1;
                 SharedYouTubeSettings.CUSTOM_BRANDING_NAME.save(selectedNameIndex);
             }
 
-            applyApplicationLabel(context, selectedNameIndex);
+            String label = nameEntries[selectedNameIndex - 1];
+            if (!label.isEmpty()) context.getApplicationInfo().nonLocalizedLabel = label;
+            IconListPreference.setOriginalLauncherIconName(getString(context, ORIGINAL_LAUNCHER_RESOURCE, ""));
 
-            String packageName = context.getPackageName();
-            PackageManager packageManager = context.getPackageManager();
-            List<ComponentName> aliases = new ArrayList<>();
-            ComponentName selectedComponent = null;
             boolean useSystemSplash = isSystemSplashEnabled(context);
-            String systemSplashThemeName = getSystemSplashThemeName(context, selectedIcon);
-            systemSplashThemePreparedBeforeLaunch = useSystemSplash
-                    && systemSplashThemeName.equals(
-                            Setting.preferences.getString(SYSTEM_SPLASH_THEME_KEY, ""));
-
-            String originalLauncherName = getString(context, ORIGINAL_LAUNCHER_RESOURCE, "");
-            IconListPreference.setOriginalLauncherIconName(originalLauncherName);
-
-            // Custom aliases remain in the manifest even when their patch options are omitted.
-            // Always manage those hidden aliases so an alias enabled by an earlier installation
-            // cannot remain active alongside the newly selected launcher component.
-            List<String> aliasIconValues = new ArrayList<>(Arrays.asList(iconValues));
-            if (!aliasIconValues.contains(CUSTOM_ICON_ALIAS)) {
-                aliasIconValues.add(CUSTOM_ICON_ALIAS);
-            }
-            for (String iconValue : aliasIconValues) {
-                for (int nameIndex = 1; nameIndex <= NAME_ALIAS_COUNT; nameIndex++) {
-                    ComponentName component = new ComponentName(
-                            packageName,
-                            packageName + ".morphe_" + iconValue + "_" + nameIndex);
-                    aliases.add(component);
-                    if (iconValue.equals(selectedIcon)
-                            && nameIndex == selectedNameIndex
-                            && !useSystemSplash) {
-                        selectedComponent = component;
-                    }
-                    if (!"original".equals(iconValue)) {
-                        ComponentName systemComponent = new ComponentName(
-                                packageName,
-                                packageName + ".morphe_" + iconValue + "_" + nameIndex
-                                        + SYSTEM_SPLASH_ALIAS_SUFFIX);
-                        aliases.add(systemComponent);
-                        if (iconValue.equals(selectedIcon) && nameIndex == selectedNameIndex) {
-                            selectedComponent = useSystemSplash ? systemComponent : component;
-                        }
-                    }
-                }
-            }
-
-            if (activity != null && useSystemSplash) {
-                updateSystemSplashTheme(activity);
-            }
-
-            if (selectedComponent == null) {
-                selectedComponent = aliases.get(0);
-            }
-
-            // Retire the old launcher before publishing the new one, then let
-            // PackageManager finish the final enable operation normally.
-            for (ComponentName alias : aliases) {
-                if (!alias.equals(selectedComponent)) {
-                    packageManager.setComponentEnabledSetting(
-                            alias,
-                            PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
-                            PackageManager.DONT_KILL_APP);
-                }
-            }
-            packageManager.setComponentEnabledSetting(
-                    selectedComponent,
-                    PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
-                    0);
+            applySystemSplashTheme(activity, useSystemSplash, starting, false);
+            LauncherAliasReconciler.reconcile(context, selectedIcon, selectedNameIndex, useSystemSplash);
         } catch (Exception ignored) {
-            // Root-mounted installations do not apply manifest aliases. Keep the app launchable.
+            // Branding resources can be missing on a root-mounted installation.
         }
+    }
+
+    private static boolean hasIcon(String[] values, String icon) {
+        for (String value : values) {
+            if (value.equals(icon)) return true;
+        }
+        return false;
     }
 
     /**
@@ -344,28 +285,62 @@ public final class CustomBrandingPatch {
      * preference UI.</p>
      */
     public static void updateSystemSplashTheme(Activity activity) {
+        applySystemSplashTheme(activity, isSystemSplashEnabled(activity), false, true);
+    }
+
+    @SuppressLint("ApplySharedPref") // Save changes before the settings restart can exit the process.
+    private static void applySystemSplashTheme(Activity activity, boolean enabled, boolean starting,
+                                               boolean forceReset) {
         if (activity == null || Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return;
 
         try {
-            if (!isSystemSplashEnabled(activity)) {
-                SplashScreenBridge.resetTheme(activity);
-                Setting.preferences.removeKey(SYSTEM_SPLASH_THEME_KEY);
+            SharedPreferences state = activity.getSharedPreferences(BRANDING_STATE, Context.MODE_PRIVATE);
+            String appliedStamp = state.getString(SYSTEM_SPLASH_STAMP, null);
+            boolean hasLegacyTheme = Setting.preferences.preferences.contains(LEGACY_SYSTEM_SPLASH_THEME_KEY);
+            if (!enabled) {
+                if (forceReset || appliedStamp != null || hasLegacyTheme) {
+                    SplashScreenBridge.resetTheme(activity);
+                    if (appliedStamp != null) state.edit().remove(SYSTEM_SPLASH_STAMP).commit();
+                    if (hasLegacyTheme) Setting.preferences.removeKey(LEGACY_SYSTEM_SPLASH_THEME_KEY);
+                }
                 return;
             }
 
-            String selectedIcon = SharedYouTubeSettings.CUSTOM_BRANDING_ICON.get();
-            String themeName = getSystemSplashThemeName(activity, selectedIcon);
-            int themeId = ResourceUtils.getIdentifier(
-                    themeName,
-                    ResourceType.STYLE,
-                    activity);
-            if (themeId != 0) {
-                SplashScreenBridge.setTheme(activity, themeId);
-                Setting.preferences.saveString(SYSTEM_SPLASH_THEME_KEY, themeName);
-            }
+            String themeName = getSystemSplashThemeName(activity, SharedYouTubeSettings.CUSTOM_BRANDING_ICON.get());
+            int themeId = ResourceUtils.getIdentifier(themeName, ResourceType.STYLE, activity);
+            if (themeId == 0) return;
+
+            // A patch/reinstall can replace the APK without changing its version or even its path
+            // (for example with a bind mount). A previously applied style name is not proof that
+            // Android rendered this installation's starting window with that style.
+            String source = splashSourceIdentity(activity.getApplicationInfo().sourceDir);
+            String stamp = (source == null ? "" : source) + '\n' + themeName;
+            if (starting) systemSplashThemePreparedBeforeLaunch = source != null && stamp.equals(appliedStamp);
+
+            SplashScreenBridge.setTheme(activity, themeId);
+            if (!stamp.equals(appliedStamp)) state.edit().putString(SYSTEM_SPLASH_STAMP, stamp).commit();
+            if (hasLegacyTheme) Setting.preferences.removeKey(LEGACY_SYSTEM_SPLASH_THEME_KEY);
         } catch (Exception ignored) {
             // Leave the host splash theme unchanged when generated resources are unavailable.
         }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.S)
+    private static String splashSourceIdentity(String path) {
+        if (path == null || path.isEmpty()) return null;
+
+        try {
+            return splashSourceIdentity(path, Os.stat(path));
+        } catch (ErrnoException | SecurityException ignored) {
+            return null;
+        }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.S)
+    static String splashSourceIdentity(String path, StructStat source) {
+        return path + '\n' + source.st_dev + ':' + source.st_ino + ':' + source.st_size
+                + ':' + source.st_mtime + ':' + source.st_mtim.tv_nsec
+                + ':' + source.st_ctime + ':' + source.st_ctim.tv_nsec;
     }
 
     /**
@@ -381,7 +356,7 @@ public final class CustomBrandingPatch {
         String baseThemeName = SYSTEM_SPLASH_STYLE_PREFIX + selectedIcon;
 
         boolean hasYouTubeThemes = ResourceUtils.getIdentifier(
-                YOUTUBE_LIGHT_SPLASH_THEME_PREFIX + "white",
+                YOUTUBE_LIGHT_SPLASH_THEME_PREFIX + ThemePatch.DEFAULT_LIGHT_THEME,
                 ResourceType.STYLE,
                 context) != 0;
         if (hasYouTubeThemes) {
@@ -392,7 +367,7 @@ public final class CustomBrandingPatch {
                             BaseThemeUtils.isDarkModeEnabled());
             String themeKey = Setting.preferences.getString(
                     dark ? DARK_THEME_KEY : LIGHT_THEME_KEY,
-                    dark ? "stock" : "white");
+                    dark ? ThemePatch.DEFAULT_DARK_THEME : ThemePatch.DEFAULT_LIGHT_THEME);
             String appearanceKey = (dark ? "dark_" : "light_") + themeKey;
             String combinedThemeName = baseThemeName
                     + SYSTEM_SPLASH_THEME_SEPARATOR + appearanceKey;
@@ -411,11 +386,11 @@ public final class CustomBrandingPatch {
         }
 
         boolean hasMusicThemes = ResourceUtils.getIdentifier(
-                MUSIC_SPLASH_THEME_PREFIX + "modern_youtube",
+                MUSIC_SPLASH_THEME_PREFIX + DrawableColorPatch.DEFAULT_DARK_THEME,
                 ResourceType.STYLE,
                 context) != 0;
         if (hasMusicThemes) {
-            String themeKey = Setting.preferences.getString(DARK_THEME_KEY, "modern_youtube");
+            String themeKey = Setting.preferences.getString(DARK_THEME_KEY, DrawableColorPatch.DEFAULT_DARK_THEME);
             String combinedThemeName = baseThemeName
                     + SYSTEM_SPLASH_THEME_SEPARATOR + themeKey;
             if (ResourceUtils.getIdentifier(
@@ -424,7 +399,7 @@ public final class CustomBrandingPatch {
             }
 
             String fallbackThemeName = baseThemeName
-                    + SYSTEM_SPLASH_THEME_SEPARATOR + "modern_youtube";
+                    + SYSTEM_SPLASH_THEME_SEPARATOR + DrawableColorPatch.DEFAULT_DARK_THEME;
             if (ResourceUtils.getIdentifier(
                     fallbackThemeName, ResourceType.STYLE, context) != 0) {
                 return fallbackThemeName;
@@ -460,19 +435,6 @@ public final class CustomBrandingPatch {
             return label.isEmpty() ? fallback : label;
         } catch (Exception ignored) {
             return fallback;
-        }
-    }
-
-    private static void applyApplicationLabel(Context context, int selectedNameIndex) {
-        String fallback = getString(
-                context, "morphe_custom_branding_original_app_name", "YouTube");
-        String[] nameEntries = getStringArray(context, NAME_ENTRIES_RESOURCE);
-        String label = selectedNameIndex >= 1 && selectedNameIndex <= nameEntries.length
-                ? nameEntries[selectedNameIndex - 1]
-                : fallback;
-
-        if (!label.isEmpty()) {
-            context.getApplicationInfo().nonLocalizedLabel = label;
         }
     }
 

@@ -62,6 +62,8 @@ public final class ThreadScopedNg {
     public static void nativeThreadDeleted(Object nativeBoard, long threadId) {
         Context context = Haiagaru.applicationContext();
         if (context == null || nativeBoard == null || threadId <= 0) return;
+        try { BrowsingHistory.nativeThreadDeleted(nativeBoard, threadId); }
+        catch (RuntimeException error) { Log.w("Haiagaru", "Unable to remove deleted thread from HOME history", error); }
         onThreadDeleted(context, nativeBoard.toString(), threadId);
     }
 

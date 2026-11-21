@@ -5,6 +5,7 @@
  * https://github.com/anddea/revanced-patches
  *
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-20.
  *
  * ------------------------------------------------------------------------
  * GPLv3 Section 7 – Additional Terms & Attribution Requirements
@@ -64,33 +65,67 @@ import app.morphe.extension.shared.utils.Utils;
 
 @SuppressWarnings("unused")
 public final class LithoFilterPatch {
-    /**
-         * Simple wrapper to pass the litho parameters through the prefix search.
-         */
-        private record LithoFilterParameters(String identifier, String path, String accessibility,
-                                             Object contextSource, byte[] buffer) {
+    /** Implemented on the native UPB element by the modern YouTube bytecode bridge. */
+    public interface EncodableElement {
+        @Nullable
+        byte[] patch_encodeElement();
+    }
+
+    /** One invocation owns one element and, once requested, its encoded bytes. */
+    private static final class LithoFilterParameters implements LazyBufferFilter.Buffer {
+        final String identifier;
+        final String path;
+        final String accessibility;
+        final Object contextSource;
+        @Nullable
+        private Object element;
+        @Nullable
+        private byte[] buffer;
+
+        LithoFilterParameters(String identifier, String path, String accessibility, Object contextSource,
+                              @Nullable Object element, @Nullable byte[] buffer) {
+            this.identifier = identifier;
+            this.path = path;
+            this.accessibility = accessibility;
+            this.contextSource = contextSource;
+            this.element = element;
+            this.buffer = buffer;
+        }
+
+        @Override
+        public byte[] get() {
+            if (buffer == null) {
+                Object current = element;
+                // Mark attempted before entering native code. Nested conversions have their own
+                // parameters, and a failed encode cannot retry or fall back to another template.
+                element = null;
+                buffer = EMPTY_BYTE_ARRAY;
+                if (current instanceof EncodableElement encodable) {
+                    byte[] encoded = encodable.patch_encodeElement();
+                    if (encoded != null) buffer = encoded;
+                }
+            }
+            return buffer;
+        }
 
         @NonNull
-            @Override
-            public String toString() {
-                // Estimate the percentage of the buffer that are Strings.
-                StringBuilder builder = new StringBuilder(Math.max(100, buffer.length / 2));
-                builder.append("ID: ");
-                builder.append(identifier);
-                if (!accessibility.isEmpty()) {
-                    // AccessibilityId and AccessibilityText are pieces of BufferStrings.
-                    builder.append(" Accessibility: ");
-                    builder.append(accessibility);
-                }
-                builder.append(" Path: ");
-                builder.append(path);
-                if (BaseSettings.DEBUG_PROTOBUFFER.get()) {
-                    builder.append(" BufferStrings: ");
-                    findAsciiStrings(builder, buffer);
-                }
-
-                return builder.toString();
+        @Override
+        public String toString() {
+            boolean logProtoBuffer = BaseSettings.DEBUG_PROTOBUFFER.get();
+            byte[] logBuffer = logProtoBuffer ? get() : EMPTY_BYTE_ARRAY;
+            StringBuilder builder = new StringBuilder(Math.max(100, logBuffer.length / 2));
+            builder.append("ID: ").append(identifier);
+            if (!accessibility.isEmpty()) {
+                builder.append(" Accessibility: ").append(accessibility);
             }
+            builder.append(" Path: ").append(path);
+            if (logProtoBuffer) {
+                builder.append(" BufferStrings: ");
+                findAsciiStrings(builder, logBuffer);
+            }
+
+            return builder.toString();
+        }
 
             /**
              * Search through a byte array for all ASCII strings.
@@ -233,9 +268,16 @@ public final class LithoFilterPatch {
                             if (!group.isEnabled()) return false;
 
                             LithoFilterParameters parameters = (LithoFilterParameters) callbackParameter;
-                            final boolean isFiltered = filter.isFiltered(parameters.contextSource,
-                                    parameters.identifier, parameters.accessibility, parameters.path, parameters.buffer,
-                                    group, type, matchedStartIndex);
+                            final boolean isFiltered;
+                            if (filter instanceof LazyBufferFilter lazyFilter) {
+                                isFiltered = lazyFilter.isFilteredLazy(parameters.contextSource,
+                                        parameters.identifier, parameters.accessibility, parameters.path, parameters,
+                                        group, type, matchedStartIndex);
+                            } else {
+                                isFiltered = filter.isFiltered(parameters.contextSource, parameters.identifier,
+                                        parameters.accessibility, parameters.path, parameters.get(),
+                                        group, type, matchedStartIndex);
+                            }
 
                             if (isFiltered && BaseSettings.DEBUG.get()) {
                                 Logger.printDebug(() -> type == Filter.FilterContentType.IDENTIFIER
@@ -419,6 +461,28 @@ public final class LithoFilterPatch {
     }
 
     /**
+     * Injection point for modern YouTube. The element is passed on the stack rather than staged
+     * in a thread-local so a nested, skipped or throwing conversion cannot replace or retain it.
+     */
+    public static boolean isFilteredElement(Object contextSource, @Nullable String accessibilityId,
+                                            @Nullable String accessibilityText, @Nullable Object element) {
+        if (!(contextSource instanceof ContextInterface context)) return false;
+
+        try {
+            String identifier = context.patch_getIdentifier();
+            if (identifier == null || identifier.isEmpty()) return false;
+
+            StringBuilder pathBuilder = context.patch_getPathBuilder();
+            if (pathBuilder.length() == 0) return false;
+
+            return filter(identifier, accessibilityId, accessibilityText, pathBuilder, contextSource, element, null);
+        } catch (Exception ex) {
+            Logger.printException(() -> "isFiltered failure", ex);
+            return false;
+        }
+    }
+
+    /**
      * Injection point.
      */
     public static boolean isFiltered(String identifier, @Nullable String accessibilityId,
@@ -470,26 +534,35 @@ public final class LithoFilterPatch {
                 buffer = EMPTY_BYTE_ARRAY;
             }
 
-            String path = pathBuilder.toString();
-
-            String accessibility = "";
-            if (accessibilityId != null && !accessibilityId.isBlank()) {
-                accessibility = accessibilityId;
-            }
-            if (accessibilityText != null && !accessibilityText.isBlank()) {
-                accessibility = accessibilityId + '|' + accessibilityText;
-            }
-            LithoFilterParameters parameter = new LithoFilterParameters(identifier, path, accessibility, contextSource, buffer);
-            Logger.printDebug(() -> "Searching " + parameter);
-
-            // Keep filtering local to the component; changing backing lists can invalidate grid rows.
-            return identifierSearchTree.matches(identifier, parameter)
-                    || pathSearchTree.matches(path, parameter);
+            return filter(identifier, accessibilityId, accessibilityText, pathBuilder, contextSource, null, buffer);
         } catch (Exception ex) {
             Logger.printException(() -> "isFiltered failure", ex);
         }
 
         return false;
+    }
+
+    private static boolean filter(String identifier, @Nullable String accessibilityId,
+                                  @Nullable String accessibilityText, StringBuilder pathBuilder,
+                                  Object contextSource, @Nullable Object element, @Nullable byte[] buffer) {
+        String path = pathBuilder.toString();
+        String accessibility = "";
+        if (accessibilityId != null && !accessibilityId.isBlank()) {
+            accessibility = accessibilityId;
+        }
+        if (accessibilityText != null && !accessibilityText.isBlank()) {
+            accessibility = accessibilityId + '|' + accessibilityText;
+        }
+
+        LithoFilterParameters parameters =
+                new LithoFilterParameters(identifier, path, accessibility, contextSource, element, buffer);
+        if (!Utils.isContextSet() || BaseSettings.DEBUG.get()) {
+            Logger.printDebug(() -> "Searching " + parameters);
+        }
+
+        // Keep filtering local to the component; changing backing lists can invalidate grid rows.
+        return identifierSearchTree.matches(identifier, parameters)
+                || pathSearchTree.matches(path, parameters);
     }
 
     /**

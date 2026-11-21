@@ -1,3 +1,24 @@
+# [1.60.0](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.59.0...v1.60.0) (2026-11-20)
+
+
+### Features
+
+* **discoveryplus:** add opt-in Store Country Override for the Italian free tier ([a516c53](https://github.com/ajstrick81/morphe-androidtv-patches/commit/a516c5351295727be4369523b073946c37b74692))
+
+# [1.59.0](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.58.0...v1.59.0) (2026-11-20)
+
+
+### Features
+
+* **joyn:** add experimental Joyn Android TV ad patch ([f1f6c29](https://github.com/ajstrick81/morphe-androidtv-patches/commit/f1f6c2942ebf84c4a9ce87f92b3b68bad58dabdd)), closes [#328](https://github.com/ajstrick81/morphe-androidtv-patches/issues/328)
+
+# [1.58.0](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.57.0...v1.58.0) (2026-11-20)
+
+
+### Features
+
+* **discoveryplus:** add experimental discovery+ Android TV ad patches ([88b8b3b](https://github.com/ajstrick81/morphe-androidtv-patches/commit/88b8b3b0fbe940d9c62b7667a35c8116db8ce567))
+
 # [1.57.0](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.56.0...v1.57.0) (2026-11-19)
 
 

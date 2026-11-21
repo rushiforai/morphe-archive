@@ -14,9 +14,15 @@ final class NotificationNg {
     private final Map<String,NativeNgStore> stores=new LinkedHashMap<>();
     private final Method match;
     private final boolean suppressChainedReplies;
-    private final Set<Integer> manual=new HashSet<>(),chained=new HashSet<>();
+    private final Set<Integer> manual=new HashSet<>();
+    private final NavigableSet<Integer> chained=new TreeSet<>();
     private static final Pattern ID=Pattern.compile("(?:^|\\s)ID:([^\\s<>]+)");
     private static final Pattern ANCHOR=Pattern.compile(">>([1-9][0-9]{0,6})(?:-([1-9][0-9]{0,6}))?");
+    private static final Pattern BE=Pattern.compile("BE:([0-9]{1,12})");
+    private static final Pattern IMAGE=Pattern.compile("https?://[^\\s<>\"']{1,1024}");
+    static boolean chainedRepliesEnabled(Context context){
+        return FeatureSwitches.prefs(context).getBoolean(CHAIN_KEY,false);
+    }
     static boolean enabled(Context context){return FeatureSwitches.prefs(context).getBoolean(KEY,true);}
     NotificationNg(Context context,ThreadWatchRules.Target target)throws Exception{
         String version=context.getPackageManager().getPackageInfo(context.getPackageName(),0).versionName;
@@ -24,7 +30,7 @@ final class NotificationNg {
         Object parsed=info.getMethod(version.contains("242")?"d":"c",String.class).invoke(null,target.url);
         if(parsed==null)throw new IOException("Notification thread unavailable");
         board=RefreshTargets.nativeBoard(parsed,version);
-        suppressChainedReplies=FeatureSwitches.prefs(context).getBoolean(CHAIN_KEY,false);
+        suppressChainedReplies=chainedRepliesEnabled(context);
         for(String kind:new String[]{"ID","NAME","WORD","BE","IMAGE"})stores.put(kind,new NativeNgStore(context,kind));
         NativeNgStore store=stores.get("ID");Method found=null;
         for(Method method:store.store.getClass().getMethods()){
@@ -48,13 +54,13 @@ final class NotificationNg {
     boolean blocked(int number,String name,String date,String body)throws Exception{
         if(number==1&&FirstResponseNg.disabled())return false;
         if(manual.contains(number)){if(suppressChainedReplies)chained.add(number);return true;}
-        String plain=android.text.Html.fromHtml(body).toString();
-        Matcher id=ID.matcher(android.text.Html.fromHtml(date).toString());
+        String plain=ProgrammableNgController.plain(body);
+        Matcher id=ID.matcher(ProgrammableNgController.plain(date));
         String identity=id.find()?id.group(1):"";
         for(Map.Entry<String,NativeNgStore> entry:stores.entrySet()){
             if(entry.getKey().equals("BE")||entry.getKey().equals("IMAGE"))continue;
             String value=entry.getKey().equals("ID")?identity:entry.getKey().equals("NAME")?
-                    android.text.Html.fromHtml(name).toString():plain;
+                    ProgrammableNgController.plain(name):plain;
             if(value.isEmpty())continue;
             Object item=match.invoke(entry.getValue().store,value,board);
             if(item!=null){
@@ -63,45 +69,88 @@ final class NotificationNg {
                 return true;
             }
         }
-        Matcher be=Pattern.compile("BE:([0-9]{1,12})").matcher(date);
+        Matcher be=BE.matcher(date);
         if(be.find()&&match.invoke(stores.get("BE").store,be.group(1),board)!=null)return true;
-        Matcher image=Pattern.compile("https?://[^\\s<>\"']{1,1024}").matcher(plain);
+        Matcher image=IMAGE.matcher(plain);
         while(image.find())if(match.invoke(stores.get("IMAGE").store,image.group(),board)!=null)return true;
         Matcher anchors=ANCHOR.matcher(plain);
         while(suppressChainedReplies&&anchors.find()){
             int first=Integer.parseInt(anchors.group(1)),last=anchors.group(2)==null?first:Integer.parseInt(anchors.group(2));
-            for(int ng:chained)if(ng<number&&ng>=first&&ng<=last){chained.add(number);return true;}
+            Integer ng=chained.ceiling(first);
+            if(ng!=null&&ng<number&&ng<=last){chained.add(number);return true;}
         }
         return false;
     }
+    static final class Row {
+        final int number;
+        final String name,date,body;
+
+        private Row(int number,String name,String date,String body){
+            this.number=number;this.name=name;this.date=date;this.body=body;
+        }
+
+        static Row parse(String line,int ordinal,boolean numbered){
+            String[] fields=line.split("<>",-1);
+            if(!numbered)return fields.length<5?null:new Row(ordinal,fields[0],fields[2],fields[3]);
+            if(fields.length<6)return null;
+            try{return new Row(Integer.parseInt(fields[0]),fields[1],fields[3],fields[4]);}
+            catch(NumberFormatException invalid){return null;}
+        }
+
+        String previewBody(){return body.substring(0,Math.min(body.length(),16384));}
+    }
+
     static Map<Integer,String> filter(Context context,ThreadWatchRules.Target target,String dat,int before,int count)throws Exception{
         Map<Integer,String> candidates=ThreadWatchRules.newBodies(target,dat,before,count);
-        if(!enabled(context))return candidates;
-        NotificationNg checker=new NotificationNg(context,target);
-        Set<Integer> blocked=new HashSet<>();int ordinal=0;
-        List<ProgrammableNgScript.Input> extensionInputs=new ArrayList<>();
-        List<Integer> numbers=new ArrayList<>();
+        if(candidates.isEmpty()||!enabled(context))return candidates;
+        boolean chain=chainedRepliesEnabled(context);
+        boolean script=ProgrammableNgController.programmableBodyRulesEnabled();
+        List<Row> rows=new ArrayList<>();
+        int ordinal=0;
         for(String line:dat.split("\n")){
-            ordinal++;String[] fields=line.split("<>",-1);int number=ordinal,body=3,name=0,date=2;
-            if(target.shitaraba){
-                if(fields.length<6)continue;
-                try{number=Integer.parseInt(fields[0]);}catch(NumberFormatException ignored){continue;}
-                name=1;date=3;body=4;
-            }else if(fields.length<5)continue;
-            if(number>count)continue;
-            if(checker.blocked(number,fields[name],fields[date],fields[body]))blocked.add(number);
-            Map<String,Object> values=new LinkedHashMap<>();
-            values.put("apiVersion",2);values.put("target","body");values.put("boardUrl",target.subject.substring(0,target.subject.length()-"subject.txt".length()));
-            values.put("threadId",target.id);values.put("responseNumber",number);
-            Matcher identity=ID.matcher(android.text.Html.fromHtml(fields[date]).toString());
-            values.put("responseId",identity.find()?identity.group(1):"");
-            values.put("name",android.text.Html.fromHtml(fields[name]).toString());
-            values.put("dateText",fields[date]);
-            extensionInputs.add(new ProgrammableNgScript.Input(android.text.Html.fromHtml(fields[body]).toString(),values));numbers.add(number);
+            Row row=Row.parse(line,++ordinal,target.shitaraba);
+            if(row!=null&&row.number<=count&&(chain||script||candidates.containsKey(row.number)))rows.add(row);
         }
-        boolean[] extension=ProgrammableNgController.notificationMatches(extensionInputs);
-        for(int i=0;i<extension.length;i++)if(extension[i]&&!(numbers.get(i)==1&&FirstResponseNg.disabled()))blocked.add(numbers.get(i));
-        candidates.keySet().removeAll(blocked);return candidates;
+        removeBlocked(context,target,rows,candidates,chain,script);
+        return candidates;
+    }
+
+    static void removeBlocked(Context context,ThreadWatchRules.Target target,List<Row> rows,
+                              Map<Integer,String> candidates,boolean chain,boolean script)throws Exception{
+        if(candidates.isEmpty())return;
+        NotificationNg checker=new NotificationNg(context,target);
+        Set<Integer> blocked=new HashSet<>();
+        List<ProgrammableNgScript.Input> inputs=new ArrayList<>();
+        List<Integer> numbers=new ArrayList<>();
+        boolean shared=SharedNg.enabled();
+        String boardUrl=target.subject.substring(0,target.subject.length()-"subject.txt".length());
+        for(Row row:rows){
+            int number=row.number;
+            boolean candidate=candidates.containsKey(number);
+            if(chain||candidate){
+                boolean nativeBlocked=checker.blocked(number,row.name,row.date,row.body);
+                if(candidate&&nativeBlocked)blocked.add(number);
+            }
+            // Script chaining and batch evaluation can depend on posts outside the candidate set.
+            if(!script&&(!shared||!candidate))continue;
+            Map<String,Object> values=new LinkedHashMap<>();
+            values.put("apiVersion",2);values.put("target","body");values.put("boardUrl",boardUrl);
+            values.put("threadId",target.id);values.put("responseNumber",number);
+            Matcher identity=ID.matcher(ProgrammableNgController.plain(row.date));
+            values.put("responseId",identity.find()?identity.group(1):"");
+            values.put("name",ProgrammableNgController.plain(row.name));
+            values.put("dateText",row.date);
+            inputs.add(new ProgrammableNgScript.Input(ProgrammableNgController.plain(row.body),values));
+            numbers.add(number);
+        }
+        if(!inputs.isEmpty()){
+            boolean[] extension=ProgrammableNgController.notificationMatches(inputs);
+            for(int i=0;i<extension.length;i++){
+                int number=numbers.get(i);
+                if(extension[i]&&!(number==1&&FirstResponseNg.disabled()))blocked.add(number);
+            }
+        }
+        candidates.keySet().removeAll(blocked);
     }
     private NotificationNg(){board=null;match=null;suppressChainedReplies=false;}
 }

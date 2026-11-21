@@ -124,9 +124,9 @@ public final class KickPlayer {
 
     /**
      * Injection point: the start of the player's setMaxResolution(VideoSize), the ceiling every stream load, Auto and
-     * quality pick goes through. On a metered network a starting ceiling (none, or the tallest track no taller than
-     * Kick's 720 or the Default video quality height, which is what Kick's player store picks) is capped; any other size
-     * is a pick and passes through.
+     * quality pick goes through. On a metered network a starting ceiling (none, the tallest track no taller than Kick's
+     * 720, or the track the Default video quality reducer picks for its height, see [isStartingCeiling]) is capped; any
+     * other size is a pick and passes through.
      */
     public static Object maxResolution(Object player, Object size) {
         int cap = Settings.isRegistered(QUALITY_METERED) ? Settings.getInt(QUALITY_METERED) : 0;
@@ -146,16 +146,30 @@ public final class KickPlayer {
         }
     }
 
-    /** Whether [height] is the tallest video track no taller than Kick's or Lurk's default ceiling. */
+    /**
+     * Whether [height] is a starting ceiling: the tallest video track no taller than Kick's default ceiling, or the
+     * track Kick's player store picks for Lurk's (the tallest no taller than it, or the lowest when every track is).
+     */
     private static boolean isStartingCeiling(Object player, int height) {
         List<Integer> heights = videoHeights(player);
-        for (int ceiling : new int[]{KICK_DEFAULT_HEIGHT, lurkHeight()}) {
-            if (ceiling <= 0) continue;
-            int tallest = 0;
-            for (int track : heights) if (track <= ceiling && track > tallest) tallest = track;
-            if (heights.isEmpty() ? height == ceiling : height == tallest) return true;
+        int lurk = lurkHeight();
+        if (heights.isEmpty()) return height == KICK_DEFAULT_HEIGHT || lurk > 0 && height == lurk;
+        return height == startingHeight(heights, KICK_DEFAULT_HEIGHT, false)
+                || lurk > 0 && height == startingHeight(heights, lurk, true);
+    }
+
+    /**
+     * The track height the player store's reducer starts at for [ceiling]: the tallest no taller than it. When every
+     * track is taller Kick's reducer picks none (0); Lurk's ([lowest]) picks the lowest track.
+     */
+    static int startingHeight(List<Integer> heights, int ceiling, boolean lowest) {
+        int tallest = 0;
+        int min = 0;
+        for (int track : heights) {
+            if (track <= ceiling && track > tallest) tallest = track;
+            if (min == 0 || track < min) min = track;
         }
-        return false;
+        return tallest == 0 && lowest ? min : tallest;
     }
 
     /**

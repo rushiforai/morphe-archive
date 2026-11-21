@@ -8,6 +8,8 @@ import app.morphe.patches.youtube.utils.playservice.is_19_44_or_greater
 import app.morphe.patches.youtube.utils.playservice.versionCheckPatch
 import app.morphe.patches.youtube.utils.settings.ResourceUtils.addPreference
 import app.morphe.patches.youtube.utils.settings.settingsPatch
+import app.morphe.util.Utils.printWarn
+import app.morphe.util.findElementByAttributeValue
 import app.morphe.util.findElementByAttributeValueOrThrow
 import org.w3c.dom.Element
 
@@ -56,6 +58,14 @@ val shortcutPatch = resourcePatch(
         required = true
     )
 
+    val shortsWidget = booleanOption(
+        key = "shortsWidget",
+        default = false,
+        title = "Hide Shorts in the Quick Actions widget",
+        description = "Remove the Shorts button from the two-row home screen widget.",
+        required = true
+    )
+
     execute {
         var options = listOf(
             subscriptions,
@@ -79,6 +89,22 @@ val shortcutPatch = resourcePatch(
                     shortsItem.parentNode.removeChild(shortsItem)
                 }
             }
+        }
+
+        if (shortsWidget.value == true) {
+            val layout = "res/layout/appwidget_two_rows.xml"
+            val removed = get(layout).isFile && document(layout).use { xml ->
+                val slot = xml.documentElement.childNodes.findElementByAttributeValue(
+                    "android:id", "@id/button_shorts_container"
+                )
+                if (slot?.childNodes?.findElementByAttributeValue("android:id", "@id/widget_shorts_button") == null) {
+                    false
+                } else {
+                    slot.parentNode.removeChild(slot)
+                    true
+                }
+            }
+            if (!removed) printWarn("No Shorts button found in the Quick Actions widget; leaving it unchanged.")
         }
 
         addPreference(HIDE_SHORTCUTS)

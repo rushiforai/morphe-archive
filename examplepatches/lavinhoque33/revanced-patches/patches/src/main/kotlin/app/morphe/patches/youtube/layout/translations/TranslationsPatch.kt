@@ -6,6 +6,7 @@ import app.morphe.patcher.patch.resourcePatch
 import app.morphe.patcher.patch.stringOption
 import app.morphe.patches.shared.translations.APP_LANGUAGES
 import app.morphe.patches.shared.translations.baseTranslationsPatch
+import app.morphe.patches.shared.translations.filterTranslations
 import app.morphe.patches.youtube.utils.compatibility.Constants.COMPATIBILITY_YOUTUBE
 import app.morphe.patches.youtube.utils.patch.PatchList.TRANSLATIONS_FOR_YOUTUBE
 import app.morphe.patches.youtube.utils.settings.ResourceUtils.addPreference
@@ -41,6 +42,8 @@ private val SUPPORTED_TRANSLATIONS = setOf(
 
 @Suppress("unused")
 val translationsBytecodePatch = bytecodePatch {
+    dependsOn(settingsPatch)
+
     execute {
         addPreference(
             arrayOf(
@@ -56,7 +59,7 @@ val translationsPatch = resourcePatch(
     TRANSLATIONS_FOR_YOUTUBE.summary,
 ) {
     compatibleWith(COMPATIBILITY_YOUTUBE)
-    dependsOn(translationsBytecodePatch, settingsPatch)
+    dependsOn(translationsBytecodePatch)
 
     val customTranslations by filePathOption(
         key = "customTranslations",
@@ -73,7 +76,6 @@ val translationsPatch = resourcePatch(
         default = SUPPORTED_TRANSLATIONS.joinToString(", "),
         title = "Translations to add",
         description = "A list of translations to be added for the RVX settings, separated by commas.",
-        required = true,
     )
 
     val selectedStringResources by stringOption(
@@ -81,21 +83,23 @@ val translationsPatch = resourcePatch(
         default = APP_LANGUAGES.joinToString(", "),
         title = "String resources to keep",
         description = """
-            A list of string resources to be kept, separated by commas.
-            String resources not in the list will be removed from the app.
+            A list of locales to keep, separated by commas. Choosing a language also keeps its regional variants.
+            Locale-specific resources outside the selection are removed. Use "all" to keep every locale.
 
-            Default string resource, English, is not removed.
+            The default English resources are always kept.
             """.trimIndent(),
-        required = true,
     )
 
     execute {
         baseTranslationsPatch(
-            customTranslations, selectedTranslations, selectedStringResources,
+            customTranslations, selectedTranslations,
             SUPPORTED_TRANSLATIONS, "youtube"
         )
 
         addPreference(TRANSLATIONS_FOR_YOUTUBE)
+    }
 
+    finalize {
+        filterTranslations(selectedStringResources, filterRvxPicker = true)
     }
 }

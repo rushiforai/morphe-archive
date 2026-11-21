@@ -3,21 +3,16 @@ package app.morphe.extension.chmate;
 import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.os.Bundle;
 import android.widget.EditText;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.ByteArrayOutputStream;
-import java.nio.charset.StandardCharsets;
-import java.lang.reflect.Field;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-/** User-defined labels, persisted separately from native thread and keyword records. */
+/** User-defined labels, persisted separately from native keyword records. */
 public final class DisplayNames {
     static final String PREFS = "haiagaru.display-names";
-    static final String SHOW_RENAME = "titleMenuShowRename";
-    private static final ThreadLocal<String> board = new ThreadLocal<>();
     private DisplayNames() {}
 
     static SharedPreferences prefs(Context context) {
@@ -26,24 +21,6 @@ public final class DisplayNames {
 
     private static String string(Object value, String field) throws ReflectiveOperationException {
         return (String) NativeFields.find(value.getClass(), field).get(value);
-    }
-
-    public static void begin(Object adapter) {
-        board.remove();
-        if (adapter == null) return;
-        String name = adapter.getClass().getName();
-        String field = name.equals("o.m8a") ? "r" : name.equals("o.getWriteBytesTotal") ? "g"
-                : name.equals("o.zzavb") ? "c" : null;
-        if (field == null) return;
-        try {
-            Object id = NativeFields.find(adapter.getClass(), field).get(adapter);
-            if (id != null && id.getClass().getName().equals("jp.syoboi.a2chMate.client.BBSUrlInfo")) {
-                Context context = Haiagaru.applicationContextForExtension();
-                String version = context.getPackageManager().getPackageInfo(context.getPackageName(), 0).versionName;
-                id = RefreshTargets.nativeBoard(id, version);
-            }
-            if (id != null) board.set(id.toString());
-        } catch (Exception ignored) {}
     }
 
     public static String keyword(Object value) {
@@ -62,67 +39,14 @@ public final class DisplayNames {
         }
     }
 
-    static String threadKey(String identity) {
+    static String nativeThreadTitle(Object fragment) {
         try {
-            byte[] bytes = java.security.MessageDigest.getInstance("SHA-256")
-                    .digest(identity.getBytes(StandardCharsets.UTF_8));
-            StringBuilder key = new StringBuilder("thread:");
-            String hex = "0123456789abcdef";
-            for (byte value : bytes) key.append(hex.charAt((value & 255) >>> 4)).append(hex.charAt(value & 15));
-            return key.toString();
-        } catch (java.security.NoSuchAlgorithmException impossible) {
-            throw new AssertionError(impossible);
-        }
-    }
-
-    public static String thread(Object row) {
-        try {
-            String type = row.getClass().getName();
-            String field, key;
-            if (type.equals("o.MaxAdViewImplExternalSyntheticLambda1")
-                    || type.equals("o.CertificateChainCleaner") || type.equals("o.setSkipText")) {
-                boolean old = type.equals("o.MaxAdViewImplExternalSyntheticLambda1");
-                boolean middle = type.equals("o.CertificateChainCleaner");
-                field = old ? "c" : middle ? "d" : "c";
-                String idField = old ? "e" : middle ? "b" : "d";
-                long id = NativeFields.find(row.getClass(), idField).getLong(row);
-                key = board.get() == null ? null : board.get() + "\n" + id;
-            } else {
-                field = type.startsWith("o.onAdDisplayed$") ? "e"
-                        : type.equals("o.Yy2$open") ? "k" : "m";
-                key = HomeThreadOrder.key(row);
-            }
-            String original = string(row, field);
-            Context context = Haiagaru.applicationContextForExtension();
-            return key == null || context == null ? original : prefs(context).getString(threadKey(key), original);
-        } catch (ReflectiveOperationException error) {
-            android.util.Log.w("Haiagaru", "Thread display name unavailable", error);
-            return "";
-        }
-    }
-
-    static void editThread(Activity activity, Object info, String original) {
-        try {
-            String version = activity.getPackageManager().getPackageInfo(activity.getPackageName(), 0).versionName;
-            String idField = version.contains("226") ? "c" : "e";
-            Object id = NativeFields.find(info.getClass(), idField).get(info);
-            if (id == null) return;
-            String key = threadKey(RefreshTargets.nativeBoard(info, version) + "\n" + id);
-            edit(activity, "スレの名前を変更", key, original == null ? "" : original);
-        } catch (Exception error) {
-            android.util.Log.w("Haiagaru", "Cannot edit thread display name", error);
-            android.widget.Toast.makeText(activity, "スレを確認できませんでした", 0).show();
-        }
-    }
-
-    static String threadTitle(Object fragment) {
-        try {
-            Bundle args = (Bundle) fragment.getClass().getMethod("getArguments").invoke(fragment);
+            android.os.Bundle args = (android.os.Bundle) fragment.getClass().getMethod("getArguments").invoke(fragment);
             if (args == null) return "";
             String title = args.getString("threadTitle");
             if (title != null) return title;
             Object packed = args.get("args");
-            if (packed != null) for (Field field : packed.getClass().getDeclaredFields()) {
+            if (packed != null) for (java.lang.reflect.Field field : packed.getClass().getDeclaredFields()) {
                 if (field.getType() == String.class) {
                     field.setAccessible(true);
                     Object value = field.get(packed);

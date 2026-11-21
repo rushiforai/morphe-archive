@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Install and setup
+    url: https://github.com/quwi26/Quwis-Patches#install
+    about: Adding the source to Morphe, the chess.com versions that work, and how to sign in after patching.
+  - name: sf-bridge setup
+    url: https://github.com/quwi26/Quwis-Patches/blob/main/bridge/README.md
+    about: Running sf-bridge on your computer, the firewall rule, the token and the port.
+  - name: Questions and ideas
+    url: https://github.com/quwi26/Quwis-Patches/discussions
+    about: For anything that is not a bug report or a patch request.

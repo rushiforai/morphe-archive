@@ -35,6 +35,8 @@
 | 🟢 [RaiPlay](#raiplay) | VOD ads · live-channel 404 fix | `5.0.1` · `5.0.0` | 9/27/26 |
 | 🟢 [Mediaset Infinity](#mediaset-infinity) | VOD + live ads, pause + welcome ads · 🇮🇹 geo-locked | `8.1.20` · [`8.1.13`](https://apkpure.com/mediaset-infinity-tv/it.mediaset.infinitytv/download) | 11/19/26 |
 | 🟡 [Xumo Play](#xumo-play) | Client-inserted ads (VOD + live) · not yet device-verified | `4.9.147` | 10/29/26 |
+| 🟢 [discovery+](#discovery-plus) | Ads via the ad-free stream · Italian free tier (opt-in) | `22.1.0.71` ⚠️ experimental | 11/20/26 |
+| 🟡 [Joyn](#joyn) | Pre/mid-roll ads (Joyn's Ad SDK turned off) · 🇩🇪 geo-locked · not yet device-verified | [`6.5.2-ATV-605282491`](https://www.apkmirror.com/apk/sevenone-entertainment-group-gmbh/joyn-deine-streaming-app-android-tv/joyn-deine-streaming-app-android-tv-6-5-2-atv-605282491-release/) ⚠️ experimental | 11/20/26 |
 | 🟢 [Fawesome](#fawesome) | Pre/mid-roll, banner + pause ads · update prompt | `19.7` | 10/26/26 |
 | 🟢 [F1 TV](#f1-tv) | No ads involved: unlocks 4K (UHD) · needs F1 TV Premium | `3.0.49.4-SP166.4.1-release-R54.2-tv` | 10/16/26 |
 | 🟡 [YouTube (Android TV)](#youtube) | Video ads + sponsored feed items · needs MicroG RE | [`7.31.300`](https://www.apkmirror.com/apk/google-inc/youtube-for-android-tv/youtube-for-android-tv-7-31-300-release/) ⚠️ experimental · `7.05.301` static only | 11/16/26 |
@@ -244,6 +246,30 @@ Read more: [system design teardown](docs/PLUTO_TV_ATV_SYSTEM_DESIGN.md)
 - **Skip ads:** removes Xumo's client-inserted ads in both the VOD and Live TV players, so content continues where an ad would play.
 - **Limits:** ads that are server-stitched into the stream (FreeWheel SSAI) can't be removed client-side and may remain. Xumo is moving toward SSAI, so coverage can vary by title and region.
 - **Status:** not yet device-verified on `4.9.147`. Please report results in an issue.
+
+</details>
+
+<a id="discovery-plus"></a>
+<details>
+<summary><b>🔎 discovery+</b> · server-stitched ads · Italian free tier</summary>
+
+- **Version:** `22.1.0.71` (experimental). discovery+ runs on the same Warner Bros. Discovery player as HBO Max, so these patches reuse the HBO Max approach.
+- **Prefer Ad-Free Stream:** plays the title's ad-free FALLBACK stream instead of the ad-stitched one. Titles without one are left alone.
+- **Skip Ad Breaks:** treats every ad break as already watched, so the player jumps over mid-rolls and lets you seek past breaks. This is the backup for titles without an ad-free stream.
+- **Disable Ads:** blocks overlay and pause-ad requests and live pre-roll entries.
+- **Store Country Override (opt-in):** discovery+ picks its welcome-screen options from your Google Play store country, not your IP address. Turn this on (country defaults to `IT`) and connect from Italy to get the free **Naviga gratis** (browse for free) tier, which otherwise doesn't show on a patched app or a non-Italian Play account. Leave it off if you subscribe in another region: it also changes the subscription offers in the app.
+- **Status:** tested on an onn 4K Plus on the Italian free tier: three DRM titles played from the start on the ad-free stream with no ads. Mid-roll breaks and non-DRM titles aren't tested yet. Please report results in an issue.
+
+</details>
+
+<a id="joyn"></a>
+<details>
+<summary><b>📺 Joyn</b> · client-side ads (Joyn's own Ad SDK) · not yet verified on a device</summary>
+
+- **Version:** `6.5.2-ATV-605282491` (experimental). Use the Android TV build. The phone app shares the package name but is a different build.
+- **Skip ads:** switches off the app's own "ads enabled" setting, so the player starts without Joyn's Ad SDK and plays the title with no pre-roll or mid-roll breaks. This is the same switch [hxreborn's phone patch](https://github.com/hxreborn/morphe-patches) uses, found again in the TV build, where that patch fails ([#328](https://github.com/ajstrick81/morphe-androidtv-patches/issues/328)).
+- **Region:** Joyn only plays in Germany, Austria and Switzerland. The patch doesn't change that.
+- **Status:** the patched app installs and opens on an onn 4K Plus, but playback hasn't been tested: it needs a Joyn account and a German IP, and we had neither. If you can test it, please report results in an issue.
 
 </details>
 

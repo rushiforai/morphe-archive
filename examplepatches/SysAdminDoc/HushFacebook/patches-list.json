@@ -2838,7 +2838,7 @@
     },
     {
       "name": "Keep post dates",
-      "description": "Keeps the date under the poster's name, so you can always tell how old a post is. Facebook's newer header can swap it for rotating details, and on some phones the line goes blank. On by default. Turn it off in Hushfacebook settings > News feed.",
+      "description": "Keeps the date under the poster's name, so you can always tell how old a post is. Facebook's newer header can swap it for rotating details, and on some phones the line goes blank. On by default. Turn it off in Hushfacebook settings > News feed. The same page can leave the song out of that line and make the time bold.",
       "category": "Feed",
       "use": true,
       "dependencies": [
@@ -4014,7 +4014,7 @@
     },
     {
       "name": "Show full post text",
-      "description": "Shows all of a post's text in the feed, and a reel's caption, so you don't have to tap See more. A tap on the text folds it back. Starts off. Turn posts on in Hushfacebook settings > News feed, and reel captions under Reels and Watch, where an open or folded caption can also sit on a dark box like subtitles. The names on reels and stories can get the same box.",
+      "description": "Shows all of a post's text in the feed, and a reel's caption, so you don't have to tap See more. A tap on the text folds it back. Starts off. Turn posts on in Hushfacebook settings > News feed, and reel captions under Reels and Watch, where an open or folded caption can also sit on a dark box like subtitles. The names on reels and stories can get the same box, and so can a name drawn over a video in the feed. A long name at the top of a post can wrap onto a second line instead of getting cut off.",
       "category": "Feed",
       "use": true,
       "dependencies": [
@@ -4277,7 +4277,7 @@
     },
     {
       "name": "Tab bar at the bottom",
-      "description": "Moves Facebook's tab bar to the bottom of the screen on accounts that have it at the top, where it's easier to reach. `Tab bar position` can also put it at the top, as older Facebook had it, or leave it where Facebook puts it. `Tab bar while scrolling` lets it slide away as you scroll or keeps it on screen, and another switch keeps the top bar on screen. One gives tablets and unfolded phones the phone layout so the bar can move there too, and one makes the top bar and the tab bar see-through. Another hides the phone's status bar on the main screen until you swipe down from the top, and another keeps the Reels tab's bars light in light mode, like the other tabs. One hides the tab bar on the Reels tab alone, so the reel gets the whole screen. Three more take the Messenger button, its unread count or the Facebook logo out of the top bar. Starts off. Pick it in Hushfacebook settings > Tabs and navigation, then restart Facebook. The see-through, status bar and Reels tab switches sit under Appearance.",
+      "description": "Moves Facebook's tab bar to the bottom of the screen on accounts that have it at the top, where it's easier to reach. `Tab bar position` can also put it at the top, as older Facebook had it, or leave it where Facebook puts it. `Tab bar while scrolling` lets it slide away as you scroll or keeps it on screen, and another switch keeps the top bar on screen. One gives tablets and unfolded phones the phone layout so the bar can move there too, and another keeps the feed in a column down the middle on those big screens. One makes the top bar and the tab bar see-through. Another hides the phone's status bar on the main screen until you swipe down from the top, and another keeps the Reels tab's bars light in light mode, like the other tabs. One hides the tab bar on the Reels tab alone, so the reel gets the whole screen. Three more take the Messenger button, its unread count or the Facebook logo out of the top bar. Starts off. Pick it in Hushfacebook settings > Tabs and navigation, then restart Facebook. The see-through, status bar, centered feed and Reels tab switches sit under Appearance.",
       "category": "Navigation",
       "use": true,
       "dependencies": [

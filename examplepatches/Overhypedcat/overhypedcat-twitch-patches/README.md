@@ -10,7 +10,7 @@ Patches for the Twitch Android app, for use with [Morphe](https://morphe.softwar
 
 ## Install on the phone
 
-1. Install Morphe from [morphe.software](https://morphe.software).
+1. Install Morphe 2.6.0 or newer from [morphe.software](https://morphe.software) (older versions can't load these patches).
 2. Add this patch source:
    https://morphe.software/add-source?github=Overhypedcat/overhypedcat-twitch-patches
 3. Patch Twitch in Morphe and install the result. Uninstall the Play Store Twitch first.
@@ -28,10 +28,12 @@ The app's Settings page has a **Patch settings** group with the VPN servers and 
 
 ## Screen lock
 
-In full screen, the player's controls have a padlock after the "fit video" button. Locked, the screen stays
-horizontal and touches don't bring the controls up (for watching while holding the phone loosely); it moves along
-when a label such as "Intended for certain audiences" shows there. Tap three times quickly to unlock: each tap
-shows a padlock with the taps so far. Leaving full screen or the app, or picture in picture, unlocks too.
+In full screen, the player's controls have a padlock after the "fit video" button; it fades and hides with the
+player's own buttons. Tapping it hides the controls at once, and touches don't bring them up again (for watching
+while holding the phone loosely); it moves along when a label such as "Intended for certain audiences" shows there.
+Tap three times quickly to unlock: each tap shows a padlock with the taps so far. While locked the screen stays
+horizontal and in full screen however the phone is turned, with auto-rotate on or off. The back button, leaving
+the app, or picture in picture unlocks too.
 
 ## Ad blocker
 
@@ -56,13 +58,15 @@ second behind, and the picture is kept in step with it.
 - Only the stream you watch is listened to, never the previews on the main or Following page, and it carries on
   in the mini player and picture in picture.
 - When the player's controls are up, a pill beside the viewer count (in the vertical view: beside the stream's
-  uptime) shows the step it is on ("Listening", "Asking Shazam", "Downloading", "Lining up", "Removing song"),
-  or what went wrong.
-- The line under the switch says what it is doing ("Listening for music", "Removing <song>", ...). **Retry**
-  forgets the song and asks Shazam afresh, for when the wrong song or version was found.
+  uptime) shows the step it is on in a few words ("Listening", "Asking Shazam", "Downloading", "Lining up",
+  "Removing song", "Resting 52 s"), or what went wrong ("Shazam unreachable", "Not on YouTube").
+- The line under the switch shows the same words; when something went wrong, the whole reason is written under
+  them. **Retry** forgets the song and asks Shazam afresh, for when the wrong song or version was found.
+- Shazam hears 5 seconds at a time: a new song is asked about the moment the last one ends, and with no music
+  it asks again 8 seconds later, then rests a minute after two answers without a song.
 - A live version of a song (a concert, a cover) can't be removed: only the recorded version is on YouTube.
-- Songs heard before are kept on the phone (up to 1 GB, the oldest go first) and found again without
-  Shazam or a download.
+- Songs heard before are kept on the phone (up to 1 GB, the oldest go first) and found again from 5 seconds
+  of sound, without Shazam or a download.
 - It works on streams with 48 kHz sound (the usual on Twitch), and needs a connection to Shazam and YouTube.
 
 ## Quality unlock
@@ -124,7 +128,7 @@ Commits to `dev` publish pre-releases, merges to `main` publish releases
 ## Patches
 
 <!-- PATCHES_START EXPANDED -->
-> **[v4.1.1](https://github.com/Overhypedcat/overhypedcat-twitch-patches/releases/tag/v4.1.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;7 patches total
+> **[v4.2.0](https://github.com/Overhypedcat/overhypedcat-twitch-patches/releases/tag/v4.2.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;7 patches total
 <details open>
 <summary>Twitch&nbsp;&nbsp;•&nbsp;&nbsp;7 patches</summary>
 <br>

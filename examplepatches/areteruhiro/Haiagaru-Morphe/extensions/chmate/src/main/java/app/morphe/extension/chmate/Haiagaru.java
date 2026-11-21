@@ -3695,10 +3695,10 @@ public final class Haiagaru {
                 preferences.getBoolean("directCopyAnchors", true));
         Switch readingRecovery = addSwitch(behavior, activity,
                 text("更新・画面切替時の読書位置を補助保存する", "Keep extra reading-position recovery"),
-                preferences.getBoolean(ReadingPosition.ENABLED, true));
+                ReadingPosition.enabled(preferences));
         TextView readingRecoveryHelp = new TextView(activity);
-        readingRecoveryHelp.setText(text("ChMate標準とは別の位置保存です。スレ切替が重い場合の切り分けにオフにできます。変更には再起動が必要です。標準の既読位置や保存済みログは削除しません。",
-                "Additional position recovery, separate from ChMate. Disable to diagnose slow thread switching. Restart required; native read positions and logs are kept."));
+        readingRecoveryHelp.setText(text("ChMate標準とは別の位置保存です。初期状態はOFFです。WebサイトのリンクカードまたはXカード形式が有効な場合、未設定なら自動でONになります。手動で変更した設定を優先します。スレ切替が重い場合の切り分けにオフにできます。変更には再起動が必要です。標準の既読位置や保存済みログは削除しません。",
+                "Additional position recovery, separate from ChMate. Initially off; when website or X cards are enabled, an unset value turns on automatically. A manual choice is kept. Restart required; native read positions and logs are kept."));
         behavior.addView(readingRecoveryHelp);
         live.toggle(readingRecovery, ReadingPosition.ENABLED);
         Button importThemes = new Button(activity);
@@ -3836,8 +3836,8 @@ public final class Haiagaru {
         live.number(autoReloadInterval,"autoReloadInterval",10,1800);
         live.choice(threadTitleSpacing,"threadTitleSpacingPercent",i->100+i*5);
         LinearLayout titleMenu=SettingsSection.add(layout,"スレタイトル長押しの追加項目","表示する項目を選択",true);
-        String[] titleKeys={ThreadTitleActions.SHOW_REFRESH,ThreadTitleActions.SHOW_WATCH,ThreadTitleActions.SHOW_AUTH,DisplayNames.SHOW_RENAME};
-        String[] titleLabels={"「更新対象に含む」を表示","「このスレの新着通知」を表示","「エッヂの閲覧認証」を表示","「スレの名前を変更」を表示"};
+        String[] titleKeys={ThreadTitleActions.SHOW_REFRESH,ThreadTitleActions.SHOW_WATCH,ThreadTitleActions.SHOW_AUTH};
+        String[] titleLabels={"「更新対象に含む」を表示","「このスレの新着通知」を表示","「エッヂの閲覧認証」を表示"};
         for(int i=0;i<titleKeys.length;i++)live.toggle(addSwitch(titleMenu,activity,titleLabels[i],preferences.getBoolean(titleKeys[i],true)),titleKeys[i]);
         live.toggle(addSwitch(filters,activity,
                 "コピー・選択をHaiagaruポップアップで表示する",
@@ -3850,12 +3850,8 @@ public final class Haiagaru {
         live.toggle(historyRefreshTargets,RefreshTargetHistory.VISIBLE_KEY);
         Switch excludeHiddenNgUnread=addSwitch(lists,activity,"非表示NGのレスを未読件数に含めない",preferences.getBoolean(HiddenNgUnread.KEY,false));
         live.toggle(excludeHiddenNgUnread,HiddenNgUnread.KEY);
-        String unreadCountVersion="";
-        try{unreadCountVersion=activity.getPackageManager().getPackageInfo(activity.getPackageName(),0).versionName;}catch(Exception ignored){}
-        if(unreadCountVersion.contains(".242")){
-            Switch excludeHiddenNgNew=addSwitch(lists,activity,"スレ更新後の「新着件数」から非表示NGのレスを除く",preferences.getBoolean(HiddenNgUnread.NEW_ARRIVAL_KEY,false));
-            live.toggle(excludeHiddenNgNew,HiddenNgUnread.NEW_ARRIVAL_KEY);
-        }
+        Switch excludeHiddenNgNew=addSwitch(lists,activity,"スレ更新後の「新着件数」から非表示NGのレスを除く",preferences.getBoolean(HiddenNgUnread.NEW_ARRIVAL_KEY,false));
+        live.toggle(excludeHiddenNgNew,HiddenNgUnread.NEW_ARRIVAL_KEY);
         TextView unreadNgHelp=new TextView(activity);unreadNgHelp.setText("上の設定はHOME・スレ一覧の未読件数が対象です。下の設定は今回のスレ更新後に表示する新着件数だけが対象で、既読位置は変えません。取得して透明あぼーん判定できたレスだけを除外します。変更後はスレを開き直してください。");lists.addView(unreadNgHelp);
         Switch hideDroppedDrafts=addSwitch(lists,activity,
                 text("DAT落ちスレの下書きを非表示", "Hide drafts for dropped threads"),

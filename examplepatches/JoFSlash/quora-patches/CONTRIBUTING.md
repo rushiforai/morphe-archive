@@ -2,11 +2,14 @@
 
 Thanks for helping. These patches change a WebView app whose pages Quora updates often, so most
 problems are a page patch that no longer finds what it hides. Good reports and small fixes are the
-most useful contributions.
+most useful contributions. Please follow the [code of conduct](CODE_OF_CONDUCT.md), and report
+security problems privately as described in [SECURITY.md](SECURITY.md).
 
 ## Reporting a problem
 
-Open a [bug report](https://github.com/JoFSlash/quora-patches/issues/new?template=bug_report.yml) with:
+The quickest way is **Report a problem** in Patch settings (long-press Home): it copies the app
+details and opens the form. Otherwise open a
+[bug report](https://github.com/JoFSlash/quora-patches/issues/new?template=bug_report.yml) with:
 
 - the patch name as Morphe Manager shows it,
 - what you expected and what happened, ideally with a screenshot of the page,
@@ -48,13 +51,55 @@ for a crash at start.
 python .github/scripts/check_quora_version.py com.quora.android_X.Y.Z.apkm --cli morphe-cli.jar --install
 ```
 
+This mostly runs on its own. `.github/workflows/quora-version.yml` checks APKMirror and Google Play
+every day. For a new version it downloads the APKM, checks that every split is signed by Quora,
+keeps it as a release in the private repository `JoFSlash/quora-apks`, patches it, starts it on an
+emulator and opens a pull request that adds the version to `Constants.kt`. When something fails it
+opens an issue that says what. A maintainer still tries the page patches on a phone before merging.
+
 The page patches depend on Quora's web pages, which can change without a new app version. The
-Patch settings dialog (long-press Home) shows a page check: when the feed no longer has the class
-names some patches rely on, it names those patches.
+Patch settings dialog (long-press Home) shows a page check for the feed and answer pages: when a
+page no longer has the class names some patches rely on, it names those patches.
+
+### Tests
+
+- `.github/page-scripts/run.sh` writes every script the page patches inject, checks that each one
+  parses, and runs the DOM checks in `dom-test.js` on trimmed copies of Quora's markup. Add a check
+  there when you change what a script hides.
+- `emulator.yml` patches the newest supported version on every pull request, installs it on an
+  emulator and checks that it starts and loads the sign-in page.
+- `feed-test.yml` signs in with a test account and checks the page patches on the real feed and on
+  an answer (`.github/scripts/feed-test.mjs`). It leaves out "Start tab", so the app opens on the
+  Home feed.
+- `release.yml` makes the Monday pre-release from `dev` and the Thursday stable release from `main`
+  (it merges the newest pre-release into `main` first, and `main` is merged back into `dev` after
+  the release). It runs the emulator test and the feed test first and releases only when both pass;
+  a skipped feed test doesn't count as passed. When a run doesn't pass, the issues "Weekly release
+  stopped" (or "Weekly pre-release stopped") and "Feed test needs attention" say why, and the next passing run closes them. An urgent
+  fix can be released by hand with "Skip the feed test" while the feed test can't run.
+- The workflows use the Morphe CLI release in `.github/morphe-cli-version`. `morphe-cli.yml` looks
+  for a newer stable one every Sunday, runs the emulator test with it and opens a pull request.
+- Feed test sign-in: Quora asks every new
+  device for a code sent by email, and each run is a new emulator, so the test uses a saved session
+  from the `QUORA_TEST_COOKIES` secret and only falls back to `QUORA_TEST_EMAIL` and
+  `QUORA_TEST_PASSWORD`. It skips itself with a warning when Quora clearly asks for a captcha or a
+  code, and fails on any other failed sign-in. To save a session: install a test build with WebView
+  debugging as a clone, sign in to the test account there (never your own), then
+  `adb forward tcp:9222 localabstract:webview_devtools_remote_$(adb shell pidof <package>)` and
+  `node .github/scripts/export-quora-session.mjs | gh secret set QUORA_TEST_COOKIES`. The session
+  lasts about a year, or until that app signs out.
+- `.github/scripts/check_texts.py` fails when a settings language misses a text the app shows.
+  Add a new text to every `Texts<Lang>.java`; the Build workflow runs the check.
 
 ## Pull requests
 
-- Target the `main` branch. Every merge into `main` with a `feat` or `fix` commit makes a release.
+- Target the `dev` branch. Every Monday the `feat` and `fix` commits merged into `dev` that week go
+  out as a pre-release (`vX.Y.Z-dev.N`) for people who turn on "Pre-release patches" in Morphe
+  Manager. On Thursday that pre-release becomes the stable release on `main`, unless an open issue
+  is labelled `release blocker`. Both need the emulator and feed tests to pass; urgent fixes are
+  released right away by hand.
+- A pull request merged into `dev` doesn't close the issues it names with "Closes #N"; they close
+  when the change reaches `main`, or by hand.
 - Use [Conventional Commits](https://www.conventionalcommits.org/) (`feat:`, `fix:`, `docs:` and so
   on); the release notes and version numbers are generated from them.
 - Describe what you tested and on which Quora version.

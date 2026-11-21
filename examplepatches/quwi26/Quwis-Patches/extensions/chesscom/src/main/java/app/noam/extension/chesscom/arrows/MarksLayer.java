@@ -36,6 +36,8 @@ final class MarksLayer extends View {
     private final Paint pill = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint label = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final RectF rect = new RectF();
+    /** The board's square size, kept until this layer is laid out again. */
+    private float squareSize;
 
     MarksLayer(ViewGroup pieceView, View board, Arrows.Marks marks, boolean arrows) {
         super(pieceView.getContext());
@@ -54,9 +56,23 @@ final class MarksLayer extends View {
     }
 
     @Override
+    protected void onSizeChanged(int width, int height, int oldWidth, int oldHeight) {
+        super.onSizeChanged(width, height, oldWidth, oldHeight);
+        // The board was laid out again: its squares may have a new size.
+        squareSize = 0;
+    }
+
+    @Override
     protected void onDraw(Canvas canvas) {
-        float size = BoardViews.squareSize(board, pieceView);
-        if (size <= 0) return;
+        if (!arrows && marks.squares.isEmpty()) return;
+        if (arrows && !marks.drawing && marks.arrows.isEmpty() && marks.engineMoves.length == 0 &&
+                Float.isNaN(marks.engineScore) && marks.engineMate == 0) return;
+        float size = squareSize;
+        if (size <= 0) {
+            size = BoardViews.squareSize(board, pieceView);
+            if (size <= 0) return;
+            squareSize = size;
+        }
         boolean flip = BoardViews.flip(board);
         if (!arrows) {
             paint.setColor(Arrows.SQUARE_COLOR);

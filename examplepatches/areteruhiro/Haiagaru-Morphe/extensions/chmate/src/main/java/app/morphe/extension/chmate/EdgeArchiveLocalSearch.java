@@ -16,7 +16,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStreamReader;
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -35,7 +34,9 @@ import java.util.concurrent.atomic.AtomicLong;
 /** Adds imported Edge archive DATs to ChMate 191's acquired-thread search results. */
 public final class EdgeArchiveLocalSearch {
     private static final String LOG = "HaiagaruEdgeSearch";
-    private static final Charset DAT_CHARSET = Charset.forName("MS932");
+    private static final java.util.regex.Pattern NATIVE_EDGE_DAT = java.util.regex.Pattern.compile(
+            "^bbs\\.eddibb\\.cc%2Fliveedge_([0-9]{9,11})\\.dat$",
+            java.util.regex.Pattern.CASE_INSENSITIVE);
     private static final ExecutorService IO = Executors.newSingleThreadExecutor(r -> {
         Thread thread = new Thread(r, "Haiagaru-edge-local-search");
         thread.setDaemon(true);
@@ -163,8 +164,7 @@ public final class EdgeArchiveLocalSearch {
 
     private static List<Result> search(Context context, String query, ArrayList<?> nativeRows) throws Exception {
         File[] files = indexDirectory(context).listFiles(file -> file.isFile() && file.getName().endsWith(".json"));
-        if (files == null || files.length == 0) return Collections.emptyList();
-        java.util.Arrays.sort(files, Comparator.comparingLong(File::lastModified).reversed());
+        if (files != null) java.util.Arrays.sort(files, Comparator.comparingLong(File::lastModified).reversed());
         Set<String> seen = new HashSet<>();
         for (Object row : nativeRows) {
             try {
@@ -177,7 +177,7 @@ public final class EdgeArchiveLocalSearch {
         File datDirectory = datDirectory(context).getCanonicalFile();
         long scanned = 0;
         int inspected = 0;
-        for (File index : files) {
+        for (File index : files == null ? new File[0] : files) {
             if (Thread.currentThread().isInterrupted() || out.size() >= MAX_MATCHES
                     || scanned >= MAX_SCAN_BYTES || inspected++ >= MAX_INDEX_ENTRIES) break;
             JSONObject item;
@@ -206,19 +206,66 @@ public final class EdgeArchiveLocalSearch {
                 seen.add(url);
             }
         }
+        // ChMate stores acquired Edge threads directly under this directory. They
+        // do not pass through ArchivedThreadImporter, so no JSON index is created.
+        // Search those native DAT files too, without copying or rewriting them.
+        File nativeDirectory = datDirectory(context);
+        File[] cached = nativeDirectory.listFiles(file -> file.isFile() && edgeUrlForCachedDat(file.getName()) != null);
+        if (cached != null) {
+            java.util.Arrays.sort(cached, Comparator.comparingLong(File::lastModified).reversed());
+            for (File datFile : cached) {
+                if (Thread.currentThread().isInterrupted() || out.size() >= MAX_MATCHES
+                        || scanned >= MAX_SCAN_BYTES || inspected++ >= MAX_INDEX_ENTRIES) break;
+                String url = edgeUrlForCachedDat(datFile.getName());
+                if (url == null || seen.contains(url)) continue;
+                File canonical = datFile.getCanonicalFile();
+                if (!canonical.getParentFile().equals(nativeDirectory.getCanonicalFile()) || !canonical.isFile()) continue;
+                String title = firstDatTitle(canonical);
+                String snippet = !TextUtils.isEmpty(title) && title.toLowerCase(Locale.ROOT).contains(needle)
+                        ? title : null;
+                if (snippet == null && canonical.length() <= MAX_SCAN_BYTES - scanned) {
+                    snippet = findBody(canonical, needle, Math.min(canonical.length(), 8L * 1024 * 1024));
+                    scanned += canonical.length();
+                }
+                if (snippet != null) {
+                    if (TextUtils.isEmpty(title)) title = "エッヂ過去ログ " + ArchiveOriginPaths.threadKey(url);
+                    out.add(new Result(url, title, snippet));
+                    seen.add(url);
+                }
+            }
+        }
         return out;
+    }
+
+    static String edgeUrlForCachedDat(String fileName) {
+        if (fileName == null) return null;
+        java.util.regex.Matcher match = NATIVE_EDGE_DAT.matcher(fileName);
+        return match.matches() ? "https://bbs.eddibb.cc/test/read.cgi/liveedge/" + match.group(1) + "/" : null;
+    }
+
+    private static String firstDatTitle(File dat) {
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(
+                new FileInputStream(dat), StandardCharsets.UTF_8))) {
+            String first = reader.readLine();
+            if (first == null) return "";
+            String[] fields = first.split("<>", -1);
+            if (fields.length < 5 || fields[4].isEmpty()) return "";
+            @SuppressWarnings("deprecation")
+            String title = Html.fromHtml(fields[4]).toString().replace('\u0000', ' ').trim();
+            return title;
+        } catch (Exception ignored) { return ""; }
     }
 
     private static String findBody(File dat, String needle, long perFileLimit) {
         if (perFileLimit <= 0) return null;
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(dat), DAT_CHARSET))) {
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(dat), StandardCharsets.UTF_8))) {
             String line;
             long read = 0;
             while ((line = reader.readLine()) != null && read < perFileLimit) {
                 if (Thread.currentThread().isInterrupted()) return null;
                 read += line.length() * 2L;
                 @SuppressWarnings("deprecation")
-                String plain = Html.fromHtml(line).toString();
+                String plain = Html.fromHtml(datBody(line)).toString();
                 if (plain.toLowerCase(Locale.ROOT).contains(needle)) {
                     plain = plain.replace('\u0000', ' ').replaceAll("\\s+", " ").trim();
                     return plain.length() <= 180 ? plain : plain.substring(0, 180) + "…";
@@ -226,6 +273,19 @@ public final class EdgeArchiveLocalSearch {
             }
         } catch (Exception ignored) { }
         return null;
+    }
+
+    /** Search only the message column; parsing the full <> delimited line as HTML
+     * can make Android's HTML parser treat DAT separators as markup. */
+    private static String datBody(String line) {
+        int start = 0;
+        for (int column = 0; column < 3; column++) {
+            int separator = line.indexOf("<>", start);
+            if (separator < 0) return line;
+            start = separator + 2;
+        }
+        int end = line.indexOf("<>", start);
+        return end < 0 ? line.substring(start) : line.substring(start, end);
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})

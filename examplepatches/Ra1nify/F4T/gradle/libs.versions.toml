@@ -1,0 +1,15 @@
+[versions]
+# Patcher used to compile the patches. The `app.morphe.patches` Gradle plugin reads this alias
+# (PatchesPlugin.kt: catalog.findVersion("morphe-patcher")) and puts it on the `patcherProvided`
+# configuration, so this value decides the compile-time API surface. It is also written to the
+# built .mpp manifest as `Patcher-Version`, which Morphe Desktop/Manager compares with its own
+# embedded patcher before loading.
+#
+# 2.4.0-dev.4 == the patcher embedded in Morphe Desktop v2.2.0-dev.14 (the build used here).
+# MorpheApp/morphe-patches still pins 2.3.0; fall back to that if a 2.4 dev regression shows up.
+morphe-patcher = "2.4.0-dev.4"
+#noinspection GradleDependency
+smali = "4220ae75f7"
+
+[libraries]
+morphe-patcher = { module = "app.morphe:morphe-patcher", version.ref = "morphe-patcher" }

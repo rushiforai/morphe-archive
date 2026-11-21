@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2026 lavinhoque33
  * Licensed under the GNU General Public License v3.0.
- * Modified by lavinhoque33, 2026-11-19.
+ * Modified by lavinhoque33, 2026-11-20.
  * Written by lavinhoque33, 2026-11-18.
  */
 
@@ -12,6 +12,9 @@ import android.content.res.Resources;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Outline;
+import android.graphics.Paint;
+import android.graphics.Path;
+import android.graphics.Rect;
 import android.graphics.drawable.GradientDrawable;
 import android.util.AttributeSet;
 import android.util.TypedValue;
@@ -96,15 +99,19 @@ public class SnackBarDrawable extends GradientDrawable {
     }
 
     private void captureColors(Resources.Theme theme) {
-        if (!stylesFillAndBorder()) return;
+        if (stylesFillAndBorder()) {
+            baseFill = getColor();
+            lightFill = baseFill != null && baseFill.getDefaultColor() == LIGHT_FILL;
+        }
 
-        baseFill = getColor();
-        lightFill = baseFill != null && baseFill.getDefaultColor() == LIGHT_FILL;
+        if (!usesBorderTheme()) return;
+
         chipStrokeColor = Color.TRANSPARENT;
         if (theme == null) return;
 
         TypedValue value = new TypedValue();
         captureChipStroke(theme, value);
+        if (!stylesFillAndBorder()) return;
 
         // Read the fill's role from the resolved snackbar theme, not the app theme or system night mode.
         int fillAttr = ResourceUtils.getAttrIdentifier("snackBarColor");
@@ -116,7 +123,7 @@ public class SnackBarDrawable extends GradientDrawable {
     }
 
     private void captureChipStroke(Resources.Theme theme, TypedValue value) {
-        // Resolve Chip from the same (possibly inverted) theme that inflated the background.
+        // Resolve Chip from the theme that inflated this background. Only snack bars may use inversion.
         int chipAttr = ResourceUtils.getAttrIdentifier("ytChipBackground");
         if (chipAttr == 0 || !theme.resolveAttribute(chipAttr, value, true)) return;
 
@@ -155,13 +162,8 @@ public class SnackBarDrawable extends GradientDrawable {
     }
 
     private void updateStroke() {
-        float strokeDp = sizeDp(Settings.SNACK_BAR_STROKE_WIDTH);
-        int width = strokeDp > 0 ? Math.max(1, Math.round(strokeDp * density)) : 0;
-        int color = Color.TRANSPARENT;
-        if (width != 0) {
-            color = Settings.SNACK_BAR_BORDER_PRESET.get() == Settings.SnackBarBorderPreset.CHIP
-                    ? chipStrokeColor : STROKE.resolve(DEFAULT_STROKE_COLOR, DEFAULT_STROKE_COLOR);
-        }
+        int width = strokeWidthPx();
+        int color = width == 0 ? Color.TRANSPARENT : resolveStrokeColor();
         if (Color.alpha(color) == 0) width = 0;
         if (appliedStrokeWidth != width || appliedStrokeColor != color) {
             setStroke(width, color);
@@ -174,12 +176,26 @@ public class SnackBarDrawable extends GradientDrawable {
         }
     }
 
+    final int strokeWidthPx() {
+        float strokeDp = sizeDp(Settings.SNACK_BAR_STROKE_WIDTH);
+        return strokeDp > 0 ? Math.max(1, Math.round(strokeDp * density)) : 0;
+    }
+
+    final int resolveStrokeColor() {
+        return Settings.SNACK_BAR_BORDER_PRESET.get() == Settings.SnackBarBorderPreset.CHIP
+                ? chipStrokeColor : STROKE.resolve(DEFAULT_STROKE_COLOR, DEFAULT_STROKE_COLOR);
+    }
+
     protected boolean usesSnackBarRadius() {
         return true;
     }
 
     protected boolean stylesFillAndBorder() {
         return true;
+    }
+
+    protected boolean usesBorderTheme() {
+        return stylesFillAndBorder();
     }
 
     static float radiusDp() {
@@ -234,10 +250,85 @@ public class SnackBarDrawable extends GradientDrawable {
         }
     }
 
-    public static final class Playlist extends RadiusOnly {
+    public static class Playlist extends RadiusOnly {
+        private final boolean supportsCustomRadius;
+        private PlaylistBorder border;
+
+        public Playlist() {
+            this(true);
+        }
+
+        private Playlist(boolean supportsCustomRadius) {
+            this.supportsCustomRadius = supportsCustomRadius;
+        }
+
+        @Override
+        protected boolean usesBorderTheme() {
+            return true;
+        }
+
+        @Override
+        public void draw(Canvas canvas) {
+            super.draw(canvas);
+            if (!Settings.SNACK_BAR_PLAYLIST_BORDER.get()) return;
+
+            int width = strokeWidthPx();
+            if (width == 0) return;
+
+            int color = resolveStrokeColor();
+            int alpha = Color.alpha(color) * getAlpha() / 255;
+            if (alpha == 0) return;
+
+            if (border == null) border = new PlaylistBorder();
+            border.draw(canvas, getBounds(), getCornerRadius(), width, (color & 0x00FFFFFF) | (alpha << 24));
+        }
+
         @Override
         protected boolean usesSnackBarRadius() {
-            return Settings.SNACK_BAR_PLAYLIST_RADIUS.get();
+            return supportsCustomRadius && Settings.SNACK_BAR_PLAYLIST_RADIUS.get();
+        }
+    }
+
+    public static final class RoundedPlaylist extends Playlist {
+        public RoundedPlaylist() {
+            // The newer FAB layout has its own pill radius and clipping outline.
+            super(false);
+        }
+    }
+
+    private static final class PlaylistBorder {
+        private final Path path = new Path();
+        private final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        private final Rect lastBounds = new Rect();
+        private float lastRadius;
+        private int lastWidth;
+
+        void draw(Canvas canvas, Rect bounds, float radius, int width, int color) {
+            if (bounds.isEmpty()) return;
+
+            if (!lastBounds.equals(bounds) || lastRadius != radius || lastWidth != width) {
+                updatePath(bounds, radius, width);
+            }
+
+            paint.setColor(color);
+            canvas.drawPath(path, paint);
+        }
+
+        private void updatePath(Rect bounds, float radius, int width) {
+            lastBounds.set(bounds);
+            lastRadius = radius;
+            lastWidth = width;
+
+            // Draw inside the stock outline without insetting the fill or changing its state or clipping.
+            float outerRadius = Math.min(radius, Math.min(bounds.width(), bounds.height()) * 0.5f);
+            path.rewind();
+            path.addRoundRect(bounds.left, bounds.top, bounds.right, bounds.bottom,
+                    outerRadius, outerRadius, Path.Direction.CW);
+            if (bounds.width() > 2 * width && bounds.height() > 2 * width) {
+                float innerRadius = Math.max(0, outerRadius - width);
+                path.addRoundRect(bounds.left + width, bounds.top + width, bounds.right - width, bounds.bottom - width,
+                        innerRadius, innerRadius, Path.Direction.CCW);
+            }
         }
     }
 }

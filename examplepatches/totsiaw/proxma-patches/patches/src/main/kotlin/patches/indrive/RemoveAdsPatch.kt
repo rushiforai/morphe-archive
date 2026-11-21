@@ -2,6 +2,7 @@ package patches.indrive
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.bytecodePatch
+import com.android.tools.smali.dexlib2.AccessFlags
 
 /*
  * inDrive does not render Google's ads directly from its own UI code — every Google placement
@@ -17,7 +18,7 @@ import app.morphe.patcher.patch.bytecodePatch
  *
  * Where it is applied matters. Rather than neutralizing the ~30 call sites that read these toggles
  * (each one a chance to miss the placement the user is actually seeing), the patch hooks the single
- * hooks the single resolver every read goes through — the feature-toggle repository's boolean accessor
+ * resolver every read goes through — the feature-toggle repository's boolean accessor
  *     c(<Toggle>;Z)Z      // resolve(toggle, default)
  * and returns `false` when the toggle handed in is one of the Google Ads ones. One injection point
  * therefore covers every placement and every future placement, including reads made directly by the
@@ -91,16 +92,46 @@ val removeAdsPatch = bytecodePatch(
         val resolver = mutableClassDefByOrNull(TOGGLE_RESOLVER)
             ?: error("inDrive feature-toggle repository not found — package renamed?")
 
-        val method = resolver.methods.firstOrNull { m ->
+        // Exactly one c(L…;Z)Z must exist. If R8 ever reuses the name for a second overload (or
+        // `ft/a` becomes a different class), refuse to patch rather than guess which one it is.
+        val candidates = resolver.methods.filter { m ->
             m.name == "c" && m.returnType == "Z" && m.parameterTypes.size == 2 &&
-                m.parameterTypes[0].startsWith("L")
-        } ?: error("toggle resolver c(<Toggle>;Z)Z not found in $TOGGLE_RESOLVER")
+                m.parameterTypes[0].startsWith("L") && m.parameterTypes[1].toString() == "Z"
+        }
+        check(candidates.size == 1) {
+            "expected exactly one toggle resolver c(<Toggle>;Z)Z in $TOGGLE_RESOLVER, " +
+                "found ${candidates.size}"
+        }
+        val method = candidates.single()
 
         // The toggle interface is R8-renamed and its name changes between inDrive releases
-        // (Lyge1$b on 5.188.0, Lquf1$b on 5.189.0), so the value getters — and the type the
-        // injected call must name — are taken from the resolver's own signature, never written
-        // out by hand. That is what keeps this patch working across releases.
-        val toggleType = method.parameterTypes[0]
+        // (Lyge1$b on 5.188.0, Lquf1$b on 5.189.0, Lfwk1$b on 5.193.0), so the value getters —
+        // and the type the injected call must name — are taken from the resolver's own
+        // signature, never written out by hand. That is what keeps this patch working across
+        // releases.
+        val toggleType = method.parameterTypes[0].toString()
+
+        // Prove every reference the injected code makes exists in *this* APK with exactly the
+        // shape the call names. The injection runs on every toggle read in the app, so a getter
+        // that was renamed, dropped or retyped in a future release would not fail quietly: it
+        // would throw NoSuchMethodError on the first toggle read and crash the app at startup.
+        // Failing here instead turns that into a clear patch-time error. (Read-only lookup, so
+        // the constants class is not added to the set of modified classes.)
+        val constants = classDefByOrNull(TOGGLE_CONSTANTS)
+            ?: error("$TOGGLE_CONSTANTS not found — promo platform API renamed?")
+        check(
+            constants.fields.any { f ->
+                f.name == "INSTANCE" && f.type == TOGGLE_CONSTANTS &&
+                    AccessFlags.STATIC.isSet(f.accessFlags)
+            },
+        ) { "$TOGGLE_CONSTANTS has no static INSTANCE field" }
+        GOOGLE_ADS_TOGGLE_GETTERS.forEach { getter ->
+            val present = constants.methods.any { m ->
+                m.name == getter && m.parameterTypes.isEmpty() && m.returnType == toggleType &&
+                    !AccessFlags.STATIC.isSet(m.accessFlags)
+            }
+            check(present) { "$TOGGLE_CONSTANTS->$getter()$toggleType is not in this APK" }
+        }
 
         // Every parameter register is spoken for by p0/p1/p2; at method entry no local is
         // initialized (the verifier guarantees the original body writes each one before reading),
@@ -118,7 +149,12 @@ val removeAdsPatch = bytecodePatch(
                 appendLine("    sget-object $scratch, $TOGGLE_CONSTANTS->INSTANCE:$TOGGLE_CONSTANTS")
                 appendLine("    invoke-virtual {$scratch}, $TOGGLE_CONSTANTS->$getter()$toggleType")
                 appendLine("    move-result-object $scratch")
-                appendLine("    if-eq p1, $scratch, :indrive_ads_on_$i")
+                // Branch *away* when the toggle is not this one. An `if-eq` here inverts the
+                // guard: any toggle that is not this one falls through to `return false`, and a
+                // Google Ads toggle only skips its own guard before the next one returns false.
+                // The result was that every feature toggle in the app read false (which hid the
+                // fare +/- stepper and broke order creation), not only the ads ones.
+                appendLine("    if-ne p1, $scratch, :indrive_ads_on_$i")
                 appendLine("    const/4 $scratch, 0x0")
                 appendLine("    return $scratch")
                 appendLine("    :indrive_ads_on_$i")

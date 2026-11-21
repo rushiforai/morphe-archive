@@ -11,10 +11,8 @@ import android.os.Process;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
-import java.util.HashMap;
-import java.util.Map;
-
 import app.fakh.extension.shared.AppRuntime;
+import app.fakh.extension.shared.AtlassianColors;
 
 /**
  * Material You for Jira's Compose color palettes, which define their colors in code, and the Material You and pitch
@@ -23,57 +21,6 @@ import app.fakh.extension.shared.AppRuntime;
  */
 @SuppressWarnings("unused")
 public final class MaterialYou {
-    // Material 3 surface roles (Android 14), with the neutral tones closest to them on Android 12 and 13.
-    private static final boolean ROLES = Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE;
-
-    /** Atlassian blue (0xRRGGBB) to the accent tone of the same lightness. */
-    private static final Map<Integer, Integer> ACCENTS = new HashMap<>();
-    /** Light neutral backgrounds (0xRRGGBB) to the surface role that replaces them. */
-    private static final Map<Integer, Integer> LIGHT_SURFACES = new HashMap<>();
-    /** Dark neutral backgrounds (0xRRGGBB) to the surface role that replaces them. */
-    private static final Map<Integer, Integer> DARK_SURFACES = new HashMap<>();
-
-    static {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            ACCENTS.put(0xE9F2FE, android.R.color.system_accent1_50);
-            ACCENTS.put(0xDEEBFF, android.R.color.system_accent1_50);
-            ACCENTS.put(0xCFE1FD, android.R.color.system_accent1_100);
-            ACCENTS.put(0xB3D4FF, android.R.color.system_accent1_100);
-            ACCENTS.put(0xADCBFB, android.R.color.system_accent1_200);
-            ACCENTS.put(0x8FB8F6, android.R.color.system_accent1_200);
-            ACCENTS.put(0x669DF1, android.R.color.system_accent1_200);
-            ACCENTS.put(0x4C9AFF, android.R.color.system_accent1_200);
-            ACCENTS.put(0x4794FF, android.R.color.system_accent1_200);
-            ACCENTS.put(0x4688EC, android.R.color.system_accent1_500);
-            ACCENTS.put(0x2684FF, android.R.color.system_accent1_500);
-            ACCENTS.put(0x247FFF, android.R.color.system_accent1_500);
-            ACCENTS.put(0x357DE8, android.R.color.system_accent1_600);
-            ACCENTS.put(0x1868DB, android.R.color.system_accent1_600);
-            ACCENTS.put(0x0065FF, android.R.color.system_accent1_600);
-            ACCENTS.put(0x0052CC, android.R.color.system_accent1_600);
-            ACCENTS.put(0x0055CC, android.R.color.system_accent1_600);
-            ACCENTS.put(0x1558BC, android.R.color.system_accent1_700);
-            ACCENTS.put(0x0747A6, android.R.color.system_accent1_700);
-            ACCENTS.put(0x144794, android.R.color.system_accent1_800);
-            ACCENTS.put(0x123263, android.R.color.system_accent1_800);
-            ACCENTS.put(0x1C2B42, android.R.color.system_accent1_900);
-            // Light: cards and bars (white), the canvas behind them, tinted fills, borders. The legacy N* ramp
-            // follows the same steps.
-            LIGHT_SURFACES.put(0xFFFFFF, role(android.R.color.system_surface_light, android.R.color.system_neutral2_50));
-            LIGHT_SURFACES.put(0xF8F8F8, role(android.R.color.system_surface_container_low_light, android.R.color.system_neutral2_100));
-            LIGHT_SURFACES.put(0xF4F5F7, role(android.R.color.system_surface_container_low_light, android.R.color.system_neutral2_100));
-            LIGHT_SURFACES.put(0xF0F1F2, role(android.R.color.system_surface_container_low_light, android.R.color.system_neutral2_100));
-            LIGHT_SURFACES.put(0xEBECF0, role(android.R.color.system_surface_container_low_light, android.R.color.system_neutral2_100));
-            LIGHT_SURFACES.put(0xDDDEE1, role(android.R.color.system_surface_container_highest_light, android.R.color.system_neutral2_200));
-            // Dark: the canvas behind cards, cards a step lighter, raised surfaces of sheets and menus, borders.
-            DARK_SURFACES.put(0x111213, role(android.R.color.system_surface_dark, android.R.color.system_neutral1_1000));
-            DARK_SURFACES.put(0x18191A, role(android.R.color.system_surface_container_dark, android.R.color.system_neutral1_900));
-            DARK_SURFACES.put(0x1F1F21, role(android.R.color.system_surface_container_high_dark, android.R.color.system_neutral2_800));
-            DARK_SURFACES.put(0x242528, role(android.R.color.system_surface_container_highest_dark, android.R.color.system_neutral2_700));
-            DARK_SURFACES.put(0x2B2C2F, role(android.R.color.system_surface_container_highest_dark, android.R.color.system_neutral2_700));
-        }
-    }
-
     /** The settings file that holds the Fakh Patches switches. */
     private static final String PREFS = "fakh_patches";
     /** Switch keys: Material You is on unless turned off, pitch black off unless turned on. */
@@ -101,11 +48,6 @@ public final class MaterialYou {
     private MaterialYou() {
     }
 
-    /** The Material 3 role on Android 14 and up, otherwise the neutral tone closest to it. */
-    private static int role(int role, int fallback) {
-        return ROLES ? role : fallback;
-    }
-
     /**
      * Injected at the end of the static initializers of Jira's Compose palettes, once per color.
      *
@@ -117,18 +59,7 @@ public final class MaterialYou {
         if ((packed & 0x3FL) != 0 || Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return packed;
         Context context = AppRuntime.application();
         if (context == null || !materialYou(context)) return packed;
-        int argb = (int) (packed >>> 32);
-        int rgb = argb & 0xFFFFFF;
-        Integer tone = ACCENTS.get(rgb);
-        if (tone == null && (argb >>> 24) == 0xFF) {
-            if ((rgb == DARK_CANVAS || rgb == DARK_CARD) && pitchBlack(context)) {
-                return rgb == DARK_CANVAS ? pack(0xFF000000) : surfaceDark(context);
-            }
-            tone = LIGHT_SURFACES.get(rgb);
-            if (tone == null) tone = DARK_SURFACES.get(rgb);
-        }
-        if (tone == null) return packed;
-        return pack((argb & 0xFF000000) | (context.getColor(tone) & 0xFFFFFF));
+        return pack(AtlassianColors.color(context, (int) (packed >>> 32), true, pitchBlack(context), DARK_CANVAS, DARK_CARD));
     }
 
     /**
@@ -166,11 +97,6 @@ public final class MaterialYou {
         Context context = AppRuntime.application();
         if (context == null || !app.fakh.extension.shared.MaterialYou.wallpaper(materialYou(context))) return packed;
         return pack(context.getColor(app.fakh.extension.shared.MaterialYou.night(context) ? dark : light));
-    }
-
-    /** The dark surface role, packed. */
-    private static long surfaceDark(Context context) {
-        return pack(0xFF000000 | (context.getColor(DARK_SURFACES.get(DARK_CANVAS)) & 0xFFFFFF));
     }
 
     /** The canvas of Jira's pages, behind their cards, as the palettes color it. */

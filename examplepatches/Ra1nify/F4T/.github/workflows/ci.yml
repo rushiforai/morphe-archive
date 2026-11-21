@@ -1,0 +1,159 @@
+name: CI
+
+# Builds the bundle on every push and, on the `dev` branch, republishes it to the rolling dev
+# pre-release. Stable releases are published manually by Publish (publish.yml); this workflow never
+# touches a `v*` tag or a stable release.
+
+on:
+  push:
+    branches: [main, dev]
+  workflow_dispatch:
+    inputs:
+      flavor:
+        description: Bundle flavor
+        required: true
+        type: choice
+        options: [both, release, debug]
+        default: both
+
+permissions:
+  contents: read
+  packages: read
+
+env:
+  # The rolling dev pre-release is tagged `dev-latest`, never `dev`. A tag that shares its name with
+  # the branch makes every bare `git checkout dev` resolve to the tag instead of the branch, which is
+  # how a working copy ends up on a detached HEAD.
+  DEV_TAG: dev-latest
+
+concurrency:
+  group: ci-${{ github.ref }}
+  # A dev run deletes and recreates the rolling pre-release, so cancelling it half way would leave the
+  # dev channel without a release. Dev runs queue instead; everything else cancels as usual.
+  cancel-in-progress: ${{ github.ref != 'refs/heads/dev' }}
+
+jobs:
+  prepare:
+    # Bot pushes are skipped so the dev manifest commit cannot rebuild itself. A dispatch from the
+    # Sync dev workflow also runs as the bot, so that event is let through explicitly.
+    if: github.actor != 'github-actions[bot]' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      flavors: ${{ steps.version.outputs.flavors }}
+      dev_release: ${{ steps.version.outputs.dev_release }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - id: version
+        shell: bash
+        run: |
+          # Only `v*` tags are releases. `dev` is the rolling dev pre-release container and must not
+          # influence the sequence number.
+          tag_sequence=$(git tag -l 'v*' | sed 's/^v//' | awk -F. '{print $NF}' | sort -n | tail -1)
+          base="$(date -u +%y.%m.%d).$(( ${tag_sequence:-0} + 1 ))"
+          echo "version=${base}-dev.$(git rev-parse --short=7 HEAD)" >> "$GITHUB_OUTPUT"
+          if [ "${GITHUB_REF}" = "refs/heads/dev" ]; then
+            echo "dev_release=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "dev_release=false" >> "$GITHUB_OUTPUT"
+          fi
+          case "${{ inputs.flavor }}" in
+            release) echo 'flavors=["release"]' >> "$GITHUB_OUTPUT" ;;
+            debug)   echo 'flavors=["debug"]' >> "$GITHUB_OUTPUT" ;;
+            *)       echo 'flavors=["release","debug"]' >> "$GITHUB_OUTPUT" ;;
+          esac
+
+  build:
+    needs: prepare
+    strategy:
+      fail-fast: false
+      matrix:
+        flavor: ${{ fromJSON(needs.prepare.outputs.flavors) }}
+    uses: ./.github/workflows/build-mpp.yml
+    with:
+      version: ${{ needs.prepare.outputs.version }}
+      flavor: ${{ matrix.flavor }}
+      # The dev pre-release is consumed by Morphe, so its bundle has to carry a signature the
+      # manifest can vouch for.
+      sign: ${{ needs.prepare.outputs.dev_release == 'true' && matrix.flavor == 'release' }}
+    secrets:
+      MORPHE_SIGNING_KEY: ${{ secrets.MORPHE_SIGNING_KEY }}
+
+  dev-release:
+    needs: [prepare, build]
+    if: needs.prepare.outputs.dev_release == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: dev
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: f4t-${{ needs.prepare.outputs.version }}-release
+          path: dist
+
+      # The manifest is written and committed locally first, then published before anything reaches
+      # the remote: a failed upload must never leave the dev channel pointing at a missing asset.
+      #
+      # The asset name carries the version on purpose. PatchCache only validates a cached bundle by
+      # file size, so a fixed name under a fixed tag would keep reusing a stale cache whenever two
+      # builds happen to be the same size. A per-build name changes the cache key every time.
+      - name: Write dev manifest
+        run: |
+          version="${{ needs.prepare.outputs.version }}"
+          asset="dev-${version}.mpp"
+          # gh names the uploaded asset after the file, so rename it before publishing.
+          cp "$(ls dist/*.mpp)" "${RUNNER_TEMP}/${asset}"
+
+          python3 scripts/generate_changelog.py \
+            --version "${version}" \
+            --note "Automated build from \`dev\`. Not a release." \
+            --output "${RUNNER_TEMP}/notes.md"
+          python3 scripts/update_manifest.py patches-bundle.json "${version}" \
+            "https://github.com/${{ github.repository }}/releases/download/${DEV_TAG}/${asset}" \
+            morphe-signing.pub \
+            --description-file "${RUNNER_TEMP}/notes.md"
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add patches-bundle.json
+          if git diff --cached --quiet; then
+            echo "manifest unchanged"
+          else
+            git commit -m "chore: dev build ${version} [skip ci]"
+          fi
+
+      # Recreating the release is cheaper to reason about than diffing assets, and it guarantees the
+      # release ends up with exactly one .mpp: Morphe picks `assets.firstOrNull { it.isPatchFile() }`,
+      # which silently chooses the wrong build when several are attached.
+      #
+      # The tag must not be named `dev`: a branch and a tag with the same name make every bare
+      # `git checkout dev` / `git rev-parse dev` resolve to the tag, which leaves the working copy on a
+      # detached HEAD. Pushing it before the branch keeps the tag on the manifest commit, which is what
+      # the release source archive should contain.
+      - name: Republish dev pre-release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          version="${{ needs.prepare.outputs.version }}"
+          asset="dev-${version}.mpp"
+          sha="$(git rev-parse HEAD)"
+
+          gh release delete "${DEV_TAG}" --cleanup-tag --yes || true
+          git push -f origin "${sha}:refs/tags/${DEV_TAG}"
+
+          gh release create "${DEV_TAG}" "${RUNNER_TEMP}/${asset}" \
+            --verify-tag \
+            --prerelease \
+            --title "dev ${version}" \
+            --notes "Automated build from \`dev\`. Not a release; install the stable channel for that."
+
+      - name: Push dev manifest
+        run: git push origin HEAD:refs/heads/dev

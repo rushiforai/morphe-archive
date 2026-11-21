@@ -8,7 +8,7 @@
  * - anddea (https://github.com/anddea)
  *
  * Licensed under the GNU General Public License v3.0.
- * Modified by lavinhoque33, 2026-11-19.
+ * Modified by lavinhoque33, 2026-11-20.
  *
  * ------------------------------------------------------------------------
  * GPLv3 Section 7 – Additional Terms & Attribution Requirements
@@ -102,6 +102,7 @@ val visualPreferencesIconsPatch = resourcePatch(
             False: icons only on parent screens and About rows for Regular and Bold styles.
 
             YouTube style shows icons on rows that open a settings screen and on About rows.
+            True also adds icons to SponsorBlock's duration and segment step rows in this style.
             """.trimIndentMultiline(),
         required = true
     )
@@ -117,11 +118,11 @@ val visualPreferencesIconsPatch = resourcePatch(
         ),
         title = "Icon style",
         description = """
-            The icon design, weight and size. YouTube uses the app's rounded settings icons at stock size
-            on rows that open a settings screen and on About rows, with rounded RVX fallbacks where unavailable.
+            The icon design, weight and size. YouTube uses the app's rounded settings icons at stock size,
+            with rounded RVX fallbacks where unavailable.
             Its RVX entry uses YouTube's magic wand when available.
 
-            Individual setting icons in Regular and Bold styles require Apply to all settings menu = true.
+            Individual setting icons require Apply to all settings menu = true.
             """.trimIndentMultiline(),
         required = true,
     )
@@ -145,16 +146,15 @@ val visualPreferencesIconsPatch = resourcePatch(
             makeSettingsToolbarIconsBold()
         }
 
-        if (applyToAll == true) {
-            preferenceKey.putAll(rvxPreferenceKey)
-        }
-
         // region copy shared resources
 
         if (!useYouTubeIcons) {
-            copyResourcesWithRename("youtube/visual/icons", preferenceKey)
+            val icons = if (applyToAll == true) allPreferenceIcons else preferenceKey
+            copyResourcesWithRename("youtube/visual/icons", icons)
 
-            preferenceKey.filterValues { it !in preferenceKey }.keys.forEach { title ->
+            icons.forEach { (title, path) ->
+                if (path in icons) return@forEach
+
                 val drawable = "res/drawable/${title}_icon.xml"
                 if (useBoldIcons) makeBold(drawable)
                 if (useStockIconSize) setStockPreferenceIconGeometry(drawable)
@@ -211,9 +211,12 @@ val visualPreferencesIconsPatch = resourcePatch(
 
     finalize {
         if (iconStyleOption.lowerCaseOrThrow() == YOUTUBE_ICON_STYLE) {
-            applyYouTubeScreenIcons(preferenceKey + rvxPreferenceKey)
+            val runtimeIconKeys = if (applyToAll == true) sponsorBlockDetailIconSources.keys else emptySet()
+            applyYouTubeScreenIcons(allPreferenceIcons, runtimeIconKeys)
             return@finalize
         }
+
+        val icons = if (applyToAll == true) allPreferenceIcons else preferenceKey
 
         // region set visual preferences icon
 
@@ -246,8 +249,8 @@ val visualPreferencesIconsPatch = resourcePatch(
                             null
                         } else {
                             when (title) {
-                                in preferenceKey.keys -> {
-                                    val iconKey = preferenceKey[title]?.takeIf { it in preferenceKey } ?: title
+                                in icons -> {
+                                    val iconKey = icons[title]?.takeIf { it in icons } ?: title
 
                                     check(get("res/drawable/${iconKey}_icon.xml").exists()) {
                                         "Missing icon or cyclic preference mapping for $title"
@@ -295,7 +298,7 @@ val visualPreferencesIconsPatch = resourcePatch(
     }
 }
 
-private var preferenceKey = mutableMapOf(
+private val preferenceKey = mapOf(
     // YouTube settings
     "parent_tools_key" to "M 677.462 535.154 Q 645.289 535.154 622.645 512.509 Q 600 489.865 600 457.692 Q 600 425.52 622.768 402.875 Q 645.535 380.231 677.077 380.231 Q 709.634 380.231 731.894 402.999 Q 754.154 425.766 754.154 457.308 Q 754.154 489.865 731.894 512.509 Q 709.634 535.154 677.462 535.154 Z M 498.769 744.616 L 498.769 710.539 Q 498.769 691.462 507.333 677.169 Q 515.897 662.877 532.308 656 Q 566.333 640.077 602.359 632.231 Q 638.385 624.385 677.462 624.385 Q 714.98 624.385 751.067 632.115 Q 787.154 639.846 822.615 656 Q 838.192 662.923 846.789 677.192 Q 855.385 691.462 855.385 710.539 L 855.385 744.616 L 498.769 744.616 Z M 384.615 455.154 Q 335.115 455.154 302.173 422.212 Q 269.231 389.269 269.231 339.385 Q 269.231 289.5 302.173 256.942 Q 335.115 224.384 384.615 224.384 Q 434.116 224.384 467.058 256.942 Q 500 289.5 500 339.385 Q 500 389.269 467.058 422.212 Q 434.116 455.154 384.615 455.154 Z M 384.615 339.769 Z M 104.615 744.616 L 104.615 686.769 Q 104.615 660.817 118.923 639.062 Q 133.231 617.308 159.205 606.923 Q 216.538 580.769 271.851 567.308 Q 327.164 553.846 384.315 553.846 Q 407.385 553.846 427 554.923 Q 446.616 556 467.923 559.692 Q 461.327 565.904 454.731 573.269 Q 448.135 580.635 441.539 586.846 Q 428.539 586 414.308 585.308 Q 400.077 584.615 384.615 584.615 Q 331.042 584.615 278.79 595.346 Q 226.539 606.077 173.538 634 Q 158.769 641.769 147.077 655.616 Q 135.385 669.462 135.385 686.769 L 135.385 713.846 L 397.231 713.846 L 397.231 744.616 L 104.615 744.616 Z M 397.231 713.846 Z M 384.615 424.385 Q 420.539 424.385 444.885 400.038 Q 469.231 375.692 469.231 339.769 Q 469.231 303.846 444.885 279.5 Q 420.539 255.154 384.615 255.154 Q 348.692 255.154 324.346 279.5 Q 300 303.846 300 339.769 Q 300 375.692 324.346 400.038 Q 348.692 424.385 384.615 424.385 Z",
     "general_key" to "M 702.308 766.923 Q 652.877 766.923 618.746 732.793 Q 584.615 698.662 584.615 649.231 Q 584.615 599.8 618.746 565.669 Q 652.877 531.538 702.308 531.538 Q 751.739 531.538 785.869 565.669 Q 820 599.8 820 649.231 Q 820 698.662 785.869 732.793 Q 751.739 766.923 702.308 766.923 Z M 702.121 736.154 Q 738.769 736.154 764 711.11 Q 789.231 686.065 789.231 649.417 Q 789.231 612.769 764.187 587.539 Q 739.142 562.308 702.494 562.308 Q 665.846 562.308 640.615 587.352 Q 615.385 612.396 615.385 649.044 Q 615.385 685.692 640.429 710.923 Q 665.473 736.154 702.121 736.154 Z M 181.538 664.616 L 181.538 633.846 L 489.231 633.846 L 489.231 664.616 L 181.538 664.616 Z M 257.692 428.462 Q 208.261 428.462 174.131 394.331 Q 140 360.2 140 310.769 Q 140 261.338 174.131 227.207 Q 208.261 193.077 257.692 193.077 Q 307.123 193.077 341.254 227.207 Q 375.385 261.338 375.385 310.769 Q 375.385 360.2 341.254 394.331 Q 307.123 428.462 257.692 428.462 Z M 257.506 397.692 Q 294.154 397.692 319.385 372.648 Q 344.615 347.604 344.615 310.956 Q 344.615 274.308 319.571 249.077 Q 294.527 223.846 257.879 223.846 Q 221.231 223.846 196 248.89 Q 170.769 273.935 170.769 310.583 Q 170.769 347.231 195.813 372.461 Q 220.858 397.692 257.506 397.692 Z M 470.769 326.154 L 470.769 295.384 L 778.462 295.384 L 778.462 326.154 L 470.769 326.154 Z M 702.308 649.231 Z M 257.692 310.769 Z",
@@ -408,6 +411,8 @@ private val rvxPreferenceKey = mapOf(
     "morphe_external_downloader_quick_menu" to "M 480 626.23 L 341.62 487.85 L 363.85 466.38 L 464.62 566.38 L 464.62 200 L 495.38 200 L 495.38 566.38 L 596.15 466.38 L 618.38 487.85 L 480 626.23 Z M 255.38 760 Q 232.33 760 216.16 743.84 Q 200 727.67 200 704.62 L 200 597 L 230.77 597 L 230.77 704.62 Q 230.77 713.85 238.46 721.54 Q 246.15 729.23 255.38 729.23 L 704.62 729.23 Q 713.85 729.23 721.54 721.54 Q 729.23 713.85 729.23 704.62 L 729.23 597 L 760 597 L 760 704.62 Q 760 727.67 743.84 743.84 Q 727.67 760 704.62 760 L 255.38 760 Z",
     "morphe_feed_card_layout" to "revanced_preference_screen_feed",
     "morphe_feed_view_count" to "revanced_hide_navigation_home_button",
+    "morphe_hide_feed_subtitle_views" to "revanced_hide_navigation_home_button",
+    "morphe_hide_feed_subtitle_age" to "morphe_save_to_watch_later_kids_flyout_button",
     // Feed video actions: tap and hold, and the clock of Watch later.
     "morphe_feed_long_press_menu" to "revanced_disable_haptic_feedback_tap_and_hold",
     "morphe_feed_watch_later_button" to "morphe_save_to_watch_later_kids_flyout_button",
@@ -461,6 +466,7 @@ private val rvxPreferenceKey = mapOf(
     "morphe_open_channel_of_live_avatar" to "M 480 863.08 L 376.69 759.77 L 215.38 759.77 Q 192.33 759.77 176.16 743.61 Q 160 727.44 160 704.38 L 160 175.15 Q 160 151.94 176.16 135.86 Q 192.33 119.77 215.38 119.77 L 744.62 119.77 Q 767.67 119.77 783.84 135.86 Q 800 151.94 800 175.15 L 800 704.38 Q 800 727.44 783.84 743.61 Q 767.67 759.77 744.62 759.77 L 583.31 759.77 L 480 863.08 Z M 190.77 702 Q 247.69 648.31 320.9 615.73 Q 394.1 583.15 479.9 583.15 Q 565.69 583.15 639 615.73 Q 712.31 648.31 769.23 702 L 769.23 175.15 Q 769.23 165.92 761.54 158.23 Q 753.85 150.54 744.62 150.54 L 215.38 150.54 Q 206.15 150.54 198.46 158.23 Q 190.77 165.92 190.77 175.15 L 190.77 702 Z M 480.85 491.08 Q 530.77 491.08 565.38 457.01 Q 600 422.93 600 372.31 Q 600 321.68 565.38 287.61 Q 530.77 253.54 480.85 253.54 Q 430.92 253.54 396.31 287.61 Q 361.69 321.68 361.69 372.31 Q 361.69 422.93 396.31 457.01 Q 430.92 491.08 480.85 491.08 Z M 215 729 L 745.77 729 L 745.77 722.31 Q 687.15 667.08 619.71 640.5 Q 552.27 613.92 480 613.92 Q 408.38 613.92 341 640.5 T 215 720.77 L 215 729 Z M 481.23 460.31 Q 444.12 460.31 418.29 434.87 Q 392.46 409.42 392.46 372.31 Q 392.46 335.19 418.29 309.75 Q 444.12 284.31 480.85 284.31 Q 517.58 284.31 543.4 309.75 Q 569.23 335.19 569.23 372.31 Q 569.23 409.42 543.24 434.87 Q 517.26 460.31 481.23 460.31 Z M 480 426.15 Z",
     "morphe_open_videos_fullscreen" to "M 160 800 L 160 529.23 L 190.77 529.23 L 190.77 748 L 748 190.77 L 529.23 190.77 L 529.23 160 L 800 160 L 800 430.77 L 769.23 430.77 L 769.23 212 L 212 769.23 L 430.77 769.23 L 430.77 800 L 160 800 Z",
     "morphe_override_youtube_music_buttons" to "revanced_hide_player_youtube_music_button",
+    "morphe_pause_on_audio_interrupt" to "revanced_disable_resuming_miniplayer",
     "morphe_pip_button_flyout" to "offline_key",
     "morphe_pip_button_overlay" to "offline_key",
     "morphe_playback_buffer_size" to "M 228.08 730.77 Q 224.85 730.77 222.42 728.41 Q 220 726.06 220 722.91 Q 220 719.77 222.42 717.58 Q 224.85 715.38 228.08 715.38 L 732.69 715.38 Q 735.62 715.38 737.81 717.74 Q 740 720.1 740 723.24 Q 740 726.39 737.81 728.58 Q 735.62 730.77 732.69 730.77 L 228.08 730.77 Z M 235.38 644.62 Q 228.85 644.62 224.42 640.13 Q 220 635.65 220 629.02 Q 220 622.38 224.42 618.12 Q 228.85 613.85 235.38 613.85 L 724.62 613.85 Q 731.15 613.85 735.58 618.33 Q 740 622.82 740 629.45 Q 740 636.08 735.58 640.35 Q 731.15 644.62 724.62 644.62 L 235.38 644.62 Z M 232.31 543.08 Q 227.08 543.08 223.54 539.51 Q 220 535.94 220 530.66 L 220 525.93 Q 220 514.12 227.96 506.29 Q 235.92 498.46 247.69 498.46 L 712.31 498.46 Q 724.08 498.46 732.04 506.46 Q 740 514.45 740 526.26 L 740 530.99 Q 740 536.27 736.46 539.67 Q 732.92 543.08 727.69 543.08 L 232.31 543.08 Z M 247.69 426.15 Q 235.92 426.15 227.96 418.19 Q 220 410.23 220 398.46 L 220 256.92 Q 220 245.15 227.96 237.19 Q 235.92 229.23 247.69 229.23 L 712.31 229.23 Q 724.08 229.23 732.04 237.19 Q 740 245.15 740 256.92 L 740 398.46 Q 740 410.23 732.04 418.19 Q 724.08 426.15 712.31 426.15 L 247.69 426.15 Z",
@@ -801,6 +807,7 @@ private val rvxPreferenceKey = mapOf(
     "revanced_hide_shorts_play_pause_button_background" to "revanced_disable_resuming_miniplayer",
     "revanced_hide_shorts_remix_button" to "M 380.054 557.441 L 380.054 371.244 L 546.045 464.343 Z M 564.57 719.47 L 674.24 719.47 L 674.24 609.8 L 704.361 609.8 L 704.361 719.47 L 814.031 719.47 L 814.031 749.591 L 704.361 749.591 L 704.361 859.261 L 674.24 859.261 L 674.24 749.591 L 564.57 749.591 Z M 254.476 548.617 C 214.463 541.558 184.342 521.573 164.449 488.894 C 144.638 456.166 140.789 420.184 152.949 381.36 C 165.176 342.575 190.038 311.715 227.315 289.053 L 494.766 126.709 C 532.073 104.098 570.902 96.25 610.91 103.23 C 650.922 110.289 681.043 130.274 700.937 162.954 C 720.748 195.683 724.598 231.664 712.438 270.486 C 700.208 309.272 675.349 340.132 638.071 362.795 L 611.529 378.905 C 620.859 378.905 629.048 379.519 639.759 381.394 C 679.772 388.454 709.894 408.441 729.787 441.119 C 749.599 473.848 753.458 509.804 741.297 548.628 C 740.399 551.192 738.146 553.135 735.508 554.105 C 732.889 555.07 729.635 555.337 726.716 554.942 C 723.791 554.547 720.894 553.426 719.047 551.717 C 718.097 550.855 717.311 549.7 716.972 548.469 C 716.637 547.253 716.687 545.732 717.135 544.229 C 727.42 511.824 724.26 482.161 707.614 454.824 C 691.047 427.438 666.17 410.921 632.649 405.042 C 617.329 402.332 602.042 401.447 597.748 401.286 C 588.341 400.876 581.445 396.779 578.706 391.277 C 577.322 388.498 576.914 385.175 577.67 381.95 C 578.419 378.757 580.362 375.39 583.44 372.342 C 585.934 369.904 625.142 343.69 626.109 343.043 C 657.431 324.065 678.071 298.507 688.285 266.062 C 698.57 233.658 695.41 203.995 678.764 176.659 C 662.196 149.273 637.321 132.757 603.801 126.876 C 570.275 120.918 538.038 127.419 506.748 146.447 L 239.296 308.79 C 207.974 327.768 187.315 353.34 177.102 385.785 C 166.816 418.19 169.977 447.853 186.622 475.189 C 203.191 502.575 228.065 519.091 261.587 524.971 C 274.985 527.341 292.192 528.737 292.956 528.82 C 301.857 529.82 308.076 531.673 312.016 534.059 C 316.058 536.507 317.963 539.807 318.027 543.091 C 318.118 549.524 311.511 556.846 303.613 562.158 C 300.08 564.526 269.166 586.237 268.118 586.974 C 236.812 605.95 216.165 631.507 205.952 663.951 C 195.667 696.356 198.827 726.021 215.474 753.356 C 232.041 780.741 256.915 797.258 290.436 803.138 C 323.96 809.097 356.201 802.588 387.488 783.567 L 507.965 707.501 L 507.781 737.418 L 399.469 803.306 C 362.163 825.916 323.329 833.799 283.327 826.784 C 243.309 819.766 213.153 799.764 193.301 767.061 C 173.45 734.356 169.639 698.351 181.798 659.526 C 194.027 620.74 218.888 589.881 256.165 567.219 L 282.707 551.108 C 273.378 551.107 265.189 550.493 254.476 548.617 Z",
     "revanced_hide_shorts_save_button" to "revanced_hide_playlist_button",
+    "revanced_hide_shorts_speed_education" to "revanced_overlay_button_speed_dialog",
     "revanced_hide_shorts_save_music_button" to "M 155.38 615.38 Q 148.85 615.38 144.42 610.9 Q 140 606.41 140 599.78 Q 140 593.15 144.42 588.88 Q 148.85 584.62 155.38 584.62 L 413.85 584.62 Q 420.38 584.62 424.81 589.1 Q 429.23 593.59 429.23 600.22 Q 429.23 606.85 424.81 611.12 Q 420.38 615.38 413.85 615.38 L 155.38 615.38 Z M 155.38 452.69 Q 148.85 452.69 144.42 448.21 Q 140 443.73 140 437.11 Q 140 431.23 144.42 426.58 Q 148.85 421.92 155.38 421.92 L 578.46 421.92 Q 585 421.92 589.42 426.78 Q 593.85 431.64 593.85 437.89 Q 593.85 444.15 589.42 448.42 Q 585 452.69 578.46 452.69 L 155.38 452.69 Z M 155.38 290.77 Q 148.85 290.77 144.42 286.28 Q 140 281.8 140 275.17 Q 140 268.54 144.42 264.27 Q 148.85 260 155.38 260 L 578.46 260 Q 585 260 589.42 264.49 Q 593.85 268.97 593.85 275.6 Q 593.85 282.23 589.42 286.5 Q 585 290.77 578.46 290.77 L 155.38 290.77 Z M 679.78 780 Q 673.15 780 668.88 775.58 Q 664.62 771.15 664.62 764.62 L 664.62 615.38 L 515.38 615.38 Q 508.85 615.38 504.42 610.9 Q 500 606.41 500 599.78 Q 500 593.15 504.42 588.88 Q 508.85 584.62 515.38 584.62 L 664.62 584.62 L 664.62 435.38 Q 664.62 428.85 669.1 424.42 Q 673.59 420 680.22 420 Q 686.85 420 691.12 424.42 Q 695.38 428.85 695.38 435.38 L 695.38 584.62 L 844.62 584.62 Q 851.15 584.62 855.58 589.1 Q 860 593.59 860 600.22 Q 860 606.85 855.58 611.12 Q 851.15 615.38 844.62 615.38 L 695.38 615.38 L 695.38 764.62 Q 695.38 771.15 690.9 775.58 Q 686.41 780 679.78 780 Z",
     "revanced_hide_shorts_search_suggestions_button" to "revanced_hide_shorts_shelf_search",
     "revanced_hide_shorts_share_button" to "M 169.623 730.074 C 165.809 734.385 159.67 735.784 154.364 733.553 C 149.058 731.321 145.766 725.954 146.18 720.213 C 146.477 715.636 146.774 711.41 147.05 708.041 L 147.052 708.023 C 158.759 563.875 195.017 464.721 261.103 407.343 C 304.01 370.09 359.366 351.114 427.564 348.312 C 427.828 348.301 428.105 348.29 428.392 348.278 C 438.621 347.857 446.7 339.445 446.707 329.207 C 446.708 328.899 446.708 328.617 446.708 328.365 L 446.708 181.463 C 446.711 173.898 452.936 167.674 460.501 167.674 C 463.763 167.674 466.922 168.832 469.412 170.939 L 800.397 451.018 L 800.406 451.026 C 808.935 458.234 813.855 468.834 813.855 480 C 813.855 491.167 808.935 501.766 800.406 508.974 L 800.397 508.982 L 469.412 789.062 C 466.922 791.169 463.763 792.327 460.501 792.327 C 452.936 792.327 446.711 786.103 446.708 778.538 L 446.708 631.837 C 446.708 626.541 444.604 621.463 440.859 617.719 C 437.114 613.975 432.035 611.873 426.74 611.875 L 426.739 611.875 C 403.441 611.882 380.161 613.185 357.008 615.78 L 356.768 615.808 C 286.956 624.489 242.793 649.501 178.046 720.651 L 177.926 720.783 L 169.69 729.999 L 169.623 730.074 Z M 474.295 328.311 C 474.295 353.826 454.175 374.802 428.682 375.865 L 428.681 375.865 C 339.559 379.559 282.847 411.446 243.62 468.363 C 218.249 505.142 198.006 556.304 185.391 625.489 C 183.897 633.683 176.8 684.213 176.8 684.213 C 176.8 684.213 211.004 649.86 217.506 644.655 C 230.785 634.026 244.991 624.612 259.955 616.526 C 311.424 589.245 364.338 585.024 426.195 584.32 L 426.207 584.32 C 438.908 584.169 451.141 589.109 460.175 598.038 C 469.21 606.966 474.295 619.139 474.295 631.841 L 474.295 705.731 L 474.858 749.841 L 507.152 720.972 L 773.965 495.241 L 773.966 495.24 C 778.449 491.447 781.035 485.873 781.035 480.001 C 781.036 474.129 778.45 468.554 773.968 464.761 L 773.966 464.761 L 507.153 238.996 C 501.219 233.975 474.196 211.125 474.196 211.125 C 474.196 211.125 474.295 246.462 474.295 254.236 L 474.295 328.311 Z",
@@ -840,7 +847,9 @@ private val rvxPreferenceKey = mapOf(
     "revanced_hide_time_stamp" to "M 762.46 666.69 L 740.23 644.46 Q 753.38 618 761.31 586.15 Q 769.23 554.31 769.23 519.77 Q 769.23 399.23 684.88 314.88 Q 600.54 230.54 480 230.54 Q 448 230.54 414.12 237.96 Q 380.23 245.38 355.31 259.54 L 332.85 237.08 Q 365.62 217.77 403.96 208.77 Q 442.31 199.77 479.82 199.77 Q 540.31 199.77 594.96 221.12 Q 649.62 242.46 694.08 282.46 L 735.08 240.69 L 757.08 262.69 L 715.31 304.46 Q 758 349.62 779 405.27 Q 800 460.92 800 519.77 Q 800 557.46 790.73 595.96 T 762.46 666.69 Z M 495.38 399.62 L 495.38 333.92 L 464.62 333.92 L 464.62 368.85 L 495.38 399.62 Z M 805.69 854.77 L 700.92 750.77 Q 659.08 792.62 601.65 816.19 Q 544.23 839.77 480 839.77 Q 413.69 839.77 355.5 814.35 Q 297.31 788.92 253.69 745.69 Q 210.08 702.46 185.04 643.88 Q 160 585.31 160 519.85 Q 160 458 181.96 401.85 Q 203.92 345.69 249 298.08 L 105.46 154.54 L 127.69 132.31 L 827.92 832.54 L 805.69 854.77 Z M 480 809 Q 535.85 809 587.73 788 Q 639.62 767 680.92 728.31 L 272.23 318.85 Q 232.77 359.15 211.77 411 Q 190.77 462.85 190.77 519.77 Q 190.77 640.31 275.12 724.65 Q 359.46 809 480 809 Z M 375.38 90.77 L 375.38 60 L 584.62 60 L 584.62 90.77 L 375.38 90.77 Z M 476.31 523.46 Z M 547.77 452 Z",
     "revanced_hide_timed_reactions" to "M 615.41 418.54 Q 632.35 418.54 644.63 406.07 Q 656.92 393.6 656.92 376.67 Q 656.92 359.73 644.45 347.44 T 615.05 335.15 Q 598.12 335.15 585.83 347.62 T 573.54 377.03 Q 573.54 393.96 586.01 406.25 T 615.41 418.54 Z M 344.95 418.54 Q 361.88 418.54 374.17 406.07 T 386.46 376.67 Q 386.46 359.73 373.99 347.44 T 344.59 335.15 Q 327.65 335.15 315.37 347.62 Q 303.08 360.09 303.08 377.03 Q 303.08 393.96 315.55 406.25 T 344.95 418.54 Z M 480 675.15 Q 536.77 675.15 584.58 644.65 Q 632.38 614.15 656.62 563.15 L 303.38 563.15 Q 327.85 614.15 375.54 644.65 T 480 675.15 Z M 480.13 840 Q 405.46 840 339.72 811.66 Q 273.99 783.32 225.36 734.74 Q 176.73 686.16 148.37 620.48 Q 120 554.81 120 480.13 Q 120 405.46 148.34 339.72 Q 176.68 273.99 225.26 225.36 Q 273.84 176.73 339.52 148.37 Q 405.19 120 479.87 120 Q 554.54 120 620.28 148.34 Q 686.01 176.68 734.64 225.26 Q 783.27 273.84 811.63 339.52 Q 840 405.19 840 479.87 Q 840 554.54 811.66 620.28 Q 783.32 686.01 734.74 734.64 Q 686.16 783.27 620.48 811.63 Q 554.81 840 480.13 840 Z M 480 480 Z M 479.93 809.23 Q 617.76 809.23 713.5 713.57 Q 809.23 617.91 809.23 480.07 Q 809.23 342.24 713.57 246.5 Q 617.91 150.77 480.07 150.77 Q 342.24 150.77 246.5 246.43 Q 150.77 342.09 150.77 479.93 Q 150.77 617.76 246.43 713.5 Q 342.09 809.23 479.93 809.23 Z",
     "revanced_hide_toolbar_cast_button" to "revanced_hide_player_cast_button",
+    "morphe_restore_cast_play_queue" to "revanced_hide_player_cast_button",
     "revanced_hide_toolbar_create_button" to "revanced_hide_navigation_create_button",
+    "revanced_hide_toolbar_messages_button" to "revanced_hide_quick_actions_comment_button",
     "revanced_hide_toolbar_notification_button" to "notification_key",
     "revanced_hide_toolbar_search_button" to "revanced_hide_shorts_shelf_search",
     "revanced_hide_transcript_section" to "M 339.77 695.38 L 620.23 695.38 L 620.23 664.62 L 339.77 664.62 L 339.77 695.38 Z M 339.77 530.77 L 620.23 530.77 L 620.23 500 L 339.77 500 L 339.77 530.77 Z M 255.38 840 Q 232.33 840 216.16 823.84 Q 200 807.67 200 784.62 L 200 175.38 Q 200 152.33 216.16 136.16 Q 232.33 120 255.38 120 L 589.46 120 L 760 290.54 L 760 784.62 Q 760 807.67 743.84 823.84 Q 727.67 840 704.62 840 L 255.38 840 Z M 574.08 304.46 L 574.08 150.77 L 255.38 150.77 Q 246.15 150.77 238.46 158.46 Q 230.77 166.15 230.77 175.38 L 230.77 784.62 Q 230.77 793.85 238.46 801.54 Q 246.15 809.23 255.38 809.23 L 704.62 809.23 Q 713.85 809.23 721.54 801.54 Q 729.23 793.85 729.23 784.62 L 729.23 304.46 L 574.08 304.46 Z M 230.77 150.77 L 230.77 304.46 L 230.77 150.77 L 230.77 809.23 L 230.77 150.77 Z",
@@ -853,6 +862,7 @@ private val rvxPreferenceKey = mapOf(
     "revanced_hide_view_products" to "M 215.38 840 Q 192.94 840 176.47 823.53 Q 160 807.06 160 784.62 L 160 324.69 Q 143 320.23 131.5 305.22 Q 120 290.21 120 270.77 L 120 175.38 Q 120 152.94 136.47 136.47 Q 152.94 120 175.38 120 L 784.62 120 Q 807.06 120 823.53 136.47 Q 840 152.94 840 175.38 L 840 270.77 Q 840 290.21 828.5 305.22 Q 817 320.23 800 324.69 L 800 784.62 Q 800 807.06 783.53 823.53 Q 767.06 840 744.62 840 L 215.38 840 Z M 190.77 326.15 L 190.77 780.77 Q 190.77 793.08 199.62 801.15 Q 208.46 809.23 221.54 809.23 L 744.62 809.23 Q 755.38 809.23 762.31 802.31 Q 769.23 795.38 769.23 784.62 L 769.23 326.15 L 190.77 326.15 Z M 175.38 295.38 L 784.62 295.38 Q 795.38 295.38 802.31 288.46 Q 809.23 281.54 809.23 270.77 L 809.23 175.38 Q 809.23 164.62 802.31 157.69 Q 795.38 150.77 784.62 150.77 L 175.38 150.77 Q 164.62 150.77 157.69 157.69 Q 150.77 164.62 150.77 175.38 L 150.77 270.77 Q 150.77 281.54 157.69 288.46 Q 164.62 295.38 175.38 295.38 Z M 375.38 505.38 L 584.62 505.38 L 584.62 480 L 375.38 480 L 375.38 505.38 Z M 480 567.69 Z",
     "revanced_hide_visual_spacer" to "M 215.38 495.38 Q 208.85 495.38 204.42 490.9 Q 200 486.41 200 479.78 Q 200 473.15 204.42 468.88 Q 208.85 464.62 215.38 464.62 L 744.62 464.62 Q 751.15 464.62 755.58 469.1 Q 760 473.59 760 480.22 Q 760 486.85 755.58 491.12 Q 751.15 495.38 744.62 495.38 L 215.38 495.38 Z",
     "revanced_hide_voice_search_button" to "revanced_hide_floating_microphone",
+    "morphe_hide_search_ask" to "revanced_preference_screen_gemini",
     "revanced_hide_web_search_results" to "M 469.54 839.77 Q 397.46 837.31 333.46 808.54 Q 269.46 779.77 222.31 731.27 Q 175.15 682.77 147.58 618.15 Q 120 553.54 120 480 Q 120 405.46 148.42 339.77 Q 176.85 274.08 225.46 225.46 Q 274.08 176.85 339.77 148.42 Q 405.46 120 480 120 Q 621.31 120 723.23 213.23 Q 825.15 306.46 838.62 444.62 L 807.62 444.62 Q 798.31 352.92 743.92 279.62 Q 689.54 206.31 603.15 171.77 L 603.15 190.54 Q 603.15 224.77 579.54 249.23 Q 555.92 273.69 521.69 273.69 L 438.54 273.69 L 438.54 356.85 Q 438.54 373.42 426.19 385.02 Q 413.85 396.62 396.85 396.62 L 315.38 396.62 L 315.38 480 L 403.08 480 L 403.08 601.92 L 356.85 601.92 L 159 404.85 Q 155.54 423.31 153.15 442.21 Q 150.77 461.1 150.77 480 Q 150.77 612.69 242.54 708.77 Q 334.31 804.85 469.54 809 L 469.54 839.77 Z M 843.85 826.08 L 702.92 686.69 Q 685 700.92 663.58 708.15 Q 642.15 715.38 620.43 715.38 Q 564.04 715.38 524.33 675.77 Q 484.62 636.15 484.62 579.88 Q 484.62 523.62 524.23 484.12 Q 563.85 444.62 620.12 444.62 Q 676.38 444.62 715.88 484.33 Q 755.38 524.04 755.38 580.43 Q 755.38 602.92 747.65 624.73 T 725.15 664.69 L 866.08 803.85 L 843.85 826.08 Z M 619.86 684.62 Q 663.69 684.62 694.15 654.29 Q 724.62 623.97 724.62 580.14 Q 724.62 536.31 694.29 505.85 Q 663.97 475.38 620.14 475.38 Q 576.31 475.38 545.85 505.71 Q 515.38 536.03 515.38 579.86 Q 515.38 623.69 545.71 654.15 Q 576.03 684.62 619.86 684.62 Z",
     "revanced_hide_you_may_like_section" to "M 696.77 800 L 293.54 800 L 293.54 363.38 L 543.08 112.31 L 555.84 121.12 Q 561.15 126 564.15 133.08 Q 567.15 140.15 567.15 147.77 L 567.15 152.38 L 525.23 363.38 L 822.69 363.38 Q 844.08 363.38 861.08 380.38 T 878.08 418.77 L 878.08 469.13 Q 878.08 474.69 878.04 481.04 Q 878 487.38 875.77 492.85 L 764.38 755.15 Q 756 774.22 736.19 787.11 Q 716.38 800 696.77 800 Z M 324.31 769.23 L 702.85 769.23 Q 710.54 769.23 719.77 764.62 Q 729 760 733.62 749.23 L 847.31 480.23 L 847.31 418.77 Q 847.31 408.77 840 401.46 Q 832.69 394.15 822.69 394.15 L 488.92 394.15 L 534.23 162.85 L 324.31 376.85 L 324.31 769.23 Z M 324.31 376.85 L 324.31 769.23 L 324.31 376.85 Z M 293.54 363.38 L 293.54 394.15 L 150.54 394.15 L 150.54 769.23 L 293.54 769.23 L 293.54 800 L 119.77 800 L 119.77 363.38 L 293.54 363.38 Z",
     "revanced_hide_youtube_doodles" to "M 200 800 L 200 719.69 L 748.69 170.23 Q 754.31 164.62 760.42 162.31 Q 766.54 160 772.62 160 Q 778.46 160 784.96 162.31 T 796.31 170.23 L 829.77 203.69 Q 835.38 208.31 837.69 214.42 Q 840 220.54 840 227.38 Q 840 233.23 837.69 239.46 T 829.77 251.31 L 280.31 800 L 200 800 Z M 230.77 769.23 L 267.85 769.23 L 714.62 322.46 L 696.46 303.54 L 677.54 285.38 L 230.77 732.15 L 230.77 769.23 Z M 809.46 227.62 L 772.38 190.54 L 809.46 227.62 Z M 696.46 303.54 L 677.54 285.38 L 714.62 322.46 L 696.46 303.54 Z M 570.77 800 Q 638.77 800 694.77 768.88 Q 750.77 737.77 750.77 680 Q 750.77 643.85 722.42 613.42 Q 694.08 583 635.69 565.54 L 611 591 Q 661.77 604.54 690.88 628.46 Q 720 652.38 720 680 Q 720 718.15 676.81 743.69 T 570.77 769.23 Q 564.15 769.23 559.77 773.5 Q 555.38 777.77 555.38 784.62 Q 555.38 791.23 559.77 795.62 Q 564.15 800 570.77 800 Z M 250.77 546.77 L 274.92 521.85 Q 231.69 508.08 211.23 492.42 Q 190.77 476.77 190.77 460 Q 190.77 439.38 214.58 421.04 Q 238.38 402.69 304.62 376.15 Q 380.69 345.92 408.04 320.12 Q 435.38 294.31 435.38 260.23 Q 435.38 216.54 397.85 188.27 Q 360.31 160 300 160 Q 263.38 160 230.92 172.96 T 183.77 205.62 Q 180.38 210.77 180.5 217 Q 180.62 223.23 186.23 227.38 Q 190.85 230.77 197.19 230.04 Q 203.54 229.31 207.69 225.15 Q 224.23 208.62 247.85 199.69 Q 271.46 190.77 300 190.77 Q 349.85 190.77 377.23 211.08 Q 404.62 231.38 404.62 260.23 Q 404.62 284.85 382.15 302.92 Q 359.69 321 292.15 348.08 Q 211.23 380.54 185.62 405.08 Q 160 429.62 160 460 Q 160 484.31 181.46 507.77 Q 202.92 531.23 250.77 546.77 Z",
@@ -961,6 +971,8 @@ private val rvxPreferenceKey = mapOf(
     "revanced_shorts_custom_actions_speed_dialog" to "revanced_overlay_button_speed_dialog",
     "revanced_shorts_custom_actions_voice_over_translation" to "M 175.38 200 L 232.46 316.62 L 357.08 316.62 L 300 200 L 384.38 200 L 441.46 316.62 L 566.08 316.62 L 509 200 L 592.62 200 L 650.46 316.62 L 775.08 316.62 L 717.23 200 L 784.62 200 Q 807.67 200 823.84 216.16 Q 840 232.33 840 255.38 L 840 704.62 Q 840 727.67 823.84 743.84 Q 807.67 760 784.62 760 L 175.38 760 Q 152.33 760 136.16 743.84 Q 120 727.67 120 704.62 L 120 255.38 Q 120 232.33 136.16 216.16 Q 152.33 200 175.38 200 Z M 150.77 347.38 L 150.77 704.62 Q 150.77 715.38 157.69 722.31 Q 164.62 729.23 175.38 729.23 L 784.62 729.23 Q 795.38 729.23 802.31 722.31 Q 809.23 715.38 809.23 704.62 L 809.23 347.38 L 150.77 347.38 Z M 150.77 347.38 L 150.77 729.23 L 150.77 347.38 Z",
     "revanced_shorts_player_type" to "revanced_preference_screen_player",
+    "revanced_shorts_overlay_opacity" to "revanced_swipe_overlay_background_opacity",
+    "revanced_shorts_immersive_status_bar" to "revanced_hide_status_bar",
     "revanced_show_offline_library_button" to "M 380.77 599.92 L 201.54 419.92 L 223 397.92 L 380.77 556.46 L 737.23 200 L 759.23 222.23 L 380.77 599.92 Z M 240 760 L 240 729.23 L 720 729.23 L 720 760 L 240 760 Z",
     "revanced_show_search_button" to "revanced_hide_shorts_shelf_search",
     "revanced_show_settings_button" to "revanced_preference_screen_settings_menu",
@@ -1070,12 +1082,15 @@ private val rvxPreferenceKey = mapOf(
     "morphe_live_chat_translate_use_color" to "revanced_enable_custom_seekbar_color",
     "morphe_music_package_name" to "revanced_hide_player_youtube_music_button",
     "morphe_navigation_bar_style" to "revanced_navigation_bar_animations",
+    "morphe_opaque_system_navigation_bar_light" to "revanced_swipe_overlay_background_opacity",
+    "morphe_opaque_system_navigation_bar_dark" to "revanced_swipe_overlay_background_opacity",
     "morphe_navigation_bar_glass" to "revanced_navigation_bar_animations",
     "morphe_navigation_bar_glass_opacity" to "revanced_swipe_overlay_background_opacity",
     "morphe_navigation_bar_glass_height" to "revanced_navigation_bar_order",
     "morphe_navigation_bar_glass_width" to "revanced_navigation_bar_order",
     "morphe_navigation_bar_glass_button_spacing" to "revanced_navigation_bar_order",
     "morphe_notification_dot_color" to "revanced_enable_custom_seekbar_color",
+    "morphe_center_playback_button_size" to "revanced_disable_resuming_miniplayer",
     "morphe_player_control_buttons_background_opacity" to "revanced_swipe_overlay_background_opacity",
     "morphe_post_image_download" to "revanced_overlay_button_external_downloader",
     "morphe_post_buttons_layout" to "morphe_post_buttons_screen",
@@ -1128,6 +1143,7 @@ private val rvxPreferenceKey = mapOf(
     "revanced_default_video_quality_mobile_shorts" to "revanced_default_video_quality_wifi_shorts",
     "revanced_disable_default_playback_speed_music_type" to "revanced_disable_default_playback_speed_music",
     "revanced_disable_like_dislike_glow" to "revanced_disable_rolling_number_animations",
+    "revanced_disable_precise_seeking_gesture" to "revanced_disable_swipe_to_enter_fullscreen_mode_below_the_player",
     "revanced_enable_custom_playback_speed" to "revanced_overlay_button_speed_dialog",
     "revanced_enable_playback_audio_pitch_controls" to "revanced_default_playback_audio_pitch",
     "revanced_enable_wide_search_bar_in_you_tab" to "revanced_enable_wide_search_bar",
@@ -1178,6 +1194,7 @@ private val rvxPreferenceKey = mapOf(
     "revanced_overlay_button_loop_segment_seekbar" to "revanced_preference_screen_seekbar",
     "revanced_overlay_button_play_all_type" to "revanced_overlay_button_play_all",
     "revanced_overlay_button_speed_dialog_type" to "revanced_overlay_button_speed_dialog",
+    "revanced_overlay_button_video_quality" to "video_quality_settings_key",
     "revanced_override_video_download_button_queue_manager" to "morphe_local_queue",
     "revanced_playback_audio_time_stretching" to "revanced_default_playback_audio_pitch",
     "revanced_remember_playback_speed_last_selected" to "revanced_overlay_button_speed_dialog",
@@ -1207,6 +1224,7 @@ private val rvxPreferenceKey = mapOf(
     "revanced_snack_bar_corner_radius" to "morphe_feed_card_layout_corner_radius",
     "revanced_snack_bar_dark_fill" to "morphe_dark_theme",
     "revanced_snack_bar_light_fill" to "morphe_light_theme",
+    "revanced_snack_bar_playlist_border" to "revanced_enable_custom_seekbar_color",
     "revanced_snack_bar_playlist_radius" to "revanced_hide_category_bar_in_playlist",
     "revanced_snack_bar_stroke_color" to "revanced_enable_custom_seekbar_color",
     "revanced_snack_bar_stroke_width" to "morphe_custom_dpi",
@@ -1255,6 +1273,8 @@ private val rvxPreferenceKey = mapOf(
         "M 740 220 L 310 460 L 740 700 Z M 709 273 L 709 647 L 373 460 Z " +
         "M 220 220 L 251 220 L 251 700 L 220 700 Z " +
         "M 180 780 L 780 780 L 780 811 L 180 811 Z M 449 720 L 480 720 L 480 840 L 449 840 Z",
+    "revanced_double_tap_seek_backward" to "morphe_seek_notification_media_rewind_length",
+    "revanced_double_tap_seek_forward" to "morphe_seek_notification_media_fast_forward_length",
     "morphe_vot_mymemory_email" to
         "M 160 240 L 800 240 L 800 720 L 160 720 Z " +
         "M 191 289 L 191 689 L 769 689 L 769 289 L 480 500 Z " +
@@ -1285,6 +1305,20 @@ private val rvxPreferenceKey = mapOf(
         "L 340 391 L 480 251 L 620 391 L 598 413 L 496 310 L 496 550 Z " +
         "M 160 620 L 800 620 L 800 800 L 160 800 Z M 191 651 L 191 769 L 769 769 L 769 651 Z",
 )
+
+private val sponsorBlockDetailIconSources = mapOf(
+    "sb_auto_hide_skip_button_duration" to "revanced_swipe_overlay_timeout",
+    "sb_toast_on_skip_duration" to "morphe_expand_livestream_dvr_duration",
+    "sb_create_new_segment_step" to "general_key",
+)
+
+private val allPreferenceIcons = buildMap(preferenceKey.size + rvxPreferenceKey.size + sponsorBlockDetailIconSources.size) {
+    putAll(preferenceKey)
+    putAll(rvxPreferenceKey)
+
+    // SponsorBlock creates these rows at runtime, so each needs its own drawable rather than an XML alias.
+    sponsorBlockDetailIconSources.forEach { (key, source) -> put(key, getValue(source)) }
+}
 
 private val intentKey = setOf(
     "revanced_settings_key",

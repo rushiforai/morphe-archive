@@ -1,26 +1,11 @@
 package slick.android
 
-import app.morphe.patcher.patch.AppTarget
-import app.morphe.patcher.patch.Compatibility
-import app.morphe.patcher.patch.bytecodePatch
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
 
 val silentTyping =
-    bytecodePatch(
-        name = "Slick Android",
-        description = "Slack should not be awful to use on Android. Let's fix that!",
-    ) {
-        dependsOn(nativeFeatures, cacheCleaner, featureFlags)
-        compatibleWith(
-            Compatibility(
-                name = "Slack",
-                packageName = "com.Slack",
-                targets = listOf(AppTarget(version = "26.11.10.0")),
-            ),
-        )
-
+    slackPatch("Silent typing", "Do not send typing indicators.", "silent_typing") {
         execute {
             method("Lslack/services/usertyping/UserTypingHandler;", "sendTypingMessage") {
                 it.parameterTypes.isEmpty() && it.returnType == "V"

@@ -3252,6 +3252,16 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushfacebook_hide_status_bar", FALSE);
 
     /**
+     * On a tablet or an unfolded phone, the feed and the other lists on the main screen and the
+     * page screen (Menu, profiles, groups, Pages) keep to a column down the middle instead of
+     * stretching edge to edge (#531, {@link app.morphe.extension.facebook.navigation.CenteredFeed}).
+     * Off by default. Asked as each of those screens lays itself out, resumes or gets its focus back,
+     * so a change shows when the settings close.
+     */
+    public static final BooleanSetting CENTER_FEED_ON_BIG_SCREENS =
+            new BooleanSetting("hushfacebook_center_feed_big_screens", FALSE);
+
+    /**
      * In light mode the Reels tab keeps the light status bar, top bar and tab bar the other tabs
      * have, where Facebook turns them dark (#423,
      * {@link app.morphe.extension.facebook.navigation.LightReelsTabBars}). Asked each time the tab
@@ -3355,6 +3365,14 @@ public class Settings extends BaseSettings {
      */
     public static final StringSetting HEADER_TEXT =
             new StringSetting("hushfacebook_header_text", "", true);
+
+    /**
+     * The font {@link #HEADER_TEXT}'s words draw in (#532). Bold is the one they always had. Your
+     * font takes the file picked under Font file whether or not Use the system font is on. Facebook
+     * builds the header once, so a change brings up the restart row.
+     */
+    public static final EnumSetting<HeaderFont> HEADER_TEXT_FONT =
+            new EnumSetting<>("hushfacebook_header_text_font", HeaderFont.BOLD, true);
 
     /**
      * The name of a picture of your own for the top of Home, which takes the place of
@@ -3514,6 +3532,22 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushfacebook_keep_post_dates", TRUE);
 
     /**
+     * The line under a poster's name leaves out the song the post plays (#533,
+     * {@link app.morphe.extension.facebook.feed.PostDates#hideSong}), with no gap or extra dot. A
+     * change shows on the headers drawn after it.
+     */
+    public static final BooleanSetting HIDE_POST_SONGS =
+            new BooleanSetting("hushfacebook_hide_post_songs", FALSE);
+
+    /**
+     * A post's time under the poster's name ("15h", or the date) is bold like the name (#533,
+     * {@link app.morphe.extension.facebook.feed.PostDates#boldTime}). A change shows on the headers
+     * drawn after it.
+     */
+    public static final BooleanSetting BOLD_POST_TIMES =
+            new BooleanSetting("hushfacebook_bold_post_times", FALSE);
+
+    /**
      * Posts in the feed show their whole text instead of Facebook's cut with See more
      * ({@link app.morphe.extension.facebook.feed.FullPostText}). A change shows on the posts drawn
      * after it.
@@ -3569,6 +3603,22 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting DIM_REEL_NAMES =
             new BooleanSetting("hushfacebook_dim_reel_names", FALSE);
+
+    /**
+     * A name Facebook draws over a feed video, rather than above it, sits on the same dark box (#533,
+     * {@link app.morphe.extension.facebook.feed.CaptionBackdrop#forReelName}). A change shows on the
+     * headers drawn after it.
+     */
+    public static final BooleanSetting DIM_FEED_VIDEO_NAMES =
+            new BooleanSetting("hushfacebook_dim_feed_video_names", FALSE);
+
+    /**
+     * A post's name that Facebook cuts short with "..." wraps onto the next lines instead (#533,
+     * {@link app.morphe.extension.facebook.feed.CaptionBackdrop#nameLines}); a name that fits still
+     * takes one line. A change shows on the headers drawn after it.
+     */
+    public static final BooleanSetting SHOW_FULL_NAMES =
+            new BooleanSetting("hushfacebook_show_full_names", FALSE);
 
     /**
      * Names in the stories row and on an open story sit on the caption's dark box (#490,

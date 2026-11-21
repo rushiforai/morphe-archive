@@ -6,11 +6,11 @@
 | --------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Application Name**        | Pro Metronome                                                                                                                                                                 |
 | **Package Name**            | `com.eumlab.android.prometronome`                                                                                                                                             |
-| **Supported Version**       | `1.0.12` (Morphe Compatibility: `1.0.12`, `minSdk` 23)                                                                                                                        |
-| **Analyzed Version Code**   | `112`                                                                                                                                                                         |
-| **Target SDK**              | `35` (Android 15)                                                                                                                                                             |
+| **Supported Version**       | `1.14` (Morphe Compatibility: `1.14`, `minSdk` 23)                                                                                                                            |
+| **Analyzed Version Code**   | `114`                                                                                                                                                                         |
+| **Target SDK**              | `36` (Android 16)                                                                                                                                                             |
 | **Minimum SDK**             | `23` (Android 6.0)                                                                                                                                                            |
-| **APK Format**              | APKM (`base.apk`, `config.en.apk`, `config.es.apk`, `config.xhdpi.apk`)                                                                                                       |
+| **APK Format**              | APKM (`base.apk`)                                                                                                                                                             |
 | **Package Signing SHA-256** | `67ba64147a05aedb766363801f77a59e04f37ab8785062a12c5678dadf8b7c35`                                                                                                            |
 | **Architecture**            | Native Android/Java; AndroidX, Umeng Analytics & Common SDK, Facebook SDK AppEvents, Google Play Services Ads Identifier, Bolts Measurement, Google DataTransport, RevenueCat |
 

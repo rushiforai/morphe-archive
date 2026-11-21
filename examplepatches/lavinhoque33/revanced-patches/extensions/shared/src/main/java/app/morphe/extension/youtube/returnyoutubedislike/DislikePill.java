@@ -44,7 +44,8 @@ public final class DislikePill {
     private static final Paint countPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private static final ThreadLocal<float[]> previousWidths = ThreadLocal.withInitial(() -> new float[2]);
     private static final Map<View, CountDrawable> counts = new WeakHashMap<>();
-    private static volatile String videoId = "";
+    @Nullable
+    private static volatile Object watchSession;
     private static volatile String dislikeText = "";
     private static volatile int textColor;
 
@@ -66,14 +67,14 @@ public final class DislikePill {
         return isAvailable() && Settings.RYD_ENABLED.get() && Settings.RYD_MORPHE_DISLIKE_PILL.get();
     }
 
-    public static synchronized void setVideoId(@NonNull String id) {
-        videoId = id;
+    public static synchronized void setWatchSession(@Nullable Object session) {
         dislikeText = "";
+        watchSession = session;
         Utils.runOnMainThreadNowOrLater(DislikePill::invalidateCounts);
     }
 
-    public static synchronized void update(@NonNull String id, @NonNull CharSequence text, int color) {
-        if (!videoId.equals(id) || (TextUtils.equals(dislikeText, text) && textColor == color)) {
+    public static synchronized void update(@NonNull Object session, @NonNull CharSequence text, int color) {
+        if (watchSession != session || (TextUtils.equals(dislikeText, text) && textColor == color)) {
             return;
         }
 
@@ -95,7 +96,7 @@ public final class DislikePill {
 
     /** Called by a generated bridge around the app's native width setter. No app-class stubs are needed. */
     public static float getMargin(float width) {
-        if (!isEnabled() || videoId.isEmpty()) {
+        if (!isEnabled() || watchSession == null) {
             return 0;
         }
 
@@ -109,7 +110,7 @@ public final class DislikePill {
             return 0;
         }
 
-        // Litho cannot relayout for a late response. Reserve room even before the request finishes.
+        // Reserve room before the count arrives so the label stays aligned as it is published.
         String text = dislikeText;
         if (text.isEmpty()) {
             text = Settings.RYD_DISLIKE_PERCENTAGE.get() ? "88.8%" : "8.8M";
@@ -124,11 +125,9 @@ public final class DislikePill {
 
     /** Called before Litho mounts its content; wait until the host has its final bounds. */
     public static void onContentDescription(@NonNull View host, @Nullable CharSequence description) {
-        CountDrawable existing = counts.remove(host);
-        if (existing != null) {
-            host.getOverlay().remove(existing);
-        }
-        if (!isEnabled() || description == null) {
+        removeCount(host);
+        Object session = watchSession;
+        if (session == null || !isEnabled() || description == null) {
             return;
         }
 
@@ -138,31 +137,43 @@ public final class DislikePill {
             return;
         }
 
-        host.post(() -> {
+        WeakReference<View> hostRef = new WeakReference<>(host);
+        String mountedDescription = description.toString();
+        Utils.runOnMainThread(() -> {
+            View mounted = hostRef.get();
             // Square compact-action/Shorts buttons must keep their existing counts and layout.
-            if (!isEnabled() || host.getWidth() <= host.getHeight()
-                    || !TextUtils.equals(description, host.getContentDescription())) {
+            if (mounted == null || !mounted.isAttachedToWindow() || watchSession != session
+                    || !isEnabled() || mounted.getWidth() <= mounted.getHeight()
+                    || !TextUtils.equals(mountedDescription, mounted.getContentDescription())) {
                 return;
             }
-            CountDrawable old = counts.remove(host);
-            if (old != null) {
-                host.getOverlay().remove(old);
-            }
-            CountDrawable drawable = new CountDrawable(host, description.toString());
-            counts.put(host, drawable);
-            host.getOverlay().add(drawable);
+            removeCount(mounted);
+            CountDrawable drawable = new CountDrawable(mounted, mountedDescription, session);
+            counts.put(mounted, drawable);
+            mounted.getOverlay().add(drawable);
+            mounted.addOnAttachStateChangeListener(drawable);
         });
     }
 
-    private static final class CountDrawable extends Drawable {
+    private static void removeCount(View host) {
+        CountDrawable existing = counts.remove(host);
+        if (existing != null) {
+            host.getOverlay().remove(existing);
+            host.removeOnAttachStateChangeListener(existing);
+        }
+    }
+
+    private static final class CountDrawable extends Drawable implements View.OnAttachStateChangeListener {
         private final WeakReference<View> hostReference;
         private final String description;
+        private final Object session;
         private final Paint paint = new Paint(countPaint);
         private final Paint.FontMetrics fontMetrics = new Paint.FontMetrics();
 
-        CountDrawable(View host, String description) {
+        CountDrawable(View host, String description, Object session) {
             hostReference = new WeakReference<>(host);
             this.description = description;
+            this.session = session;
             paint.setTextAlign(Paint.Align.CENTER);
             setBounds(0, 0, host.getWidth(), host.getHeight());
         }
@@ -171,7 +182,8 @@ public final class DislikePill {
         public void draw(@NonNull Canvas canvas) {
             View host = hostReference.get();
             String text = dislikeText;
-            if (host == null || !isEnabled() || text.isEmpty() || host.getWidth() <= host.getHeight()
+            if (host == null || watchSession != session || !isEnabled() || text.isEmpty()
+                    || host.getWidth() <= host.getHeight()
                     || !TextUtils.equals(description, host.getContentDescription())) {
                 return;
             }
@@ -181,6 +193,17 @@ public final class DislikePill {
                     + (Utils.isRightToLeftLocale() ? -COUNT_CENTER_OFFSET : COUNT_CENTER_OFFSET)) / 2f;
             paint.getFontMetrics(fontMetrics);
             canvas.drawText(text, center, (host.getHeight() - fontMetrics.bottom - fontMetrics.top) / 2f, paint);
+        }
+
+        @Override
+        public void onViewAttachedToWindow(View view) {
+        }
+
+        @Override
+        public void onViewDetachedFromWindow(View view) {
+            if (counts.get(view) == this) {
+                removeCount(view);
+            }
         }
 
         @Override

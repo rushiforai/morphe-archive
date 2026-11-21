@@ -9,6 +9,7 @@
  * - inotia00 (https://github.com/inotia00)
  *
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-20.
  *
  * ------------------------------------------------------------------------
  * GPLv3 Section 7 – Additional Terms & Attribution Requirements
@@ -53,6 +54,7 @@ import android.graphics.Canvas;
 import android.graphics.Rect;
 import android.graphics.drawable.ShapeDrawable;
 import android.graphics.drawable.shapes.RoundRectShape;
+import android.os.SystemClock;
 import android.util.Range;
 import android.view.Gravity;
 import android.view.View;
@@ -72,13 +74,18 @@ import java.lang.ref.WeakReference;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 
 import app.morphe.extension.shared.utils.Logger;
 import app.morphe.extension.shared.utils.ResourceUtils;
 import app.morphe.extension.shared.utils.Utils;
+import app.morphe.extension.youtube.patches.general.offline.OfflineStreamSource;
 import app.morphe.extension.youtube.settings.Settings;
 import app.morphe.extension.youtube.shared.PlayerControlsVisibility;
 import app.morphe.extension.youtube.shared.PlayerType;
@@ -90,6 +97,9 @@ import app.morphe.extension.youtube.sponsorblock.objects.CategoryBehaviour;
 import app.morphe.extension.youtube.sponsorblock.objects.SegmentCategory;
 import app.morphe.extension.youtube.sponsorblock.objects.SponsorSegment;
 import app.morphe.extension.youtube.sponsorblock.requests.SBRequester;
+import app.morphe.extension.youtube.sponsorblock.requests.SBRequester.PlaybackRequest;
+import app.morphe.extension.youtube.sponsorblock.requests.SBRequester.PlaybackResponse;
+import app.morphe.extension.youtube.sponsorblock.requests.SBRequester.SegmentSubmitAction;
 import app.morphe.extension.youtube.sponsorblock.ui.SponsorBlockViewController;
 import app.morphe.extension.youtube.utils.ThemeUtils;
 import app.morphe.extension.youtube.whitelist.Whitelist;
@@ -135,6 +145,21 @@ public class SegmentPlaybackController {
 
     @NonNull
     private static String videoId = "";
+    @NonNull
+    private static String channelId = "";
+
+    private static final int REVISIT_CACHE_CAPACITY = 100;
+    private static final long REVISIT_CACHE_TTL_MS = TimeUnit.MINUTES.toMillis(5);
+
+    private record CachedResponse(PlaybackResponse response, long expiresAt) {
+    }
+
+    // Cache, submissions, and request ownership are main-thread confined. Workers only receive
+    // immutable request parameters and return an immutable response.
+    private static final Map<PlaybackRequest, CachedResponse> revisitCache = new LinkedHashMap<>(16, 0.75f, true);
+    private static final Map<String, Integer> pendingSubmissions = new HashMap<>();
+    @Nullable
+    private static PlaybackRequest activeRequest;
 
     @Nullable
     private static SponsorSegment[] segments;
@@ -307,6 +332,8 @@ public class SegmentPlaybackController {
      */
     public static void clearData() {
         videoId = "";
+        channelId = "";
+        activeRequest = null;
         ShortsSponsorBlockController.clear();
         segments = null;
         highlightSegment = null;
@@ -321,6 +348,8 @@ public class SegmentPlaybackController {
         undoAutoSkipRange = null;
         undoAutoSkipRangeToast = null;
         hiddenSkipSegmentsForCurrentVideoTime.clear();
+        lastSegmentSkipped = null;
+        dismissUndoToast();
     }
 
     /**
@@ -346,12 +375,20 @@ public class SegmentPlaybackController {
     public static void newVideoStarted(@NonNull String newlyLoadedChannelId, @NonNull String newlyLoadedChannelName,
                                        @NonNull String newlyLoadedVideoId, @NonNull String newlyLoadedVideoTitle,
                                        final long newlyLoadedVideoLength, boolean newlyLoadedLiveStreamValue) {
+        if (Utils.isCurrentlyOnMainThread()) {
+            openVideo(newlyLoadedVideoId, newlyLoadedChannelId);
+        } else {
+            Utils.runOnMainThread(() -> openVideo(newlyLoadedVideoId, newlyLoadedChannelId));
+        }
+    }
+
+    private static void openVideo(String newlyLoadedVideoId, String newlyLoadedChannelId) {
         try {
             if (Objects.equals(videoId, newlyLoadedVideoId)) {
                 return;
             }
             clearData();
-            Utils.runOnMainThreadNowOrLater(SponsorBlockViewController::hideAll);
+            SponsorBlockViewController.hideAll();
             if (!Settings.SB_ENABLED.get()) {
                 return;
             }
@@ -361,19 +398,9 @@ public class SegmentPlaybackController {
             }
 
             videoId = newlyLoadedVideoId;
+            channelId = newlyLoadedChannelId;
             Logger.printDebug(() -> "newVideoStarted: " + newlyLoadedVideoId);
-
-            if (Whitelist.isChannelWhitelistedSponsorBlock(newlyLoadedChannelId)) {
-                return;
-            }
-
-            Utils.runOnBackgroundThread(() -> {
-                try {
-                    executeDownloadSegments(newlyLoadedVideoId);
-                } catch (Exception e) {
-                    Logger.printException(() -> "Failed to download segments", e);
-                }
-            });
+            loadSegments(false);
         } catch (Exception ex) {
             Logger.printException(() -> "setCurrentVideoId failure", ex);
         }
@@ -402,41 +429,156 @@ public class SegmentPlaybackController {
         return VideoInformation.getVideoLength();
     }
 
-    /**
-     * Must be called off main thread.
-     */
-    static void executeDownloadSegments(String newlyLoadedVideoId) {
-        Objects.requireNonNull(newlyLoadedVideoId);
-        Utils.verifyOffMainThread();
-
-        SponsorSegment[] segments = SBRequester.getSegments(newlyLoadedVideoId);
-
-        Utils.runOnMainThread(() -> {
-            if (!newlyLoadedVideoId.equals(videoId)) {
-                // user changed videos before get segments network call could complete
-                Logger.printDebug(() -> "Ignoring segments for prior video: " + newlyLoadedVideoId);
-                return;
+    static void submitSegments(String videoId, SegmentCategory category, SegmentSubmitAction action,
+                               long start, long end, long duration) {
+        onSubmissionStarted(videoId);
+        Utils.runOnBackgroundThread(() -> {
+            try {
+                SBRequester.submitSegments(videoId, category, action, start, end, duration);
+            } catch (Exception ex) {
+                Logger.printException(() -> "submitNewSegment failure", ex);
+            } finally {
+                Utils.runOnMainThread(() -> onSubmissionFinished(videoId));
             }
-            setSegments(segments);
-
-            final long videoTime = VideoInformation.getVideoTime();
-            if (highlightSegment != null) {
-                // If the current video time is before the highlight.
-                final long timeUntilHighlight = highlightSegment.start - videoTime;
-                if (timeUntilHighlight > 0) {
-                    if (highlightSegment.shouldAutoSkip() && !LoopSegmentButton.isSegmentActive()) {
-                        skipSegment(highlightSegment, false);
-                        return;
-                    }
-                    highlightSegmentInitialShowEndTime = System.currentTimeMillis() + Math.min(
-                            (long) (timeUntilHighlight / VideoInformation.getPlaybackSpeed()),
-                            getSkipButtonDuration());
-                }
-            }
-
-            // check for any skips now, instead of waiting for the next update to setVideoTime()
-            setVideoTime(videoTime);
         });
+    }
+
+    private static void onSubmissionStarted(String submittedVideoId) {
+        // A revisit must not reuse or replace pre-submission data while the POST is pending.
+        pendingSubmissions.merge(submittedVideoId, 1, Integer::sum);
+        revisitCache.keySet().removeIf(request -> request.videoId().equals(submittedVideoId));
+        if (videoId.equals(submittedVideoId)) {
+            activeRequest = null;
+        }
+    }
+
+    private static void onSubmissionFinished(String submittedVideoId) {
+        Integer remaining = pendingSubmissions.computeIfPresent(submittedVideoId,
+                (id, count) -> count == 1 ? null : count - 1);
+        if (remaining == null && videoId.equals(submittedVideoId) && Utils.isNetworkConnected()) {
+            loadSegments(true);
+        }
+    }
+
+    private static boolean segmentsAllowed() {
+        return Settings.SB_ENABLED.get() && !Whitelist.isChannelWhitelistedSponsorBlock(channelId);
+    }
+
+    private static long minSegmentDurationMs() {
+        return (long) (Settings.SB_SEGMENT_MIN_DURATION.get() * 1000);
+    }
+
+    private static boolean canUseRevisitCache(String id) {
+        return !RootView.isShortsActive()
+                && !(VideoInformation.lastVideoIdIsShort() && id.equals(VideoInformation.getVideoId()))
+                && !(VideoInformation.lastPlayerResponseIsShort()
+                        && id.equals(VideoInformation.getPlayerResponseVideoId()))
+                && !OfflineStreamSource.isServing(id);
+    }
+
+    private static void loadSegments(boolean forceRefresh) {
+        if (pendingSubmissions.containsKey(videoId) || !segmentsAllowed()) {
+            return;
+        }
+
+        PlaybackRequest request = new PlaybackRequest(videoId, Settings.SB_API_URL.get(),
+                SegmentCategory.sponsorBlockAPIFetchCategories, minSegmentDurationMs());
+        activeRequest = request;
+
+        boolean cacheablePlayback = canUseRevisitCache(videoId);
+        CachedResponse cached = cacheablePlayback && !forceRefresh ? revisitCache.get(request) : null;
+        if (cached != null) {
+            // Like a network completion, wait until the player's video-start hook has returned before seeking.
+            Utils.runOnMainThread(() -> applyCachedSegments(request, cached));
+        } else {
+            fetchSegments(request, cacheablePlayback);
+        }
+    }
+
+    private static boolean isCurrentRequest(PlaybackRequest request) {
+        // Identity is intentional: two loads of the same video and settings are different visits.
+        if (request != activeRequest) {
+            return false;
+        }
+        if (!segmentsAllowed()) {
+            activeRequest = null;
+            return false;
+        }
+        if (!request.endpoint().equals(Settings.SB_API_URL.get())
+                || !request.categories().equals(SegmentCategory.sponsorBlockAPIFetchCategories)
+                || request.minDurationMs() != minSegmentDurationMs()) {
+            activeRequest = null;
+            if (Utils.isNetworkConnected()) {
+                loadSegments(false);
+            }
+            return false;
+        }
+        return true;
+    }
+
+    private static void applyCachedSegments(PlaybackRequest request, CachedResponse cached) {
+        if (!isCurrentRequest(request)) {
+            return;
+        }
+        if (!Utils.isNetworkConnected()) {
+            activeRequest = null;
+            return;
+        }
+
+        boolean canUseCache = canUseRevisitCache(request.videoId());
+        if (cached.expiresAt <= SystemClock.elapsedRealtime()) {
+            revisitCache.remove(request);
+            fetchSegments(request, canUseCache);
+        } else if (!canUseCache) {
+            fetchSegments(request, false);
+        } else {
+            publishSegments(cached.response);
+        }
+    }
+
+    private static void fetchSegments(PlaybackRequest request, boolean cacheablePlayback) {
+        Utils.runOnBackgroundThread(() -> {
+            PlaybackResponse response = SBRequester.fetchPlaybackSegments(request);
+            long expiresAt = cacheablePlayback && response.isConfirmed()
+                    ? SystemClock.elapsedRealtime() + REVISIT_CACHE_TTL_MS : 0;
+            Utils.runOnMainThread(() -> {
+                if (!isCurrentRequest(request)) {
+                    return;
+                }
+
+                if (expiresAt != 0 && expiresAt > SystemClock.elapsedRealtime()
+                        && canUseRevisitCache(request.videoId())) {
+                    revisitCache.put(request, new CachedResponse(response, expiresAt));
+                    if (revisitCache.size() > REVISIT_CACHE_CAPACITY) {
+                        revisitCache.remove(revisitCache.keySet().iterator().next());
+                    }
+                }
+                publishSegments(response);
+            });
+        });
+    }
+
+    private static void publishSegments(PlaybackResponse response) {
+        activeRequest = null;
+        setSegments(response.newSegments());
+
+        final long videoTime = VideoInformation.getVideoTime();
+        if (highlightSegment != null) {
+            // If the current video time is before the highlight.
+            final long timeUntilHighlight = highlightSegment.start - videoTime;
+            if (timeUntilHighlight > 0) {
+                if (highlightSegment.shouldAutoSkip() && !LoopSegmentButton.isSegmentActive()) {
+                    skipSegment(highlightSegment, false);
+                    return;
+                }
+                highlightSegmentInitialShowEndTime = System.currentTimeMillis() + Math.min(
+                        (long) (timeUntilHighlight / VideoInformation.getPlaybackSpeed()),
+                        getSkipButtonDuration());
+            }
+        }
+
+        // Check for any skips now, instead of waiting for the next update to setVideoTime().
+        setVideoTime(videoTime);
     }
 
     /**

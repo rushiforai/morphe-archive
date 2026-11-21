@@ -80,7 +80,7 @@ public final class Filter {
                             cancellers[1].process(pending[1], hasSong ? songRight : null)};
                 } catch (Throwable error) { // the filter must never stop the sound: from now on it goes through
                     broken = true;
-                    onProblem.problem("Song removal broke, the sound plays unfiltered: "
+                    onProblem.problem("Filter broke | Song removal broke, the sound plays unfiltered: "
                             + app.morphed.extension.twitch.Messages.of(error));
                 }
             }

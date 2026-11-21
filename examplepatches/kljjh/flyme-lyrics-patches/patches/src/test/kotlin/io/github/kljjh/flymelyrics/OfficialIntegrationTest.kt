@@ -21,13 +21,13 @@ import java.io.File
 import java.nio.ByteBuffer
 import java.security.MessageDigest
 import java.util.zip.ZipFile
-import kotlin.test.*
+import org.junit.Assert.*
 
 /** Tests the UNMODIFIED official release DEX, not a copy of its Java source. */
 class OfficialIntegrationTest {
     private fun officialClasses(): List<ClassDef> {
         val file = File(System.getProperty("officialBundle"))
-        assertTrue(file.isFile, "Download official patches-2.1.0.mpp first")
+        assertTrue("Download official patches-2.1.0.mpp first", file.isFile)
         assertEquals("114eafa139ea3018f35af3498e8e67fe7850d4dd22a6065a02e891699dcc5e96",
             MessageDigest.getInstance("SHA-256").digest(file.readBytes()).joinToString("") { "%02x".format(it) })
         return ZipFile(file).use { zip ->
@@ -50,22 +50,24 @@ class OfficialIntegrationTest {
         })
         val cls = MutableClass(all.single { it.type == OfficialHooks.LOCKSCREEN })
         val miniplayer = MutableClass(all.single { it.type == OfficialHooks.MINIPLAYER })
-        val originalCount = cls.methods.size
-        val originalMiniplayerCount = miniplayer.methods.size
+        val prefs = MutableClass(all.single { it.type == OfficialHooks.PREFS })
+        OfficialHooks.validateReader { t -> all.firstOrNull { it.type == t } }
+        assertThrows(PatchException::class.java) { OfficialHooks.validateReader { null } }
         OfficialHooks.instrument(cls)
-        OfficialHooks.instrumentMiniplayer(miniplayer)
-        assertEquals(originalCount + 4, cls.methods.size)
-        assertEquals(originalMiniplayerCount, miniplayer.methods.size)
-        val calls = cls.methods.flatMap { m -> m.implementation?.instructions?.mapNotNull { (it as? ReferenceInstruction)?.reference as? MethodReference }.orEmpty() }
-        assertTrue(calls.any { it.definingClass == OfficialHooks.BRIDGE && it.name == "onLine" })
-        assertTrue(calls.any { it.definingClass == OfficialHooks.BRIDGE && it.name == "onPlaybackState" })
-        val miniplayerCalls = miniplayer.methods.flatMap { m -> m.implementation?.instructions?.mapNotNull { (it as? ReferenceInstruction)?.reference as? MethodReference }.orEmpty() }
-        assertTrue(miniplayerCalls.any { it.definingClass == OfficialHooks.LOCKSCREEN && it.name == "flymeLyricsAddonEmit" })
-        assertTrue(miniplayerCalls.any { it.definingClass == OfficialHooks.LOCKSCREEN && it.name == "flymeLyricsAddonClear" })
+        OfficialHooks.instrumentSettings(miniplayer, prefs)
+        val fmt = MutableClass(all.single { it.type == OfficialHooks.FORMATTER })
+        val presentation = MutableClass(all.single { it.type == OfficialHooks.PRESENTATION })
+        OfficialHooks.instrumentTiming(fmt, presentation)
+        val changed = listOf(cls, miniplayer, prefs, fmt, presentation)
+        val refs = changed.flatMap { it.methods }.flatMap { m -> m.implementation?.instructions?.mapNotNull {
+            ((it as? ReferenceInstruction)?.reference as? MethodReference)?.toString() }.orEmpty() }
+        for (name in listOf("onMetadata", "onPlaybackState", "refresh")) assertTrue(refs.any { it.startsWith("${OfficialHooks.BRIDGE}->$name(") })
+        assertTrue(refs.any { it.contains("FlymePreference;->install(") })
+        assertTrue(refs.any { it.endsWith("FlymeTiming;->offset(I)I") })
+        assertTrue(refs.any { it.endsWith("FlymeTiming;->isStatusRead()Z") })
         val store = MemoryDataStore()
-        DexPool.writeTo(store, ImmutableDexFile(Opcodes.getDefault(), listOf(cls)))
-        val rewritten = DexBackedDexFile(Opcodes.getDefault(), ByteBuffer.wrap(store.data)).classes.single()
-        assertEquals(cls.methods.size, rewritten.methods.count())
+        DexPool.writeTo(store, ImmutableDexFile(Opcodes.getDefault(), changed))
+        assertEquals(changed.map { it.type }.toSet(), DexBackedDexFile(Opcodes.getDefault(), ByteBuffer.wrap(store.data)).classes.map { it.type }.toSet())
         val output = File("build/test-results/official-lockscreen-patched.dex")
         output.parentFile.mkdirs()
         output.writeBytes(store.data)
@@ -76,16 +78,8 @@ class OfficialIntegrationTest {
         val original = officialClasses().single { it.type == OfficialHooks.LOCKSCREEN }
         val cls = MutableClass(original)
         OfficialHooks.instrument(cls)
-        assertFailsWith<PatchException> { OfficialHooks.instrument(cls) }
-        val originalMiniplayer = officialClasses().single { it.type == OfficialHooks.MINIPLAYER }
-        val miniplayer = MutableClass(originalMiniplayer)
-        OfficialHooks.instrumentMiniplayer(miniplayer)
-        assertFailsWith<PatchException> { OfficialHooks.instrumentMiniplayer(miniplayer) }
-        val changedMiniplayer = MutableClass(originalMiniplayer)
-        changedMiniplayer.methods.removeAll { it.name == "update" }
-        val count = changedMiniplayer.methods.size
-        assertFailsWith<PatchException> { OfficialHooks.instrumentMiniplayer(changedMiniplayer) }
-        assertEquals(count, changedMiniplayer.methods.size, "Validation must finish before adding helpers")
+        assertThrows(PatchException::class.java) { OfficialHooks.instrument(cls) }
+
     }
 
     @Test fun requiresHostHooksRatherThanOnlyBundledUnusedClasses() {
@@ -105,7 +99,7 @@ class OfficialIntegrationTest {
         OfficialHooks.requireSelection(true)
         host.methods.clear()
         assertFalse(OfficialHooks.hostHooks(host))
-        assertTrue(assertFailsWith<PatchException> { OfficialHooks.requireSelection(false) }.message!!.contains("official Morphe source"))
-        assertTrue(flymeLyricsPatch.dependencies.isEmpty(), "Must not embed or link to a second copy of official patches")
+        assertTrue(assertThrows(PatchException::class.java) { OfficialHooks.requireSelection(false) }.message!!.contains("official Morphe source"))
+        assertTrue("Must not embed or link to a second copy of official patches", flymeLyricsPatch.dependencies.isEmpty())
     }
 }

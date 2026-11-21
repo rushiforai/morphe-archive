@@ -13,41 +13,13 @@ import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import java.io.File
 
-private const val CUSTOM_FONT_RESOURCE_NAME = "custom_ui_font"
+private const val UI_FONT_RESOURCE_NAME = "inter_variable"
 
 private val allowedFontExtensions = setOf("ttf", "otf")
-
-/**
- * Bitwarden loads its DM Sans files directly from Compose, so the bundled font
- * files are replaced with font-family XML resources that point at the custom
- * font. Declaring the weight in the XML lets a variable font keep the different
- * heading and body weights.
- */
-private data class UiFontTarget(
-    val resourceName: String,
-    val fontWeight: Int,
-)
-
-private val UI_FONT_TARGETS = listOf(
-    UiFontTarget("dm_sans_regular", 400),
-    UiFontTarget("dm_sans_medium", 500),
-    UiFontTarget("dm_sans_semi_bold", 600),
-    UiFontTarget("dm_sans_bold", 700),
-)
 
 private val fontFeaturePartRegex = Regex(
     """^['"]?([A-Za-z0-9]{4})['"]?(?:\s+([01]))?$""",
 )
-
-private fun buildFontFamilyXml(fontResourceName: String, fontWeight: Int): String = """
-<?xml version="1.0" encoding="utf-8"?>
-<font-family xmlns:android="http://schemas.android.com/apk/res/android">
-    <font
-        android:font="@font/$fontResourceName"
-        android:fontStyle="normal"
-        android:fontWeight="$fontWeight" />
-</font-family>
-""".trimIndent()
 
 /**
  * Accepts Android's native CSS-like OpenType feature syntax and a full CSS
@@ -113,7 +85,8 @@ private val customFontFileOption = stringOption(
     title = "Custom font",
     description = "The file path to your font. Tap the file picker and select it. " +
         "The font must be in TTF or OTF format. " +
-        "A variable font is recommended so heading and body text keep their different weights.",
+        "Use a variable font with a weight axis to keep the different UI weights. " +
+        "A static font uses its single weight throughout the UI.",
     required = true,
 )
 
@@ -157,40 +130,22 @@ private val customFontResourcesBitwardenPatch = patch(
                     "Use one of: ${allowedFontExtensions.joinToString(", ") { ".${it}" }}."
             )
 
-        // Morphe Patcher 2.0.0 and newer decode resources on request instead of
-        // up front, so decode the font directory before looking for the fonts to
-        // replace or remove.
         decode("res/font*")
 
         val fontResDir = resourceFile("res").resolve("font")
-        val fontExtension = fontFile.extension.lowercase()
-
-        // Remove a previously copied custom font with a different extension so
-        // the target does not end up with two resources sharing the same name.
-        listOf("ttf", "otf").forEach { extension ->
-            fontResDir.resolve("$CUSTOM_FONT_RESOURCE_NAME.$extension").delete()
+        val bundledFont = fontResDir.resolve("$UI_FONT_RESOURCE_NAME.ttf")
+        if (!bundledFont.isFile) {
+            throw PatchException("Could not find Bitwarden's bundled Inter font.")
         }
 
+        val fontExtension = fontFile.extension.lowercase()
+        // Compose loads the same resource at each weight and applies its weight axis.
         fontFile.copyTo(
-            fontResDir.resolve("$CUSTOM_FONT_RESOURCE_NAME.$fontExtension"),
+            fontResDir.resolve("$UI_FONT_RESOURCE_NAME.$fontExtension"),
             overwrite = true,
         )
-
-        UI_FONT_TARGETS.forEach { target ->
-            listOf("ttf", "otf").forEach { extension ->
-                val bundledFontFile = fontResDir.resolve("${target.resourceName}.$extension")
-                if (bundledFontFile.exists()) {
-                    // Mark the bundled font for removal from the rebuilt APK.
-                    deleteResource("res/font/${bundledFontFile.name}")
-                }
-            }
-
-            // Compose resolves these resources by name, so keep the name and
-            // replace the font file with a font-family XML that declares the
-            // weight the UI expects.
-            fontResDir
-                .resolve("${target.resourceName}.xml")
-                .writeText(buildFontFamilyXml(CUSTOM_FONT_RESOURCE_NAME, target.fontWeight))
+        if (fontExtension != bundledFont.extension) {
+            deleteResource("res/font/${bundledFont.name}")
         }
     }
 }
@@ -198,7 +153,7 @@ private val customFontResourcesBitwardenPatch = patch(
 @Suppress("unused")
 val customFontBitwardenPatch = patch(
     name = "Custom font",
-    description = "Replaces the bundled DM Sans UI fonts with your own font.",
+    description = "Replaces the bundled Inter UI font with your own font.",
     default = false,
 ) {
     category("Font")
@@ -207,9 +162,11 @@ val customFontBitwardenPatch = patch(
 
     customFontFileOption()
     fontFeatureSettingsOption()
-    dependsOn(customFontResourcesBitwardenPatch)
+    dependsOn(customFontResourcesBitwardenPatch, bitwardenFontExtensionPatch)
 
     execute {
+        markCustomUiFontInstalled()
+
         val featureSettings =
             normalizeFontFeatureSettings(fontFeatureSettingsOption.value) ?: return@execute
 

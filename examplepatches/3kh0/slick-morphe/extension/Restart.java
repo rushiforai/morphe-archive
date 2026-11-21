@@ -12,13 +12,13 @@ public final class Restart {
   private Restart() {}
 
   static boolean needed(String key) {
-    return key.equals("amoled") || key.equals("feature_flags");
+    return key.equals("amoled") || key.equals("feature_flags") || key.equals("block_telemetry");
   }
 
   public static void change(Activity activity, String key, boolean enabled) {
     if (!needed(key)) return;
     SharedPreferences p = Settings.preferences;
-    if (p.getBoolean(key, false) == enabled) return;
+    if (Settings.enabled(key) == enabled) return;
     p.edit().putBoolean(key, enabled).apply();
     offer(activity);
   }

@@ -1,6 +1,7 @@
 package app.fakh.patches.jira
 
 import app.fakh.patches.jira.shared.Constants.COMPATIBILITY_JIRA
+import app.fakh.patches.shared.atlassian.ATLASSIAN_RAMP_ACCENTS
 import app.fakhradio.patches.shared.writeColors
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
@@ -60,7 +61,8 @@ private val PALETTES = listOf(
 /**
  * Atlassian's blue ramp, which every brand token (buttons, links, selected states) and its dark twin point at, to the
  * accent tone of the same lightness. The dark tokens use the light end of the ramp, so 300 and 400 both land on the
- * light accent tone that dark mode uses for its main accent.
+ * light accent tone that dark mode uses for its main accent. The older B and SB ramps come from
+ * [ATLASSIAN_RAMP_ACCENTS].
  */
 private val ACCENTS = mapOf(
     "blue_100" to "system_accent1_50",
@@ -73,26 +75,13 @@ private val ACCENTS = mapOf(
     "blue_800" to "system_accent1_700",
     "blue_900" to "system_accent1_800",
     "blue_1000" to "system_accent1_900",
-    // The older Atlassian ramp (B*, SB*) that board filters, chips and legacy screens still read.
-    "B50" to "system_accent1_50",
-    "B75" to "system_accent1_100",
-    "B100" to "system_accent1_200",
-    "B200" to "system_accent1_500",
-    "B300" to "system_accent1_600",
-    "B400" to "system_accent1_600",
-    "B500" to "system_accent1_700",
-    "B1200" to "system_accent1_900",
-    "B1300" to "system_accent1_900",
-    "SB500" to "system_accent1_200",
-    "SB600" to "system_accent1_500",
-    "SB800" to "system_accent1_600",
     "board_quick_filter_label_bg_selected_dark" to "system_accent1_700",
     "swipe_background_dark" to "system_accent1_700",
     "dialogButtonText" to "system_accent1_600",
     "dialogPinEditText" to "system_accent1_600",
     "dialogRadioButton" to "system_accent1_600",
     "dialogTitleText" to "system_accent1_600",
-)
+) + ATLASSIAN_RAMP_ACCENTS
 
 /**
  * Surface tokens as Material 3 roles, like LinkedIn: the page canvas (sunken), the cards and bars on it, the

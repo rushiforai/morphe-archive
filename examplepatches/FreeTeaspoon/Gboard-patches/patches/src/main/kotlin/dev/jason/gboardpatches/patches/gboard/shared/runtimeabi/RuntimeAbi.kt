@@ -1,6 +1,9 @@
 package dev.jason.gboardpatches.patches.gboard.shared.runtimeabi
 
 internal enum class RuntimeCallId(internal val encodedAbi: String) {
+    WISPR_FLOW_INPUT_VIEW_STARTED("Ldev/jason/gboardpatches/extension/wisprflow/WisprFlowRuntime;->onInputViewStarted(Ljava/lang/Object;)V"),
+    WISPR_FLOW_INPUT_VIEW_ENDED("Ldev/jason/gboardpatches/extension/wisprflow/WisprFlowRuntime;->onInputViewEnded()V"),
+    WISPR_FLOW_NATIVE_FINISH_ACTION("Ldev/jason/gboardpatches/extension/wisprflow/WisprFlowRuntime;->nativeFinishAction(Ljava/lang/Object;)Ljava/lang/Runnable;"),
     DUCK_EMAIL_START("Ldev/jason/gboardpatches/extension/duckemail/DuckEmailRuntime;->start(Ljava/lang/Object;)V"),
     DUCK_EMAIL_END("Ldev/jason/gboardpatches/extension/duckemail/DuckEmailRuntime;->end()V"),
     KEYPRESS_HAPTICS_RUNTIME_APPLY_FLAG_VALUE("Ldev/jason/gboardpatches/extension/keypresshaptics/GboardKeypressHapticsRuntime;->applyFlagValue(Ljava/lang/String;Ljava/lang/Object;)Ljava/lang/Object;"),

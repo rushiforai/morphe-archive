@@ -37,7 +37,6 @@ import java.util.WeakHashMap;
 import app.morphe.extension.shared.returnyoutubedislike.requests.RYDVoteData;
 import app.morphe.extension.shared.utils.Logger;
 import app.morphe.extension.shared.utils.ResourceUtils;
-import app.morphe.extension.shared.utils.Utils;
 import app.morphe.extension.youtube.patches.utils.FeedVideoCardsPatch;
 import app.morphe.extension.youtube.returnyoutubedislike.ReturnYouTubeDislike;
 import app.morphe.extension.youtube.settings.Settings;
@@ -59,8 +58,6 @@ public final class FeedEngagementCountsPatch {
     private static final boolean LIKE_RATIO = RYD_ENABLED && Settings.RYD_FEED_LIKE_RATIO.get();
     public static final boolean ENABLED = LIKE_COUNT || LIKE_RATIO;
 
-    /** Longest wait for a fetch, which is done off the main thread. */
-    private static final long FETCH_TIMEOUT_MS = 10_000;
     /** Time between checks of a card that is not visible yet. */
     private static final long HIDDEN_RETRY_DELAY_MS = 400;
     /** Checks of a card that is not visible, before its fetch waits for the next layout. */
@@ -139,7 +136,7 @@ public final class FeedEngagementCountsPatch {
         if (!ENABLED) {
             return;
         }
-        if (videoId != null && FeedVideoCardsPatch.isInDialog(host)) {
+        if (!Settings.RYD_ENABLED.get() || (videoId != null && FeedVideoCardsPatch.isInDialog(host))) {
             videoId = null;
         }
         CountsBadge badge = badges.get(host);
@@ -179,7 +176,10 @@ public final class FeedEngagementCountsPatch {
         private boolean added;
         @Nullable
         private Runnable pendingFetch;
-        private boolean fetching;
+        @Nullable
+        private ReturnYouTubeDislike request;
+        private final Runnable onCountsChanged = this::publishCounts;
+        private int renderedRevision;
         private int alpha = 255;
         @Nullable
         private ValueAnimator fadeIn;
@@ -215,50 +215,64 @@ public final class FeedEngagementCountsPatch {
         void bind(ComponentHost host, String newVideoId) {
             confirmed = true;
             if (!newVideoId.equals(videoId)) {
+                stopObserving();
+                clearCounts();
                 videoId = newVideoId;
-                countText = null;
-                ratioText = null;
-                likeFraction = -1;
-                fetching = false;
-                cancelPendingFetch();
-                endFadeIn();
+            }
+            if (request != null && request.isFailedAndExpired()) {
+                stopObserving();
             }
 
-            if (!hasContent()) {
+            if (host.isAttachedToWindow() && request == null) {
                 ReturnYouTubeDislike cached = ReturnYouTubeDislike.getFetchForVideoIdOrNull(newVideoId);
-                RYDVoteData data = cached == null || !cached.fetchCompleted() ? null : cached.getFetchData(0);
-                if (data != null) {
-                    setData(data);
+                if (cached != null || host.isShown()) {
+                    cancelPendingFetch();
+                    observe(cached != null ? cached : ReturnYouTubeDislike.getFetchForVideoId(newVideoId));
                 } else {
-                    // Also when the card is laid out again, such as after returning to the app,
-                    // so a fetch that was skipped or failed is tried again.
-                    requestFetch(host, newVideoId, 0);
+                    // A later layout can retry when the app returns to the foreground.
+                    requestFetch(0);
                 }
             }
             place(host);
         }
 
+        private void clearCounts() {
+            countText = null;
+            ratioText = null;
+            likeFraction = -1;
+            endFadeIn();
+        }
+
+        private void observe(ReturnYouTubeDislike fetch) {
+            request = fetch;
+            fetch.addDataListener(onCountsChanged);
+            // A cache hit is rendered immediately, with no fade or extra queued task.
+            renderedRevision = fetch.getRevision();
+            RYDVoteData votes = fetch.getFetchedVotes();
+            if (votes != null) {
+                setData(votes);
+            }
+        }
+
         /**
          * Fetches the video now, or once the card is visible.
          */
-        private void requestFetch(ComponentHost host, String fetchVideoId, int attempt) {
-            if (pendingFetch != null || fetching) {
+        private void requestFetch(int attempt) {
+            ComponentHost host = hostRef.get();
+            if (host == null || !host.isAttachedToWindow() || pendingFetch != null || request != null) {
                 return;
             }
             if (host.isShown()) {
-                fetch(host, fetchVideoId);
+                observe(ReturnYouTubeDislike.getFetchForVideoId(videoId));
+                place(host);
                 return;
             }
-            // The app is not visible yet, such as while it returns from the background.
             if (attempt >= MAX_HIDDEN_RETRIES) {
-                // A later layout of the card requests it again.
                 return;
             }
             Runnable retry = () -> {
                 pendingFetch = null;
-                if (fetchVideoId.equals(videoId) && host.isAttachedToWindow()) {
-                    requestFetch(host, fetchVideoId, attempt + 1);
-                }
+                requestFetch(attempt + 1);
             };
             pendingFetch = retry;
             handler.postDelayed(retry, HIDDEN_RETRY_DELAY_MS);
@@ -271,28 +285,38 @@ public final class FeedEngagementCountsPatch {
             }
         }
 
-        private void fetch(ComponentHost host, String fetchVideoId) {
-            fetching = true;
-            ReturnYouTubeDislike fetch = ReturnYouTubeDislike.getFetchForVideoId(fetchVideoId);
-            Utils.runOnBackgroundThread(() -> {
-                RYDVoteData data = fetch.getFetchData(FETCH_TIMEOUT_MS);
-                Utils.runOnMainThread(() -> {
-                    try {
-                        // The card may show another video now.
-                        if (!fetchVideoId.equals(videoId) || badges.get(host) != this) {
-                            return;
-                        }
-                        fetching = false;
-                        if (data != null) {
-                            setData(data);
-                            startFadeIn();
-                            place(host);
-                        }
-                    } catch (Exception ex) {
-                        Logger.printException(() -> "Feed counts update failure", ex);
-                    }
-                });
-            });
+        private void stopObserving() {
+            cancelPendingFetch();
+            if (request != null) {
+                request.removeDataListener(onCountsChanged);
+                request = null;
+            }
+        }
+
+        private void publishCounts() {
+            ComponentHost host = hostRef.get();
+            ReturnYouTubeDislike fetch = request;
+            if (host == null || fetch == null || !confirmed || !host.isAttachedToWindow()
+                    || !Settings.RYD_ENABLED.get()
+                    || badges.get(host) != this || !fetch.getVideoId().equals(videoId)) {
+                return;
+            }
+
+            int revision = fetch.getRevision();
+            if (renderedRevision == revision) {
+                return;
+            }
+            renderedRevision = revision;
+
+            RYDVoteData votes = fetch.getFetchedVotes();
+            if (votes != null) {
+                boolean wasEmpty = !hasContent();
+                setData(votes);
+                if (wasEmpty && hasContent()) {
+                    startFadeIn();
+                }
+                place(host);
+            }
         }
 
         private void startFadeIn() {
@@ -410,8 +434,8 @@ public final class FeedEngagementCountsPatch {
 
         void detach(ComponentHost host) {
             host.removeOnAttachStateChangeListener(this);
-            cancelPendingFetch();
-            endFadeIn();
+            stopObserving();
+            clearCounts();
             removeFromOverlay(host);
         }
 
@@ -428,8 +452,9 @@ public final class FeedEngagementCountsPatch {
         @Override
         public void onViewDetachedFromWindow(@NonNull View view) {
             confirmed = false;
-            cancelPendingFetch();
-            endFadeIn();
+            stopObserving();
+            clearCounts();
+            removeFromOverlay((ComponentHost) view);
         }
 
         private void removeFromOverlay(ComponentHost host) {
@@ -441,7 +466,7 @@ public final class FeedEngagementCountsPatch {
 
         @Override
         public void draw(@NonNull Canvas canvas) {
-            if (!confirmed || !hasContent()) {
+            if (!confirmed || !hasContent() || !Settings.RYD_ENABLED.get()) {
                 return;
             }
             ComponentHost host = hostRef.get();

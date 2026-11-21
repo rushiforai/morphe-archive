@@ -1,6 +1,8 @@
 package app.morphe.patches.instaprime.premium
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
+import app.morphe.patcher.patch.AppTarget
+import app.morphe.patcher.patch.Compatibility
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import com.android.tools.smali.dexlib2.AccessFlags
@@ -56,21 +58,28 @@ private fun unlockExpiryBody(fallback: String) = """
 @Suppress("unused")
 val instaPrimePremiumPatch = bytecodePatch(
     name = "Enable Premium",
-    description = "Enables unlimited local PREMIUM subscription in the mod's functions and remove forced update.",
+    description = "Enables an unlimited local Premium subscription in the mod's features and removes the forced update.",
 ) {
     // APK InstaPrime_V7_2_64bit_Clone.apk
-    compatibleWith("com.instaprime.android"("435.0.0.37.76"))
+    compatibleWith(
+        Compatibility(
+            name = "InstaPrime",
+            packageName = "com.instaprime.android",
+            targets = listOf(AppTarget(version = "435.0.0.37.76")),
+        ),
+    )
 
     dependsOn(
-        InstaPrimeAboutPatch.patch,
-        InstaPrimeBanner.patch,
-        InstaPrimeNoUpdate.patch,
-        InstaPrimeServerBlock.patch,
+        instaPrimeAboutPatch,
+        instaPrimeBannerPatch,
+        instaPrimeNoUpdatePatch,
+        instaPrimeServerBlockMessagePatch,
     )
 
     execute {
-        val sub = mutableClassDefBy(SUBSCRIPTION_MANAGER)
-        val sp = mutableClassDefBy(SP_UTILS)
+        // V7.2 only: no V8 as classes com.primemods.* estao cifradas em assets/fonts.
+        val sub = mutableClassDefByOrNull(SUBSCRIPTION_MANAGER) ?: return@execute
+        val sp = mutableClassDefByOrNull(SP_UTILS) ?: return@execute
 
         // SubscriptionManager.A36()Z -> false
         sub.methods.replaceNative(
@@ -84,7 +93,7 @@ val instaPrimePremiumPatch = bytecodePatch(
             "const/4 v0, 0x1\nreturn v0",
         )
 
-        val ig = mutableClassDefBy("Lcom/primemods/utils/IGUtils;")
+        val ig = mutableClassDefByOrNull("Lcom/primemods/utils/IGUtils;") ?: return@execute
         ig.methods.replaceNative(
             "isPrivate",
             listOf("Ljava/lang/String;", "Lcom/primemods/presenter/PrivateCallback;"),

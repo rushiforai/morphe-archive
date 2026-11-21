@@ -2385,7 +2385,7 @@ Manage posts,管理作品
 Content preferences,内容偏好
 Notifications,通知
 Time and well-being,时间与健康
-Family Pairing,家庭安全模式
+Family Pairing,家庭模式
 Sign up,注册
 Account,账号
 Security & permissions,安全与权限
@@ -2396,8 +2396,6 @@ QR code,二维码
 Share profile,分享主页
 TikTok Plus,TikTok Plus
 Invite friends,邀请好友
-Inbox mode,收件箱模式
-Audience controls,观众控制
 Background audio,后台播放音频
 Display,显示
 Commercial content library,商业内容库
@@ -2409,7 +2407,6 @@ Shake to report,摇一摇反馈
 Free up space,释放空间
 Data Saver,流量节省
 Free data,免流量
-Live wallpaper,动态壁纸
 Check for updates,检查更新
 Lite mode,轻量模式
 TikTok Beta,TikTok Beta
@@ -2423,6 +2420,16 @@ Policy updates,政策更新
 What's new on TikTok,TikTok 新功能
 Switch account,切换账号
 Log out,退出登录
+Mentions,提及
+Direct messages,私信
+Reuse of content,复用内容
+Display profile when sharing links,分享链接时显示个人资料
+Following list,关注列表
+Viewers,访客
+Inbox & Messaging,收件箱与消息
+Audience control,观众控制
+Wallpaper,壁纸
+Help Center,帮助中心
 Open the search page,打开搜索页面
 Search didn't open. Restart TikTok and try again.,搜索未打开。请重启 TikTok 后重试.
 Fold the search into a button,将搜索收起为按钮
@@ -2456,6 +2463,16 @@ Leave after no touch,无触摸时离开
 "Zero switches this off. After that many minutes with no touch on the screen, the video stops and TikTok goes to the background, for when you fall asleep watching. Any touch starts the wait over.",零将其关闭。屏幕在这么多分钟内没有被触摸时，视频会停止，TikTok 会转到后台，适合看着看着睡着的时候。任何触摸都会重新开始等待.
 Left TikTok after no touch,因无触摸已离开 TikTok
 Show when an account was made,显示账号的创建时间
+Show what changed since your last visit,显示自上次访问以来的变化
+"Under the @username on a profile, show how its followers, following, likes and videos changed since you last opened it. The counts are kept on this phone only.",在个人资料的 @用户名下方，显示其粉丝、关注、获赞和视频自你上次打开以来的变化。这些数字只保存在这台手机上.
+Since %1$s: %2$s,自 %1$s 以来：%2$s
+No changes since %1$s,自 %1$s 以来没有变化
+"%1$s, %2$s",%1$s，%2$s
+%1$s follower,%1$s 粉丝
+%1$s followers,%1$s 粉丝
+%1$s following,%1$s 关注
+%1$s like,%1$s 获赞
+%1$s likes,%1$s 获赞
 "Under the @username on someone else's profile, show the month and year the account was made. It's read from the account's ID, so very old accounts show nothing.",在别人个人资料的@用户名下方显示该账号创建的年月。这是从账号 ID 中读出的，所以很老的账号不显示任何内容.
 Joined %s,%s加入
 Keep unsent messages,保留已撤回的消息
@@ -2612,6 +2629,18 @@ Remove selected comments,删除所选评论
 Pick comments from your comment history to delete.,从你的评论记录中挑选要删除的评论.
 Removing all comments in %1$d,%1$d 秒后删除所有评论
 Removing the picked comments in %1$d,%1$d 秒后删除所选评论
+Unfollow accounts that don't follow you back,取消关注没有回关你的账号
+"Checks your followers first and says how many it found, then unfollows them one after another. Accounts that follow you back stay.",先检查你的粉丝并告诉你找到多少个，然后逐个取消关注。回关你的账号会保留.
+Checking who you follow: %1$d,正在检查你关注的人：%1$d
+Checking your followers: %1$d,正在检查你的粉丝：%1$d
+Everyone you follow follows you back,你关注的人都回关了你
+Couldn't check who follows you back. Try again.,无法检查谁回关了你。请重试.
+Accounts to unfollow: %1$d. Starting in %2$d,要取消关注的账号：%1$d。%2$d 秒后开始
+Unfollowed: %1$d,已取消关注：%1$d
+Done. %1$d unfollowed.,完成。已取消关注 %1$d 个.
+Stopped. %1$d unfollowed.,已停止。已取消关注 %1$d 个.
+TikTok refused. %1$d unfollowed.,TikTok 拒绝了。已取消关注 %1$d 个.
+Network error. %1$d unfollowed.,网络错误。已取消关注 %1$d 个.
 Comments removed: %1$d,已删除评论：%1$d
 TikTok refused to list your comments,TikTok 拒绝列出你的评论
 Couldn't load your comments. Try again.,无法加载你的评论。请重试.
@@ -2803,6 +2832,44 @@ Crop and stretch to fill the screen,裁剪并拉伸以填满屏幕
 "Cover the whole window with half the crop of Fill and half the stretch of Stretch, so neither is easy to spot. A video far from the screen's shape keeps TikTok's size.",以“填满”一半的裁剪和“拉伸”一半的拉伸铺满整个窗口，两者都不易察觉。形状与屏幕相差太大的视频保持 TikTok 的尺寸.
 Watch LIVEs unseen,隐身观看 LIVE
 You stay off the viewer list of LIVEs you open. Tap the eye in a LIVE to let that host see you. Needs Ghost mode on.,你不会出现在你打开的 LIVE 的观众列表中。在 LIVE 中点按眼睛图标，让主播看到你。需要开启幽灵模式.
+Keep likes on this phone,在这部手机上保留点赞
+"A like you give a video stays on this phone. The heart turns red, but TikTok isn't told, so the creator never sees it and it isn't on your profile. Needs Ghost mode on.",你给视频的点赞只留在这部手机上。心形会变红，但 TikTok 不会收到，所以创作者永远看不到，你的主页上也没有。需要开启幽灵模式.
+My likes on this phone,我在这部手机上的点赞
+Find and reopen the videos you liked only on this phone,查找并重新打开你只在这部手机上点赞的视频
+Videos you like on this phone show up here,你在这部手机上点赞的视频会显示在这里
+Likes cleared,点赞已清除
+Export followers and following,导出粉丝和关注列表
+"Saves the accounts that follow you, or the ones you follow, as a CSV file in Download/Hushfeed. They're read at about the pace of scrolling the list, up to %1$s at a time.",将关注你的帐户或你关注的帐户保存为 CSV 文件，存放在 Download/Hushfeed 中。读取速度大约与滑动浏览列表相当，每次最多 %1$s 个.
+A list is already being read,已经在读取一个列表
+Reading your followers (%1$s),正在读取你的粉丝 (%1$s)
+Reading who you follow (%1$s),正在读取你关注的人 (%1$s)
+Couldn't read the list. Try again in a moment.,无法读取列表。请稍后再试.
+Stopped before anyone was read,在读取到任何人之前已停止
+Nobody follows this account yet,还没有人关注这个帐户
+This account doesn't follow anyone yet,这个帐户还没有关注任何人
+The file couldn't be saved. Try again.,无法保存文件。请重试.
+Saved one account to %2$s,已将 1 个帐户保存到 %2$s
+Saved %1$s accounts to %2$s,已将 %1$s 个帐户保存到 %2$s
+"It stopped before the end of the list, so the file is partial.",在列表结束前已停止，所以文件不完整.
+"TikTok stopped answering before the end of the list, so the file is partial.",TikTok 在列表结束前停止了响应，所以文件不完整.
+Only the first %1$s are in the file.,文件中只有前 %1$s 个.
+Save your likes from a TikTok data export,从 TikTok 数据导出中保存你的点赞
+"Pick the export TikTok sends from Settings and privacy > Account > Download your data, in JSON format. The videos it lists as liked or favorited are saved like picked videos, up to %1$s at a time.",选择 TikTok 从“设置和隐私 > 帐户 > 下载你的数据”发来的 JSON 格式导出。其中列为已点赞或已收藏的视频会像挑选的视频一样保存，每次最多 %1$s 个.
+Reading the data export,正在读取数据导出
+Liked videos (%1$s),点赞的视频 (%1$s)
+Favorites (%1$s),收藏 (%1$s)
+That export lists no liked or favorited videos,该导出中没有点赞或收藏的视频
+Couldn't start saving. Try again in a moment.,无法开始保存。请稍后再试.
+You've already saved every one of these videos here,这些视频你都已经在这里保存过了
+Saving one video,正在保存 1 个视频
+Saving %1$s videos,正在保存 %1$s 个视频
+One you saved before is left out,已跳过 1 个你之前保存过的视频
+%1$s you saved before are left out,已跳过 %1$s 个你之前保存过的视频
+Choose the file again after this run to save the other %1$s,这次保存完后再选一次该文件，即可保存其余 %1$s 个
+That file is larger than %1$s MB. Choose the JSON file from the export.,该文件大于 %1$s MB。请选择导出中的 JSON 文件.
+That isn't a TikTok data export in JSON format. Choose user_data_tiktok.json or the zip it came in.,这不是 JSON 格式的 TikTok 数据导出。请选择 user_data_tiktok.json 或包含它的 zip 文件.
+One isn't on TikTok anymore,有 1 个已不在 TikTok 上
+%1$s aren't on TikTok anymore,有 %1$s 个已不在 TikTok 上
 The host can see you,主播能看到你
 Let the host see you,让主播看到你
 Couldn't tell which LIVE this is. Open it again.,无法判断这是哪个 LIVE。请再打开一次.

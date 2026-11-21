@@ -17,7 +17,7 @@ import java.util.List;
  * The ad plays normally, so the completion reported to the ad network is real;
  * this only removes the end card that waits for a close button.
  *
- * Every rewarded network in TeraBox 4.27.5 presents its ad in an Activity, some
+ * Every rewarded network in TeraBox 4.28.5 presents its ad in an Activity, some
  * stacking browser, landing-page or MRAID Activities on top of the player.
  * Finishing only the top one leaves the player, or the mediator's "showing"
  * state, behind. So the whole stack is closed top-down: first a real BACK press
@@ -33,13 +33,16 @@ public final class TeraboxAdCloser {
     private static final String TAG = "TeraboxAdCloser";
 
     /** Give the app a moment to handle the reward callback before the ad goes away. */
-    private static final long CLOSE_DELAY_MS = 350L;
+    private static final long CLOSE_DELAY_MS = 250L;
 
     /** Time the SDK gets to react to BACK before the Activity is finished. */
-    private static final long BACK_GRACE_MS = 250L;
+    private static final long BACK_GRACE_MS = 180L;
 
     /** How many follow-up passes run while the stack unwinds. */
-    private static final int CLOSE_PASSES = 6;
+    private static final int CLOSE_PASSES = 8;
+
+    /** Close a rewarded ad that never reported a reward after this long. */
+    private static final long STUCK_AD_TIMEOUT_MS = 90_000L;
 
     private static final String ACTIVITY_MANAGER = "com.dubox.drive.ActivityLifecycleManager";
 
@@ -51,19 +54,25 @@ public final class TeraboxAdCloser {
             "com.dubox.drive.ads.natives.SingleNativeAdSceneActivity";
 
     /** Let the native ad render before dismissing it, like a user skipping it. */
-    private static final long EXTRA_NATIVE_DELAY_MS = 3000L;
+    private static final long EXTRA_NATIVE_DELAY_MS = 1200L;
 
-    private static final long EXTRA_NATIVE_POLL_MS = 300L;
+    private static final long EXTRA_NATIVE_POLL_MS = 250L;
 
-    private static final int EXTRA_NATIVE_POLLS = 30;
+    private static final int EXTRA_NATIVE_POLLS = 80;
 
     /** Keep the clicker paused while the H5 answers the reward and refreshes. */
-    private static final long REWARD_HOLD_MS = 5000L;
+    private static final long REWARD_HOLD_MS = 3000L;
 
     private static volatile long lastRewardAt = Long.MIN_VALUE;
 
+    /** When the current ad surface appeared; used by the stuck-ad watchdog. */
+    private static volatile long adSince = Long.MIN_VALUE;
+
+    /** End of the current follow-up-native-ad watch, so rewards do not stack loops. */
+    private static volatile long nativeWatchUntil = Long.MIN_VALUE;
+
     /**
-     * Full-screen ad activities taken from the 4.27.5 manifest. The Benefits
+     * Full-screen ad activities taken from the 4.28.5 manifest. The Benefits
      * placement runs through MAX, whose waterfall reaches Mars ADX, Vlion,
      * Meta and Moloco as well. Consoles, consent pages and debug screens are
      * deliberately excluded.
@@ -118,6 +127,8 @@ public final class TeraboxAdCloser {
     /** Called from the injected reward callback, before the app handles it. */
     public static void close() {
         lastRewardAt = SystemClock.elapsedRealtime();
+        // The reward arrived, so a stuck ad must not be force-closed any more.
+        adSince = Long.MIN_VALUE;
         // Let the app process the reward (unlock the privilege, answer the H5
         // callback) before the ad window disappears.
         MAIN.postDelayed(new Runnable() {
@@ -130,34 +141,32 @@ public final class TeraboxAdCloser {
     }
 
     /**
-     * Closes every ad Activity currently in the stack, top-down.
+     * Closes the topmost ad Activity one pass at a time. Working top-down keeps
+     * a landing page from swallowing the BACK meant for the video player below.
      *
-     * The first two passes deliver BACK so each SDK can run its own close path
-     * and notify the app's mediator; later passes finish anything left.
+     * Pass 0 calls {@code onBackPressed()} (the modern SDK path), pass 1 sends a
+     * real key event for SDKs that only listen to key dispatch, later passes
+     * finish whatever is still there. A new pass finds the next layer, so a
+     * whole stack unwinds instead of one Activity being left behind.
      */
     private static void closeAdStack(final int pass, final boolean force) {
-        List<Activity> all = activities();
-        boolean found = false;
-        for (int i = all.size() - 1; i >= 0; i--) {
-            Activity activity = all.get(i);
-            if (activity == null || activity.isFinishing() || activity.isDestroyed()) {
-                continue;
-            }
-            String name = activity.getClass().getName();
-            if (!isAdActivity(name)) {
-                continue;
-            }
-            found = true;
-            if (force) {
-                Log.i(TAG, "Finishing " + name);
-                finishQuietly(activity);
-            } else {
-                Log.i(TAG, "Sending BACK to " + name);
-                sendBack(activity);
-            }
+        Activity activity = currentAdActivity();
+        if (activity == null) {
+            return;
+        }
+        String name = activity.getClass().getName();
+        if (force) {
+            Log.i(TAG, "Finishing " + name);
+            finishQuietly(activity);
+        } else if (pass == 0) {
+            Log.i(TAG, "Back press on " + name);
+            backPress(activity);
+        } else {
+            Log.i(TAG, "Sending BACK to " + name);
+            sendBack(activity);
         }
 
-        if (!found || pass + 1 >= CLOSE_PASSES) {
+        if (pass + 1 >= CLOSE_PASSES) {
             return;
         }
         final int next = pass + 1;
@@ -170,13 +179,37 @@ public final class TeraboxAdCloser {
     }
 
     /**
+     * Some rewarded networks never deliver the reward callback when an ad is
+     * stuck or the mediation waterfall fails. Called from the task poller, this
+     * closes the ad after a generous timeout so the flow cannot hang forever.
+     */
+    public static void watchStuckAd() {
+        if (!isAdOnTop()) {
+            adSince = Long.MIN_VALUE;
+            return;
+        }
+        long now = SystemClock.elapsedRealtime();
+        if (adSince == Long.MIN_VALUE) {
+            adSince = now;
+        } else if (now - adSince > STUCK_AD_TIMEOUT_MS &&
+                now - lastRewardAt > STUCK_AD_TIMEOUT_MS) {
+            Log.w(TAG, "Ad did not report a reward, closing it");
+            adSince = Long.MIN_VALUE;
+            closeAdStack(2, true);
+        }
+    }
+
+    /**
      * True while any ad, or the app's follow-up native ad, is still in the
      * Activity stack. The task clicker pauses itself then, so a second task
      * cannot start another ad request while one is still playing.
      */
     public static boolean isAdOnTop() {
         for (Activity activity : activities()) {
-            if (activity != null && isAdSurface(activity.getClass().getName())) {
+            if (activity == null || activity.isFinishing() || activity.isDestroyed()) {
+                continue;
+            }
+            if (isAdSurface(activity.getClass().getName())) {
                 return true;
             }
         }
@@ -200,7 +233,9 @@ public final class TeraboxAdCloser {
                 return activity;
             }
         }
-        return null;
+        // Fallback when the host does not expose its Activity list.
+        Activity current = currentActivity();
+        return current != null && isAdActivity(current.getClass().getName()) ? current : null;
     }
 
     /** True while the H5 page may still be processing a reward it just received. */
@@ -223,26 +258,52 @@ public final class TeraboxAdCloser {
      * on top yet when {@link #close()} runs. Poll for it for a few seconds.
      */
     private static void watchExtraNativeAd() {
+        long now = SystemClock.elapsedRealtime();
+        // A second reward arriving while the native ad is still expected must
+        // not start another polling loop.
+        if (now < nativeWatchUntil) {
+            return;
+        }
+        nativeWatchUntil = now + EXTRA_NATIVE_POLL_MS * EXTRA_NATIVE_POLLS + 1000L;
         MAIN.postDelayed(new Runnable() {
 
             private int polls;
 
             @Override
             public void run() {
-                Activity activity = currentActivity();
-                if (activity != null &&
-                        EXTRA_NATIVE_ACTIVITY.equals(activity.getClass().getName())) {
+                Activity activity = findExtraNativeAd();
+                if (activity != null) {
                     Log.i(TAG, "Extra native ad shown, closing it in " +
                             EXTRA_NATIVE_DELAY_MS + " ms");
+                    nativeWatchUntil = Long.MIN_VALUE;
                     finishLater(activity, EXTRA_NATIVE_DELAY_MS);
                     return;
                 }
 
                 if (++polls < EXTRA_NATIVE_POLLS) {
                     MAIN.postDelayed(this, EXTRA_NATIVE_POLL_MS);
+                } else {
+                    nativeWatchUntil = Long.MIN_VALUE;
                 }
             }
         }, EXTRA_NATIVE_POLL_MS);
+    }
+
+    /** Finds the app's follow-up native ad anywhere in the stack, not only on top. */
+    private static Activity findExtraNativeAd() {
+        List<Activity> all = activities();
+        for (int i = all.size() - 1; i >= 0; i--) {
+            Activity activity = all.get(i);
+            if (activity != null &&
+                    EXTRA_NATIVE_ACTIVITY.equals(activity.getClass().getName())) {
+                return activity;
+            }
+        }
+        Activity current = currentActivity();
+        if (current != null && EXTRA_NATIVE_ACTIVITY.equals(current.getClass().getName())) {
+            return current;
+        }
+        return null;
     }
 
     private static void finishLater(final Activity activity, long delayMs) {
@@ -255,7 +316,22 @@ public final class TeraboxAdCloser {
         }, delayMs);
     }
 
-    /** Delivers a real BACK press so the SDK runs its own close/onAdClosed path. */
+    /**
+     * The SDK-backed way to leave an ad. {@code Activity.onBackPressed()}
+     * delegates to the modern OnBackPressedDispatcher, which many reward
+     * networks use instead of the older key-event callbacks.
+     */
+    private static void backPress(Activity activity) {
+        try {
+            Method method = Activity.class.getMethod("onBackPressed");
+            method.invoke(activity);
+        } catch (Throwable throwable) {
+            Log.w(TAG, "Could not call onBackPressed(), falling back to key events", throwable);
+            sendBack(activity);
+        }
+    }
+
+    /** Delivers a real BACK key event for SDKs that only watch key dispatch. */
     private static void sendBack(Activity activity) {
         try {
             activity.dispatchKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_BACK));

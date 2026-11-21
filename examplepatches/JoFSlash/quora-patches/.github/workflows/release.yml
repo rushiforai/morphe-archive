@@ -1,14 +1,105 @@
 name: Release
 
+# Two channels, both cut by this workflow:
+# - Monday 08:00 UTC: a pre-release (vX.Y.Z-dev.N) from dev, with what was merged there that week.
+#   Morphe Manager offers it to people who turn on "Pre-release patches" for this source (it reads
+#   patches-bundle.json from dev).
+# - Thursday 08:00 UTC: the newest pre-release becomes stable. Its commit is merged into main and
+#   this workflow is started on main, which releases vX.Y.Z; the release is then merged back into dev.
+#   Nothing new since the last stable release, or an open issue labelled "release blocker": no
+#   stable release that week.
+# Nothing new on dev: no pre-release. An urgent fix can be released right away by running this
+# workflow by hand on main (or on dev for a pre-release).
+#
+# Before releasing, the bundle has to pass the emulator test (emulator.yml: every patch applies and
+# the app starts on Android 15, 16 and 17) and the feed test (feed-test.yml: the page patches work
+# on the signed-in feed and on an answer). A skipped feed test counts as not passed. When either
+# doesn't pass, nothing is released and the issue "Weekly release stopped" says why; the next
+# release that goes through closes it. When the feed test can't run (for example while its saved
+# session is being renewed), an urgent fix can still go out by hand with "Skip the feed test".
 on:
+  schedule:
+    # Keep these two strings in sync with the job "Start this week's release" below.
+    - cron: '0 8 * * 1'
+    - cron: '0 8 * * 4'
   workflow_dispatch:
-  push:
-    branches:
-      - main
+    inputs:
+      skip-feed-test:
+        description: 'Skip the feed test (the emulator test still runs)'
+        type: boolean
+        default: false
 
 jobs:
+  # Scheduled runs always start on the default branch (main), so they only start the real run:
+  # on dev on Mondays, on main (after merging the newest pre-release into it) on Thursdays.
+  schedule:
+    name: Start this week's release
+    if: github.event_name == 'schedule'
+    permissions:
+      contents: write
+      actions: write
+      issues: read
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Pre-release from dev
+        if: github.event.schedule == '0 8 * * 1'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run release.yml --ref dev
+
+      - name: Make the newest pre-release stable
+        if: github.event.schedule == '0 8 * * 4'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git fetch --tags --force origin
+          tag=$(git describe --tags --abbrev=0 --match 'v*-dev.*' origin/dev 2>/dev/null || true)
+          if [ -z "$tag" ]; then echo "No pre-release on dev yet."; exit 0; fi
+          if git merge-base --is-ancestor "$tag" origin/main; then
+            echo "$tag is already in main: nothing new for a stable release."; exit 0
+          fi
+          blockers=$(gh issue list --state open --label "release blocker" --json number --jq 'map("#\(.number)") | join(" ")')
+          if [ -n "$blockers" ]; then
+            echo "::warning::No stable release this week: open release blockers $blockers"; exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -B main origin/main
+          git merge --ff-only "$tag" || git merge --no-ff "$tag" -m "chore: Merge $tag into main for the stable release"
+          git push origin main
+          gh workflow run release.yml --ref main
+
+  emulator:
+    name: Emulator test
+    if: github.event_name != 'schedule'
+    permissions:
+      contents: read
+      packages: read
+    uses: ./.github/workflows/emulator.yml
+    secrets: inherit
+
+  feed:
+    name: Feed test
+    if: ${{ github.event_name != 'schedule' && !inputs.skip-feed-test }}
+    permissions:
+      contents: read
+      packages: read
+      issues: write
+    uses: ./.github/workflows/feed-test.yml
+    secrets: inherit
+
   release:
     name: Release
+    needs: [emulator, feed]
+    if: >-
+      !cancelled()
+      && needs.emulator.result == 'success'
+      && (needs.feed.outputs.result == 'passed' || (github.event_name == 'workflow_dispatch' && inputs.skip-feed-test))
     permissions:
       contents: write
       packages: write
@@ -40,8 +131,12 @@ jobs:
       - name: Test page scripts
         run: bash .github/page-scripts/run.sh
 
+      - name: Check settings translations
+        run: python3 .github/scripts/check_texts.py
+
       # Semantic release runs its own Gradle build command.
-      # Only main makes a release, as set in .releaserc.
+      # main makes stable releases, dev pre-releases, as set in .releaserc. After a stable
+      # release, .releaserc merges main back into dev.
       - name: Release
         uses: cycjimmy/semantic-release-action@v8
         id: release
@@ -63,3 +158,46 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: ./gradlew :patches:buildAndroid clean --no-daemon
+
+  # Says on GitHub when a release didn't go out, so a red run on a Monday morning isn't missed.
+  report:
+    name: Open or close the issue
+    needs: [emulator, feed, release]
+    if: ${{ !cancelled() && github.event_name != 'schedule' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev') }}
+    permissions:
+      issues: write
+    runs-on: ubuntu-latest
+    steps:
+      - name: Open or close the issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          EMULATOR: ${{ needs.emulator.result }}
+          FEED: ${{ needs.feed.outputs.result || needs.feed.result }}
+          RELEASE: ${{ needs.release.result }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          if [ "$GITHUB_REF_NAME" = "dev" ]; then title="Weekly pre-release stopped"; else title="Weekly release stopped"; fi
+          existing=$(gh issue list --state open --search "\"$title\" in:title" --json number,title --jq ".[] | select(.title == \"$title\") | .number" | head -1)
+          if [ "$RELEASE" = "success" ]; then
+            if [ -n "$existing" ]; then
+              gh issue close "$existing" --comment "The release workflow went through again ([run]($RUN_URL))."
+            fi
+            exit 0
+          fi
+          if [ "$EMULATOR" != "success" ]; then
+            why="The emulator test didn't pass ($EMULATOR): a patch doesn't apply, or the patched app doesn't start."
+          elif [ "$RELEASE" = "skipped" ]; then
+            why="The feed test didn't pass ($FEED). The issue \"Feed test needs attention\" says why."
+          else
+            why="The release step itself failed ($RELEASE)."
+          fi
+          body=$(printf '%s\n\n%s\n\n%s\n' \
+            "Nothing was released in this run." \
+            "$why" \
+            "[Workflow run]($RUN_URL). After fixing it, run the Release workflow by hand; a run that goes through closes this issue.")
+          if [ -n "$existing" ]; then
+            gh issue comment "$existing" --body "$body"
+          else
+            gh issue create --title "$title" --label bug --body "$body"
+          fi

@@ -9,6 +9,7 @@
  * - inotia00 (https://github.com/inotia00)
  *
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-20.
  *
  * ------------------------------------------------------------------------
  * GPLv3 Section 7 – Additional Terms & Attribution Requirements
@@ -63,11 +64,13 @@ import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.literal
 import app.morphe.patcher.methodCall
 import app.morphe.patcher.patch.PatchException
+import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.getFreeRegisterProvider
 import app.morphe.patcher.util.getReference
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
 import app.morphe.patcher.util.smali.ExternalLabel
+import app.morphe.patches.shared.mapping.resourceMappingPatch
 import app.morphe.patches.shared.misc.fix.proto.fixProtoLibraryPatch
 import app.morphe.patches.shared.misc.fix.proto.immutableMethodRef
 import app.morphe.patches.shared.misc.fix.proto.mutableCopyMethodRef
@@ -77,6 +80,7 @@ import app.morphe.patches.youtube.utils.castbutton.hookToolBarCastButton
 import app.morphe.patches.youtube.utils.compatibility.Constants.COMPATIBILITY_YOUTUBE
 import app.morphe.patches.youtube.utils.extension.Constants.GENERAL_CLASS_DESCRIPTOR
 import app.morphe.patches.youtube.utils.extension.Constants.GENERAL_PATH
+import app.morphe.patches.youtube.utils.indexOfGetDrawableInstruction
 import app.morphe.patches.youtube.utils.patch.PatchList.TOOLBAR_COMPONENTS
 import app.morphe.patches.youtube.utils.playertype.playerTypeHookPatch
 import app.morphe.patches.youtube.utils.playservice.is_19_16_or_greater
@@ -91,11 +95,14 @@ import app.morphe.patches.youtube.utils.settings.ResourceUtils.addPreference
 import app.morphe.patches.youtube.utils.settings.settingsPatch
 import app.morphe.patches.youtube.utils.toolbar.hookToolBar
 import app.morphe.patches.youtube.utils.toolbar.toolBarHookPatch
+import app.morphe.patches.youtube.utils.toolBarButtonFingerprint
 import app.morphe.util.REGISTER_TEMPLATE_REPLACEMENT
+import app.morphe.util.Utils.printWarn
 import app.morphe.util.cloneMutableAndPreserveParameters
 import app.morphe.util.findInstructionIndicesReversedOrThrow
 import app.morphe.util.findMethodOrThrow
 import app.morphe.util.fingerprint.injectLiteralInstructionBooleanCall
+import app.morphe.util.fingerprint.matchOrNull
 import app.morphe.util.fingerprint.matchOrThrow
 import app.morphe.util.fingerprint.methodCall
 import app.morphe.util.fingerprint.methodOrThrow
@@ -121,6 +128,44 @@ private const val NAVIGATION_CLASS_DESCRIPTOR =
     "$GENERAL_PATH/NavigationButtonsPatch;"
 private const val LAYOUT_COMPONENTS_FILTER_CLASS_DESCRIPTOR =
     "Lapp/morphe/extension/youtube/patches/components/LayoutComponentsFilter;"
+
+context(_: BytecodePatchContext)
+private fun hookToolbarMessagesButton(): Boolean {
+    val imageEnum = Fingerprint(
+        name = "<clinit>",
+        strings = listOf("MESSAGE_BUBBLE_OVERLAP"),
+        custom = { _, clazz -> clazz.superclass == "Ljava/lang/Enum;" },
+    ).matchOrNull()?.method?.definingClass ?: return false
+
+    val method = toolBarButtonFingerprint.methodOrThrow()
+    val instructions = method.implementation!!.instructions
+    val drawableIndex = indexOfGetDrawableInstruction(method)
+    val enumIndex = (drawableIndex - 1 downTo 0).firstOrNull { index ->
+        val instruction = instructions[index]
+        val reference = instruction.getReference<MethodReference>()
+        instruction.opcode == Opcode.INVOKE_STATIC && reference != null
+                && reference.definingClass == imageEnum && reference.returnType == imageEnum
+                && reference.parameterTypes.singleOrNull() == "I"
+                && instructions[index + 1].opcode == Opcode.MOVE_RESULT_OBJECT
+    } ?: return false
+
+    val menuIndex = method.indexOfFirstInstruction(drawableIndex) {
+        opcode == Opcode.INVOKE_INTERFACE &&
+                getReference<MethodReference>()?.toString() ==
+                "Landroid/view/MenuItem;->setActionView(Landroid/view/View;)Landroid/view/MenuItem;"
+    }
+    if (menuIndex < 0) return false
+
+    val enumRegister = method.getInstruction<OneRegisterInstruction>(enumIndex + 1).registerA
+    val menuRegister = method.getInstruction<FiveRegisterInstruction>(menuIndex).registerC
+    val parameterRegister = method.implementation!!.registerCount - method.parameterTypes.size
+    if (menuRegister != parameterRegister || enumRegister > 15) return false
+
+    // Use the original enum before the icon lookup substitutes an unknown value.
+    val hideMessages = "$GENERAL_CLASS_DESCRIPTOR->hideToolbarMessagesButton(Ljava/lang/Enum;Landroid/view/MenuItem;)V"
+    method.addInstruction(enumIndex + 2, "invoke-static { v$enumRegister, v$menuRegister }, $hideMessages")
+    return true
+}
 
 private object SearchTermThumbnailFingerprint : Fingerprint(
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
@@ -171,6 +216,7 @@ val toolBarComponentsPatch = bytecodePatch(
         castButtonPatch,
         fixProtoLibraryPatch,
         playerTypeHookPatch,
+        resourceMappingPatch,
         sharedResourceIdPatch,
         settingsPatch,
         toolBarHookPatch,
@@ -182,6 +228,9 @@ val toolBarComponentsPatch = bytecodePatch(
             "PREFERENCE_SCREEN: GENERAL",
             "SETTINGS: TOOLBAR_COMPONENTS"
         )
+        if (patchSearchAsk()) {
+            settingArray += "SETTINGS: HIDE_SEARCH_ASK"
+        }
 
         // region patch for change YouTube header
 
@@ -264,6 +313,12 @@ val toolBarComponentsPatch = bytecodePatch(
         hookToolBar("$GENERAL_CLASS_DESCRIPTOR->hideNotificationButton")
 
         // endregion
+
+        if (hookToolbarMessagesButton()) {
+            settingArray += "SETTINGS: HIDE_TOOLBAR_MESSAGES"
+        } else {
+            printWarn("Hiding toolbar Messages is not supported on this YouTube version.")
+        }
 
         // region patch for hide search button
 
