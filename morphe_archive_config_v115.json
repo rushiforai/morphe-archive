@@ -3395,14 +3395,6 @@
                 "updatedAt": 1793420920071
             },
             {
-                "name": "GPhotos-custom-branding",
-                "source": "https://raw.githubusercontent.com/mian196/GPhotos-custom-branding/main/patches-bundle.json",
-                "autoUpdate": true,
-                "sortOrder": 494,
-                "createdAt": 1793420920990,
-                "updatedAt": 1793420920990
-            },
-            {
                 "name": "southstar21-patches",
                 "source": "https://raw.githubusercontent.com/southstar21dev/southstar21-patches/main/patches-bundle.json",
                 "autoUpdate": true,
@@ -4153,14 +4145,6 @@
                 "sortOrder": 595,
                 "createdAt": 1793943532518,
                 "updatedAt": 1793943532518
-            },
-            {
-                "name": "Kageroll",
-                "source": "https://raw.githubusercontent.com/Ikuradachi/Kageroll/main/patches-bundle.json",
-                "autoUpdate": true,
-                "sortOrder": 596,
-                "createdAt": 1793943532813,
-                "updatedAt": 1793943532813
             },
             {
                 "name": "Proteus-Patches",
@@ -5673,6 +5657,30 @@
                 "sortOrder": 797,
                 "createdAt": 1795155238379,
                 "updatedAt": 1795155238379
+            },
+            {
+                "name": "line-notification-patches",
+                "source": "https://raw.githubusercontent.com/gomjirak0803/line-notification-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 798,
+                "createdAt": 1795240860855,
+                "updatedAt": 1795240860855
+            },
+            {
+                "name": "F4T",
+                "source": "https://raw.githubusercontent.com/Ra1nify/F4T/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 799,
+                "createdAt": 1795240872201,
+                "updatedAt": 1795240872201
+            },
+            {
+                "name": "hatena-bookmark-hide-pr-patches",
+                "source": "https://raw.githubusercontent.com/rikunode/hatena-bookmark-hide-pr-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 800,
+                "createdAt": 1795240872968,
+                "updatedAt": 1795240872968
             }
         ]
     }

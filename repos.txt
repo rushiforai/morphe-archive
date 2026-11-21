@@ -283,6 +283,7 @@ gitlab.com/rudrakshrajpurohit417/rj-patches
 gitlab.com/solo-patches/solo-patches
 Globberry/morphe-patches
 GoldRift/morphe-patches
+gomjirak0803/line-notification-patches
 GoodLight999/TaobaoLingo
 Graywizard888/Enhancify
 h19e8p/Auto-Expand-for-X
@@ -582,6 +583,7 @@ quantavil/edge-morphe-patches
 Quantro100/Morphe-patches
 quwi26/Quwis-Patches
 R2bEEaton/walmart-morphe
+Ra1nify/F4T
 RabehX/rabehx-patches
 rafag00/morphe-patches
 rahaaatul/morphe-patches
@@ -603,6 +605,7 @@ rhubarbshoelaces/morphe-patches
 Rico957/timetree-ads-patch
 RikoDEV/morphed-pl
 rikunode/fairemail-morphe-patches
+rikunode/hatena-bookmark-hide-pr-patches
 rikunode/pupil-swipe-disable-patches
 rikunode/x-feed-cleanup-patches
 rikunode/x-patch
