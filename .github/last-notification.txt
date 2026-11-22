@@ -1,4 +1,32 @@
-# Repos reported by the last notification (3)
-MOD-PROD/signal-patch
-gomjirak0803/line-notification-patches
-rikunode/hatena-bookmark-hide-pr-patches
+# Repos reported by the last notification (31)
+Arkert/arkert-patches
+DrTron1c/reddit-user-insights
+DutchPharaoh/De-Waze-Patches
+Finn013/graff-patches
+JoFSlash/google-health-patches
+Kaysera/swiftkey-morphe-patches
+Ra1nify/F4T
+Ser1-1y/nyandex
+adriviciano/morphe-patch-lunar-edge
+akkay-dev/morphe-patches
+alaeddinefaouzi/morphe-patches
+dzungtvd/morphe-androidtv-patches
+gggg-unit/projectivy-morphe-patch
+gggg-unit/sdmaid-se-morphe-patch
+h19e8p/h19e8p-patches
+iloxmn/MorphePatches
+jair1c/tiktok-lite-patches
+kakazaro/kim-launcher-patches
+lenemter/csp-android-12
+murikbmx/yanmus
+nullroute3/morphe-patches
+patapon888/morphe-patches
+rikunode/hoshiori
+rikunode/pupil-morphe-patches
+salihefee/moonreader-regional-patches
+ssch71/wear-patches
+tokudai-vs/tokudai-patches
+tomi38/quackify-morphe-patches
+trvnce/letterboxd-patches
+xhyxfxxc/tx-public-patches
+xiliav/bens-morphe-patches
