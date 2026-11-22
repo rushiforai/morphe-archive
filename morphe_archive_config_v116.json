@@ -1083,14 +1083,6 @@
                 "updatedAt": 1786989245102
             },
             {
-                "name": "morphe-patches",
-                "source": "https://raw.githubusercontent.com/riky-dev/morphe-patches/main/patches-bundle.json",
-                "autoUpdate": true,
-                "sortOrder": 146,
-                "createdAt": 1786989245628,
-                "updatedAt": 1786989245628
-            },
-            {
                 "name": "Flexboard",
                 "source": "https://raw.githubusercontent.com/JZ6/Flexboard/main/patches-bundle.json",
                 "autoUpdate": true,
@@ -2041,14 +2033,6 @@
                 "sortOrder": 286,
                 "createdAt": 1790348744860,
                 "updatedAt": 1790348744860
-            },
-            {
-                "name": "ck-zombies-morphe-patches",
-                "source": "https://raw.githubusercontent.com/ComoEstaisAmigos/ck-zombies-morphe-patches/main/patches-bundle.json",
-                "autoUpdate": true,
-                "sortOrder": 287,
-                "createdAt": 1790394325661,
-                "updatedAt": 1790394325661
             },
             {
                 "name": "chessable-patches",
@@ -5681,6 +5665,254 @@
                 "sortOrder": 800,
                 "createdAt": 1795240872968,
                 "updatedAt": 1795240872968
+            },
+            {
+                "name": "morphe-patch-lunar-edge",
+                "source": "https://raw.githubusercontent.com/adriviciano/morphe-patch-lunar-edge/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 801,
+                "createdAt": 1795325854720,
+                "updatedAt": 1795325854720
+            },
+            {
+                "name": "morphe-patches",
+                "source": "https://raw.githubusercontent.com/akkay-dev/morphe-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 802,
+                "createdAt": 1795325855155,
+                "updatedAt": 1795325855155
+            },
+            {
+                "name": "morphe-patches",
+                "source": "https://raw.githubusercontent.com/alaeddinefaouzi/morphe-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 803,
+                "createdAt": 1795325855539,
+                "updatedAt": 1795325855539
+            },
+            {
+                "name": "arkert-patches",
+                "source": "https://raw.githubusercontent.com/Arkert/arkert-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 804,
+                "createdAt": 1795325857913,
+                "updatedAt": 1795325857913
+            },
+            {
+                "name": "reddit-user-insights",
+                "source": "https://raw.githubusercontent.com/DrTron1c/reddit-user-insights/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 805,
+                "createdAt": 1795325861595,
+                "updatedAt": 1795325861595
+            },
+            {
+                "name": "De-Waze-Patches",
+                "source": "https://raw.githubusercontent.com/DutchPharaoh/De-Waze-Patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 806,
+                "createdAt": 1795325861881,
+                "updatedAt": 1795325861881
+            },
+            {
+                "name": "morphe-androidtv-patches",
+                "source": "https://raw.githubusercontent.com/dzungtvd/morphe-androidtv-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 807,
+                "createdAt": 1795325862130,
+                "updatedAt": 1795325862130
+            },
+            {
+                "name": "graff-patches",
+                "source": "https://raw.githubusercontent.com/Finn013/graff-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 808,
+                "createdAt": 1795325863270,
+                "updatedAt": 1795325863270
+            },
+            {
+                "name": "sdmaid-se-morphe-patch",
+                "source": "https://raw.githubusercontent.com/gggg-unit/sdmaid-se-morphe-patch/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 809,
+                "createdAt": 1795325864172,
+                "updatedAt": 1795325864172
+            },
+            {
+                "name": "httpinjectorpatches",
+                "source": "https://raw.githubusercontent.com/gitmyasm/httpinjectorpatches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 810,
+                "createdAt": 1795325865405,
+                "updatedAt": 1795325865405
+            },
+            {
+                "name": "Auto-Expand-for-X",
+                "source": "https://raw.githubusercontent.com/h19e8p/Auto-Expand-for-X/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 811,
+                "createdAt": 1795325866075,
+                "updatedAt": 1795325866075
+            },
+            {
+                "name": "h19e8p-patches",
+                "source": "https://raw.githubusercontent.com/h19e8p/h19e8p-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 812,
+                "createdAt": 1795325866242,
+                "updatedAt": 1795325866242
+            },
+            {
+                "name": "MorphePatches",
+                "source": "https://raw.githubusercontent.com/iloxmn/MorphePatches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 813,
+                "createdAt": 1795325868124,
+                "updatedAt": 1795325868124
+            },
+            {
+                "name": "tiktok-lite-patches",
+                "source": "https://raw.githubusercontent.com/jair1c/tiktok-lite-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 814,
+                "createdAt": 1795325869491,
+                "updatedAt": 1795325869491
+            },
+            {
+                "name": "google-health-patches",
+                "source": "https://raw.githubusercontent.com/JoFSlash/google-health-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 815,
+                "createdAt": 1795325870819,
+                "updatedAt": 1795325870819
+            },
+            {
+                "name": "kim-launcher-patches",
+                "source": "https://raw.githubusercontent.com/kakazaro/kim-launcher-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 816,
+                "createdAt": 1795325871690,
+                "updatedAt": 1795325871690
+            },
+            {
+                "name": "swiftkey-morphe-patches",
+                "source": "https://raw.githubusercontent.com/Kaysera/swiftkey-morphe-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 817,
+                "createdAt": 1795325871970,
+                "updatedAt": 1795325871970
+            },
+            {
+                "name": "csp-android-12",
+                "source": "https://raw.githubusercontent.com/lenemter/csp-android-12/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 818,
+                "createdAt": 1795325873762,
+                "updatedAt": 1795325873762
+            },
+            {
+                "name": "yanmus",
+                "source": "https://raw.githubusercontent.com/murikbmx/yanmus/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 819,
+                "createdAt": 1795325875536,
+                "updatedAt": 1795325875536
+            },
+            {
+                "name": "morphe-patches",
+                "source": "https://raw.githubusercontent.com/nullroute3/morphe-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 820,
+                "createdAt": 1795325876576,
+                "updatedAt": 1795325876576
+            },
+            {
+                "name": "morphe-patches",
+                "source": "https://raw.githubusercontent.com/patapon888/morphe-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 821,
+                "createdAt": 1795325877581,
+                "updatedAt": 1795325877581
+            },
+            {
+                "name": "hoshiori",
+                "source": "https://raw.githubusercontent.com/rikunode/hoshiori/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 822,
+                "createdAt": 1795325878419,
+                "updatedAt": 1795325878419
+            },
+            {
+                "name": "pupil-morphe-patches",
+                "source": "https://raw.githubusercontent.com/rikunode/pupil-morphe-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 823,
+                "createdAt": 1795325878568,
+                "updatedAt": 1795325878568
+            },
+            {
+                "name": "moonreader-regional-patches",
+                "source": "https://raw.githubusercontent.com/salihefee/moonreader-regional-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 824,
+                "createdAt": 1795325879381,
+                "updatedAt": 1795325879381
+            },
+            {
+                "name": "nyandex",
+                "source": "https://raw.githubusercontent.com/Ser1-1y/nyandex/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 825,
+                "createdAt": 1795325879752,
+                "updatedAt": 1795325879752
+            },
+            {
+                "name": "wear-patches",
+                "source": "https://raw.githubusercontent.com/ssch71/wear-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 826,
+                "createdAt": 1795325879970,
+                "updatedAt": 1795325879970
+            },
+            {
+                "name": "tokudai-patches",
+                "source": "https://raw.githubusercontent.com/tokudai-vs/tokudai-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 827,
+                "createdAt": 1795325881353,
+                "updatedAt": 1795325881353
+            },
+            {
+                "name": "quackify-morphe-patches",
+                "source": "https://raw.githubusercontent.com/tomi38/quackify-morphe-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 828,
+                "createdAt": 1795325881626,
+                "updatedAt": 1795325881626
+            },
+            {
+                "name": "letterboxd-patches",
+                "source": "https://raw.githubusercontent.com/trvnce/letterboxd-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 829,
+                "createdAt": 1795325882174,
+                "updatedAt": 1795325882174
+            },
+            {
+                "name": "tx-public-patches",
+                "source": "https://raw.githubusercontent.com/xhyxfxxc/tx-public-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 830,
+                "createdAt": 1795325884052,
+                "updatedAt": 1795325884052
+            },
+            {
+                "name": "bens-morphe-patches",
+                "source": "https://raw.githubusercontent.com/xiliav/bens-morphe-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 831,
+                "createdAt": 1795325884233,
+                "updatedAt": 1795325884233
             }
         ]
     }

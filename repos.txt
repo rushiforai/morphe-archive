@@ -23,6 +23,7 @@ adderalladmiral/psychonaut-journal-patches
 adderalladmiral/psychonaut-wiki-journal-patches
 Adiker/reddit-client-patches
 Adish08/morphe-patches
+adriviciano/morphe-patch-lunar-edge
 aeongdesu/morphe-patches
 AetherMagee/xposed-patches
 afterglow-labs/ytafterglow-morphe-patches
@@ -38,9 +39,11 @@ ak800i/mixplorer-patches-for-morphe
 ak800i/morphe-patches
 Akash-Sriram/De-Vanced
 Akash-Sriram/morphe-google-photos
+akkay-dev/morphe-patches
 Akshayykadam/Pixel-Camera
 Akshayykadam/PixelBoard
 akzzy/Morphi-Patcho
+alaeddinefaouzi/morphe-patches
 alalloush/xperia-1v-camera-patches
 alan7383/sofatime-patches
 Alastor-Kaneki/Morphe-Patches
@@ -83,6 +86,7 @@ archivesteak/Quest
 areteruhiro/Haiagaru-Morphe
 ARHCOS/arhcos-patches
 ariecos/gemini-patches
+Arkert/arkert-patches
 Arsylk/arsylk-patches
 arunpdl/morphe-patches
 AsrOfficialDev/Saiyan007
@@ -211,11 +215,14 @@ Dreaming-Codes/morphe-patches
 drnhzn/supreme-patches
 drosoCode/morphe-patches
 drtgrf/chefkoch-android-patches
+DrTron1c/reddit-user-insights
 dumb-software/T2C-App-Patch-Morphe
 dumketo/multi-app-patches
 dunecache/oyasumi-patches
 durgesh0505/chiggi_morphe_patches
+DutchPharaoh/De-Waze-Patches
 Dyskal/morphe-yt-music-discord-rpc
+dzungtvd/morphe-androidtv-patches
 EagerGoose32/jaybyte-morphe-patches
 edbfi/apk-patches
 Edoardo9708/LegheFC-Morphe-Patches
@@ -241,6 +248,7 @@ fangkampanat/google-maps-automotive-patches
 farbener/shuffle-plus-spotify
 feixiangdao/letterboxd-stremio-nuvio-morphe-patch
 ffejhog/ffejhog_morphe_patches
+Finn013/graff-patches
 FinzoYFunzo/kyt-patches
 FluffyDiscord/miui-screen-recorder-fps-unlock
 Forsigh/waze-patches
@@ -257,6 +265,7 @@ fynnaly/test-morphe-patch
 GahahaWang/TWRailway-patch
 Gamer92000/pixelcamera-patches
 gggg-unit/projectivy-morphe-patch
+gggg-unit/sdmaid-se-morphe-patch
 ggYasin/ggyasin-morphe-patches
 ghostknow/morphe-lihkg-patches
 giaaaacomo/nifty-patches-selection
@@ -281,12 +290,14 @@ gitlab.com/Paresh-Maheshwari/paresh-patches
 gitlab.com/rokuOP/personal-niagara-weather
 gitlab.com/rudrakshrajpurohit417/rj-patches
 gitlab.com/solo-patches/solo-patches
+gitmyasm/httpinjectorpatches
 Globberry/morphe-patches
 GoldRift/morphe-patches
 gomjirak0803/line-notification-patches
 GoodLight999/TaobaoLingo
 Graywizard888/Enhancify
 h19e8p/Auto-Expand-for-X
+h19e8p/h19e8p-patches
 hackingguy/morphe-patches
 HagiaHaya/morphe-patches
 hajs110208/morphe-patches
@@ -334,6 +345,7 @@ Ikuradachi/Kagecarbit
 Ikuradachi/Kageroll
 Ikuradachi/pancake-patches
 ilikeadofai/vocacolle-morphe-patches
+iloxmn/MorphePatches
 ImEnigma2x0/morphe-maloja-patch
 ImmortalZeus/ImmortalZeus-Morphe-Patches
 ImNoammm/morphe-spotify-patches
@@ -356,6 +368,7 @@ JacobPlaysGames/CrimeRadar-Morphe-Patches
 Jagannath70086/jagas-morphe-patches
 jagjordi/morphe-patches
 jair1c/farotv-patches
+jair1c/tiktok-lite-patches
 JamQueueSharing/Jam-Patches
 jancerny2001/morphe-patches
 janowakps/morphe-patches-action
@@ -378,6 +391,7 @@ jmwerk/carbridge-patches
 Jo-Patches/jo-patches
 JoanComasFdz/baconreader-morphe-patches
 joelmzj/cyberjoe
+JoFSlash/google-health-patches
 JoFSlash/quora-patches
 Johannes7k75/gemini-work-profile-patches
 johninnl/nl-morphe-patches
@@ -396,9 +410,11 @@ jzl1/morphe-patches
 k2ej/standby
 K8R8TO/kizu-morphe-patches
 kabukabu-a11y/force-tv-patches
+kakazaro/kim-launcher-patches
 kal-xyz/viber-morphe-patches
 kanup4m/morphe-patches
 kareemlukitomo/morphe-patches
+Kaysera/swiftkey-morphe-patches
 Kdroidwin/gaugau-morphe
 Kecerim24/morphe-patches
 Kekimurus/GCamVBoost
@@ -432,6 +448,7 @@ lavinhoque33/revanced-patches
 lchanc3/morphe-patches
 LDP924/qqmusic-proxy
 legendsciber/morphe-patches
+lenemter/csp-android-12
 lildanlid1/Cordly
 LimeLimes/cbc-patches
 liongalahad/liongalahad-nuviotv-morphe-patches
@@ -507,6 +524,7 @@ MrRaita/Karma-Patches
 mrx7014/MRXHalawa-Patches
 Mubelotix/my-morphe-patches
 MuguDEV/ben-thamizha-patches
+murikbmx/yanmus
 murilosimao/swiftkey-patch
 mvaishak/letterboxd-morphe-patches
 mwbra130/Retro-Bowl-College
@@ -534,6 +552,7 @@ non7043/365score-patches
 nosini/disable-shorts-repeat
 ns1207/morphe-patches-template
 ns1207/nl.dumpert.nopatch
+nullroute3/morphe-patches
 NullWaypoint/morphe-patches
 nvbangg/builder-for-morphe
 o0b/morphe-patches
@@ -550,6 +569,7 @@ Pa-kon/morphe-screenshot-patches
 pablobaro/pablobaro-morphe-patches
 pardhu23/morphe-patches
 Paresh-Maheshwari/patch-explorer
+patapon888/morphe-patches
 PawiX25/pepper-morphe-patches
 pengusto/penguin-patches
 PerfLite/morphe-patches-MovieLab
@@ -606,6 +626,8 @@ Rico957/timetree-ads-patch
 RikoDEV/morphed-pl
 rikunode/fairemail-morphe-patches
 rikunode/hatena-bookmark-hide-pr-patches
+rikunode/hoshiori
+rikunode/pupil-morphe-patches
 rikunode/pupil-swipe-disable-patches
 rikunode/x-feed-cleanup-patches
 rikunode/x-patch
@@ -634,6 +656,7 @@ Sabrina-Moonlight/gracie-patches
 sahilwasgood/patches
 saieshshirodkar/saiesh-morphe-patches
 SailHighSea/sailhighsea-patches
+salihefee/moonreader-regional-patches
 salmanbappi/Quwis-Patches
 Santodan/santodan-patches
 SapitoSucio/FroggoMorphePatches
@@ -651,6 +674,7 @@ semicoloncolonel/mobile-morphe-patches
 semicoloncolonel/tv-morphe-patches
 seo-rii/morphe-wireguard-patches
 Seobject/Seobject-patches
+Ser1-1y/nyandex
 serajr/x-twitter-patches
 sevenzip2/books-piko
 SeveriT/morphe-patches
@@ -683,6 +707,7 @@ springfurst/morphe-patches
 sqzass/lustx-patches
 sqzass/patches
 srinath1848/nobrokerhood-patches
+ssch71/wear-patches
 Starkist124/stars-morphe-patch
 steeepaaaan/pdalife-morphe-patches
 suakamargas121/bookish-guacamole
@@ -730,6 +755,8 @@ timtkdb/archivetune-microg-patches
 titandrive/morphe-catppuccin
 tkiethuynh/den-patch
 toidicakhia/morphe-app-patches
+tokudai-vs/tokudai-patches
+tomi38/quackify-morphe-patches
 Tomveloper/libby-patches
 TorbenStriegel/morphe-patches-custom
 Tornillo2/movistar-block-ads-morphe
@@ -740,6 +767,7 @@ Trimpsuz/morphe-busuu
 Trimpsuz/morphe-patches
 trivisa-itihasa/uyu
 trulow/sync-reddit-fixes
+trvnce/letterboxd-patches
 twelvehouse/gboard-ios-style-jp-en-morphe-patches
 UnkyBadTouch/plex-morphe-patches
 urroxyz/morphe-patches
@@ -788,6 +816,8 @@ x00rb/PatchAnuku
 XBadFellaX/BadFella-Patches
 xboyrex/rex-ig-lite
 Xhehab/Xhehab-Patches
+xhyxfxxc/tx-public-patches
+xiliav/bens-morphe-patches
 XiONDiGiTaL/MorphePatches
 Xisrr1/Revancify-Xisr
 Xittered/xitter-morphe
