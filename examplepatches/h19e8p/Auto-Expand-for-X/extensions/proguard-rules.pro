@@ -6,3 +6,6 @@
 -keep class app.morphe.extension.autoexpand.** {
   *;
 }
+-keep class app.morphe.extension.h19e8p.** {
+  *;
+}

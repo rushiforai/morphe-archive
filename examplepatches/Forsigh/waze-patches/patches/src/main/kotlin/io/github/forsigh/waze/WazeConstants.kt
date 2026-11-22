@@ -19,62 +19,14 @@ object WazeConstants {
         // redirects the user to the correct download page.
         apkFileType = ApkFileType.APKM,
         appIconColor = 0x33CCFF,
+        // One version per release, on purpose. A bundle is verified against exactly one Waze
+        // build, and the Manager's version column is the only thing that stops someone pointing a
+        // new bundle at an old APK. 0.30.64 is the stable for 5.27.90.900 (versionCode 1030751):
+        // 36/36 rows apply, 0 broken branch targets, 0 out-of-frame registers.
+        // When a new Waze version is verified, cut a new bundle and move this line with it - never
+        // widen the list to cover builds nobody tested.
         targets = listOf(
-            // Confirmed target: the production build every config key was verified against
-            // (versionCode 1030734). Waze uses a different versionName scheme for beta vs
-            // production builds: the beta MOD this project was reverse-engineered from reports
-            // versionName 5.24.4.900 with versionCode 1030731, i.e. the two are adjacent
-            // builds - not a different release. Declaring the beta name made Morphe skip
-            // every patch on the production APK, so the production name is the confirmed one.
-            AppTarget(version = "5.24.90.901"),
-            // Second confirmed target (versionCode 1030736). Verified the same way as the first: the
-            // bundle applies WITHOUT -f, every hooked getter comes out structurally identical
-            // (57/33/7 instructions, no invalid branches), and all 30 forced CONFIG_VALUE_* keys
-            // still exist in its dex. Without this entry Morphe skips all 17 patches silently there.
-            AppTarget(version = "5.25.0.1"),
-            // Third confirmed target (versionCode 1030737, released 2026-10-11). Verified the same way
-            // as the second: the bundle applies WITHOUT -f ("Applying 17 patches", zero skips), every
-            // anchored method is instruction-identical to 5.25.0.1 (getters 57/33/7, no invalid
-            // branches), all 34 referenced CONFIG_VALUE_* keys exist in its dex, and the full .apkm
-            // patches end to end into one signed merged APK.
-            AppTarget(version = "5.25.4.900"),
-            // Fourth confirmed target (versionCode 1030741, Forsigh's beta from Play, pulled from his
-            // phone on 2026-10-15). Waze's .90.9xx line is its beta channel; verified the same way as
-            // the others: the bundle applies WITHOUT -f, every anchored method binds, and all
-            // CONFIG_VALUE_* keys exist in its dex (NEWTARGET-VERIFY-5.25.90.900.txt).
-            AppTarget(version = "5.25.90.900"),
-            // Fifth confirmed target (versionCode 1030742, released 2026-10-20). Verified the same
-            // way as the others: all 28 rows apply, every anchored method binds, and every recorded
-            // CONFIG_VALUE_* exists in its dex except AAP_USE_NORMAL_CAR_GPS_UPDATE_RATE, which
-            // 5.25.90.900 had already renamed to GPS_ALIGN_AAP_AND_DEVICE_UPDATE_RATE (both recorded).
-            AppTarget(version = "5.26.0.0"),
-            // Sixth target (versionCode 1030744): Forsigh's installed build, pulled from his phone on
-            // 2026-10-27. Added so the bundle stops skipping every row on the version people actually
-            // run, then verified row by row against that base.
-            AppTarget(version = "5.26.5.0"),
-            // Seventh target (versionCode 1030746, beta handed over 2026-11-01). Verified the same way
-            // as the others: all 33 rows apply with zero failures, and the four rows whose anchors had
-            // moved (hide recent destinations, skip sign-in, unlock driver moods, disable Play Store
-            // updates) were re-anchored and then checked in the patched dex.
-            AppTarget(version = "5.26.90.901"),
-            // Eighth target (versionCode 1030748). Checked the same way as the others: all 33 rows
-            // apply with zero failures, the eleven bytecode assertions that cover the sign-in,
-            // recents and version anchors pass, the speedometer cluster is still
-            // main_screen.g.b.e, and 80 of the 81 config keys survive (the AAP update-rate switch
-            // is dropped by Waze and skipped by the override emitter).
-            AppTarget(version = "5.27.0.1"),
-            // Ninth target (versionCode 1030749, beta pulled 2026-11-08). Checked the same way as the
-            // others: every row applies with zero failures and the anchors that moved were re-bound.
-            AppTarget(version = "5.27.4.900"),
-            // Tenth target (versionCode 1030751, beta handed over 2026-11-15). Verified with the
-            // 0.30.59 bundle: every offered row applies with zero failures on the merged
-            // arm64-v8a / 120-480 dpi build. Two rows are deliberately not offered here (moods and
-            // the audio partner) because their anchors moved; the recents row was re-anchored.
-            AppTarget(version = "5.27.90.900"),
-            // No catch-all target on purpose. A version-less AppTarget makes the Manager treat the
-            // patches as fitting ANY build ("Any version" in its list and no filter in
-            // AppVersionCatalog.patchableAt), so users on builds we never tested are offered rows
-            // that then fail on them. The list above is the whole support claim.
+            AppTarget(version = "5.28.4.900"),
         ),
     )
 }

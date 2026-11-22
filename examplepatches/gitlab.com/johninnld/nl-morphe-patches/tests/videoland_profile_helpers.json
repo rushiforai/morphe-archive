@@ -1,0 +1,100 @@
+{
+  "classes": {
+    "Lnl/johninnl/patches/videoland/profile/R;": [
+      ".class public final Lnl/johninnl/patches/videoland/profile/R;",
+      ".super Ljava/lang/Object;"
+    ],
+    "Lpatches/videoland/profile/ProfileRecall$$ExternalSyntheticLambda0;": [
+      ".class public final synthetic Lpatches/videoland/profile/ProfileRecall$$ExternalSyntheticLambda0;",
+      ".super Ljava/lang/Object;",
+      ".implements Ljava/lang/Runnable;",
+      ".field public final synthetic f$0:Landroid/view/View;",
+      ".field public final synthetic f$1:I",
+      ".field public final synthetic f$2:I"
+    ],
+    "Lpatches/videoland/profile/ProfileRecall$$ExternalSyntheticLambda1;": [
+      ".class public final synthetic Lpatches/videoland/profile/ProfileRecall$$ExternalSyntheticLambda1;",
+      ".super Ljava/lang/Object;",
+      ".implements Ljava/lang/Runnable;",
+      ".field public final synthetic f$0:Landroid/view/View;",
+      ".field public final synthetic f$1:Ljava/lang/Object;",
+      ".field public final synthetic f$2:Ljava/lang/Object;",
+      ".field public final synthetic f$3:I",
+      ".field public final synthetic f$4:I"
+    ],
+    "Lpatches/videoland/profile/ProfileRecall$$ExternalSyntheticLambda2;": [
+      ".class public final synthetic Lpatches/videoland/profile/ProfileRecall$$ExternalSyntheticLambda2;",
+      ".super Ljava/lang/Object;",
+      ".implements Ljava/lang/Runnable;",
+      ".field public final synthetic f$0:Landroid/view/View;",
+      ".field public final synthetic f$1:Ljava/lang/Object;",
+      ".field public final synthetic f$2:Ljava/lang/Object;",
+      ".field public final synthetic f$3:I"
+    ],
+    "Lpatches/videoland/profile/ProfileRecall$$ExternalSyntheticLambda3;": [
+      ".class public final synthetic Lpatches/videoland/profile/ProfileRecall$$ExternalSyntheticLambda3;",
+      ".super Ljava/lang/Object;",
+      ".implements Ljava/lang/Runnable;",
+      ".field public final synthetic f$0:Landroid/view/View;",
+      ".field public final synthetic f$1:I"
+    ],
+    "Lpatches/videoland/profile/ProfileRecall;": [
+      ".class public final Lpatches/videoland/profile/ProfileRecall;",
+      ".super Ljava/lang/Object;",
+      ".field private static final HOME_READY:Ljava/lang/String; = \"com.bedrockstreaming.shared.common.feature.home.presentation.viewmodel.HomeViewModel$d$a\"",
+      ".field private static final MODEL:Ljava/lang/String; = \"com.bedrockstreaming.component.layout.domain.core.model.\"",
+      ".field private static final READY:Ljava/lang/String; = \"com.bedrockstreaming.component.layout.presentation.LegacyEntityLayoutViewModel$d$a\"",
+      ".field private static armed:Z",
+      ".field private static contextStore:Ljava/lang/Object;",
+      ".field private static deadline:J",
+      ".field private static generation:I",
+      ".field private static homeUid:Ljava/lang/String;",
+      ".field private static launched:Z",
+      ".field private static final main:Landroid/os/Handler;",
+      ".field private static pendingAccount:Ljava/lang/String;",
+      ".field private static pendingUid:Ljava/lang/String;",
+      ".field private static prefs:Landroid/content/SharedPreferences;",
+      ".field private static tv:Z",
+      ".field private static users:Ljava/lang/Object;"
+    ]
+  },
+  "methods": {
+    "Lnl/johninnl/patches/videoland/profile/R;-><init>()V": "cc7c9af17ab127bd5ae5d01d4964dea46f2784f20f6a371d133993deb4fe3d4e",
+    "Lpatches/videoland/profile/ProfileRecall$$ExternalSyntheticLambda0;-><init>(Landroid/view/View;II)V": "8370744bec7e790de82785598624724fbdbbebfe02b3a9d62da093247fb08d04",
+    "Lpatches/videoland/profile/ProfileRecall$$ExternalSyntheticLambda0;->run()V": "aabd78dd6a35dce3f187f3405f64e9b0bdd0dbd160e7201da7c40af32ee0aac8",
+    "Lpatches/videoland/profile/ProfileRecall$$ExternalSyntheticLambda1;-><init>(Landroid/view/View;Ljava/lang/Object;Ljava/lang/Object;II)V": "cd23858c10f4a53c0b0d6e5d4fc568cf3ff4615fc287c6e462d788bd65da4484",
+    "Lpatches/videoland/profile/ProfileRecall$$ExternalSyntheticLambda1;->run()V": "dac53359e324ac6eb80e3b85140f163952eb90a7aca6462918e62a7adf023daf",
+    "Lpatches/videoland/profile/ProfileRecall$$ExternalSyntheticLambda2;-><init>(Landroid/view/View;Ljava/lang/Object;Ljava/lang/Object;I)V": "b2b2aa43896727a616147dd95d83f2c5fcd70f8e737a2cc11f760cf4921d5da3",
+    "Lpatches/videoland/profile/ProfileRecall$$ExternalSyntheticLambda2;->run()V": "3416d5e9808e75e8e9638844acf32bf08deaca069814826cde383893b8a3a390",
+    "Lpatches/videoland/profile/ProfileRecall$$ExternalSyntheticLambda3;-><init>(Landroid/view/View;I)V": "7333f36347a74fb72a98cff4639b3277f354f2906eabb3c06109c4a802888b9d",
+    "Lpatches/videoland/profile/ProfileRecall$$ExternalSyntheticLambda3;->run()V": "d35e598f72048dd4f94da2cbdeb1de2b8a7e062e8328f93f48e0972393e13288",
+    "Lpatches/videoland/profile/ProfileRecall;-><clinit>()V": "45b3b8723d60456c937f4f98db2ebdb924abe253f3d0646136bd235c9f4fcd50",
+    "Lpatches/videoland/profile/ProfileRecall;-><init>()V": "cc7c9af17ab127bd5ae5d01d4964dea46f2784f20f6a371d133993deb4fe3d4e",
+    "Lpatches/videoland/profile/ProfileRecall;->account()Ljava/lang/String;": "7a516a7882e4dda1de12392b9b99bc0b2e5a48da4d78c180d6f9266e12cfec7e",
+    "Lpatches/videoland/profile/ProfileRecall;->bind(Ljava/lang/Object;Ljava/lang/Object;Landroid/content/Context;Z)V": "be9bc687cd9512c8a2310287c0992eee9ba4c502f80d5ee142ed2881c0ee1aa9",
+    "Lpatches/videoland/profile/ProfileRecall;->bindPhone(Ljava/lang/Object;Ljava/lang/Object;Landroid/content/Context;)V": "d61853f15aa18b79e76bf6ca60240e709d1af99d31b94d3869ddc419ca1477d7",
+    "Lpatches/videoland/profile/ProfileRecall;->bindTv(Ljava/lang/Object;Ljava/lang/Object;Landroid/content/Context;)V": "527edca71a25d6fc6c77e46d56d8b060732c9c770bced943042a50f7760a9492",
+    "Lpatches/videoland/profile/ProfileRecall;->blockItems(Ljava/lang/Object;)Ljava/util/List;": "de5e9a3254b12517359168fd09791ae2d3e3a1c011bb5ac6a49fb933ac825071",
+    "Lpatches/videoland/profile/ProfileRecall;->canHostPicker(Ljava/lang/Object;)Z": "e102e4ee11863888927e688325f93ac1ca640078b88fb5da77d540434e10b2c2",
+    "Lpatches/videoland/profile/ProfileRecall;->choiceUid(Ljava/lang/Object;)Ljava/lang/String;": "5f84915346540e2c00cfa7e50de20f0218db0692f3e89d582b1410afee50f20d",
+    "Lpatches/videoland/profile/ProfileRecall;->clicked(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)V": "26879fe0538ba7c671f4f3a19bc0ee8338d201ba2ecedb6132f8cb06c83774d7",
+    "Lpatches/videoland/profile/ProfileRecall;->confirm(Landroid/view/View;II)V": "5137efd84c9285db22b119d5dc2e6a6179c4c230e0a8cb818fc8b4fc5b88c8dc",
+    "Lpatches/videoland/profile/ProfileRecall;->containsProfileRow(Ljava/lang/Object;)Z": "7126d69fa63ed1a83257bd630a689a51ef47e6510b46485a9dea2373a53da7bd",
+    "Lpatches/videoland/profile/ProfileRecall;->disarm()V": "823d06193499ef78b58a62fba40560c1caac5c47a3ae710a5709b145c0d3573b",
+    "Lpatches/videoland/profile/ProfileRecall;->field(Ljava/lang/Object;Ljava/lang/String;)Ljava/lang/Object;": "367def74d94089d95fb8363ea3aff2098db225f61cc42de169535093831ee6c2",
+    "Lpatches/videoland/profile/ProfileRecall;->homeState(Ljava/lang/Object;)V": "5500882707d3c9a5c27543d01fe479df91454ece29c001f6f944c4c55e59e988",
+    "Lpatches/videoland/profile/ProfileRecall;->incoming(Landroid/content/Intent;)V": "5d2b588d0f59f357d63e02451d11b8e06852a183221ee62d9c8f3d52bcb89984",
+    "Lpatches/videoland/profile/ProfileRecall;->lambda$confirm$2(Landroid/view/View;II)V": "e163509d63f83ba5a1a4ca29390db433488f7357a1507df7c6c242cde615cd7a",
+    "Lpatches/videoland/profile/ProfileRecall;->lambda$rendered$0(Landroid/view/View;Ljava/lang/Object;Ljava/lang/Object;I)V": "ef0893413364096ec8dbc2e45e63000191c1c47bdf4c78e5fe93cbfe4a8bc9db",
+    "Lpatches/videoland/profile/ProfileRecall;->lambda$rendered$1(Landroid/view/View;I)V": "5297629954bf866dfa6c9050e1b32a86f792f6a9b765ddfc9c45428d5406904f",
+    "Lpatches/videoland/profile/ProfileRecall;->lambda$restore$3(Landroid/view/View;Ljava/lang/Object;Ljava/lang/Object;II)V": "7c484c140b3ba79ae98b7eaeb503e611a6b5e2110875e06fb9495eeed09ae5be",
+    "Lpatches/videoland/profile/ProfileRecall;->launch(Landroid/app/Activity;Landroid/os/Bundle;)V": "52fe88f007dd2b39837d5345b95fd892de2ce80a12a174b7c7a5129e1c1ba311",
+    "Lpatches/videoland/profile/ProfileRecall;->logout()V": "bdc0d4fccdc7941cd5e8f76c6ca78ca4422ba27964826f0fc293471c1a8b94f9",
+    "Lpatches/videoland/profile/ProfileRecall;->profileRow(Ljava/lang/Object;)Z": "6598c18adc26f9bf40f630320bcbe0ae6af3d5b949e41a6449c7528756047f82",
+    "Lpatches/videoland/profile/ProfileRecall;->read(Ljava/lang/Object;Ljava/lang/String;)Ljava/lang/Object;": "252e5fa8eee899d4f7438893a108f29c9ec1e931e1844ea6b350e5929553c89a",
+    "Lpatches/videoland/profile/ProfileRecall;->rendered(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)V": "377de7b1fbf0d0af13b9bee6a8157fa97d952a289f0be40b3f7c34ce9eff94f7",
+    "Lpatches/videoland/profile/ProfileRecall;->restore(Landroid/view/View;Ljava/lang/Object;Ljava/lang/Object;II)V": "1b008e6a42273587aec1bfa25e5366aa6f014217631c72fc33f2769c638c7f76",
+    "Lpatches/videoland/profile/ProfileRecall;->tileTarget(Ljava/lang/Object;)Ljava/lang/Object;": "e4f37528bcf72a74f0e34a1b9aeba3d8c9d8b4bb58bcbe99c43094ed4fb3f352",
+    "Lpatches/videoland/profile/ProfileRecall;->trace(Ljava/lang/String;)V": "4741ee38260183178cb332cb4a7484df0c23b5179b5df91d882c4cf82892483f"
+  }
+}

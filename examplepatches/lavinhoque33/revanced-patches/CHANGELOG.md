@@ -1,3 +1,12 @@
+## Unreleased
+
+### Bug Fixes
+
+* **YouTube – Snack bar:** With the Chip border preset, the playlist bottom bar now follows **Invert snack bar
+  theme** for its border color without changing the playlist background.
+* **YouTube / YouTube Music – Settings:** Long RVX preference titles now wrap instead of being cut off beside
+  switches and other controls, including when the app language is English.
+
 ## [1.46.0](https://github.com/lavinhoque33/revanced-patches/compare/v1.45.0...v1.46.0) (2026-11-20)
 
 ### Features

@@ -21,17 +21,17 @@ val disableTrackingPatch = bytecodePatch(
             "h(Ljava/lang/String;)Z", 4, 11).addInstructions(0, trackingConfigGuard)
 
         exact("Lcom/bedrockstreaming/plugin/tealium/TealiumTaggingPlan;",
-            "C0(Ljava/lang/String;Ljava/util/Map;)V", 11, 18)
+            "y0(Ljava/lang/String;Ljava/util/Map;)V", 11, 18)
             .addInstructions(0, "return-void")
 
         exact("Lcom/bedrockstreaming/plugin/tealium/TealiumTaggingPlan;",
-            "D0(Ljava/util/Map;)V", 5, 15)
+            "z0(Ljava/util/Map;)V", 5, 15)
             .addInstructions(0, "return-void")
 
         // Keep Object initialization and all three stored dependencies; stop before emitter creation.
         val snowplow = "Lcom/bedrockstreaming/plugin/snowplow/SnowplowTracker;"
         exact(snowplow,
-            "<init>(Landroid/content/Context;LDq/c;LAk/a;Lcom/bedrockstreaming/feature/player/domain/mediaplayer/usecase/GetDeviceVolumeUseCase;Lcom/bedrockstreaming/plugin/snowplow/SnowplowEntityMapper;)V", 15, 114).apply {
+            "<init>(Landroid/content/Context;Lgr/c;LYk/a;Lcom/bedrockstreaming/feature/player/domain/mediaplayer/usecase/GetDeviceVolumeUseCase;Lcom/bedrockstreaming/plugin/snowplow/SnowplowEntityMapper;)V", 15, 114).apply {
             val anchors = instructions.withIndex().filter { (_, instruction) ->
                 val field = (instruction as? ReferenceInstruction)?.reference as? FieldReference
                 field?.definingClass == snowplow && field.name == "c" &&
@@ -42,17 +42,17 @@ val disableTrackingPatch = bytecodePatch(
         }
 
         exact("Lcom/bedrockstreaming/plugin/advertisingid/google/data/GoogleAdvertisingIdSource;",
-            "a()Ly6/a;", 4, 27)
-            .addInstructions(0, "sget-object v0, Ly6/b;->a:Ly6/b;\nreturn-object v0")
+            "a()LB6/a;", 4, 27)
+            .addInstructions(0, "sget-object v0, LB6/b;->a:LB6/b;\nreturn-object v0")
 
         exact("Lcom/newrelic/agent/android/NewRelic;",
             "start(Landroid/content/Context;)V", 7, 83)
             .addInstructions(0, "return-void")
 
         // The uploader treats 403 as fatal and deletes the queued batch without HTTP/retry.
-        exact("Li3/u;",
-            "c(LB2/c;)Lis/b;", 16, 184)
-            .addInstructions(0, "new-instance v0, Lis/b;\nconst/16 v1, 0x193\nconst/4 v2, 0x0\nconst-wide/16 v3, 0x0\ninvoke-direct {v0, v1, v2, v3, v4}, Lis/b;-><init>(ILjava/net/URL;J)V\nreturn-object v0")
+        exact("LAu/a;",
+            "j(LBy/d0;)LLs/b;", 16, 184)
+            .addInstructions(0, "new-instance v0, LLs/b;\nconst/16 v1, 0x193\nconst/4 v2, 0x0\nconst-wide/16 v3, 0x0\ninvoke-direct {v0, v1, v2, v3, v4}, LLs/b;-><init>(ILjava/net/URL;J)V\nreturn-object v0")
 
         // Skip only Salesforce analytics collectors/alarms, retaining SDK push/inbox/account services.
         exact("Lcom/salesforce/marketingcloud/analytics/h;",
@@ -103,7 +103,7 @@ val disableTrackingPatch = bytecodePatch(
             addInstructions(anchors.single().index + 1, "return-void")
         }
 
-        exact("Lcom/bedrockstreaming/plugin/usabilla/UsabillaTaggingPlan;", "c(Ljava/lang/String;Ljava/util/Map;)V", 7, 25)
+        exact("Lcom/bedrockstreaming/plugin/usabilla/UsabillaTaggingPlan;", "c(Ljava/lang/String;Ljava/util/Map;)V", 6, 26)
             .addInstructions(0, "return-void")
 
         exact("Lcom/usabilla/sdk/ubform/Usabilla;", "sendEvent(Landroid/content/Context;Ljava/lang/String;)V", 6, 16)
@@ -112,28 +112,20 @@ val disableTrackingPatch = bytecodePatch(
         exact("Lcom/usabilla/sdk/ubform/telemetry/UbTelemetryRecorder;", "d()V", 7, 27)
             .addInstructions(0, "return-void")
 
-        exact("LEx/i;", "a(LIw/a;Ljava/util/List;)V", 6, 27)
+        exact("Lxy/i;", "a(LAx/a;Ljava/util/List;)V", 6, 27)
             .addInstructions(0, "return-void")
 
-        exact("LEx/d;", "invokeSuspend(Ljava/lang/Object;)Ljava/lang/Object;", 11, 88)
-            .addInstructions(0, "sget-object v0, Lqy/M;->a:Lqy/M;\nreturn-object v0")
+        exact("Lxy/d;", "invokeSuspend(Ljava/lang/Object;)Ljava/lang/Object;", 11, 90)
+            .addInstructions(0, "sget-object v0, Liz/M;->a:Liz/M;\nreturn-object v0")
 
         // Return a real empty-list Flow, preserving Usabilla initialize/callback completion.
         // The original catch action is retained; it never runs for the successful empty Flow.
-        exact("Lix/M;", "b(Ljava/lang/String;)Laz/F;", 6, 43)
-            .addInstructions(0, "new-instance v0, Laz/p;\nsget-object v1, Lry/K;->d:Lry/K;\ninvoke-direct {v0, v1}, Laz/p;-><init>(Ljava/lang/Object;)V\nnew-instance v1, Lix/J;\nconst/4 v2, 0x0\ninvoke-direct {v1, p0, v2}, Lix/J;-><init>(Lix/M;Luy/d;)V\nnew-instance v2, Laz/F;\ninvoke-direct {v2, v0, v1}, Laz/F;-><init>(Laz/j;LFy/g;)V\nreturn-object v2")
+        exact("Lay/M;", "b(Ljava/lang/String;)LSz/G;", 6, 43)
+            .addInstructions(0, "new-instance v0, LSz/q;\nsget-object v1, Ljz/K;->d:Ljz/K;\ninvoke-direct {v0, v1}, LSz/q;-><init>(Ljava/lang/Object;)V\nnew-instance v1, Lay/J;\nconst/4 v2, 0x0\ninvoke-direct {v1, p0, v2}, Lay/J;-><init>(Lay/M;Lmz/d;)V\nnew-instance v2, LSz/G;\ninvoke-direct {v2, v0, v1}, LSz/G;-><init>(LSz/k;Lxz/g;)V\nreturn-object v2")
 
-        // JOIN shares a host with editorial delivery: only meas/, meas/stories/ and
-        // meas/widgets/ complete with Unit. All /v3 content/poll/form methods remain intact.
-        exact("Lhv/h;", "c(Lqz/y;Lwy/c;)Ljava/lang/Object;", 8, 64)
-            .addInstructions(0, "sget-object v0, Lqy/M;->a:Lqy/M;\nreturn-object v0")
-
-        exact("Lhv/h;", "d(Lgv/c;Lwy/c;)Ljava/lang/Object;", 8, 62)
-            .addInstructions(0, "sget-object v0, Lqy/M;->a:Lqy/M;\nreturn-object v0")
-
-        exact("Lhv/h;", "g(Lgv/e;Lwy/c;)Ljava/lang/Object;", 8, 62)
-            .addInstructions(0, "sget-object v0, Lqy/M;->a:Lqy/M;\nreturn-object v0")
-
+        // Batched JOIN measurement has a dedicated Retrofit service.
+        exact("LKv/g;", "d(Ljava/util/List;Loz/d;)Ljava/lang/Object;", 8, 58)
+            .addInstructions(0, "sget-object v0, Liz/M;->a:Liz/M;\nreturn-object v0")
     }
 }
 

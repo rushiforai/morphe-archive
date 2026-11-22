@@ -625,14 +625,14 @@ if __name__ == "__main__":
 class VideolandMobileRoutingTests(unittest.TestCase):
     def test_mobile_controls_and_whole_archive_verifier(self):
         self.assertEqual(validator.APPS.get('videoland'), {
-            'Hide ads': [], 'Disable tracking': [], 'Skip consent screens': ['Disable tracking']})
+            'Hide ads': [], 'Disable tracking': [], 'Skip consent screens': ['Disable tracking'], 'Remember last profile (experimental)': []})
         command = validator.verifier_command('videoland', Path('/output'),
                     {'Disable tracking', 'Skip consent screens'}, apk=Path('/out.apk'),
                     original_reference=Path('/stock'), original_input=Path('/original.apks'))
         self.assertEqual(command, [sys.executable, 'tests/verify_videoland.py', '/stock', '/output',
                     '--tracking', '--consent', '--original-apks', '/original.apks', '--patched-apk', '/out.apk'])
-        self.assertEqual(validator.STREAMING_ORIGINALS['videoland'],
-            'c990c0339ac1b8c79031aabccba0046f63ca005266031a18c35051c8b7a73810')
+        self.assertNotIn('videoland', validator.STREAMING_ORIGINALS)
+        self.assertEqual(validator.MEDIA_REFERENCES['videoland'], ('nl.rtl.videoland.v2', 1637))
 
     def test_mobile_requires_reference_and_complete_split_payload(self):
         with self.assertRaisesRegex(ValueError, 'original'):
@@ -664,7 +664,7 @@ class MediaRoutingTests(unittest.TestCase):
 
     def test_tv_unavailable_content_is_included_without_forcing_other_controls(self):
         self.assertEqual(validator.APPS['videolandatv'], {'Hide ads': [], 'Disable tracking': [],
-                                                       'Hide unavailable content': []})
+                                                       'Hide unavailable content': [], 'Remember last profile (experimental)': []})
         command = validator.verifier_command('videolandatv', Path('/out'), {'Hide unavailable content'},
                     apk=Path('/out.apk'), original_reference=Path('/stock'), original_input=Path('/source.apks'))
         self.assertEqual(command, [sys.executable, 'tests/verify_videoland_atv.py', '/stock', '/out',

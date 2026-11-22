@@ -1,0 +1,81 @@
+{
+  "1637": {
+    "Lcom/bedrockstreaming/shared/mobile/activity/SplashActivity;->onCreate(Landroid/os/Bundle;)V": {
+      "graph": "989c1a7466f1ec79bedff7bb788910ebbd932cd2a910cc174150abb4d7f67954",
+      "index": 1,
+      "effect": "invoke-static/range {p0 .. p1}, Lpatches/videoland/profile/ProfileRecall;->launch(Landroid/app/Activity;Landroid/os/Bundle;)V"
+    },
+    "Lcom/bedrockstreaming/shared/common/component/navigation/LogoutAwareNavigationContextStore;-><init>(Lcom/bedrockstreaming/component/navigation/data/NavigationContextStore;LAr/b;Landroid/content/Context;LA8/i;)V": {
+      "graph": "d17ad936532597440c69ac3f16f1f96bd31c7c41b8270462c5b7dcec3825ae64",
+      "index": 10,
+      "effect": "invoke-static/range {p1 .. p3}, Lpatches/videoland/profile/ProfileRecall;->bindPhone(Ljava/lang/Object;Ljava/lang/Object;Landroid/content/Context;)V"
+    },
+    "LIl/b;->accept(Ljava/lang/Object;)V": {
+      "graph": "b2388e29a43518983e2ba47631a61bd7ff87d28ea1153c6f30b9e0f71a89ffd8",
+      "index": 1,
+      "effect": "invoke-static {}, Lpatches/videoland/profile/ProfileRecall;->logout()V"
+    },
+    "Lcom/bedrockstreaming/feature/catalog/presentation/mobile/EntityLayoutDelegate;->a(Lcom/bedrockstreaming/feature/catalog/presentation/mobile/EntityLayoutDelegate;Lcom/bedrockstreaming/feature/catalog/presentation/mobile/EntityLayoutDelegate$c;Lcom/bedrockstreaming/component/layout/presentation/LegacyEntityLayoutViewModel$d;Loz/d;)Ljava/lang/Object;": {
+      "graph": "89b4fa8320c8136c35349d70676385bfa0a67afa39a2c0657d7878bfde95dd1a",
+      "index": 1,
+      "effect": "invoke-static/range {p0 .. p2}, Lpatches/videoland/profile/ProfileRecall;->rendered(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)V"
+    },
+    "Lcom/bedrockstreaming/component/layout/presentation/LegacyEntityLayoutViewModel;->n(Lj8/a;Lcom/bedrockstreaming/component/layout/domain/core/model/Item;Lcom/bedrockstreaming/component/layout/domain/core/model/Target;)V": {
+      "graph": "b9b2c414f1adbbc5969033deacc5a9350a0abc2f6796d5f3310253c7dd1e5d6a",
+      "index": 1,
+      "effect": "invoke-static/range {p0 .. p3}, Lpatches/videoland/profile/ProfileRecall;->clicked(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)V"
+    },
+    "Lcom/bedrockstreaming/shared/mobile/feature/home/presentation/view/HomeFragment;->E0(Lcom/bedrockstreaming/shared/common/feature/home/presentation/viewmodel/HomeViewModel$d;)V": {
+      "graph": "ad2d400ac3cf9b6a893871388cbdb04f1a340a08c8d52d822e7c64cc681b3019",
+      "index": 1,
+      "effect": "invoke-static/range {p1 .. p1}, Lpatches/videoland/profile/ProfileRecall;->homeState(Ljava/lang/Object;)V"
+    },
+    "Lcom/bedrockstreaming/shared/mobile/feature/home/presentation/view/HomeActivity;->onNewIntent(Landroid/content/Intent;)V": {
+      "graph": "e28e634d9ff593aa024270db623693541c14f9c5a130f2bcd62c522bb29482ca",
+      "index": 1,
+      "effect": "invoke-static/range {p1 .. p1}, Lpatches/videoland/profile/ProfileRecall;->incoming(Landroid/content/Intent;)V"
+    }
+  },
+  "1638": {
+    "Lcom/bedrockstreaming/shared/tv/activity/SplashActivity;->onCreate(Landroid/os/Bundle;)V": {
+      "graph": "f667d8c1f1c34404889b1945bbd1b30baed9718009a46076e904a9b45e8a9cdd",
+      "index": 1,
+      "effect": "invoke-static/range {p0 .. p1}, Lpatches/videoland/profile/ProfileRecall;->launch(Landroid/app/Activity;Landroid/os/Bundle;)V"
+    },
+    "Lcom/bedrockstreaming/shared/common/component/navigation/LogoutAwareNavigationContextStore;-><init>(Lcom/bedrockstreaming/component/navigation/data/NavigationContextStore;LRp/b;Landroid/content/Context;Lw8/k;)V": {
+      "graph": "aa5088db50ee43516f5c1b81cac5cfbcd4cee9914dc94df803f49506f645cfe4",
+      "index": 10,
+      "effect": "invoke-static/range {p1 .. p3}, Lpatches/videoland/profile/ProfileRecall;->bindTv(Ljava/lang/Object;Ljava/lang/Object;Landroid/content/Context;)V"
+    },
+    "Lkk/b;->accept(Ljava/lang/Object;)V": {
+      "graph": "99792eb879604f5bbc2855ea8e7d2b31836b50617cf1121f748b22cbd0088a80",
+      "index": 1,
+      "effect": "invoke-static {}, Lpatches/videoland/profile/ProfileRecall;->logout()V"
+    },
+    "Lcom/bedrockstreaming/feature/catalog/presentation/tv/EntityLayoutDelegate;->a(Lcom/bedrockstreaming/feature/catalog/presentation/tv/EntityLayoutDelegate;Lcom/bedrockstreaming/feature/catalog/presentation/tv/EntityLayoutDelegate$e;Lcom/bedrockstreaming/component/layout/presentation/LegacyEntityLayoutViewModel$d;Ltv/c;)Ljava/lang/Object;": {
+      "graph": "4423808ee4fd57c1778172d158a13b8a94b2facad3613a60c2df67f51858af9f",
+      "index": 1,
+      "effect": "invoke-static/range {p0 .. p2}, Lpatches/videoland/profile/ProfileRecall;->rendered(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)V"
+    },
+    "Lcom/bedrockstreaming/component/layout/presentation/LegacyEntityLayoutViewModel;->n(Lf8/a;Lcom/bedrockstreaming/component/layout/domain/core/model/Item;Lcom/bedrockstreaming/component/layout/domain/core/model/Target;)V": {
+      "graph": "94b1560ff6eff3cacc46e786c86588d33b11a93ce3e080aecf9fa0f315b02b0d",
+      "index": 1,
+      "effect": "invoke-static/range {p0 .. p3}, Lpatches/videoland/profile/ProfileRecall;->clicked(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)V"
+    },
+    "Lcom/bedrockstreaming/shared/tv/feature/home/HomeFragment;->U(Lcom/bedrockstreaming/shared/common/feature/home/presentation/viewmodel/HomeViewModel$d;)V": {
+      "graph": "b2f05614e23b531ed633f6ba322e1c78be42b6f60ed7cf16942a0d949cd870bf",
+      "index": 1,
+      "effect": "invoke-static/range {p1 .. p1}, Lpatches/videoland/profile/ProfileRecall;->homeState(Ljava/lang/Object;)V"
+    },
+    "Lcom/bedrockstreaming/shared/tv/feature/home/HomeActivity;->onNewIntent(Landroid/content/Intent;)V": {
+      "graph": "a057fb2e895d21cd96d9547dded421f59372e1151ee5ff87d4203050aacca5fc",
+      "index": 1,
+      "effect": "invoke-static/range {p1 .. p1}, Lpatches/videoland/profile/ProfileRecall;->incoming(Landroid/content/Intent;)V"
+    },
+    "Lcom/bedrockstreaming/feature/accountsharing/presentation/tv/detection/DetectionFragment;->onViewCreated(Landroid/view/View;Landroid/os/Bundle;)V": {
+      "graph": "20e3a037c87d4e905f8cea24d8effb62a37997b130fd4f5502fc19066b149509",
+      "index": 1,
+      "effect": "invoke-static {}, Lpatches/videoland/profile/ProfileRecall;->disarm()V"
+    }
+  }
+}

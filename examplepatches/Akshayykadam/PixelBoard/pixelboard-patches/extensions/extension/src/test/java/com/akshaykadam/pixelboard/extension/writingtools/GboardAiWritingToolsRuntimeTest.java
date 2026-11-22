@@ -54,7 +54,7 @@ public final class GboardAiWritingToolsRuntimeTest {
                         Boolean.FALSE,
                         settings,
                         writingToolsOff));
-        Assert.assertSame(Boolean.FALSE,
+        Assert.assertSame(Boolean.TRUE,
                 GboardAiWritingToolsRuntime.computeOverrideValue(
                         GboardAiWritingToolsRuntime.FLAG_WRITING_HELPER_ON_SELECTED_TEXT,
                         Boolean.FALSE,
@@ -339,7 +339,6 @@ public final class GboardAiWritingToolsRuntimeTest {
                     GboardAiWritingToolsRuntime.FLAG_WRITING_TOOLS_SUGGEST_STYLE,
                     GboardAiWritingToolsRuntime.FLAG_WRITING_TOOLS_MY_STYLE,
                     GboardAiWritingToolsRuntime.FLAG_WRITING_TOOLS_MY_STYLE_PLUS,
-                    GboardAiWritingToolsRuntime.FLAG_WRITING_TOOLS_USE_V2_LANDSCAPE_LAYOUT,
                     GboardAiWritingToolsRuntime.FLAG_AGENTIC_DICTATION_ENABLE_CUSTOM_INSTRUCTION
             };
 
@@ -369,7 +368,7 @@ public final class GboardAiWritingToolsRuntimeTest {
                 GboardAiWritingToolsRuntime.FLAG_ENABLE_DECODER_RESPONSE_WAIT_WITHOUT_LOCK));
         Assert.assertTrue(GboardAiWritingToolsRuntime.isStockPhenotypeEnforcedFlag(
                 GboardAiWritingToolsRuntime.FLAG_TRY_INITIALIZE_DECODER_AFTER_LM_LOADS));
-        Assert.assertTrue(GboardAiWritingToolsRuntime.isStockPhenotypeEnforcedFlag(
+        Assert.assertFalse(GboardAiWritingToolsRuntime.isStockPhenotypeEnforcedFlag(
                 GboardAiWritingToolsRuntime.FLAG_PK_AUTO_CAPITALIZATION_USE_AUTO_CORRECTION));
         Assert.assertTrue(GboardAiWritingToolsRuntime.isStockPhenotypeEnforcedFlag(
                 GboardAiWritingToolsRuntime.FLAG_ENABLE_AUTO_CORRECTION_STATS));
@@ -419,6 +418,16 @@ public final class GboardAiWritingToolsRuntimeTest {
                 GboardAiWritingToolsRuntime.FLAG_ENABLE_EMOJIFY_SHORTCUT_WHEN_FOLLOWED_BY_EMOJI));
         Assert.assertTrue(GboardAiWritingToolsRuntime.isStockPhenotypeEnforcedFlag(
                 GboardAiWritingToolsRuntime.FLAG_ENABLE_EMOJIFY_WHEN_TALKBACK_ON));
+        Assert.assertTrue(GboardAiWritingToolsRuntime.isStockPhenotypeEnforcedFlag(
+                GboardAiWritingToolsRuntime.FLAG_ENABLE_EMOJI_SUGGESTION_FROM_TOP_CANDIDATE));
+        Assert.assertTrue(GboardAiWritingToolsRuntime.isStockPhenotypeEnforcedFlag(
+                GboardAiWritingToolsRuntime.FLAG_HIGHER_RANKED_EMOJI_CANDIDATES_AT_END));
+
+        Object emojiSuggestionFromTopCandidate = GboardAiWritingToolsRuntime.applyOverriddenFlagValue(
+                new TestFlagReceiver(
+                        GboardAiWritingToolsRuntime.FLAG_ENABLE_EMOJI_SUGGESTION_FROM_TOP_CANDIDATE),
+                Boolean.FALSE);
+        Assert.assertEquals(Boolean.TRUE, emojiSuggestionFromTopCandidate);
 
         Object fastAccessWhitelist = GboardAiWritingToolsRuntime.applyOverriddenFlagValue(
                 new TestFlagReceiver(
@@ -518,7 +527,7 @@ public final class GboardAiWritingToolsRuntimeTest {
                 Boolean.FALSE,
                 settings,
                 preferences));
-        Assert.assertSame(Boolean.FALSE, GboardAiWritingToolsRuntime.computeOverrideValue(
+        Assert.assertSame(Boolean.TRUE, GboardAiWritingToolsRuntime.computeOverrideValue(
                 GboardAiWritingToolsRuntime.FLAG_WRITING_HELPER_ON_SELECTED_TEXT,
                 Boolean.FALSE,
                 settings,

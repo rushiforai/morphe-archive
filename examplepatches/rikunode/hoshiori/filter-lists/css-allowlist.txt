@@ -1,0 +1,8 @@
+# Generic selectors only; must also exist as exact ## rule upstream.
+.adsbygoogle
+.ad-container
+.ad-banner
+.advertisement
+[data-ad-slot]
+[id^="google_ads_"]
+[id^="div-gpt-ad"]

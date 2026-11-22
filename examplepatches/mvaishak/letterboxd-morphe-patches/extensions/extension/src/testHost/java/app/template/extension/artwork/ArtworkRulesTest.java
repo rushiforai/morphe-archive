@@ -24,6 +24,10 @@ public final class ArtworkRulesTest {
         require(!ArtworkRules.useLocalArtwork("off", false));
         require(!ArtworkRules.useLocalArtwork("off", true));
         require(!ArtworkRules.useLocalArtwork("unknown", true));
+        require(ArtworkRules.titleLogoLanguageRank("ja", "ja") == 0);
+        require(ArtworkRules.titleLogoLanguageRank(null, "ja") == 1);
+        require(ArtworkRules.titleLogoLanguageRank("en", "ja") > 1);
+        require(ArtworkRules.titleLogoLanguageRank("es", "en") > 1);
         System.out.println("Artwork rules passed");
     }
 

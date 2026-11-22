@@ -13,7 +13,7 @@ import app.morphe.patcher.patch.bytecodePatch
 @Suppress("unused")
 val playbackCompatibilityPatch = bytecodePatch(
     name = "SBS playback compatibility check",
-    description = "Checks SBS 6.3.0 playback integration points. Does not remove advertisements.",
+    description = "Verifies the playback methods required by the VOD and live ad-removal patches.",
     default = false
 ) {
     compatibleWith(
@@ -22,7 +22,7 @@ val playbackCompatibilityPatch = bytecodePatch(
             packageName = "com.sbs.ondemand.android",
             apkFileType = ApkFileType.APKM,
             appIconColor = 0xDCBD1D,
-            targets = listOf(AppTarget(version = "6.3.0"))
+            targets = listOf(AppTarget(version = "6.4.0", isExperimental = true), AppTarget(version = "6.3.0"))
         )
     )
 

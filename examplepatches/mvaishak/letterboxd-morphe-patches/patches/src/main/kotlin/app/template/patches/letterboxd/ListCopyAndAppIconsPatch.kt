@@ -23,7 +23,7 @@ private val customizationCompatibility = Compatibility(
     packageName = "com.letterboxd.letterboxd",
     apkFileType = ApkFileType.APK,
     appIconColor = 0xFF8000,
-    targets = listOf(AppTarget(version = "3.6.7")),
+    targets = listOf(AppTarget(version = "3.6.7"), AppTarget(version = "3.6.9")),
 )
 
 private val listActions = Fingerprint(

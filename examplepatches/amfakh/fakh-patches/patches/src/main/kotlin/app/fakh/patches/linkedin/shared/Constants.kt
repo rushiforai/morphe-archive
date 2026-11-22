@@ -16,25 +16,36 @@ object Constants {
         targets = listOf(
             // Morphe recommends the newest supported version, so keep the newest tested one last.
             AppTarget(
-                version = "4.1.1264"
+                version = "4.1.1264",
+                versionCode = 217200
             ),
             AppTarget(
-                version = "4.1.1267"
+                version = "4.1.1267",
+                versionCode = 217500
             ),
             AppTarget(
-                version = "4.1.1269"
+                version = "4.1.1269",
+                versionCode = 217700
             ),
             AppTarget(
-                version = "4.1.1270"
+                version = "4.1.1270",
+                versionCode = 217800
             ),
             AppTarget(
-                version = "4.1.1272"
+                version = "4.1.1272",
+                versionCode = 218000
             ),
             AppTarget(
-                version = "4.1.1275"
+                version = "4.1.1275",
+                versionCode = 218300
             ),
             AppTarget(
-                version = "4.1.1276"
+                version = "4.1.1276",
+                versionCode = 218400
+            ),
+            AppTarget(
+                version = "4.1.1278",
+                versionCode = 218600
             )
         )
     )

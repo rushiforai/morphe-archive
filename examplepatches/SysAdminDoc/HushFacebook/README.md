@@ -5,7 +5,7 @@
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-GPL--3.0-blue" alt="License GPL-3.0"></a>
   <img src="https://img.shields.io/badge/platform-Android%2011%2B-3DDC84" alt="Platform Android 11+">
   <img src="https://img.shields.io/badge/Facebook-588.0.0.42.55-0866FF" alt="Facebook 588.0.0.42.55">
-  <img src="https://img.shields.io/badge/for-Morphe%20Manager%202.6.0%2B-8A2BE2" alt="For Morphe Manager 2.6.0 or newer">
+  <img src="https://img.shields.io/badge/for-Morphe%20Manager%202.7.0%2B-8A2BE2" alt="For Morphe Manager 2.7.0 or newer">
 </p>
 
 <p align="center">
@@ -31,7 +31,7 @@ The latest release is [v0.23.0](https://github.com/SysAdminDoc/Hushfacebook/rele
 
 ## Install
 
-1. Install [Morphe Manager](https://github.com/MorpheApp/morphe-manager) 2.6.0 or newer.
+1. Install [Morphe Manager](https://github.com/MorpheApp/morphe-manager) 2.7.0 or newer.
 2. Add Hushfacebook as a patch source: https://morphe.software/add-source?github=SysAdminDoc%2FHushfacebook
 3. Download Facebook 588.0.0.42.55 from [APKMirror](https://www.apkmirror.com/apk/facebook-2/facebook/). Take the bundle labelled (arm64-v8a) (120-480dpi) (Android 11+), build 707615136, or on a phone with only a 32-bit processor the one labelled (arm-v7a) (320dpi) (Android 11+), build 707615135. Both are .apkm files. Take the 64-bit one whenever your phone can run it. The 32-bit one only has images for 320 dpi screens, so on a sharper screen some icons look soft.
 4. In Morphe Manager, tap **Select other apps**, then **Open APK file**, and pick that file. Android may ask for file access the first time.
@@ -81,7 +81,9 @@ Turn on **Queue reel saves** there too, and Download on a reel adds it to a queu
 
 **Double tap to skip on feed videos**, a little further down, works like a phone's video player. Double tap the right side of a playing feed video to jump ahead 10 seconds, or the left side to go back 10, and keep tapping to go further. Live videos work too when they can be rewound. A single tap on a side still opens the video, just a moment later, since Hushfacebook waits to see whether a second tap follows. Taps in the middle and on buttons go through right away. It starts off, and with Tap to play on it needs Inline feed video controls on too.
 
-**Seek bar on feed videos**, right below that, runs a thin bar along the bottom of a feed video. Drag it and let go to jump to that point, and the time shows while you drag. It starts off. You won't see it while the video's bottom edge is off screen or covered by the tab bar, and the same goes for the strip at the very bottom of the screen that Android keeps for its home swipe. Scroll a little and it comes back. With Tap to play on, it needs Inline feed video controls on too. Four switches under it change how it looks. **Fade the seek bar and speaker** dims the bar and Facebook's speaker a few seconds into a playing video, and a touch or a pause brings them back. **Lower the seek bar and speaker** moves the bar down toward the bottom edge, and Facebook's corner buttons come down with it. **Seek bar on the bottom edge** puts the bar right on that edge, out of the way while you scroll, and lifts Facebook's corner buttons above it. It wins over Lower. **Thin line seek bar** goes further and draws the bar as a thin line flush with that edge, like Instagram's, with no dot or times until you drag it. Live videos get the line too while they can be rewound, and letting go at the far right end takes you back to live. All four start off. **Times on the seek bar** puts the time so far and the time left at the bar's two ends, and **Full length on the seek bar** shows the whole length at the right end in place of the time left. Both start off too.
+**Tap shows a pause button on feed videos**, just below, keeps a tap from throwing a feed video into Reels. The first tap puts a big play/pause button in the middle of the video and the video keeps going. Tap that button to pause or play, or tap the video again while it shows to open it like before. On a playing video the button goes away after a few seconds, and on a paused one it stays put. With double tap to skip on too, a single tap on a side brings up the button after that short wait. It starts off, and with Tap to play on it needs Inline feed video controls on too.
+
+**Seek bar on feed videos**, right below that, runs a thin bar along the bottom of a feed video. Drag it and let go to jump to that point, and the time shows while you drag. It starts off. You won't see it while the video's bottom edge is off screen or covered by the tab bar, or while comments are open, and the same goes for the strip at the very bottom of the screen that Android keeps for its home swipe. Scroll a little and it comes back. With Tap to play on, it needs Inline feed video controls on too. Four switches under it change how it looks. **Fade the seek bar and speaker** dims the bar and Facebook's speaker a few seconds into a playing video, and a touch or a pause brings them back. **Lower the seek bar and speaker** moves the bar down toward the bottom edge, and Facebook's corner buttons come down with it. **Seek bar on the bottom edge** puts the bar right on that edge, out of the way while you scroll, and lifts Facebook's corner buttons above it. It wins over Lower. **Thin line seek bar** goes further and draws the bar as a thin line flush with that edge, like Instagram's, with no dot until you drag it. Live videos get the line too while they can be rewound, and letting go at the far right end takes you back to live. All four start off. **Drag along the bottom edge** keeps the thin line on that edge while you drag it, the way Instagram's does, with the time in the middle instead of a raised bar and bubble. It starts off too. **Times on the seek bar** puts the time so far and the time left at the bar's two ends (on the thin line they sit just above its ends), and **Full length on the seek bar** shows the whole length at the right end in place of the time left. Both start off too.
 
 **Cast button on feed videos**, the last of these, puts a cast button in a feed video's top right corner. Facebook has no casting of its own anymore, so the button hands the video to a casting app you have, like Web Video Caster. It starts off.
 
@@ -90,6 +92,8 @@ Turn on **Queue reel saves** there too, and Download on a reel adds it to a queu
 **Seek bar on stories**, under **Stories**, gives a video story a bar along its bottom that you drag to move through it. The story waits while you drag and plays on when you let go. On a video story it sits where **Progress bar at the bottom** draws its line, and that line steps aside for it. Live stories and ads get no bar. **Fade the story seek bar** has its own switch, separate from the feed's, so the story bar only fades if you want it to. Both are off at first.
 
 **Plain slide between people**, also under **Stories**, takes the cube turn out of a swipe from one person's stories to the next, so the pages just slide across. It starts off.
+
+**Hide the Follow button**, under **Stories**, takes Follow off a story from someone you don't follow. **Hide the reply bar** goes further and takes away the whole bar under someone else's story, so the repost button, the Send message box and the quick reactions are gone too. **Hide the Up next card** starts the next stories right away instead of counting down on a card first. They all start off.
 
 ### Blocking Reels
 

@@ -7,7 +7,9 @@
 
 package app.noam.patches.chesscom.misc.clone
 
-import app.morphe.patcher.patch.resourcePatch
+import app.morphe.patcher.patch.document
+import app.morphe.patcher.patch.packageMetadata
+import app.morphe.patcher.patch.patch
 import app.morphe.patcher.patch.stringOption
 import app.noam.patches.chesscom.shared.Constants
 import org.w3c.dom.Element
@@ -30,7 +32,7 @@ private fun normalizeSuffix(raw: String?): String {
 }
 
 @Suppress("unused")
-val clonePatch = resourcePatch(
+val clonePatch = patch(
     name = "Clone Chess.com",
     description = "Renames the app package so it installs next to the real Chess.com app " +
         "instead of over it. The default package is com.chess.$DEFAULT_SUFFIX; the last part " +

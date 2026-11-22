@@ -31,7 +31,7 @@ val profileBadgePatch = bytecodePatch(
             name = "Letterboxd",
             packageName = "com.letterboxd.letterboxd",
             apkFileType = ApkFileType.APK,
-            targets = listOf(AppTarget(version = "3.6.7")),
+            targets = listOf(AppTarget(version = "3.6.7"), AppTarget(version = "3.6.9")),
         ),
     )
     dependsOn(modSettingsPatch)

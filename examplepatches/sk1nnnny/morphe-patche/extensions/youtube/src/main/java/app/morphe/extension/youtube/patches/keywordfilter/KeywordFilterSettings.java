@@ -23,6 +23,11 @@ public final class KeywordFilterSettings {
             "morphe_hide_keyword_content_channel", true);
     public static final BooleanSetting HIDE_KEYWORD_CONTENT_CHECK_SUBTITLES = new BooleanSetting(
             "morphe_hide_keyword_content_check_subtitles", true);
+    public static final StringSetting HIDE_KEYWORD_CONTENT_SUBTITLES_LANGUAGE = new StringSetting(
+            "morphe_hide_keyword_content_subtitles_language",
+            "original",
+            parent(HIDE_KEYWORD_CONTENT_CHECK_SUBTITLES)
+    );
     public static final BooleanSetting HIDE_KEYWORD_CONTENT_USE_AND_OPERATOR = new BooleanSetting(
             "morphe_hide_keyword_content_use_and_operator", true);
     public static final BooleanSetting HIDE_KEYWORD_CONTENT_USE_REGEX = new BooleanSetting(
@@ -41,6 +46,7 @@ public final class KeywordFilterSettings {
     public static void ensureLoaded() {
         HIDE_KEYWORD_CONTENT_CHANNEL.get();
         HIDE_KEYWORD_CONTENT_CHECK_SUBTITLES.get();
+        HIDE_KEYWORD_CONTENT_SUBTITLES_LANGUAGE.get();
         HIDE_KEYWORD_CONTENT_USE_AND_OPERATOR.get();
         HIDE_KEYWORD_CONTENT_USE_REGEX.get();
         HIDE_KEYWORD_CONTENT_CASE_SENSITIVE.get();

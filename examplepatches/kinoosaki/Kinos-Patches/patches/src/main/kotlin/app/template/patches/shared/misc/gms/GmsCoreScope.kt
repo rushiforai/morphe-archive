@@ -80,6 +80,9 @@ internal fun BytecodePatchContext.gmsCoreScopeFilter(scope: GmsCoreScope): (Clas
     val foundAnchors = mutableSetOf<String>()
     val foundPrefixes = mutableSetOf<String>()
     val foundMethodAnchors = mutableSetOf<String>()
+    val inScopeMethodSignatures = mutableSetOf<String>()
+    val classesWithMethodAnchors = mutableSetOf<String>()
+
     classDefForEach { classDef ->
         val prefixes = scope.classPrefixes.filter { classDef.type.startsWith(it) }
         foundPrefixes += prefixes
@@ -91,7 +94,12 @@ internal fun BytecodePatchContext.gmsCoreScopeFilter(scope: GmsCoreScope): (Clas
                 foundAnchors += anchors
                 anchored = true
             }
-            foundMethodAnchors += strings.filter { it in scope.methodAnchorStrings }
+            val methodAnchors = strings.filter { it in scope.methodAnchorStrings }
+            if (methodAnchors.isNotEmpty()) {
+                foundMethodAnchors += methodAnchors
+                classesWithMethodAnchors += classDef.type
+                inScopeMethodSignatures += "${classDef.type}->${method.name}(${method.parameterTypes.joinToString("")})${method.returnType}"
+            }
         }
         if (anchored) inScope += classDef.type
     }
@@ -101,7 +109,9 @@ internal fun BytecodePatchContext.gmsCoreScopeFilter(scope: GmsCoreScope): (Clas
     if (missing.isNotEmpty()) throw PatchException("GmsCore scope anchors not found: $missing")
 
     return { classDef, method ->
-        classDef.type in inScope || method.constStrings().any { it in scope.methodAnchorStrings }
+        classDef.type in inScope ||
+            (classDef.type in classesWithMethodAnchors &&
+                "${classDef.type}->${method.name}(${method.parameterTypes.joinToString("")})${method.returnType}" in inScopeMethodSignatures)
     }
 }
 

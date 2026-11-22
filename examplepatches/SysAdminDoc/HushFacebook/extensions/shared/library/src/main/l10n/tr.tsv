@@ -515,6 +515,10 @@ The comment box loses its GIF and sticker buttons. Typing, photos and posting wo
 # context: switch title under Comments: hides the Add a comment field at the bottom of the full-screen video viewer
 Hide the video comment box	Video izlerken yorum alanını gizle
 The Add a comment box under a full-screen video goes away. Comment boxes on posts stay.	Tam ekran bir videonun altındaki yorum alanı kaybolur. Gönderilerdeki yorum alanları kalır.
+# context: switch title under Comments; the bar along the bottom of a live video holds its comment box and the reactions you tap to send
+Hide the live video comment bar	Canlı video yorum çubuğunu gizle
+# context: description of that switch; the reactions are the Like, Love, Haha and other faces a tap sends to the live video
+The comment box and the row of reactions along the bottom of a live video go away, so a stray tap can't send one. The live comments stay.	Canlı videonun altındaki yorum kutusu ve tepki satırı kaybolur, böylece yanlışlıkla bir dokunuş tepki göndermez. Canlı yorumlar kalır.
 # context: switch title under Comments; a reply thread is the replies under a comment, which Facebook folds behind View replies
 Open every reply thread	Tüm yanıt dizilerini aç
 # context: summary of that switch; View replies is the link Facebook shows under a comment that has replies
@@ -588,6 +592,10 @@ Hide Share under posts	Gönderilerin altında Paylaş'ı gizle
 Hide Send under posts	Gönderilerin altında Gönder'i gizle
 # context: summary shared by those five switches
 Takes this button out of the row under posts in the feed. The other buttons stay, and a post with all of its buttons hidden shows no row.	Bu düğmeyi akıştaki gönderilerin altındaki satırdan kaldırır. Diğer düğmeler kalır ve tüm düğmeleri gizlenen bir gönderi satır göstermez.
+# context: switch title under News feed; the buttons are Like, Comment, Share and the others in the row under a post
+Ignore taps beside the buttons	Düğmelerin yanındaki dokunmaları yok say
+# context: description of that switch; the reaction icons are the small stacked emoji at the end of that row, and who reacted is the list of people who reacted
+A tap on the empty part of the row under a post, between the buttons and the reaction icons, does nothing instead of opening the comments or who reacted. The buttons work as before.	Bir gönderinin altındaki satırın boş kısmına, düğmelerle tepki simgeleri arasına dokunmak, yorumları veya tepki verenleri açmak yerine hiçbir şey yapmaz. Düğmeler eskisi gibi çalışır.
 # context: what stays in while Hushfacebook is paused, followed by the patch name in brackets; the row in Facebook's own Menu that opens Hushfacebook settings
 # context: a short message when the Hushfacebook row in Facebook's Menu couldn't open the settings
 Hushfacebook settings can't open here. Long-press the Facebook logo instead.	Hushfacebook ayarları burada açılamıyor. Bunun yerine Facebook logosuna basılı tut.
@@ -1962,6 +1970,10 @@ Puts the speaker button in the side column of reels, right above the three dots.
 Hide the reaction preview on posts	Gönderilerdeki tepki önizlemesini gizle
 # context: summary of that switch; "reactions" are Facebook's Like, Love, Haha and other reactions
 Hides the stacked reaction icons and the reactions count under posts. The space stays, so a tap where they were still opens the list of reactions. To take the number off the Like button too, turn on Hide counts on posts.	Gönderilerin altındaki üst üste dizilmiş tepki simgelerini ve tepki sayısını gizler. Boşluk yerinde kalır, bu yüzden eskiden oldukları yere dokunmak yine tepki listesini açar. Beğen düğmesindeki sayıyı da kaldırmak için Gönderilerdeki sayıları gizle'yi aç.
+# context: switch title under News feed; the reactions are the small stacked reaction icons (Like, Love, Haha) a post shows next to its count; the Like button is the button under a post, use Facebook's name for it
+Show reactions on the Like button	Tepkileri Beğen düğmesinde göster
+# context: summary of that switch; the faces are those reaction icons; "Hide the reaction preview on posts" is another switch, match its own row
+Moves a post's reaction faces from the end of its button row onto the Like button, right before the count. The Like button likes and reacts as before. A video showing its views there gets one Like face, or your own reaction once you react. Hide the reaction preview on posts overrules it. A change shows on the posts drawn after it.	Bir gönderinin tepki simgelerini düğme satırının sonundan Beğen düğmesine, sayının hemen önüne taşır. Beğen düğmesi eskisi gibi beğenir ve tepki verir. Orada izlenme sayısını gösteren bir video tek bir Beğen simgesi alır ya da tepki verdiğinde kendi tepkini. Gönderilerdeki tepki önizlemesini gizle bundan önce gelir. Bir değişiklik, ondan sonra gösterilen gönderilerde görünür.
 # context: switch title under Comments; the reaction preview is the stack of reaction icons in the corner of a comment
 Hide the reaction preview on comments	Yorumlardaki tepki önizlemesini gizle
 # context: summary of that switch; "reactions" are Facebook's Like, Love, Haha and other reactions
@@ -2350,7 +2362,11 @@ Moves a feed video's seek bar closer to the bottom edge, along with Facebook's s
 Seek bar on the bottom edge	Sarma çubuğu alt kenarda
 Puts a feed video's seek bar right on its bottom edge, so it's out of the way while you scroll. Facebook's speaker and tagged people buttons move up to sit above it. Wins over Lower the seek bar and speaker. Needs Seek bar on feed videos on.	Akıştaki bir videonun sarma çubuğunu tam alt kenarına koyar, böylece kaydırırken yolunuza çıkmaz. Facebook'un hoparlör ve etiketlenen kişiler düğmeleri onun üstüne çıkar. “Sarma çubuğunu ve hoparlörü aşağı al” ayarından önce gelir. “Akış videolarında sarma çubuğu” açık olmalıdır.
 Thin line seek bar	İnce çizgi sarma çubuğu
-Shows a feed video's seek bar as a thin line right on its bottom edge, like Instagram's, with no dot or times until you drag it. Live videos get it too while they can be rewound. Let go at the far right end to go back to live. Facebook's speaker and tagged people buttons move up to sit above it. Needs Seek bar on feed videos on.	Akıştaki bir videonun sarma çubuğunu, Instagram'daki gibi tam alt kenarında ince bir çizgi olarak gösterir. Siz sürükleyene kadar nokta ya da süre göstermez. Canlı videolarda da geri sarılabildikleri sürece görünür. Canlıya dönmek için en sağ uçta bırakın. Facebook'un hoparlör ve etiketlenen kişiler düğmeleri onun üstüne çıkar. “Akış videolarında sarma çubuğu” açık olmalıdır.
+# context: switch title on the Video and audio page, under Thin line seek bar; while the thin seek bar of a feed video is dragged it stays on the video's bottom edge
+Drag along the bottom edge	Alt kenar boyunca sürükle
+# context: description of that switch; Thin line seek bar is the switch title above it, keep it as translated there
+While you drag the thin line, it stays on the video's bottom edge like Instagram's, with the time in the middle, instead of rising into the full bar with a time bubble. Needs Thin line seek bar on.	İnce çizgiyi sürüklerken çizgi, Instagram'daki gibi videonun alt kenarında kalır ve süre ortada görünür. Süre balonlu tam çubuğa dönüşmez. “İnce çizgi sarma çubuğu” açık olmalıdır.
+Shows a feed video's seek bar as a thin line right on its bottom edge, like Instagram's, with no dot until you drag it. Live videos get it too while they can be rewound. Let go at the far right end to go back to live. Facebook's speaker and tagged people buttons move up to sit above it. Needs Seek bar on feed videos on.	Akıştaki bir videonun sarma çubuğunu, Instagram'daki gibi tam alt kenarında ince bir çizgi olarak gösterir. Siz sürükleyene kadar nokta göstermez. Canlı videolarda da geri sarılabildikleri sürece görünür. Canlıya dönmek için en sağ uçta bırakın. Facebook'un hoparlör ve etiketlenen kişiler düğmeleri onun üstüne çıkar. “Akış videolarında sarma çubuğu” açık olmalıdır.
 Feed video position	Akış videosu konumu
 # context: title of the row that holds a color code for the count badges on the tabs
 Badge color	Rozet rengi
@@ -2408,6 +2424,7 @@ Holding a post's photo opens its reactions, as holding Like does. It comes befor
 Holding a post's video opens its reactions too. It comes before Long press opens comments. With Hold a feed video for 2x on, that one wins and the video plays fast.	Bir gönderinin videosunu basılı tutmak da tepkilerini açar. Bu, Basılı tutma yorumları açar'dan önce gelir. 2x için akıştaki videoya basılı tut açıkken o kazanır ve video hızlı oynar.
 Reaction	Tepki
 Pick one each time	Her seferinde seç
+Slide to pick one	Kaydırarak seç
 Like	Beğen
 Love	Bayıldım
 Care	Yanındayım
@@ -2415,9 +2432,11 @@ Haha	Haha
 Wow	Vay
 Sad	Üzgün
 Angry	Kızgın
-Pick one each time. The reactions open over the post, so slide to one and let go, or let go and tap one.	Her seferinde seç. Tepkiler gönderinin üstünde açılır, yani birine kaydırıp bırak ya da bırakıp birine dokun.
+Pick one each time. The reactions open by your finger, so slide to one and let go, or let go and tap one. A tap anywhere else closes them.	Her seferinde seç. Tepkiler parmağının yanında açılır, yani birine kaydırıp bırak ya da bırakıp birine dokun. Başka bir yere dokunmak onları kapatır.
+Slide to pick one. The reactions open by your finger, so slide to one and let go. Letting go anywhere else closes them.	Kaydırarak seç. Tepkiler parmağının yanında açılır, yani birine kaydırıp bırak. Başka bir yerde bırakmak onları kapatır.
 %1$s. Holding a post gives it straight away.	%1$s. Bir gönderiyi basılı tutmak bunu hemen verir.
 Holding a post to react will open the reactions to pick from.	Tepki için bir gönderiyi basılı tutmak, seçmen için tepkileri açar.
+Holding a post to react will open the reactions to slide to one.	Tepki için bir gönderiyi basılı tutmak, birine kaydırman için tepkileri açar.
 Holding a post to react will give %1$s.	Tepki için bir gönderiyi basılı tutmak %1$s verir.
 Select text	Metni seç
 Done	Bitti
@@ -2764,6 +2783,16 @@ Takes the song and effect credits off the line under the poster's name on a stor
 Takes the row of suggested replies off the bottom of a story. The reply box stays. Applies from the next story you open.	Bir hikayenin altındaki önerilen yanıtlar satırını kaldırır. Yanıt kutusu kalır. Açtığın bir sonraki hikayeden itibaren geçerli olur.
 Hide the Subscribe button	Abone ol düğmesini gizle
 Takes the Subscribe button off the top of a story. Applies from the next story you open.	Bir hikayenin üstündeki Abone ol düğmesini kaldırır. Açtığın bir sonraki hikayeden itibaren geçerli olur.
+# context: switch title on the Stories page; the Follow button sits at the top of a story from someone you don't follow
+Hide the Follow button	Takip Et düğmesini gizle
+Takes the Follow button off the top of a story from someone you don't follow. Applies from the next story you open.	Takip etmediğin birinin hikayesinin üstündeki Takip Et düğmesini kaldırır. Açtığın bir sonraki hikayeden itibaren geçerli olur.
+# context: switch title on the Stories page; the reply bar is the row under someone else's story with the repost button, the Send message box and the quick reactions
+Hide the reply bar	Yanıt çubuğunu gizle
+# context: description of that switch; Send message is the text box Facebook shows in that row
+Takes the bar off the bottom of other people's stories, with the repost button, the Send message box and the quick reactions. Applies from the next story you open.	Başkalarının hikayelerinin altındaki çubuğu yeniden paylaşma düğmesi, Mesaj gönder kutusu ve hızlı tepkilerle birlikte kaldırır. Açtığın bir sonraki hikayeden itibaren geçerli olur.
+# context: switch title on the Stories page; Up next is the card Facebook shows over the next stories while it counts down before they play
+Hide the Up next card	Sıradaki kartını gizle
+Starts the next stories right away, without the Up next card that counts down over the first one. Applies the next time you open stories.	Sonraki hikayeleri, ilkinin üstünde geri sayan Sıradaki kartı olmadan hemen başlatır. Hikayeleri bir sonraki açışında geçerli olur.
 Hide create story cards	Hikaye oluşturma kartlarını gizle
 Takes out the cards between stories that ask you to make one, including the full screen card that asks you to continue the story with photos from your gallery. Applies the next time you open stories.	Hikayeler arasında senden bir tane oluşturmanı isteyen kartları, galerindeki fotoğraflarla hikayeye devam etmeni isteyen tam ekran kart dahil kaldırır. Hikayeleri bir sonraki açışında geçerli olur.
 Progress bar at the bottom	Altta ilerleme çubuğu
@@ -2853,10 +2882,18 @@ Hide the tab bar on the Reels tab	Reels sekmesinde sekme çubuğunu gizle
 The tab bar goes away while the Reels tab is open, and the reel gets the whole screen. The other tabs keep the bar. Restart Facebook to see the change.	Reels sekmesi açıkken sekme çubuğu kaybolur ve reel tüm ekranı kaplar. Diğer sekmeler çubuğu korur. Değişikliği görmek için Facebook'u yeniden başlatın.
 Hide the line along the tab bar	Sekme çubuğundaki çizgiyi gizle
 The thin line Facebook draws along the edge of the tab bar goes away on every tab. Tap a tab to see the change.	Facebook'un sekme çubuğunun kenarına çizdiği ince çizgi tüm sekmelerde kaybolur. Değişikliği görmek için bir sekmeye dokunun.
+# context: switch title on the tab bar settings page; a group is a Facebook group's page; the tab bar is the row of Home, Reels, Groups... tabs
+Keep the tab bar in groups	Gruplarda sekme çubuğunu koru
+# context: summary of that switch; "along the bottom" means at the bottom edge of the screen
+A group you open keeps the tab bar along the bottom, so a tap takes you straight to another tab. Works while the tab bar is at the bottom. Open a group to see the change.	Açtığın bir grup sekme çubuğunu altta tutar, böylece tek dokunuş seni doğrudan başka bir sekmeye götürür. Sekme çubuğu alttayken çalışır. Değişikliği görmek için bir grup aç.
 Playback speed in the post menu	Gönderi menüsünde oynatma hızı
 A feed or Watch video's 3-dot menu gets Playback speed, from 0.5x to 3x, live videos too. Off by default, since it hasn't been tried on a real account yet.	Akıştaki veya Watch'taki bir videonun üç nokta menüsüne 0,5x ile 3x arasında Oynatma hızı eklenir, canlı videolarda da. Varsayılan olarak kapalı, çünkü gerçek bir hesapta henüz denenmedi.
 Double tap to skip on feed videos	Akış videolarında atlamak için çift dokun
 Double tap the right side of a playing feed video to jump ahead 10 seconds, or the left side to go back 10. Keep tapping to go further. Live videos work too when they can be rewound. One tap on a side still opens the video, a moment later than usual. With Tap to play on, it needs Inline feed video controls on too.	Oynayan bir akış videosunun sağ tarafına iki kez dokunarak 10 saniye ileri, sol tarafına dokunarak 10 saniye geri atlayın. Daha ileri gitmek için dokunmaya devam edin. Geri sarılabildiğinde canlı videolarda da çalışır. Bir kenara tek dokunuş videoyu yine açar, yalnızca her zamankinden biraz geç. “Oynatmak için dokun” açıksa “Akış videosu denetimleri” de açık olmalıdır.
+# context: switch title under Video playback; a tap on a video in the news feed brings up a pause button in the middle of the video instead of opening it
+Tap shows a pause button on feed videos	Akış videolarında dokununca duraklatma düğmesi göster
+# context: description of that switch; Reels is Facebook's full-screen video viewer, keep the name; the quoted switch names match their own rows
+Tapping a feed video shows a pause button in its middle and the video keeps playing, so a tap doesn't open it in Reels. Tap the button to pause or play. Tap the video again while the button shows to open it. Ads keep their own controls. With Tap to play on, it needs Inline feed video controls on too.	Bir akış videosuna dokunmak ortasında bir duraklatma düğmesi gösterir ve video oynamaya devam eder, böylece bir dokunuş onu Reels'te açmaz. Duraklatmak ya da oynatmak için düğmeye dokunun. Düğme görünürken açmak için videoya yeniden dokunun. Reklamlar kendi denetimlerini korur. “Oynatmak için dokun” açıksa “Akış videosu denetimleri” de açık olmalıdır.
 Show only comments that match	Yalnızca eşleşen yorumları göster
 While the search box holds words, comments without them are hidden. Clearing the box brings them back.	Arama kutusunda kelime olduğu sürece, bu kelimeleri içermeyen yorumlar gizlenir. Kutuyu temizlemek onları geri getirir.
 Queue reel saves	Reel kaydetmelerini sıraya al
@@ -2899,7 +2936,7 @@ Interested	İlgileniyorum
 # context: a kind of row in a post's 3-dot menu, offered in the list of rows to hide: Facebook's row asking for fewer posts like this one
 Not interested	İlgilenmiyorum
 # context: a kind of row in a post's 3-dot menu, offered in the list of rows to hide: Facebook's row that opens its feed preferences
-Manage your Feed	Akışını yönet
+Manage your Feed / Your algorithm	Akışını yönet / Algoritman
 # context: a kind of row in a post's 3-dot menu, offered in the list of rows to hide: Facebook's row that reports the post
 Report	Şikayet et
 # context: a kind of row in a post's 3-dot menu, offered in the list of rows to hide: Facebook's row that plays the video on a TV
@@ -3091,3 +3128,6 @@ Show full names	Adları tam göster
 A long name at the top of a post wraps onto the next line instead of ending in "...". A name that fits still takes one line.	Bir gönderinin üstündeki uzun ad, "..." ile bitmek yerine sonraki satıra geçer. Sığan bir ad yine tek satırda kalır.
 Dark box behind feed video names	Akıştaki video adlarının arkasında koyu kutu
 When a video in your feed has the poster's name on top of the video, that name sits on the same dark box. A change shows on the posts drawn after it.	Akışındaki bir video, gönderi sahibinin adını videonun üstünde gösterdiğinde bu ad da aynı koyu kutunun üstünde durur. Değişiklik, sonrasında yüklenen gönderilerde görünür.
+Quality settings	Kalite ayarları
+Request community note	Topluluk notu iste
+Something went wrong	Bir şeyler ters gitti

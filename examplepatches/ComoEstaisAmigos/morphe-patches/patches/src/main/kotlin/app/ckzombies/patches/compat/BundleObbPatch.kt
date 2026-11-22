@@ -26,7 +26,7 @@ import java.nio.file.StandardCopyOption
 internal const val EMBEDDED_OBB_NAME = "main.310.com.glu.android.zombsniper.obb"
 internal const val EMBEDDED_OBB_ASSET = "assets/$EMBEDDED_OBB_NAME"
 
-private const val EMBEDDED_GPK = "Lapp/ckzombies/extension/EmbeddedGpk;"
+private const val EMBEDDED_OBB = "Lapp/ckzombies/extension/EmbeddedObb;"
 private const val UNCOMPRESSED_JSON = "uncompressed-files.json"
 
 internal object FindGpkFileFingerprint : Fingerprint(
@@ -162,7 +162,7 @@ internal fun hookFindGpkFile(method: MutableMethod) {
     method.addInstructionsWithLabels(
         0,
         """
-            invoke-static {}, $EMBEDDED_GPK->findEmbedded()Ljava/io/File;
+            invoke-static {}, $EMBEDDED_OBB->findEmbedded()Ljava/io/File;
             move-result-object v0
             if-eqz v0, :miss
             return-object v0
@@ -183,7 +183,7 @@ internal fun hookResdlEvent(method: MutableMethod) {
         val valueReg = method.getInstruction<OneRegisterInstruction>(index).registerA
         method.replaceInstruction(
             index,
-            "invoke-static {p0, v$valueReg}, $EMBEDDED_GPK->adjustEvent(II)I",
+            "invoke-static {p0, v$valueReg}, $EMBEDDED_OBB->adjustEvent(II)I",
         )
         method.addInstructions(
             index + 1,
@@ -222,7 +222,7 @@ internal fun hookMovieOffset(method: MutableMethod) {
     method.addInstructions(
         intToLong,
         """
-            invoke-static {v$offsetReg}, $EMBEDDED_GPK->adjustOffset(I)I
+            invoke-static {v$offsetReg}, $EMBEDDED_OBB->adjustOffset(I)I
             move-result v$offsetReg
         """,
     )

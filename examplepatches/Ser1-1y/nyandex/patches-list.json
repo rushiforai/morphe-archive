@@ -1,0 +1,622 @@
+{
+  "NOTE": "Do NOT manually edit this file. This file is automatically updated when semantic release (release.yml) runs. Manually editing this file can break your releases and break third party tools that use this file.",
+  "version": "1.6.0",
+  "patches": [
+    {
+      "name": "Блокировать аналитику Плюса",
+      "description": "Перенаправляет на localhost хосты событий и привлечения Плюса, а также устаревшие триггеры динамических страниц.",
+      "default": true,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "ru.yandex.music",
+          "name": "Yandex Music",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#FFCC00",
+          "signatures": null,
+          "formFactor": "MOBILE",
+          "targets": [
+            {
+              "version": "2026.11.1 #171gpr",
+              "versionCodes": {
+                "ARM64_V8A": 24026561,
+                "ARMEABI_V7A": 24026561,
+                "X86_64": 24026561,
+                "X86": 24026561
+              },
+              "isExperimental": false,
+              "minSdk": 24,
+              "description": null
+            },
+            {
+              "version": "2026.11.2 #172.1gpr",
+              "versionCodes": {
+                "ARM64_V8A": 24026572,
+                "ARMEABI_V7A": 24026572,
+                "X86_64": 24026572,
+                "X86": 24026572
+              },
+              "isExperimental": false,
+              "minSdk": 32,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Настройки Nyandex",
+      "description": "Добавляет страницу «Настройки Nyandex», которая открывается новой строкой вверху настроек приложения. Там же показываются параметры патчей.",
+      "default": true,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "ru.yandex.music",
+          "name": "Yandex Music",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#FFCC00",
+          "signatures": null,
+          "formFactor": "MOBILE",
+          "targets": [
+            {
+              "version": "2026.11.1 #171gpr",
+              "versionCodes": {
+                "ARM64_V8A": 24026561,
+                "ARMEABI_V7A": 24026561,
+                "X86_64": 24026561,
+                "X86": 24026561
+              },
+              "isExperimental": false,
+              "minSdk": 24,
+              "description": null
+            },
+            {
+              "version": "2026.11.2 #172.1gpr",
+              "versionCodes": {
+                "ARM64_V8A": 24026572,
+                "ARMEABI_V7A": 24026572,
+                "X86_64": 24026572,
+                "X86": 24026572
+              },
+              "isExperimental": false,
+              "minSdk": 32,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Отдельный аккаунт Passport",
+      "description": "Требуется для работы. Создаёт собственный тип аккаунта Passport, не мешая работе других приложений Яндекс.",
+      "default": true,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "ru.yandex.music",
+          "name": "Yandex Music",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#FFCC00",
+          "signatures": null,
+          "formFactor": "MOBILE",
+          "targets": [
+            {
+              "version": "2026.11.1 #171gpr",
+              "versionCodes": {
+                "ARM64_V8A": 24026561,
+                "ARMEABI_V7A": 24026561,
+                "X86_64": 24026561,
+                "X86": 24026561
+              },
+              "isExperimental": false,
+              "minSdk": 24,
+              "description": null
+            },
+            {
+              "version": "2026.11.2 #172.1gpr",
+              "versionCodes": {
+                "ARM64_V8A": 24026572,
+                "ARMEABI_V7A": 24026572,
+                "X86_64": 24026572,
+                "X86": 24026572
+              },
+              "isExperimental": false,
+              "minSdk": 32,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Отключить Play Billing",
+      "description": "Отключает вызовы Play Billing и Play Core. Делает покупки недоступными.",
+      "default": true,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "ru.yandex.music",
+          "name": "Yandex Music",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#FFCC00",
+          "signatures": null,
+          "formFactor": "MOBILE",
+          "targets": [
+            {
+              "version": "2026.11.1 #171gpr",
+              "versionCodes": {
+                "ARM64_V8A": 24026561,
+                "ARMEABI_V7A": 24026561,
+                "X86_64": 24026561,
+                "X86": 24026561
+              },
+              "isExperimental": false,
+              "minSdk": 24,
+              "description": null
+            },
+            {
+              "version": "2026.11.2 #172.1gpr",
+              "versionCodes": {
+                "ARM64_V8A": 24026572,
+                "ARMEABI_V7A": 24026572,
+                "X86_64": 24026572,
+                "X86": 24026572
+              },
+              "isExperimental": false,
+              "minSdk": 32,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Отключить телеметрию",
+      "description": "Отключает адреса и описания сервисов AppsFlyer, AppMetrica, OpenTelemetry и Firebase/Crashlytics.",
+      "default": true,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "ru.yandex.music",
+          "name": "Yandex Music",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#FFCC00",
+          "signatures": null,
+          "formFactor": "MOBILE",
+          "targets": [
+            {
+              "version": "2026.11.1 #171gpr",
+              "versionCodes": {
+                "ARM64_V8A": 24026561,
+                "ARMEABI_V7A": 24026561,
+                "X86_64": 24026561,
+                "X86": 24026561
+              },
+              "isExperimental": false,
+              "minSdk": 24,
+              "description": null
+            },
+            {
+              "version": "2026.11.2 #172.1gpr",
+              "versionCodes": {
+                "ARM64_V8A": 24026572,
+                "ARMEABI_V7A": 24026572,
+                "X86_64": 24026572,
+                "X86": 24026572
+              },
+              "isExperimental": false,
+              "minSdk": 32,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Подменить заголовок сертификата Firebase",
+      "description": "Передаёт сертификат оригинального приложения в заголовке X-Android-Cert, который использует Firebase Installations, чтобы переподпись APK не ломала Firebase.",
+      "default": true,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "ru.yandex.music",
+          "name": "Yandex Music",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#FFCC00",
+          "signatures": null,
+          "formFactor": "MOBILE",
+          "targets": [
+            {
+              "version": "2026.11.1 #171gpr",
+              "versionCodes": {
+                "ARM64_V8A": 24026561,
+                "ARMEABI_V7A": 24026561,
+                "X86_64": 24026561,
+                "X86": 24026561
+              },
+              "isExperimental": false,
+              "minSdk": 24,
+              "description": null
+            },
+            {
+              "version": "2026.11.2 #172.1gpr",
+              "versionCodes": {
+                "ARM64_V8A": 24026572,
+                "ARMEABI_V7A": 24026572,
+                "X86_64": 24026572,
+                "X86": 24026572
+              },
+              "isExperimental": false,
+              "minSdk": 32,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Подменить подпись приложения",
+      "description": "Нужен для входа. Приложение видит свою оригинальную подпись Яндекса, поэтому вход через Яндекс ID и другие проверки подписи работают после переподписи APK в Morphe.",
+      "default": true,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "ru.yandex.music",
+          "name": "Yandex Music",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#FFCC00",
+          "signatures": null,
+          "formFactor": "MOBILE",
+          "targets": [
+            {
+              "version": "2026.11.1 #171gpr",
+              "versionCodes": {
+                "ARM64_V8A": 24026561,
+                "ARMEABI_V7A": 24026561,
+                "X86_64": 24026561,
+                "X86": 24026561
+              },
+              "isExperimental": false,
+              "minSdk": 24,
+              "description": null
+            },
+            {
+              "version": "2026.11.2 #172.1gpr",
+              "versionCodes": {
+                "ARM64_V8A": 24026572,
+                "ARMEABI_V7A": 24026572,
+                "X86_64": 24026572,
+                "X86": 24026572
+              },
+              "isExperimental": false,
+              "minSdk": 32,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Разблокировать Яндекс Плюс",
+      "description": "Разблокирует клиентский код, включающий подписку Plus.",
+      "default": true,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "ru.yandex.music",
+          "name": "Yandex Music",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#FFCC00",
+          "signatures": null,
+          "formFactor": "MOBILE",
+          "targets": [
+            {
+              "version": "2026.11.1 #171gpr",
+              "versionCodes": {
+                "ARM64_V8A": 24026561,
+                "ARMEABI_V7A": 24026561,
+                "X86_64": 24026561,
+                "X86": 24026561
+              },
+              "isExperimental": false,
+              "minSdk": 24,
+              "description": null
+            },
+            {
+              "version": "2026.11.2 #172.1gpr",
+              "versionCodes": {
+                "ARM64_V8A": 24026572,
+                "ARMEABI_V7A": 24026572,
+                "X86_64": 24026572,
+                "X86": 24026572
+              },
+              "isExperimental": false,
+              "minSdk": 32,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Скрыть вкладки нижней панели",
+      "description": "Добавляет настройки скрытия нижних панелей в параметры Nyandex.",
+      "default": true,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "ru.yandex.music",
+          "name": "Yandex Music",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#FFCC00",
+          "signatures": null,
+          "formFactor": "MOBILE",
+          "targets": [
+            {
+              "version": "2026.11.1 #171gpr",
+              "versionCodes": {
+                "ARM64_V8A": 24026561,
+                "ARMEABI_V7A": 24026561,
+                "X86_64": 24026561,
+                "X86": 24026561
+              },
+              "isExperimental": false,
+              "minSdk": 24,
+              "description": null
+            },
+            {
+              "version": "2026.11.2 #172.1gpr",
+              "versionCodes": {
+                "ARM64_V8A": 24026572,
+                "ARMEABI_V7A": 24026572,
+                "X86_64": 24026572,
+                "X86": 24026572
+              },
+              "isExperimental": false,
+              "minSdk": 32,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Тактильный отклик",
+      "description": "Добавляет настройки виброотклика при нажатии клавиш в параметры Nyandex.",
+      "default": true,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "ru.yandex.music",
+          "name": "Yandex Music",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#FFCC00",
+          "signatures": null,
+          "formFactor": "MOBILE",
+          "targets": [
+            {
+              "version": "2026.11.1 #171gpr",
+              "versionCodes": {
+                "ARM64_V8A": 24026561,
+                "ARMEABI_V7A": 24026561,
+                "X86_64": 24026561,
+                "X86": 24026561
+              },
+              "isExperimental": false,
+              "minSdk": 24,
+              "description": null
+            },
+            {
+              "version": "2026.11.2 #172.1gpr",
+              "versionCodes": {
+                "ARM64_V8A": 24026572,
+                "ARMEABI_V7A": 24026572,
+                "X86_64": 24026572,
+                "X86": 24026572
+              },
+              "isExperimental": false,
+              "minSdk": 32,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Тексты песен из LRCLIB",
+      "description": "Получает тексты песен из LRCLIB. API текстов Яндекса не используется.",
+      "default": true,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "ru.yandex.music",
+          "name": "Yandex Music",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#FFCC00",
+          "signatures": null,
+          "formFactor": "MOBILE",
+          "targets": [
+            {
+              "version": "2026.11.1 #171gpr",
+              "versionCodes": {
+                "ARM64_V8A": 24026561,
+                "ARMEABI_V7A": 24026561,
+                "X86_64": 24026561,
+                "X86": 24026561
+              },
+              "isExperimental": false,
+              "minSdk": 24,
+              "description": null
+            },
+            {
+              "version": "2026.11.2 #172.1gpr",
+              "versionCodes": {
+                "ARM64_V8A": 24026572,
+                "ARMEABI_V7A": 24026572,
+                "X86_64": 24026572,
+                "X86": 24026572
+              },
+              "isExperimental": false,
+              "minSdk": 32,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Тема Monet",
+      "description": "(Android 12+) Окрашивает большУю часть элементов интерфейсов в цвета Material You, генерируемые из Ваших обоев.",
+      "default": false,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "ru.yandex.music",
+          "name": "Yandex Music",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#FFCC00",
+          "signatures": null,
+          "formFactor": "MOBILE",
+          "targets": [
+            {
+              "version": "2026.11.1 #171gpr",
+              "versionCodes": {
+                "ARM64_V8A": 24026561,
+                "ARMEABI_V7A": 24026561,
+                "X86_64": 24026561,
+                "X86": 24026561
+              },
+              "isExperimental": false,
+              "minSdk": 24,
+              "description": null
+            },
+            {
+              "version": "2026.11.2 #172.1gpr",
+              "versionCodes": {
+                "ARM64_V8A": 24026572,
+                "ARMEABI_V7A": 24026572,
+                "X86_64": 24026572,
+                "X86": 24026572
+              },
+              "isExperimental": false,
+              "minSdk": 32,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Убрать заголовки отслеживания",
+      "description": "Перестаёт добавлять X-Request-Id и идентификаторы устройства Яндекса в запросы Музыки и Плюса.",
+      "default": true,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "ru.yandex.music",
+          "name": "Yandex Music",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#FFCC00",
+          "signatures": null,
+          "formFactor": "MOBILE",
+          "targets": [
+            {
+              "version": "2026.11.1 #171gpr",
+              "versionCodes": {
+                "ARM64_V8A": 24026561,
+                "ARMEABI_V7A": 24026561,
+                "X86_64": 24026561,
+                "X86": 24026561
+              },
+              "isExperimental": false,
+              "minSdk": 24,
+              "description": null
+            },
+            {
+              "version": "2026.11.2 #172.1gpr",
+              "versionCodes": {
+                "ARM64_V8A": 24026572,
+                "ARMEABI_V7A": 24026572,
+                "X86_64": 24026572,
+                "X86": 24026572
+              },
+              "isExperimental": false,
+              "minSdk": 32,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Чистые ссылки",
+      "description": "Убирает из ссылок «Поделиться» и «Скопировать ссылку» метки utm_* и случайный ref_id, по которому переход по ссылке можно связать с тем, кто ею поделился. Ссылки-приглашения сохраняют invite_id.",
+      "default": true,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "ru.yandex.music",
+          "name": "Yandex Music",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#FFCC00",
+          "signatures": null,
+          "formFactor": "MOBILE",
+          "targets": [
+            {
+              "version": "2026.11.1 #171gpr",
+              "versionCodes": {
+                "ARM64_V8A": 24026561,
+                "ARMEABI_V7A": 24026561,
+                "X86_64": 24026561,
+                "X86": 24026561
+              },
+              "isExperimental": false,
+              "minSdk": 24,
+              "description": null
+            },
+            {
+              "version": "2026.11.2 #172.1gpr",
+              "versionCodes": {
+                "ARM64_V8A": 24026572,
+                "ARMEABI_V7A": 24026572,
+                "X86_64": 24026572,
+                "X86": 24026572
+              },
+              "isExperimental": false,
+              "minSdk": 32,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    }
+  ]
+}

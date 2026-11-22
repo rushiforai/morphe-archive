@@ -36,6 +36,15 @@ private val bundleStubsByVersion = mapOf(
         BundleStub("AdListItem", 0x8B221C, byteArrayOf(0x6C, 0x00, 0x01, 0x37), STUB_NULL),
         BundleStub("BannerAdWrapperComponent.render", 0x5FD284, byteArrayOf(0x7C, 0x0C, 0x36, 0x00), STUB_NULL),
     ),
+    "6.71.0.5706597.b05d0421" to listOf(
+        BundleStub("hasActiveDeviceSubscriptions", 0x39F8B0, byteArrayOf(0x29, 0x00, 0x00, 0x2E), STUB_TRUE),
+        BundleStub("getAdsForSection", 0x3D50BC, byteArrayOf(0x6C, 0x08, 0x01, 0x6C, 0x0A, 0x02), STUB_EMPTY_ARRAY),
+        BundleStub("getAdPositions", 0x4BE458, byteArrayOf(0x7C, 0x03, 0x37, 0x02, 0x03, 0x01), STUB_EMPTY_ARRAY),
+        BundleStub("SparkleAdComponentInner", 0x70790F, byteArrayOf(0x32, 0x00, 0x6C, 0x01), STUB_NULL),
+        BundleStub("AdListItem", 0x799152, byteArrayOf(0x6C, 0x00, 0x01, 0x37), STUB_NULL),
+        BundleStub("AdListItem", 0x81677D, byteArrayOf(0x6C, 0x00, 0x01, 0x37), STUB_NULL),
+        BundleStub("AdListItem", 0x8430A0, byteArrayOf(0x6C, 0x00, 0x01, 0x37), STUB_NULL),
+    ),
 )
 
 @Suppress("unused")

@@ -74,6 +74,11 @@
     <string name="morphe_hide_keyword_content_check_subtitles_summary">Ищет слова из фильтра в субтитрах открытого видео и нативно показывает найденные фрагменты с таймкодами в описании (без скрытия ролика)</string>
     <string name="morphe_hide_keyword_subtitles_inline">В субтитрах: %s</string>
     <string name="morphe_hide_keyword_subtitles_header">Совпадения в субтитрах</string>
+    <string name="morphe_hide_keyword_content_subtitles_language_title">Язык проверяемых субтитров</string>
+    <string name="morphe_hide_keyword_subtitles_lang_original">Оригинальный язык видео</string>
+    <string name="morphe_hide_keyword_subtitles_lang_app">Язык приложения</string>
+    <string name="morphe_hide_keyword_subtitles_lang_ru">Русский</string>
+    <string name="morphe_hide_keyword_subtitles_lang_en">English</string>
     <string name="morphe_hide_keyword_debug_badge">[Найдено: «%1$s» в %2$s]</string>
     <string name="morphe_hide_keyword_log_title">Журнал срабатываний фильтра</string>
     <string name="morphe_hide_keyword_log_summary">Записей: %s</string>

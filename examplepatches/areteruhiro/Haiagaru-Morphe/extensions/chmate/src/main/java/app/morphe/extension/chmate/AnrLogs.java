@@ -37,12 +37,14 @@ final class AnrLogs {
                     if(input==null)report.append("Android did not retain an ANR trace.\n");
                     else{ByteArrayOutputStream bytes=new ByteArrayOutputStream();byte[] buffer=new byte[8192];int n;while(bytes.size()<1024*1024&&(n=input.read(buffer,0,Math.min(buffer.length,1024*1024-bytes.size())))!=-1)bytes.write(buffer,0,n);report.append(new String(bytes.toByteArray(),StandardCharsets.UTF_8));if(bytes.size()==1024*1024)report.append("\n[Trace limited to 1 MiB]\n");}
                 }catch(IOException unavailable){report.append("ANR trace unavailable.\n");}
+                CrashReportDelivery.enqueue(context,"ANR",exit.getTimestamp(),report.toString());
                 Haiagaru.writeDownloadLog(context,"chmate-anr-"+exit.getTimestamp()+"-"+exit.getPid()+".txt",report.toString());
                 done.add(key);
             }
             if(done.size()>128){ArrayList<String> keys=new ArrayList<>(done);Collections.sort(keys);done=new HashSet<>(keys.subList(keys.size()-128,keys.size()));}
             saved.edit().putStringSet("recorded",done).apply();
         }catch(Exception error){android.util.Log.w("Haiagaru","Unable to collect ANR exit logs",error);}
+        finally{CrashReportDelivery.flush(context);}
     }
     private AnrLogs(){}
 }

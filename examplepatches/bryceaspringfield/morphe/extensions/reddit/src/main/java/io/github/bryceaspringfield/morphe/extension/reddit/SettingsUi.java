@@ -137,6 +137,7 @@ final class SettingsUi {
         if (screen == null || context == null || manager == null) return;
         SCREENS.clear();
         SCREENS.add(screen);
+        SettingsSearch.fragment(fragment);
         NSFW_SWITCHES.clear();
         NSFW_ROWS.clear();
         Profiles.morpheFile(manager.getSharedPreferencesName());
@@ -296,6 +297,8 @@ final class SettingsUi {
 
         nestCategories(context, manager, screen);
         groupNsfw(context, screen);
+        item(context, screen, "Search settings", () -> null, p -> SettingsSearch.show(context, screen, p))
+                .setOrder(-1);
     }
 
     // region 18+
@@ -354,7 +357,7 @@ final class SettingsUi {
     /** Moves a row into an 18+ group, overridden by the master switch. */
     private static void moveInto(PreferenceGroup page, PreferenceCategory to, Preference row) {
         if (row == null || !page.removePreference(row)) return;
-        to.addPreference(row);
+        attach(to, row);
         nsfwRow(row);
     }
 
@@ -975,11 +978,21 @@ final class SettingsUi {
     }
 
     /**
-     * The app's string resource {@code name} (one Morphe Patches adds), or null.
+     * The app's string resource {@code name} (one Morphe Patches adds), or null. Read through Morphe's own lookup
+     * first, since Morphe's titles follow its language, which can differ from the language of the screen's context:
+     * a title read in another language matched no category, and each lookup added a category of the same name
+     * (0.3.10: three Layout categories).
      */
     private static String morpheString(Context context, String name) {
         int id = context.getResources().getIdentifier(name, "string", context.getPackageName());
-        return id == 0 ? null : context.getString(id);
+        if (id == 0) return null;
+        try {
+            Object text = Class.forName("app.morphe.extension.shared.StringRef").getMethod("str", String.class)
+                    .invoke(null, name);
+            if (text instanceof String && !((String) text).isEmpty() && !name.equals(text)) return (String) text;
+        } catch (Exception ignored) {
+        }
+        return context.getString(id);
     }
 
     /** Moves Morphe's preference {@code key}, wherever its category holds it, into {@code target}. */
@@ -988,7 +1001,17 @@ final class SettingsUi {
         if (holder == null || holder == target) return;
         Preference preference = holder.findPreference(key);
         holder.removePreference(preference);
-        target.addPreference(preference);
+        attach(target, preference);
+    }
+
+    /**
+     * Adds a row taken out of another group. One of Morphe's own rows saves its setting only when it is persistent
+     * at the moment it joins a screen, and it turns that off once joined, so a row moved as it is would join the
+     * second time unable to save (0.3.10: Morphe's switches moved into the nested pages kept no change).
+     */
+    private static void attach(PreferenceGroup group, Preference row) {
+        if (row.hasKey() && row.getClass().getName().startsWith("app.morphe.")) row.setPersistent(true);
+        group.addPreference(row);
     }
 
     private static PreferenceCategory categoryTitled(Context context, PreferenceScreen screen, String titleName) {
@@ -1040,19 +1063,26 @@ final class SettingsUi {
             Preference child = root.getPreference(i);
             if (child instanceof PreferenceCategory) categories.add((PreferenceCategory) child);
         }
+        // Categories with one title become one page, whatever made them.
+        Map<String, PreferenceScreen> pages = new java.util.HashMap<>();
         for (PreferenceCategory category : categories) {
             int order = category.getOrder();
             CharSequence title = category.getTitle();
+            String name = title == null ? "" : title.toString();
             List<Preference> rows = new ArrayList<>();
             for (int i = 0; i < category.getPreferenceCount(); i++) rows.add(category.getPreference(i));
             root.removePreference(category);
             if (rows.isEmpty()) continue;
-            PreferenceScreen nested = screen(context, manager, root, title == null ? "" : title.toString());
-            nested.setOrder(order);
-            if (category.getKey() != null) nested.setKey(category.getKey() + "_screen");
+            PreferenceScreen nested = pages.get(name);
+            if (nested == null) {
+                nested = screen(context, manager, root, name);
+                nested.setOrder(order);
+                pages.put(name, nested);
+            }
+            if (category.getKey() != null && nested.getKey() == null) nested.setKey(category.getKey() + "_screen");
             for (Preference row : rows) {
                 category.removePreference(row);
-                nested.addPreference(row);
+                attach(nested, row);
             }
         }
     }

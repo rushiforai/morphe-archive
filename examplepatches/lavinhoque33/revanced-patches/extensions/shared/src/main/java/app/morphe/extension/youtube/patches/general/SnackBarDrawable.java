@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2026 lavinhoque33
  * Licensed under the GNU General Public License v3.0.
- * Modified by lavinhoque33, 2026-11-20.
+ * Modified by lavinhoque33, 2026-11-21.
  * Written by lavinhoque33, 2026-11-18.
  */
 
@@ -110,7 +110,7 @@ public class SnackBarDrawable extends GradientDrawable {
         if (theme == null) return;
 
         TypedValue value = new TypedValue();
-        captureChipStroke(theme, value);
+        captureChipStroke(chipStrokeTheme(theme), value);
         if (!stylesFillAndBorder()) return;
 
         // Read the fill's role from the resolved snackbar theme, not the app theme or system night mode.
@@ -123,7 +123,6 @@ public class SnackBarDrawable extends GradientDrawable {
     }
 
     private void captureChipStroke(Resources.Theme theme, TypedValue value) {
-        // Resolve Chip from the theme that inflated this background. Only snack bars may use inversion.
         int chipAttr = ResourceUtils.getAttrIdentifier("ytChipBackground");
         if (chipAttr == 0 || !theme.resolveAttribute(chipAttr, value, true)) return;
 
@@ -198,6 +197,10 @@ public class SnackBarDrawable extends GradientDrawable {
         return stylesFillAndBorder();
     }
 
+    Resources.Theme chipStrokeTheme(Resources.Theme theme) {
+        return theme;
+    }
+
     static float radiusDp() {
         return sizeDp(Settings.SNACK_BAR_CORNER_RADIUS);
     }
@@ -265,6 +268,11 @@ public class SnackBarDrawable extends GradientDrawable {
         @Override
         protected boolean usesBorderTheme() {
             return true;
+        }
+
+        @Override
+        Resources.Theme chipStrokeTheme(Resources.Theme theme) {
+            return SnackBarPatch.invertPlaylistChipTheme(theme);
         }
 
         @Override

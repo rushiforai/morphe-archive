@@ -1,0 +1,48 @@
+name: Patch failure
+description: Report an SD Maid SE FOSS patching failure with diagnostic information.
+title: "Patch failure: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        This source targets the original GitHub FOSS APK. Google Play APKs are unsupported.
+        Please update Morphe and the patch source, then include the complete patching log.
+  - type: input
+    id: apk_version
+    attributes:
+      label: SD Maid SE APK version
+      placeholder: e.g. 2.2.2-rc0
+    validations:
+      required: true
+  - type: input
+    id: apk_source
+    attributes:
+      label: APK download source
+      description: Paste the exact download URL or name the store/distribution.
+    validations:
+      required: true
+  - type: input
+    id: morphe_version
+    attributes:
+      label: Morphe version
+    validations:
+      required: true
+  - type: input
+    id: patch_version
+    attributes:
+      label: Patch bundle version
+      placeholder: e.g. 0.1.1
+    validations:
+      required: true
+  - type: textarea
+    id: log
+    attributes:
+      label: Complete patching log
+      description: Export or copy the entire Morphe patching log, including the first error.
+      render: text
+    validations:
+      required: true
+  - type: textarea
+    id: device
+    attributes:
+      label: Device and Android version

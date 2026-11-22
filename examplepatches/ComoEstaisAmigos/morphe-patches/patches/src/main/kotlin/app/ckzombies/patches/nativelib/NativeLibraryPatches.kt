@@ -10,6 +10,21 @@ internal val ABIS = listOf("armeabi", "armeabi-v7a")
 
 private fun libraryPath(abi: String) = "lib/$abi/${NativeEdits.LIBRARY}"
 
+private fun String.hexToBytes() = ByteArray(length / 2) { substring(it * 2, it * 2 + 2).toInt(16).toByte() }
+
+/**
+ * Maps the first-segment padding both the currency cave and the civilian stubs sit in.
+ * Safe to run twice: `armeabi` splices its extra page only when the file still has Glu's
+ * original LOAD1 size, and growing to the page boundary is a no-op once it is already there.
+ */
+internal fun Elf32.mapExecutablePadding(abi: String) {
+    val plan = NativeEdits.PADDING.getValue(abi)
+    if (plan.spliceAtOffset != null && firstLoadFileSize() == plan.spliceAtOffset) {
+        splice(plan.spliceAtOffset, plan.spliceSize)
+    }
+    growFirstLoadToAtLeast(plan.load1End)
+}
+
 /**
  * Refuses every build but Glu's own. Every native patch depends on this, so it runs before any
  * of them touches a library: a repack or an already patched APK stops here, not halfway.
@@ -61,8 +76,6 @@ internal val textRelocationPatch = patch {
 /** Bytes claimed past the end of .bss for the cave's one-shot flag. */
 private const val FLAG_BYTES = 8
 
-private fun String.hexToBytes() = ByteArray(length / 2) { substring(it * 2, it * 2 + 2).toInt(16).toByte() }
-
 /**
  * Gives a fresh install 999,999,999 credits and the same in cash.
  *
@@ -97,10 +110,55 @@ val unlimitedCurrencyPatch = patch(
             val file = resourceFile(libraryPath(abi))
             val elf = Elf32(file.readBytes())
             try {
-                plan.spliceAtOffset?.let { elf.splice(it, plan.spliceSize) }
-                elf.growFirstLoadTo(plan.load1End)
+                elf.mapExecutablePadding(abi)
                 elf.extendLastLoadMemory(FLAG_BYTES)
                 elf.writeIntoZeros(plan.cave, plan.caveBytes.hexToBytes())
+                elf.apply(plan.edits)
+            } catch (e: IllegalStateException) {
+                throw PatchException("${libraryPath(abi)}: ${e.message}", e)
+            } catch (e: IllegalArgumentException) {
+                throw PatchException("${libraryPath(abi)}: ${e.message}", e)
+            }
+            file.writeBytes(elf.bytes())
+        }
+    }
+}
+
+/**
+ * Stops civilians from taking damage or reacting when the player shoots them or when a
+ * blast or grenade fragment hits them. Zombies can still kill them.
+ *
+ * `CUnit::ReceivedDamageFromPlayer()` already returns when the unit is a civilian, the
+ * healing gun is not in hand, and `SetVulnerability(false)` has been called. Units spawn
+ * vulnerable, so the shot still lands. The `bne` that takes that path becomes a no-op, so
+ * a civilian always hits the healing-gun check and otherwise returns: no HP change, no
+ * wound animation, no mission-failed kill. Type 2, the healing gun, still heals them.
+ *
+ * Blasts and fragments have no such check. Their first `ldrb` of the neutralized flag is
+ * replaced with a `bl` to a stub in the first-segment padding that returns if
+ * `CUnit::IsCivilian()` is set and otherwise does that `ldrb` and comes back. Two stubs
+ * per ABI because the two functions pushed different frames.
+ *
+ * `ReceivedDamageFromUnit()` is not touched.
+ */
+@Suppress("unused")
+val protectCiviliansPatch = patch(
+    name = "Disable friendly fire",
+    description = "Makes civilians immune to the player's shots and explosions.",
+) {
+    compatibleWith(COMPATIBILITY_CK_ZOMBIES)
+
+    dependsOn(nativeLibraryCheckPatch, obbMessagePatch)
+
+    execute {
+        for (abi in ABIS) {
+            val plan = NativeEdits.CIVILIAN_IMMUNITY.getValue(abi)
+            val file = resourceFile(libraryPath(abi))
+            val elf = Elf32(file.readBytes())
+            try {
+                elf.mapExecutablePadding(abi)
+                elf.writeIntoZeros(plan.blastCave, plan.blastCaveBytes.hexToBytes())
+                elf.writeIntoZeros(plan.fragCave, plan.fragCaveBytes.hexToBytes())
                 elf.apply(plan.edits)
             } catch (e: IllegalStateException) {
                 throw PatchException("${libraryPath(abi)}: ${e.message}", e)

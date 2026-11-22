@@ -1,3 +1,29 @@
+## [2.5.3](https://github.com/amfakh/fakh-patches/compare/v2.5.2...v2.5.3) (2026-11-22)
+
+### Updated App Support
+
+* **GitHub:** add build numbers `953` to `956` for `1.282.0` to `1.285.0` ([cea9456](https://github.com/amfakh/fakh-patches/commit/cea94566fa24ba67f14134648faab60717b500f1))
+* **LinkedIn:** add build numbers `217200` to `218600` for `4.1.1264` to `4.1.1278` ([4b15d00](https://github.com/amfakh/fakh-patches/commit/4b15d00eaf40fe0ed14ce04fe122f7b721f706f1))
+
+## [2.5.2](https://github.com/amfakh/fakh-patches/compare/v2.5.1...v2.5.2) (2026-11-22)
+
+### Updated App Support
+
+* **GitHub:** add support for `1.285.0`, next to `1.284.0` ([8191b11](https://github.com/amfakh/fakh-patches/commit/8191b11b833258d899ec6ac455b17381a560b098))
+* **LinkedIn:** add support for `4.1.1278`, next to `4.1.1276` ([1ec6f14](https://github.com/amfakh/fakh-patches/commit/1ec6f14900f44e09b371129995a2b4756edac503))
+
+## [2.5.1](https://github.com/amfakh/fakh-patches/compare/v2.5.0...v2.5.1) (2026-11-21)
+
+### Bug Fixes
+
+* **Muslim Pro:** fix `Hide ads` failing to patch in Morphe Manager ([c999ba8](https://github.com/amfakh/fakh-patches/commit/c999ba847175ae4919fa01119d8e631d1e295453))
+
+## [2.5.0](https://github.com/amfakh/fakh-patches/compare/v2.4.0...v2.5.0) (2026-11-21)
+
+### New Features
+
+* **Muslim Pro:** add support for `17.11` with Premium unlock, Hide ads, Material You and Disable analytics ([619646b](https://github.com/amfakh/fakh-patches/commit/619646ba81b4467b747905232b74562294d1b9b5))
+
 ## [2.4.0](https://github.com/amfakh/fakh-patches/compare/v2.3.2...v2.4.0) (2026-11-21)
 
 ### New Features

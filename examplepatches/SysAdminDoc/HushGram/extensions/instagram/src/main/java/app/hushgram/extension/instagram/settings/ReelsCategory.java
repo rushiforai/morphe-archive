@@ -92,6 +92,9 @@ final class ReelsCategory {
                         L10n.t("Leaves out posts on Home whose caption holds a word or phrase from the list too. "
                                 + "Pull down on Home to refresh after changing it.")));
             }
+            reels.add(toggle(context, Settings.HIDE_CAPTION_WORD_COMMENTS, L10n.t("Also in comments"),
+                    L10n.t("Hides comments that hold a word or phrase from the list too, and comments by an account "
+                            + "the list names with @. A hidden comment's replies go with it.")));
             reels.add(toggle(context, Settings.HIDE_OTHER_LANGUAGE_REELS, L10n.t("Hide reels in other languages"),
                     L10n.t("Leaves out reels in the Reels tab whose caption is in a language you didn't list below. "
                             + "A caption too short to tell, or a reel you open yourself, still shows.")));
@@ -431,6 +434,11 @@ final class ReelsCategory {
             reels.add(toggle(context, Settings.REEL_PROFILE_TAB_BAR, L10n.t("Keep the tab bar on a reel's profile"),
                     L10n.t("A profile you open from a reel stays on the tab you're on, with the tab bar under it. "
                             + "Back goes back to the reel.")));
+        }
+        if (build.contains(PatchFamily.REEL_LINK_TAB_BAR)) {
+            reels.add(toggle(context, Settings.REEL_LINK_TAB_BAR, L10n.t("Keep the tab bar on reel links"),
+                    L10n.t("A reel link you open from another app plays on the tab you were on, with the tab bar "
+                            + "under it. Back goes back to that tab.")));
         }
         if (build.contains(PatchFamily.REEL_ORIGIN)) {
             reels.add(toggle(context, Settings.FIND_REEL_ORIGIN, L10n.t("Find the reel you came from"),

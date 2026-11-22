@@ -17,6 +17,7 @@ import java.util.List;
 
 import app.noam.extension.chesscom.crash.CrashHandler;
 import app.noam.extension.chesscom.discord.DiscordPresence;
+import app.noam.extension.chesscom.logs.AppLog;
 import app.noam.extension.chesscom.settings.Welcome;
 import app.noam.extension.chesscom.theme.Recolor;
 
@@ -37,6 +38,7 @@ public final class Utils {
         application = app;
         app.registerActivityLifecycleCallbacks(new ActivityTracker());
         CrashHandler.install(app);
+        AppLog.install(app);
         DiscordPresence.install(app);
     }
 

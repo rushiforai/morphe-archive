@@ -77,7 +77,7 @@ val blockAdTelemetryPatch = bytecodePatch(
 ) {
     compatibleWith(COMPATIBILITY_FACEBOOK)
 
-    // Deliberately not covered (see Hushfacebook): the on-device OCR of ad creative (suspend
+    // Deliberately not covered: the on-device OCR of ad creative (suspend
     // functions returning Object) and the sponsored impression logger (neutering it invites
     // repeat logging rather than none).
     execute {

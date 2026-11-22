@@ -2,7 +2,8 @@ package app.noam.patches.chesscom.misc.crash
 
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
-import app.morphe.patcher.patch.resourcePatch
+import app.morphe.patcher.patch.document
+import app.morphe.patcher.patch.patch
 import app.noam.patches.chesscom.misc.settings.settingsPatch
 import app.noam.patches.chesscom.shared.Constants
 import app.noam.patches.chesscom.shared.markFeaturePatched
@@ -11,7 +12,7 @@ import org.w3c.dom.Element
 private const val ANDROID_NAMESPACE = "http://schemas.android.com/apk/res/android"
 private const val CRASH_ACTIVITY = "app.noam.extension.chesscom.crash.CrashActivity"
 
-private val crashHandlerResourcePatch = resourcePatch(
+private val crashHandlerResourcePatch = patch(
     description = "Adds the crash screen to the app.",
 ) {
     execute {

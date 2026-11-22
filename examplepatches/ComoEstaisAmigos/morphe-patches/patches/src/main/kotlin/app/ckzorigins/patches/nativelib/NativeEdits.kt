@@ -17,7 +17,23 @@ internal object NativeEdits {
     const val GWALLET = "lib/armeabi-v7a/libgwallet.so"
     const val GWALLET_SHA256 = "3e29cec10b75491bb42c55918ce11420b13cfc16c7ab5c6c15ded1466ce815b5"
 
+    /**
+     * Thumb `adds r0, #0x48; bx lr` over the PUSH prologue. The hand-packaged APK
+     * used this on GetIMEI_JNI. The same four bytes skip the other JNI that hits
+     * a permission unused-permissions removes: GET_ACCOUNTS on AccountManager,
+     * READ_PHONE_STATE on TelephonyManager.getDeviceId. Gingerbread throws
+     * SecurityException; Dalvik then aborts (deadd00d) if the next JNI GetFieldID
+     * runs with that exception still pending.
+     */
+    private const val THUMB_RETURN = "48307047"
+
     val SERIAL_ID = listOf(
-        ByteEdit(0x231E8, "f0b55746", "48307047"),
+        ByteEdit(0x231E8, "f0b55746", THUMB_RETURN), // GetIMEI_JNI
+    )
+
+    val JNI_GUARDS = listOf(
+        ByteEdit(0x21C94, "f0b55f46", THUMB_RETURN), // GetPrimaryAccountName_JNI(char const*, CStrChar&)
+        ByteEdit(0x21E6C, "f0b55f46", THUMB_RETURN), // GetPrimaryAccountName_JNI(CStrChar&)
+        ByteEdit(0x2307C, "f0b55746", THUMB_RETURN), // GetDeviceID_JNI
     )
 }

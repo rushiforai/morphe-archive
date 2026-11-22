@@ -1,3 +1,9 @@
+## [3.3.8](https://github.com/Xhehab/Xhehab-Patches/compare/v3.3.7...v3.3.8) (2026-11-21)
+
+### 🚀 Updated App Support
+
+* RP Hypertrophy 1.11.0 ([f8e5419](https://github.com/Xhehab/Xhehab-Patches/commit/f8e5419d4965d010ecbe3bc81f191f8bd65213e1))
+
 ## [3.3.7](https://github.com/Xhehab/Xhehab-Patches/compare/v3.3.6...v3.3.7) (2026-11-04)
 
 ### 🚀 Updated App Support

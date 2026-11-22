@@ -1669,6 +1669,17 @@ An exception names one creator, so a pattern can't be one: %1$s	Исключен
 An exception takes a handle or id, not a display name: %1$s	Исключение принимает имя аккаунта или id, а не отображаемое имя: %1$s
 Also on a block list, so still hidden: %1$s	Также в списке блокировки, поэтому всё ещё скрыт: %1$s
 Find the sound on YouTube Music	Найти звук в YouTube Music
+Identify the song with Shazam	Распознать песню через Shazam
+This video has no sound to identify	В этом видео нет звука для распознавания
+Still looking up the song	Песня ещё ищется
+Looking up the song	Ищем песню
+Shazam didn't recognize this song	Shazam не распознал эту песню
+This sound is too quiet to identify	Этот звук слишком тихий для распознавания
+Shazam is busy. Try again later.	Shazam занят. Попробуйте позже.
+The song couldn't be looked up. Try again.	Не удалось найти песню. Попробуйте ещё раз.
+%1$s by %2$s	%1$s, исполнитель: %2$s
+Song copied	Песня скопирована
+YouTube Music	YouTube Music
 YouTube Music isn't installed	YouTube Music не установлен
 This video's sound has no title to look for	У звука этого видео нет названия для поиска
 YouTube Music didn't open. Open it yourself to search.	YouTube Music не открылся. Откройте его сами и найдите.
@@ -3316,3 +3327,10 @@ Hide the Add bio prompt TikTok shows on your own profile while it has no bio. Yo
 Show the picture before saving	Показывать фото перед сохранением
 With the long press save on, holding a profile picture opens it full screen at full size, with a Save button under it.	Когда сохранение долгим нажатием включено, удержание фото профиля открывает его во весь экран в полном размере, с кнопкой Сохранить под ним.
 The profile picture couldn't be loaded. Try again.	Не удалось загрузить фото профиля. Повторите попытку.
+Share any comment	Делиться любым комментарием
+Share a comment or send it in a chat even when TikTok says it can't be shared.	Делитесь комментарием или отправляйте его в чат, даже если TikTok говорит, что им нельзя поделиться.
+# context: Comment tools switches; Hide the expand button in comments is another switch's title
+Always show the expand button in comments	Всегда показывать кнопку развёртывания в комментариях
+Puts the button that stretches the comments over the whole screen on every video. TikTok only gives it to some accounts. Hide the expand button in comments wins if both are on.	Добавляет кнопку, которая растягивает комментарии на весь экран, к каждому видео. TikTok даёт её только некоторым аккаунтам. Если включены оба переключателя, побеждает «Скрывать кнопку развёртывания в комментариях».
+Keep the video full size under comments	Оставлять видео в полный размер под комментариями
+The video keeps its size when you open the comments, and the comments cover its lower part instead of pushing it up into a smaller box.	Видео сохраняет размер, когда вы открываете комментарии, и комментарии закрывают его нижнюю часть, а не сдвигают его вверх в окно поменьше.

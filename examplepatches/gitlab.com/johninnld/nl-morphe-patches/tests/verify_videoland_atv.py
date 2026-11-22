@@ -117,19 +117,19 @@ nop"""
 
 
 COVER_ACTION_RESET = """if-eqz p1, :hideCover
-invoke-static {p1}, Lav/I;->G(Ljava/util/List;)Ljava/lang/Object;
+invoke-static {p1}, Lov/I;->H(Ljava/util/List;)Ljava/lang/Object;
 move-result-object v0
 if-eqz v0, :hideCover
-instance-of v1, v0, Ljn/f$e;
+instance-of v1, v0, Lvn/f$e;
 if-eqz v1, :originalCover
-iget-object v0, p0, LIo/a;->b:Lcom/bedrockstreaming/tornado/tv/molecule/CoverView;
+iget-object v0, p0, LWo/a;->b:Lcom/bedrockstreaming/tornado/tv/molecule/CoverView;
 invoke-virtual {v0}, Lcom/bedrockstreaming/tornado/tv/molecule/CoverView;->getButtonView()Lcom/bedrockstreaming/tornado/compose/molecule/button/TornadoButton;
 move-result-object v0
 const/4 v1, 0x0
 invoke-virtual {v0, v1}, Landroid/view/View;->setVisibility(I)V
 goto :originalCover
 :hideCover
-iget-object v0, p0, LIo/a;->b:Lcom/bedrockstreaming/tornado/tv/molecule/CoverView;
+iget-object v0, p0, LWo/a;->b:Lcom/bedrockstreaming/tornado/tv/molecule/CoverView;
 const/4 v1, 0x0
 invoke-virtual {v0, v1}, Lcom/bedrockstreaming/tornado/tv/molecule/CoverView;->setButtonText(Ljava/lang/String;)V
 invoke-virtual {v0}, Lcom/bedrockstreaming/tornado/tv/molecule/CoverView;->getButtonView()Lcom/bedrockstreaming/tornado/compose/molecule/button/TornadoButton;
@@ -147,7 +147,7 @@ def unavailable_effect(original, contract):
     block = 'Lcom/bedrockstreaming/component/layout/domain/core/model/Block;'
     kind = contract['kind']
     if kind == 'section_notification':
-        effect = [f'invoke-static {{p0}}, {helper}->sectionsChanged(LMk/a$b;)Z', 'move-result v0', 'if-eqz v0, @5', 'return-void']
+        effect = [f'invoke-static {{p0}}, {helper}->sectionsChanged(LXk/a$b;)Z', 'move-result v0', 'if-eqz v0, @5', 'return-void']
         shifted = [re.sub(r'@(\d+)', lambda m: '@' + str(int(m[1]) + 4), row) for row in original]
         return shifted[:1] + effect + shifted[1:]
     if kind == 'cover_action_reset':
@@ -167,16 +167,23 @@ nop"""
         effect = [re.sub(r'@(\d+)', lambda m: '@' + str(int(m[1]) + 1), row) for row in effect]
         shifted = [re.sub(r'@(\d+)', lambda m: '@' + str(int(m[1]) + len(effect)), row) for row in original]
         return shifted[:1] + effect + shifted[1:]
+    if kind == 'nested_grid_empty':
+        start = contract['insertion'] + 1
+        effect = ['move-object/from16 v3, v16', f'invoke-static {{v7, v3}}, {helper}->hideEmpty({block}Lz4/c;)Z',
+                  'move-result v3', f'if-eqz v3, @{start + 7}', 'move-object v9, v1', 'move-object v7, v0',
+                  f"goto/16 @{contract['exit'] + 8}"]
+        shifted = [re.sub(r'@(\d+)', lambda m: '@' + str(int(m[1]) + (7 if int(m[1]) >= start else 0)), row) for row in original]
+        return shifted[:start] + effect + shifted[start:]
     if kind == 'compose_empty':
         start = contract['insertion'] + 1
-        effect = [f"invoke-static {{v{contract['block_register']}, v{contract['paging_register']}}}, {helper}->hideEmpty({block}Lx4/c;)Z",
+        effect = [f"invoke-static {{v{contract['block_register']}, v{contract['paging_register']}}}, {helper}->hideEmpty({block}Lz4/c;)Z",
                   f"move-result v{contract['scratch_register']}",
                   f"if-nez v{contract['scratch_register']}, @{contract['exit'] + 4}"]
         shifted = [re.sub(r'@(\d+)', lambda m: '@' + str(int(m[1]) + (3 if int(m[1]) >= start else 0)), row) for row in original]
         return shifted[:start] + effect + shifted[start:]
     if kind == 'legacy':
         start = 4
-        code = f"""invoke-static {{p1, p2}}, {helper}->visiblePager({block}Lw4/A1;)Lw4/A1;
+        code = f"""invoke-static {{p1, p2}}, {helper}->visiblePager({block}Ly4/A1;)Ly4/A1;
 move-result-object p2
 invoke-static {{p1, p3}}, {helper}->visibleIndex({block}I)I
 move-result p3
@@ -190,12 +197,12 @@ invoke-static {{p1}}, {helper}->visibleBlock({block}){block}
 move-result-object p1"""
     elif kind == 'factory':
         start = original.index(contract['after']) + 1
-        code = f"""invoke-static {{v2, v6}}, {helper}->visibleFactory({block}Lnv/a;)Lnv/a;
+        code = f"""invoke-static {{v2, v6}}, {helper}->visibleFactory({block}LBv/a;)LBv/a;
 move-result-object v6"""
     else:
         assert kind == 'row'
         start = 1
-        code = f"""invoke-static {{p0}}, {helper}->rowCount(LPk/t;)I
+        code = f"""invoke-static {{p0}}, {helper}->rowCount(Lal/s;)I
 move-result v0
 return v0"""
     effect = graph(code)
@@ -265,12 +272,32 @@ def declaration_shape(text):
         result.append(line)
     return result
 
-def verify(original, patched, ads, tracking, subscription=False, unavailable=False):
+def verify_profile(before, after, new_classes, build):
+    """Compare injected helpers against the independent extension DEX and each splice against stock."""
+    helpers = json.loads(Path(__file__).with_name('videoland_profile_helpers.json').read_text())
+    for owner, shape in helpers['classes'].items():
+        assert declaration_shape(new_classes[owner].read_text()) == shape, 'Changed profile helper declaration: ' + owner
+    actual = {k for k in after if k.split('->')[0] in helpers['classes']}
+    assert actual == helpers['methods'].keys(), 'Changed profile helper inventory'
+    for key in actual:
+        assert hashlib.sha256('\n'.join(after.pop(key)).encode()).hexdigest() == helpers['methods'][key], key
+    contracts = json.loads(Path(__file__).with_name('videoland_profile_contracts.json').read_text())[str(build)]
+    for key, spec in contracts.items():
+        src, dst, index = before[key], after[key], spec['index']
+        assert hashlib.sha256('\n'.join(src).encode()).hexdigest() == spec['graph'], 'Changed profile input: ' + key
+        assert dst[index] == spec['effect'] and remove_insertion(dst, index, 1) == src, 'Incorrect profile effect: ' + key
+        after[key] = src
+    return set(helpers['classes'])
+
+
+def verify(original, patched, ads, tracking, subscription=False, unavailable=False, profile=False):
     verify_manifest(ET.parse(Path(original) / 'AndroidManifest.xml').getroot(),
                     ET.parse(Path(patched) / 'AndroidManifest.xml').getroot(), tracking)
     old_classes, new_classes = classes(original), classes(patched)
     owned = json.loads(Path(__file__).with_name('videoland_unavailable_helpers.json').read_text()) if unavailable else {'classes': {}}
-    assert set(new_classes) == set(old_classes) | set(owned['classes']), 'APK class inventory changed'
+    before, after = methods(original), methods(patched)
+    profile_classes = verify_profile(before, after, new_classes, 1638) if profile else set()
+    assert set(new_classes) == set(old_classes) | set(owned['classes']) | profile_classes, 'APK class inventory changed'
     def shape(path):
         return declaration_shape(path.read_text())
     for name, path in old_classes.items():
@@ -279,9 +306,8 @@ def verify(original, patched, ads, tracking, subscription=False, unavailable=Fal
         text = new_classes[name].read_text()
         shape = [line for line in text.splitlines() if line.startswith(('.class ', '.super ', '.implements ', '.field '))]
         assert shape == expected, 'Availability helper declaration changed: ' + name
-    before = methods(original)
-    assert len(before) == 140911, 'Incomplete or unsupported stock method inventory'
-    return verify_methods(before, methods(patched), ads, tracking, subscription, unavailable)
+    assert len(before) == (140911 if subscription else 144540), 'Incomplete or unsupported stock method inventory'
+    return verify_methods(before, after, ads, tracking, subscription, unavailable)
 
 
 if __name__ == '__main__':
@@ -289,13 +315,14 @@ if __name__ == '__main__':
     parser.add_argument('original')
     parser.add_argument('patched')
     parser.add_argument('--subscription', action='store_true')
+    parser.add_argument('--profile', action='store_true')
     parser.add_argument('--unavailable', action='store_true')
     parser.add_argument('--ads', action='store_true')
     parser.add_argument('--tracking', action='store_true')
     parser.add_argument('--original-apks')
     parser.add_argument('--patched-apk')
     args = parser.parse_args()
-    print(f'PASS: {verify(args.original, args.patched, args.ads, args.tracking, args.subscription, args.unavailable)} original Videoland TV methods and selected effects')
+    print(f'PASS: {verify(args.original, args.patched, args.ads, args.tracking, args.subscription, args.unavailable, args.profile)} original Videoland TV methods and selected effects')
     if args.original_apks or args.patched_apk:
         from media_inputs import verify_payload
         assert args.original_apks and args.patched_apk

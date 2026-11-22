@@ -26,15 +26,15 @@ val skipConsentScreens = bytecodePatch(
         // The real SDK has loaded its categories here. Save the same choice as
         // the banner's Reject All button before publishing the original ready SDK.
         // Apply the first migration or genuine SDK reconsent only; preserve later manual choices.
-        exact("LB2/c;", "onSuccess(Lcom/onetrust/otpublishers/headless/Public/Response/OTResponse;)V", 4, 17).apply {
+        exact("LBy/d0;", "onSuccess(Lcom/onetrust/otpublishers/headless/Public/Response/OTResponse;)V", 4, 17).apply {
             val anchors = instructions.withIndex().filter { (_, instruction) ->
                 val field = (instruction as? ReferenceInstruction)?.reference as? FieldReference
-                field?.definingClass == "LB2/c;" && field.name == "f" && field.type == "Ljava/lang/Object;"
+                field?.definingClass == "LBy/d0;" && field.name == "g" && field.type == "Ljava/lang/Object;"
             }
             check(anchors.size == 1) { "Changed Videoland OneTrust ready callback" }
             val start = anchors.single().index
             addInstructions(start, """
-                iget-object v0, p0, LB2/c;->g:Ljava/lang/Object;
+                iget-object v0, p0, LBy/d0;->e:Ljava/lang/Object;
                 check-cast v0, Lcom/onetrust/otpublishers/headless/Public/OTPublishersHeadlessSDK;
                 iget-object v1, v0, Lcom/onetrust/otpublishers/headless/Public/OTPublishersHeadlessSDK;->a:Landroid/content/Context;
                 const-string p1, "patches.videoland.onboarding"
@@ -46,12 +46,12 @@ val skipConsentScreens = bytecodePatch(
                 invoke-interface {v1, p1, v0}, Landroid/content/SharedPreferences;->getBoolean(Ljava/lang/String;Z)Z
                 move-result v0
                 nop # migration branch installed below
-                iget-object v0, p0, LB2/c;->g:Ljava/lang/Object;
+                iget-object v0, p0, LBy/d0;->e:Ljava/lang/Object;
                 check-cast v0, Lcom/onetrust/otpublishers/headless/Public/OTPublishersHeadlessSDK;
                 invoke-virtual {v0}, Lcom/onetrust/otpublishers/headless/Public/OTPublishersHeadlessSDK;->shouldShowBanner()Z
                 move-result v0
                 nop # existing-choice branch installed below
-                iget-object v0, p0, LB2/c;->g:Ljava/lang/Object;
+                iget-object v0, p0, LBy/d0;->e:Ljava/lang/Object;
                 check-cast v0, Lcom/onetrust/otpublishers/headless/Public/OTPublishersHeadlessSDK;
                 const-string p1, "Banner - Reject All"
                 invoke-virtual {v0, p1}, Lcom/onetrust/otpublishers/headless/Public/OTPublishersHeadlessSDK;->saveConsent(Ljava/lang/String;)V
@@ -78,17 +78,17 @@ val skipConsentScreens = bytecodePatch(
         exact("Lcom/bedrockstreaming/feature/splash/domain/usecase/tasks/e;", "invokeSuspend(Ljava/lang/Object;)Ljava/lang/Object;", 16, 115).apply {
             val anchors = instructions.withIndex().filter { (_, instruction) ->
                 (instruction as? ReferenceInstruction)?.reference?.toString() ==
-                    "Lcom/bedrockstreaming/feature/splash/domain/usecase/tasks/NotificationPermissionTask;->c:Lhi/h;"
+                    "Lcom/bedrockstreaming/feature/splash/domain/usecase/tasks/NotificationPermissionTask;->c:LFi/h;"
             }
             check(anchors.size == 1) { "Changed Videoland startup notification task" }
             check((instructions.elementAt(anchors.single().index - 1) as? ReferenceInstruction)?.reference?.toString() ==
-                "Lk4/M;->p(Ljava/lang/Object;)V") { "Changed Videoland notification Result check" }
+                "LKy/b;->Y(Ljava/lang/Object;)V") { "Changed Videoland notification Result check" }
             addInstructions(anchors.single().index, """
-                new-instance v0, Lri/o;
+                new-instance v0, LPi/q;
                 const/4 v1, 0x1
                 const/4 v2, 0x1
                 const/4 v3, 0x0
-                invoke-direct {v0, v1, v2, v3}, Lri/o;-><init>(ZZLcom/bedrockstreaming/feature/splash/domain/usecase/tasks/f;)V
+                invoke-direct {v0, v1, v2, v3}, LPi/q;-><init>(ZZLcom/bedrockstreaming/feature/splash/domain/usecase/tasks/f;)V
                 return-object v0
             """.trimIndent())
         }
@@ -96,20 +96,20 @@ val skipConsentScreens = bytecodePatch(
         // Start off while the real preference coroutine loads. Its original
         // persistence and observable-state updates restore explicit OPT_IN.
         subscribedState("Lcom/bedrockstreaming/feature/pushnotification/data/PushStateManagerImpl;",
-            "<init>(Landroid/app/Application;Lhi/a;Lhi/d;Lhi/f;Lhi/g;Lvq/a;)V", 8, 49, "f")
+            "<init>(Landroid/app/Application;LFi/a;LFi/d;LFi/f;LFi/g;LZq/a;)V", 8, 49, "f")
         subscribedState("Lcom/bedrockstreaming/feature/pushnotification/data/LegacyPushStateManagerImpl;",
-            "<init>(Lhi/a;Lhi/f;Lhi/g;Lvq/a;)V", 6, 40, "f")
+            "<init>(LFi/a;LFi/f;LFi/g;LZq/a;)V", 6, 40, "f")
         subscribedState("Lcom/bedrockstreaming/feature/pushnotification/data/PushStateManagerImpl;",
-            "d(Lcom/bedrockstreaming/feature/pushnotification/data/PushStateManagerImpl;Lwy/c;)Ljava/lang/Object;",
+            "d(Lcom/bedrockstreaming/feature/pushnotification/data/PushStateManagerImpl;Loz/d;)Ljava/lang/Object;",
             11, 95, "f")
 
         // Legacy Android normally treats OS permission as an implicit app
         // subscription. Convert that state through the original store/update
         // continuation, including absent/invalid preferences, while keeping OPT_IN.
-        subscribedState("Lgi/a;", "invokeSuspend(Ljava/lang/Object;)Ljava/lang/Object;", 9, 52, "f").apply {
+        subscribedState("LEi/a;", "invokeSuspend(Ljava/lang/Object;)Ljava/lang/Object;", 9, 52, "f").apply {
             val anchors = instructions.withIndex().filter { (_, instruction) ->
                 (instruction as? ReferenceInstruction)?.reference?.toString() ==
-                    "Lwt/d;->L(${PUSH_STATUS})Z"
+                    "Lfs/j;->M(${PUSH_STATUS})Z"
             }
             check(anchors.size == 1) { "Changed Videoland legacy notification normalization" }
             val move = instructions.elementAt(anchors.single().index + 3)
@@ -128,7 +128,7 @@ val skipConsentScreens = bytecodePatch(
 
         // A genuine manual toggle is explicit OPT_IN, not the old implicit
         // SUBSCRIBED default. This survives the next initialization on API24-32.
-        subscribedState("LH9/b;", "call()Ljava/lang/Object;", 10, 519, "d")
+        subscribedState("LAw/b;", "call()Ljava/lang/Object;", 10, 503, "d")
     }
 }
 

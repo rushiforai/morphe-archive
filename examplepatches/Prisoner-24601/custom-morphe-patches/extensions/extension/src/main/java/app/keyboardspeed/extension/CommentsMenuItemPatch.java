@@ -107,7 +107,7 @@ public final class CommentsMenuItemPatch {
             Drawable icon = getIcon(activity);
             View.OnClickListener onClick = view -> {
                 dismissMenu();
-                new Handler(Looper.getMainLooper()).postDelayed(() -> openComments(videoId), SHOW_PANEL_DELAY_MS);
+                new Handler(Looper.getMainLooper()).postDelayed(() -> openComments(videoId, true), SHOW_PANEL_DELAY_MS);
             };
 
             Method addButton = flyoutUtils.getMethod("addFlyoutButton", Object.class, Drawable.class,
@@ -139,9 +139,12 @@ public final class CommentsMenuItemPatch {
     }
 
     /**
-     * Opens the comments panel of the video over the current page. Must be called on the main thread.
+     * Opens a new comments panel of the video, which shows the Top comments. Must be called on the main thread.
+     *
+     * @param overPage If the panel is shown over the current page, such as a feed. Otherwise it is shown on the
+     *                 watch page, whose panel it replaces, with the sort buttons (Top, Timed, Newest).
      */
-    private static void openComments(String videoId) {
+    static void openComments(String videoId, boolean overPage) {
         final Map<?, ?> authHeaders;
         try {
             // The headers of the account that is signed in now, not when the request runs.
@@ -155,7 +158,7 @@ public final class CommentsMenuItemPatch {
         new Thread(() -> {
             byte[] command = null;
             try {
-                command = buildShowCommentsCommand(requestEngagementPanels(videoId, authHeaders));
+                command = buildShowCommentsCommand(requestEngagementPanels(videoId, authHeaders), overPage);
             } catch (Exception ex) {
                 Log.e(TAG, "Comments request failed for video: " + videoId, ex);
             }
@@ -197,7 +200,7 @@ public final class CommentsMenuItemPatch {
      * @return The command that shows the comments panel of the response over the current page,
      *         or null if the video has no comments panel, such as when its comments are turned off.
      */
-    private static byte[] buildShowCommentsCommand(byte[] response) throws Exception {
+    private static byte[] buildShowCommentsCommand(byte[] response, boolean overPage) throws Exception {
         List<Proto.Field> fields = Proto.parse(response);
         if (fields == null) {
             return null;
@@ -211,28 +214,37 @@ public final class CommentsMenuItemPatch {
             String panelId = panelIdField == null ? null : panelIdField.text();
             if (panelId == null || !isCommentsPanel(panelId)) continue;
 
-            // The sort chips of the header are an Elements component, whose template comes with the other
-            // templates of the watch page, which the response does not have, and would be an empty space.
-            removeSubheader(rendererFields);
-
-            // The panel is shown over the page, which hides the panels of other surfaces.
-            ByteArrayOutputStream identifier = new ByteArrayOutputStream();
-            Proto.writeVarintField(identifier, ENGAGEMENT_PANEL_IDENTIFIER_SURFACE_FIELD, ENGAGEMENT_PANEL_SURFACE_SHORTS);
-            Proto.writeBytesField(identifier, ENGAGEMENT_PANEL_IDENTIFIER_TAG_FIELD, Proto.utf8(panelId));
-
-            // The panels of the watch page are hidden until the watch page shows them.
-            ByteArrayOutputStream shownRenderer = new ByteArrayOutputStream();
-            shownRenderer.write(Proto.write(rendererFields));
-            Proto.writeVarintField(shownRenderer, ENGAGEMENT_PANEL_VISIBILITY_FIELD, ENGAGEMENT_PANEL_VISIBILITY_EXPANDED);
-            Proto.writeBytesField(shownRenderer, ENGAGEMENT_PANEL_IDENTIFIER_FIELD, identifier.toByteArray());
-
             ByteArrayOutputStream engagementPanel = new ByteArrayOutputStream();
-            Proto.writeBytesField(engagementPanel, ENGAGEMENT_PANEL_SECTION_LIST_RENDERER_FIELD, shownRenderer.toByteArray());
-
             ByteArrayOutputStream endpoint = new ByteArrayOutputStream();
             Proto.writeBytesField(endpoint, SHOW_ENGAGEMENT_PANEL_ENDPOINT_PANEL_ID_FIELD, Proto.utf8(panelId));
-            Proto.writeBytesField(endpoint, SHOW_ENGAGEMENT_PANEL_ENDPOINT_PANEL_FIELD, engagementPanel.toByteArray());
-            Proto.writeBytesField(endpoint, SHOW_ENGAGEMENT_PANEL_ENDPOINT_IDENTIFIER_FIELD, identifier.toByteArray());
+
+            if (overPage) {
+                // The sort chips of the header are an Elements component, whose template comes with the other
+                // templates of the watch page, which the response does not have, and would be an empty space.
+                removeSubheader(rendererFields);
+
+                // The panel is shown over the page, which hides the panels of other surfaces.
+                ByteArrayOutputStream identifier = new ByteArrayOutputStream();
+                Proto.writeVarintField(identifier, ENGAGEMENT_PANEL_IDENTIFIER_SURFACE_FIELD, ENGAGEMENT_PANEL_SURFACE_SHORTS);
+                Proto.writeBytesField(identifier, ENGAGEMENT_PANEL_IDENTIFIER_TAG_FIELD, Proto.utf8(panelId));
+
+                // The panels of the watch page are hidden until the watch page shows them.
+                ByteArrayOutputStream shownRenderer = new ByteArrayOutputStream();
+                shownRenderer.write(Proto.write(rendererFields));
+                Proto.writeVarintField(shownRenderer, ENGAGEMENT_PANEL_VISIBILITY_FIELD, ENGAGEMENT_PANEL_VISIBILITY_EXPANDED);
+                Proto.writeBytesField(shownRenderer, ENGAGEMENT_PANEL_IDENTIFIER_FIELD, identifier.toByteArray());
+                Proto.writeBytesField(engagementPanel, ENGAGEMENT_PANEL_SECTION_LIST_RENDERER_FIELD, shownRenderer.toByteArray());
+                Proto.writeBytesField(endpoint, SHOW_ENGAGEMENT_PANEL_ENDPOINT_PANEL_FIELD, engagementPanel.toByteArray());
+                Proto.writeBytesField(endpoint, SHOW_ENGAGEMENT_PANEL_ENDPOINT_IDENTIFIER_FIELD, identifier.toByteArray());
+            } else {
+                // On the watch page, the panel keeps the identifier of the watch page from the response,
+                // and the templates of its sort chips are loaded.
+                ByteArrayOutputStream shownRenderer = new ByteArrayOutputStream();
+                shownRenderer.write(Proto.write(rendererFields));
+                Proto.writeVarintField(shownRenderer, ENGAGEMENT_PANEL_VISIBILITY_FIELD, ENGAGEMENT_PANEL_VISIBILITY_EXPANDED);
+                Proto.writeBytesField(engagementPanel, ENGAGEMENT_PANEL_SECTION_LIST_RENDERER_FIELD, shownRenderer.toByteArray());
+                Proto.writeBytesField(endpoint, SHOW_ENGAGEMENT_PANEL_ENDPOINT_PANEL_FIELD, engagementPanel.toByteArray());
+            }
 
             ByteArrayOutputStream command = new ByteArrayOutputStream();
             Proto.writeBytesField(command, SHOW_ENGAGEMENT_PANEL_ENDPOINT_FIELD, endpoint.toByteArray());

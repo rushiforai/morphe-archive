@@ -522,6 +522,206 @@ public final class NativeCarServiceTest {
         sendStart(callback, 300f, 120f); shadowOf(Looper.getMainLooper()).idle();
         assertEquals(300f, x.getFloat(renderer), 0f);
     }
+    // ---- Route preview: telling the host it is up, and pressing Maps' own Start when the host asks.
+
+    private final java.util.List<View> startClicks = new java.util.ArrayList<>();
+    private Object activeSession() throws Exception {
+        java.lang.reflect.Field active = NativeCarService.class.getDeclaredField("active"); active.setAccessible(true);
+        return active.get(service);
+    }
+    private static ProjectionRenderer rendererOf(Object session) throws Exception {
+        java.lang.reflect.Field current = session.getClass().getDeclaredField("renderer"); current.setAccessible(true);
+        return (ProjectionRenderer) current.get(session);
+    }
+    private static void sessionField(Object session, String name, Object value) throws Exception {
+        java.lang.reflect.Field field = session.getClass().getDeclaredField(name); field.setAccessible(true); field.set(session, value);
+    }
+    private static Object sessionField(Object session, String name) throws Exception {
+        java.lang.reflect.Field field = session.getClass().getDeclaredField(name); field.setAccessible(true); return field.get(session);
+    }
+    /** The callback the host gets for its overlay service, as the adapter hands it out. */
+    private IBinder overlayCallback(Object session) throws Exception {
+        Class<?> type = java.util.Arrays.stream(NativeCarService.class.getDeclaredClasses()).filter(c -> c.getSimpleName().equals("OverlayBinder")).findFirst().get();
+        java.lang.reflect.Constructor<?> constructor = type.getDeclaredConstructor(NativeCarService.class, session.getClass()); constructor.setAccessible(true);
+        return (IBinder) constructor.newInstance(service, session);
+    }
+    /** Maps' footer on its route preview: the clickable frame named as in Maps 26.44, labelled with Maps' Start string. */
+    private FrameLayout routePreview(FrameLayout root, String label) {
+        Context base = root.getContext();
+        Resources original = base.getResources();
+        int id = 0x7f990100, string = 0x7f990101;
+        Resources resources = new Resources(base.getAssets(), original.getDisplayMetrics(), original.getConfiguration()) {
+            @Override public String getResourceEntryName(int resource) { return resource == id ? NativeRoutePreview.START_NAMES[0] : super.getResourceEntryName(resource); }
+            @Override public int getIdentifier(String name, String type, String packageName) {
+                return NativeRoutePreview.START_LABEL.equals(name) && "string".equals(type) && base.getPackageName().equals(packageName) ? string : super.getIdentifier(name, type, packageName);
+            }
+            @Override public String getString(int resource) { return resource == string ? "Start" : super.getString(resource); }
+        };
+        Context context = new ContextWrapper(base) { @Override public Resources getResources() { return resources; } };
+        FrameLayout start = new FrameLayout(context); start.setId(id);
+        start.setOnClickListener(startClicks::add);
+        android.widget.TextView text = new android.widget.TextView(context); text.setText(label);
+        start.addView(text, new FrameLayout.LayoutParams(200, 60));
+        root.addView(start, new FrameLayout.LayoutParams(300, 80));
+        root.requestLayout(); shadowOf(Looper.getMainLooper()).idle();
+        return start;
+    }
+    private static void sendStartGuidance(IBinder callback) throws Exception {
+        Parcel data = Parcel.obtain();
+        try { data.writeInterfaceToken(NativeCarService.OVERLAY_CALLBACK); assertTrue(callback.transact(NativeCarService.START_GUIDANCE, data, null, IBinder.FLAG_ONEWAY)); }
+        finally { data.recycle(); }
+    }
+    /** A host overlay service that records what it hears: code, one-way flag and the boolean of a preview report. */
+    private static final class RecordingHost extends Binder {
+        final java.util.List<String> heard = new java.util.ArrayList<>();
+        final boolean knowsPreview;
+        RecordingHost(boolean knowsPreview) { this.knowsPreview = knowsPreview; }
+        @Override protected boolean onTransact(int code, Parcel data, Parcel reply, int flags) {
+            // Like DriveDeck's stub: it handles the transactions it knows and answers false to any other.
+            if (code != NativeCarService.PREVIEW_SHOWN || !knowsPreview) return false;
+            data.enforceInterface(NativeCarService.OVERLAY_HOST);
+            heard.add(code + (((flags & IBinder.FLAG_ONEWAY) != 0) ? " oneway " : " twoway ") + (data.readInt() != 0));
+            return true;
+        }
+    }
+    /** What the draw observer does: read the layout again and report what changed. */
+    private static void drawn(ProjectionRenderer renderer) throws Exception {
+        java.lang.reflect.Method report = ProjectionRenderer.class.getDeclaredMethod("reportOccupiedNow"); report.setAccessible(true);
+        report.invoke(renderer);
+    }
+    private void tellPreviewsTo(Object session, ProjectionRenderer renderer, RecordingHost host) throws Exception {
+        sessionField(session, "overlayHost", host);
+        java.lang.reflect.Method send = NativeCarService.class.getDeclaredMethod("sendPreview", session.getClass(), boolean.class); send.setAccessible(true);
+        renderer.setRoutePreviewListener(shown -> { try { send.invoke(service, session, shown); } catch (Exception e) { throw new AssertionError(e); } });
+    }
+
+    @Test public void theNewTransactionsFollowTheExistingOnes() {
+        assertEquals(3, NativeCarService.PREVIEW_SHOWN);
+        assertEquals(3, NativeCarService.START_GUIDANCE);
+    }
+
+    @Test public void aHostRequestPressesMapsOwnStartExactlyOnce() throws Exception {
+        handshake(HOST);
+        FrameLayout root = nativeScene(); FrameLayout start = routePreview(root, "Start");
+        Object session = activeSession(); IBinder callback = overlayCallback(session);
+        sendStartGuidance(callback); shadowOf(Looper.getMainLooper()).idle();
+        assertEquals("One request, one click, on Maps' own view", java.util.Collections.singletonList(start), startClicks);
+        assertNull("Pressing Start is not a failure", sessionField(session, "failure"));
+    }
+
+    @Test public void onlyTheAuthenticatedHostCanAskForStart() throws Exception {
+        handshake(HOST);
+        FrameLayout root = nativeScene(); routePreview(root, "Start");
+        IBinder callback = overlayCallback(activeSession());
+        ShadowBinder.setCallingUid(HOST_UID + 1); sendStartGuidance(callback); ShadowBinder.setCallingUid(HOST_UID);
+        shadowOf(Looper.getMainLooper()).idle();
+        assertTrue("Another UID cannot start the driver's route", startClicks.isEmpty());
+        sendStartGuidance(callback); shadowOf(Looper.getMainLooper()).idle();
+        assertEquals(1, startClicks.size());
+    }
+
+    @Test public void nothingIsPressedWhileGuidanceRunsOrWithoutAUsableStart() throws Exception {
+        handshake(HOST);
+        FrameLayout root = nativeScene();
+        Object session = activeSession(); IBinder callback = overlayCallback(session);
+        sendStartGuidance(callback); shadowOf(Looper.getMainLooper()).idle();
+        assertNull("No route preview at all: nothing happens, and it is no failure", sessionField(session, "failure"));
+        FrameLayout start = routePreview(root, "Start");
+        sessionField(session, "navigating", true);
+        sendStartGuidance(callback); shadowOf(Looper.getMainLooper()).idle();
+        assertTrue("Guidance is already running", startClicks.isEmpty());
+        sessionField(session, "navigating", false);
+        start.setVisibility(View.INVISIBLE);
+        sendStartGuidance(callback); shadowOf(Looper.getMainLooper()).idle();
+        assertTrue("Start is not shown", startClicks.isEmpty());
+        start.setVisibility(View.VISIBLE); start.setEnabled(false);
+        sendStartGuidance(callback); shadowOf(Looper.getMainLooper()).idle();
+        assertTrue("Start is not enabled", startClicks.isEmpty());
+        start.setEnabled(true);
+        sendStartGuidance(callback); shadowOf(Looper.getMainLooper()).idle();
+        assertEquals("Once it can be pressed, it is", 1, startClicks.size());
+        assertNull(sessionField(session, "failure"));
+    }
+
+    @Test public void aStartWhoseClickThrowsLeavesTheSessionRunningAndReportsFalse() throws Exception {
+        handshake(HOST);
+        FrameLayout root = nativeScene(); FrameLayout start = routePreview(root, "Start");
+        Object session = activeSession(); ProjectionRenderer renderer = rendererOf(session);
+        IBinder callback = overlayCallback(session);
+        start.setOnClickListener(view -> { throw new IllegalStateException("Maps' own click handler failed"); });
+        assertFalse("A failed start is reported as not started", renderer.startRoutePreview());
+        sendStartGuidance(callback); shadowOf(Looper.getMainLooper()).idle();
+        java.lang.reflect.Field failed = ProjectionRenderer.class.getDeclaredField("failed"); failed.setAccessible(true);
+        assertFalse("The renderer is not failed", failed.getBoolean(renderer));
+        assertNull("The session is not failed", sessionField(session, "failure"));
+        assertFalse("The session is not closed", (Boolean) sessionField(session, "closed"));
+        assertSame("The session is still the active one", session, activeSession());
+        assertSame("The renderer is still the session's", renderer, rendererOf(session));
+        start.setOnClickListener(startClicks::add);
+        sendStartGuidance(callback); shadowOf(Looper.getMainLooper()).idle();
+        assertEquals("The next request still works", java.util.Collections.singletonList(start), startClicks);
+    }
+
+    @Test public void anotherActionInTheFootersViewIsNotPressed() throws Exception {
+        handshake(HOST);
+        FrameLayout root = nativeScene(); routePreview(root, "Add stop");
+        IBinder callback = overlayCallback(activeSession());
+        sendStartGuidance(callback); shadowOf(Looper.getMainLooper()).idle();
+        assertTrue("The footer says Add stop; that is not Start", startClicks.isEmpty());
+    }
+
+    @Test public void theHostLearnsWhenTheRoutePreviewAppearsAndGoesAndTheLastWordIsNotShown() throws Exception {
+        handshake(HOST);
+        FrameLayout root = nativeScene();
+        Object session = activeSession(); ProjectionRenderer renderer = rendererOf(session);
+        RecordingHost host = new RecordingHost(true);
+        tellPreviewsTo(session, renderer, host);
+        drawn(renderer);
+        assertTrue("A host starts out knowing 'not shown'; nothing to say yet", host.heard.isEmpty());
+        FrameLayout start = routePreview(root, "Start");
+        drawn(renderer); drawn(renderer);
+        assertEquals("Told once, when it appeared, one-way", java.util.Collections.singletonList("3 oneway true"), host.heard);
+        start.setVisibility(View.GONE);
+        drawn(renderer);
+        start.setVisibility(View.VISIBLE);
+        drawn(renderer);
+        assertEquals(java.util.Arrays.asList("3 oneway true", "3 oneway false", "3 oneway true"), host.heard);
+        service.onUnbind(new Intent("androidx.car.app.CarAppService")); shadowOf(Looper.getMainLooper()).idle();
+        assertEquals("The session ends with the preview", java.util.Arrays.asList("3 oneway true", "3 oneway false", "3 oneway true", "3 oneway false"), host.heard);
+    }
+
+    @Test public void guidanceStartingEndsThePreviewWithoutWaitingForAFrame() throws Exception {
+        handshake(HOST);
+        FrameLayout root = nativeScene(); routePreview(root, "Start");
+        Object session = activeSession(); ProjectionRenderer renderer = rendererOf(session);
+        RecordingHost host = new RecordingHost(true);
+        tellPreviewsTo(session, renderer, host);
+        assertEquals("A preview already up when the host subscribes is reported at once", java.util.Collections.singletonList("3 oneway true"), host.heard);
+        renderer.hostedNavigation(true);
+        assertEquals(java.util.Arrays.asList("3 oneway true", "3 oneway false"), host.heard);
+        drawn(renderer);
+        assertEquals("Start may still be drawn for a frame; guidance wins", 2, host.heard.size());
+        service.onUnbind(new Intent("androidx.car.app.CarAppService")); shadowOf(Looper.getMainLooper()).idle();
+        assertEquals("Already told 'not shown': nothing more at the end", 2, host.heard.size());
+    }
+
+    @Test public void aHostThatNeverSubscribedOrIgnoresTheNewMessageSeesNoChange() throws Exception {
+        handshake(HOST);
+        FrameLayout root = nativeScene();
+        Object session = activeSession(); ProjectionRenderer renderer = rendererOf(session);
+        // No overlay service at all: the listener has nowhere to speak.
+        tellPreviewsTo(session, renderer, new RecordingHost(true)); sessionField(session, "overlayHost", null);
+        routePreview(root, "Start"); drawn(renderer);
+        assertFalse(((Boolean) sessionField(session, "previewSent")));
+        // A host whose stub does not know transaction 3 answers false and hears nothing else.
+        RecordingHost old = new RecordingHost(false);
+        tellPreviewsTo(session, renderer, old);
+        drawn(renderer);
+        service.onUnbind(new Intent("androidx.car.app.CarAppService")); shadowOf(Looper.getMainLooper()).idle();
+        assertTrue(old.heard.isEmpty());
+        assertNull("An unknown one-way message is not an error", sessionField(session, "failure"));
+    }
+
     private static void sendStart(IBinder callback, float x, float y) throws Exception {
         Parcel data = Parcel.obtain();
         try { data.writeInterfaceToken(NativeCarService.OVERLAY_CALLBACK); data.writeFloat(x); data.writeFloat(y); assertTrue(callback.transact(2, data, null, IBinder.FLAG_ONEWAY)); }

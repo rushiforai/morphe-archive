@@ -527,6 +527,12 @@ final class VideoPages {
                                 + "Keep tapping to go further. Live videos work too when they can be rewound. "
                                 + "One tap on a side still opens the video, a moment later than usual. "
                                 + "With Tap to play on, it needs Inline feed video controls on too.")));
+                // Asked at each press, so it applies to the next tap.
+                playback.addPreference(toggle(context, Settings.FEED_VIDEO_TAP_SHOWS_PAUSE,
+                        L10n.t("Tapping a feed video shows a pause button in its middle and the video keeps playing, "
+                                + "so a tap doesn't open it in Reels. Tap the button to pause or play. "
+                                + "Tap the video again while the button shows to open it. Ads keep their own controls. "
+                                + "With Tap to play on, it needs Inline feed video controls on too.")));
                 // Hold a reel for 2x's patch reaches the player's speed, which the button reads and sets.
                 if (build.contains(PatchFamily.REEL_HOLD)) {
                     playback.addPreference(toggle(context, Settings.FEED_VIDEO_SPEED_BUTTON,
@@ -547,9 +553,13 @@ final class VideoPages {
                                 + "Facebook's speaker and tagged people buttons move up to sit above it. "
                                 + "Wins over Lower the seek bar and speaker. Needs Seek bar on feed videos on.")));
                 playback.addPreference(toggle(context, Settings.FEED_VIDEO_SEEK_BAR_THIN,
-                        L10n.t("Shows a feed video's seek bar as a thin line right on its bottom edge, like Instagram's, with no dot or times until you drag it. "
+                        L10n.t("Shows a feed video's seek bar as a thin line right on its bottom edge, like Instagram's, with no dot until you drag it. "
                                 + "Live videos get it too while they can be rewound. Let go at the far right end to go back to live. "
                                 + "Facebook's speaker and tagged people buttons move up to sit above it. Needs Seek bar on feed videos on.")));
+                playback.addPreference(toggle(context, Settings.FEED_VIDEO_SEEK_BAR_FLAT_DRAG,
+                        L10n.t("While you drag the thin line, it stays on the video's bottom edge like Instagram's, "
+                                + "with the time in the middle, instead of rising into the full bar with a time bubble. "
+                                + "Needs Thin line seek bar on.")));
                 playback.addPreference(toggle(context, Settings.FEED_VIDEO_SEEK_BAR_TIMES,
                         L10n.t("Shows how far into a feed video you are at the left end of its seek bar, and how much is left at the right end. "
                                 + "Needs Seek bar on feed videos on.")));

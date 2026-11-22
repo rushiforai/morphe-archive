@@ -5,7 +5,8 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLa
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
-import app.morphe.patcher.patch.resourcePatch
+import app.morphe.patcher.patch.document
+import app.morphe.patcher.patch.patch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patcher.util.smali.ExternalLabel
 import app.noam.patches.chesscom.misc.settings.settingsPatch
@@ -90,7 +91,7 @@ private const val HUB_USER_41028 = "Lcom/chess/features/puzzles/home/ui/p0;"
 private const val UNIT = "sget-object v0, Lkotlin/Unit;->a:Lkotlin/Unit;\nreturn-object v0"
 private const val NOTHING = "const/4 v0, 0x0\nreturn-object v0"
 
-private val lichessPuzzlesResourcePatch = resourcePatch(
+private val lichessPuzzlesResourcePatch = patch(
     description = "Adds the Puzzles tab button's text.",
 ) {
     execute {

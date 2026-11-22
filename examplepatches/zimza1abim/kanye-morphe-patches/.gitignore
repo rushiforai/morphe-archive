@@ -17,6 +17,8 @@
 *.nar
 *.ear
 *.zip
+# Expo asset overlays ship with their adapter bundles.
+!patches/src/main/resources/orca/adapters/*.assets.zip
 *.tar.gz
 *.rar
 

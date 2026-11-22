@@ -74,6 +74,12 @@ public final class ProjectionRenderer {
     private List<Rect> occupiedSent;
     private View occupiedRoot;
     private boolean occupiedPending;
+    /** Told when Maps' route preview (its Start control) appears or goes; set only for a host that takes the overlay service. */
+    private java.util.function.Consumer<Boolean> previewListener;
+    /** What the host was last told; a host starts out knowing "not shown". */
+    private boolean previewSent;
+    /** One warning per run of failed start requests, not one per request. */
+    private boolean startMissingLogged;
     /** Maps animates its cards; at most this often is the layout read again while it draws. */
     static final long OCCUPIED_INTERVAL_MS = 50;
     private final Runnable reportOccupied = this::reportOccupiedNow;
@@ -152,6 +158,8 @@ public final class ProjectionRenderer {
         if(hostedNavigation==active)return;
         hostedNavigation=active;
         guard(()->telemetryNavigation(active));
+        // Guidance running means the route preview is gone, even before the next frame says so.
+        reportRoutePreview();
     }
 
     public void create(Intent value, Configuration config) {
@@ -240,8 +248,62 @@ public final class ProjectionRenderer {
         occupiedSent = null;
         guard(this::watchOccupied);
     }
+    /**
+     * Starts reporting whether Maps' route preview is up (its Start control is shown and guidance is
+     * not running), read from the same layout observation as the occupied boxes. A host starts out
+     * knowing "not shown", so only a change is reported.
+     */
+    void setRoutePreviewListener(java.util.function.Consumer<Boolean> listener) {
+        previewListener = listener;
+        previewSent = false;
+        guard(this::watchOccupied);
+        reportRoutePreview();
+    }
+    /** Reports the route preview when its state changed since the host was last told. */
+    void reportRoutePreview() {
+        if (closed || failed || previewListener == null) return;
+        try {
+            boolean shown = NativeRoutePreview.shown(occupiedRoot, hostedNavigation);
+            if (shown == previewSent) return;
+            previewSent = shown;
+            previewListener.accept(shown);
+        } catch (RuntimeException error) {
+            // A hint for the host's countdown; it never ends the car session.
+            Log.w("MapsNativeCar", "Maps route preview report unavailable", error);
+        }
+    }
+    /**
+     * Presses Maps' own Start on its route preview, as the driver's tap would; true when Maps
+     * took the click. False, and one warning per run of failures, when there is no usable Start
+     * view (not on a route preview, still loading, another action such as Add stop) or it took no click.
+     * Never fails the session: an exception, Maps' own click handler's included, is logged and is false.
+     * Main thread only.
+     */
+    boolean startRoutePreview() {
+        if (closed || failed) return false;
+        try {
+            View root = decor();
+            View start = NativeRoutePreview.start(root);
+            if (start != null) {
+                startMissingLogged = false;
+                Log.i("MapsNativeCar", "Started guidance on the host's request from " + NativeOccupiedAreas.name(start));
+                return true;
+            }
+            if (!startMissingLogged) {
+                startMissingLogged = true;
+                Log.w("MapsNativeCar", "Host asked to start guidance: " + (root == null ? "no car window"
+                        : NativeRoutePreview.find(root) == null ? "Maps' route preview has no usable Start view" : "Maps' Start view took no click"));
+            }
+            return false;
+        } catch (Exception error) {
+            // A start request is a convenience on a session the driver is using: whatever goes wrong
+            // here (Maps' own click handler included) never ends it.
+            Log.w("MapsNativeCar", "Host asked to start guidance: Maps' route preview start failed", error);
+            return false;
+        }
+    }
     private void watchOccupied() throws Exception {
-        View root = occupiedListener == null ? null : decor();
+        View root = occupiedListener == null && previewListener == null ? null : decor();
         if (root == occupiedRoot) return;
         if (occupiedRoot != null) occupiedRoot.getViewTreeObserver().removeOnPreDrawListener(occupiedDraw);
         occupiedRoot = root;
@@ -250,16 +312,20 @@ public final class ProjectionRenderer {
     }
     private void reportOccupiedNow() {
         occupiedPending = false;
-        if (closed || failed || occupiedListener == null || !(occupiedRoot instanceof ViewGroup)) return;
-        try {
-            List<Rect> areas = NativeOccupiedAreas.of((ViewGroup) occupiedRoot);
-            if (areas.equals(occupiedSent)) return;
-            occupiedSent = areas;
-            occupiedListener.accept(Collections.unmodifiableList(areas));
-        } catch (RuntimeException error) {
-            // Reporting free space to the host is a placement hint; it never ends the car session.
-            Log.w("MapsNativeCar", "Maps layout report unavailable", error);
+        if (closed || failed || !(occupiedRoot instanceof ViewGroup)) return;
+        if (occupiedListener != null) {
+            try {
+                List<Rect> areas = NativeOccupiedAreas.of((ViewGroup) occupiedRoot);
+                if (!areas.equals(occupiedSent)) {
+                    occupiedSent = areas;
+                    occupiedListener.accept(Collections.unmodifiableList(areas));
+                }
+            } catch (RuntimeException error) {
+                // Reporting free space to the host is a placement hint; it never ends the car session.
+                Log.w("MapsNativeCar", "Maps layout report unavailable", error);
+            }
         }
+        reportRoutePreview();
     }
     private void releaseOverlays() {
         main.removeCallbacks(reportOccupied);
@@ -268,6 +334,8 @@ public final class ProjectionRenderer {
         occupiedRoot = null;
         occupiedListener = null;
         occupiedSent = null;
+        previewListener = null;
+        previewSent = false;
         hostOverlays = Collections.emptyList();
     }
     public void visibleArea(Rect area) { guard(() -> { visibleArea = area == null ? null : new Rect(area); applyAreas(); if (resumed) telemetrySurface(decor()); }); }

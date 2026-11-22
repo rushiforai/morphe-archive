@@ -2,6 +2,7 @@ package app.tvpatches.extension.youtubetv;
 
 import android.os.Handler;
 import android.os.Looper;
+import android.os.SystemClock;
 import android.util.Log;
 
 import org.json.JSONObject;
@@ -48,7 +49,9 @@ final class NetBridge {
             deliver(id, 0, "");
             return;
         }
+        final long queuedAt = SystemClock.elapsedRealtime();
         executor.execute(() -> {
+            long startedAt = SystemClock.elapsedRealtime();
             int status = 0;
             String body = "";
             try {
@@ -68,6 +71,14 @@ final class NetBridge {
                 }
             } catch (Throwable t) {
                 Log.w(TvScripts.TAG, "request failed: " + url + ": " + t);
+            }
+            if (TvScripts.diagnosticsEnabled()) {
+                try {
+                    Log.i(TvScripts.TAG, "perf-network host=" + new URL(url).getHost()
+                            + " queueMs=" + (startedAt - queuedAt)
+                            + " fetchMs=" + (SystemClock.elapsedRealtime() - startedAt)
+                            + " status=" + status + " chars=" + body.length());
+                } catch (Exception ignored) { }
             }
             deliver(id, status, body);
         });

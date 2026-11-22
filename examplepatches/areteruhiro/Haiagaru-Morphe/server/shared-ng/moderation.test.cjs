@@ -16,4 +16,7 @@ check(policy({...c,value:''},1).state==='rejected');
 check(policy(c,1,{words:[],exceptions:[c.value],wordVotes:999}).state==='approved');
 for(const value of ['あ','a','abcd','abcde','ＡＢＣＤＥ','a b c d e','éÉabc','あいうえ','日 本 語'])check(policy({...c,value},99).reason==='ineligible_keyword');
 for(const value of ['あいうえお','日本語の単語','abc12','𠮷𠮷𠮷𠮷𠮷'])check(policy({...c,value},1).state==='approved');
+for(const kind of ['id','name','keyword'])for(const value of ['[\\x{E000}-\\x{F8FF}]','[\\x{F0000}-\\x{FFFFD}]','[\\x{100000}-\\x{10FFFD}]','[\\uF8FF-\\uE000]']){
+ check(policy({...c,kind,value,flags:32,regex:true},1).reason==='invalid_regular_expression');
+}
 console.log('PASS '+checks+' basic-rule/regex/keyword moderation checks');

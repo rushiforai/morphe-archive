@@ -1,0 +1,61 @@
+name: Bug report
+description: A patch doesn't work, signing in fails, or the app crashes.
+title: "bug: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting. Please [search the existing issues](https://github.com/JoFSlash/google-health-patches/issues?q=label%3Abug) first; the [contributing guide](https://github.com/JoFSlash/google-health-patches/blob/main/CONTRIBUTING.md) explains what helps most. Don't post health data or account details.
+  - type: input
+    id: patch
+    attributes:
+      label: Patch
+      description: The patch that misbehaves, by its name in Morphe Manager. Write "app crashes" or "sign-in" if you don't know which one.
+      placeholder: GmsCore support
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: What happens
+      description: What you expected, what happened instead, and how to get there (which screen). Screenshots help, but hide your data.
+    validations:
+      required: true
+  - type: dropdown
+    id: app-version
+    attributes:
+      label: Google Health version
+      options:
+        - "5.13.health-mobile-1104148438-1023845615"
+        - Other (write it below)
+    validations:
+      required: true
+  - type: input
+    id: versions
+    attributes:
+      label: Patches, Morphe Manager, MicroG-RE and Android versions
+      description: Add the Google Health version here if you picked "Other".
+      placeholder: "patches 0.1.0, Morphe Manager 1.20.0, MicroG-RE 7.3.1, Android 15"
+    validations:
+      required: true
+  - type: input
+    id: device
+    attributes:
+      label: Watch or tracker
+      description: Optional. Which Fitbit or Pixel device is paired, if any.
+  - type: textarea
+    id: logs
+    attributes:
+      label: Crash log
+      description: Optional. For crashes, the output of `adb logcat | grep -E "AndroidRuntime|JoFSlashPatches"`.
+      render: shell
+  - type: checkboxes
+    id: acknowledgements
+    attributes:
+      label: Before you send
+      options:
+        - label: I searched the open and closed issues and this is not a duplicate.
+          required: true
+        - label: The problem is still there with the latest release of the patches.
+          required: true

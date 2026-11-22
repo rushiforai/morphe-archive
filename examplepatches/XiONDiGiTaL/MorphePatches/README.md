@@ -57,7 +57,7 @@ so adding an app is one folder plus one package — not a new mechanism.
 
 ### Release status
 
-**v0.1.0** — baseline
+**v0.1.1** — current
 
 7 patches · 2 apps · `net.tandem` 6.38.0 / 6.12.0 · `com.amazon.atozm` any version
 
@@ -136,7 +136,7 @@ not do.
 ### Generated patch list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v0.1.0](https://github.com/XiONDiGiTaL/MorphePatches/releases/tag/v0.1.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;7 patches total
+> **[v0.1.1](https://github.com/XiONDiGiTaL/MorphePatches/releases/tag/v0.1.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;7 patches total
 <details open>
 <summary>📦 Tandem: Language exchange&nbsp;&nbsp;•&nbsp;&nbsp;5 patches</summary>
 <br>
@@ -205,6 +205,7 @@ Build the bundle locally with `./gradlew :patches:buildAndroid` — the `.mpp` f
 
 | Release | Date | Bundle | Contents |
 | :--- | :--- | :--- | :--- |
+| [`v0.1.1`](https://github.com/XiONDiGiTaL/MorphePatches/releases/tag/v0.1.1) — current | 2026-11-22 | `patches-0.1.1.mpp` | Rebuild of the same seven patches for two apps: the automated release for the site fix that keeps the mirror tables inside a phone viewport. No patch source changed |
 | [`v0.1.0`](https://github.com/XiONDiGiTaL/MorphePatches/releases/tag/v0.1.0) — baseline | 2026-11-13 | `patches-0.1.0.mpp` | First release under the 0.1.x scheme. Seven patches for two apps in one bundle: five Tandem patches (6.38.0 · 6.12.0) and the A to Z dark-mode and clone patches (any version) |
 
 Versions move by **one patch number at a time**: `0.1.0`, `0.1.1`, `0.1.2`, and so on. Every release
@@ -244,7 +245,7 @@ none of them qualify as Tested.
 
 [Suggest a patch or report an issue ↗](https://github.com/XiONDiGiTaL/MorphePatches/issues)
 
-When reporting a bug, include the app and its version, the bundle version (`v0.1.0` at time of
+When reporting a bug, include the app and its version, the bundle version (`v0.1.1` at time of
 writing), which patches were selected, your Android version, and reproduction steps. Remove personal
 information and credentials from logs.
 

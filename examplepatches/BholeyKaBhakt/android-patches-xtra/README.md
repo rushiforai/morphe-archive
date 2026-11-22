@@ -5,7 +5,7 @@ This repo contains some Android app patches.
 ## 🩹 Patches list
 
 <!-- PATCHES_START -->
-> **[v2.14.0](https://github.com/BholeyKaBhakt/android-patches-xtra/releases/tag/v2.14.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;30 patches total
+> **[v2.16.0](https://github.com/BholeyKaBhakt/android-patches-xtra/releases/tag/v2.16.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;35 patches total
 <details>
 <summary><b>📦 Speedtest</b>&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
 <br>
@@ -44,12 +44,28 @@ This repo contains some Android app patches.
 
 > **🎯 Supported versions:**
 
-| 1.51.1 |
-| :---: |
+| 1.54.0-play | 1.51.1 |
+| :---: | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
 | Bypass Blocks Limit |  |  |
+
+</details>
+
+<details>
+<summary><b>📦 Cosmic Watch</b>&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
+<br>
+
+> **🎯 Supported versions:**
+
+| 3.0.1 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| Disable In-App Telemetry |  |  |
+| Unlock Pro |  |  |
 
 </details>
 
@@ -59,7 +75,7 @@ This repo contains some Android app patches.
 
 > **🎯 Supported versions:**
 
-| 2.5.3 | 2.5.0 |
+| 2.6.0 | 2.5.3 |
 | :---: | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
@@ -75,8 +91,8 @@ This repo contains some Android app patches.
 
 > **🎯 Supported versions:**
 
-| 2.22.0 | 2.20.3 |
-| :---: | :---: |
+| 2.22.0 |
+| :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
@@ -108,8 +124,8 @@ This repo contains some Android app patches.
 
 > **🎯 Supported versions:**
 
-| 3.4.10 | 3.5.7b | 3.6.4 |
-| :---: | :---: | :---: |
+| 3.6.5 | 3.6.4 |
+| :---: | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
@@ -124,8 +140,8 @@ This repo contains some Android app patches.
 
 > **🎯 Supported versions:**
 
-| 1.16.2 | 1.16.3 | 1.16.8 | 1.16.9 | 1.16.10 |
-| :---: | :---: | :---: | :---: | :---: |
+| 1.16.10 | 1.16.9 | 1.16.8 |
+| :---: | :---: | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
@@ -140,7 +156,7 @@ This repo contains some Android app patches.
 
 > **🎯 Supported versions:**
 
-| 6.12.15 | 6.12.18 | 6.13.04 |
+| 6.13.04 | 6.12.18 | 6.12.15 |
 | :---: | :---: | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
@@ -151,12 +167,28 @@ This repo contains some Android app patches.
 </details>
 
 <details>
+<summary><b>📦 Solar Walk 2</b>&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
+<br>
+
+> **🎯 Supported versions:**
+
+| 1.6.9 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| Remove Ads |  |  |
+| Unlock Premium |  |  |
+
+</details>
+
+<details>
 <summary><b>📦 PROTO - circuit simulator</b>&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
 
 > **🎯 Supported versions:**
 
-| 1.48.0 | 1.49.0 | 1.53.0 |
+| 1.53.0 | 1.49.0 | 1.48.0 |
 | :---: | :---: | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
@@ -246,7 +278,7 @@ This repo contains some Android app patches.
 
 > **🎯 Supported versions:**
 
-| 2.5.5 | 2.5.8 |
+| 2.5.8 | 2.5.5 |
 | :---: | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
@@ -267,6 +299,21 @@ This repo contains some Android app patches.
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
 | Unlock Premium |  |  |
+
+</details>
+
+<details>
+<summary><b>📦 MT Manager</b>&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+> **🎯 Supported versions:**
+
+| 2.26.11 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| Unlock VIP |  |  |
 
 </details>
 

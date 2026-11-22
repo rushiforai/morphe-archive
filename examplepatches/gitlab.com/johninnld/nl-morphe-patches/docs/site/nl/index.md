@@ -38,7 +38,7 @@ hide:
 <button type="button" data-category="other" aria-pressed="false">Overige</button>
 </div>
 </div>
-<p class="dap-catalogue__status"><span data-app-count aria-live="polite" aria-atomic="true">80 apps</span> · Patchbundel: 1.92.0</p>
+<p class="dap-catalogue__status"><span data-app-count aria-live="polite" aria-atomic="true">80 apps</span> · Patchbundel: 1.94.0</p>
 <div class="dap-app-grid" markdown>
 <article class="dap-app-card" data-category="other" data-search="2dehands be.tweedehands.m 16.19.0 disable threatmetrix disable tracking hide ads skip consent screens" markdown>
 <p class="dap-app-card__category">Overige</p>
@@ -1488,19 +1488,20 @@ hide:
 
 </article>
 
-<article class="dap-app-card" data-category="entertainment" data-search="videoland android nl.rtl.videoland.v2 1.116.4 disable tracking (android - v116.4) hide ads (android - v116.4) skip consent screens (android - v116.4)" markdown>
+<article class="dap-app-card" data-category="entertainment" data-search="videoland android nl.rtl.videoland.v2 1.119.2 disable tracking (android - v119.2) hide ads (android - v119.2) remember last profile (experimental) (android - v119.2) skip consent screens (android - v119.2)" markdown>
 <p class="dap-app-card__category">Amusement</p>
 
 ### [Videoland Android](apps/videoland.md)
 
-<p class="dap-app-card__version">App-versies: <span class="dap-data">1.116.4</span></p>
+<p class="dap-app-card__version">App-versies: <span class="dap-data">1.119.2</span></p>
 <p class="dap-app-card__package">nl.rtl.videoland.v2</p>
 <details class="dap-app-card__patches">
-<summary>3 patches</summary>
+<summary>4 patches</summary>
 <ul>
-<li>Disable tracking (Android - v116.4) <span class="dap-app-card__target">1.116.4</span></li>
-<li>Hide ads (Android - v116.4) <span class="dap-app-card__target">1.116.4</span></li>
-<li>Skip consent screens (Android - v116.4) <span class="dap-app-card__target">1.116.4</span></li>
+<li>Disable tracking (Android - v119.2) <span class="dap-app-card__target">1.119.2</span></li>
+<li>Hide ads (Android - v119.2) <span class="dap-app-card__target">1.119.2</span></li>
+<li>Remember last profile (experimental) (Android - v119.2) <span class="dap-app-card__target">1.119.2 · standaard uit</span></li>
+<li>Skip consent screens (Android - v119.2) <span class="dap-app-card__target">1.119.2</span></li>
 </ul>
 </details>
 
@@ -1508,19 +1509,20 @@ hide:
 
 </article>
 
-<article class="dap-app-card" data-category="entertainment" data-search="videoland android tv nl.rtl.videoland.v2 1.118.0 disable tracking (android tv - v118) hide ads (android tv - v118) hide unavailable content (android tv - v118)" markdown>
+<article class="dap-app-card" data-category="entertainment" data-search="videoland android tv nl.rtl.videoland.v2 1.119.2 disable tracking (android tv - v119.2) hide ads (android tv - v119.2) hide unavailable content (android tv - v119.2) remember last profile (experimental) (android tv - v119.2)" markdown>
 <p class="dap-app-card__category">Amusement</p>
 
 ### [Videoland Android TV](apps/videoland-android-tv.md)
 
-<p class="dap-app-card__version">App-versies: <span class="dap-data">1.118.0</span></p>
+<p class="dap-app-card__version">App-versies: <span class="dap-data">1.119.2</span></p>
 <p class="dap-app-card__package">nl.rtl.videoland.v2</p>
 <details class="dap-app-card__patches">
-<summary>3 patches</summary>
+<summary>4 patches</summary>
 <ul>
-<li>Disable tracking (Android TV - v118) <span class="dap-app-card__target">1.118.0</span></li>
-<li>Hide ads (Android TV - v118) <span class="dap-app-card__target">1.118.0</span></li>
-<li>Hide unavailable content (Android TV - v118) <span class="dap-app-card__target">1.118.0</span></li>
+<li>Disable tracking (Android TV - v119.2) <span class="dap-app-card__target">1.119.2</span></li>
+<li>Hide ads (Android TV - v119.2) <span class="dap-app-card__target">1.119.2</span></li>
+<li>Hide unavailable content (Android TV - v119.2) <span class="dap-app-card__target">1.119.2</span></li>
+<li>Remember last profile (experimental) (Android TV - v119.2) <span class="dap-app-card__target">1.119.2 · standaard uit</span></li>
 </ul>
 </details>
 

@@ -10,6 +10,10 @@ import app.morphe.patcher.patch.loadPatchesFromJar
 import com.google.gson.GsonBuilder
 import com.google.gson.JsonObject
 import java.io.File
+import java.nio.file.AtomicMoveNotSupportedException
+import java.nio.file.Files
+import java.nio.file.StandardCopyOption
+import java.nio.file.StandardOpenOption
 import java.util.jar.JarFile
 
 /**
@@ -17,11 +21,19 @@ import java.util.jar.JarFile
  * semantic-release). patches/build.gradle.kts passes it to generatePatchesList and the tests.
  */
 const val PATCHES_VERSION_PROPERTY = "patches.version"
+const val PATCH_LIST_OUTPUT_PROPERTY = "patches.list.output"
 
 fun main() {
     val version = requirePatchesVersion()
     val bundle = selectPatchBundle(File("build/libs"), version)
-    generatePatchList(version, loadPatchesFromJar(setOf(bundle)))
+    val output = System.getProperty(PATCH_LIST_OUTPUT_PROPERTY)
+        ?.takeIf(String::isNotBlank)
+        ?.let(::File)
+        ?: error(
+            "system property $PATCH_LIST_OUTPUT_PROPERTY is not set; run through Gradle " +
+                "(:patches:generatePatchesList), which passes the output path"
+        )
+    generatePatchList(version, loadPatchesFromJar(setOf(bundle)), output)
 }
 
 /** The project version from [PATCHES_VERSION_PROPERTY]; fails when it was not passed in. */
@@ -57,8 +69,25 @@ fun selectPatchBundle(libsDir: File, version: String): File {
 }
 
 @Suppress("DEPRECATION")
-private fun generatePatchList(version: String, patches: Set<Patch>) {
-    val listJson = File("../patches-list.json")
+private fun generatePatchList(version: String, patches: Set<Patch>, listJson: File) {
+    val names = patches.map { patch ->
+        patch.name?.takeIf(String::isNotBlank)
+            ?: error("patch bundle contains a patch without a name")
+    }
+    val duplicateNames = names.groupingBy { it }.eachCount().filterValues { it > 1 }.keys
+    check(duplicateNames.isEmpty()) {
+        "patch bundle contains duplicate patch names: $duplicateNames"
+    }
+    patches.forEach { patch ->
+        val packageNames = patch.compatibility.orEmpty().map { compatiblePackage ->
+            compatiblePackage.packageName?.takeIf(String::isNotBlank)
+                ?: error("patch '${patch.name}' contains a compatible package without a name")
+        }
+        val duplicates = packageNames.groupingBy { it }.eachCount().filterValues { it > 1 }.keys
+        check(duplicates.isEmpty()) {
+            "patch '${patch.name}' contains duplicate compatible package targets: $duplicates"
+        }
+    }
 
     val patchesMap = patches.sortedBy { it.name }.map { patch ->
         JsonPatch(
@@ -119,7 +148,35 @@ private fun generatePatchList(version: String, patches: Set<Patch>) {
     jsonObject.addProperty("version", version)
     jsonObject.add("patches", gson.toJsonTree(patchesMap))
 
-    listJson.writeText(gson.toJson(jsonObject))
+    writePatchListAtomically(listJson, gson.toJson(jsonObject))
+}
+
+internal fun writePatchListAtomically(output: File, content: String) {
+    val target = output.toPath().toAbsolutePath()
+    val parent = target.parent
+        ?: error("patch list output has no parent directory: $output")
+    Files.createDirectories(parent)
+    val temporary = Files.createTempFile(parent, ".${target.fileName}.", ".tmp")
+    try {
+        Files.writeString(
+            temporary,
+            content,
+            StandardOpenOption.TRUNCATE_EXISTING,
+            StandardOpenOption.WRITE,
+        )
+        try {
+            Files.move(
+                temporary,
+                target,
+                StandardCopyOption.ATOMIC_MOVE,
+                StandardCopyOption.REPLACE_EXISTING,
+            )
+        } catch (_: AtomicMoveNotSupportedException) {
+            Files.move(temporary, target, StandardCopyOption.REPLACE_EXISTING)
+        }
+    } finally {
+        Files.deleteIfExists(temporary)
+    }
 }
 
 /** JSON representation of a patch entry in patches-list.json. */

@@ -1,3 +1,14 @@
+## [0.30.65](https://github.com/Forsigh/waze-patches/releases/tag/v0.30.65) (2026-11-21)
+
+Support for Waze **5.28.4.900** (versionCode 1030753), and a rule change in how bundles declare what they fit.
+
+### Changed
+* **One bundle, one Waze version.** Every row now declares exactly the build it was verified against, so the Manager shows `5.28.4.900` instead of a version list or "Any". Patch an APK from a different Waze build and every row is skipped as incompatible instead of applying half-way and crashing - which is what happened to people who ran the PiP row on 5.26.1.0.
+* `0.30.64` is re-issued with the same rule and pins `5.27.90.900` (versionCode 1030751). Use 0.30.64 while your Waze is 5.27.90.900, and 0.30.65 once it is 5.28.4.900.
+
+### Added
+* Waze 5.28.4.900 support: 36/36 rows apply on the apkmirror 2arch/6dpi bundle, 466,083 methods, 0 broken branch targets, 0 out-of-frame registers.
+
 ## [0.30.64](https://github.com/Forsigh/waze-patches/releases/tag/v0.30.64) (2026-11-19)
 
 Promotes the experimental line since 0.30.61 to stable.

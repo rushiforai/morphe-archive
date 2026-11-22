@@ -457,6 +457,20 @@ public final class HideKeywordContentPatch {
     // region Navigation hooks
 
     /**
+     * Injection point. Adds the Create post item to the list a subreddit's three-dot menu builder filled.
+     */
+    public static void subredditMenu(Object builder, Object items) {
+        SubredditMenu.add(builder, items);
+    }
+
+    /**
+     * Injection point. Whether the tapped item of a subreddit's three-dot menu is the Create post item.
+     */
+    public static boolean subredditMenuTapped(int id) {
+        return SubredditMenu.tapped(id);
+    }
+
+    /**
      * Injection point. Returns null for a bottom bar tab to hide, and the tab otherwise.
      */
     public static Enum<?> navigationTab(Enum<?> tab) {

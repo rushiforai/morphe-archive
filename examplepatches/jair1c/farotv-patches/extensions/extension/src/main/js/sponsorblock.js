@@ -39,13 +39,35 @@
         return CATEGORIES.filter(function (c) { return feature.settings.get(c.key); });
     }
 
+    // Short-lived, bounded cache, including 404s. Never share mutable skipped flags.
+    var segmentCache = new Map();
+    var CACHE_TTL = 5 * 60 * 1000;
+    var MAX_CACHE = 50;
+    function requestSegments(url, callback) {
+        var cached = segmentCache.get(url);
+        if (cached && Date.now() - cached.time < CACHE_TTL) {
+            callback(cached.status, cached.body);
+            return;
+        }
+        if (cached) segmentCache.delete(url);
+        youtv.request(url, function (status, body) {
+            if (status === 200 || status === 404) {
+                if (!segmentCache.has(url) && segmentCache.size >= MAX_CACHE) {
+                    segmentCache.delete(segmentCache.keys().next().value);
+                }
+                segmentCache.set(url, { time: Date.now(), status: status, body: body });
+            }
+            callback(status, body);
+        });
+    }
+
     function load(id) {
         segments = [];
         var categories = enabledCategories();
         if (!categories.length) return;
         var url = "https://sponsor.ajay.app/api/skipSegments?videoID=" + id +
             "&categories=" + encodeURIComponent(JSON.stringify(categories.map(function (c) { return c.key; })));
-        youtv.request(url, function (status, body) {
+        requestSegments(url, function (status, body) {
             if (id !== videoId) return;
             if (status !== 200) {
                 if (status !== 404) youtv.report("sponsorblock: HTTP " + status + " for " + id);
@@ -87,6 +109,7 @@
             notice.className = "farotv-skip-notice";
         }
         if (!notice.parentNode) document.body.appendChild(notice);
+        notice.dir = window.farotvI18n.direction();
         notice.textContent = "";
         notice.appendChild(document.createTextNode(youtv.t("sponsor.skipped")));
         var b = document.createElement("b");

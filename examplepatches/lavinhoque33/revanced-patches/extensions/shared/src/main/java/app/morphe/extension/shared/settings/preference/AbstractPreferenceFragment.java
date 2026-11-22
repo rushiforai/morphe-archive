@@ -10,7 +10,7 @@
  * - COOLak (https://github.com/COOLak)
  *
  * Licensed under the GNU General Public License v3.0.
- * Modified by lavinhoque33, 2026-11-17.
+ * Modified by lavinhoque33, 2026-11-21.
  *
  * ------------------------------------------------------------------------
  * GPLv3 Section 7 – Additional Terms & Attribution Requirements
@@ -236,12 +236,18 @@ public abstract class AbstractPreferenceFragment extends PreferenceFragment {
     protected void initialize() {
         final int identifier = getXmlIdentifier("revanced_prefs");
         if (identifier == 0) return;
+
+        // The platform reads singleLineTitle when constructing each preference.
+        // On Android 8.0, setting it later does not enable the title override.
+        Activity activity = getActivity();
+        int titleStyle = Utils.getResourceIdentifierOrThrow(activity, "revanced_preference_titles", "style");
+        activity.getTheme().applyStyle(titleStyle, true);
+
         addPreferencesFromResource(identifier);
 
         PreferenceScreen screen = getPreferenceScreen();
         removeInvisiblePreferences(screen);
         Utils.sortPreferenceGroups(screen);
-        Utils.setPreferenceTitlesToMultiLineIfNeeded(screen);
     }
 
     /**

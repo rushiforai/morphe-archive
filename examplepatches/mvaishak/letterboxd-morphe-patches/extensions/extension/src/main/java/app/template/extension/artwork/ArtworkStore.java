@@ -7,6 +7,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -64,8 +65,44 @@ public final class ArtworkStore {
     }
 
     public String profile(String account) {
+        ProfileBackdrop choice = profileChoice(account);
+        return choice == null ? null : choice.image(today());
+    }
+
+    public ProfileBackdrop profileChoice(String account) {
         if (!ArtworkRules.validId(account)) return null;
-        return ArtworkRules.imageUrl(preferences.getString(PROFILE + account, null));
+        String saved = preferences.getString(PROFILE + account, null);
+        ProfileBackdrop single = ProfileBackdrop.single(saved);
+        if (saved == null || single != null) return single;
+        try {
+            return readRotation(new JSONObject(saved), true);
+        } catch (JSONException | IllegalArgumentException invalid) {
+            return null;
+        }
+    }
+
+    public boolean saveProfileRotation(String account, ProfileBackdrop.Schedule schedule, List<String> images) {
+        if (!ArtworkRules.ownsProfile(account, ArtworkHooks.account())) return false;
+        ProfileBackdrop choice = ProfileBackdrop.rotation(schedule, images, today(), -1);
+        if (choice == null) return false;
+        ProfileBackdrop previous = profileChoice(account);
+        if (previous != null && previous.schedule == schedule && previous.images.equals(choice.images)) return true;
+        preferences.edit().putString(PROFILE + account, storedRotation(choice)).apply();
+        ArtworkHooks.refreshProfiles();
+        return true;
+    }
+
+    String openProfileVisit(String account, ProfileBackdrop choice) {
+        if (!ArtworkRules.ownsProfile(account, ArtworkHooks.account())) return null;
+        ProfileBackdrop next = choice.nextVisit();
+        if (next != choice) {
+            preferences.edit().putString(PROFILE + account, storedRotation(next)).apply();
+        }
+        return next.image(today());
+    }
+
+    static long today() {
+        return LocalDate.now().toEpochDay();
     }
 
     public Film film(String id) {
@@ -174,8 +211,11 @@ public final class ArtworkStore {
             } else if (key.startsWith(PROFILE)) {
                 String member = key.substring(PROFILE.length());
                 if (!allProfiles && !ArtworkRules.ownsProfile(member, account)) continue;
+                ProfileBackdrop choice = profileChoice(member);
+                if (choice == null) throw new JSONException("Invalid saved profile backdrop");
                 JSONObject profile = new JSONObject().put("member", checkedId(member))
-                        .put("backdrop", checkedUrl(new JSONObject().put("backdrop", row.getValue()), "backdrop"));
+                        .put("backdrop", choice.images.get(0));
+                if (choice.schedule != null) profile.put("rotation", rotationJson(choice));
                 if (allProfiles) profiles.put(profile);
                 else root.put("profile", profile);
             }
@@ -237,13 +277,13 @@ public final class ArtworkStore {
                 JSONObject row = profiles.getJSONObject(i);
                 String id = checkedId(row.opt("member"));
                 if (!seen.add(id)) throw new JSONException("Duplicate profile in artwork backup");
-                mergeProfile(editor, result, id, checkedUrl(row, "backdrop"));
+                mergeProfile(editor, result, id, row);
             }
         } else {
             JSONObject row = root.optJSONObject("profile");
             if (row != null && ArtworkRules.ownsProfile(row.optString("member"), account)
                     && ArtworkRules.ownsProfile(account, ArtworkHooks.account())) {
-                mergeProfile(editor, result, account, checkedUrl(row, "backdrop"));
+                mergeProfile(editor, result, account, row);
             }
         }
         if (result.imported > 0) {
@@ -261,13 +301,54 @@ public final class ArtworkStore {
         return saved;
     }
 
-    private void mergeProfile(SharedPreferences.Editor editor, Merge result, String id, String url) {
+    private void mergeProfile(SharedPreferences.Editor editor, Merge result, String id, JSONObject row)
+            throws JSONException {
+        String data = checkedUrl(row, "backdrop");
+        if (row.has("rotation")) data = storedRotation(readRotation(row.getJSONObject("rotation"), false));
         if (preferences.contains(PROFILE + id)) {
             result.occupied++;
         } else {
-            editor.putString(PROFILE + id, url);
+            editor.putString(PROFILE + id, data);
             result.imported++;
         }
+    }
+
+    private static JSONObject rotationJson(ProfileBackdrop choice) throws JSONException {
+        return new JSONObject().put("schedule", choice.schedule.name())
+                .put("images", new JSONArray(choice.images)).put("startDay", choice.startDay);
+    }
+
+    private static String storedRotation(ProfileBackdrop choice) {
+        try {
+            return rotationJson(choice).put("position", choice.position).toString();
+        } catch (JSONException e) {
+            throw new IllegalStateException("Couldn't encode profile backdrop", e);
+        }
+    }
+
+    private static ProfileBackdrop readRotation(JSONObject row, boolean keepPosition) throws JSONException {
+        ProfileBackdrop.Schedule schedule;
+        try {
+            schedule = ProfileBackdrop.Schedule.valueOf(row.getString("schedule"));
+        } catch (IllegalArgumentException invalid) {
+            throw new JSONException("Invalid profile backdrop schedule");
+        }
+        JSONArray entries = row.getJSONArray("images");
+        List<String> images = new ArrayList<>();
+        for (int i = 0; i < entries.length(); i++) {
+            Object entry = entries.get(i);
+            String url = entry instanceof String ? ArtworkRules.imageUrl((String) entry) : null;
+            if (url == null) throw new JSONException("Invalid profile backdrop URL");
+            images.add(url);
+        }
+        long startDay = row.getLong("startDay");
+        if (startDay < LocalDate.MIN.toEpochDay() || startDay > LocalDate.MAX.toEpochDay()) {
+            throw new JSONException("Invalid rotation start date");
+        }
+        ProfileBackdrop choice = ProfileBackdrop.rotation(schedule, images, startDay,
+                keepPosition ? row.getInt("position") : -1);
+        if (choice == null) throw new JSONException("A rotation needs two distinct backdrops");
+        return choice;
     }
 
     private static String checkedId(Object value) throws JSONException {

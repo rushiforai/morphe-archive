@@ -1,3 +1,25 @@
+## [3.1.0](https://github.com/mvaishak/letterboxd-morphe-patches/compare/v3.0.1...v3.1.0) (2026-11-22)
+
+### 🐛 Bug Fixes
+
+* support Letterboxd 3.6.9 and avoid theme resource ID collisions ([ebfa7ec](https://github.com/mvaishak/letterboxd-morphe-patches/commit/ebfa7ec8a5590fe0c3ed3474f21a1dcf77fb49cf))
+
+### ✨ New Features
+
+* add streaming offers, alerts, external ratings and artwork options ([02befe7](https://github.com/mvaishak/letterboxd-morphe-patches/commit/02befe752a6a66cb10cfe6a77fbbc0fb2ae50962))
+
+## [3.1.0-dev.2](https://github.com/mvaishak/letterboxd-morphe-patches/compare/v3.1.0-dev.1...v3.1.0-dev.2) (2026-11-22)
+
+### 🐛 Bug Fixes
+
+* support Letterboxd 3.6.9 and avoid theme resource ID collisions ([ebfa7ec](https://github.com/mvaishak/letterboxd-morphe-patches/commit/ebfa7ec8a5590fe0c3ed3474f21a1dcf77fb49cf))
+
+## [3.1.0-dev.1](https://github.com/mvaishak/letterboxd-morphe-patches/compare/v3.0.1...v3.1.0-dev.1) (2026-11-19)
+
+### ✨ New Features
+
+* add streaming offers, alerts, external ratings and artwork options ([02befe7](https://github.com/mvaishak/letterboxd-morphe-patches/commit/02befe752a6a66cb10cfe6a77fbbc0fb2ae50962))
+
 ## [3.0.1](https://github.com/mvaishak/letterboxd-morphe-patches/compare/v3.0.0...v3.0.1) (2026-11-14)
 
 ### 🐛 Bug Fixes

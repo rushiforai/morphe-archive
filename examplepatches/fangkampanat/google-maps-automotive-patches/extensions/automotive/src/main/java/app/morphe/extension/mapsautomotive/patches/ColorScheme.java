@@ -1,7 +1,6 @@
 package app.morphe.extension.mapsautomotive.patches;
 
 import android.app.Activity;
-import android.app.AlertDialog;
 import android.app.TimePickerDialog;
 import android.content.ComponentCallbacks;
 import android.content.Context;
@@ -600,6 +599,20 @@ public final class ColorScheme {
         return (uiMode & Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES;
     }
 
+    /**
+     * Whether Maps shows its night colors now: the value given to Maps last, else [context]'s night flag (before Maps'
+     * first night update). Our dialogs use it, so they match the map behind them (BYD keeps the system in night mode).
+     */
+    static boolean nightColors(Context context) {
+        Boolean given = givenNight;
+        if (given != null) return given;
+        try {
+            return nightFlag(context.getResources().getConfiguration().uiMode);
+        } catch (RuntimeException error) {
+            return true;
+        }
+    }
+
     // The choice and the switch.
 
     private static boolean on() {
@@ -697,23 +710,23 @@ public final class ColorScheme {
 
     /** Injection point: the row title. */
     public static String getSettingsTitle(Context context) {
-        return UiDensityPatch.isThai(context) ? "รูปแบบสี (Color scheme)" : "Color scheme";
+        return UiDensityPatch.isThai(context) ? "สีกลางวัน/กลางคืน" : "Day/night colors";
     }
 
     /** Injection point: the row subtitle, the current choice. */
     public static String getSettingsSummary(Context context) {
         boolean thai = UiDensityPatch.isThai(context);
         if (!SafeMode.on(context, SafeMode.COLOR_SCHEME)) {
-            return (thai ? "ใช้สีของ Maps ชั่วคราว · สวิตช์ใน " : "Maps' colors for now · switch in ")
-                    + ReportPatch.reportPlace(context, thai);
+            return (thai ? "ใช้สีของ Maps ชั่วคราว (เปิดคืนใน " : "Maps' colors for now (back on in ")
+                    + ReportPatch.reportPlace(context, thai) + ")";
         }
         // The row is built once per Settings screen, so it names the choice, not the colors at that moment.
         String chosen = stored(context);
         int[] window = storedTimes(context);
         if (AUTO.equals(chosen) && lightsGivenUp) {
-            return choiceLabel(AUTO, thai, window) + " · " + (thai ? "อ่านไฟหน้าไม่ได้ ใช้สีของ Maps" : "headlights unreadable, Maps' colors");
+            return rowLabel(AUTO, thai, window) + " · " + (thai ? "อ่านไฟหน้าไม่ได้ ใช้สีของ Maps" : "headlights unreadable, Maps' colors");
         }
-        return choiceLabel(chosen, thai, window);
+        return rowLabel(chosen, thai, window);
     }
 
     /**
@@ -745,7 +758,7 @@ public final class ColorScheme {
             labels[index] = choiceLabel(CHOICES[index], thai, window);
             if (CHOICES[index].equals(current)) checked = index;
         }
-        new AlertDialog.Builder(host)
+        new M3.Builder(host)
                 .setTitle(getSettingsTitle(host))
                 .setSingleChoiceItems(labels, checked, (dialog, which) -> {
                     dialog.dismiss();
@@ -772,7 +785,7 @@ public final class ColorScheme {
                 (thai ? "สีกลางคืนตั้งแต่ " : "Night colors from ") + hhmm(nightFrom),
                 (thai ? "สีกลางวันตั้งแต่ " : "Day colors from ") + hhmm(dayFrom),
         };
-        new AlertDialog.Builder(host)
+        new M3.Builder(host)
                 .setTitle(thai ? "อัตโนมัติ (ตามเวลา)" : "Auto (time)")
                 .setItems(rows, (dialog, which) -> pickTime(host, container, shown, nightFrom, dayFrom, which == 0))
                 .setPositiveButton(thai ? "บันทึก" : "Save", (dialog, which) -> {
@@ -780,7 +793,7 @@ public final class ColorScheme {
                         choose(host, TIME, new int[]{nightFrom, dayFrom}, container, shown);
                         return;
                     }
-                    new AlertDialog.Builder(host)
+                    new M3.Builder(host)
                             .setMessage(thai ? "เวลาเริ่มสีกลางคืนกับสีกลางวันต้องไม่ตรงกัน"
                                     : "Night colors and day colors cannot start at the same time.")
                             .setPositiveButton(thai ? "ตกลง" : "OK", null)
@@ -791,11 +804,14 @@ public final class ColorScheme {
                 .show();
     }
 
-    // Android's time picker (24-hour) for the night start ([night]) or the day start; back to the times either way.
+    // Android's time picker (24-hour) for the night start ([night]) or the day start; back to the times either way. Not
+    // ours to draw: it takes the dark or light theme of Maps' colors, as our M3 dialogs do.
     private static void pickTime(Activity host, View container, String[] shown, int nightFrom, int dayFrom, boolean night) {
         int current = night ? nightFrom : dayFrom;
         try {
-            TimePickerDialog picker = new TimePickerDialog(host, (view, hour, minute) -> {
+            int theme = M3.colors(host).night ? android.R.style.Theme_DeviceDefault_Dialog_Alert
+                    : android.R.style.Theme_DeviceDefault_Light_Dialog_Alert;
+            TimePickerDialog picker = new TimePickerDialog(host, theme, (view, hour, minute) -> {
                 int picked = hour * 60 + minute;
                 showTimes(host, container, shown, night ? picked : nightFrom, night ? dayFrom : picked);
             }, current / 60, current % 60, true);
@@ -812,7 +828,7 @@ public final class ColorScheme {
         boolean thai = UiDensityPatch.isThai(host);
         String[] hours = new String[24];
         for (int hour = 0; hour < hours.length; hour++) hours[hour] = hhmm(hour * 60);
-        new AlertDialog.Builder(host)
+        new M3.Builder(host)
                 .setTitle(night ? (thai ? "สีกลางคืนตั้งแต่" : "Night colors from") : (thai ? "สีกลางวันตั้งแต่" : "Day colors from"))
                 .setSingleChoiceItems(hours, (night ? nightFrom : dayFrom) / 60, (dialog, which) -> {
                     dialog.dismiss();
@@ -848,12 +864,12 @@ public final class ColorScheme {
         }
         boolean thai = UiDensityPatch.isThai(activity);
         int[] shownTimes = storedTimes(activity);
-        new AlertDialog.Builder(activity)
+        new M3.Builder(activity)
                 .setTitle(getSettingsTitle(activity))
                 .setMessage(thai
-                        ? "บันทึกแล้ว จะใช้" + choiceLabel(chosen, true, shownTimes) + " เมื่อเปิด Color scheme อีกครั้งใน "
+                        ? "บันทึกแล้ว จะใช้" + choiceLabel(chosen, true, shownTimes) + " เมื่อเปิดสีกลางวัน/กลางคืนอีกครั้งใน "
                         + ReportPatch.reportPlace(activity, true)
-                        : "Saved. " + choiceLabel(chosen, false, shownTimes) + " is used once Color scheme is switched on again in "
+                        : "Saved. " + choiceLabel(chosen, false, shownTimes) + " is used once Day/night colors is switched on again in "
                         + ReportPatch.reportPlace(activity, false) + ".")
                 .setPositiveButton(thai ? "ตกลง" : "OK", null)
                 .show();
@@ -937,6 +953,14 @@ public final class ColorScheme {
     }
 
     /** The chooser's and the row's name of a choice; Auto (time) with its times ([window]). */
+    /** The Settings row's short form of {@link #choiceLabel}. */
+    static String rowLabel(String chosen, boolean thai, int[] window) {
+        if (SYSTEM.equals(chosen)) return thai ? "ตามระบบ" : "System";
+        if (TIME.equals(chosen)) return (thai ? "ตามเวลา · " : "By time · ") + span(window);
+        if (DAY.equals(chosen) || NIGHT.equals(chosen)) return choiceLabel(chosen, thai, window);
+        return thai ? "ตามไฟหน้า" : "By headlights";
+    }
+
     static String choiceLabel(String chosen, boolean thai, int[] window) {
         if (DAY.equals(chosen)) return thai ? "กลางวัน" : "Day";
         if (NIGHT.equals(chosen)) return thai ? "กลางคืน" : "Night";

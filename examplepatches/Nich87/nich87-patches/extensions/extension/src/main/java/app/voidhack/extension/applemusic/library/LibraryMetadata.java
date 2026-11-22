@@ -26,12 +26,12 @@ final class LibraryMetadata {
         for (LibraryDaap.Track track : tracks) if (!track.catalogId.isEmpty()) ids.add(track.catalogId);
         MetadataCatalog catalog = new MetadataCatalog(cancelled);
         progress.update("catalog", 0, ids.size());
-        catalog.load(ids, count -> progress.update("catalog", count, ids.size()));
+        catalog.load("catalog", ids, count -> progress.update("catalog", count, ids.size()));
         Set<String> related = catalog.related(ids);
         progress.update("related", 0, related.size());
-        catalog.load(related, count -> progress.update("related", count, related.size()));
+        catalog.load("related", related, count -> progress.update("related", count, related.size()));
         Set<String> albumArtists = catalog.related(related);
-        catalog.load(albumArtists, count -> progress.update("related", count, albumArtists.size()));
+        catalog.load("album_artists", albumArtists, count -> progress.update("related", count, albumArtists.size()));
         Set<String> japaneseIds = new LinkedHashSet<>(ids);
         japaneseIds.addAll(catalog.albums(ids));
         progress.update("japanese", 0, japaneseIds.size());
@@ -99,6 +99,88 @@ final class LibraryMetadata {
         }
     }
     private void checkCancelled() { if (cancelled.get()) throw new CancellationException(); }
+
+    static String diagnostic(String stage, int completed, int total, Throwable error) {
+        StringBuilder out = new StringBuilder();
+        out.append("stage=").append(stage == null || stage.isEmpty() ? "unknown" : stage);
+        if (total > 0) out.append(" (").append(completed).append('/').append(total).append(')');
+        out.append(" | ");
+        if (error instanceof LibraryDaap.Failure) {
+            LibraryDaap.Failure failure = (LibraryDaap.Failure) error;
+            out.append(failure.kind);
+            if (failure.status != 0) out.append(" (").append(failure.status).append(')');
+            if (!failure.detail.isEmpty()) out.append(" [").append(failure.detail).append(']');
+        } else if (error instanceof DaapCodec.FormatException) {
+            out.append(error.getMessage());
+        } else {
+            out.append(causeName(error));
+        }
+        return out.toString();
+    }
+
+    static String causeName(Throwable error) {
+        if (error == null) return "UnknownError";
+        String first = error.getClass().getSimpleName();
+        Throwable root = error;
+        int depth = 0;
+        while (root.getCause() != null && root.getCause() != root && depth++ < 8) root = root.getCause();
+        String leaf = root.getClass().getSimpleName();
+        return first.equals(leaf) ? first : first + " <- " + leaf;
+    }
+
+    static String stackSummary(Throwable error) {
+        if (error == null) return "";
+        StringBuilder out = new StringBuilder();
+        Throwable current = error;
+        int depth = 0;
+        while (current != null && depth++ < 4) {
+            if (out.length() > 0) out.append(" | caused by ");
+            out.append(current.getClass().getName());
+            StackTraceElement[] frames = current.getStackTrace();
+            int shown = 0;
+            for (StackTraceElement frame : frames) {
+                if (shown >= 6) break;
+                out.append("\n  at ").append(frame.getClassName()).append('.').append(frame.getMethodName())
+                        .append('(').append(frame.getFileName() == null ? "unknown" : frame.getFileName())
+                        .append(':').append(frame.getLineNumber()).append(')');
+                shown++;
+            }
+            Throwable next = current.getCause();
+            current = next == current ? null : next;
+        }
+        return out.toString();
+    }
+
+    int lastRawTrackCount() { return cloud.lastRawTrackCount(); }
+    int lastLibraryTrackCount() { return cloud.lastLibraryTrackCount(); }
+
+    static String formatLogReport(String timestampUtc, String appInfo, String androidInfo, String locale,
+                                  String action, int rawTracks, int libraryTracks, List<String> events,
+                                  String diagnostic, Throwable error) {
+        StringBuilder out = new StringBuilder();
+        out.append("Nich87 Patches - Metadata Repair Diagnostic Log\n");
+        out.append("timestamp=").append(safeField(timestampUtc)).append('\n');
+        out.append("app=").append(safeField(appInfo)).append('\n');
+        out.append("android=").append(safeField(androidInfo)).append('\n');
+        out.append("locale=").append(safeField(locale)).append('\n');
+        out.append("action=").append(safeField(action)).append('\n');
+        if (rawTracks >= 0) out.append("tracks_raw=").append(rawTracks).append('\n');
+        if (libraryTracks >= 0) out.append("tracks_library=").append(libraryTracks).append('\n');
+        out.append("diagnostic=").append(safeField(diagnostic)).append('\n');
+        if (events != null && !events.isEmpty()) {
+            out.append("\n[timeline]\n");
+            for (String event : events) out.append(event).append('\n');
+        }
+        String stack = stackSummary(error);
+        if (!stack.isEmpty()) {
+            out.append("\n[stack]\n").append(stack).append('\n');
+        }
+        return out.toString();
+    }
+
+    private static String safeField(String value) {
+        return value == null || value.isEmpty() ? "unknown" : value.replace('\r', ' ').replace('\n', ' ');
+    }
 
     static final class Candidate {
         final LibraryDaap.Track track;

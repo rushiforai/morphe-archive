@@ -7,6 +7,7 @@ import android.graphics.drawable.Drawable;
 import android.widget.TextView;
 
 import java.lang.ref.WeakReference;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -181,6 +182,25 @@ final class ReceivedTimestampDecorator {
         if (state.refresh != null) {
             timestamp.removeCallbacks(state.refresh);
             state.refresh = null;
+        }
+    }
+
+    /**
+     * 同期で記録が変わったトークの、画面に出ている行を読み直します。画面外の行は次の bind か予約した読み直しで
+     * 反映されます。{@link #clear} が {@link #STATES} を変えるため、写しを回します。
+     */
+    static void reloadChat(String chatId) {
+        if (chatId == null) {
+            return;
+        }
+        List<Map.Entry<TextView, State>> entries = new ArrayList<>(STATES.entrySet());
+        for (Map.Entry<TextView, State> entry : entries) {
+            TextView view = entry.getKey();
+            State state = entry.getValue();
+            if (view != null && state != null && chatId.equals(state.chatId) && view.isAttachedToWindow()
+                    && STATES.get(view) == state) {
+                refresh(view, state);
+            }
         }
     }
 

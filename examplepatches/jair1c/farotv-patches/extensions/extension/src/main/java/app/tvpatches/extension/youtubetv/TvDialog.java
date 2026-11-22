@@ -51,6 +51,7 @@ final class TvDialog {
         dialog.setCancelable(cancelable);
 
         FrameLayout root = new FrameLayout(activity);
+        root.setLayoutDirection(I18n.isRtl() ? View.LAYOUT_DIRECTION_RTL : View.LAYOUT_DIRECTION_LTR);
         root.setBackgroundColor(0x99000000);
 
         LinearLayout panel = new LinearLayout(activity);
@@ -139,6 +140,8 @@ final class TvDialog {
     private TextView text(Activity activity, String value, float size, int color, Typeface face) {
         TextView view = new TextView(activity);
         view.setText(value);
+        view.setTextDirection(I18n.isRtl() ? View.TEXT_DIRECTION_RTL : View.TEXT_DIRECTION_LTR);
+        view.setGravity(Gravity.START);
         view.setTextColor(color);
         view.setTextSize(TypedValue.COMPLEX_UNIT_PX, px(size));
         view.setTypeface(face);

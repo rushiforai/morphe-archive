@@ -23,15 +23,15 @@ KingInstaller as a fallback).
 ## 🩹 Patches
 
 <!-- PATCHES_START EXPANDED -->
-> **[v0.30.64](https://github.com/Forsigh/waze-patches/releases/tag/v0.30.64)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;36 patches total
+> **[v0.30.65](https://github.com/Forsigh/waze-patches/releases/tag/v0.30.65)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;36 patches total
 <details open>
 <summary>📦 Waze&nbsp;&nbsp;•&nbsp;&nbsp;36 patches</summary>
 <br>
 
 **🎯 Supported versions:**
 
-| 5.24.90.901 | 5.25.0.1 | 5.25.4.900 | 5.25.90.900 | 5.26.0.0 | 5.26.5.0 | 5.26.90.901 | 5.27.0.1 | 5.27.4.900 | 5.27.90.900 |
-| :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| 5.28.4.900 |
+| :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|

@@ -5,3 +5,7 @@ extension {
 android {
     namespace = "app.drbushytop.extension.relay"
 }
+
+dependencies {
+    compileOnly(project(":stub"))
+}

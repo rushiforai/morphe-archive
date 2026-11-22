@@ -180,11 +180,17 @@ public final class WindowRefreshPatch {
         @Override public void onActivityStopped(Activity stopped) { }
         @Override public void onActivitySaveInstanceState(Activity saved, Bundle state) { }
 
+        // The width Maps last measured on this window's display (another Maps screen on another display measures its own).
+        private int measured() {
+            Display display = decor.getDisplay();
+            return display != null ? ApiCompat.lastWindowBoundsWidth(display.getDisplayId()) : ApiCompat.lastWindowBoundsWidth;
+        }
+
         // Asks for the insets again when the width Maps last measured is not the decor's.
         private void verify(String reason, boolean again) {
             try {
                 if (activity.isDestroyed()) return;
-                int measured = ApiCompat.lastWindowBoundsWidth, width = decor.getWidth();
+                int measured = measured(), width = decor.getWidth();
                 if (again) givenUp = -1;
                 if (busy || measured <= 0 || width <= 0 || measured == width) return;
                 if (key(measured, width) == givenUp) return;
@@ -212,7 +218,7 @@ public final class WindowRefreshPatch {
         private void check(String reason, int retry) {
             busy = false;
             if (activity.isDestroyed()) return;
-            int measured = ApiCompat.lastWindowBoundsWidth, width = decor.getWidth();
+            int measured = measured(), width = decor.getWidth();
             if (measured == width || measured <= 0) return;
             if (retry < MAX_RETRIES) {
                 refresh(reason, retry + 1);

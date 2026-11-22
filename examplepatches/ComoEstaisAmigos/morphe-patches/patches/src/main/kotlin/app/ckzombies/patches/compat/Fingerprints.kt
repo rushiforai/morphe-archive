@@ -38,6 +38,39 @@ internal object GluOpenFeintInitializeFingerprint : Fingerprint(
     parameters = listOf(),
 )
 
+/**
+ * Starts Urban Airship. It never calls `super.onCreate()`, so returning here skips takeOff
+ * without skipping Application setup. The body would otherwise hit emptied UA classes.
+ */
+internal object GluApplicationOnCreateFingerprint : Fingerprint(
+    definingClass = "Lcom/glu/platform/android/GluApplication;",
+    name = "onCreate",
+    returnType = "V",
+    parameters = listOf(),
+)
+
+internal object GluApplicationOnTerminateFingerprint : Fingerprint(
+    definingClass = "Lcom/glu/platform/android/GluApplication;",
+    name = "onTerminate",
+    returnType = "V",
+    parameters = listOf(),
+)
+
+/** Native JNI constructs the PlayHaven wrapper; without this the constructor still runs. */
+internal object GluPlayHavenInitFingerprint : Fingerprint(
+    definingClass = "Lcom/glu/android/GluPlayHaven;",
+    name = "init",
+    returnType = "V",
+    parameters = listOf("Landroid/app/Activity;"),
+)
+
+internal object GluPushHandlerOnReceiveFingerprint : Fingerprint(
+    definingClass = "Lcom/glu/platform/android/GluPushHandler;",
+    name = "onReceive",
+    returnType = "V",
+    parameters = listOf("Landroid/content/Context;", "Landroid/content/Intent;"),
+)
+
 internal object ZombSniperOnCreateFingerprint : Fingerprint(
     definingClass = "Lcom/glu/android/zombsniper/ZombSniper;",
     name = "onCreate",

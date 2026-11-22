@@ -103,10 +103,10 @@ class RenderNotesTest(unittest.TestCase):
         self.assertIn("### 🗑️ Removed apps\n- LibrePods", text)
         self.assertNotIn("Remove LibrePods support", text)
 
-    def test_version_bump_goes_only_into_the_table(self):
+    def test_version_bump_is_rendered_as_a_mobile_friendly_list(self):
         text = render(["fix(365scores): updated to version 15.0.0"])
-        self.assertIn("### ⬆️ Updated apps\n| App | From | To |\n|---|---|---|\n"
-                      "| 365Scores | `14.9.8` | `15.0.0` |", text)
+        self.assertIn("### ⬆️ Updated apps\n- **365Scores:** `14.9.8` → `15.0.0`", text)
+        self.assertNotIn("| App | From | To |", text)
         self.assertNotIn("### 📱 365Scores", text)
         self.assertNotIn("Updated to version", text)
 
@@ -116,7 +116,7 @@ class RenderNotesTest(unittest.TestCase):
             "### 📱 Truecaller `26.42.5`\n- New: Hide Messages tab, Swap call answer and decline buttons\n"
             "- Removed: Old patch", text,
         )
-        self.assertIn("| Truecaller | `26.41.5` | `26.42.5` |", text)
+        self.assertIn("- **Truecaller:** `26.41.5` → `26.42.5`", text)
 
     def test_commit_highlights_with_issue_links(self):
         text = render([
@@ -292,7 +292,7 @@ class GitIntegrationTest(unittest.TestCase):
         text = self.run_main("--previous-tag", self.first, "--new-list", str(new_list))
         self.assertIn("### 📱 Truecaller `26.42.5`", text)
         self.assertIn("- New: Add Heval Controls ([#7](https://github.com/owner/repo/issues/7))", text)
-        self.assertIn("| 365Scores | `14.9.8` | `15.0.0` |", text)
+        self.assertIn("- **365Scores:** `14.9.8` → `15.0.0`", text)
         self.assertIn("### 🗑️ Removed apps\n- LibrePods", text)
 
     def test_ported_from_trailers_become_credits(self):

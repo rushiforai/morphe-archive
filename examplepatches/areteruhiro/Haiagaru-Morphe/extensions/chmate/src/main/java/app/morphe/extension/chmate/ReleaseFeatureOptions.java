@@ -27,27 +27,30 @@ final class ReleaseFeatureOptions {
         IMAGE_PAGING_GESTURES("1.46.0"), GIF_DEDICATED_VIEWER("1.46.0"), THREAD_SCOPED_NG("1.46.0"),
         X_POST_TRUNCATION_MODE("1.46.0"), WACCHOI_NG_EXPIRY("1.46.0"),
         WACCHOI_COPY_PARENS("1.47.0"), THREAD_REPORTER_COPY("1.47.0"), HIDDEN_NG_NEW_ARRIVAL_COUNT("1.47.0"),
-        READING_POSITION_CARD_DEFAULT("1.47.0"), EXTRA_QUICK_FILTERS("1.47.0");
+        READING_POSITION_CARD_DEFAULT("1.47.0"), EXTRA_QUICK_FILTERS("1.47.0"), KYODEMO_TOOLBAR_PALETTE("1.49.0"),
+        ANIMANCH_HEART("1.49.0"), CRASH_REPORTING("1.49.0"), GIGAFILE_BUTTON("1.49.0"), GIGAFILE_LINK_MODE("1.49.0"),
+        FUTABA_DIRECT_POSTING("1.49.0"), FUTABA_OFFICIAL_POSTING("1.49.0");
 
         final String version;
         Option(String version) { this.version = version; }
         String category() {
             switch(this){
-                case SETTINGS_LINKS:case SITE_GROUPS:case EDGE:case ORG:case BAKUSAI:case FUTABA:case ANIMAN:return "アプリ・通信";
+                case FUTABA_DIRECT_POSTING:case FUTABA_OFFICIAL_POSTING:return "履歴・投稿";
+                case ANIMANCH_HEART:case CRASH_REPORTING:case SETTINGS_LINKS:case SITE_GROUPS:case EDGE:case ORG:case BAKUSAI:case FUTABA:case ANIMAN:return "アプリ・通信";
                 case WACCHOI_COPY_UPPER:case WACCHOI_COPY_LOWER:case WACCHOI_COPY_PARENS:
                 case THREAD_REPORTER_COPY:case REPORTER_SEARCH:case REPORTER_MENU:case REPORTER_BOARD:return "表示・検索";
                 case NG_CHAIN_REPLY_NOTIFICATIONS:return "通知";
                 case HIDDEN_NG_NEW_ARRIVAL_COUNT:return "スレ更新";
                 case FILTER_TRANSPARENT_BACKGROUND:return "表示・検索";
                 case READING_POSITION_CARD_DEFAULT:return "表示・検索";
-                case EXTRA_QUICK_FILTERS:return "表示・検索";
+                case EXTRA_QUICK_FILTERS:case KYODEMO_TOOLBAR_PALETTE:return "表示・検索";
                 case CONDITIONAL_REFRESH:return "スレ更新";
                 case X_POST_TRUNCATION_MODE:return "表示・検索";
                 case WACCHOI_NG_EXPIRY:return "NG・文字列置換";
                 case KEYWORD_NAMES:case GLOBAL_SEARCH_BACKGROUND:case GLOBAL_SEARCH_HISTORY:case GLOBAL_SEARCH_PARTIAL:
                 case HOME_THREAD_ORDER:case KEYWORD_MENU:case HOME_NOTES_MENU:return "表示・検索";
                 case VIEWER_DOUBLE_BACK:case ALWAYS_MOSAIC_GRAY:case ALWAYS_MOSAIC_STRENGTH:
-                case MODERATION_ADULT:case MODERATION_GORE:case MODERATION_LIST:case UPLOAD_DESTINATION:
+                case GIGAFILE_BUTTON:case GIGAFILE_LINK_MODE:case MODERATION_ADULT:case MODERATION_GORE:case MODERATION_LIST:case UPLOAD_DESTINATION:
                 case LOCAL_IMAGES:case THREAD_THUMBNAILS:case VIDEO_THUMBNAILS:case VIDEO_IMMERSIVE:
                 case ROTATION_MENU:case EXTERNAL_VIDEO_CACHE:case NOTE_INDICATOR:case ARCHIVE_VIEWER_MODE:
                 case IMAGE_PAGING_GESTURES:case GIF_DEDICATED_VIEWER:return "画像・動画";
@@ -57,6 +60,10 @@ final class ReleaseFeatureOptions {
         }
         String description() {
             switch(this){
+                case FUTABA_DIRECT_POSTING:return "ふたば img／may の鉛筆ボタンから公式投稿フォームだけを開きます。初期値はオンです。";
+                case FUTABA_OFFICIAL_POSTING:return "ふたば img／may の投稿に、広告を除いた公式フォームを使います。初期値はオンです。";
+                case ANIMANCH_HEART:return "あにまんのレスにハートボタンを表示します。";
+                case CRASH_REPORTING:return "クラッシュ・ANRログの送信への同意を管理します。";
                 case LOCAL_IMAGES:return "保存画像の内容と元URLを照合して表示します。追加の検索フォルダや、改名済み画像との手動関連付けも設定できます。";
                 case WACCHOI_COPY_UPPER:case WACCHOI_COPY_LOWER:return "ワッチョイ部分の長押しから、上4桁はaabb-、下4桁は-XXXXの形式でコピーできます。元の大文字・小文字・記号を保持します。";
                 case SETTINGS_LINKS:return "本文に書かれたHaiagaruの設定リンクから、設定を開いたり切り替えたりできます。";
@@ -85,11 +92,14 @@ final class ReleaseFeatureOptions {
                 case MODERATION_ADULT:return "成人向け画像を検出してサムネイルをモザイクにします。画像検出ZIPが必要です。";
                 case MODERATION_GORE:return "グロ画像を検出してサムネイルをモザイクにします。画像検出ZIPが必要です。";
                 case MODERATION_LIST:return "スレ一覧の画像にも有効な自動検出を適用します。画像検出ZIPが必要です。";
+                case GIGAFILE_BUTTON:return "書き込み画面のファイルアイコンと全画面メニューのアップロード項目を切り替えます。";
+                case GIGAFILE_LINK_MODE:return "共有リンクをアプリ内・外部ブラウザ・直接ダウンロードで開く方法を選べます。";
                 case UPLOAD_DESTINATION:return "書き込み画面から画像・動画を添付するときに、送信先を選べます。";
                 case NG_REPLY_NOTIFICATIONS:return "NGに該当する返信を新着通知の対象から外します。";
                 case NG_CHAIN_REPLY_NOTIFICATIONS:return "連鎖NGの対象も通知から除外します。OFFでは、NGレスにアンカーしただけの別IDの返信は通知されます。";
                 case HIDDEN_NG_NEW_ARRIVAL_COUNT:return "ChMate 0.8.10.191／226／242で、スレ更新直後の「新着件数」から透明あぼーんとして判定されたレスを除きます。HOMEやスレ一覧の未読件数・既読位置は変えません。初期状態はOFFです。";
                 case READING_POSITION_CARD_DEFAULT:return "WebサイトのリンクカードまたはXカード形式を有効にすると、読書位置の補助保存を未設定時だけ自動で有効にします。初期状態はOFFで、手動で変更した設定を優先します。";
+                case KYODEMO_TOOLBAR_PALETTE:return "Kyodemoビューの上部ツールバーの色を変更します。初期設定は「本文の配色に合わせる」です。";
                 case EXTRA_QUICK_FILTERS:return "AA・自分・返信の追加フィルターを表示するか切り替えます。初期状態はOFFです。";
                 case FILTER_TRANSPARENT_BACKGROUND:return "下部フィルターパネルの背景を透明にするか、テーマ色の不透明背景を使うか切り替えます。";
                 case IMAGE_PAGING_GESTURES:return "ONではHaiagaruの方向指定を使い、OFFではChMate標準の画像切り替え操作を使います。初期状態はOFFです。";

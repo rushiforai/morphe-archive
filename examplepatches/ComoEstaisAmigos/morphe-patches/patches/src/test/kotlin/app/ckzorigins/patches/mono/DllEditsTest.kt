@@ -16,6 +16,7 @@ class DllEditsTest {
         assertEquals(6, DllEdits.HOSTS.size)
         assertEquals(1, DllEdits.FIRSTPASS_HOSTS.size)
         assertEquals(4, DllEdits.TAPJOY.size)
+        assertEquals(1, DllEdits.AMMO_REFILL_POPUP.size)
         assertEquals(
             "assets/bin/Data/Managed/Assembly-CSharp-firstpass.dll",
             DllEdits.FIRSTPASS_PATH,
@@ -109,7 +110,7 @@ class DllEditsTest {
     @Test
     fun `no two ranges overlap`() {
         val all = DllEdits.AMMO + DllEdits.CURRENCY_BODIES + DllEdits.CURRENCY_RVA +
-            DllEdits.HOSTS + DllEdits.TAPJOY
+            DllEdits.HOSTS + DllEdits.TAPJOY + DllEdits.AMMO_REFILL_POPUP
         val firstpass = DllEdits.FIRSTPASS_HOSTS.sortedBy { it.offset }
         val sorted = all.sortedBy { it.offset }
         for (i in 0 until sorted.lastIndex) {
@@ -133,7 +134,7 @@ class DllEditsTest {
     @Test
     fun `old and new of each range have the same length`() {
         for (edit in DllEdits.AMMO + DllEdits.CURRENCY_BODIES + DllEdits.CURRENCY_RVA +
-            DllEdits.HOSTS + DllEdits.FIRSTPASS_HOSTS + DllEdits.TAPJOY
+            DllEdits.HOSTS + DllEdits.FIRSTPASS_HOSTS + DllEdits.TAPJOY + DllEdits.AMMO_REFILL_POPUP
         ) {
             assertEquals(edit.old.size, edit.new.size, "0x${edit.offset.toString(16)}")
             assertTrue(edit.old.isNotEmpty(), "0x${edit.offset.toString(16)}")
@@ -162,5 +163,20 @@ class DllEditsTest {
         val data = ByteArray(0x6A450)
         DllEdits.AMMO[0].old.copyInto(data, DllEdits.AMMO[0].offset)
         assertFailsWith<IllegalStateException> { data.applyEdits(DllEdits.AMMO) }
+    }
+
+    @Test
+    fun `ammo refill popup nops ShowInfoPopup after AddConsumable`() {
+        val edit = DllEdits.AMMO_REFILL_POPUP.single()
+        assertEquals(0xA63D5, edit.offset)
+        assertEquals("28701000067bcd170004728240017028ca0d00066f4420000626", edit.old.toHex())
+        assertEquals("0000000000000000000000000000000000000000000000000000", edit.new.toHex())
+        val data = ByteArray(edit.offset + edit.old.size)
+        edit.old.copyInto(data, edit.offset)
+        val patched = data.applyEdits(DllEdits.AMMO_REFILL_POPUP)
+        assertEquals(
+            edit.new.toHex(),
+            patched.copyOfRange(edit.offset, edit.offset + edit.new.size).toHex(),
+        )
     }
 }

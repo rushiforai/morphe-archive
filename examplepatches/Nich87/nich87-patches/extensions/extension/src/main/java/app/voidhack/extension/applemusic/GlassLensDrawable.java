@@ -2,20 +2,15 @@ package app.voidhack.extension.applemusic;
 
 import android.graphics.Canvas;
 import android.graphics.ColorFilter;
-import android.graphics.LinearGradient;
 import android.graphics.Paint;
-import android.graphics.Path;
 import android.graphics.PixelFormat;
 import android.graphics.RectF;
-import android.graphics.Shader;
 import android.graphics.drawable.Drawable;
 import android.view.View;
 
 final class GlassLensDrawable extends Drawable {
     private final GlassController controller;
     private final RectF lens = new RectF();
-    private final Path path = new Path();
-    private final Paint rim = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint composite = new Paint();
     private int opacity = 255;
 
@@ -27,27 +22,19 @@ final class GlassLensDrawable extends Drawable {
         if (glass.backdrop == null || glass.press <= 0.001f || controller.menu == null
                 || !navigation.isShown() || navigation.getAlpha() <= 0f) return;
         float inset = GlassDrawable.INSET_DP * glass.density;
-        float width = glass.selectionWidth * (1f + 0.25f * glass.press) * (1f + glass.deformation);
-        float restingHeight = navigation.getHeight() - 2f * inset;
-        float expandedHeight = glass.selectionWidth * 1.25f / 1.52f;
-        float height = (restingHeight + (expandedHeight - restingHeight) * glass.press) / (1f + glass.deformation);
+        float expansion = 16f * glass.density * glass.press;
+        float width = (glass.selectionWidth + expansion) * (1f + glass.deformation);
+        float height = (navigation.getHeight() - 2f * inset + expansion) / (1f + glass.deformation);
+        if (width <= 0f || height <= 0f) return;
         lens.set(glass.center - width / 2f, (navigation.getHeight() - height) / 2f,
                 glass.center + width / 2f, (navigation.getHeight() + height) / 2f);
+        int alpha = Math.max(0, Math.min(255, Math.round(opacity * navigation.getAlpha() * glass.press)));
+        if (alpha <= 0) return;
         int save = canvas.save();
         canvas.translate(navigation.getLeft(), navigation.getTop());
         canvas.concat(navigation.getMatrix());
-        composite.setAlpha((int) (opacity * navigation.getAlpha()));
-        int layer = canvas.saveLayer(lens, composite);
-        path.rewind();
-        path.addRoundRect(lens, height / 2f, height / 2f, Path.Direction.CW);
-        canvas.clipPath(path);
-        glass.backdrop.drawLens(canvas, lens, glass.dark, glass.press, controller.menu);
-        rim.setStyle(Paint.Style.STROKE);
-        rim.setStrokeWidth(glass.density * 0.75f);
-        rim.setShader(new LinearGradient(lens.left, lens.top, lens.right, lens.bottom,
-                new int[]{0xb0000000, 0x30696969, 0xc0000000}, new float[]{0f, 0.5f, 1f}, Shader.TileMode.CLAMP));
-        canvas.drawRoundRect(lens, height / 2f, height / 2f, rim);
-        canvas.restoreToCount(layer);
+        composite.setAlpha(alpha);
+        glass.backdrop.drawLens(canvas, lens, glass.dark, glass.press, controller.menu, composite);
         canvas.restoreToCount(save);
     }
 

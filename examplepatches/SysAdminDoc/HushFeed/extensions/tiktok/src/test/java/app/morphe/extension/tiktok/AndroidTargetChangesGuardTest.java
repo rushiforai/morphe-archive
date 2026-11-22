@@ -105,10 +105,12 @@ public class AndroidTargetChangesGuardTest {
                             + "instance field, with a sorted copy of the list TikTok last handed "
                             + "that adapter, both when the order changes and when reshow() narrows "
                             + "it to a grid search"),
-            new ReviewedWrites("feedfilter/FeedItemsFilter.java", 3,
+            new ReviewedWrites("feedfilter/FeedItemsFilter.java", 4,
                     "safe: writes the search results' mItems, friendFeedData and, since #12, the "
                             + "Following feed's items field (mItems up to 46.8.3, items from "
-                            + "46.9.3), each an instance field on the response the hook was given"),
+                            + "46.9.3), and TikTok Lite's FeedItemList items, which liteItems() "
+                            + "refuses when it is static; each an instance field on the response "
+                            + "the hook was given"),
             new ReviewedWrites("interaction/DetailAutoAdvance.java", 1,
                     "safe: fieldOfType() skips static fields, and armProfileQueue writes the state "
                             + "enum on the background queue session TikTok's trigger was handed, "
@@ -140,9 +142,10 @@ public class AndroidTargetChangesGuardTest {
     /**
      * Addresses written into the payload, and what is done with them.
      *
-     * <p>Two are fetched: the opt-in update check's api.github.com address (#377) and Spotify's
-     * sign-in page (SpotifyWebLogin, in a WebView), whose public certificates are logged like any
-     * public CA's, so neither needs a Certificate Transparency opt-out. Every URL the media transport opens arrives from TikTok's own model objects, is
+     * <p>Three are fetched: the opt-in update check's api.github.com address (#377), Spotify's
+     * sign-in page (SpotifyWebLogin, in a WebView) and Shazam's tag address (SongRecognition),
+     * whose public certificates are logged like any public CA's, so none needs a Certificate
+     * Transparency opt-out. Every URL the media transport opens arrives from TikTok's own model objects, is
      * required to be https, and is re-resolved and re-checked on every redirect hop, so there is
      * no host list in this repository to opt out of Certificate Transparency even if one were
      * wanted. A CT refusal arrives as an SSLHandshakeException, which is not in
@@ -161,6 +164,10 @@ public class AndroidTargetChangesGuardTest {
                         + "Music app, which opens it as its own search");
         REVIEWED_ADDRESSES.put("https://github.com/SysAdminDoc/hushfeed",
                 "not fetched: the source link on the About row, opened in the reader's browser");
+        REVIEWED_ADDRESSES.put("http://",
+                "not a host: the scheme itself, which Network requests matches to find the "
+                        + "string field of a request that holds its address; nothing is opened "
+                        + "from it");
         REVIEWED_ADDRESSES.put("https://",
                 "not a host: the scheme itself, put in front of an address that arrived without "
                         + "one before a browser is asked to open it, and asked about before a "
@@ -189,6 +196,11 @@ public class AndroidTargetChangesGuardTest {
                 "fetched: the update check, only with Check for Hushfeed updates on, at most "
                         + "once a day, one GET with no redirect followed; GitHub's certificates "
                         + "are publicly logged, so CT enforcement passes it (#377)");
+        REVIEWED_ADDRESSES.put("https://amp.shazam.com/discovery/v5/en/US/android/-/tag/",
+                "fetched: Identify the song, one POST of a sound's fingerprint (no audio) "
+                        + "only when the reader picks the gesture, no redirect followed and no "
+                        + "cookie; Shazam's certificates are publicly logged, so CT enforcement "
+                        + "passes it");
         REVIEWED_ADDRESSES.put("https://accounts.spotify.com/authorize",
                 "fetched: Spotify's sign-in page, in a WebView, only when TikTok hands its "
                         + "Spotify sign-in to the Spotify app, which turns a patched TikTok down; "
@@ -259,7 +271,7 @@ public class AndroidTargetChangesGuardTest {
         // The grid search's reshow on 2026-11-10, App lock's watched window list on 2026-11-12.
         // Tap to remove's fixed-list grid copy on 2026-11-17, Group likes per comment's folded rows
         // the same day, and the profile background queue's session switch for #292.
-        assertEquals("the audit counted twenty-seven reflective writes on 2026-11-17", 27, total);
+        assertEquals("the audit counted twenty-eight reflective writes on 2026-11-20", 28, total);
     }
 
     @Test
@@ -282,8 +294,9 @@ public class AndroidTargetChangesGuardTest {
         // happily if the scan found nothing at all, which is what a broken pattern looks like.
         assertEquals("the addresses written into the payload are not the ones that were read "
                         + "against Certificate Transparency. The only hardcoded hosts fetched are "
-                        + "the opt-in update check's api.github.com and Spotify's sign-in page in "
-                        + "a WebView; every URL the media transport "
+                        + "the opt-in update check's api.github.com, Spotify's sign-in page in "
+                        + "a WebView and Shazam's tag address on the song gesture; every URL the "
+                        + "media transport "
                         + "opens comes from TikTok's own model objects. The bundle ships no resources either, so a host that needed a "
                         + "network security config opt-out would have nowhere to be opted out. "
                         + "Verdicts on the reviewed ones: " + REVIEWED_ADDRESSES,

@@ -17,12 +17,11 @@ DESKTOP = ROOT / ".tools/morphe-desktop-1.19.1-all.jar"
 # Patch -> patches it includes through dependencies.
 STREAMING_ORIGINALS = {
     "kijk": "695ec882393b98385046423da5b8d8ca8126e4a5c175e7731cb209ef43452d63",
-    "videoland": "c990c0339ac1b8c79031aabccba0046f63ca005266031a18c35051c8b7a73810",
 }
 MEDIA_REFERENCES = {
     "kijk": ("nl.sbs.kijk", 2026101500),
-    "videoland": ("nl.rtl.videoland.v2", 1627),
-    "videolandatv": ("nl.rtl.videoland.v2", 1622),
+    "videoland": ("nl.rtl.videoland.v2", 1637),
+    "videolandatv": ("nl.rtl.videoland.v2", 1638),
     "medium": ("com.medium.reader", 1784911033),
     "npo": ("nl.uitzendinggemist", 240497937),
     "npostarttv": ("nl.uitzendinggemist", 245497937),
@@ -46,9 +45,9 @@ APPS = {
     'medium': {'Disable optional tracking': [], 'Hide native promotions': [], 'Read full articles natively': []},
     **{app: {'Fix PairIP startup': [], 'Hide ads': ['Fix PairIP startup'],
              'Disable tracking': ['Fix PairIP startup']} for app in ('npo', 'npostarttv')},
-    'videolandatv': {'Hide ads': [], 'Disable tracking': [], 'Hide unavailable content': []},
+    'videolandatv': {'Hide ads': [], 'Disable tracking': [], 'Hide unavailable content': [], 'Remember last profile (experimental)': []},
     "kijk": {"Hide ads": [], "Disable tracking": [], "Skip consent screens": ["Disable tracking"]},
-    "videoland": {"Hide ads": [], "Disable tracking": [], "Skip consent screens": ["Disable tracking"]},
+    "videoland": {"Hide ads": [], "Disable tracking": [], "Skip consent screens": ["Disable tracking"], "Remember last profile (experimental)": []},
     "detijd": {
         "Hide ads": [], "Disable tracking": ["Hide ads"],
         "Skip consent screens": ["Disable tracking", "Hide ads"],
@@ -314,7 +313,7 @@ def verifier_command(app: str, destination: Path, effective: set[str], apk: Path
             command.append('--phone')
         if app == 'videolandatv':
             for patch, flag in [('Hide ads', '--ads'), ('Disable tracking', '--tracking'),
-                                ('Hide unavailable content', '--unavailable')]:
+                                ('Hide unavailable content', '--unavailable'), ('Remember last profile (experimental)', '--profile')]:
                 if patch in effective:
                     command.append(flag)
         else:
@@ -329,7 +328,7 @@ def verifier_command(app: str, destination: Path, effective: set[str], apk: Path
         if original_reference is None:
             raise ValueError("Videoland mobile validation needs the decoded original")
         command = [sys.executable, "tests/verify_videoland.py", str(original_reference), str(destination)]
-        for patch, flag in [("Hide ads", "--ads"), ("Disable tracking", "--tracking"), ("Skip consent screens", "--consent")]:
+        for patch, flag in [("Hide ads", "--ads"), ("Disable tracking", "--tracking"), ("Skip consent screens", "--consent"), ("Remember last profile (experimental)", "--profile")]:
             if patch in effective:
                 command.append(flag)
         if apk is not None:
@@ -498,13 +497,15 @@ def main() -> None:
                    "-o", str(output), "-r", str(report)]
         if args.sdk:
             command += [f"--verify-with-sdk={args.sdk.resolve()}"]
-        for patch in selection:
-            command += ["-e", patch]
+        suffix = {"videoland": " (Android - v119.2)", "videolandatv": " (Android TV - v119.2)"}.get(args.app, "")
+        selected_titles = [patch + suffix for patch in selection]
+        for title in selected_titles:
+            command += ["-e", title]
         command.append(str(patch_input))
         run(command, out / f"patch-{name}.log")
         result = json.loads(report.read_text())
         assert result["success"] and not result["failedPatches"], f"{name}: {result['failedPatches']}"
-        assert set(result["appliedPatches"]) == set(selection)
+        assert set(result["appliedPatches"]) == set(selected_titles)
         run(["apksigner", "verify", str(output)], out / f"signature-{name}.log")
         effective = set(selection) | {dependency for patch in selection for dependency in patches[patch]}
         decode_and_verify(out, args.app, output, name, effective, args.compact,

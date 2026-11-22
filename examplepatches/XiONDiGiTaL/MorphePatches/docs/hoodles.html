@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Hoodles collection — mirrored on GitGud</title>
+<meta name="description" content="Documentation and credits for the Hoodles Morphe patch collection (78 patches, 57 apps, GPLv3), mirrored on GitGud after his GitHub repository was removed.">
+<meta name="theme-color" content="#050607">
+<link rel="canonical" href="https://xiondigital.net/MorphePatches/hoodles.html">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<style>
+  .hoodles-list { margin: 0; padding-left: 1.05rem; }
+  .hoodles-list li { margin: 0.15rem 0; color: var(--body-copy); }
+  .hoodles-list strong { color: var(--ink); font-weight: 600; }
+  .hoodles-muted { color: var(--muted-dim); }
+  .hoodles-table code { font-family: var(--font-mono); font-size: 0.72rem; color: var(--blue-hi); }
+  .hoodles-table th[scope="row"] { white-space: nowrap; }
+  .hoodles-table th[scope="row"] code { font-weight: 400; color: var(--muted); }
+  .hoodles-table td { vertical-align: top; font-size: 0.86rem; line-height: 1.55; }
+  .hoodles-credit { display: grid; gap: 0.7rem; }
+</style>
+</head>
+<body>
+<a class="skip-link" href="#apps">Skip to the patch list</a>
+
+<div class="ambient" aria-hidden="true">
+  <span class="ambient__glow ambient__glow--a"></span>
+  <span class="ambient__glow ambient__glow--b"></span>
+  <span class="ambient__grid"></span>
+</div>
+
+<div class="site">
+  <header class="site-header">
+    <div class="wrap header__inner">
+      <a class="brand" href="index.html">
+        <img class="brand__mark" src="assets/xion-morphe-patches.png" alt="" onerror="this.remove()">
+        <span class="brand__word">Xi<span class="brand__o">Ø</span>N</span>
+        <span class="brand__tag">Morphe patches</span>
+      </a>
+      <nav class="nav" aria-label="Sections">
+        <a class="nav__link" href="index.html#patches">Patches</a>
+        <a class="nav__link" href="index.html#install">Install</a>
+        <a class="nav__link" href="#apps">Hoodles</a>
+        <a class="nav__link" href="index.html#releases">Releases</a>
+      </nav>
+      <a class="btn btn--primary btn--sm header__cta" href="https://gitgud.io/xiondigital/MorphePatches/-/tree/main/hoodles">GitGud mirror</a>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <span class="hero__ghost" aria-hidden="true">H</span>
+      <div class="wrap hero__inner">
+        <div class="hero__copy">
+          <p class="eyebrow">Mirror — hoodles</p>
+          <h1 class="hero__title">The Hoodles<br>collection</h1>
+          <p class="hero__tagline">
+            Someone else's work.
+            <em>Kept reachable, with his name on it.</em>
+          </p>
+          <p class="hero__lede">
+            78 patches for 57 Android apps, written by <strong>hoodles</strong> and
+            published under the GNU GPLv3. His repository was removed from GitHub in November 2026; the
+            source is mirrored on GitGud so the work stays available and attributable to him. Nothing here
+            is mine, and nothing here is on my GitHub.
+          </p>
+          <div class="hero__actions">
+            <a class="btn btn--primary" href="https://gitgud.io/xiondigital/MorphePatches/-/tree/main/hoodles">Source on GitGud</a>
+            <a class="btn btn--ghost" href="index.html">XiØN patches</a>
+          </div>
+          <ul class="hero__meta">
+            <li><span>Author</span> <strong>hoodles</strong></li>
+            <li><span>Release</span> <strong>v1.47.0</strong></li>
+            <li><span>Apps</span> <strong>57</strong></li>
+            <li><span>Patches</span> <strong>78</strong></li>
+            <li><span>License</span> <strong>GPLv3</strong></li>
+          </ul>
+        </div>
+
+        <aside class="source-card" aria-label="Mirror status">
+          <p class="source-card__label">What this mirror is</p>
+          <ul class="source-card__list">
+            <li><span>01</span> His patch sources, verbatim</li>
+            <li><span>02</span> His GPLv3 license and notice</li>
+            <li><span>03</span> His README and changelog</li>
+            <li><span>04</span> His patch list, v1.47.0</li>
+          </ul>
+          <p class="source-card__note">
+            Source only. His prebuilt <code class="inline-code">.mpp</code> release asset went down with
+            the repository, so the bundle has to be built from the mirrored sources — the command is
+            below. This mirror is temporary and maintained without his involvement.
+          </p>
+        </aside>
+      </div>
+    </section>
+
+    <section class="section" id="mirror">
+      <div class="wrap">
+        <div class="section__head">
+          <div>
+            <p class="eyebrow">01 / The mirror</p>
+            <h2 class="section__title">Why his work is <em>here</em></h2>
+          </div>
+          <p class="section__note">
+            A takedown is not an argument, but it does remove the work from the place people were pointed
+            at. This page documents what his patches do and where the source lives now.
+          </p>
+        </div>
+
+        <div class="panel panel--split">
+          <div>
+            <h3 class="panel__title">Temporary, credited, removable</h3>
+            <p class="panel__note">
+              <strong>hoodles</strong> wrote and maintains this collection. His repository,
+              <code class="inline-code">github.com/hoo-dles/morphe-patches</code>, was blocked by GitHub on
+              18 November 2026, and his signed release bundle was removed with it. The source survives
+              because it was publicly mirrored before the takedown, and it is reproduced here — on GitGud,
+              outside GitHub — so the patches stay reachable while his own hosting is gone.
+              <br><br>
+              This is a <strong>temporary mirror</strong>, not a fork and not an endorsement. No patch in it
+              was written or modified by me. The code stays under his license, the GPLv3, and his
+              <code class="inline-code">LICENSE</code> and <code class="inline-code">NOTICE</code> travel
+              with it. If he asks for it to come down, or publishes somewhere new, the mirror comes down.
+              <br><br>
+              What is <em>not</em> here: his prebuilt bundle (lost with the release), and any original or
+              patched application package. Only patch sources are mirrored.
+            </p>
+            <div class="card__tags" style="margin-top: 16px; padding-top: 0;">
+              <span class="chip chip--blue chip--dot">GPLv3 — his license</span>
+              <span class="chip">Source only</span>
+              <span class="chip" data-hoodles-chip>Checking bundle…</span>
+              <span class="chip">v1.47.0</span>
+              <span class="chip">Temporary</span>
+            </div>
+          </div>
+
+          <div>
+            <h3 class="panel__title">Where it lives</h3>
+            <table class="table mirror-table">
+              <tbody>
+                <tr><th scope="row">Mirror</th><td><a class="text-link" href="https://gitgud.io/xiondigital/MorphePatches/-/tree/main/hoodles">gitgud.io/xiondigital/MorphePatches/hoodles ↗</a></td></tr>
+                <tr><th scope="row">Author</th><td>hoodles</td></tr>
+                <tr><th scope="row">Original</th><td><code class="inline-code">github.com/hoo-dles/morphe-patches</code> — removed</td></tr>
+                <tr><th scope="row">License</th><td>GNU GPLv3, retained in <code class="inline-code">hoodles/LICENSE</code></td></tr>
+                <tr><th scope="row">Release</th><td>1.47.0 · 2026-10-04 · 597 commits</td></tr>
+                <tr><th scope="row">Build</th><td><code class="inline-code">scripts/hoodles-build.sh</code> — run by the <code class="inline-code">hoodles:bundle</code> CI job</td></tr>
+              </tbody>
+            </table>
+            <p class="panel__note">
+              <strong data-hoodles-headline>Status: checking whether the bundle is published…</strong>
+              <span data-hoodles-status>That line is filled in from GitGud when this page loads; with
+              JavaScript off it stays as it is, so open the source link in step 03 to check.</span>
+              <br>
+              <code class="inline-code">scripts/hoodles-build.sh</code> builds
+              <code class="inline-code">hoodles/patches-1.47.0.mpp</code>, records its SHA-256 in
+              <code class="inline-code">hoodles/source.json</code>, and the
+              <code class="inline-code">hoodles:bundle</code> CI job publishes the two in that order —
+              the bundle first, then the source, each re-downloaded and hash-checked. That order is why
+              a source pointing at a missing bundle cannot appear. Whether it has run is not written
+              down here; it is checked against GitGud every time the page loads.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="apps">
+      <div class="wrap">
+        <div class="section__head">
+          <div>
+            <p class="eyebrow">02 / His patches</p>
+            <h2 class="section__title">78 patches, <em>57 apps</em></h2>
+          </div>
+          <p class="section__note">
+            What each patch changes, in his own words, with the app versions he pinned. Where a patch
+            lists no version it applies to any build. Descriptions come from his
+            <code class="inline-code">patches-list.json</code> at v1.47.0.
+          </p>
+        </div>
+
+        <div class="panel">
+          <h3 class="panel__title">Universal patches — 5</h3>
+          <p class="panel__note">The ones that attach to any app rather than to a package:</p>
+          <ul class="hoodles-list" style="margin-top: 12px;">
+            <li><strong>Change package name</strong> — Appends &quot;.morphe&quot; to the package name by default. Changing the package name of the app can lead to unexpected issues.</li><li><strong>Disable Pairip license check</strong> — Disables Play Integrity API (pairip) client-side license check. This patch does not bypass Play Integrity attestation or pairipcore virtualization.</li><li><strong>Enable debug</strong> — Enables debugging on the app by setting android:debuggable=&quot;true&quot;.</li><li><strong>Hide app icon</strong> — Hides the app icon from the Android launcher.</li><li><strong>MicroG integration</strong> — Allows the app to work without root by using MicroG instead of Google Play Services.</li>
+          </ul>
+          <p class="panel__note" style="margin-top: 14px;">
+            His README additionally lists a universal <strong>Spoof signature</strong> patch; it is folded
+            into the universal entries above at this version and is not a separate row in his 1.47.0 list.
+          </p>
+        </div>
+
+        <div class="panel" style="margin-top: 14px;">
+          <div class="table-scroll">
+            <table class="table hoodles-table">
+            <caption>App patches — 73</caption>
+            <thead>
+              <tr><th scope="col">App</th><th scope="col">Patches</th><th scope="col">Target version</th></tr>
+            </thead>
+            <tbody>
+              <tr><th scope="row">AdGuard<br><code>com.adguard.android</code></th><td><ul class="hoodles-list"><li><strong>Enable Premium</strong> — Enables app features locked behind the subscription paywall.</li></ul></td><td><code class="inline-code">4.14.2</code></td></tr>
+<tr><th scope="row">AllTrails<br><code>com.alltrails.alltrails</code></th><td><ul class="hoodles-list"><li><strong>Enable Peak membership</strong> — Enables some app features locked behind the subscription paywall. Not all premium functionality is available.</li></ul></td><td><code class="inline-code">26.3.20</code></td></tr>
+<tr><th scope="row">ASL Bloom<br><code>com.toleio.us</code></th><td><ul class="hoodles-list"><li><strong>Enable Premium</strong> — Enables app features locked behind the subscription paywall.</li></ul></td><td><code class="inline-code">1.36.67</code></td></tr>
+<tr><th scope="row">Avocards<br><code>com.avocards</code></th><td><ul class="hoodles-list"><li><strong>Enable Premium</strong> — Enables app features locked behind the subscription paywall.</li></ul></td><td><code class="inline-code">3.0.18</code></td></tr>
+<tr><th scope="row">Bend<br><code>com.bowerydigital.bend</code></th><td><ul class="hoodles-list"><li><strong>Enable Premium</strong> — Enables app features locked behind the subscription paywall. Requirements: arm64-v8a, strict apk version</li></ul></td><td><code class="inline-code">7.8.0</code></td></tr>
+<tr><th scope="row">Bunpo<br><code>com.bunpoapp</code></th><td><ul class="hoodles-list"><li><strong>Enable Platinum</strong> — Enables app features locked behind the subscription paywall. Requirements: arm64-v8a, strict apk version</li></ul></td><td><code class="inline-code">3.23.1</code></td></tr>
+<tr><th scope="row">Busuu<br><code>com.busuu.android.enc</code></th><td><ul class="hoodles-list"><li><strong>Enable Premium</strong> — Enables app features locked behind the subscription paywall.</li></ul></td><td><code class="inline-code">32.44.1(1717099)</code></td></tr>
+<tr><th scope="row">Cake<br><code>me.mycake</code></th><td><ul class="hoodles-list"><li><strong>Enable Plus</strong> — Enable Plus membership (not all features are available). Requirements: strict apk version</li></ul></td><td><code class="inline-code">6.4.0</code></td></tr>
+<tr><th scope="row">CamScanner<br><code>com.intsig.camscanner</code></th><td><ul class="hoodles-list"><li><strong>Disable telemetry</strong> — Disables CamScanner&#x27;s custom telemetry system.</li><li><strong>Enable Premium</strong> — Enables some app features locked behind the subscription paywall. Certain server-side functionality may be unavailable.</li></ul></td><td><code class="inline-code">7.20.0.2606230000</code></td></tr>
+<tr><th scope="row">Daily Pocket<br><code>kr.co.yjteam.dailypay</code></th><td><ul class="hoodles-list"><li><strong>Enable Premium</strong> — Enables app features locked behind the subscription paywall.</li></ul></td><td><code class="inline-code">6.0.7</code></td></tr>
+<tr><th scope="row">Duolingo<br><code>com.duolingo</code></th><td><ul class="hoodles-list"><li><strong>Disable dynamic app icon</strong> — Prevents Duolingo from changing the app icon. Only the default icon will be available.</li><li><strong>Enable Premium</strong> — Enables app features locked behind the subscription paywall. Some features like AI video calls may not work.</li><li><strong>Enable debug mode</strong> — Enables hidden debug menu in settings.</li><li><strong>Unlimited RampUp time</strong> — The timer for RampUp challenges will never decrease.</li></ul></td><td><code class="inline-code">6.98.4</code></td></tr>
+<tr><th scope="row">Eggbun<br><code>kr.eggbun.eggconvo</code></th><td><ul class="hoodles-list"><li><strong>Enable Premium</strong> — Enables app features locked behind the subscription paywall.</li><li><strong>Force Native Keyboard</strong> — When typing in normal lessons, Eggbun forces you to use their own on-screen keyboard. This patches forces the use of the default OS keyboard.</li></ul></td><td><code class="inline-code">4.12.19</code></td></tr>
+<tr><th scope="row">FotMob<br><code>com.mobilefootie.wc2010</code></th><td><ul class="hoodles-list"><li><strong>Enable FotMob+</strong> — Enables app features locked behind the subscription paywall.</li></ul></td><td><code class="inline-code">238.17666.20260928</code></td></tr>
+<tr><th scope="row">GitHub<br><code>com.github.android</code></th><td><ul class="hoodles-list"><li><strong>AMOLED dark theme</strong> — Changes the default dark theme to use true blacks for AMOLED screens.</li></ul></td><td><code class="inline-code">1.271.1</code></td></tr>
+<tr><th scope="row">Goodreads<br><code>com.goodreads</code></th><td><ul class="hoodles-list"><li><strong>Disable ads</strong> — Disables all ads contained within the UI.</li></ul></td><td><code class="inline-code">2.75.0 Build 3</code></td></tr>
+<tr><th scope="row">Google News<br><code>com.google.android.apps.magazines</code></th><td><ul class="hoodles-list"><li><strong>Enable custom tabs</strong> — Open articles using your default browser.</li></ul></td><td><code class="inline-code">5.161.0.931240252</code></td></tr>
+<tr><th scope="row">HelloChinese<br><code>com.hellochinese</code></th><td><ul class="hoodles-list"><li><strong>Enable Premium</strong> — Enables app features locked behind the subscription paywall. Requirements: arm64-v8a</li></ul></td><td><code class="inline-code">7.11.0</code></td></tr>
+<tr><th scope="row">IbisPaint X<br><code>jp.ne.ibis.ibispaintx.app</code></th><td><ul class="hoodles-list"><li><strong>Enable Prime membership</strong> — Enables app features locked behind the subscription paywall. Requirements: arm64-v8a</li></ul></td><td><code class="inline-code">14.1.0</code></td></tr>
+<tr><th scope="row">Icon Packer<br><code>cn.ommiao.iconpacker</code></th><td><ul class="hoodles-list"><li><strong>Unlock premium features</strong> — Enables app features locked behind the subscription paywall. Some UI elements may not show an active membership, but this does not effect functionality.</li></ul></td><td><code class="inline-code">1.21.0-release</code></td></tr>
+<tr><th scope="row">Lightroom Mobile<br><code>com.adobe.lrmobile</code></th><td><ul class="hoodles-list"><li><strong>Unlock premium features</strong> — Enables app features locked behind the subscription paywall. Requirements: arm64-v8a, strict apk version</li></ul></td><td><code class="inline-code">11.5.31</code></td></tr>
+<tr><th scope="row">Ling<br><code>com.simyasolutions.ling.universal</code></th><td><ul class="hoodles-list"><li><strong>Enable Pro</strong> — Enables app features locked behind the subscription paywall. Requirements: strict apk version</li></ul></td><td><code class="inline-code">8.9.0</code></td></tr>
+<tr><th scope="row">Lingodeer<br><code>com.lingodeer</code></th><td><ul class="hoodles-list"><li><strong>Enable Premium (ROOT)</strong> — Enables app features locked behind the subscription paywall.</li></ul></td><td><code class="inline-code">2.99.413</code></td></tr>
+<tr><th scope="row">Lingory<br><code>org.languageapp.lingory</code></th><td><ul class="hoodles-list"><li><strong>Block Permissions Request</strong> — Blocks the request of notification permissions on load of app. Requirements: arm64-v8a, strict apk version</li><li><strong>Enable Premium</strong> — Enables app features locked behind the subscription paywall. Requirements: arm64-v8a, strict apk version</li></ul></td><td><code class="inline-code">1.2.75</code></td></tr>
+<tr><th scope="row">Lyfta<br><code>com.lyfta</code></th><td><ul class="hoodles-list"><li><strong>Enable Premium</strong> — Enables app features locked behind the subscription paywall.</li></ul></td><td><code class="inline-code">1.599</code></td></tr>
+<tr><th scope="row">MacroFactor<br><code>com.sbs.diet</code></th><td><ul class="hoodles-list"><li><strong>Enable Premium (ROOT)</strong> — Enables app features locked behind the subscription paywall. Requirements: root mount</li></ul></td><td><code class="inline-code">5.7.9</code></td></tr>
+<tr><th scope="row">MacroFactor Workouts<br><code>com.sbs.train</code></th><td><ul class="hoodles-list"><li><strong>Enable Premium (ROOT)</strong> — Enables app features locked behind the subscription paywall. Requirements: root mount</li></ul></td><td><code class="inline-code">1.2.1</code></td></tr>
+<tr><th scope="row">Meme Generator<br><code>com.zombodroid.MemeGenerator</code></th><td><ul class="hoodles-list"><li><strong>Enable Pro</strong> — Enables app features locked behind the subscription paywall.</li></ul></td><td><code class="inline-code">4.6826</code></td></tr>
+<tr><th scope="row">Merriam-Webster<br><code>com.merriamwebster</code></th><td><ul class="hoodles-list"><li><strong>Enable Premium</strong> — Enables app features locked behind the subscription paywall.</li></ul></td><td><span class="hoodles-muted">any version</span></td></tr>
+<tr><th scope="row">Mimo<br><code>com.getmimo</code></th><td><ul class="hoodles-list"><li><strong>Enable Pro</strong> — Enables app features locked behind the subscription paywall.</li></ul></td><td><code class="inline-code">9.30</code></td></tr>
+<tr><th scope="row">Mirinae<br><code>com.mirinae.mirinae</code></th><td><ul class="hoodles-list"><li><strong>Enable Pro</strong> — Enables app features locked behind the subscription paywall.</li></ul></td><td><code class="inline-code">2.2.2</code></td></tr>
+<tr><th scope="row">MyExpenses<br><code>org.totschnig.myexpenses</code></th><td><ul class="hoodles-list"><li><strong>Enable Pro</strong> — Enables app features locked behind the subscription paywall.</li></ul></td><td><code class="inline-code">4.1.1.2</code></td></tr>
+<tr><th scope="row">MyFitnessPal<br><code>com.myfitnesspal.android</code></th><td><ul class="hoodles-list"><li><strong>Enable Premium+</strong> — Enables app features locked behind the subscription paywall.</li></ul></td><td><code class="inline-code">26.31.0</code></td></tr>
+<tr><th scope="row">Niagara Launcher<br><code>bitpit.launcher</code></th><td><ul class="hoodles-list"><li><strong>Enable Niagara Pro</strong> — Enables app features locked behind the subscription paywall.</li></ul></td><td><code class="inline-code">1.16.31</code></td></tr>
+<tr><th scope="row">NOMone Desktop<br><code>nom.vrd</code></th><td><ul class="hoodles-list"><li><strong>Disable telemetry</strong> — Disables event logging sent to the app&#x27;s custom endpoint.</li><li><strong>Remove trial limit</strong> — Removes the imposed 6-hour trial usage limit.</li></ul></td><td><code class="inline-code">1.9.3-GooglePlay · 1.9.3-storage</code></td></tr>
+<tr><th scope="row">Nova Launcher<br><code>com.teslacoilsw.launcher</code></th><td><ul class="hoodles-list"><li><strong>Enable Prime</strong> — Enable Nova Launcher Prime and app locked behind the subscription paywall.</li></ul></td><td><code class="inline-code">88600 (8.8.6)</code></td></tr>
+<tr><th scope="row">Pandora<br><code>com.pandora.android</code></th><td><ul class="hoodles-list"><li><strong>Disable ads</strong> — Disables ads during audio streaming.</li><li><strong>Unlimited skips</strong> — Disables the limit for skipping songs during playback.</li></ul></td><td><span class="hoodles-muted">any version</span></td></tr>
+<tr><th scope="row">Podcast Addict<br><code>com.bambuna.podcastaddict</code></th><td><ul class="hoodles-list"><li><strong>Enable Premium</strong> — Enables app features locked behind the subscription paywall.</li></ul></td><td><code class="inline-code">2026.10.1</code></td></tr>
+<tr><th scope="row">Prime Video<br><code>com.amazon.avod.thirdpartyclient</code></th><td><ul class="hoodles-list"><li><strong>Enable speed control</strong> — Enables experimental speed control to the video player.</li><li><strong>Rename shared permissions</strong> — Rename certain permissions shared across Amazon apps. Applying this patch can fix installation errors, but can also break features in certain apps.</li><li><strong>Skip ads</strong> — Automatically skips ads baked into the video stream.</li></ul></td><td><code class="inline-code">3.0.470.1047</code></td></tr>
+<tr><th scope="row">Proton VPN<br><code>ch.protonvpn.android</code></th><td><ul class="hoodles-list"><li><strong>Remove delay</strong> — Removes the imposed delay when changing VPN servers.</li><li><strong>Unlock LAN connections</strong> — Enables the LAN connections feature usually locked behind the Proton Plus paywall.</li><li><strong>Unlock custom DNS</strong> — Enables the custom DNS feature usually locked behind the Proton Plus paywall.</li><li><strong>Unlock split tunneling</strong> — Enables the split tunneling feature usually locked behind the Proton Plus paywall.</li></ul></td><td><code class="inline-code">5.20.57.0</code></td></tr>
+<tr><th scope="row">PyDroid3<br><code>ru.iiec.pydroid3</code></th><td><ul class="hoodles-list"><li><strong>Enable Premium</strong> — Enables app features locked behind the subscription paywall.</li></ul></td><td><code class="inline-code">8.3_arm64</code></td></tr>
+<tr><th scope="row">RP Hypertrophy<br><code>com.rp.hypertrophy</code></th><td><ul class="hoodles-list"><li><strong>Enable Premium</strong> — Enables app features locked behind the subscription paywall.</li></ul></td><td><code class="inline-code">1.1.0</code></td></tr>
+<tr><th scope="row">Showly<br><code>com.michaldrabik.showly2</code></th><td><ul class="hoodles-list"><li><strong>Enable Premium</strong> — Enables app features locked behind the subscription paywall.</li></ul></td><td><code class="inline-code">3.70.0</code></td></tr>
+<tr><th scope="row">Sleep as Android<br><code>com.urbandroid.sleep</code></th><td><ul class="hoodles-list"><li><strong>Enable Premium</strong> — Enables app features locked behind the subscription paywall.</li></ul></td><td><code class="inline-code">20260526</code></td></tr>
+<tr><th scope="row">Smart Launcher<br><code>ginlemon.flowerfree</code></th><td><ul class="hoodles-list"><li><strong>Enable Pro</strong> — Enables app features locked behind the subscription paywall.</li></ul></td><td><code class="inline-code">6.6 build 020</code></td></tr>
+<tr><th scope="row">SnoreLab<br><code>com.snorelab.app</code></th><td><ul class="hoodles-list"><li><strong>Enable Premium</strong> — Enables app features locked behind the subscription paywall.</li></ul></td><td><code class="inline-code">2.27.3.6291</code></td></tr>
+<tr><th scope="row">Sofascore<br><code>com.sofascore.results</code></th><td><ul class="hoodles-list"><li><strong>Disable ads</strong> — Disables all ads contained within the UI.</li></ul></td><td><code class="inline-code">26.08.18</code></td></tr>
+<tr><th scope="row">Solid Explorer<br><code>pl.solidexplorer2</code></th><td><ul class="hoodles-list"><li><strong>Enable Pro</strong> — Enables app features locked behind the subscription paywall.</li></ul></td><td><code class="inline-code">3.6.1</code></td></tr>
+<tr><th scope="row">SoundCloud<br><code>com.soundcloud.android</code></th><td><ul class="hoodles-list"><li><strong>AMOLED dark theme</strong> — Changes the default dark theme to use true blacks for AMOLED screens.</li><li><strong>Disable telemetry</strong> — Disables SoundCloud&#x27;s telemetry system.</li><li><strong>Enable SoundCloud Go</strong> — Enables app features locked behind the subscription paywall.</li></ul></td><td><code class="inline-code">2026.08.26-release</code></td></tr>
+<tr><th scope="row">SuperChinese<br><code>com.superchinese</code></th><td><ul class="hoodles-list"><li><strong>Block launch upsell</strong> — Prevents the premium upsell popup on app launch.</li><li><strong>Disable telemetry</strong> — Blocks SuperChinese&#x27;s custom telemetry reporting.</li><li><strong>Unlock all lessons</strong> — Only unlocks lessons on the client UI! This is useful for pre-downloading content during free trial periods.</li></ul></td><td><code class="inline-code">6.8.1</code></td></tr>
+<tr><th scope="row">TTMIK Stories<br><code>app.ttmikstories.android</code></th><td><ul class="hoodles-list"><li><strong>Enable Premium</strong> — Enables app features locked behind the subscription paywall. Requirements: strict apk version</li></ul></td><td><code class="inline-code">1.16.0</code></td></tr>
+<tr><th scope="row">Ventusky<br><code>cz.ackee.ventusky</code></th><td><ul class="hoodles-list"><li><strong>Enable Premium</strong> — Enables app features locked behind the subscription paywall.</li></ul></td><td><code class="inline-code">53.1</code></td></tr>
+<tr><th scope="row">Wallcraft<br><code>com.wallpaperscraft.wallpaper</code></th><td><ul class="hoodles-list"><li><strong>Enable Premium</strong> — Enables app features locked behind the subscription paywall.</li></ul></td><td><code class="inline-code">3.61.01</code></td></tr>
+<tr><th scope="row">Windy<br><code>com.windyty.android</code></th><td><ul class="hoodles-list"><li><strong>Enable Premium</strong> — Enables some app features locked behind the subscription paywall. Not all premium functionality is available.</li></ul></td><td><code class="inline-code">51.0.1</code></td></tr>
+<tr><th scope="row">World Map Quiz<br><code>com.qbis.guessthecountry</code></th><td><ul class="hoodles-list"><li><strong>Enable Premium</strong> — Enables app features locked behind the subscription paywall.</li></ul></td><td><code class="inline-code">3.34.2</code></td></tr>
+<tr><th scope="row">WPS Office<br><code>cn.wps.moffice_eng</code></th><td><ul class="hoodles-list"><li><strong>Enable Pro</strong> — Enables app features locked behind the subscription paywall. Login is required and AI functionality is unavailable.</li></ul></td><td><code class="inline-code">18.24</code></td></tr>
+<tr><th scope="row">Xodo<br><code>com.xodo.pdf.reader</code></th><td><ul class="hoodles-list"><li><strong>Enable Pro</strong> — Enables app features locked behind the subscription paywall.</li></ul></td><td><code class="inline-code">11.2.0</code></td></tr>
+<tr><th scope="row">XRecorder<br><code>videoeditor.videorecorder.screenrecorder</code></th><td><ul class="hoodles-list"><li><strong>Enable Pro</strong></li></ul></td><td><code class="inline-code">2.5.1.1</code></td></tr>
+            </tbody>
+          </table>
+            </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="use">
+      <div class="wrap">
+        <div class="section__head">
+          <div>
+            <p class="eyebrow">03 / Using it</p>
+            <h2 class="section__title">Add the <em>GitGud source</em></h2>
+          </div>
+          <p class="section__note">
+            Morphe's add-source link only accepts github.com and gitlab.com repositories, so a GitGud
+            source is added by hand — one paste, no account.
+          </p>
+        </div>
+
+        <div class="steps">
+          <div class="step">
+            <span class="step__num">STEP 01</span>
+            <div>
+              <h3 class="step__title">Add the XiØN patches from GitGud</h3>
+              <p class="step__copy">
+                In Morphe Manager open <strong>Sources → + → Remote</strong> and paste
+                <code class="inline-code" id="gitgud-source">https://gitgud.io/xiondigital/MorphePatches/-/raw/main/patches-bundle.json</code>
+                <br>
+                <button class="btn btn--ghost btn--sm" type="button" data-copy="#gitgud-source" style="margin-top: 10px;">Copy source link</button>
+              </p>
+            </div>
+          </div>
+          <div class="step">
+            <span class="step__num">STEP 02</span>
+            <div>
+              <h3 class="step__title">The mirror builds it, not you</h3>
+              <p class="step__copy">
+                His release asset is gone. A CI job,
+                <code class="inline-code">hoodles:bundle</code>, runs
+                <code class="inline-code">scripts/hoodles-build.sh</code> — JDK 17, Android SDK 36, and a
+                GitHub token with <code class="inline-code">read:packages</code> for Morphe's Gradle
+                registry — and commits the result. There is nothing to do on your side; if it has not run
+                yet, the next step is not possible.
+              </p>
+            </div>
+          </div>
+          <div class="step">
+            <span class="step__num">STEP 03</span>
+            <div>
+              <h3 class="step__title">Add his patches as a second source</h3>
+              <p class="step__copy">
+                <code class="inline-code" id="hoodles-source">https://gitgud.io/xiondigital/MorphePatches/-/raw/main/hoodles/source.json</code>
+                <br>
+                <button class="btn btn--ghost btn--sm" type="button" data-copy="#hoodles-source" style="margin-top: 10px;">Copy source link</button>
+              </p>
+              <p class="step__copy" style="margin-top: 12px;" data-hoodles-step>
+                Whether that link resolves is checked when this page loads. Morphe keeps one bundle per
+                source, so his collection stays its own source beside the XiØN one; when both have
+                patches for an app, Morphe asks which source to use.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap">
+      <div class="footer__grid">
+        <div>
+          <p class="footer__brand">Xi<span class="o">Ø</span>N Patches</p>
+          <p class="footer__copy">
+            Independent Android patches by XiONDiGiTaL. The Hoodles collection documented here belongs to
+            <strong>hoodles</strong>, stays under the GPLv3, and is mirrored on GitGud without his
+            involvement as a temporary home for his work. Not affiliated with, endorsed by, or sponsored by
+            any app or project referenced here.
+          </p>
+        </div>
+        <div class="footer__col">
+          <h3>Mirror</h3>
+          <ul>
+            <li><a href="https://gitgud.io/xiondigital/MorphePatches">GitGud repository</a></li>
+            <li><a href="https://gitgud.io/xiondigital/MorphePatches/-/tree/main/hoodles">Hoodles sources</a></li>
+            <li><a href="https://gitgud.io/xiondigital/MorphePatches/-/blob/main/MIRROR.md">Mirror notice</a></li>
+            <li><a href="https://github.com/ameyamg/morphe-patches-hoodles">Surviving public mirror</a></li>
+          </ul>
+        </div>
+        <div class="footer__col">
+          <h3>Elsewhere</h3>
+          <ul>
+            <li><a href="https://morphe.software">Morphe</a></li>
+            <li><a href="https://github.com/MorpheApp/morphe-patches">Upstream patches</a></li>
+            <li><a href="https://xiondigital.net">XiØN · artist site</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer__base">
+        <span>Morphe patches — XIONDIGITAL</span>
+        <span>Hoodles mirror · v1.47.0 · updated 2026-11-22</span>
+      </div>
+    </div>
+  </footer>
+</div>
+
+<script src="hoodles-status.js"></script>
+<script>
+  document.querySelectorAll("[data-copy]").forEach(function (button) {
+    button.addEventListener("click", function () {
+      var target = document.querySelector(button.getAttribute("data-copy"));
+      if (!target) return;
+      var text = target.textContent.trim();
+      var label = button.textContent;
+      function done(ok) {
+        button.textContent = ok ? "Copied" : "Copy failed";
+        setTimeout(function () { button.textContent = label; }, 1600);
+      }
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(text).then(function () { done(true); }, function () { done(false); });
+      } else {
+        done(false);
+      }
+    });
+  });
+</script>
+</body>
+</html>

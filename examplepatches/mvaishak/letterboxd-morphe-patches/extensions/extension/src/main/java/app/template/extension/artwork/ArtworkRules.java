@@ -27,6 +27,11 @@ final class ArtworkRules {
         return "local".equals(mode) || ("automatic".equals(mode) && !nativeArtworkAvailable);
     }
 
+    static int titleLogoLanguageRank(String imageLanguage, String preferredLanguage) {
+        if (imageLanguage == null) return 1;
+        return imageLanguage.equalsIgnoreCase(preferredLanguage) ? 0 : 2;
+    }
+
     static boolean ownsProfile(String viewed, String signedIn) {
         return validId(viewed) && viewed.equals(signedIn);
     }

@@ -24,7 +24,7 @@ import app.revanced.patches.rif.shared.classes
 private const val EXTENSION = "Lapp/revanced/extension/rif/BlockedComments;"
 private const val COMMENT_THING = "Lcom/andrewshu/android/reddit/things/objects/CommentThing;"
 
-// Adds the "Blocked users" category to the ReVanced screen.
+// Adds the "Blocked users" category to the rif patches screen.
 val hideBlockedCommentsSettingsResourcePatch = resourcePatch(
     description = "Adds the hide blocked users' distinguished comments setting.",
 ) {

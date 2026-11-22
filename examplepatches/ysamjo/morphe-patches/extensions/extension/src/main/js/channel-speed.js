@@ -14,6 +14,7 @@
         { id: 'UCAvNr5DMVncoJnJAotXOjOQ', handle: '@skysport', name: 'Sky Sport', speed: 1 },
         { id: 'UCuOwl-VgqBHOzR8hWnonBcA', handle: '@skysportde', name: 'Sky Sport DE', speed: 1 },
         { id: 'UC5dCegXiWjE57wKrhWnCo0g', handle: '@skysportaustria', name: 'Sky Sport Austria', speed: 1 },
+        { id: 'UC_VsQmcsFWUhGn3DTwiO8bg', handle: '@skysportpremierleague', name: 'Sky Sport Premier League', speed: 1 },
         { id: 'UCdi3n18zcIZeTk_x9qvSgZw', handle: '@dazn', name: 'DAZN', speed: 1 },
         { id: 'UC-XArLCeEw91r9gmaDi-Ajw', handle: '@daznde', name: 'DAZN DE', speed: 1 },
         { id: 'UClBFnQJMlinWDCvfSXj60CA', handle: '@daznfussball', name: 'DAZN Fußball', speed: 1 },

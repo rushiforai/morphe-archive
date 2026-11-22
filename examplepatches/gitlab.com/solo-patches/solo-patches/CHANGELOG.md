@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.0.6
+
+### Added
+
+- **Hide blocked authors' books** removes books by users you blocked from tag and genre results, in both the native and Flutter screens. Searching for a book by name still finds it. It reads your block list and each blocked user's book list through WebNovel's own requests, so it needs you to be signed in. Blocks made in the app apply to the next results; blocks made on the website can take up to a minute.
+
 ## 1.0.5
 
 ### Added

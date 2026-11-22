@@ -22,6 +22,7 @@ public final class FamilyNames {
     public static final String EXTERNAL_BROWSER = "Open links in external browser";
     public static final String BUILD_EXPIRED_POPUP = "Remove build expired popup";
     public static final String RESTORE_TRUST = "Restore trust on re-signed builds";
+    public static final String WITHOUT_PLAY_SERVICES = "Run without Play services";
     public static final String REMOVE_AD_ID = "Remove the advertising ID";
     public static final String REEL_WATCH_HISTORY = "Don't send reel watch history";
     public static final String FEED_VIEW_HISTORY = "Don't send feed view history";
@@ -136,6 +137,7 @@ public final class FamilyNames {
     public static final String FEED_FOLLOW = "Hide Follow on feed posts";
     public static final String EDITS_LABEL = "Hide Made with Edits";
     public static final String FEED_HEADER_LINE = "Hide the line under names";
+    public static final String HOME_REELS_BELOW_NAME = "Reels on Home below the name";
     public static final String FEED_SAVE = "Save in the post menu";
     public static final String MENU_ITEMS = "Three-dot menu items";
     public static final String WATCH_AGAIN = "Watch again in the feed";
@@ -173,6 +175,7 @@ public final class FamilyNames {
     public static final String REEL_SCROLLING = "Stop Reels scrolling";
     public static final String SWIPE_TO_PROFILE = "Swipe left to open the profile";
     public static final String REEL_PROFILE_TAB_BAR = "Keep the tab bar on a reel's profile";
+    public static final String REEL_LINK_TAB_BAR = "Keep the tab bar on reel links";
     public static final String REEL_ORIGIN = "Find the reel you came from";
     public static final String STORY_DOWNLOAD = "Download any story";
     public static final String VIDEO_DOWNLOAD = "Download any video";

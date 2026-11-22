@@ -171,6 +171,9 @@
       "compact_comment_header",
       "hide_comment_close_button",
       "hide_comment_expand_button",
+      "show_comment_expand_button",
+      "keep_video_size_under_comments",
+      "share_any_comment",
       "larger_comment_like_target"
     ],
     "Confirm feed interactions": [
@@ -370,7 +373,8 @@
       "ghost_hide_story_views",
       "ghost_hide_profile_visits",
       "ghost_hide_typing",
-      "ghost_hide_live_views"
+      "ghost_hide_live_views",
+      "ghost_local_likes"
     ],
     "Group likes per comment": [
       "bundle_activity_likes"
@@ -798,6 +802,7 @@
     "Show follow status": [
       "show_follow_status",
       "show_join_date",
+      "show_profile_changes",
       "local_profile_counts",
       "local_profile_verified_badge",
       "hide_own_profile_restriction_notice",
@@ -2124,6 +2129,12 @@
       "type": "boolean",
       "default": true
     },
+    "ghost_local_likes": {
+      "field": "GHOST_LOCAL_LIKES",
+      "key": "ghost_local_likes",
+      "type": "boolean",
+      "default": false
+    },
     "ghost_mode": {
       "field": "GHOST_MODE",
       "key": "ghost_mode",
@@ -3230,6 +3241,12 @@
       "type": "boolean",
       "default": false
     },
+    "keep_video_size_under_comments": {
+      "field": "KEEP_VIDEO_SIZE_UNDER_COMMENTS",
+      "key": "keep_video_size_under_comments",
+      "type": "boolean",
+      "default": false
+    },
     "larger_comment_like_target": {
       "field": "LARGER_COMMENT_LIKE_TARGET",
       "key": "larger_comment_like_target",
@@ -4292,6 +4309,12 @@
       "type": "boolean",
       "default": false
     },
+    "share_any_comment": {
+      "field": "SHARE_ANY_COMMENT",
+      "key": "share_any_comment",
+      "type": "boolean",
+      "default": false
+    },
     "share_block_author": {
       "field": "SHARE_BLOCK_AUTHOR",
       "key": "share_block_author",
@@ -4337,6 +4360,12 @@
     "show_author_region": {
       "field": "SHOW_AUTHOR_REGION",
       "key": "show_author_region",
+      "type": "boolean",
+      "default": false
+    },
+    "show_comment_expand_button": {
+      "field": "SHOW_COMMENT_EXPAND_BUTTON",
+      "key": "show_comment_expand_button",
       "type": "boolean",
       "default": false
     },
@@ -4403,6 +4432,12 @@
     "show_poll_results": {
       "field": "SHOW_POLL_RESULTS",
       "key": "show_poll_results",
+      "type": "boolean",
+      "default": false
+    },
+    "show_profile_changes": {
+      "field": "SHOW_PROFILE_CHANGES",
+      "key": "show_profile_changes",
       "type": "boolean",
       "default": false
     },

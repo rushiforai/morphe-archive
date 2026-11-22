@@ -1,27 +1,44 @@
-# <img src="assets/icon.png" width="36" alt=""> GinArena Patch
+<div align="center">
 
-**GinArena Patch** is a [Morphe](https://morphe.software/) patch bundle for free **1DM**
-(`idm.internet.download.manager`), **CRICFy TV** (`com.cricfytv.sports`), **CricZ TV**
-(`com.pro.cricztv`), **CrexiFy TV** (`com.crexify.tv`), **PlayZ TV** (`com.playz.tv`), **MX Player** (`com.mxtech.videoplayer.ad`),
-**SK Tech TV** (`com.live.sktechtv`), **Playfy TV** (`com.playfy.tv`), **APK Decompiler** (`com.apktools.app.decompile`), **Daylio** (`net.daylio`), **WPS Office** (`cn.wps.moffice_eng`), and **AdGuard** (`com.adguard.android`).
-Morphe Manager automatically filters patches per app, so selecting an app shows only compatible patches.
+<img src="assets/icon.png" width="96" alt="GinArena Patch" />
 
-### How to use these patches
+# GinArena Patch
 
-Click here to add these patches to Morphe: https://morphe.software/add-source?github=ginDoki19/GinArena-patch
+**Curated [Morphe](https://morphe.software/) patches for Android utilities, media players, and TV apps — local-first, fingerprint-locked, and open source.**
 
-Or manually add this repository as a remote source in Morphe Manager:
+<p>
+  <a href="https://morphe.software/add-source?github=ginDoki19/GinArena-patch">
+    <img src="https://img.shields.io/badge/Morphe-Add%20Patch%20Source-4F46E5?style=for-the-badge&logo=android&logoColor=white" alt="Add to Morphe" />
+  </a>
+  <a href="https://github.com/ginDoki19/GinArena-patch/releases/latest">
+    <img src="https://img.shields.io/github/v/release/ginDoki19/GinArena-patch?style=for-the-badge&label=stable&color=16A34A" alt="Latest Stable Release" />
+  </a>
+  <a href="https://github.com/ginDoki19/GinArena-patch/releases">
+    <img src="https://img.shields.io/github/v/release/ginDoki19/GinArena-patch?include_prereleases&style=for-the-badge&label=dev&color=D97706" alt="Latest Dev Release" />
+  </a>
+  <a href="LICENSE">
+    <img src="https://img.shields.io/github/license/ginDoki19/GinArena-patch?style=for-the-badge&color=0EA5E9" alt="License" />
+  </a>
+  <a href="https://github.com/ginDoki19/GinArena-patch/stargazers">
+    <img src="https://img.shields.io/github/stargazers/ginDoki19/GinArena-patch?style=for-the-badge&color=EAB308" alt="GitHub Stars" />
+  </a>
+</p>
 
-```text
-github.com/ginDoki19/GinArena-patch
-```
+**Quick add in Morphe Manager:** [Open source link](https://morphe.software/add-source?github=ginDoki19/GinArena-patch) · or add manually: `github.com/ginDoki19/GinArena-patch`
+
+</div>
+
+> [!TIP]
+> Morphe Manager automatically filters patches by package, so picking an app only shows compatible patches. All detailed guides below are collapsed — expand only what you need.
+
+---
 
 ## 🩹 Patches list
 
-The table below reflects the last published release and is refreshed automatically by the release workflow.
+The bundle summary below is refreshed automatically by the release workflow.
 
 <!-- PATCHES_START -->
-> **[v2.12.1](https://github.com/ginDoki19/GinArena-patch/releases/tag/v2.12.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;36 patches total&nbsp;&nbsp;•&nbsp;&nbsp;**[⬇️ Download patches-2.12.1.mpp](https://github.com/ginDoki19/GinArena-patch/releases/download/v2.12.1/patches-2.12.1.mpp)**
+> **[v2.13.0](https://github.com/ginDoki19/GinArena-patch/releases/tag/v2.13.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;42 patches total&nbsp;&nbsp;•&nbsp;&nbsp;**[⬇️ Download patches-2.13.0.mpp](https://github.com/ginDoki19/GinArena-patch/releases/download/v2.13.0/patches-2.13.0.mpp)**
 <details>
 <summary>📦 1DM&nbsp;&nbsp;•&nbsp;&nbsp;5 patches</summary>
 <br>
@@ -81,7 +98,7 @@ The table below reflects the last published release and is refreshed automatical
 </details>
 
 <details>
-<summary>📦 CRICFy TV&nbsp;&nbsp;•&nbsp;&nbsp;4 patches</summary>
+<summary>📦 CRICFy TV&nbsp;&nbsp;•&nbsp;&nbsp;5 patches</summary>
 <br>
 
 **🎯 Supported versions:**
@@ -95,6 +112,7 @@ The table below reflects the last published release and is refreshed automatical
 | [Fix search keyboard focus](#fix-search-keyboard-focus) | Opens search on Android TV and helps keep the keyboard connected during category searches on TV and phones. Clears TV search on navigation or close. |  |
 | [Hide playback controls at stream open](#hide-playback-controls-at-stream-open) | Keeps playback controls hidden when a stream opens or the player switches between embedded and fullscreen. The controls remain available. |  |
 | [Improve Android TV playback controls](#improve-android-tv-playback-controls) | On Android TV, prefers the seekbar when controls open and helps retain focus when live-source tabs auto-focus. Seeking depends on the stream. |  |
+| [Pin favourite categories to the top](#pin-favourite-categories-to-the-top) | Long-press a category to pin it to the top of the Category list. Long-press a pinned category to reorder it. On Android TV the menu offers Arrange to move several in one go, Move to top, Move left and Move right one place, and Move up and Move down a whole row. On a phone it offers Move left, Move right, Move to top and Unpin, one place at a time. The order you choose is the order you get, and it survives a restart. Nothing moves until you pin something. |  |
 | [Remove ads, proxy & restrictions](#remove-ads-proxy--restrictions) | Stops background bandwidth sharing, removes ads, and hides the player app logo on 7.5. | • Hide promo marquee ticker<br>• Bypass update & force-update screen<br>• Block promotional push notifications<br>• Bypass clone, work-profile & sniffer checks<br>• Strip unused ad native libraries |
 
 </details>
@@ -117,7 +135,7 @@ The table below reflects the last published release and is refreshed automatical
 </details>
 
 <details>
-<summary>📦 CrexiFy TV&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
+<summary>📦 CrexiFy TV&nbsp;&nbsp;•&nbsp;&nbsp;4 patches</summary>
 <br>
 
 **🎯 Supported versions:**
@@ -130,12 +148,13 @@ The table below reflects the last published release and is refreshed automatical
 |----------|----------------|-----------|
 | [Hide playback controls at stream open](#hide-playback-controls-at-stream-open) | Keeps playback controls hidden when a stream opens or the player switches between embedded and fullscreen. The controls remain available. |  |
 | [Improve Android TV playback controls](#improve-android-tv-playback-controls) | Helps the Android TV remote reveal native playback controls and focus the seekbar when available. Live streams may not be seekable. |  |
+| [Pin favourite categories to the top](#pin-favourite-categories-to-the-top) | Long-press a category to pin it to the top of the Category list. Long-press a pinned category to reorder it. On Android TV the menu offers Arrange to move several in one go, Move to top, Move left and Move right one place, and Move up and Move down a whole row. On a phone it offers Move left, Move right, Move to top and Unpin, one place at a time. The order you choose is the order you get, and it survives a restart. Nothing moves until you pin something. |  |
 | [Remove configured startup and banner ads](#remove-configured-startup-and-banner-ads) | Suppresses configured startup/banner ads, the Telegram prompt and message ticker. |  |
 
 </details>
 
 <details>
-<summary>📦 CricZ TV&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
+<summary>📦 CricZ TV&nbsp;&nbsp;•&nbsp;&nbsp;4 patches</summary>
 <br>
 
 **🎯 Supported versions:**
@@ -148,12 +167,13 @@ The table below reflects the last published release and is refreshed automatical
 |----------|----------------|-----------|
 | [Hide playback controls at stream open](#hide-playback-controls-at-stream-open) | Keeps playback controls hidden when a stream opens or the player switches between embedded and fullscreen. The controls remain available. |  |
 | [Improve Android TV playback controls](#improve-android-tv-playback-controls) | Helps the Android TV remote reveal native playback controls and focus the seekbar when available. Live streams may not be seekable. |  |
+| [Pin favourite categories to the top](#pin-favourite-categories-to-the-top) | Long-press a category to pin it to the top of the Category list. Long-press a pinned category to reorder it. On Android TV the menu offers Arrange to move several in one go, Move to top, Move left and Move right one place, and Move up and Move down a whole row. On a phone it offers Move left, Move right, Move to top and Unpin, one place at a time. The order you choose is the order you get, and it survives a restart. Nothing moves until you pin something. |  |
 | [Remove ads, telemetry & restrictions](#remove-ads-telemetry--restrictions) | Removes ads, promo popups, and tracking, and keeps channels working after patching. | • Hide promo announcement bar<br>• Remove push notifications<br>• Bypass update & force-update screen<br>• Bypass root & sniffer checks<br>• Strip native & telemetry bloat |
 
 </details>
 
 <details>
-<summary>📦 Playfy TV&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
+<summary>📦 Playfy TV&nbsp;&nbsp;•&nbsp;&nbsp;4 patches</summary>
 <br>
 
 **🎯 Supported versions:**
@@ -166,12 +186,13 @@ The table below reflects the last published release and is refreshed automatical
 |----------|----------------|-----------|
 | [Hide playback controls at stream open](#hide-playback-controls-at-stream-open) | Keeps playback controls hidden when a stream opens or the player switches between embedded and fullscreen. The controls remain available. |  |
 | [Improve Android TV playback controls](#improve-android-tv-playback-controls) | On Android TV, prefers the seekbar over play/pause when controls open. Seeking depends on the stream. |  |
+| [Pin favourite categories to the top](#pin-favourite-categories-to-the-top) | Long-press a category to pin it to the top of the Category list. Long-press a pinned category to reorder it. On Android TV the menu offers Arrange to move several in one go, Move to top, Move left and Move right one place, and Move up and Move down a whole row. On a phone it offers Move left, Move right, Move to top and Unpin, one place at a time. The order you choose is the order you get, and it survives a restart. Nothing moves until you pin something. |  |
 | [Remove ads, telemetry & restrictions](#remove-ads-telemetry--restrictions) | Removes ads and tracking, and hides the player app logo. | • Remove push notifications<br>• Bypass update & force-update screen<br>• Bypass sniffer-app check<br>• Strip native & telemetry bloat |
 
 </details>
 
 <details>
-<summary>📦 PlayZ TV&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
+<summary>📦 PlayZ TV&nbsp;&nbsp;•&nbsp;&nbsp;4 patches</summary>
 <br>
 
 **🎯 Supported versions:**
@@ -184,12 +205,13 @@ The table below reflects the last published release and is refreshed automatical
 |----------|----------------|-----------|
 | [Hide playback controls at stream open](#hide-playback-controls-at-stream-open) | Keeps playback controls hidden when a stream opens or the player switches between embedded and fullscreen. The controls remain available. |  |
 | [Improve Android TV playback controls](#improve-android-tv-playback-controls) | Helps the Android TV remote reveal native playback controls and focus the seekbar when available. Live streams may not be seekable. |  |
+| [Pin favourite categories to the top](#pin-favourite-categories-to-the-top) | Long-press a category to pin it to the top of the Category list. Long-press a pinned category to reorder it. On Android TV the menu offers Arrange to move several in one go, Move to top, Move left and Move right one place, and Move up and Move down a whole row. On a phone it offers Move left, Move right, Move to top and Unpin, one place at a time. The order you choose is the order you get, and it survives a restart. Nothing moves until you pin something. |  |
 | [Remove ads, popups & restrictions](#remove-ads-popups--restrictions) | Removes ads and promo popups, and keeps channels working after patching. |  |
 
 </details>
 
 <details>
-<summary>📦 SK Tech TV&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
+<summary>📦 SK Tech TV&nbsp;&nbsp;•&nbsp;&nbsp;4 patches</summary>
 <br>
 
 **🎯 Supported versions:**
@@ -202,6 +224,7 @@ The table below reflects the last published release and is refreshed automatical
 |----------|----------------|-----------|
 | [Hide playback controls at stream open](#hide-playback-controls-at-stream-open) | Keeps playback controls hidden when a stream opens or the player switches between embedded and fullscreen. The controls remain available. |  |
 | [Improve Android TV playback controls](#improve-android-tv-playback-controls) | Helps the Android TV remote reveal native playback controls and focus the seekbar when available. Live streams may not be seekable. |  |
+| [Pin favourite categories to the top](#pin-favourite-categories-to-the-top) | Long-press a category to pin it to the top of the Category list. Long-press a pinned category to reorder it. On Android TV the menu offers Arrange to move several in one go, Move to top, Move left and Move right one place, and Move up and Move down a whole row. On a phone it offers Move left, Move right, Move to top and Unpin, one place at a time. The order you choose is the order you get, and it survives a restart. Nothing moves until you pin something. |  |
 | [Remove ads, telemetry & restrictions](#remove-ads-telemetry--restrictions) | Removes ads, tracking, and forced updates, and keeps channels working after patching. | • Remove push notifications<br>• Bypass update & force-update screen<br>• Bypass root & sniffer checks<br>• Strip native & telemetry bloat<br>• Disable WebActivity (potential ad surface) |
 
 </details>
@@ -212,9 +235,9 @@ The table below reflects the last published release and is refreshed automatical
 
 **🎯 Supported versions:**
 
-| 4.15.2 |
-| :---: |
-| Universal APK (arm64-v8a, armeabi-v7a, x86, x86_64), Android 9+ |
+| 4.15.2 | 4.16.0 |
+| :---: | :---: |
+| Universal APK (arm64-v8a, armeabi-v7a, x86, x86_64), Android 9+ | Universal APK (arm64-v8a, armeabi-v7a, x86, x86_64), Android 9+ |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
@@ -240,728 +263,413 @@ The table below reflects the last published release and is refreshed automatical
 
 <!-- PATCHES_END -->
 
-### Hide playback controls at stream open
-
-*On by default* for CRICFy TV, CricZ TV, CrexiFy TV, PlayZ TV, SK Tech TV, and Playfy TV. Keeps player controls hidden when a stream opens or switches between embedded and fullscreen. The native controls remain available through the usual touch or remote interaction.
-
-### Improve Android TV playback controls
-
-*On by default* for CricZ TV 7.3, PlayZ TV 2.3.1, CrexiFy TV 4.5, and SK Tech TV 2.7. Helps the remote's OK/center button reveal the native player controls and restores player focus when switching between embedded and fullscreen. Existing player actions, channel keys and stream behavior remain in place; it does not add new seek controls or change PiP.
-
-*On by default* for CRICFy TV 7.5 and Playfy TV 1.7 as well. When controls open on Android TV, these app-specific patches prefer the existing seekbar over the play/pause button. For CRICFy Live with multiple sources, the patch also helps keep the seekbar selected when the app automatically focuses a source tab. You can still navigate to source tabs to switch streams.
-
-This patch depends on **Hide playback controls at stream open**: selecting it also selects that patch. On TV it may move focus from Share (or, in SK Tech, the message card) to the player at a player-opening or fullscreen transition; those views remain available through navigation. The first remote press may only reveal the controls; subsequent left/right uses the native seekbar when it is available. A live stream may not be seekable. The CricZ, PlayZ and CrexiFy changes were reported working on TV; the SK Tech adaptation still needs a real-device playback and remote test.
-
-### Fix search keyboard focus
-
-*On by default* for CRICFy TV 7.5 (build 55). Helps open search on Android TV and prevent category labels from disrupting keyboard input on TVs and phones. On TV, the shared search is cleared when the app reports a navigation destination or the search bar is explicitly closed; hiding only the keyboard preserves the query. Repeated destination callbacks or restoration may also clear the query. This does not clear the keyboard's own suggestion history.
-
-### Remove ads, telemetry & restrictions
-
-*On by default* for **CricZ TV 7.3**, **SK Tech TV 2.7**, and **Playfy TV 1.7**. One patch
-name, three app-specific builds: each one removes that app's ads and promo popups, blocks
-push notifications and telemetry, and keeps the channels working after patching. The exact
-switch set differs slightly per app:
-
-| Option | CricZ TV | SK Tech TV | Playfy TV |
-|---|:---:|:---:|:---:|
-| Hide promo announcement bar | **on** | — | — |
-| Remove push notifications | on | on | on |
-| Bypass update & force-update screen | on | on | on |
-| Bypass root & sniffer checks | off | off | — |
-| Bypass sniffer-app check | — | — | off |
-| Strip native & telemetry bloat | off | off | off |
-| Disable WebActivity (potential ad surface) | — | off | — |
-
-Two switches are worth knowing about before you turn them on:
-
-* **Bypass root & sniffer checks** only exists for devices where the stock app refuses to run.
-  Leave it off otherwise.
-* **Disable WebActivity** closes the in-app web view so ad landing pages cannot open — but
-  pages that legitimately use it, such as score pages, will close too.
-
-What each app looks like afterwards is described in its own section below.
-
----
-
-## 📦 1DM (20.0, build 30257)
-
 <details>
-<summary><b>📖 App details</b> — what it does, target version and notes (click to expand)</summary>
+<summary><b>🗺️ Supported Apps at a Glance</b> — 12 apps, exact target builds &amp; input formats</summary>
+<br>
 
-### What it does
-
-Makes free **1DM 20.0** (`idm.internet.download.manager`) a fast, ad-free download manager and browser. The built-in ad blocker updates itself in seconds from the cloud, so you never wait minutes on *"Rebuilding filters..."* again.
-
-#### AdBlocker turbo & userscript bundle
-
-*On by default.* Keeps the built-in ad blocker (28 filter lists, ~1.22M rules) up to date for you. Choose how with the **AdBlocker engine mode** option:
-
-- **☁️ Cloud (default):** ready-made filters are built weekly on GitHub and download in about 2 seconds. **Hosts & filters** shows real counts and dates right away. Your own *My Filter* rules keep working, and if you add custom lists, building switches to Local Turbo automatically. If a weekly build is ever delayed, your last filters keep working — nothing goes empty.
-- **⚡ Local Turbo:** builds filters on your phone, but much faster than stock, and updates itself weekly.
-- **Stock:** leaves 1DM's ad blocker exactly as it comes.
-
-The optional **Bypass All Shortlinks** userscript (on by default) is made for mobile, updates itself, remembers your on/off choice, and never comes back if you delete it.
-
-#### Optimize cold start and battery
-
-*On by default.*
-
-- The app opens much faster — the heavy browser engine only loads when you actually open the browser.
-- No background battery drain while the app is minimized.
-- Pressing **Back** keeps 1DM in Recents and lets downloads continue, like normal apps. The drawer's **Exit** button still closes it fully.
-
-#### Remove ads and promotions
-
-*On by default.* Removes banner and popup ads, *"Rate 1DM"* and *"Upgrade to 1DM+"* nags, sale and VPN promos, and sponsored shortcuts. Ad and tracking SDKs are stripped out (about 10 MB), while downloads, torrents, VPN, and the browser keep working as before.
-
-#### Browser setup prompts only once
-
-*Optional, off by default.* The one-time setup prompts (default browser, accessibility, adblocker setup) appear only once, even if you close the browser without answering.
-
-#### Preset browser settings
-
-*Optional, off by default.* Sets Brave as the default search engine on fresh installs, and Google for search by image. Settings you already saved are kept, and you can change everything later.
-
-GinArena Patch does **not** unlock paid **1DM+** features and contains no 1DM+ code or resources.
-
-### Target app (1DM)
-
-| Field | Value |
-| --- | --- |
-| Package | `idm.internet.download.manager` |
-| Version | **20.0** (versionCode 30257), stable |
-| Input file | Official **universal APKM** (base + ABI/dpi splits) so both `arm64-v8a` and `armeabi-v7a` devices are covered |
-| Stock download | [APKMirror — 1DM 20.0 (universal) (160-640dpi) (Android 7.0+)](https://www.apkmirror.com/apk/Vicky%20Bonick/idm-download-video-movie-music-anime-torrent/1dm-browser-video-download-20-0-release/1dm-browser-video-download-20-0-2-android-apk-download/) |
-| Signing certificate SHA-256 | `9f48b6b2741fe7e4f78ea7375f469e99086c07f45a6c7f38407f0483d2451ce7` |
-| APKM SHA-256 | `4c36d570f5cdbbbdbba4d2217aba33ed0e1bbf6179e6eb3b9eb17d936124b005` |
-| `base.apk` SHA-256 | `b55935a4435da5d3623aa8c94384039d9f07128a58ba1a93f427a5a21924c3ab` |
-
-Do **not** use the separate **20257** variant for this patch.
-
-> **Uptodown note:** the Uptodown 1DM 20.0 XAPK also works — select it in Morphe Manager instead of installing it. If it isn't exactly 20.0, use the APKMirror file above.
+| App | Package | Target Version (Build) | Input Format |
+|---|---|---|---|
+| **1DM** | `idm.internet.download.manager` | `20.0` (`30257`) | Universal APKM |
+| **MX Player** | `com.mxtech.videoplayer.ad` | `3.4.1` (`2001003551`), `3.4.3` (`2001003553`) | Standalone APK |
+| **Daylio** | `net.daylio` | `1.72.0` (`291`) | APKM |
+| **WPS Office** | `cn.wps.moffice_eng` | `26.11.1` (`1651`) | Standalone APK (`arm64-v8a`) |
+| **AdGuard** | `com.adguard.android` | `4.15.2` (`42321001`), `4.16.0` (`42420015`) | Universal APK |
+| **APK Decompiler** | `com.apktools.app.decompile` | `4.12.0` (`4120`) | Standalone APK |
+| **CRICFy TV** | `com.cricfytv.sports` | `7.5` (`55`) | Universal APK |
+| **CricZ TV** | `com.pro.cricztv` | `7.3` (`10`) | Universal APK |
+| **CrexiFy TV** | `com.crexify.tv` | `4.5` (`12`) | Universal APK |
+| **PlayZ TV** | `com.playz.tv` | `2.3.1` (`8`) | Universal APK |
+| **SK Tech TV** | `com.live.sktechtv` | `2.7` (`17`) | Universal APK |
+| **Playfy TV** | `com.playfy.tv` | `1.7` (`8`) | Universal APK |
 
 </details>
 
 ---
 
-## 📦 MX Player (3.4.1 and 3.4.3)
+## 📖 App & Patch Guides
 
 <details>
-<summary><b>📖 App details</b> — what it does, target version and notes (click to expand)</summary>
+<summary><b>📺 Shared TV Patches</b> — category pinning, playback controls, TV search &amp; debloat matrix</summary>
+<br>
 
-### What it does
+### Hide playback controls at stream open
 
-Keeping it simple here: these patches turn free **MX Player** (`com.mxtech.videoplayer.ad`) into a clean, fast local video and music player. No ads, no online junk. Two patches are **on by default** (the actual debloat) and two small extras are **optional** — no endless toggle maze.
+*On by default* for **CRICFy TV, CricZ TV, CrexiFy TV, PlayZ TV, SK Tech TV, and Playfy TV**. Keeps player controls hidden when a stream opens or switches between embedded and fullscreen; controls remain available via touch or remote.
 
-> **Want heavy customization instead?** Totally fair — go with the OG MX Player patches by **BlazeFTL** 👉 [FTL-Patches](https://github.com/BlazeFTL/FTL-Patches). GinArena's version is deliberately the opposite: few choices, debloated, stable, done. 🤝
+### Improve Android TV playback controls
+
+*On by default* for **CRICFy TV 7.5, CricZ TV 7.3, PlayZ TV 2.3.1, CrexiFy TV 4.5, SK Tech TV 2.7, and Playfy TV 1.7** (depends on **Hide playback controls at stream open**). Prefers the seekbar over play/pause on TV when controls open, restores player focus across transitions, and on CRICFy multi-source streams helps retain seekbar focus when source tabs auto-focus. Seeking depends on stream support; SK Tech still needs a real-device playback/remote check.
+
+### Pin favourite categories to the top
+
+*Off by default* across all six TV apps (tick when patching if you want category pinning).
+
+- **Pin / Unpin & Reorder:** Long-press any category to pin it to the top of the list; long-press a pinned category to reorder (`Arrange`, `Move to top`, `Move left/right`, `Move up/down` on TV; one-step move & `Unpin` on phones).
+- **Local & non-intrusive:** Order is stored locally in app preferences; nothing moves until you pin something, and stock long-press on non-category items is untouched.
+- **Shared extension:** Powered by one shared `extensions/playfy.mpe` module (`Pins`) hooked per app at patch time.
+
+### Fix search keyboard focus
+
+*On by default* for **CRICFy TV 7.5 (build 55)**. Opens search on Android TV, keeps the soft keyboard connected during category searches on TV/phones, and clears TV search when navigating away or closing the search bar (hiding only the keyboard preserves the query).
+
+### Remove ads, telemetry & restrictions
+
+*On by default* for **CricZ TV 7.3, SK Tech TV 2.7, and Playfy TV 1.7** — removes ads, promo popups, push notifications, and telemetry while keeping channels working:
+
+| Option | CricZ TV | SK Tech TV | Playfy TV | Notes |
+|---|:---:|:---:|:---:|---|
+| Hide promo announcement bar | **on** | — | — | Hides top promo banner |
+| Remove push notifications | **on** | **on** | **on** | Blocks promo push & permission prompts |
+| Bypass update & force-update screen | **on** | **on** | **on** | Skips forced update lockouts |
+| Bypass root & sniffer checks | off | off | — | Enable only if stock refuses to open on your device |
+| Bypass sniffer-app check | — | — | off | Enable only if blocked by installed network tools |
+| Strip native & telemetry bloat | off | off | off | Removes unused libs/telemetry to save space |
+| Disable WebActivity (potential ad surface) | — | off | — | Blocks in-app web views (score pages also close) |
+
+</details>
+
+<details>
+<summary><b>📦 1DM</b> (<code>20.0</code>, build <code>30257</code>) — Cloud AdBlocker, cold-start boost &amp; stock APKM</summary>
+<br>
+
+Makes free **1DM 20.0** (`idm.internet.download.manager`) a fast, ad-free downloader and browser. *Does not unlock paid 1DM+ features or include 1DM+ code.*
+
+#### AdBlocker turbo & userscript bundle
+
+*On by default.* Keeps the 28-list (~1.22M rules) ad blocker updated via **AdBlocker engine mode**:
+- **☁️ Cloud (default):** Downloads weekly prebuilt filters in ~2 seconds (falls back to Local Turbo if you add custom lists, and keeps existing filters if a build is delayed).
+- **⚡ Local Turbo:** Rebuilds filters locally much faster than stock, updating weekly.
+- **Stock:** Leaves 1DM's built-in builder unchanged.
+- **Bypass All Shortlinks** userscript *(on by default)*: Mobile-focused, self-updating, respects your toggle, and stays deleted if removed.
+
+#### Optimize cold start and battery
+
+*On by default.* Defers loading the browser engine until needed, stops background battery drain when minimized, and keeps 1DM in Recents on **Back** (drawer **Exit** still closes completely).
+
+#### Remove ads and promotions
+
+*On by default.* Strips banner/popup ads, *"Rate 1DM"* / *"Upgrade to 1DM+"* nags, VPN/sale promos, sponsored shortcuts, and ~10 MB of ad/tracking SDKs without affecting downloads, torrents, or the browser.
+
+#### Browser setup prompts only once
+
+*Off by default.* Shows one-time browser setup prompts (default browser, accessibility, adblocker) only once even if dismissed early.
+
+#### Preset browser settings
+
+*Off by default.* Sets Brave as the default search engine on fresh installs and Google for image search (existing settings are preserved and remain editable).
+
+| Field | Value |
+|---|---|
+| Package & Version | `idm.internet.download.manager` — **20.0** (build `30257`, not `20257`) |
+| Stock Download | [APKMirror — 1DM 20.0 universal APKM (160–640 dpi, Android 7.0+)](https://www.apkmirror.com/apk/Vicky%20Bonick/idm-download-video-movie-music-anime-torrent/1dm-browser-video-download-20-0-release/1dm-browser-video-download-20-0-2-android-apk-download/) *(Uptodown 20.0 XAPK also works if selected directly in Morphe)* |
+| APKM SHA-256 | `4c36d570f5cdbbbdbba4d2217aba33ed0e1bbf6179e6eb3b9eb17d936124b005` |
+| `base.apk` SHA-256 | `b55935a4435da5d3623aa8c94384039d9f07128a58ba1a93f427a5a21924c3ab` |
+| Signing Cert SHA-256 | `9f48b6b2741fe7e4f78ea7375f469e99086c07f45a6c7f38407f0483d2451ce7` |
+
+</details>
+
+<details>
+<summary><b>📦 MX Player</b> (<code>3.4.1</code> / <code>3.4.3</code>) — Ad-free local player, custom codec &amp; stock APKs</summary>
+<br>
+
+Turns free **MX Player** (`com.mxtech.videoplayer.ad`) into a lightweight local player with minimal toggles. *(For deep customization, see [BlazeFTL/FTL-Patches](https://github.com/BlazeFTL/FTL-Patches).)*
 
 <a id="remove-ads-bloat"></a>
 #### Remove ads & bloat
 
-*On by default — the main one.* Removes ads everywhere and switches off the online clutter: **Live TV**, **OTT shows**, **MX Tube**, **Shorts**, and **Games**. What you actually use stays: **Local Music**, **Continue Watching**, and all **32 Classic Themes**.
+*On by default.* Removes all ads and disables **Live TV**, **OTT**, **MX Tube**, **Shorts**, and **Games**, keeping **Local Music**, **Continue Watching**, and all **32 Classic Themes**.
 
 #### Clean Me page
 
-*On by default.* Tidies the **Me** tab: Status Saver, Legal, Help, and promo clutter are gone. Your local tools, **App Theme**, **Settings**, **Data Privacy**, and **Custom Pop-up Play** stay.
+*On by default.* Removes Status Saver, Legal, Help, and promos from the **Me** tab while keeping App Theme, Settings, Data Privacy, and Custom Pop-up Play.
 
 #### Remove bottom navigation bar
 
-*Optional, off by default.* Hides the bottom bar for a full-height folder list and moves **Me** to the top-right. Leave it off if you like the bar where it is.
+*Off by default.* Hides the bottom bar for a full-height folder view and moves **Me** to the top-right.
 
 #### Custom codec
 
-*Optional, off by default.* Select the official v3.1.0_r1 **AIO**, **ARMv7**, or **ARM64** codec ZIP. For a dual-ABI APK, the patch downloads and verifies the matching official companion when needed; an internet connection is required for that download. AIO and matching single-ABI APKs need no download.
+*Off by default.* Bundles official `v3.1.0_r1` **AIO**, **ARMv7**, or **ARM64** codec ZIPs (dual-ABI APKs fetch and verify the companion codec automatically when online). Unverified codecs require **Allow unverified codecs** and must cover all APK ABIs.
 
-Other codecs must cover every ABI in the input APK and require **Allow unverified codecs**. Their authenticity and decoding capabilities are not verified, so only use files you trust.
-
-### Target app & downloads (MX Player)
-
-> **Important:** Download the **standalone `.apk` file** (~111 MB), **not** a `.xapk` or
-> `.apkm` split bundle. Check the version, build, and signing certificate before patching.
+> [!IMPORTANT]
+> Download the **standalone `.apk`** (~111 MB), **not** an `.xapk`, `.apkm`, or split `BUNDLE`.
 
 | Field | Value |
-| --- | --- |
-| Package | `com.mxtech.videoplayer.ad` |
-| Versions | **3.4.1** (2001003551) and **3.4.3** (2001003553) — standalone APK (`arm64-v8a` + `armeabi-v7a`, Android 7.0+) |
-| Stock APK — **APKPure** | [Latest 3.4.1 APK](https://apkpure.com/mx-player-app/com.mxtech.videoplayer.ad) · [Version history (`3.4.1`)](https://apkpure.com/mx-player-app/com.mxtech.videoplayer.ad/versions) *(choose the **APK** download, not `XAPK`)* |
-| Stock APK — **Uptodown** | [MX Player versions (`apk 3.4.1`)](https://mx-player.en.uptodown.com/android/versions) *(choose the **`apk`** variant)* |
-| Stock APK — **APKMirror** | [MX Player 3.4.3 standalone APK](https://www.apkmirror.com/apk/amazon-mobile-llc/mx-player/mx-player-3-4-3-release/mx-player-3-4-3-2-android-apk-download/) · [Version history](https://www.apkmirror.com/apk/amazon-mobile-llc/mx-player/) *(choose a supported **standalone `APK`**, not `BUNDLE`)* |
-| Signing certificate SHA-256 | `0d9b4c778672e753d45aba4f10df31e1d10bf75b1245469131ef01b82f0f91b6` |
+|---|---|
+| Package & Versions | `com.mxtech.videoplayer.ad` — **3.4.1** (`2001003551`) & **3.4.3** (`2001003553`), standalone APK (`arm64-v8a` + `armeabi-v7a`, Android 7.0+) |
+| Stock APKs | [APKPure (`3.4.1` APK)](https://apkpure.com/mx-player-app/com.mxtech.videoplayer.ad/versions) · [Uptodown (`3.4.1` APK)](https://mx-player.en.uptodown.com/android/versions) · [APKMirror (`3.4.3` standalone APK)](https://www.apkmirror.com/apk/amazon-mobile-llc/mx-player/mx-player-3-4-3-release/mx-player-3-4-3-2-android-apk-download/) |
 | `3.4.1` APK SHA-256 | `db775bd81460e31bd21602cf0b842bc3e2fd769b0bd23250e70036cc4cf95bf4` |
-| Optional **Custom Codec v3.1.0** | [GitHub — `iDNA420/MX-FFmpeg` `v3.1.0_r1` (`aio-v3.1.0_r1.zip` recommended)](https://github.com/iDNA420/MX-FFmpeg/releases/tag/v3.1.0_r1) (`SHA-256: ebb0bd5db0f855caca6167747987a229836d7cc0062a2d5c23dbf91d057c617b`) — keep it as a `.zip` and select it inside the **Custom codec** patch option in Morphe Manager |
-
----
-
-### Stock download note
-
-Download links and hashes live in the table above because Morphe has no field for stock app downloads.
+| Signing Cert SHA-256 | `0d9b4c778672e753d45aba4f10df31e1d10bf75b1245469131ef01b82f0f91b6` |
+| Optional Codec (`v3.1.0_r1`) | [`aio-v3.1.0_r1.zip`](https://github.com/iDNA420/MX-FFmpeg/releases/tag/v3.1.0_r1) (`SHA-256: ebb0bd5db0f855caca6167747987a229836d7cc0062a2d5c23dbf91d057c617b` — keep zipped) |
 
 </details>
 
----
-
-## 📦 CRICFy TV (7.5 build 55)
-
 <details>
-<summary><b>📖 App details</b> — what it does, target version and notes (click to expand)</summary>
-
-### What it does
+<summary><b>📺 CRICFy TV</b> (<code>7.5</code>, build <code>55</code>) — Proxy removal, TV fixes &amp; stock APK</summary>
+<br>
 
 #### Remove ads, proxy & restrictions
 
-*On by default.* Makes **CRICFy TV 7.5** clean and safe on phones, tablets, and Android TV:
-
-- **Stops background bandwidth sharing** — the CashRaven proxy is disabled, so your internet connection is never rented out.
-- **No consent prompt** — the "allow bandwidth sharing" dialog that stock 7.5 shows on launch, including a clean install, is suppressed. Nothing is stored and no preference is faked; the app simply never gets to ask.
-- **No ads or sponsor gates** — channels open immediately, with no countdowns or browser redirects.
-- **No startup Telegram popup** — manual links in the drawer still work.
-- **No player app logo** on CRICFy TV 7.5; broadcaster logos remain unchanged.
-- **Channels keep working** after patching, including live server configs.
-
-Options (on by default): hide the promo ticker, skip forced updates, block promo push notifications. Off by default: bypass clone/sniffer checks, and strip unused Unity ad libraries to save about 2 MB.
-
-### Target app (CRICFy TV)
+*On by default.* Cleans **CRICFy TV 7.5** for phones, tablets, and Android TV:
+- **Disables CashRaven proxy & consent prompt** — stops background bandwidth sharing and suppresses the launch consent dialog without faking preferences.
+- **No ads, sponsor gates, or startup Telegram popup** (drawer links still work); hides the player app logo while keeping broadcaster logos and live channel configs working.
+- **Options:** *On:* hide promo ticker, skip forced updates, block promo push. *Off:* bypass clone/sniffer checks, strip unused Unity ad native libs (~2 MB saved).
 
 | Field | Value |
-| --- | --- |
-| Package | `com.cricfytv.sports` |
-| Version | **7.5** (versionCode 55). Universal APK (`arm64-v8a`, `armeabi-v7a`, `x86`, `x86_64`) |
-| Stock download | Official [cricfyapk.io/download/](https://cricfyapk.io/download/) page or the developer's official Telegram channel |
-| Signing certificate SHA-256 | `f2cd86fcbc92461a3300cec47b6f74d20f0c89dd7162ecc333b3dd2c16e79841` |
-| APK SHA-256 (7.5) | `a6c12f1c5bdc1eff9da78788b27560c9c6fed7527b32e267f207eb746f0a23b7` |
-
-> **Version safety:** only **7.5 (55)** is supported. Other versions are refused
-> by design until audited — do not force-patch them in Expert Mode.
+|---|---|
+| Package & Version | `com.cricfytv.sports` — **7.5** (build `55`, universal APK). Only `7.5` is supported. |
+| Stock Download | [cricfyapk.io/download/](https://cricfyapk.io/download/) or official Telegram |
+| APK SHA-256 | `a6c12f1c5bdc1eff9da78788b27560c9c6fed7527b32e267f207eb746f0a23b7` |
+| Signing Cert SHA-256 | `f2cd86fcbc92461a3300cec47b6f74d20f0c89dd7162ecc333b3dd2c16e79841` |
 
 </details>
 
----
-
-## 📦 CricZ TV (7.3, build 10)
-
 <details>
-<summary><b>📖 App details</b> — what it does, target version and notes (click to expand)</summary>
+<summary><b>📺 CricZ TV</b> (<code>7.3</code>, build <code>10</code>) — Ad/telemetry removal &amp; stock APK</summary>
+<br>
 
-### What it does
-
-**Remove ads, telemetry & restrictions** (on by default) makes **CricZ TV 7.3** clean and fast on phones, tablets, and Android TV:
-
-- **No ads** — banners, popups, sponsor countdowns, and the built-in ad server are gone.
-- **No startup Telegram popup** and **no video watermarks**.
-- **Less tracking** — push notifications and telemetry are removed (the parts the app needs to find its servers are kept).
-- **Channels keep working** after patching.
-
-Options (on by default): hide the promo bar, remove push notifications, skip forced updates. Off by default: bypass root/sniffer checks, and strip unused libraries to save space.
-
-### Target app (CricZ TV)
+Uses **Remove ads, telemetry & restrictions** *(on by default)* to strip banners, popups, sponsor countdowns, the built-in ad server, startup Telegram popup, video watermarks, and telemetry/push bloat while keeping channels working.
 
 | Field | Value |
-| --- | --- |
-| Package | `com.pro.cricztv` |
-| Version | **7.3** (versionCode 10), universal APK (`arm64-v8a`, `armeabi-v7a`, `x86`, `x86_64`) |
-| Stock download | Official developer Telegram channel: [t.me/cricztvapp](https://t.me/cricztvapp) — verify the APK SHA-256 below after downloading |
-| Signing certificate SHA-256 | `9ff349c0c047abd68e169980484b43926b6ff2d251a430fe44e3ae3e2930e1d2` |
+|---|---|
+| Package & Version | `com.pro.cricztv` — **7.3** (build `10`, universal APK). Only `7.3` is supported. |
+| Stock Download | Official Telegram: [t.me/cricztvapp](https://t.me/cricztvapp) |
 | APK SHA-256 | `74a8a13da7ab1865dc9e3bbb511fe82bb0f8c093fcf2404ac4a59ecdce44fb82` |
-
-> **Version safety:** only **7.3 (10)** is supported. Other versions are refused by design until
-> audited — do not force-patch them in Expert Mode.
+| Signing Cert SHA-256 | `9ff349c0c047abd68e169980484b43926b6ff2d251a430fe44e3ae3e2930e1d2` |
 
 </details>
 
----
-
-## 📦 CrexiFy TV (4.5, build 12)
-
 <details>
-<summary><b>📖 App details</b> — what it does, target version and notes (click to expand)</summary>
-
-### What it does
+<summary><b>📺 CrexiFy TV</b> (<code>4.5</code>, build <code>12</code>) — Ad removal, signer fix &amp; stock APK</summary>
+<br>
 
 #### Remove configured startup and banner ads
 
-*On by default.* Suppresses startup and banner ads, the automatic Telegram prompt, and the promotional message ticker. Manual links remain available. The ticker also carries other server notices, which are hidden with it.
-
-The patch adapts the signer-bound decoder for re-signed builds and disables its startup integrity self-test.
-
-**Hide playback controls at stream open** (on by default) keeps controls hidden when a stream opens or switches between embedded and fullscreen. Native controls remain available.
-
-### Target app (CrexiFy TV)
+*On by default.* Suppresses startup/banner ads, the automatic Telegram prompt, and the promo ticker (including other server notices on the ticker; manual links remain). Also adapts the signer-bound decoder and disables its startup integrity check for re-signed builds.
 
 | Field | Value |
-| --- | --- |
-| Package | `com.crexify.tv` |
-| Version | **4.5** (versionCode 12), universal APK (`arm64-v8a`, `armeabi-v7a`, `x86`, `x86_64`) |
-| Stock download | Use the exact stock **4.5** APK and verify the APK SHA-256 below before patching |
-| Signing certificate SHA-256 | `17e2ae241663794ce890f350e1e0d884c59727418bac22518a62ac2e66131062` |
+|---|---|
+| Package & Version | `com.crexify.tv` — **4.5** (build `12`, universal APK). Only `4.5` is supported. |
 | APK SHA-256 | `76f9bac391a3b109025f465dd922b6d14555acd4806dd994e2156022c0bc76c7` |
-
-> **Version safety:** only **4.5 (12)** is supported. Other versions are refused by design — do not force-patch them in Expert Mode.
+| Signing Cert SHA-256 | `17e2ae241663794ce890f350e1e0d884c59727418bac22518a62ac2e66131062` |
 
 </details>
 
----
-
-## 📦 PlayZ TV (2.3.1, build 8)
-
 <details>
-<summary><b>📖 App details</b> — what it does, target version and notes (click to expand)</summary>
-
-### What it does
+<summary><b>📺 PlayZ TV</b> (<code>2.3.1</code>, build <code>8</code>) — Ad/popup removal &amp; stock APK</summary>
+<br>
 
 #### Remove ads, popups & restrictions
 
-*On by default.* Makes **PlayZ TV 2.3.1** clean and fast on phones, tablets, and Android TV:
-
-- **No ads or popups**, including timed popunder pages.
-- **No automatic Telegram popup** (manual links are untouched).
-- **Channels keep working** after patching.
-
-This patch does not change permissions or streaming behavior.
-
-### Target app (PlayZ TV)
+*On by default.* Removes ads, timed popunder pages, and the automatic Telegram popup while keeping manual links, permissions, and channels untouched.
 
 | Field | Value |
-| --- | --- |
-| Package | `com.playz.tv` |
-| Version | **2.3.1** (versionCode 8), universal APK (`arm64-v8a`, `armeabi-v7a`, `x86`, `x86_64`) |
-| Stock download | Use the exact stock **2.3.1** APK and verify the APK SHA-256 below before patching |
-| Signing certificate SHA-256 | `05ecca660d7656ce2c65a878c9e49a169558c2a44976f26c369393eccf9dc44b` |
+|---|---|
+| Package & Version | `com.playz.tv` — **2.3.1** (build `8`, universal APK). Only `2.3.1` is supported. |
 | APK SHA-256 | `003c8b6e9afe4a3f17ab45112a99ad8d2bf715f1981a521c61dab5f453a1d827` |
-
-> **Version safety:** only **2.3.1 (8)** is supported. Other versions are refused by design until
-> audited — do not force-patch them in Expert Mode.
+| Signing Cert SHA-256 | `05ecca660d7656ce2c65a878c9e49a169558c2a44976f26c369393eccf9dc44b` |
 
 </details>
 
----
-
-## 📦 SK Tech TV (2.7, build 17)
-
 <details>
-<summary><b>📖 App details</b> — what it does, target version and notes (click to expand)</summary>
+<summary><b>📺 SK Tech TV</b> (<code>2.7</code>, build <code>17</code>) — Ad/telemetry removal &amp; stock APK</summary>
+<br>
 
-### What it does
-
-**Remove ads, telemetry & restrictions** (on by default) makes [**SK Tech TV 2.7**](https://sktech.site/) clean on phones, tablets, and Android TV:
-
-- **No ads or sponsor gate** — streams open directly in the player.
-- **Channels keep working** after patching, and the patched app starts normally.
-
-#### Options
-
-- **Remove push notifications** *(on)* — turns off promo push and its permission prompts.
-- **Bypass update & force-update screen** *(on)* — skips update lockouts. The app won't update itself; re-patch a newer stock version to update.
-- **Bypass root & sniffer checks** *(off)* — only if the stock app refuses to run on your rooted device.
-- **Strip native & telemetry bloat** *(off)* — deletes unused libraries and tracking parts to save space.
-- **Disable WebActivity** *(off)* — closes the in-app web view so ad pages can't open; score pages will close too.
-
-### Target app (SK Tech TV)
+Uses **Remove ads, telemetry & restrictions** *(on by default)* to skip ads and sponsor gates so streams open directly in the player. Includes optional toggles for root/sniffer bypass, native bloat stripping, and disabling `WebActivity` *(off by default; also closes score pages)*.
 
 | Field | Value |
-| --- | --- |
-| Package | `com.live.sktechtv` |
-| Version | **2.7** (versionCode 17), universal APK (`arm64-v8a`, `armeabi-v7a`, `x86`, `x86_64`) |
-| Official site | [sktech.site](https://sktech.site/) |
-| Stock download | [Official SK Tech download page](https://downloadsktech.pages.dev/download) — use the exact stock **2.7** APK and verify the APK SHA-256 below before patching |
-| Signing certificate SHA-256 | `9ff349c0c047abd68e169980484b43926b6ff2d251a430fe44e3ae3e2930e1d2` |
+|---|---|
+| Package & Version | `com.live.sktechtv` — **2.7** (build `17`, universal APK). Only `2.7` is supported. |
+| Stock Download | [sktech.site](https://sktech.site/) · [Official download page](https://downloadsktech.pages.dev/download) |
 | APK SHA-256 | `5095235d7a77e588d570780cea99a25dd807c9cb3ee814e450af82a49423cdcd` |
-
-> **Version safety:** only **2.7 (17)** is supported. Always patch a **fresh stock** APK. Other
-> versions are refused by design until audited — do not force-patch them in Expert Mode.
+| Signing Cert SHA-256 | `9ff349c0c047abd68e169980484b43926b6ff2d251a430fe44e3ae3e2930e1d2` |
 
 </details>
 
----
-
-## 📦 Playfy TV (1.7, build 8)
-
 <details>
-<summary><b>📖 App details</b> — what it does, target version and notes (click to expand)</summary>
+<summary><b>📺 Playfy TV</b> (<code>1.7</code>, build <code>8</code>) — Ad/telemetry removal &amp; stock APK</summary>
+<br>
 
-### What it does
-
-**Remove ads, telemetry & restrictions** (on by default) makes [**Playfy TV 1.7**](https://playfytv.vip/) clean on phones, tablets, and Android TV:
-
-- **No ads** — no pre-roll video ads, banners, splash full-screen banner, or sponsor screen; streams open directly in the player.
-- **No automatic Telegram popup** at startup — manual community links still work.
-- **No player app logo** — broadcaster logos remain unchanged.
-- **Channels keep working** after patching.
-- **No lockouts** — no forced updates, and the app no longer refuses to open over which other apps are installed.
-
-> **Note:** On one tested device, Playfy remained on the splash screen. The cause is still under investigation.
-
-#### Options
-
-- **Remove push notifications** *(on)* — turns off promo push and its permission prompts.
-- **Bypass update & force-update screen** *(on)* — skips update lockouts. The app won't update itself; re-patch a newer stock version to update.
-- **Bypass sniffer-app check** *(off)* — only if the stock app refuses to run because a network-capture app is installed.
-- **Strip native & telemetry bloat** *(off)* — deletes unused libraries and tracking parts to save space.
-
-### Target app (Playfy TV)
+Uses **Remove ads, telemetry & restrictions** *(on by default)* to remove pre-roll/banner/sponsor ads, the startup Telegram popup, the player app logo, forced updates, and installed-app checks while keeping channels working. *(Note: on one tested device Playfy stayed on the splash screen — still under investigation.)*
 
 | Field | Value |
-| --- | --- |
-| Package | `com.playfy.tv` |
-| Version | **1.7** (versionCode 8), universal APK (`arm64-v8a`, `armeabi-v7a`, `x86`, `x86_64`) |
-| Official site | [playfytv.vip](https://playfytv.vip/) |
-| Stock download | [playfytv.vip](https://playfytv.vip/) — use the exact stock **1.7** APK and verify the APK SHA-256 below before patching |
-| Signing certificate SHA-256 | `38cde288f060fa8f476ab6811ff215767c35117bf6248fd8ad157cd4566898cc` |
+|---|---|
+| Package & Version | `com.playfy.tv` — **1.7** (build `8`, universal APK). Only `1.7` is supported. |
+| Stock Download | [playfytv.vip](https://playfytv.vip/) |
 | APK SHA-256 | `2a05ce967df3eb355de8f64b3c675cbc6e97b768e80fd10c54bdb6c7ac80df51` |
-
-> **Version safety:** only **1.7 (8)** is supported. Always patch a **fresh stock** APK. Other
-> versions are refused by design until audited — do not force-patch them in Expert Mode.
+| Signing Cert SHA-256 | `38cde288f060fa8f476ab6811ff215767c35117bf6248fd8ad157cd4566898cc` |
 
 </details>
 
----
-
-## 📦 APK Decompiler (4.12.0, build 4120)
-
 <details>
-<summary><b>📖 App details</b> — what it does, target version and notes (click to expand)</summary>
+<summary><b>📦 Daylio</b> (<code>1.72.0</code>, build <code>291</code>) — Local premium, MicroG Drive backup &amp; stock APKM</summary>
+<br>
 
-### What it does
+> [!CAUTION]
+> Always create and verify a Daylio backup before testing. Never uninstall an existing install on a signature mismatch without a verified backup.
 
-#### Unlock premium
+#### Enable premium
 
-Enables local premium tools and cleans up VIP labels and buttons.
+*On by default.* Unlocks Daylio's **local** premium state at its preference reader/writer without faking purchases. Cloud/restore entitlements remain server-controlled.
 
-### Target app (APK Decompiler)
+#### Google Drive backup via MicroG RE
 
-| | |
+*Off by default* — enable only if you use **MicroG RE 7.3.1** (`app.revanced.android.gms`) instead of Google Play Services. Leave all three options **on** together:
+
+| Option | Default | Effect |
+|---|:---:|---|
+| Sign in as the original app | **on** | Supplies Daylio's original package/SHA-1 to MicroG for Google OAuth |
+| Send Google calls to MicroG | **on** | Routes Play Services calls to MicroG and suppresses the *"won't run without Google Play services"* dialog |
+| Let the app find Google and MicroG | **on** | Adds Android 11+ `<queries>` visibility for both Play Services packages |
+
+#### Remove promos & partner ads
+
+*On by default.* Hides the BetterHelp top-bar icon/screen and the developer's cross-promo cards / *"More Great Apps"* row.
+
+#### Remove tracking & marketing
+
+*On by default.* Daylio ships **no ad SDK** — this disables Firebase Analytics/Tag Manager, Crashlytics, and `AD_ID`/install-referrer permissions (with an optional *off-by-default* toggle to mute discount offer notifications). Entries, stats, and backups are untouched.
+
+| Field | Value |
 |---|---|
-| Package | `com.apktools.app.decompile` |
-| Version | **4.12.0** (versionCode 4120), standalone APK (`arm64-v8a`, `armeabi-v7a`, Android 9.0+) |
-| Stock download | [APKPure — APK Decompiler](https://apkpure.com/decompile-app-based-on-jadx/com.apktools.app.decompile) — choose **4.12.0** and verify the hash below |
-| Signing certificate SHA-256 | `80c8e7990b68af1301f76057e7eabe63de4240e3ca74da46c36a9c8084c68386` |
-| APK SHA-256 | `f85934cf2c0ce8224b0fccb4c0d631813cfd028680d0c23ef28ea886a9d1053b` |
-
-> **Note:** This enables local access, not a Google Play purchase. Other versions and
-> server-controlled features are not verified.
-
-</details>
-
----
-
-## 📦 Daylio (1.72.0, build 291)
-
-<details>
-<summary><b>📖 App details</b> — what each patch does, target version and notes</summary>
-
-### Enable premium
-
-*On by default.* Unlocks the app's **local** premium state. Daylio decides premium from two values it
-reads from its own preferences; this patch answers "purchased" to the first and "not expired" to the
-second, at the single reader and the single writer the whole app goes through. Nothing is sent
-anywhere and no purchase is faked. Restore-purchase and cloud-entitlement features still behave
-exactly as they do on a free account, because those answers come from Google, not from the device.
-
-### Google Drive backup via MicroG RE
-
-**Off by default — tick it when you patch.** Makes the Google Drive backup work on a re-signed
-Daylio by signing in as the *original* app, and stops the *"Daylio won't run without Google Play
-services"* dialog. Needs **MicroG RE 7.3.1** installed as `app.revanced.android.gms`, with a Google
-account added. On a device with real Play Services, leave it off.
-
-| Option | Default | What it does |
-|---|:---:|---|
-| Sign in as the original app | **on** | Tells MicroG Daylio's original package name and signing-certificate SHA-1, which is what makes Google accept the sign-in on a re-signed APK. |
-| Send Google calls to MicroG | **on** | Points Daylio's Play-services sign-in and account lookups at MicroG. **This switch also carries the two answers that remove the "won't run without Google Play services" dialog** — the signature check and the availability check. Turn it off and Daylio goes back to talking to whatever Play services the device has, which is correct on a phone with real Play Services and brings the dialog back on a MicroG-only one. |
-| Let the app find Google and MicroG | **on** | Makes both Play-services packages visible on Android 11+. Stock Daylio declares neither. |
-
-> Leave all three on. They are not three independent features: routing is what patches the two
-> Play-services answers, and the visibility entry is what lets the app find MicroG at all.
-
-### Remove promos & partner ads
-
-*On by default.* Daylio gets on fine without this — it is cosmetics, so both halves are switchable.
-
-| Option | Default | What it does |
-|---|:---:|---|
-| Hide the BetterHelp partner banner | **on** | Removes the BetterHelp icon from the main screen's top bar and makes the partner offer screen behind it unreachable. |
-| Hide the "try our other app" cards | **on** | Removes the cross-promotion cards for the developer's other apps from the More screen, and hides the "More Great Apps" row that opens their catalogue. |
-
-### Remove tracking & marketing
-
-*On by default.* Daylio has **no ad SDK** in this build — there is nothing to block. What it does
-ship is Firebase Analytics, Tag Manager, Crashlytics and the advertising-ID permissions.
-
-| Option | Default | What it does |
-|---|:---:|---|
-| Turn off analytics | **on** | Firebase Analytics and Tag Manager never start. |
-| Turn off crash reporting | **on** | Crashlytics never starts. |
-| Remove advertising-ID and install-referrer access | **on** | Drops the AD_ID, ad-services and install-referrer permissions, so the app cannot read your advertising ID or the attribution that came with it. |
-| Remove discount notifications | **off** | Removes the three receivers that schedule Daylio's discount / special-offer notifications. Off by default because you can see the difference: you stop being notified when a discount is running. |
-
-> **Nothing here is an advertisement blocker for the journal itself.** Every switch above changes
-> only measurement and promotion; entries, statistics, reminders and local backups are untouched.
-
-| | |
-|---|---|
-| Package | `net.daylio` |
-| Version | **1.72.0** (build 291), Android 8.0+ |
-| Tested input | APKM, four ABIs, 480–640 dpi |
-| Stock download | [APKMirror — Daylio 1.72.0](https://www.apkmirror.com/apk/habitics/daylio-diary-journal-mood-tracker/daylio-journal-mood-tracker-1-72-0-release/) — choose the exact build and verify its hash |
+| Package & Version | `net.daylio` — **1.72.0** (build `291`, Android 8.0+, APKM). `1.71.1` is no longer supported. |
+| Stock Download | [APKMirror — Daylio 1.72.0 APKM](https://www.apkmirror.com/apk/habitics/daylio-diary-journal-mood-tracker/daylio-journal-mood-tracker-1-72-0-release/) |
 | APKM SHA-256 | `65dfbb7892e7cd7e1fef76e05fd036c7d1327d61402e3b573af3762d3b879074` |
-| Signing certificate SHA-256 | `6afb7e4100413a77e13b6a1e4f8ac1f9e3421862b3678fb9abe6aa531e859a9d` |
-
-> **Only 1.72.0 is supported.** The fingerprints were re-derived from this build; 1.71.1 shifted the
-> obfuscated names (`Lt38;` → `Lq48;` for preferences, `Ls38;` → `Lp48;` for the keys) and everything
-> here would fail its structural check against it. An older version is refused, not half-patched.
-
-> **Protect your journal:** make a verified backup before testing, ideally on a spare device or profile. An existing install can update in place only when its signing key matches. Do not uninstall to resolve a signature conflict without first verifying a restorable backup; uninstalling can delete entries and attachments. Keep exports private.
+| Signing Cert SHA-256 | `6afb7e4100413a77e13b6a1e4f8ac1f9e3421862b3678fb9abe6aa531e859a9d` |
 
 </details>
 
----
-
-## 📦 WPS Office (26.11.1, build 1651)
-
 <details>
-<summary><b>📖 App details</b> - what it does, target version and notes (click to expand)</summary>
+<summary><b>📦 WPS Office</b> (<code>26.11.1</code>, build <code>1651</code>) — Local Pro tools, MicroG sign-in &amp; stock APK</summary>
+<br>
 
-### What it does
-
-Opens the gates WPS checks **on the device**. Every change is a separate switch - turn them all off
-and you get a stock-equivalent build.
+> [!IMPORTANT]
+> Uninstall stock WPS first (back up local files) and **sign in** on the patched app — WPS reports no membership while signed out. On first launch, back out of Google One Tap if it stalls and sign in on the regular login screen underneath.
 
 #### Unlock premium features
 
-| Option | Default | What it does |
+*On by default.* Unlocks **on-device** tools (PDF split/merge/compress, image export, watermark-free save, local OCR, bundled Pro fonts/templates). Cloud AI, cloud conversion/OCR, cloud storage, and remote `func_switch`/`/auth_query` features are server-authorized and cannot be unlocked client-side.
+
+| Option | Default | Effect |
 |---|:---:|---|
-| **Unlock premium tools (main switch)** | **on** | Answers every premium check with "yes". This is the switch that actually unlocks the app - the options below it only tidy up what it produces. |
-| Show a Pro account | on | Shows your account as Premium, so upgrade banners and price cards go away. |
-| Open Pro menus | on | Tells the app you have a Pro membership, which opens the menu entries locked behind it. |
-| Pass ownership checks | on | Answers "do I own this?" with yes, so premium fonts, templates and PDF tools open. |
-| Remove ads | on | Tells the app you are ad-free, so banner and full-screen ads are never requested. |
-| Hide the "already a member" popup | on | Stops the popup that says you are already a WPS Premium user. |
-| Hide the upgrade banner on tool pages | on | Removes the "Upgrade to WPS Membership" banner shown above the tool pages. Verified on device: banner gone, no hang. Turn it off if you would rather see the banner. |
-| Turn AI features off | **off** | Answers every AI request as not owned. Use it only if an AI tool keeps loading forever. |
-| Skip the ad pre-check | **off** | Tells the app ads are off before it contacts the server, so those requests never start. |
-| Report the stock signature | **off** | Only analytics reads this. It does not affect premium, ads or sign-in. |
+| **Unlock premium tools (main switch)** | **on** | Answers local entitlement checks as Pro |
+| Show a Pro account / Open Pro menus / Pass ownership checks | **on** | Displays Pro status and opens local tools/fonts/templates |
+| Remove ads / Hide "already a member" / Hide tool-page upgrade banner | **on** | Removes ads and membership banners/popups |
+| Turn AI features off / Skip the ad pre-check / Report the stock signature | **off** | Optional troubleshooting & analytics tweaks |
 
 #### Google sign-in via MicroG RE
 
-> **This patch is off by default - tick it when you patch.** It only applies if MicroG RE is your
-> Play services provider; on a device with real Google Play Services, leave it off.
+*Off by default* — enable only when using MicroG RE (leave off with real Play Services). Keeps all 5 sub-options on: spoofs original package/cert to MicroG, routes calls/notifications through MicroG, reports Play Services available, and adds Android 11+ visibility.
 
-Re-signing an app changes its identity, and Google's OAuth backend matches apps on
-**(package name, signing certificate)**. MicroG RE solves this by presenting WPS's *original* identity,
-read from the two meta-data entries this patch adds. The values are constants, so sign-in keeps
-working under **any** package name.
-
-| Option | Default | What it does |
-|---|:---:|---|
-| Sign in as the original app | on | Tells MicroG the app's original name and signature, which is what makes Google accept the sign-in. |
-| Send Google calls to MicroG | on | Points WPS's Play services calls at MicroG instead of Google. |
-| Report Play services as available | on | MicroG fails Google's signature check, so this answers the availability check with yes. |
-| Route notifications through MicroG | on | Sends push notifications through MicroG so they keep arriving. |
-| Let the app find Google and MicroG | on | Makes both Play services packages visible on Android 11+, so sign-in can reach MicroG. WPS declares neither, so nothing else changes. |
-
-### What works, and what still needs the server
-
-**On-device, works:** PDF toolkit (split/merge/compress), image-to-PDF export, printing, export to
-image, watermark-free saves, OCR text extraction, premium fonts/templates that ship with the app.
-
-**Authorised by Kingsoft when it runs - no client-side patch can provide these:** cloud AI actions,
-cloud conversion, cloud OCR upload, cloud storage space, and premium downloads that are not in the
-APK. These fail with a server response rather than a paywall.
-
-Two gates sit outside the app entirely and cannot be patched:
-
-* a **server-pushed feature switch** (`func_switch` via the remote-config manager), and
-* the **`/auth_query` call** that authorises AI per device and account.
-
-### Known behaviour
-
-* **First launch after a fresh install** may open a Google One Tap window that does not complete; back
-  out of it and the normal login screen is underneath, where signing in with MicroG works. WPS fires
-  this by itself from its own A/B flag; a toggle to suppress it is planned.
-* **Sign in first.** Stock reports no membership at all while signed out - the privilege cache is
-  only populated for a logged-in account. The patch answers questions; it does not invent an account.
-
-### Target app (WPS Office)
-
-| | |
+| Field | Value |
 |---|---|
-| Package | `cn.wps.moffice_eng` |
-| Version | **26.11.1** (versionCode 1651), standalone APK (`arm64-v8a`, Android 10+) |
-| Stock download | [APKPure - WPS Office](https://apkpure.com/wps-office-pdf-doc-editor/cn.wps.moffice_eng) - choose **26.11.1** (build 1651), verify the hash below. **26.11.0 is no longer supported.** |
-| Signing certificate SHA-256 | `643990878d3ca83952a5be5f3e58d9f8bb6cdc57bf0f228700212071c68db3d7` |
+| Package & Version | `cn.wps.moffice_eng` — **26.11.1** (build `1651`, standalone `arm64-v8a` APK, Android 10+). `26.11.0` is dropped. |
+| Stock Download | [APKPure — WPS Office `26.11.1` APK](https://apkpure.com/wps-office-pdf-doc-editor/cn.wps.moffice_eng) |
 | APK SHA-256 | `ef7b6b169831ad1c98fd2231942049879003fb44cc154b0007f647844b868fea` |
-
-> **Before you patch:** patching changes the signature, so the stock app has to be uninstalled
-> first. Back up anything saved only inside WPS. Point Morphe at the **APK as downloaded** - do not
-> pre-merge or pre-sign it.
+| Signing Cert SHA-256 | `643990878d3ca83952a5be5f3e58d9f8bb6cdc57bf0f228700212071c68db3d7` |
 
 </details>
 
----
-
-## 📦 AdGuard (4.15.2, build 42321001)
-
 <details>
-<summary><b>📖 App details</b> — what it does, target version and notes (click to expand)</summary>
-
-### What it does
+<summary><b>📦 AdGuard</b> (<code>4.15.2</code> &amp; <code>4.16.0</code>) — Lifetime family state, HTTPS CA guide &amp; stock APKs</summary>
+<br>
 
 #### Unlock AdGuard Premium
 
-AdGuard keeps its licence state in a single place, and every screen reads it from there. This patch
-replaces that state with a lifetime family licence, so the paid features open and the purchase prompts
-stop appearing.
+*On by default.* Sets AdGuard's single licence store to a lifetime family licence and ignores free-tier server overwrites, unlocking Ad blocking, DNS/HTTPS filtering, and Firewall/per-app rules without extra switches. Targets the phone APK (`adguard-4.15.2.apk` / `adguard-4.16.apk`); the separate TV APK is not audited.
 
-There is no on/off switch, because there is nothing to choose between: one licence state drives
-everything. Remove the patch and the app is stock again.
+**HTTPS filtering & Personal CA:** This patch modifies 3 classes (`29,311` total in `4.15.2`, `28,745` in `4.16.0`) and leaves all 32 native libraries untouched — AdGuard still generates its own local `Adguard Personal CA` on your device. Because switching from stock requires uninstalling first (deleting the old private key), export custom rules beforehand, remove any leftover old *"Adguard Personal CA"* under *Settings → Security → Encryption & credentials → User credentials*, and install the new certificate generated by the patched app (or leave HTTPS filtering off and use DNS filtering).
 
-| What opens | What you will see |
+| Field | Value |
 |---|---|
-| **Ad blocking, DNS filtering, HTTPS filtering** | The protection switches work without a purchase prompt |
-| **Firewall and per-app rules** | Available instead of showing the upgrade banner |
-| **Licence screen** | Shows a lifetime family licence; the Upgrade button is gone |
-| **Promo / "check licence" dialogs** | No longer appear |
+| Package & Targets | `com.adguard.android` — **4.15.2** (`42321001`) & **4.16.0** (`42420015`), universal APK, Android 9+ |
+| Stock 4.16.0 (`42420015`) | [GitHub Releases — `adguard-4.16.apk`](https://github.com/AdguardTeam/AdguardForAndroid/releases/tag/v4.16) · SHA-256 `14e1199eee2600f3200d24a6a6488b5b09277f010252e979ab7c5b2d8cdd226c` |
+| Stock 4.15.2 (`42321001`) | [GitHub Releases — `adguard-4.15.2.apk`](https://github.com/AdguardTeam/AdguardForAndroid/releases/tag/v4.15.2) · SHA-256 `29c99a8ca2563be68a41f91cb68b624bfe5434157d59a0f7f96c344ee3c58546` |
+| Signing Cert SHA-256 | `bdcc3c69c26d4627773ae6d7e7e5b2c89e94ed8dc02261525ff80ac4c9412db7` |
 
-### Why it needs no extra switches
+</details>
 
-AdGuard has no separate check for HTTPS filtering — it reads the same licence state as everything
-else. That was verified in 4.15.2: the HTTPS filtering state model contains no reference to the
-licence at all, and neither does the VPN service. So one patch covers every paid feature.
+<details>
+<summary><b>📦 APK Decompiler</b> (<code>4.12.0</code>, build <code>4120</code>) — Local VIP unlock &amp; stock APK</summary>
+<br>
 
-The app also does **not** verify its own signature, contains no PairIP or Play Integrity guard, and
-uses no Play Billing — it sells through its own backend. That means re-signing it does not break
-anything, and there is no second gate to work around.
+#### Unlock premium
 
-### Known behaviour
+*On by default.* Enables local premium tools and cleans up VIP labels/buttons (does not grant server-side features or a Play purchase).
 
-* **The backend cannot overwrite the licence.** A server reply of "free" would normally be saved over
-  the cached state; the patch discards that reply before it is written, so the paid state stays.
-* **Activating a licence key** is skipped. Stock only reaches that code with a real key stored, which a
-  patched build never has.
-* **Nothing is blocked or redirected at runtime.** No ads are injected, no telemetry is added, no code
-  from any third-party mod is used.
-* **TV build not covered.** This targets the phone APK (`adguard-4.15.2.apk`). The separate
-  `adguard-tv-4.15.2.apk` is a different app UI and has not been audited.
-
-### Target app (AdGuard)
-
-| | |
+| Field | Value |
 |---|---|
-| Package | `com.adguard.android` |
-| Version | **4.15.2** (versionCode 42321001), single universal APK, Android 9+ |
-| ABIs | `arm64-v8a`, `armeabi-v7a`, `x86`, `x86_64` |
-| Stock download | [GitHub releases — AdGuard 4.15.2](https://github.com/AdguardTeam/AdguardForAndroid/releases/tag/v4.15.2) — `adguard-4.15.2.apk` |
-| Signing certificate SHA-256 | `bdcc3c69c26d4627773ae6d7e7e5b2c89e94ed8dc02261525ff80ac4c9412db7` |
-| APK SHA-256 | `29c99a8ca2563be68a41f91cb68b624bfe5434157d59a0f7f96c344ee3c58546` |
-
-> **Before you patch:** patching changes the signature, so the stock AdGuard has to be uninstalled
-> first. Export your custom filter lists and settings beforehand — uninstalling removes them. Point
-> Morphe at the APK exactly as downloaded; do not pre-sign or re-zip it.
-
-### Certificate & HTTPS filtering
-
-AdGuard asks you to install a certificate when you turn on **HTTPS filtering**. That surprises
-people, so here is exactly what it is.
-
-**This patch does not create, replace or weaken that certificate.** Applying it changes 3 of
-29,311 classes and leaves every one of AdGuard's 32 native libraries byte-identical, so the
-certificate comes from the same code as stock AdGuard.
-
-| | |
-|---|---|
-| What it is | "Adguard Personal CA" — the certificate that lets AdGuard decrypt HTTPS so it can filter inside encrypted pages |
-| Where it comes from | **Made on your own device by AdGuard**, the first time HTTPS filtering needs it |
-| Where it is kept | The app's private storage, as `cert_key_pair_in_pem` |
-| Shared with anyone? | **No.** No copy leaves your device, and the patch cannot change that |
-| Does patching affect it? | No. The code that generates it is untouched |
-
-**Switching from stock AdGuard loses it.** Uninstalling deletes the app's private storage,
-including that key, so the patched app generates a **new** certificate. A saved copy of the old
-one cannot be installed — it has no matching private key any more, so AdGuard keeps asking.
-
-To get past that, once:
-
-1. Uninstall stock AdGuard (export anything you want to keep first).
-2. Remove the old **"Adguard Personal CA"** from *Settings → Security → Encryption &
-   credentials → User credentials*, if it is still listed.
-3. Install the patched build and turn on HTTPS filtering.
-4. Install the certificate **the patched app offers you**. It sticks.
-
-Updating the patch bundle later does not repeat this: the signing key stays the same, so the
-certificate and its trust stay too.
-
-**If you would rather not install it at all**, leave HTTPS filtering off and use DNS filtering
-plus filter lists. Nothing is decrypted, and the premium unlock is unaffected — these are
-independent settings.
-
-> There is no patch that makes the app reuse the original certificate, and there should not be:
-> the only way to do that would be to hardcode one private key into the bundle, which would let
-> anyone holding it read HTTPS traffic from any device running it.
+| Package & Version | `com.apktools.app.decompile` — **4.12.0** (build `4120`, `arm64-v8a` / `armeabi-v7a` standalone APK, Android 9.0+) |
+| Stock Download | [APKPure — APK Decompiler `4.12.0`](https://apkpure.com/decompile-app-based-on-jadx/com.apktools.app.decompile) |
+| APK SHA-256 | `f85934cf2c0ce8224b0fccb4c0d631813cfd028680d0c23ef28ea886a9d1053b` |
+| Signing Cert SHA-256 | `80c8e7990b68af1301f76057e7eabe63de4240e3ca74da46c36a9c8084c68386` |
 
 </details>
 
 ---
 
-## Usage (Morphe Manager)
+<details>
+<summary><b>🚀 How to Use (Morphe Manager)</b> — step-by-step setup, updating &amp; rules</summary>
+<br>
 
-1. Add this repository as a remote patch source using the link at the top of this README.
-2. Download the stock **1DM 20.0 APKM**, **CRICFy TV 7.5 APK**, **CricZ TV 7.3 APK**,
-   **PlayZ TV 2.3.1 APK**, **SK Tech TV 2.7 APK**, **MX Player 3.4.1 or 3.4.3 APK**,
-   **APK Decompiler 4.12.0 APK**, **Daylio 1.72.0 APKM**, **WPS Office 26.11.1 APK**, or
-   **AdGuard 4.15.2 APK** above onto your device.
-3. Updates require a compatible signing key. If Android reports a signature conflict, stop: uninstalling the existing app can permanently erase its data. Back up what you can and your Morphe signing key first.
-4. In Morphe Manager, choose **Select from storage**, pick the downloaded stock `.apkm` / `.apk`
-   file (rather than an already-patched installed app), configure options if desired (for MX
-   Player's optional **Custom codec** patch, tap its gear icon and pick `aio-v3.1.0_r1.zip`
-   directly without unzipping it), then patch and install. If a third-party source or patch is not
-   visible, enable Expert Mode in Morphe settings.
-5. Repeat with the fresh stock file when new versions are audited and supported.
+1. Add this repo in Morphe Manager via the [Add Patch Source](https://morphe.software/add-source?github=ginDoki19/GinArena-patch) link or `github.com/ginDoki19/GinArena-patch`. *(If third-party sources/patches are hidden, enable **Expert Mode** in Morphe settings.)*
+2. Download the exact **stock** `.apk` or `.apkm` matching the app section above (and verify its SHA-256).
+3. In Morphe Manager, choose **Select from storage** and pick the downloaded stock file (for MX Player's optional **Custom codec**, tap its gear icon and pick `aio-v3.1.0_r1.zip` directly without unzipping).
+4. Review options, patch, and install. *(Keep your Morphe signing key backed up — updating in place requires the same signing key.)*
 
 > [!IMPORTANT]
-> **Always patch the fresh stock app — never re-patch an already-patched APK.** If a patched app
-> stops working (streams won't load, crashes, or the developer releases a new version), do not
-> patch your saved/patched APK again. Re-download the exact stock file from the links above and
-> patch it from the beginning.
->
-> **About 1DM:** the **1DM 20.0** patches include a cloud ad-blocker update system (filters sync
-> in seconds instead of a 4-minute rebuild), faster startup with no background battery drain,
-> and full ad removal. If you use the other apps and they're already working, you don't need to
-> re-patch them just because the bundle version changed.
+> - **Never re-patch an already-patched APK.** Always start from the clean stock file above.
+> - **Do not force-patch unsupported versions** in Expert Mode; new versions require a fingerprint audit.
+> - **1DM 20.0** includes cloud adblocker updates and cold-start optimizations. Other apps that are already working do not need re-patching just because the bundle version bumped.
 
-## Building from source
+</details>
 
-Requirements: JDK 21 and a GitHub token with `read:packages` for Morphe's GitHub Packages
-dependencies. Configure `gpr.user` / `gpr.key` in your user Gradle properties, or set
-`GITHUB_ACTOR` / `GITHUB_TOKEN`. Then:
+<details>
+<summary><b>❓ FAQ &amp; Troubleshooting</b> — signature conflicts, MicroG RE &amp; server checks</summary>
+<br>
+
+- **Why does Android say "App not installed / conflicts with existing package"?**
+  Patched APKs are signed with your Morphe key, not the original developer key. Back up your app data first, uninstall the stock build, then install the patched build.
+- **When do I enable the MicroG RE patches (Daylio / WPS)?**
+  Only if your device uses MicroG RE instead of Google Play Services. Leave them **off** on devices with standard Google Play Services.
+- **Why aren't server-side AI or cloud features unlocked?**
+  Client patches only modify on-device checks. Features verified or executed by a remote server (cloud storage, cloud AI, Play entitlements) cannot be unlocked locally.
+
+</details>
+
+<details>
+<summary><b>🛠️ Building &amp; Contributing</b> — Gradle build, semantic commits &amp; CI release flow</summary>
+<br>
+
+**Requirements:** JDK 21 and a GitHub token with `read:packages` (`gpr.user`/`gpr.key` in Gradle properties, or `GITHUB_ACTOR`/`GITHUB_TOKEN` env vars).
 
 ```bash
 bash gradlew :patches:buildAndroid
 # output: patches/build/libs/patches-*.mpp
 ```
 
-## Development
+- **Commit convention:** `feat:`, `fix:`, `chore:`. Pushing to `dev` cuts a pre-release; merging `dev` into `main` (merge commit, not squash) cuts a stable release and auto-back-merges.
+- **Generated files:** Do not manually edit `patches-list.json`, `patches-bundle.json`, `CHANGELOG.md`, or the `<!-- PATCHES_START -->` block in `README.md`; CI regenerates them on release.
 
-- Use semantic commit messages (`feat:`, `fix:`, `chore:`). Pushing to `dev` creates pre-releases;
-  merging `dev` into `main` (merge commit, not squash) or pushing `feat:`/`fix:` to `main` creates
-  stable releases and back-merges automatically.
-- Do not manually edit generated files such as `patches-list.json`, `patches-bundle.json`, or
-  `CHANGELOG.md`; the release workflow updates them.
-- New app versions require a fresh fingerprint audit before compatibility is declared.
+</details>
 
-## Credits
+<details>
+<summary><b>🙏 Credits, Disclaimer &amp; License</b> — upstream acknowledgements &amp; GPL-3.0</summary>
+<br>
 
-- [Epxec/android-patches](https://github.com/Epxec/android-patches) — original Daylio premium patch for 1.69.2; re-derived for 1.71.1 and again for 1.72.0.
-- [BlazeFTL/FTL-Patches](https://github.com/BlazeFTL/FTL-Patches) — inspiration for MX Player patch ideas.
-- [hoo-dles/morphe-patches](https://github.com/hoo-dles/morphe-patches) — the earlier WPS Office "Enable Pro" idea; its anti-tamper dependency no longer exists in 26.11.x, so the WPS patch here is written from scratch against the current privilege layer.
-- [callMeBeyonder/morphe-patches](https://github.com/callMeBeyonder/morphe-patches) — inspiration and initial CRICFy TV patch idea.
-- [rushiranpise/morphe-patches](https://github.com/rushiranpise/morphe-patches) and [hoo-dles/morphe-patches](https://github.com/hoo-dles/morphe-patches) — earlier AdGuard premium patches. Both target older builds; the AdGuard patch here is written against 4.15.2, with an idempotency guard and a stricter fetch fingerprint.
+### Credits
+
+- [Epxec/android-patches](https://github.com/Epxec/android-patches) — original Daylio premium patch idea (`1.69.2`, re-derived for `1.71.1` and `1.72.0`).
+- [BlazeFTL/FTL-Patches](https://github.com/BlazeFTL/FTL-Patches) — inspiration for MX Player patches.
+- [hoo-dles/morphe-patches](https://github.com/hoo-dles/morphe-patches) — earlier WPS Office & AdGuard patch ideas (rebuilt from scratch for current builds).
+- [callMeBeyonder/morphe-patches](https://github.com/callMeBeyonder/morphe-patches) — initial CRICFy TV patch inspiration.
+- [rushiranpise/morphe-patches](https://github.com/rushiranpise/morphe-patches) — earlier AdGuard patch reference.
 - [Morphe](https://morphe.software/) — Morphe Patcher and Morphe Manager.
 
-## Notes
+### Disclaimer & License
 
-- These patches only modify app files locally on your device. Support app developers by purchasing
-  official paid editions such as 1DM+ if you want paid features.
+These patches modify app files locally on your device for personal/educational use. Support app developers by purchasing official paid editions (such as 1DM+) when you enjoy their software.
 
-## License
+Licensed under the [GNU General Public License v3.0](LICENSE).
 
-GinArena Patch is licensed under the [GNU General Public License v3.0](LICENSE).
+</details>

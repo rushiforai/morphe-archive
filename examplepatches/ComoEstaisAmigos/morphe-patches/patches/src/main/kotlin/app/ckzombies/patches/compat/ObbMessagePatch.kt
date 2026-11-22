@@ -199,10 +199,10 @@ internal fun keepMismatchedFiles(findInDir: MutableMethod) {
  *
  * Morphe 2.4 (Desktop 2.2 and Manager on the same patcher) reads the OBB out of any
  * split app bundle, whatever the extension, into `packageMetadata.obbFiles`.
- * [bundleObbPatch] stores that file in the APK and `EmbeddedGpk` is the GPK, so a
- * normal patch never opens this screen.
+ * [bundleObbPatch] stores that file in the APK and `EmbeddedObb` is the file Glu opens
+ * as a GPK, so a normal patch never opens this screen.
  *
- * A plain APK with no OBB sidecar, or a packed asset `EmbeddedGpk` could not open, still
+ * A plain APK with no OBB sidecar, or a packed asset `EmbeddedObb` could not open, still
  * lands here. Glu would then ask Google Play and `rpack.glu.com`, which no longer
  * resolves, and end on "Download failed. Could not connect to server." This patch skips
  * that dead download, keeps only Exit, and says what it found in the OBB folder

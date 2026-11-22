@@ -343,7 +343,7 @@ val feedFilterPatch = bytecodePatch(
         // The same handler fills the LIVE rows outside the feed: the Following tab's row of
         // creators who are LIVE, the Inbox's LIVE line and the feed behind it, a push's room
         // (#212). The provider (p0) names which with its request type, through the getter the
-        // handler (on 47.9.2 the provider method it calls) uses right after loading
+        // handler (on 47.9.3 the provider method it calls) uses right after loading
         // following_window_live_cell_loadmore to compare the two, so the filter gets the type as
         // well and leaves those rows to the block list. At index 0 no local holds anything yet,
         // so v1 and v2 carry the arguments into reach.
@@ -642,6 +642,15 @@ val feedFilterPatch = bytecodePatch(
             "const/4 p1, 0x0",
         )
 
+        // The Tako icon in the home top bar (PR #475, inxomnyaa's hook point). The assem draws no
+        // view of its own: its onCreate adds a callback to TikTok's A/B config manager (the
+        // listener list "FetchAB/ConfigManager" walks after every fetch), and that callback's
+        // onAfterDataSave is what puts the icon up. Asked right after the super call, so the
+        // assem's lifecycle still starts and the callback is never added; onDestroy's remove of a
+        // callback that was never added does nothing. Required on a declared build.
+        val takoTopIcon = if (declaredBuild) TakoTopIconCreateFingerprint.method else TakoTopIconCreateFingerprint.methodOrNull
+        takoTopIcon?.hideTakoTopIconAfterSuper(required = declaredBuild)
+
         // The "Ask" strip under the caption is a slot component bound per video, and it is not
         // the floating button the two hooks above cover (issue #6). Asked at the top of its bind:
         // with the switch on the slot's view is hidden and the bind never fills it.
@@ -723,7 +732,7 @@ val feedFilterPatch = bytecodePatch(
         }
 
         // The view model swaps the served list in only when it holds as many tabs as TikTok's own
-        // default list, and otherwise keeps the default with every tab on it (47.9.2), so the
+        // default list, and otherwise keeps the default with every tab on it (47.9.3), so the
         // same tabs go from the default at each of its fills. The source list is filtered before
         // the clear-and-add-all, so the fallback the setup hands on is the filtered one too.
         SearchDefaultTabsFillFingerprint.method.apply {
@@ -1089,6 +1098,20 @@ val feedFilterPatch = bytecodePatch(
             """,
         )
 
+        // The full-screen people you may know card (#478) is asked for the same way, in a round
+        // of its own. An empty list is what its builder answers with TikTok's experiment off, so
+        // the card is never requested; Hide inserted cards also drops it from the list.
+        RecUserBigCardRequestFingerprint.method.requireLocals("Feed filter", 1)
+        RecUserBigCardRequestFingerprint.method.guardAtEntry(
+            "Feed filter",
+            "invoke-static {}, $CARD_FILTERS_CLASS_DESCRIPTOR->shouldSkipRecUserBigCardRequest()Z",
+            """
+                new-instance v0, Ljava/util/ArrayList;
+                invoke-direct {v0}, Ljava/util/ArrayList;-><init>()V
+                return-object v0
+            """,
+        )
+
         DramaBlockingAdFingerprint.method.apply {
             // Every return, not the first one. This fingerprint does not even name its method,
             // so a build that answers false down one path and true down another would have had
@@ -1377,6 +1400,36 @@ private fun Instruction.readsProfileAdList(): Boolean =
  * build and one with no return to hook go without the hook: a [PatchException] when [required],
  * the method left as it is otherwise.
  */
+/**
+ * Leaves `TakoTopIconAssem.onCreate` right after its super call when the extension answers true,
+ * so the config callback that puts the home top bar's Tako icon up is never added. The answer
+ * goes to v0, which no verified body can read before writing at that point. A build whose
+ * onCreate no longer opens with the super call, has a try block, or has no local for the answer
+ * goes without the hook: a [PatchException] when [required], the method left as it is otherwise.
+ */
+internal fun MutableMethod.hideTakoTopIconAfterSuper(required: Boolean) {
+    fun skip(why: String) {
+        if (required) throw PatchException("Feed filter: TakoTopIconAssem.onCreate $why")
+    }
+    val code = implementation ?: return skip("has no implementation")
+    val instructions = code.instructions.toList()
+    if (instructions.size < 2 || instructions.first().opcode != Opcode.INVOKE_SUPER) {
+        return skip("no longer opens with its super call")
+    }
+    if (code.tryBlocks.isNotEmpty()) return skip("has a try block")
+    if (code.registerCount - numberOfParameterRegisters < 1) return skip("has no local for the answer")
+    addInstructionsWithLabels(
+        1,
+        """
+            invoke-static {}, $TAKO_AI_FILTER_CLASS_DESCRIPTOR->shouldHideTopIcon()Z
+            move-result v0
+            if-eqz v0, :morphe_keep_tako_top_icon
+            return-void
+        """,
+        ExternalLabel("morphe_keep_tako_top_icon", getInstruction(1)),
+    )
+}
+
 internal fun MutableMethod.hideTakoSugCardAtReturns(required: Boolean) {
     fun skip(why: String) {
         if (required) throw PatchException("Feed filter: SearchTakoSugCardAssem.onViewCreated $why")
@@ -1540,7 +1593,7 @@ private fun MutableMethod.filterChainedCacheDelivery(
     // The block used to do its work in the payload's own register, so both labels it re-enters
     // at were reached with a boolean sitting in a register the native path holds a reference in.
     // On 46.2.3 the instruction at each label writes that register before anything reads it
-    // (index 6 and index 8 of LX/0jUJ;->LIZ), so nothing was actually wrong; the block no longer
+    // (index 6 and index 8 of LX/0oGR;->LIZ), so nothing was actually wrong; the block no longer
     // depends on the host doing that. A register of its own also leaves the payload read the
     // patcher branched on exactly as the host wrote it.
     val scratchRegister = getFreeRegisterProvider(

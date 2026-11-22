@@ -1,7 +1,9 @@
 package app.morphe.patches.chmate
 
 import app.morphe.patcher.patch.PatchException
+import java.io.ByteArrayOutputStream
 import java.io.File
+import java.io.InputStream
 import java.security.MessageDigest
 import java.util.zip.ZipFile
 
@@ -18,6 +20,31 @@ internal val IMAGE_VPN_NOTICES = listOf("open-sstp/LICENSE", "image-stack/NOTICE
 internal val IMAGE_VPN_BUNDLE_ENTRIES = setOf("vpn/VERSION.txt") +
     IMAGE_VPN_NOTICES.filter { it.startsWith("image-stack/") }.map { "vpn/licenses/$it" } +
     listOf("arm64-v8a", "armeabi-v7a", "x86", "x86_64").map { "vpn/jni/$it/libgojni.so" }
+
+/** Read up to a bounded number of bytes using methods available before Android API 33. */
+internal fun InputStream.readLimitedBytes(limit: Int): ByteArray {
+    require(limit >= 0) { "limit must be non-negative" }
+    val buffer = ByteArray(8 * 1024)
+    val output = ByteArrayOutputStream(minOf(limit, buffer.size))
+    var remaining = limit
+    while (remaining > 0) {
+        val count = read(buffer, 0, minOf(buffer.size, remaining))
+        when {
+            count < 0 -> break
+            count == 0 -> {
+                val next = read()
+                if (next < 0) break
+                output.write(next)
+                remaining--
+            }
+            else -> {
+                output.write(buffer, 0, count)
+                remaining -= count
+            }
+        }
+    }
+    return output.toByteArray()
+}
 
 /** Read named entries without extracting archive paths onto disk. Verify before modifying the APK. */
 internal fun optionalLibraries(path: String, names: Map<String, String>, library: String): Map<String, ByteArray> {
@@ -39,7 +66,7 @@ internal fun optionalLibraries(path: String, names: Map<String, String>, library
                 if (candidates.size != 1) throw PatchException("追加ファイルに必要なライブラリが不足または重複しています（$abi/$library）。$asset をダウンロードし直して、展開せず選択してください。$OPTIONAL_ASSET_GUIDE")
                 val entry = candidates.single()
                 if (entry.size !in 1..(32L * 1024 * 1024)) throw PatchException("ライブラリのサイズが不正です: $abi")
-                val bytes = zip.getInputStream(entry).use { it.readNBytes(32 * 1024 * 1024 + 1) }
+                val bytes = zip.getInputStream(entry).use { it.readLimitedBytes(entry.size.toInt() + 1) }
                 val hash = MessageDigest.getInstance("SHA-256").digest(bytes).joinToString("") { "%02x".format(it) }
                 if (hash != expected) throw PatchException("対応するライブラリではありません。案内の配布ファイルを選択してください: $abi / $OPTIONAL_ASSET_GUIDE")
                 bytes

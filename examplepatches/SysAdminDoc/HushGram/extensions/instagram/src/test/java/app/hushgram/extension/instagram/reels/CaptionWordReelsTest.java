@@ -40,9 +40,15 @@ public class CaptionWordReelsTest {
     /** A reel's post, with its caption text, which can be null. */
     static final class Post {
         final String caption;
+        final String author;
 
         Post(String caption) {
+            this(caption, "someone");
+        }
+
+        Post(String caption, String author) {
             this.caption = caption;
+            this.author = author;
         }
     }
 
@@ -58,6 +64,7 @@ public class CaptionWordReelsTest {
     /** Reads a Clip the way the patch-filled stub and the caption bridges read Instagram's item, counting each read. */
     static class Reader implements CaptionWordReels.Reader {
         final AtomicInteger reads = new AtomicInteger();
+        final AtomicInteger authors = new AtomicInteger();
 
         @Override
         public Object media(Object item) {
@@ -68,6 +75,12 @@ public class CaptionWordReelsTest {
         @Override
         public String caption(Object media) {
             return ((Post) media).caption;
+        }
+
+        @Override
+        public String author(Object media) {
+            authors.incrementAndGet();
+            return ((Post) media).author;
         }
     }
 
@@ -94,11 +107,57 @@ public class CaptionWordReelsTest {
         Settings.REELS_KEPT_LANGUAGES.resetToDefault();
         CaptionLanguage.forget();
         Settings.HIDE_CAPTION_WORD_REELS.resetToDefault();
+        Settings.HIDE_CAPTION_WORD_COMMENTS.resetToDefault();
         Settings.REELS_BLOCKED_WORDS.resetToDefault();
         BaseSettings.PAUSED.save(false);
         PauseForTests.resume();
         HookStatus.clear();
         FeedFilterCounters.clear();
+    }
+
+    /**
+     * #807: with Also in comments on, a comment holding a word from the list gets no row, and so does
+     * one an @name on the list wrote, whatever the case. Others keep theirs, without an @name in the
+     * list no author is read, and a failure keeps the comment.
+     */
+    @Test
+    public void aCommentWithABlockedWordOrByANamedAccountGetsNoRow() {
+        List<String> words = CaptionWordReels.words("spoiler, @CNN");
+        Object cnn = new Object();
+        Object other = new Object();
+        java.util.function.Function<Object, String> names = user -> user == cnn ? "cnn" : "someone";
+        assertTrue(CaptionWordReels.dropsComment("Huge SPOILER ahead", other, names, () -> words));
+        assertTrue(CaptionWordReels.dropsComment("great clip", cnn, names, () -> words));
+        assertFalse(CaptionWordReels.dropsComment("great clip", other, names, () -> words));
+        assertFalse("no words and nobody", CaptionWordReels.dropsComment(null, null, names, () -> words));
+        assertFalse("Also in comments off", CaptionWordReels.dropsComment("spoiler", cnn, names, Collections::emptyList));
+        AtomicInteger reads = new AtomicInteger();
+        assertFalse(CaptionWordReels.dropsComment("great clip", cnn, user -> {
+            reads.incrementAndGet();
+            return "cnn";
+        }, () -> CaptionWordReels.words("spoiler")));
+        assertEquals("without an @name the author isn't read", 0, reads.get());
+        assertFalse("a failure keeps it", CaptionWordReels.dropsComment("great clip", cnn, user -> {
+            throw new IllegalStateException("no bridge");
+        }, () -> words));
+        String report = FeedFilterCounters.report().toString();
+        assertTrue(report, report.contains("Caption word comments"));
+    }
+
+    /** #807: comments are read only with Also in comments and its switch both on, and not while paused. */
+    @Test
+    public void commentsAreReadOnlyWithAlsoInCommentsOn() {
+        assertFalse("off to start", CaptionWordReels.commentsOn());
+        Settings.HIDE_CAPTION_WORD_COMMENTS.save(true);
+        assertTrue(CaptionWordReels.commentsOn());
+        assertTrue(CaptionWordReels.dropsComment("a giveaway", null));
+        Settings.HIDE_CAPTION_WORD_REELS.save(false);
+        assertFalse("waits for its switch", CaptionWordReels.commentsOn());
+        assertFalse(CaptionWordReels.dropsComment("a giveaway", null));
+        Settings.HIDE_CAPTION_WORD_REELS.save(true);
+        BaseSettings.PAUSED.save(true);
+        PauseForTests.pause(HushgramPause.Reason.SWITCH);
+        assertFalse("paused", CaptionWordReels.commentsOn());
     }
 
     private List<?> page(List<?> items) {
@@ -133,6 +192,37 @@ public class CaptionWordReelsTest {
         assertTrue(report, report.contains("blocked word 3"));
         assertTrue(HookStatus.missing(FamilyNames.CAPTION_WORD_REELS).toString(),
                 HookStatus.missing(FamilyNames.CAPTION_WORD_REELS).isEmpty());
+    }
+
+    /**
+     * #807: an @name in the list takes out that account's own reels, whatever the case and caption,
+     * and still takes out a reel whose caption mentions it. Other accounts' reels stay, a name that's
+     * only the start of another doesn't match, and without any @name no author is read.
+     */
+    @Test
+    public void anAtNameTakesOutThatAccountsReels() {
+        Settings.REELS_BLOCKED_WORDS.save("spoiler\n@Clickbait.Daily");
+        Clip theirs = new Clip(new Post("Sunset at the lake", "clickbait.daily"));
+        Clip theirsNoCaption = new Clip(new Post(null, "ClickBait.Daily"));
+        Clip mention = new Clip(new Post("Thanks @clickbait.daily for this", "fan"));
+        Clip longer = new Clip(new Post("a cat", "clickbait.daily2"));
+        Clip shorter = new Clip(new Post("a dog", "clickbait.dail"));
+        Clip nobody = new Clip(new Post("a bird", null));
+        List<Clip> items = Arrays.asList(theirs, theirsNoCaption, mention, longer, shorter, nobody);
+
+        assertEquals(Arrays.asList(longer, shorter, nobody), page(items));
+        String report = FeedFilterCounters.report().toString();
+        assertTrue(report, report.contains("blocked word 3"));
+
+        reader.authors.set(0);
+        Settings.REELS_BLOCKED_WORDS.save("spoiler");
+        assertSame(items, page(items));
+        assertEquals("no @name, no author read", 0, reader.authors.get());
+
+        assertFalse("a lone @ names nobody", CaptionWordReels.namesAccounts(CaptionWordReels.words("spoiler, @")));
+        assertTrue(CaptionWordReels.postedByAny("@ClickBait.Daily ", CaptionWordReels.words("@clickbait.daily")));
+        assertFalse(CaptionWordReels.postedByAny("", CaptionWordReels.words("@clickbait.daily")));
+        assertFalse(CaptionWordReels.postedByAny("clickbait.daily", CaptionWordReels.words("clickbait.daily")));
     }
 
     /**

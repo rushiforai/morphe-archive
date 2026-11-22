@@ -1,4 +1,43 @@
 <!-- dap-release-branding:v1 -->
+![Dutch App Patches. Dutch apps. Your choices.](https://gitlab.com/johninnld/nl-morphe-patches/-/raw/1b7b11c95e944c62e23351fa87bd0c542e5dd079/docs/site/assets/brand/release-banner.png)
+
+**Release · patch bundle v1.94.0.**
+
+[Source metadata](https://gitlab.com/johninnld/nl-morphe-patches/-/raw/main/patches-bundle.json) · [User guide](https://gitlab.com/johninnld/nl-morphe-patches/-/blob/main/docs/site/en/index.md)
+
+Source: [1b7b11c95e94](https://gitlab.com/johninnld/nl-morphe-patches/-/commit/1b7b11c95e944c62e23351fa87bd0c542e5dd079). Check each app's target versions in the user guide before patching.
+
+---
+
+## [1.94.0](https://gitlab.com/johninnld/nl-morphe-patches/compare/v1.93.0...v1.94.0) (2026-11-22)
+
+### 🐛 Bug Fixes
+
+* **Google Maps:** a failed start request never ends the car session ([1b7b11c](https://gitlab.com/johninnld/nl-morphe-patches/commit/1b7b11c95e944c62e23351fa87bd0c542e5dd079))
+
+### ✨ New Features
+
+* **Google Maps:** start guidance when the car host asks ([711bfe7](https://gitlab.com/johninnld/nl-morphe-patches/commit/711bfe7053cf5fe8a1565aea3eb2318530c2013a))
+
+<!-- dap-release-branding:v1 -->
+![Dutch App Patches. Dutch apps. Your choices.](https://gitlab.com/johninnld/nl-morphe-patches/-/raw/a7cd618a6ce7ad1c6d6689b43faaea275bfb4d2d/docs/site/assets/brand/release-banner.png)
+
+**Release · patch bundle v1.93.0.**
+
+[Source metadata](https://gitlab.com/johninnld/nl-morphe-patches/-/raw/main/patches-bundle.json) · [User guide](https://gitlab.com/johninnld/nl-morphe-patches/-/blob/main/docs/site/en/index.md)
+
+Source: [a7cd618a6ce7](https://gitlab.com/johninnld/nl-morphe-patches/-/commit/a7cd618a6ce7ad1c6d6689b43faaea275bfb4d2d). Check each app's target versions in the user guide before patching.
+
+---
+
+## [1.93.0](https://gitlab.com/johninnld/nl-morphe-patches/compare/v1.92.0...v1.93.0) (2026-11-22)
+
+### ✨ New Features
+
+* **Videoland Android TV:** support Videoland 1.119.2 on Android and Android TV ([a7cd618](https://gitlab.com/johninnld/nl-morphe-patches/commit/a7cd618a6ce7ad1c6d6689b43faaea275bfb4d2d))
+* **Videoland Android:** support Videoland 1.119.2 on Android and Android TV ([a7cd618](https://gitlab.com/johninnld/nl-morphe-patches/commit/a7cd618a6ce7ad1c6d6689b43faaea275bfb4d2d))
+
+<!-- dap-release-branding:v1 -->
 ![Dutch App Patches. Dutch apps. Your choices.](https://gitlab.com/johninnld/nl-morphe-patches/-/raw/a4c2955b40d86eaebfae9bfa6cacc82f762552a7/docs/site/assets/brand/release-banner.png)
 
 **Release · patch bundle v1.92.0.**

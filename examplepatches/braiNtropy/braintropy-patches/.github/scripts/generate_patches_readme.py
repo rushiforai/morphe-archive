@@ -13,7 +13,21 @@ python3 generate_patches_readme.py <owner/repo> <branch> [patches-list.json] [RE
 import json
 import re
 import sys
+import urllib.error
+import urllib.request
+from concurrent.futures import ThreadPoolExecutor
+from html import escape, unescape
 from pathlib import Path
+
+
+# Display Play Store app icons in the generated patches list.
+INCLUDE_APP_ICONS = False
+
+# Optional icon URL or path relative to README.md, keyed by package name.
+ICON_OVERRIDES = {
+    "universal": ".github/assets/universal-icon.svg",
+    # "com.example.app": "https://example.com/icon.png",
+}
 
 
 if len(sys.argv) < 3:
@@ -31,6 +45,10 @@ if "/" not in repo_full:
     raise ValueError(f"Invalid repo format: {repo_full} (expected owner/repo)")
 
 owner, repo = repo_full.split("/", 1)
+
+# Redirects /<package name> to the Play Store icon, or returns 404 if unavailable.
+PLAY_STORE_ICON_URL = "https://publicmetadata.co.uk"
+BLANK_ICON_PATH = ".github/assets/blank-app-icon.svg"
 
 
 with open(json_path, encoding="utf-8") as f:
@@ -52,8 +70,8 @@ FORM_FACTORS = {
 
 
 def pkg_emoji(form_factor):
-    """Return the emoji for a form factor, or a standard package emoji."""
-    return FORM_FACTORS.get(form_factor, ("📦", None))[0]
+    """Return the emoji for a non-mobile form factor, or None for standard apps."""
+    return FORM_FACTORS.get(form_factor, (None, None))[0]
 
 
 def pkg_label(name, form_factor):
@@ -94,6 +112,91 @@ for patch in data["patches"]:
             by_pkg[key]["patches"][patch["name"]] = patch
 
 
+def app_label(entry):
+    """Return the app name with any non-mobile form factor emoji."""
+    return f"{entry['emoji']} {entry['name']}" if entry["emoji"] else entry["name"]
+
+
+def app_icon(package_name, size=24):
+    """Return an app icon, or an empty string when icons are off or unavailable."""
+    if not INCLUDE_APP_ICONS:
+        return ""
+    src = icons.get(package_name) if package_name else ICON_OVERRIDES.get("universal")
+    if not src:
+        return ""
+    return f'<img src="{escape(src)}" width="{size}" height="{size}" alt="">'
+
+
+class _NoRedirectHandler(urllib.request.HTTPRedirectHandler):
+    """Make a redirect raise an HTTPError instead of following it."""
+
+    def redirect_request(self, *args, **kwargs):
+        return None
+
+
+_no_redirect_opener = urllib.request.build_opener(_NoRedirectHandler)
+
+
+def icon_api_status(url):
+    """Return the icon API's HTTP status, or None if the request failed."""
+    request = urllib.request.Request(
+        url, method="HEAD", headers={"User-Agent": "patches-readme-generator"}
+    )
+    try:
+        with _no_redirect_opener.open(request, timeout=15) as response:
+            return response.status
+    except urllib.error.HTTPError as ex:
+        return ex.code
+    except OSError as ex:
+        sys.stderr.write(f"Icon lookup failed for {url}: {ex}\n")
+        return None
+
+
+def existing_icons(readme_text):
+    """Return existing README icons keyed by their displayed app label."""
+    found = {}
+    for line in readme_text.splitlines():
+        cells = line.split("|")
+        if len(cells) < 3:
+            continue
+        app_cell = cells[1].strip()
+        img = re.search(r'<img src="([^"]*)"', app_cell)
+        if img:
+            label = re.sub(r"^<img[^>]*>\s*", "", app_cell)
+            found[unescape(label)] = unescape(img.group(1))
+    return found
+
+
+def resolve_icon(package_name, current):
+    """Resolve an app icon, retaining an existing one without another lookup."""
+    override = ICON_OVERRIDES.get(package_name)
+    if override:
+        return override
+    if current:
+        return current
+
+    api_url = f"{PLAY_STORE_ICON_URL}/{package_name}"
+    status = icon_api_status(api_url)
+    if status is not None and 300 <= status < 400:
+        print(f"Found icon for {package_name}")
+        return api_url
+    if status == 404:
+        print(f"No icon for {package_name}, using the blank icon")
+        return BLANK_ICON_PATH
+
+    sys.stderr.write(f"Icon lookup failed for {package_name} (HTTP {status}), will retry next run\n")
+    return None
+
+
+def resolve_icons(package_names, existing):
+    """Resolve missing app icons in parallel."""
+    with ThreadPoolExecutor(max_workers=8) as executor:
+        resolved = executor.map(
+            lambda name: resolve_icon(name, existing.get(name)), package_names
+        )
+        return dict(zip(package_names, resolved))
+
+
 def latest_version(targets, package, want_tested):
     """Return the last declared target version in the tested or reported bucket."""
     tested_versions = set(tested_map.get(package, []))
@@ -131,14 +234,17 @@ def build_content():
     opts_sep    = " |--------" if any_options else ""
 
     lines += [
-        f"| App | 💊&nbsp;Patch | Function{opts_header} | ✅&nbsp;Tested | 👤&nbsp;User-reported |",
+        f"| 📦&nbsp;App | 💊&nbsp;Patch | ⚡&nbsp;Function{opts_header} | ✅&nbsp;Tested | 👤&nbsp;User-reported |",
         f"|-----|--------|----------{opts_sep}|---------|----------------|",
     ]
     for entry in by_pkg.values():
-        patches  = sorted(entry["patches"].values(), key=lambda x: x["name"])
+        # Unlock Premium first, the rest alphabetical
+        patches  = sorted(entry["patches"].values(), key=lambda x: (x["name"] != "Unlock Premium", x["name"]))
         tested   = latest_version(entry["targets"], entry["package"], want_tested=True)
         reported = latest_version(entry["targets"], entry["package"], want_tested=False)
-        app_cell = f"{entry['emoji']} {entry['name']}"
+        label = app_label(entry)
+        icon = app_icon(entry["package"])
+        app_cell = f"{icon} {label}" if icon else label
         for i, p in enumerate(patches):
             desc = (p.get("description") or "").replace("\n", "<br>")
             opts = f" | {options_cell(p)}" if any_options else ""
@@ -149,11 +255,12 @@ def build_content():
 
     # Universal patches (no specific app)
     if universal:
+        universal_icon = app_icon(None)
         lines += [
             "",
-            "**🌐 Universal patches**",
+            f"**{universal_icon or '🌐'} Universal patches**",
             "",
-            f"| 💊&nbsp;Patch | Function{opts_header} |",
+            f"| 💊&nbsp;Patch | ⚡&nbsp;Function{opts_header} |",
             f"|--------|----------{opts_sep}|",
         ]
         for p in sorted(universal.values(), key=lambda x: x["name"]):
@@ -171,6 +278,17 @@ ver   = raw_ver.lstrip("v")
 total = sum(len(e["patches"]) for e in by_pkg.values()) + len(universal)
 
 readme = readme_path.read_text(encoding="utf-8")
+
+icons = {}
+if INCLUDE_APP_ICONS:
+    existing_by_label = existing_icons(readme)
+    existing = {
+        entry["package"]: existing_by_label[app_label(entry)]
+        for entry in by_pkg.values()
+        if app_label(entry) in existing_by_label
+    }
+    package_names = sorted({entry["package"] for entry in by_pkg.values()})
+    icons = resolve_icons(package_names, existing)
 
 # Marker pattern — matches both <!-- PATCHES_START --> and <!-- PATCHES_START EXPANDED -->
 START_PATTERN = r"<!-- PATCHES_START(?:\s+EXPANDED)?\s*-->"

@@ -8,6 +8,7 @@ Morphe patches for apps I like.
 - **Remove ads (APKS Installer)** — disables all ads in APKS Installer (com.inwepo.apkinstaller 2.8-Google) by forcing the master ads flag off and making the ad initializer a no-op.
 - **Shohay Pregnancy Health** (health.shohay.pregnancy 2.1.1) — four patches that work together: **MicroG RE Google Sign-In** redirects Google login to MicroG RE, **MicroG signature spoof** adds the original Play signature to the manifest so MicroG's OAuth is accepted, **Unlock Premium** unlocks all weekly premium videos (weeks 1–42), and **Spoof installer source (Play Store)** makes the app appear installed from Google Play so a manually installed build does not hit "not installed from Play Store" paths.
 - **Bangladesh VPN** (com.banglatech.bangladeshvpn 67.26) — two patches that work together: **Unlock VIP** forces the local subscription tier to FULL so VIP servers connect and the premium section activates, and **Spoof installer source (Play Store)** makes the app appear installed from Google Play so a manually installed build does not hit "not installed from Play Store" paths.
+- **AmberIT** (com.amberit.dialer 1.3.2) — **Disable location gate** stops the dialer from demanding device location at startup. It forces the "should show GPS restriction dialog" flag to false, which suppresses the GPS alert and the blocking location-permission dialog across the whole app. The country allow-list is server-side and is not affected.
 
 ### How to use these patches
 
@@ -20,7 +21,24 @@ Click the button below, or manually add this repo url to Morphe Manager: https:/
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.6.1](https://github.com/sabbirdj/viper-patches/releases/tag/v1.6.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;8 patches total
+> **[v1.7.6](https://github.com/sabbirdj/viper-patches/releases/tag/v1.7.6)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;9 patches total
+<details open>
+<summary>📦 AmberIT&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**Package name:** `com.amberit.dialer`
+
+**🎯 Supported versions:**
+
+| 1.3.2 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Disable location gate](#disable-location-gate) | Stops AmberIT from requiring device location at startup. Forces hb4.f() ("should show GPS restriction dialog") to false, which suppresses the GPS alert and the blocking location-permission dialog app-wide, and makes the chat share-location permission check return true. The country allow-list itself is server-side and is not affected. Verified on AmberIT 1.3.2 (versionCode 103021). |  |
+
+</details>
+
 <details open>
 <summary>📦 Shohay Pregnancy Health&nbsp;&nbsp;•&nbsp;&nbsp;4 patches</summary>
 <br>
@@ -107,3 +125,4 @@ See the [Morphe documentation](https://github.com/MorpheApp/morphe-documentation
 ## 📜 License
 
 UserXYZ Patches are licensed under the [GNU General Public License v3.0](LICENSE)
+

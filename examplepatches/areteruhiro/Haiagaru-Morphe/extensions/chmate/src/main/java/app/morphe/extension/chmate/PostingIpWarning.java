@@ -103,6 +103,7 @@ public final class PostingIpWarning {
         }catch(Exception e){return -1;}
     }
     public static boolean intercept(Object owner){
+        if(FutabaPostingPopup.intercept(owner))return true;
         Context context=Haiagaru.applicationContextForExtension();
         if(context==null||context.getSharedPreferences(WacchoiSearchOptions.PREFS,0).getInt(KEY,0)==0)return false;
         Binding b=bindings.get(owner);if(b==null){Toast.makeText(context,"IP表示の確認情報がありません。書き込み画面を開き直してください（未送信）。",Toast.LENGTH_LONG).show();return true;}

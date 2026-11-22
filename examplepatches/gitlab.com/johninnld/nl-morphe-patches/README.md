@@ -48,7 +48,7 @@ through Shizuku-Next, KingInstaller and Android Auto's app list.
 ## App overview
 
 <!-- PATCHES_START SUMMARY -->
-**Patch bundle [v1.92.0](https://gitlab.com/johninnld/nl-morphe-patches/-/releases/v1.92.0)** · 80 apps · 384 patches
+**Patch bundle [v1.94.0](https://gitlab.com/johninnld/nl-morphe-patches/-/releases/v1.94.0)** · 80 apps · 386 patches
 
 ### Weather
 
@@ -125,8 +125,8 @@ through Shizuku-Next, KingInstaller and Android Auto's app list.
 | [Spotify](docs/site/en/apps/spotify.md) | See guide | 9.2.0.2053 | APKS | 1 |
 | [TIDAL](docs/site/en/apps/tidal.md) | See guide | 2.216.0 | APKM | 1 |
 | [TVgids.nl](docs/site/en/apps/tvgids-nl.md) | Ads · Tracking · Prompts | 7.0.16 | APK | 3 |
-| [Videoland Android](docs/site/en/apps/videoland.md) | Ads · Tracking · Prompts | 1.116.4 | APKS | 3 |
-| [Videoland Android TV](docs/site/en/apps/videoland-android-tv.md) | Ads · Tracking | 1.118.0 | APKS | 3 |
+| [Videoland Android](docs/site/en/apps/videoland.md) | Ads · Tracking · Prompts | 1.119.2 | APKS | 4 |
+| [Videoland Android TV](docs/site/en/apps/videoland-android-tv.md) | Ads · Tracking | 1.119.2 | APKS | 4 |
 | [Wuplay Android TV](docs/site/en/apps/wuplay.md) | See guide | 0.9.4-beta | APK | 1 |
 | [WuPlay Mobile](docs/site/en/apps/wuplay-mobile.md) | See guide | 0.1.9-alpha | APK | 1 |
 | [YouTube](docs/site/en/apps/youtube.md) | See guide | 21.30.216, Any | APK | 3 |

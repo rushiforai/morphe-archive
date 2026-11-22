@@ -8,13 +8,18 @@ Add-on YouTube and Reddit patches for use with [Morphe](https://morphe.software)
 - **Keyboard fullscreen shortcut**: the `F` key enters and exits fullscreen.
 - **Keyboard minimize shortcut**: the `Esc` key minimizes the video to the miniplayer.
 - **Keyboard frame step shortcuts**: the `,` and `.` keys step the video one frame back and forward.
+- **Keyboard top comments shortcut**: the `K` key shows the Top comments, such as to leave the Timed comments.
 - **Keyboard SponsorBlock skip shortcut**: the `Enter` key presses the SponsorBlock skip button.
 - **DeArrow original titles**: videos with a DeArrow title show both the DeArrow title and the
   original title, such as `Clear, descriptive title | YOU WON'T BELIEVE WHAT HAPPENED`.
 - **Comments menu item**: the menu of a video in a feed or list, such as the Home feed, the watch
   history and playlists, has a Comments item that opens the comments without playing the video.
+- **Remove from watch history menu item**: the menu of a video in a feed or list, such as the Home feed, has a
+  Remove from watch history item.
 - **Monitor caption size**: one caption size on the phone and another on a monitor, such as with
   Samsung DeX or a USB-C dock, without changing any setting when docking.
+- **Morphe UI size on monitors**: the buttons and dialogs that Morphe adds, such as the search button of the
+  comments, have the right size on a monitor instead of being much too big.
 - **Mouse and arrow key swipes** (Reddit): dragging with a mouse swipes like a finger, such as between
   the images of a post, and the left and right arrow keys move one image at a time.
 
@@ -61,6 +66,16 @@ apply it **together with** the official "Morphe Patches" source, never on its ow
   if the quality has no frame rate. The **Frame rate** patch option sets a fixed frame rate instead.
 - `<` and `>` (with Shift) keep their default action.
 
+### Keyboard top comments shortcut
+
+- `K` shows the **Top** comments of the open video, with the sort buttons (Top, Timed, Newest).
+- Made for the **Timed** comments, which have no sort buttons: they are replaced by a message at the top of
+  the list, and the list follows the video, so the message is hard to scroll back to.
+- If a Top button is shown, `K` presses it. Otherwise it closes the comments and opens them again as new,
+  which shows the Top comments, as when the comments are first opened. If the comments are closed, `K` opens
+  them on Top.
+- The key is its **Key** patch option. Like the other shortcuts, it only works while a video is open.
+
 ### Keyboard SponsorBlock skip shortcut
 
 - `Enter` (or the `Enter` key of the numpad) presses the skip button of SponsorBlock while it is shown,
@@ -101,6 +116,16 @@ apply it **together with** the official "Morphe Patches" source, never on its ow
   videos, such as **Save to Watch later button** or **Ask flyout menu**. The comments panel is
   requested the same way as by the comment button of Morphe's **Cards with action buttons** layout.
 
+### Remove from watch history menu item
+
+- The ⋮ menu (or tap and hold menu) of a video in a feed or list has a **Remove from watch history** item,
+  with the Morphe items. It removes the video from the watch history of the account, the same as the item
+  of the watch history page, and a message says if it worked.
+- The video is looked up in the most recent pages of the watch history (a few hundred videos). A video watched
+  longer ago is not found, and a message says so: remove it from the watch history page instead.
+- Needs a signed-in account, and the official Morphe Patches source with one of its patches that add items to
+  the menus of videos, such as **Save to Watch later button**.
+
 ### Monitor caption size
 
 - The captions of YouTube grow with the size of the player, so on a monitor they are much larger than
@@ -113,6 +138,14 @@ apply it **together with** the official "Morphe Patches" source, never on its ow
   and the monitor without a restart.
 - A monitor is a screen of at least 600 dp in both directions or the desktop of Samsung DeX, so a
   tablet also counts as a monitor.
+
+### Morphe UI size on monitors
+
+- For YouTube and Reddit. The Morphe patches size their own buttons and dialogs, such as the search button
+  and the search dialog of the comments, for the screen the app first showed them on. After moving the app
+  from the phone to a monitor, such as with Samsung DeX, they stayed sized for the phone, so they were two
+  to three times too big on the monitor.
+- With this patch, these sizes follow the screen the app is on, the same as the rest of the app.
 
 ### Mouse and arrow key swipes
 
@@ -137,9 +170,9 @@ apply it **together with** the official "Morphe Patches" source, never on its ow
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.12.0](https://github.com/Prisoner-24601/custom-morphe-patches/releases/tag/v1.12.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;10 patches total
+> **[v1.15.0](https://github.com/Prisoner-24601/custom-morphe-patches/releases/tag/v1.15.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;14 patches total
 <details open>
-<summary>📦 YouTube&nbsp;&nbsp;•&nbsp;&nbsp;9 patches</summary>
+<summary>📦 YouTube&nbsp;&nbsp;•&nbsp;&nbsp;12 patches</summary>
 <br>
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
@@ -152,16 +185,20 @@ apply it **together with** the official "Morphe Patches" source, never on its ow
 | [Keyboard fullscreen shortcut](#keyboard-fullscreen-shortcut) | Makes a key of a hardware keyboard (F by default) enter and exit fullscreen while a video is open. | • Key |
 | [Keyboard minimize shortcut](#keyboard-minimize-shortcut) | Makes a key of a hardware keyboard (Esc by default) minimize the open video to the miniplayer, also from fullscreen or with the comments open. | • Key |
 | [Keyboard speed shortcuts](#keyboard-speed-shortcuts) | Makes the - and = keys of a hardware keyboard decrease and increase the playback speed. Apply together with the Morphe YouTube patches, which this patch uses to change the speed. | • Speed step |
+| [Keyboard top comments shortcut](#keyboard-top-comments-shortcut) | Makes a key of a hardware keyboard (K by default) show the Top comments of the video, such as to leave the Timed comments, whose sort buttons are hard to get back to. Apply together with the Morphe YouTube patches 2.2 or newer. | • Key |
 | [Monitor caption size](#monitor-caption-size) | Sets the caption size by the screen the app is on: one size on the screen of the phone, another on a monitor, such as with Samsung DeX or a USB-C dock. Replaces the caption size setting of Morphe. | • Caption size on the phone<br>• Caption size on a monitor |
+| [Morphe UI size on monitors](#morphe-ui-size-on-monitors) | Fixes the size of the buttons and dialogs that the Morphe patches add, such as the search button of the comments, on a monitor such as with Samsung DeX, where they are otherwise much too big. |  |
+| [Remove from watch history menu item](#remove-from-watch-history-menu-item) | Adds a 'Remove from watch history' item to the menu of videos in feeds and lists, such as the Home feed, which removes the video from the watch history of the account. Apply together with the Morphe YouTube patches. |  |
 
 </details>
 
 <details open>
-<summary>📦 Reddit&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<summary>📦 Reddit&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
 <br>
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
+| [Morphe UI size on monitors](#morphe-ui-size-on-monitors) | Fixes the size of the buttons and dialogs that the Morphe patches add, such as the search button of the comments, on a monitor such as with Samsung DeX, where they are otherwise much too big. |  |
 | [Mouse and arrow key swipes](#mouse-and-arrow-key-swipes) | Makes dragging with a mouse swipe like a finger, such as between the images of a post, and makes the left and right arrow keys of a keyboard swipe once under the mouse pointer. |  |
 
 </details>

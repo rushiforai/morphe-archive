@@ -32,7 +32,7 @@ public class VideolandProbe {
  static void pass(String name){count++;System.out.println("PASS "+name);}
  static void empty(Object value,String name){check(value instanceof List&&((List)value).isEmpty(),name);pass(name);}
  static void nil(Object value,String name){check(value==null,name);pass(name);}
- static void unit(Object value,String name) throws Exception {check(value==type("qy.M").getDeclaredField("a").get(null),name);pass(name);}
+ static void unit(Object value,String name) throws Exception {check(value==type("iz.M").getDeclaredField("a").get(null),name);pass(name);}
  static void usability() throws Exception {
   String lifecycle="com.bedrockstreaming.plugin.usabilla.data.UsabillaRepositoryImpl$b";
   Object activity=instance("j.f"),owner=instance(lifecycle);
@@ -42,25 +42,24 @@ public class VideolandProbe {
   nil(call("com.bedrockstreaming.plugin.usabilla.UsabillaTaggingPlan","c",new String[]{"java.lang.String","java.util.Map"},null,null),"Usabilla automatic events");
   nil(call("com.usabilla.sdk.ubform.Usabilla","sendEvent",new String[]{"android.content.Context","java.lang.String"},null,null),"Usabilla campaign triggers");
   nil(call("com.usabilla.sdk.ubform.telemetry.UbTelemetryRecorder","d",new String[]{}),"Usabilla telemetry recorder");
-  nil(call("Ex.i","a",new String[]{"Iw.a","java.util.List"},null,null),"Usabilla queued telemetry upload");
-  unit(call("Ex.d","invokeSuspend",new String[]{"java.lang.Object"},(Object)null),"Usabilla telemetry calibration coroutine");
-  Object flow=call("ix.M","b",new String[]{"java.lang.String"},(Object)null);int[] emissions={0};
-  Object collector=Proxy.newProxyInstance(apk,new Class<?>[]{type("az.k")},(p,m,a)->{
+  nil(call("xy.i","a",new String[]{"Ax.a","java.util.List"},null,null),"Usabilla queued telemetry upload");
+  unit(call("xy.d","invokeSuspend",new String[]{"java.lang.Object"},(Object)null),"Usabilla telemetry calibration coroutine");
+  Object flow=call("ay.M","b",new String[]{"java.lang.String"},(Object)null);int[] emissions={0};
+  Object collector=Proxy.newProxyInstance(apk,new Class<?>[]{type("Sz.l")},(p,m,a)->{
    check(a[0] instanceof List&&((List)a[0]).isEmpty(),"Usabilla campaign emission");emissions[0]++;
-   return type("qy.M").getDeclaredField("a").get(null);
+   return type("iz.M").getDeclaredField("a").get(null);
   });
-  Object context=type("uy.j").getDeclaredField("d").get(null);Object[] resumed={null};
+  Object context=type("mz.j").getDeclaredField("d").get(null);Object[] resumed={null};
   check(context.toString().equals("EmptyCoroutineContext"),"campaign coroutine context");
-  Object continuation=Proxy.newProxyInstance(apk,new Class<?>[]{type("uy.d")},(p,m,a)->{
+  Object continuation=Proxy.newProxyInstance(apk,new Class<?>[]{type("mz.d")},(p,m,a)->{
    if(m.getName().equals("getContext"))return context;
    if(m.getName().equals("resumeWith")){resumed[0]=a[0];return null;}
    throw new AssertionError("Unexpected continuation method: "+m);
   });
-  Object completed=type("az.F").getDeclaredMethod("collect",type("az.k"),type("uy.d")).invoke(flow,collector,continuation);
-  check(completed==type("qy.M").getDeclaredField("a").get(null)&&emissions[0]==1&&resumed[0]==null,"Usabilla campaign Flow synchronous completion");
+  Object completed=type("Sz.G").getDeclaredMethod("collect",type("Sz.l"),type("mz.d")).invoke(flow,collector,continuation);
+  check(completed==type("iz.M").getDeclaredField("a").get(null)&&emissions[0]==1&&resumed[0]==null,"Usabilla campaign Flow synchronous completion");
   pass("Usabilla campaign Flow emits empty list and completes");
-  for(String[] entry:new String[][]{{"c","qz.y"},{"d","gv.c"},{"g","gv.e"}})
-   unit(call("hv.h",entry[0],new String[]{entry[1],"wy.c"},null,null),"JOIN measurement "+entry[0]);
+  unit(call("Kv.g","d",new String[]{"java.util.List","oz.d"},null,null),"JOIN measurement batch");
  }
  static void set(Object receiver,String name,Object value) throws Exception {
   Field field=receiver.getClass().getDeclaredField(name);field.setAccessible(true);field.set(receiver,value);
@@ -76,17 +75,17 @@ public class VideolandProbe {
   String root="com.bedrockstreaming.";
   Object main=asset(dai?"yospace":"dash"),fallback=asset("dash");
   Object drm=instance(root+"component.layout.domain.core.model.player.Drm");set(fallback,"f",drm);
-  Object mainWrapper=type("df.c").getConstructor(type(root+"component.layout.domain.core.model.player.Asset")).newInstance(main);
-  Object fallbackWrapper=type("df.c").getConstructor(type(root+"component.layout.domain.core.model.player.Asset")).newInstance(fallback);
-  Object content=alternative?type("df.b").getConstructor(type("df.a"),type("df.a")).newInstance(mainWrapper,fallbackWrapper):mainWrapper;
+  Object mainWrapper=type("sf.c").getConstructor(type(root+"component.layout.domain.core.model.player.Asset"),Boolean.TYPE).newInstance(main,false);
+  Object fallbackWrapper=type("sf.c").getConstructor(type(root+"component.layout.domain.core.model.player.Asset"),Boolean.TYPE).newInstance(fallback,false);
+  Object content=alternative?type("sf.b").getConstructor(type("sf.a"),type("sf.a")).newInstance(mainWrapper,fallbackWrapper):mainWrapper;
   if(alternative)set(content,"c",alreadySelected);
-  Object media=instance("Of.a");set(media,"c",content);
-  Object queue=instance(root+"feature.player.domain.queue.item.LiveQueueItem");set(queue,"s",media);
-  set(queue,"C",instance(root+"plugin.yospace.YospaceIsDaiAssetUseCase"));
+  Object media=instance("bg.a");set(media,"c",content);
+  Object queue=instance(root+"feature.player.domain.queue.item.LiveQueueItem");set(queue,"u",media);
+  set(queue,"D",instance(root+"plugin.yospace.YospaceIsDaiAssetUseCase"));
   Object creator=instance(root+"plugin.yospace.YospaceDaiResourceCreator");int[] calls={0};
-  Object factory=Proxy.newProxyInstance(apk,new Class<?>[]{type("rf.b")},(p,m,a)->{
-   calls[0]++;return type(root+"plugin.yospace.YospaceDaiResourceCreator").getDeclaredMethod("a",type("Of.a")).invoke(creator,(Object)null);
-  });set(queue,"B",factory);
+  Object factory=Proxy.newProxyInstance(apk,new Class<?>[]{type("Ff.b")},(p,m,a)->{
+   calls[0]++;return type(root+"plugin.yospace.YospaceDaiResourceCreator").getDeclaredMethod("a",type("bg.a")).invoke(creator,(Object)null);
+  });set(queue,"C",factory);
   // Deliberately stop at the next dependency, after the source decision. No
   // real preferences, media resource, player, DRM session or network is opened.
   try{type(root+"feature.player.domain.queue.item.LiveQueueItem").getDeclaredMethod("v").invoke(queue);
@@ -97,7 +96,7 @@ public class VideolandProbe {
   }
   boolean selected=alternative&&(alreadySelected||dai);
   if(alternative)check(Boolean.valueOf(selected).equals(get(content,"c")),"fallback selection state");
-  Object actual=type(alternative?"df.b":"df.c").getDeclaredMethod("a").invoke(content);
+  Object actual=type(alternative?"sf.b":"sf.c").getDeclaredMethod("a").invoke(content);
   check(actual==(selected?fallback:main),"live source identity changed");
   if(selected)check(get(actual,"f")==drm,"fallback DRM object changed");
   check(calls[0]==(dai&&!alreadySelected?1:0),"unexpected DAI factory calls");
@@ -133,17 +132,17 @@ public class VideolandProbe {
   if(ads){
    check(Boolean.FALSE.equals(call(root+"feature.player.data.config.PlayerConfigImpl","e",new String[]{})),"loader gate");pass("loader gate");
    String requester=root+"feature.adengine.domain.requester.AdEngineAdRequester";
-   empty(call(requester,"a",new String[]{"wy.c"},(Object)null),"video cuepoints");
-   empty(call(requester,"b",new String[]{"long","Ye.n"},0L,null),"video ads");
+   empty(call(requester,"a",new String[]{"oz.d"},(Object)null),"video cuepoints");
+   empty(call(requester,"b",new String[]{"long","nf.o"},0L,null),"video ads");
    requester=root+"feature.adengine.domain.lbanner.LBannerAdRequester";
-   empty(call(requester,"a",new String[]{"wy.c"},(Object)null),"banner cuepoints");
-   nil(call(requester,"b",new String[]{"long","Ye.n"},0L,null),"nullable banner item");
+   empty(call(requester,"a",new String[]{"oz.d"},(Object)null),"banner cuepoints");
+   nil(call(requester,"b",new String[]{"long","nf.o"},0L,null),"nullable banner item");
    nil(call(root+"feature.adengine.data.config.AdEngineConfigImpl","a",new String[]{}),"pause configuration");
    Object pause=call(root+"feature.adengine.domain.pausead.usecase.GetFirstPlayablePauseAdItemUseCaseImpl","a",
-    new String[]{root+"feature.adengine.domain.pausead.requester.PauseAdAdRequestUrlData","wy.c"},null,null);
-   nil(pause,"typed nullable pause item");
-   nil(call(root+"feature.player.presentation.mobile.control.MobileReplayControl","g0",new String[]{}),"legacy pause gate");
-   nil(call(root+"plugin.yospace.YospaceDaiResourceCreator","a",new String[]{"Of.a"},(Object)null),"Yospace nullable resource");
+    new String[]{root+"feature.adengine.domain.pausead.requester.PauseAdAdRequestUrlData","oz.d"},null,null);
+   check(pause.getClass()==type("F9.d")&&pause.toString().equals("Empty"),"typed pause Empty");pass("typed pause Empty");
+   nil(call(root+"feature.player.presentation.mobile.control.MobileReplayControl","h0",new String[]{}),"legacy pause gate");
+   nil(call(root+"plugin.yospace.YospaceDaiResourceCreator","a",new String[]{"bg.a"},(Object)null),"Yospace nullable resource");
    liveFallbackCase(true,true,false);
    liveFallbackCase(false,true,false);
    liveFallbackCase(true,true,true);
@@ -154,16 +153,16 @@ public class VideolandProbe {
    for(String key:new String[]{"activateTealium","playerNPAWv7Enabled","playerSnowplowMediaTrackingEnabled"}){
     check(Boolean.FALSE.equals(call(config,"h",new String[]{"java.lang.String"},key)),key);pass("disabled "+key);
    }
-   nil(call(root+"plugin.tealium.TealiumTaggingPlan","C0",new String[]{"java.lang.String","java.util.Map"},null,null),"Tealium event gate");
-   nil(call(root+"plugin.tealium.TealiumTaggingPlan","D0",new String[]{"java.util.Map"},(Object)null),"Tealium view gate");
+   nil(call(root+"plugin.tealium.TealiumTaggingPlan","y0",new String[]{"java.lang.String","java.util.Map"},null,null),"Tealium event gate");
+   nil(call(root+"plugin.tealium.TealiumTaggingPlan","z0",new String[]{"java.util.Map"},(Object)null),"Tealium view gate");
    Object id=call(root+"plugin.advertisingid.google.data.GoogleAdvertisingIdSource","a",new String[]{});
-   check(id.getClass()==type("y6.b"),"limited advertising ID result");pass("limited advertising ID result");
+   check(id.getClass()==type("B6.b"),"limited advertising ID result");pass("limited advertising ID result");
    nil(call("com.newrelic.agent.android.NewRelic","start",new String[]{"android.content.Context"},(Object)null),"New Relic start gate");
-   Object response=call("i3.u","c",new String[]{"B2.c"},(Object)null);
-   check(response.getClass()==type("is.b"),"CCT response type");
-   check(type("is.b").getDeclaredField("a").getInt(response)==403,"CCT fatal403");
-   check(type("is.b").getDeclaredField("b").getLong(response)==0L,"CCT zero delay");
-   check(type("is.b").getDeclaredField("c").get(response)==null,"CCT no redirect");pass("CCT typed fatal403");
+   Object response=call("Au.a","j",new String[]{"By.d0"},(Object)null);
+   check(response.getClass()==type("Ls.b"),"CCT response type");
+   check(type("Ls.b").getDeclaredField("a").getInt(response)==403,"CCT fatal403");
+   check(type("Ls.b").getDeclaredField("b").getLong(response)==0L,"CCT zero delay");
+   check(type("Ls.b").getDeclaredField("c").get(response)==null,"CCT no redirect");pass("CCT typed fatal403");
    snowplow();
    String salesforce="com.salesforce.marketingcloud.analytics.h";
    nil(call(salesforce,"init",new String[]{"com.salesforce.marketingcloud.InitializationStatus$a","int"},null,0),"Salesforce analytics init");
@@ -177,7 +176,7 @@ public class VideolandProbe {
    check(Boolean.FALSE.equals(call("com.google.firebase.crashlytics.internal.common.DataCollectionArbiter","a",new String[]{})),"Crashlytics automatic collection disabled");pass("Crashlytics automatic collection disabled");
    usability();
   }
-  check(count==(ads?13:0)+(tracking?28:0),"missing cases");
+  check(count==(ads?13:0)+(tracking?26:0),"missing cases");
   System.out.println("PASS: "+count+" actual Videoland APK ART cases");
   } catch(Throwable failure) {
    System.err.println("FAIL Videoland ART probe");failure.printStackTrace();System.exit(1);
@@ -197,14 +196,15 @@ def run(command, **kwargs):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--serial', required=True)
+    parser.add_argument('--allow-physical', action='store_true', help='Run the isolated probe on the explicitly named physical device')
     parser.add_argument('--apk', required=True, type=Path)
     parser.add_argument('--ads', action='store_true')
     parser.add_argument('--tracking', action='store_true')
     parser.add_argument('--sdk', type=Path, default=Path.home() / 'Library/Android/sdk')
     parser.add_argument('--java-home', type=Path, default=Path('/opt/homebrew/opt/openjdk@21/libexec/openjdk.jdk/Contents/Home'))
     args = parser.parse_args()
-    if not args.serial.startswith('emulator-'):
-        parser.error('Select the dedicated task emulator explicitly; physical devices are outside this runner scope')
+    if not args.serial.startswith('emulator-') and not args.allow_physical:
+        parser.error('Pass --allow-physical to run the isolated probe on the named physical device')
     if not args.apk.is_file() or not (args.ads or args.tracking):
         parser.error('Provide an APK and at least one selection')
     adb = args.sdk / 'platform-tools/adb'
@@ -234,7 +234,7 @@ def main():
                           'app_process', '/system/bin', 'VideolandProbe', remote + '.apk',
                           str(args.ads).lower(), str(args.tracking).lower()], timeout=60)
             print(result, end='')
-            expected = (13 if args.ads else 0) + (28 if args.tracking else 0)
+            expected = (13 if args.ads else 0) + (26 if args.tracking else 0)
             assert f'PASS: {expected} actual Videoland APK ART cases' in result
         finally:
             run([adb, '-s', args.serial, 'shell', 'rm', '-f', remote + '.apk', remote + '.dex'])

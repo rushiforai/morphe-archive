@@ -630,7 +630,68 @@ val navigationAndSidebarPatch = bytecodePatch(
         }
 
         keepBarsShown()
+        createPostInSubredditMenu()
     }
+}
+
+private const val SUBREDDIT_VIEW_MODEL = "Lcom/reddit/screens/pager/v2/SubredditPagerViewModel;"
+private const val SUBREDDIT_SCREEN = "Lcom/reddit/screens/pager/v2/SubredditPagerV2Screen;"
+
+/**
+ * A "Create post" item in a subreddit's three-dot menu, shown while Morphe's switch hides the bottom bar's Create
+ * button: the extension adds the item to the list the menu's builder fills, and takes the item's tap in the screen's
+ * handler of menu actions before the app reads the id.
+ */
+private fun app.morphe.patcher.patch.BytecodePatchContext.createPostInSubredditMenu() {
+    // The method opening the menu makes the menu's function reference (onOverflowMenuClicked...menu), then calls the
+    // builder with the empty list: the first call of invoke(Object) after it.
+    val opener = mutableClassDefByOrNull(SUBREDDIT_VIEW_MODEL)?.methods?.firstOrNull { method ->
+        method.implementation != null && method.instructions.any {
+            it.opcode == Opcode.NEW_INSTANCE &&
+                    it.getReference<TypeReference>()?.type?.contains("onOverflowMenuClicked") == true
+        }
+    }
+    val handler = mutableClassDefByOrNull(SUBREDDIT_SCREEN)?.methods?.firstOrNull {
+        it.name == "handleAction" && it.parameterTypes.map { type -> type.toString() } == listOf("I") &&
+                it.returnType == "V" && it.implementation != null
+    }
+    val start = opener?.instructions?.indexOfFirst {
+        it.opcode == Opcode.NEW_INSTANCE && it.getReference<TypeReference>()?.type?.contains("onOverflowMenuClicked") == true
+    } ?: -1
+    val call = opener?.instructions?.withIndex()?.firstOrNull { (i, it) ->
+        val reference = it.getReference<MethodReference>()
+        i > start && reference?.name == "invoke" && reference.returnType == "Ljava/lang/Object;" &&
+                reference.parameterTypes.map { type -> type.toString() } == listOf("Ljava/lang/Object;")
+    }
+    val registers = when (val instruction = call?.value) {
+        is FiveRegisterInstruction -> "{ v${instruction.registerC}, v${instruction.registerD} }" to false
+        is RegisterRangeInstruction ->
+            "{ v${instruction.startRegister} .. v${instruction.startRegister + 1} }" to true
+        else -> null
+    }
+    if (opener == null || handler == null || call == null || registers == null ||
+        handler.implementation!!.registerCount < 3
+    ) {
+        logger.warning("Could not find the subreddit menu; it gets no Create post item")
+        return
+    }
+    val after = if (opener.getInstruction(call.index + 1).opcode == Opcode.MOVE_RESULT_OBJECT) 2 else 1
+    opener.addInstruction(
+        call.index + after,
+        "invoke-static${if (registers.second) "/range" else ""} ${registers.first}, " +
+                "$EXTENSION_CLASS->subredditMenu(Ljava/lang/Object;Ljava/lang/Object;)V"
+    )
+    handler.addInstructionsWithLabels(
+        0,
+        """
+            invoke-static/range { p1 .. p1 }, $EXTENSION_CLASS->subredditMenuTapped(I)Z
+            move-result v0
+            if-eqz v0, :app_item
+            return-void
+        """,
+        ExternalLabel("app_item", handler.getInstruction(0))
+    )
+    logger.info("Subreddit menu: Create post item hooked")
 }
 
 @Suppress("unused")

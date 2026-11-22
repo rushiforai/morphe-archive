@@ -6,7 +6,7 @@ import app.ckzorigins.patches.shared.ByteEdit
  * Byte ranges taken from the hand-packaged Origins 2.0.1 Assembly-CSharp.dll.
  * Apply them to the stock DLL from the OBB; each range checks its old bytes first.
  *
- * Line comments are the stock method from findings.csv, not what the new bytes do.
+ * Line comments are the stock method, not what the new bytes do.
  * CURRENCY_BODIES rewrite Kontagent/GameAnalytics IL: those methods become `ret`, and the
  * freed bytes hold the new currency clamp (`ldc.i4 999999999`). CURRENCY_RVA retargets
  * PlayerData currency MethodDef RVAs into that space. Apply both lists together; the RVA
@@ -23,6 +23,9 @@ import app.ckzorigins.patches.shared.ByteEdit
  * that WWW, and also LaunchGGN / LaunchGGNBenefits (`m.glu.com/android/ghome`).
  * TAPJOY hides CommonGUI.GetFreeGoldButton, moves AchievementsButton into that slot,
  * hides FacebookLoginButton, and makes App.GetFreeGold a no-op.
+ * AMMO_REFILL_POPUP nops InventoryShopItem.OnPurchase's ShowInfoPopup after a
+ * Glu-credit weapon buy. The AddConsumable("AmmoRefill") grant stays. It is not
+ * in the extracted list; disableAmmoRefillPopupPatch applies it.
  */
 internal object DllEdits {
     const val PATH = "assets/bin/Data/Managed/Assembly-CSharp.dll"
@@ -261,5 +264,13 @@ internal object DllEdits {
             "28de1400060a28741000066f8515000619fe0416fe010b027b781300046f8f01000a063a0e000000073908000000027b891300042b01166fea02000a2a",
             "027b781300046f8f01000a166fea02000a2a00000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
         ), // CommonGUI::UpdateFacebookButtons
+    )
+
+    val AMMO_REFILL_POPUP = listOf(
+        ByteEdit(
+            0xA63D5,
+            "28701000067bcd170004728240017028ca0d00066f4420000626",
+            "0000000000000000000000000000000000000000000000000000",
+        ), // InventoryShopItem::OnPurchase ShowInfoPopup
     )
 }

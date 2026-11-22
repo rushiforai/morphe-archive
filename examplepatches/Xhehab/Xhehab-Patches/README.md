@@ -5,7 +5,7 @@ Custom Morphe patches by Xhehab.
 ## Patches
 
 <!-- PATCHES_START -->
-> **[v3.3.7](https://github.com/Xhehab/Xhehab-Patches/releases/tag/v3.3.7)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;18 patches total
+> **[v3.3.8](https://github.com/Xhehab/Xhehab-Patches/releases/tag/v3.3.8)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;18 patches total
 <details>
 <summary><img src=".github/assets/icons/uni.cbum.png" width="18" align="absmiddle" alt="">&nbsp;&nbsp;STNDRD - Workout & Fitness Plans&nbsp;&nbsp;•&nbsp;&nbsp;Chris Bumstead&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
@@ -43,7 +43,7 @@ Custom Morphe patches by Xhehab.
 
 **🎯 Supported versions:**
 
-| 1.9.0 |
+| 1.11.0 |
 | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |

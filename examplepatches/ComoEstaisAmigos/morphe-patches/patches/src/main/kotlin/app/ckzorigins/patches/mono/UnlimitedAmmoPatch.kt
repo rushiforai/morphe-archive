@@ -14,7 +14,7 @@ val unlimitedAmmoPatch = patch(
     description = "Ammo never decreases, and reloading still works.",
 ) {
     compatibleWith(COMPATIBILITY)
-    dependsOn(gluBackupPatch)
+    dependsOn(gluBackupPatch, disableAmmoRefillPopupPatch)
 
     execute {
         applyByteEdits(DllEdits.PATH, DllEdits.AMMO)

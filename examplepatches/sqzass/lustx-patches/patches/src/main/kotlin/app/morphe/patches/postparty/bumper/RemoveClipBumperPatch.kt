@@ -49,7 +49,7 @@ private fun nullOutParam(method: MutableMethod, paramIndex: Int) {
 @Suppress("unused")
 val removeClipBumperPatch = patch(
     name = "Remove clip bumper",
-    description = "Removes the Postparty logo bumper from all exports.",
+    description = "Removes the Postparty logo bumper from all exports. NOTE: I SUCK AT CODING, USE *MODIFIED* CLIPS. TRIM A SECOND OR ADD A STICKER!",
     default = true,
 ) {
     compatibleWith(

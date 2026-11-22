@@ -1,3 +1,9 @@
+## [0.1.1](https://github.com/XiONDiGiTaL/MorphePatches/compare/v0.1.0...v0.1.1) (2026-11-22)
+
+### 🐛 Bug Fixes
+
+* **site:** keep the mirror tables inside a phone viewport ([1d6b92b](https://github.com/XiONDiGiTaL/MorphePatches/commit/1d6b92b9e9a4ddeaeaca691f93a133659a0e0bb0))
+
 ## 0.1.0 (baseline)
 
 First release under the 0.1.x scheme. One bundle carries every patch for every supported app:

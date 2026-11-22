@@ -515,6 +515,10 @@ The comment box loses its GIF and sticker buttons. Typing, photos and posting wo
 # context: switch title under Comments: hides the Add a comment field at the bottom of the full-screen video viewer
 Hide the video comment box	Ẩn ô bình luận của video
 The Add a comment box under a full-screen video goes away. Comment boxes on posts stay.	Ô bình luận bên dưới video toàn màn hình biến mất. Ô bình luận trên bài viết vẫn giữ nguyên.
+# context: switch title under Comments; the bar along the bottom of a live video holds its comment box and the reactions you tap to send
+Hide the live video comment bar	Ẩn thanh bình luận của video trực tiếp
+# context: description of that switch; the reactions are the Like, Love, Haha and other faces a tap sends to the live video
+The comment box and the row of reactions along the bottom of a live video go away, so a stray tap can't send one. The live comments stay.	Ô bình luận và hàng cảm xúc ở cuối video trực tiếp sẽ biến mất, để một lần chạm nhầm không gửi đi cảm xúc nào. Các bình luận trực tiếp vẫn còn.
 # context: switch title under Comments; a reply thread is the replies under a comment, which Facebook folds behind View replies
 Open every reply thread	Mở mọi chuỗi phản hồi
 # context: summary of that switch; View replies is the link Facebook shows under a comment that has replies
@@ -588,6 +592,10 @@ Hide Share under posts	Ẩn Chia sẻ dưới bài viết
 Hide Send under posts	Ẩn Gửi dưới bài viết
 # context: summary shared by those five switches
 Takes this button out of the row under posts in the feed. The other buttons stay, and a post with all of its buttons hidden shows no row.	Bỏ nút này khỏi hàng dưới bài viết trong bảng tin. Các nút khác vẫn còn, và bài viết bị ẩn hết nút sẽ không hiện hàng nút.
+# context: switch title under News feed; the buttons are Like, Comment, Share and the others in the row under a post
+Ignore taps beside the buttons	Bỏ qua chạm bên cạnh các nút
+# context: description of that switch; the reaction icons are the small stacked emoji at the end of that row, and who reacted is the list of people who reacted
+A tap on the empty part of the row under a post, between the buttons and the reaction icons, does nothing instead of opening the comments or who reacted. The buttons work as before.	Chạm vào phần trống của hàng dưới bài viết, giữa các nút và biểu tượng cảm xúc, sẽ không làm gì thay vì mở bình luận hoặc danh sách người đã bày tỏ cảm xúc. Các nút vẫn hoạt động như trước.
 # context: what stays in while Hushfacebook is paused, followed by the patch name in brackets; the row in Facebook's own Menu that opens Hushfacebook settings
 # context: a short message when the Hushfacebook row in Facebook's Menu couldn't open the settings
 Hushfacebook settings can't open here. Long-press the Facebook logo instead.	Không thể mở cài đặt Hushfacebook ở đây. Hãy nhấn giữ logo Facebook.
@@ -1962,6 +1970,10 @@ Puts the speaker button in the side column of reels, right above the three dots.
 Hide the reaction preview on posts	Ẩn bản xem trước biểu cảm trên bài viết
 # context: summary of that switch; "reactions" are Facebook's Like, Love, Haha and other reactions
 Hides the stacked reaction icons and the reactions count under posts. The space stays, so a tap where they were still opens the list of reactions. To take the number off the Like button too, turn on Hide counts on posts.	Ẩn các biểu tượng cảm xúc xếp chồng và số lượt cảm xúc bên dưới bài viết. Khoảng trống vẫn còn, nên chạm vào chỗ đó vẫn mở danh sách cảm xúc. Để bỏ luôn con số trên nút Thích, hãy bật Ẩn số đếm trên bài viết.
+# context: switch title under News feed; the reactions are the small stacked reaction icons (Like, Love, Haha) a post shows next to its count; the Like button is the button under a post, use Facebook's name for it
+Show reactions on the Like button	Hiện biểu cảm trên nút Thích
+# context: summary of that switch; the faces are those reaction icons; "Hide the reaction preview on posts" is another switch, match its own row
+Moves a post's reaction faces from the end of its button row onto the Like button, right before the count. The Like button likes and reacts as before. A video showing its views there gets one Like face, or your own reaction once you react. Hide the reaction preview on posts overrules it. A change shows on the posts drawn after it.	Chuyển các biểu tượng cảm xúc của bài viết từ cuối hàng nút lên nút Thích, ngay trước con số. Nút Thích vẫn thích và bày tỏ cảm xúc như trước. Video hiển thị lượt xem ở đó sẽ có một biểu tượng Thích, hoặc cảm xúc của chính bạn khi bạn bày tỏ cảm xúc. Ẩn bản xem trước biểu cảm trên bài viết được ưu tiên hơn. Thay đổi sẽ hiện trên các bài viết được hiển thị sau đó.
 # context: switch title under Comments; the reaction preview is the stack of reaction icons in the corner of a comment
 Hide the reaction preview on comments	Ẩn bản xem trước biểu cảm trên bình luận
 # context: summary of that switch; "reactions" are Facebook's Like, Love, Haha and other reactions
@@ -2350,7 +2362,11 @@ Moves a feed video's seek bar closer to the bottom edge, along with Facebook's s
 Seek bar on the bottom edge	Thanh tua ở cạnh dưới
 Puts a feed video's seek bar right on its bottom edge, so it's out of the way while you scroll. Facebook's speaker and tagged people buttons move up to sit above it. Wins over Lower the seek bar and speaker. Needs Seek bar on feed videos on.	Đặt thanh tua của video bảng tin ngay trên cạnh dưới, để không vướng khi bạn cuộn. Nút loa và nút người được gắn thẻ của Facebook dời lên nằm phía trên nó. Được ưu tiên hơn Hạ thấp thanh tua và nút loa. Cần bật Thanh tua trên video bảng tin.
 Thin line seek bar	Thanh tua dạng đường mảnh
-Shows a feed video's seek bar as a thin line right on its bottom edge, like Instagram's, with no dot or times until you drag it. Live videos get it too while they can be rewound. Let go at the far right end to go back to live. Facebook's speaker and tagged people buttons move up to sit above it. Needs Seek bar on feed videos on.	Hiển thị thanh tua của video bảng tin thành một đường mảnh ngay trên cạnh dưới, giống của Instagram, không có chấm hay thời gian cho đến khi bạn kéo nó. Video trực tiếp cũng có khi còn tua lại được. Thả tay ở đầu phải để quay về trực tiếp. Nút loa và nút người được gắn thẻ của Facebook dời lên nằm phía trên nó. Cần bật Thanh tua trên video bảng tin.
+# context: switch title on the Video and audio page, under Thin line seek bar; while the thin seek bar of a feed video is dragged it stays on the video's bottom edge
+Drag along the bottom edge	Kéo dọc theo cạnh dưới
+# context: description of that switch; Thin line seek bar is the switch title above it, keep it as translated there
+While you drag the thin line, it stays on the video's bottom edge like Instagram's, with the time in the middle, instead of rising into the full bar with a time bubble. Needs Thin line seek bar on.	Khi bạn kéo đường mảnh, nó vẫn nằm ở cạnh dưới video giống của Instagram, với thời gian ở giữa, thay vì nâng lên thành thanh đầy đủ có bong bóng thời gian. Cần bật Thanh tua dạng đường mảnh.
+Shows a feed video's seek bar as a thin line right on its bottom edge, like Instagram's, with no dot until you drag it. Live videos get it too while they can be rewound. Let go at the far right end to go back to live. Facebook's speaker and tagged people buttons move up to sit above it. Needs Seek bar on feed videos on.	Hiển thị thanh tua của video bảng tin thành một đường mảnh ngay trên cạnh dưới, giống của Instagram, không có chấm cho đến khi bạn kéo nó. Video trực tiếp cũng có khi còn tua lại được. Thả tay ở đầu phải để quay về trực tiếp. Nút loa và nút người được gắn thẻ của Facebook dời lên nằm phía trên nó. Cần bật Thanh tua trên video bảng tin.
 Feed video position	Vị trí video bảng tin
 # context: title of the row that holds a color code for the count badges on the tabs
 Badge color	Màu huy hiệu
@@ -2408,6 +2424,7 @@ Holding a post's photo opens its reactions, as holding Like does. It comes befor
 Holding a post's video opens its reactions too. It comes before Long press opens comments. With Hold a feed video for 2x on, that one wins and the video plays fast.	Nhấn giữ video của bài viết cũng mở các cảm xúc. Điều này được ưu tiên trước Nhấn giữ mở bình luận. Khi Nhấn giữ video trên bảng tin để phát 2x đang bật, công tắc đó được ưu tiên và video phát nhanh.
 Reaction	Cảm xúc
 Pick one each time	Chọn mỗi lần
+Slide to pick one	Trượt để chọn
 Like	Thích
 Love	Yêu thích
 Care	Thương thương
@@ -2415,9 +2432,11 @@ Haha	Haha
 Wow	Wow
 Sad	Buồn
 Angry	Phẫn nộ
-Pick one each time. The reactions open over the post, so slide to one and let go, or let go and tap one.	Chọn mỗi lần. Các cảm xúc mở ra trên bài viết, nên hãy trượt đến một cảm xúc rồi thả tay, hoặc thả tay rồi chạm vào một cảm xúc.
+Pick one each time. The reactions open by your finger, so slide to one and let go, or let go and tap one. A tap anywhere else closes them.	Chọn mỗi lần. Các cảm xúc mở ra cạnh ngón tay bạn, nên hãy trượt đến một cảm xúc rồi thả tay, hoặc thả tay rồi chạm vào một cảm xúc. Chạm vào chỗ khác sẽ đóng chúng.
+Slide to pick one. The reactions open by your finger, so slide to one and let go. Letting go anywhere else closes them.	Trượt để chọn. Các cảm xúc mở ra cạnh ngón tay bạn, nên hãy trượt đến một cảm xúc rồi thả tay. Thả tay ở chỗ khác sẽ đóng chúng.
 %1$s. Holding a post gives it straight away.	%1$s. Nhấn giữ bài viết sẽ bày tỏ cảm xúc đó ngay.
 Holding a post to react will open the reactions to pick from.	Nhấn giữ bài viết để bày tỏ cảm xúc sẽ mở các cảm xúc để chọn.
+Holding a post to react will open the reactions to slide to one.	Nhấn giữ bài viết để bày tỏ cảm xúc sẽ mở các cảm xúc để trượt đến một cảm xúc.
 Holding a post to react will give %1$s.	Nhấn giữ bài viết để bày tỏ cảm xúc sẽ chọn %1$s.
 Select text	Chọn văn bản
 Done	Xong
@@ -2764,6 +2783,16 @@ Takes the song and effect credits off the line under the poster's name on a stor
 Takes the row of suggested replies off the bottom of a story. The reply box stays. Applies from the next story you open.	Bỏ hàng câu trả lời gợi ý ở cuối tin. Ô trả lời vẫn giữ nguyên. Áp dụng từ tin tiếp theo bạn mở.
 Hide the Subscribe button	Ẩn nút Đăng ký
 Takes the Subscribe button off the top of a story. Applies from the next story you open.	Bỏ nút Đăng ký ở đầu tin. Áp dụng từ tin tiếp theo bạn mở.
+# context: switch title on the Stories page; the Follow button sits at the top of a story from someone you don't follow
+Hide the Follow button	Ẩn nút Theo dõi
+Takes the Follow button off the top of a story from someone you don't follow. Applies from the next story you open.	Bỏ nút Theo dõi ở đầu tin của người bạn không theo dõi. Áp dụng từ tin tiếp theo bạn mở.
+# context: switch title on the Stories page; the reply bar is the row under someone else's story with the repost button, the Send message box and the quick reactions
+Hide the reply bar	Ẩn thanh trả lời
+# context: description of that switch; Send message is the text box Facebook shows in that row
+Takes the bar off the bottom of other people's stories, with the repost button, the Send message box and the quick reactions. Applies from the next story you open.	Bỏ thanh ở cuối tin của người khác, cùng nút chia sẻ lại, ô Gửi tin nhắn và các cảm xúc nhanh. Áp dụng từ tin tiếp theo bạn mở.
+# context: switch title on the Stories page; Up next is the card Facebook shows over the next stories while it counts down before they play
+Hide the Up next card	Ẩn thẻ Tiếp theo
+Starts the next stories right away, without the Up next card that counts down over the first one. Applies the next time you open stories.	Phát ngay các tin tiếp theo, không có thẻ Tiếp theo đếm ngược trên tin đầu tiên. Áp dụng từ lần tiếp theo bạn mở tin.
 Hide create story cards	Ẩn thẻ tạo tin
 Takes out the cards between stories that ask you to make one, including the full screen card that asks you to continue the story with photos from your gallery. Applies the next time you open stories.	Bỏ các thẻ giữa các tin mời bạn tạo tin, kể cả thẻ toàn màn hình mời bạn tiếp tục tin bằng ảnh trong thư viện của bạn. Áp dụng từ lần tiếp theo bạn mở tin.
 Progress bar at the bottom	Thanh tiến trình ở dưới
@@ -2853,10 +2882,18 @@ Hide the tab bar on the Reels tab	Ẩn thanh tab ở tab Reels
 The tab bar goes away while the Reels tab is open, and the reel gets the whole screen. The other tabs keep the bar. Restart Facebook to see the change.	Thanh tab biến mất khi tab Reels đang mở, và reel chiếm toàn bộ màn hình. Các tab khác vẫn giữ thanh tab. Khởi động lại Facebook để thấy thay đổi.
 Hide the line along the tab bar	Ẩn đường kẻ dọc thanh tab
 The thin line Facebook draws along the edge of the tab bar goes away on every tab. Tap a tab to see the change.	Đường kẻ mảnh Facebook vẽ dọc mép thanh tab sẽ biến mất ở mọi tab. Chạm vào một tab để thấy thay đổi.
+# context: switch title on the tab bar settings page; a group is a Facebook group's page; the tab bar is the row of Home, Reels, Groups... tabs
+Keep the tab bar in groups	Giữ thanh tab trong nhóm
+# context: summary of that switch; "along the bottom" means at the bottom edge of the screen
+A group you open keeps the tab bar along the bottom, so a tap takes you straight to another tab. Works while the tab bar is at the bottom. Open a group to see the change.	Nhóm bạn mở vẫn giữ thanh tab ở dưới cùng, nên chỉ một lần chạm là sang ngay tab khác. Hoạt động khi thanh tab ở dưới cùng. Mở một nhóm để thấy thay đổi.
 Playback speed in the post menu	Tốc độ phát trong menu bài viết
 A feed or Watch video's 3-dot menu gets Playback speed, from 0.5x to 3x, live videos too. Off by default, since it hasn't been tried on a real account yet.	Menu ba chấm của video trên bảng tin hoặc Watch có thêm Tốc độ phát, từ 0,5x đến 3x, cả với video trực tiếp. Mặc định tắt vì chưa được thử trên tài khoản thật.
 Double tap to skip on feed videos	Nhấn đúp để tua trên video bảng tin
 Double tap the right side of a playing feed video to jump ahead 10 seconds, or the left side to go back 10. Keep tapping to go further. Live videos work too when they can be rewound. One tap on a side still opens the video, a moment later than usual. With Tap to play on, it needs Inline feed video controls on too.	Nhấn đúp vào bên phải video bảng tin đang phát để tua tới 10 giây, hoặc bên trái để lùi 10 giây. Tiếp tục nhấn để tua xa hơn. Video trực tiếp cũng dùng được khi có thể tua lại. Nhấn một lần vào một bên vẫn mở video, chỉ chậm hơn bình thường một chút. Khi Nhấn để phát bật, Nút điều khiển video trong bảng tin cũng phải bật.
+# context: switch title under Video playback; a tap on a video in the news feed brings up a pause button in the middle of the video instead of opening it
+Tap shows a pause button on feed videos	Nhấn để hiện nút tạm dừng trên video bảng tin
+# context: description of that switch; Reels is Facebook's full-screen video viewer, keep the name; the quoted switch names match their own rows
+Tapping a feed video shows a pause button in its middle and the video keeps playing, so a tap doesn't open it in Reels. Tap the button to pause or play. Tap the video again while the button shows to open it. Ads keep their own controls. With Tap to play on, it needs Inline feed video controls on too.	Nhấn vào video bảng tin sẽ hiện nút tạm dừng ở giữa và video vẫn tiếp tục phát, nên một lần nhấn không mở video trong Reels. Nhấn nút để tạm dừng hoặc phát. Nhấn lại vào video khi nút đang hiện để mở video. Quảng cáo giữ nguyên các nút điều khiển. Khi Nhấn để phát bật, Nút điều khiển video trong bảng tin cũng phải bật.
 Show only comments that match	Chỉ hiện bình luận khớp
 While the search box holds words, comments without them are hidden. Clearing the box brings them back.	Khi ô tìm kiếm có chữ, các bình luận không chứa chữ đó sẽ bị ẩn. Xóa ô tìm kiếm để hiện lại.
 Queue reel saves	Xếp hàng lưu reel
@@ -2899,7 +2936,7 @@ Interested	Quan tâm
 # context: a kind of row in a post's 3-dot menu, offered in the list of rows to hide: Facebook's row asking for fewer posts like this one
 Not interested	Không quan tâm
 # context: a kind of row in a post's 3-dot menu, offered in the list of rows to hide: Facebook's row that opens its feed preferences
-Manage your Feed	Quản lý bảng feed
+Manage your Feed / Your algorithm	Quản lý bảng feed / Thuật toán của bạn
 # context: a kind of row in a post's 3-dot menu, offered in the list of rows to hide: Facebook's row that reports the post
 Report	Báo cáo
 # context: a kind of row in a post's 3-dot menu, offered in the list of rows to hide: Facebook's row that plays the video on a TV
@@ -3091,3 +3128,6 @@ Show full names	Hiện tên đầy đủ
 A long name at the top of a post wraps onto the next line instead of ending in "...". A name that fits still takes one line.	Tên dài ở đầu bài viết sẽ xuống dòng thay vì kết thúc bằng "...". Tên vừa một dòng vẫn chỉ chiếm một dòng.
 Dark box behind feed video names	Khung tối sau tên trên video ở Bảng tin
 When a video in your feed has the poster's name on top of the video, that name sits on the same dark box. A change shows on the posts drawn after it.	Khi một video trong Bảng tin hiện tên người đăng đè lên video, tên đó nằm trên cùng khung tối. Thay đổi hiện ở các bài viết tải sau đó.
+Quality settings	Cài đặt chất lượng
+Request community note	Yêu cầu ghi chú cộng đồng
+Something went wrong	Đã xảy ra lỗi

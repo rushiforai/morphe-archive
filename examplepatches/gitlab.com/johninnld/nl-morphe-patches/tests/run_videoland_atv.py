@@ -46,17 +46,17 @@ public class VideolandProbe {
   String root="com.bedrockstreaming.";
   Object main=asset(dai?"yospace":"dash"),fallback=asset("dash");
   Object drm=instance(root+"component.layout.domain.core.model.player.Drm");set(fallback,"P",drm);
-  Object mainWrapper=type("De.c").getConstructor(type(root+"component.layout.domain.core.model.player.Asset"),Boolean.TYPE).newInstance(main,false);
-  Object fallbackWrapper=type("De.c").getConstructor(type(root+"component.layout.domain.core.model.player.Asset"),Boolean.TYPE).newInstance(fallback,false);
-  Object content=alternative?type("De.b").getConstructor(type("De.a"),type("De.a")).newInstance(mainWrapper,fallbackWrapper):mainWrapper;
+  Object mainWrapper=type("Ie.c").getConstructor(type(root+"component.layout.domain.core.model.player.Asset"),Boolean.TYPE).newInstance(main,false);
+  Object fallbackWrapper=type("Ie.c").getConstructor(type(root+"component.layout.domain.core.model.player.Asset"),Boolean.TYPE).newInstance(fallback,false);
+  Object content=alternative?type("Ie.b").getConstructor(type("Ie.a"),type("Ie.a")).newInstance(mainWrapper,fallbackWrapper):mainWrapper;
   if(alternative)set(content,"c",alreadySelected);
-  Object media=instance("nf.a");set(media,"c",content);
-  Object queue=instance(root+"feature.player.domain.queue.item.LiveQueueItem");set(queue,"o",media);
-  set(queue,"x",instance(root+"plugin.yospace.YospaceIsDaiAssetUseCase"));
+  Object media=instance("sf.a");set(media,"c",content);
+  Object queue=instance(root+"feature.player.domain.queue.item.LiveQueueItem");set(queue,"p",media);
+  set(queue,"y",instance(root+"plugin.yospace.YospaceIsDaiAssetUseCase"));
   Object creator=instance(root+"plugin.yospace.YospaceDaiResourceCreator");int[] calls={0};
-  Object factory=Proxy.newProxyInstance(apk,new Class<?>[]{type("Qe.b")},(p,m,a)->{
-   calls[0]++;return type(root+"plugin.yospace.YospaceDaiResourceCreator").getDeclaredMethod("a",type("nf.a")).invoke(creator,(Object)null);
-  });set(queue,"w",factory);
+  Object factory=Proxy.newProxyInstance(apk,new Class<?>[]{type("Ve.b")},(p,m,a)->{
+   calls[0]++;return type(root+"plugin.yospace.YospaceDaiResourceCreator").getDeclaredMethod("a",type("sf.a")).invoke(creator,(Object)null);
+  });set(queue,"x",factory);
   // Deliberately stop at the next dependency, after the source decision. No
   // real preferences, media resource, player, DRM session or network is opened.
   try{type(root+"feature.player.domain.queue.item.LiveQueueItem").getDeclaredMethod("u").invoke(queue);
@@ -67,7 +67,7 @@ public class VideolandProbe {
   }
   boolean selected=alternative&&(alreadySelected||dai);
   if(alternative)check(Boolean.valueOf(selected).equals(get(content,"c")),"fallback selection state");
-  Object actual=type(alternative?"De.b":"De.c").getDeclaredMethod("a").invoke(content);
+  Object actual=type(alternative?"Ie.b":"Ie.c").getDeclaredMethod("a").invoke(content);
   check(actual==(selected?fallback:main),"live source identity changed");
   if(selected)check(get(actual,"P")==drm,"fallback DRM object changed");
   check(calls[0]==(dai&&!alreadySelected?1:0),"unexpected DAI factory calls");
@@ -103,17 +103,17 @@ public class VideolandProbe {
   if(ads){
    check(Boolean.FALSE.equals(call(root+"feature.player.data.config.PlayerConfigImpl","d",new String[]{})),"loader gate");pass("loader gate");
    String requester=root+"feature.adengine.domain.requester.AdEngineAdRequester";
-   empty(call(requester,"a",new String[]{"fv.c"},(Object)null),"video cuepoints");
-   empty(call(requester,"b",new String[]{"long","ze.o"},0L,null),"video ads");
+   empty(call(requester,"a",new String[]{"tv.c"},(Object)null),"video cuepoints");
+   empty(call(requester,"b",new String[]{"long","Ee.p"},0L,null),"video ads");
    requester=root+"feature.adengine.domain.lbanner.LBannerAdRequester";
-   empty(call(requester,"a",new String[]{"fv.c"},(Object)null),"banner cuepoints");
-   nil(call(requester,"b",new String[]{"long","ze.o"},0L,null),"nullable banner item");
+   empty(call(requester,"a",new String[]{"tv.c"},(Object)null),"banner cuepoints");
+   nil(call(requester,"b",new String[]{"long","Ee.p"},0L,null),"nullable banner item");
    nil(call(root+"feature.adengine.data.config.AdEngineConfigImpl","a",new String[]{}),"pause configuration");
    Object pause=call(root+"feature.adengine.domain.pausead.usecase.GetFirstPlayablePauseAdItemUseCaseImpl","a",
-    new String[]{root+"feature.adengine.domain.pausead.requester.PauseAdAdRequestUrlData","fv.c"},null,null);
-   check(pause.getClass()==type("J9.d")&&pause.toString().equals("Empty"),"typed pause Empty");pass("typed pause Empty");
+    new String[]{root+"feature.adengine.domain.pausead.requester.PauseAdAdRequestUrlData","tv.c"},null,null);
+   check(pause.getClass()==type("L9.d")&&pause.toString().equals("Empty"),"typed pause Empty");pass("typed pause Empty");
    nil(call(root+"feature.player.presentation.tv.control.TvReplayControl","U",new String[]{}),"legacy pause gate");
-   nil(call(root+"plugin.yospace.YospaceDaiResourceCreator","a",new String[]{"nf.a"},(Object)null),"Yospace nullable resource");
+   nil(call(root+"plugin.yospace.YospaceDaiResourceCreator","a",new String[]{"sf.a"},(Object)null),"Yospace nullable resource");
    liveFallbackCase(true,true,false);
    liveFallbackCase(false,true,false);
    liveFallbackCase(true,true,true);
@@ -122,22 +122,22 @@ public class VideolandProbe {
   if(tracking){
    String config=root+"component.config.domain.ConfigImpl";
    for(String key:new String[]{"activateTealium","playerNPAWv7Enabled","playerSnowplowMediaTrackingEnabled"}){
-    check(Boolean.FALSE.equals(call(config,"g",new String[]{"java.lang.String"},key)),key);pass("disabled "+key);
+    check(Boolean.FALSE.equals(call(config,"h",new String[]{"java.lang.String"},key)),key);pass("disabled "+key);
    }
    for(String key:new String[]{null,"","playerHeartbeatEnabled","playerAdsLoaderEnabled","ActivateTealium"}){
-    try{call(config,"g",new String[]{"java.lang.String"},key);throw new AssertionError("Unknown key did not delegate");}
+    try{call(config,"h",new String[]{"java.lang.String"},key);throw new AssertionError("Unknown key did not delegate");}
     catch(NullPointerException expected){pass("unknown/null key delegates to original backing store");}
    }
-   nil(call(root+"plugin.tealium.TealiumTaggingPlan","n0",new String[]{"java.lang.String","java.util.Map"},null,null),"Tealium event gate");
-   nil(call(root+"plugin.tealium.TealiumTaggingPlan","r0",new String[]{"java.util.Map"},(Object)null),"Tealium view gate");
+   nil(call(root+"plugin.tealium.TealiumTaggingPlan","J0",new String[]{"java.lang.String","java.util.Map"},null,null),"Tealium event gate");
+   nil(call(root+"plugin.tealium.TealiumTaggingPlan","U0",new String[]{"java.util.Map"},(Object)null),"Tealium view gate");
    Object id=call(root+"plugin.advertisingid.google.data.GoogleAdvertisingIdSource","a",new String[]{});
-   check(id.getClass()==type("x6.b"),"limited advertising ID result");pass("limited advertising ID result");
+   check(id.getClass()==type("z6.b"),"limited advertising ID result");pass("limited advertising ID result");
    nil(call("com.newrelic.agent.android.NewRelic","start",new String[]{"android.content.Context"},(Object)null),"New Relic start gate");
-   Object response=call("A3.T","e",new String[]{"F2.c"},(Object)null);
-   check(response.getClass()==type("A3.X"),"CCT response type");
-   check(type("A3.X").getDeclaredField("a").getInt(response)==403,"CCT fatal403");
-   check(type("A3.X").getDeclaredField("b").getLong(response)==0L,"CCT zero delay");
-   check(type("A3.X").getDeclaredField("c").get(response)==null,"CCT no redirect");pass("CCT typed fatal403");
+   Object response=call("Yb.a","c",new String[]{"F2.c"},(Object)null);
+   check(response.getClass()==type("A3.b0"),"CCT response type");
+   check(type("A3.b0").getDeclaredField("a").getInt(response)==403,"CCT fatal403");
+   check(type("A3.b0").getDeclaredField("b").getLong(response)==0L,"CCT zero delay");
+   check(type("A3.b0").getDeclaredField("c").get(response)==null,"CCT no redirect");pass("CCT typed fatal403");
    snowplow();
   }
   check(count==(ads?13:0)+(tracking?14:0),"missing cases");

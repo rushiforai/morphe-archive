@@ -19,22 +19,26 @@ import android.app.SearchManager;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.content.pm.Signature;
 import android.net.Uri;
 import android.os.Build;
 import android.os.PowerManager;
 import android.provider.Settings;
-import android.util.Pair;
-import android.widget.LinearLayout;
 
 import androidx.annotation.Nullable;
 
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.security.MessageDigest;
 import java.util.Locale;
 
 import app.morphe.extension.mapsautomotive.patches.BydBatteryPatch;
+import app.morphe.extension.mapsautomotive.patches.CarAdb;
+import app.morphe.extension.mapsautomotive.patches.M3;
 import app.morphe.extension.mapsautomotive.patches.UiDensityPatch;
 import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.ResourceType;
@@ -43,7 +47,6 @@ import app.morphe.extension.shared.Utils;
 import app.morphe.extension.shared.requests.Requester;
 import app.morphe.extension.shared.requests.Route;
 import app.morphe.extension.shared.settings.SharedSettings;
-import app.morphe.extension.shared.ui.CustomDialog;
 
 @SuppressWarnings("unused")
 public class GmsCoreSupportPatch {
@@ -117,31 +120,58 @@ public class GmsCoreSupportPatch {
                                                       String dialogMessage,
                                                       String positiveButtonText,
                                                       DialogInterface.OnClickListener onPositiveClickListener) {
+        showDialog(context, text(context, "ต้องตั้งค่า MicroG-RE", "MicroG-RE needs a setting"), dialogMessage,
+                positiveButtonText, onPositiveClickListener, null);
+    }
+
+    // The BYD battery dialog. With the car's own ADB answering: "Do it now" runs the command there (CarAdb), "Later"
+    // closes; without it: the command and OK, as before.
+    private static void showBydBatteryDialog(Activity context, String message, boolean carAdb) {
+        if (context.isFinishing() || context.isDestroyed()) return;
+        if (!carAdb) {
+            showBatteryOptimizationDialog(context, message, text(context, "ตกลง", "OK"), (dialog, id) -> { });
+            return;
+        }
+        String withButton = message + "\n\n" + text(context,
+                "หรือกด ทำให้เลย เมื่อ Android ถามเรื่องการแก้ไขข้อบกพร่องผ่าน USB ให้ติ๊ก อนุญาตเสมอ แล้วกด อนุญาต"
+                        + " Maps จะสั่งคำสั่งนี้ผ่าน ADB ของรถเอง",
+                "Or tap Do it now. When Android asks \"Allow USB debugging?\", tick \"Always allow\" and tap Allow."
+                        + " Maps then runs this command through the car's own ADB.");
+        Utils.runOnMainThreadDelayed(() -> {
+            // Maps Car's Material 3 dialog: Later beside Do it now.
+            Dialog dialog = new M3.Builder(context)
+                    .setTitle(text(context, "ต้องตั้งค่า MicroG-RE", "MicroG-RE needs a setting"))
+                    .setMessage(withButton)
+                    .setPositiveButton(text(context, "ทำให้เลย", "Do it now"),
+                            (shown, which) -> CarAdb.whitelist(context, GMS_CORE_PACKAGE_NAME, WHITELIST_COMMAND))
+                    .setNegativeButton(text(context, "ไว้ทีหลัง", "Later"), null)
+                    .setCancelable(true)
+                    .create();
+            Utils.showDialog(context, dialog, true, null);
+        }, 100);
+    }
+
+    // [onShown]: run when the dialog is on screen (possibly again after the app comes back), or null.
+    private static void showDialog(Activity context,
+                                   String title,
+                                   String dialogMessage,
+                                   String positiveButtonText,
+                                   DialogInterface.OnClickListener onPositiveClickListener,
+                                   @Nullable Runnable onShown) {
         // Use a delay to allow the activity to finish initializing.
         // Otherwise, if device is in dark mode the dialog is shown with wrong color scheme.
         Utils.runOnMainThreadDelayed(() -> {
-            // Create the custom dialog.
-            Pair<Dialog, LinearLayout> dialogPair = CustomDialog.create(
-                    context,
-                    text(context, "ต้องตั้งค่า MicroG-RE", "MicroG-RE needs a setting"), // Title.
-                    dialogMessage, // Message.
-                    null, // No EditText.
-                    positiveButtonText, // OK button text.
-                    () -> onPositiveClickListener.onClick(null, 0), // Convert DialogInterface.OnClickListener to Runnable.
-                    null, // No Cancel button action.
-                    null, // No Neutral button text.
-                    null, // No Neutral button action.
-                    true // Dismiss dialog when onNeutralClick.
-            );
-
-            Dialog dialog = dialogPair.first;
-
-            // Do not set cancelable too false to allow using back button to skip the action,
-            // just in case the battery change can never be satisfied.
-            dialog.setCancelable(true);
+            // Maps Car's Material 3 dialog. The listener gets no dialog and 0, as with the library's dialog.
+            // Cancelable, so Back skips the action, in case the battery change can never be satisfied.
+            Dialog dialog = new M3.Builder(context)
+                    .setTitle(title)
+                    .setMessage(dialogMessage)
+                    .setPositiveButton(positiveButtonText, (shown, which) -> onPositiveClickListener.onClick(null, 0))
+                    .setCancelable(true)
+                    .create();
 
             // Show the dialog
-            Utils.showDialog(context, dialog);
+            Utils.showDialog(context, dialog, true, onShown == null ? null : shown -> onShown.run());
         }, 100);
     }
 
@@ -184,6 +214,9 @@ public class GmsCoreSupportPatch {
                 return;
             }
 
+            // Another GmsCore build under MicroG-RE's package name: warned once per build.
+            if (warnOtherProvider(context)) return;
+
             // Check if GmsCore is whitelisted from battery optimizations.
             if (isAndroidAutomotive(context)) {
                 // Ignore Android Automotive devices (Google built-in),
@@ -207,9 +240,15 @@ public class GmsCoreSupportPatch {
                                     + " not work. Tap Open settings and allow it, or run once over ADB (Install step 1):"))
                             + "\n" + WHITELIST_COMMAND;
                     // On a BYD the system's dialog opens but does not whitelist MicroG-RE (DiLink 3): only the ADB
-                    // command does, so the button only closes. Other cars get the system's dialog and the command.
+                    // command does. When the car's own ADB answers (owners turn on its wireless ADB to install), the
+                    // dialog offers to run it there; otherwise the button only closes. Other cars get the system's
+                    // dialog and the command.
                     if (byd) {
-                        showBatteryOptimizationDialog(context, message, text(context, "ตกลง", "OK"), (dialog, id) -> { });
+                        Utils.runOnBackgroundThread(() -> {
+                            boolean carAdb = CarAdb.portOpen();
+                            Logger.printInfo(() -> "Car's ADB on port 5555: " + (carAdb ? "answers" : "closed"));
+                            Utils.runOnMainThread(() -> showBydBatteryDialog(context, message, carAdb));
+                        });
                     } else {
                         showBatteryOptimizationDialog(context, message, text(context, "เปิดหน้าตั้งค่า", "Open settings"),
                                 (dialog, id) -> openGmsCoreDisableBatteryOptimizationsIntent(context));
@@ -246,6 +285,67 @@ public class GmsCoreSupportPatch {
             }
         } catch (Exception ex) {
             Logger.printException(() -> "checkGmsCore failure", ex);
+        }
+    }
+
+    /** SHA-256 of MicroG-RE's signing certificate (its releases 7.2.1 to 7.3.1). */
+    static final String MICROG_RE_SIGNER = "0b6c9515afb195fac59601696ba0a7907a0b217ccf720b43148427ccf64343e7";
+    private static final String CHECKS = "morphe_gms_check", PROVIDER_WARNED = "provider_warned";
+
+    /**
+     * The build to warn about, or null: [signer] (SHA-256, hex) is not MicroG-RE's and [warned] is not this build.
+     * Plain Java, so it can be checked off the device.
+     */
+    @Nullable
+    static String otherProvider(@Nullable String signer, @Nullable String versionName, long versionCode, @Nullable String warned) {
+        if (signer == null || MICROG_RE_SIGNER.equals(signer)) return null;
+        String build = versionName + " " + versionCode + " " + signer.substring(0, Math.min(16, signer.length()));
+        return build.equals(warned) ? null : build;
+    }
+
+    @Nullable
+    static String sha256(@Nullable Signature[] signatures) {
+        if (signatures == null || signatures.length == 0 || signatures[0] == null) return null;
+        try {
+            StringBuilder hex = new StringBuilder();
+            for (byte b : MessageDigest.getInstance("SHA-256").digest(signatures[0].toByteArray())) {
+                hex.append(String.format(Locale.ROOT, "%02x", b));
+            }
+            return hex.toString();
+        } catch (Exception ex) {
+            return null;
+        }
+    }
+
+    /**
+     * Maps Car is built and checked with MicroG-RE. Another GmsCore under the same package name (an older ReVanced
+     * GmsCore, for one) has made Maps crash at start, so the user hears once per installed build which one to use.
+     * True when the warning is shown.
+     */
+    @SuppressWarnings("deprecation")
+    private static boolean warnOtherProvider(Activity context) {
+        try {
+            PackageInfo info = context.getPackageManager().getPackageInfo(GMS_CORE_PACKAGE_NAME, PackageManager.GET_SIGNATURES);
+            SharedPreferences checks = context.getSharedPreferences(CHECKS, Context.MODE_PRIVATE);
+            String build = otherProvider(sha256(info.signatures), info.versionName, info.getLongVersionCode(),
+                    checks.getString(PROVIDER_WARNED, null));
+            if (build == null) return false;
+            Logger.printInfo(() -> "GmsCore is not MicroG-RE: " + build);
+            String version = info.versionName != null ? info.versionName : "?";
+            String message = text(context,
+                    "แอปนี้ใช้กับ MicroG-RE 7.3.0 แต่ MicroG ที่ติดตั้งอยู่เป็นตัวอื่น (" + version + ") แอปอาจปิดเองหรือ"
+                            + " ใช้บัญชี Google ไม่ได้ ให้ถอน MicroG ตัวนี้ออก แล้วติดตั้ง MicroG-RE 7.3.0 (ขั้นตอนติดตั้งข้อ 1)",
+                    "This app is made for MicroG-RE 7.3.0, but another MicroG is installed (" + version + "). The app may"
+                            + " close by itself or lose the Google account. Uninstall this MicroG, then install MicroG-RE 7.3.0"
+                            + " (Install step 1).");
+            // Marked as warned once the dialog is on screen: a start that ends before it shows warns again next time.
+            showDialog(context, text(context, "MicroG ไม่ใช่ MicroG-RE", "This MicroG is not MicroG-RE"), message,
+                    text(context, "ตกลง", "OK"), (dialog, id) -> { },
+                    () -> checks.edit().putString(PROVIDER_WARNED, build).apply());
+            return true;
+        } catch (Exception ex) {
+            Logger.printException(() -> "provider check failure", ex);
+            return false;
         }
     }
 

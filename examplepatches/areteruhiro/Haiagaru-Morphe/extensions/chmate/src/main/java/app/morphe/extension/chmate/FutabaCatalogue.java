@@ -18,6 +18,24 @@ final class FutabaCatalogue {
     static List<SiteBoardProtocol.Topic> topics(SiteBoardProtocol.Board board,String catalogue,Fetch fetch,int limit)throws IOException {
         limit=Math.max(1,Math.min(500,limit));
         List<SiteBoardProtocol.Topic> topics=SiteBoardProtocol.topics(board,catalogue);
+        if(!SiteBoardProtocol.futabaTag(board).isEmpty()){
+            // The normal img/may view omits much of the high-reply range.
+            try{
+                List<SiteBoardProtocol.Topic> popular=SiteBoardProtocol.topics(board,fetch.get(board.indexUrl()+"&sort=3"));
+                LinkedHashMap<String,SiteBoardProtocol.Topic> combined=new LinkedHashMap<>();
+                for(int i=0;i<Math.max(topics.size(),popular.size());i++){
+                    if(i<topics.size()){
+                        SiteBoardProtocol.Topic topic=topics.get(i);
+                        combined.putIfAbsent(topic.id,topic);
+                    }
+                    if(i<popular.size()){
+                        SiteBoardProtocol.Topic topic=popular.get(i), previous=combined.get(topic.id);
+                        if(previous==null||previous.count<topic.count)combined.put(topic.id,topic);
+                    }
+                }
+                topics=new ArrayList<>(combined.values());
+            }catch(IOException unavailable){/* Keep the normal catalogue if the second view is unavailable. */}
+        }
         Map<String,String> titles=new HashMap<>();Set<String> visited=new HashSet<>();
         LinkedHashMap<String,SiteBoardProtocol.Topic> discovered=new LinkedHashMap<>();
         ArrayDeque<String> pending=new ArrayDeque<>();pending.add(board.url+"futaba.htm");

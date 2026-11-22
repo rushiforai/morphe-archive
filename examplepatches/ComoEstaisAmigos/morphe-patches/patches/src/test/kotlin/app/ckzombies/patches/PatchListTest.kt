@@ -8,6 +8,7 @@ import app.ckzombies.patches.compat.unusedPermissionsPatch
 import app.ckzombies.patches.intro.playIntroOncePatch
 import app.ckzombies.patches.nativelib.hiddenWeaponsPatch
 import app.ckzombies.patches.nativelib.hideDailyDealPatch
+import app.ckzombies.patches.nativelib.protectCiviliansPatch
 import app.ckzombies.patches.nativelib.unlimitedCurrencyPatch
 import app.ckzombies.patches.screen.screenFitPatch
 import app.ckzombies.patches.shared.Constants.COMPATIBILITY_CK_ZOMBIES
@@ -21,8 +22,8 @@ import kotlin.test.assertTrue
 
 /** Every patch the player can pick. */
 private val PATCHES = listOf(
-    hiddenWeaponsPatch, hideDailyDealPatch, modernAndroidPatch, playIntroOncePatch, unusedPermissionsPatch,
-    screenFitPatch, soundCachePatch, deadServersPatch, unlimitedCurrencyPatch,
+    hiddenWeaponsPatch, hideDailyDealPatch, modernAndroidPatch, playIntroOncePatch, protectCiviliansPatch,
+    unusedPermissionsPatch, screenFitPatch, soundCachePatch, deadServersPatch, unlimitedCurrencyPatch,
 )
 
 /** What a player sees in the patch list: the names, and which ones start switched on. */
@@ -35,6 +36,7 @@ class PatchListTest {
                 "Hide Daily Deal popup" to true,
                 "Modern Android compatibility" to true,
                 "Play intro once" to true,
+                "Disable friendly fire" to true,
                 "Remove unused permissions" to true,
                 "Render menus at 720p" to true,
                 "Smooth sound" to true,

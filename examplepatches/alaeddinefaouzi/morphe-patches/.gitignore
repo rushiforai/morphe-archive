@@ -1,0 +1,45 @@
+# Java & Kotlin
+*.class
+*.log
+hs_err_pid*
+
+# Package & Archive Files (never commit binaries)
+*.jar
+*.war
+*.zip
+*.tar.gz
+*.apk
+*.apkm
+*.xapk
+*.mpp
+*.mpe
+!gradle/wrapper/gradle-wrapper.jar
+
+# Gradle
+.gradle/
+build/
+**/build/
+bin/
+**/bin/
+
+# Local sensitive files
+local.properties
+.env
+*.key
+*.pem
+*.jks
+*.keystore
+
+# IDEs
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Tools and Scratch
+tools/
+scratch/
+morphe-temporary-files/

@@ -1,4 +1,4 @@
-"""Independent full DEX and manifest contracts for Videoland Android 1.116.4/1627."""
+"""Independent full DEX and manifest contracts for Videoland Android 1.119.2/1637."""
 import argparse
 import hashlib
 import json
@@ -9,7 +9,7 @@ import io
 import zipfile
 
 from atv_smali import classes, graph, methods
-from verify_videoland_atv import declaration_shape, remove_insertion, verify_manifest
+from verify_videoland_atv import declaration_shape, remove_insertion, verify_manifest, verify_profile
 
 CONTRACTS = json.loads(Path(__file__).with_name('videoland_mobile_contracts.json').read_text())
 CONSENT_CONTRACTS = json.loads(Path(__file__).with_name('videoland_mobile_consent_contracts.json').read_text())
@@ -69,20 +69,20 @@ def verify_methods(before, after, ads, tracking, consent=False):
     return len(before)
 
 
-def verify(original, patched, ads, tracking, consent=False):
+def verify(original, patched, ads, tracking, consent=False, profile=False):
     original, patched = Path(original), Path(patched)
     verify_manifest(ET.parse(original / 'AndroidManifest.xml').getroot(),
                     ET.parse(patched / 'AndroidManifest.xml').getroot(), tracking or consent)
     old, new = classes(original), classes(patched)
-    assert old.keys() == new.keys(), 'APK class inventory changed'
-    # JADX reports 29,621 parsed names; DEX includes 37,941 classes including
-    # synthetic/R8 classes. Pin the independent baksmali inventory here.
-    assert len(old) == 37941, 'Incomplete or unsupported original class inventory'
+    before, after = methods(original), methods(patched)
+    profile_classes = verify_profile(before, after, new, 1637) if profile else set()
+    assert set(old) | profile_classes == set(new), 'APK class inventory changed'
+    # Pin the complete class and method inventories from all four original dex files.
+    assert len(old) == 39286, 'Incomplete or unsupported original class inventory'
     for owner, path in old.items():
         assert declaration_shape(path.read_text()) == declaration_shape(new[owner].read_text()), 'Original class declaration changed: ' + owner
-    before = methods(original)
-    assert len(before) == 161557, 'Incomplete or unsupported original method inventory'
-    return verify_methods(before, methods(patched), ads, tracking, consent)
+    assert len(before) == 168723, 'Incomplete or unsupported original method inventory'
+    return verify_methods(before, after, ads, tracking, consent)
 
 
 def verify_payload(original_apks, patched_apk):
@@ -126,11 +126,12 @@ if __name__ == '__main__':
     parser.add_argument('patched')
     parser.add_argument('--ads', action='store_true')
     parser.add_argument('--tracking', action='store_true')
+    parser.add_argument('--profile', action='store_true')
     parser.add_argument('--consent', action='store_true')
     parser.add_argument('--original-apks', type=Path)
     parser.add_argument('--patched-apk', type=Path)
     args = parser.parse_args()
-    print(f'PASS: {verify(args.original, args.patched, args.ads, args.tracking, args.consent)} original Videoland mobile methods and selected effects')
+    print(f'PASS: {verify(args.original, args.patched, args.ads, args.tracking, args.consent, args.profile)} original Videoland mobile methods and selected effects')
     if args.original_apks or args.patched_apk:
         assert args.original_apks and args.patched_apk, 'Provide both archive arguments'
         print(f'PASS: {verify_payload(args.original_apks, args.patched_apk)} original split resources/assets/native payloads')

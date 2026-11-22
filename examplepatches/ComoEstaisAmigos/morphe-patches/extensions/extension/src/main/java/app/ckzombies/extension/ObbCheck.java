@@ -14,9 +14,9 @@ import java.util.Locale;
  *
  * Morphe 2.4 hands the OBB from any split app bundle, whatever the extension, to patches
  * as packageMetadata.obbFiles. BundleObbPatch copies it into the APK as a STORED asset
- * and EmbeddedGpk is then the GPK, so this screen does not open. What remains here is
- * the old folder-and-download path: a plain APK with no OBB beside it, or a packed
- * asset EmbeddedGpk could not open.
+ * and EmbeddedObb is then the file Glu opens as a GPK, so this screen does not open.
+ * What remains here is the old folder-and-download path: a plain APK with no OBB beside
+ * it, or a packed asset EmbeddedObb could not open.
  *
  * In that case ResFileDownloadView would ask Google Play and rpack.glu.com, which no longer
  * exists, and end on "Download failed. Could not connect to server." The screen calls

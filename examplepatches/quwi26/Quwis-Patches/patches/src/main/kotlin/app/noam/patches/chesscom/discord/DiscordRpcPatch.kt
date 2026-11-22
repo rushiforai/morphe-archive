@@ -2,7 +2,8 @@ package app.noam.patches.chesscom.discord
 
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
-import app.morphe.patcher.patch.resourcePatch
+import app.morphe.patcher.patch.document
+import app.morphe.patcher.patch.patch
 import app.noam.patches.chesscom.misc.settings.settingsPatch
 import app.noam.patches.chesscom.shared.Constants
 import app.noam.patches.chesscom.shared.markFeaturePatched
@@ -22,7 +23,7 @@ private const val CLIENT_ID_META_DATA = "morphe_discord_client_id"
  */
 private const val DISCORD_CLIENT_ID = "1573433416093794486"
 
-private val discordRedirectResourcePatch = resourcePatch(
+private val discordRedirectResourcePatch = patch(
     description = "Adds the screen Discord's browser login comes back to.",
 ) {
     execute {

@@ -30,6 +30,7 @@ import android.os.Process;
 import android.os.UserHandle;
 import android.os.ext.SdkExtensions;
 import android.util.CloseGuard;
+import android.util.SparseIntArray;
 import android.view.Display;
 import android.view.DisplayCutout;
 import android.view.View;
@@ -356,14 +357,26 @@ public final class ApiCompat {
         Rect app = new Rect();
         display.getRectSize(app);
         int width = app.width() > 0 && app.width() < real.x ? app.width() : real.x;
-        // The size Maps last measured, for WindowRefreshPatch's check.
+        // The size Maps last measured, for WindowRefreshPatch's check: per display, since another Maps screen (the
+        // floating window's card) measures its own display in the same process.
         lastWindowBoundsWidth = width;
         lastWindowBoundsHeight = real.y;
+        synchronized (lastWidths) {
+            lastWidths.put(display.getDisplayId(), width);
+        }
         return new Rect(0, 0, width, real.y);
     }
 
-    /** The last bounds below API 30, for WindowRefreshPatch; 0 before the first call. */
+    /** The last bounds below API 30 on any display, for the report; 0 before the first call. */
     static volatile int lastWindowBoundsWidth, lastWindowBoundsHeight;
+    private static final SparseIntArray lastWidths = new SparseIntArray();
+
+    /** The width Maps last measured for a window on [displayId] below API 30; 0 before the first. */
+    static int lastWindowBoundsWidth(int displayId) {
+        synchronized (lastWidths) {
+            return lastWidths.get(displayId, 0);
+        }
+    }
 
     /**
      * Window insets animation callbacks exist from API 30. R8 removed WindowInsetsAnimationCompat's

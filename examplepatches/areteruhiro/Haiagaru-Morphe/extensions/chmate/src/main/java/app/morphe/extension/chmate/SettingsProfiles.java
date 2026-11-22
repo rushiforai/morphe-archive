@@ -42,6 +42,8 @@ public final class SettingsProfiles {
         numberKey(ThreadListThumbnail.REGISTERED_ACTION,0,3);defaultValue(ThreadListThumbnail.REGISTERED_ACTION,0);
         booleanKey(PostingSettingLinks.KEY);defaultValue(PostingSettingLinks.KEY,false);
         booleanKey(StockChmatePosting.ALWAYS);defaultValue(StockChmatePosting.ALWAYS,false);
+        booleanKey(FutabaPostingPopup.DIRECT);defaultValue(FutabaPostingPopup.DIRECT,true);
+        booleanKey(FutabaPostingPopup.OFFICIAL);defaultValue(FutabaPostingPopup.OFFICIAL,true);
         for(String key:new String[]{ThreadTitleActions.SHOW_REFRESH,ThreadTitleActions.SHOW_WATCH,ThreadTitleActions.SHOW_AUTH}){booleanKey(key);defaultValue(key,true);}
         booleanKey(StockChmatePosting.LONG_PRESS);defaultValue(StockChmatePosting.LONG_PRESS,false);
         booleanKey(StockChmatePosting.SKIP_CONFIRM);defaultValue(StockChmatePosting.SKIP_CONFIRM,false);
@@ -73,6 +75,9 @@ public final class SettingsProfiles {
         booleanKey(ImageViewerRotationButton.MENU_KEY);defaultValue(ImageViewerRotationButton.MENU_KEY,true);
         booleanKey(UpdateConnectionHeaders.KEY);defaultValue(UpdateConnectionHeaders.KEY,true);
         booleanKey(ResponseNoteIndicator.KEY);defaultValue(ResponseNoteIndicator.KEY,true);
+        booleanKey("animanchHeart");defaultValue("animanchHeart",true);
+        booleanKey(GigaFilePosting.SHOW_BUTTON);defaultValue(GigaFilePosting.SHOW_BUTTON,false);
+        numberKey(GigaFilePosting.LINK_MODE,0,2);defaultValue(GigaFilePosting.LINK_MODE,GigaFilePosting.IN_APP);
         booleanKey(ExtraQuickFilters.OPTIMIZATION);defaultValue(ExtraQuickFilters.OPTIMIZATION,false);
         booleanKey(FilterPosition.DELAYED_SNAPSHOT);defaultValue(FilterPosition.DELAYED_SNAPSHOT,false);
         booleanKey(ArchiveSearchLayout.ORIGINAL_SITE);defaultValue(ArchiveSearchLayout.ORIGINAL_SITE,false);
@@ -111,6 +116,7 @@ public final class SettingsProfiles {
         defaultValue(SearchRequestPacing.HISSI_INTERVAL_KEY,3);
         defaultValue(SearchRequestPacing.KYODEMO_INTERVAL_KEY,10);
         numberKey("hissiViewerToolbarHeightDp",20,80);
+        numberKey(CheckerBarOptions.PALETTE,0,3);
         numberKey(CheckerBarOptions.TABS,20,80);
         numberKey(CheckerBarOptions.PROVIDERS,20,80);
         defaultValue(CheckerBarOptions.PROVIDERS,32);

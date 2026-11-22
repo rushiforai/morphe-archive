@@ -790,7 +790,47 @@ jobs:
             fi
           fi
           output="/tmp/nicoid-re-$version.mpp"
-          if [[ ( "$GITHUB_REF" == "refs/heads/dev" || "$GITHUB_REF" == "refs/heads/feature/bulk-video-list-actions" ) && "$version" == 2.1.5-dev.* ]]; then
+          if [[ "$GITHUB_REF" == "refs/heads/dev" && "$version" == "2.1.7-dev.2" ]]; then
+            python3 porting/revisions/v$version/tests/test_source.py
+            compiled="patches/build/libs/patches-$version.mpp"
+            test -s "$compiled"
+            approved="/tmp/nicoid-re-v2.1.6-approved.mpp"
+            curl -fLsS --retry 3 --retry-delay 2 \
+              "https://github.com/chikuwadon/nicoid-re-patches/releases/download/v2.1.6/patches-2.1.6.mpp" \
+              -o "$approved"
+            echo "c8e1c627bb15c46ebf49345bc0a703f00ed05998783fb280326c555527bb2978  $approved" | sha256sum -c -
+            python3 porting/revisions/v2.1.0-release/prepare_smali_tools.py
+            python3 porting/revisions/v$version/stage_candidate.py \
+              --compiled "$compiled" --approved "$approved" \
+              --output "$output" --tools "$revision/tools"
+          elif [[ "$GITHUB_REF" == "refs/heads/dev" && "$version" == "2.1.7-dev.1" ]]; then
+            python3 porting/revisions/v$version/tests/test_source.py
+            compiled="patches/build/libs/patches-$version.mpp"
+            test -s "$compiled"
+            approved="/tmp/nicoid-re-v2.1.6-approved.mpp"
+            curl -fLsS --retry 3 --retry-delay 2 \
+              "https://github.com/chikuwadon/nicoid-re-patches/releases/download/v2.1.6/patches-2.1.6.mpp" \
+              -o "$approved"
+            echo "c8e1c627bb15c46ebf49345bc0a703f00ed05998783fb280326c555527bb2978  $approved" | sha256sum -c -
+            python3 porting/revisions/v2.1.0-release/prepare_smali_tools.py
+            python3 porting/revisions/v$version/stage_candidate.py \
+              --compiled "$compiled" --approved "$approved" \
+              --output "$output" --tools "$revision/tools"
+          elif [[ "$GITHUB_REF" == "refs/heads/dev" && ( "$version" == "2.1.6-dev.1" || "$version" == "2.1.6-dev.2" || "$version" == "2.1.6-dev.3" || "$version" == "2.1.6-dev.4" || "$version" == "2.1.6-dev.5" ) ]]; then
+            # Start from the immutable published v2.1.5 MPP, never the raw Gradle stub.
+            python3 porting/revisions/v$version/tests/test_source.py
+            compiled="patches/build/libs/patches-$version.mpp"
+            test -s "$compiled"
+            approved="/tmp/nicoid-re-v2.1.5-approved.mpp"
+            curl -fLsS --retry 3 \
+              "https://github.com/chikuwadon/nicoid-re-patches/releases/download/v2.1.5/patches-2.1.5.mpp" \
+              -o "$approved"
+            echo "51a52358d568eb530075644e65ec7b3b2346c793bdf91a6ae3e93ba3fcfb700b  $approved" | sha256sum -c -
+            python3 porting/revisions/v2.1.0-release/prepare_smali_tools.py
+            python3 porting/revisions/v$version/stage_candidate.py \
+              --compiled "$compiled" --approved "$approved" \
+              --output "$output" --tools "$revision/tools"
+          elif [[ ( "$GITHUB_REF" == "refs/heads/dev" || "$GITHUB_REF" == "refs/heads/feature/bulk-video-list-actions" ) && "$version" == 2.1.5-dev.* ]]; then
             # Bash ERE has no (?:...) non-capturing groups. Unsupported versions
             # must fail instead of silently uploading the unstaged Gradle MPP.
             if [[ ! "$version" =~ ^2\.1\.5-dev\.([1-9]|1[0-7])$ ]]; then

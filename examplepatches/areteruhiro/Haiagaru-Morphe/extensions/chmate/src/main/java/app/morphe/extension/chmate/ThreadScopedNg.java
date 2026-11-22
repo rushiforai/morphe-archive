@@ -17,40 +17,11 @@ public final class ThreadScopedNg {
     private static final String[] CATEGORIES = {"ID", "NAME", "WORD"};
     private static final ThreadLocal<Boolean> BYPASS = new ThreadLocal<>();
     private static final Map<Activity,Boolean> PROMPTS = new WeakHashMap<>();
-    private static boolean unsafeRegexMigrationComplete;
 
     private ThreadScopedNg() {}
 
     static void beginBypass(){BYPASS.set(Boolean.TRUE);}
     static void endBypass(){BYPASS.remove();}
-
-    /** Removes existing ID/NAME/WORD regexes that target private-use Unicode ranges. */
-    static synchronized int removeUnsafeRegexRules(Context context) {
-        if (unsafeRegexMigrationComplete || context == null) return 0;
-        int removed = 0;
-        boolean complete = true;
-        for (String category : CATEGORIES) {
-            try {
-                NativeNgStore store = new NativeNgStore(context, category);
-                List<NativeNgStore.Entry> before = store.entries();
-                ArrayList<Object> after = new ArrayList<>(before.size());
-                int categoryRemoved = 0;
-                for (NativeNgStore.Entry entry : before) {
-                    if ((entry.flags & NgRuleSafety.REGEX_FLAG) != 0
-                            && NgRuleSafety.containsPrivateUseRange(entry.pattern)) categoryRemoved++;
-                    else after.add(entry.nativeItem);
-                }
-                if (categoryRemoved > 0) store.replace(before, after);
-                removed += categoryRemoved;
-            } catch (Exception error) {
-                complete = false;
-                Log.w("Haiagaru", "Unable to remove unsafe private-use NG regexes from " + category, error);
-            }
-        }
-        if (complete) unsafeRegexMigrationComplete = true;
-        if (removed > 0) Log.i("Haiagaru", "Removed " + removed + " unsafe private-use NG regex(es)");
-        return removed;
-    }
 
     static boolean enabled(Context context){
         if(context==null)return true;
@@ -109,9 +80,8 @@ public final class ThreadScopedNg {
         if(supported==null)return false;
         try {
             NativeNgStore.Entry candidate = new NativeNgStore.Entry(after);
-            NativeNgStore.Entry previous = before == null ? null : new NativeNgStore.Entry(before);
-            String rejection = NgRuleSafety.rejectionForUpdate(String.valueOf(supported.category),
-                    previous == null ? null : previous.pattern, candidate.pattern, candidate.flags);
+            String rejection = NgRuleSafety.rejection(String.valueOf(supported.category),
+                    candidate.pattern);
             if (rejection != null) {
                 Toast.makeText(context, rejection, Toast.LENGTH_LONG).show();
                 return true;

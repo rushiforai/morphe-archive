@@ -16,6 +16,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.concurrent.Executors;
@@ -232,6 +233,49 @@ final class ReportUploader {
         } finally {
             if (connection != null) connection.disconnect();
         }
+    }
+
+    /** Short, since the user waits on the report screen. */
+    private static final int MINIMUM_TIMEOUT_MS = 5000;
+
+    /**
+     * Before the user writes a report: the version to update to when the report server would refuse this build's
+     * reports now (GET /v1/reports/minimum, the same rule as for a report), or null when it would take them or cannot
+     * say (no network, an older server). Blocks: call it off the main thread.
+     */
+    static String updateBeforeReport() {
+        String version = Utils.getPatchesReleaseVersion();
+        HttpURLConnection connection = null;
+        try {
+            connection = open(ReportPatch.URL + "/v1/reports/minimum?v=" + URLEncoder.encode(version, "UTF-8"), "GET");
+            connection.setConnectTimeout(MINIMUM_TIMEOUT_MS);
+            connection.setReadTimeout(MINIMUM_TIMEOUT_MS);
+            int status = connection.getResponseCode();
+            if (status != 200) {
+                ReportLog.i(ReportPatch.TAG, "report minimum: HTTP " + status + ", not checked");
+                return null;
+            }
+            JSONObject answer = json(connection, status);
+            String target = updateTarget(answer.optBoolean("accepted", true), text(answer, "min_patches_version"), text(answer, "latest"));
+            if (target != null) ReportLog.i(ReportPatch.TAG, "report minimum: " + version + " refused, update to " + target);
+            return target;
+        } catch (IOException | RuntimeException error) {
+            ReportLog.w(ReportPatch.TAG, "report minimum not checked", error);
+            return null;
+        } finally {
+            if (connection != null) connection.disconnect();
+        }
+    }
+
+    private static String text(JSONObject json, String name) {
+        return json.isNull(name) ? null : json.optString(name, null);
+    }
+
+    /** The version to update to: the latest release, else the minimum that refuses; null when accepted. Plain Java. */
+    static String updateTarget(boolean accepted, String minimum, String latest) {
+        if (accepted) return null;
+        if (latest != null && !latest.isEmpty()) return latest;
+        return minimum != null && !minimum.isEmpty() ? minimum : null;
     }
 
     private static HttpURLConnection open(String url, String method) throws IOException {

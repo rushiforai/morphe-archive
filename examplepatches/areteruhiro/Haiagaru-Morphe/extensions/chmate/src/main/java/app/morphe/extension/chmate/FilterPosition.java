@@ -38,6 +38,44 @@ public final class FilterPosition {
             }catch(Exception ignored){}
         }return null;
     }
+    static void dismissPostingPopups(String url, View editor) {
+        String target = HiddenNgUnread.key(url);
+        if (target == null) return;
+        try {
+            android.content.Context context = editor.getContext();
+            String version = context.getPackageManager().getPackageInfo(context.getPackageName(), 0).versionName;
+            for (int i = fragments.size() - 1; i >= 0; i--) {
+                Object fragment = fragments.get(i).get();
+                if (fragment == null) continue;
+                View root = (View) fragment.getClass().getMethod("getView").invoke(fragment);
+                if (root == null || !root.isAttachedToWindow()) continue;
+                Object board = NativeThreadContext.board(fragment, version);
+                if (!target.equals(HiddenNgUnread.key(NativeThreadContext.url(board, version, 1)))) continue;
+                dismissPopups(fragment, version);
+                return;
+            }
+        } catch (Exception error) {
+            Log.w("Haiagaru", "Unable to close reply popups before posting", error);
+        }
+    }
+
+    static int dismissPopups(Object fragment, String version) throws ReflectiveOperationException {
+        String field, method;
+        switch (version) {
+            case "0.8.10.191 dev": field = "ag"; method = "d"; break;
+            case "0.8.10.226 dev": field = "ac"; method = "a"; break;
+            case "0.8.10.242 dev": field = "s"; method = "b"; break;
+            default: return 0;
+        }
+        Object stack = NativeFields.find(fragment.getClass(), field).get(fragment);
+        if (stack == null) return 0;
+        Method dismiss = stack.getClass().getMethod(method);
+        dismiss.setAccessible(true);
+        int dismissed = 0;
+        while (dismissed < 64 && Boolean.TRUE.equals(dismiss.invoke(stack))) dismissed++;
+        return dismissed;
+    }
+
     static ThreadTarget currentVisibleThread(){
         for(int i=fragments.size()-1;i>=0;i--){Object fragment=fragments.get(i).get();if(fragment==null)continue;
             try{

@@ -1509,6 +1509,17 @@ Creator exceptions,Pengecualian kreator
 "An exception takes a handle or id, not a display name: %1$s","Pengecualian memakai nama akun atau id, bukan nama tampilan: %1$s"
 "Also on a block list, so still hidden: %1$s","Juga ada di daftar blokir, jadi tetap disembunyikan: %1$s"
 Find the sound on YouTube Music,Cari suaranya di YouTube Music
+Identify the song with Shazam,Kenali lagu dengan Shazam
+This video has no sound to identify,Video ini tidak punya suara untuk dikenali
+Still looking up the song,Lagu masih dicari
+Looking up the song,Mencari lagunya
+Shazam didn't recognize this song,Shazam tidak mengenali lagu ini
+This sound is too quiet to identify,Suara ini terlalu pelan untuk dikenali
+Shazam is busy. Try again later.,Shazam sedang sibuk. Coba lagi nanti.
+The song couldn't be looked up. Try again.,Lagu tidak bisa dicari. Coba lagi.
+%1$s by %2$s,%1$s oleh %2$s
+Song copied,Lagu disalin
+YouTube Music,YouTube Music
 YouTube Music isn't installed,YouTube Music belum terpasang
 This video's sound has no title to look for,Suara video ini tidak punya judul untuk dicari
 YouTube Music didn't open. Open it yourself to search.,YouTube Music tak terbuka. Buka sendiri lalu cari.
@@ -2960,3 +2971,9 @@ Hide the Add bio prompt TikTok shows on your own profile while it has no bio. Yo
 Show the picture before saving,Tampilkan foto sebelum menyimpan
 "With the long press save on, holding a profile picture opens it full screen at full size, with a Save button under it.","Saat simpan dengan tekan lama aktif, menahan foto profil membukanya di layar penuh dalam ukuran penuh, dengan tombol Simpan di bawahnya."
 The profile picture couldn't be loaded. Try again.,Foto profilnya tidak bisa dimuat. Coba lagi.
+Share any comment,Bagikan komentar apa pun
+Share a comment or send it in a chat even when TikTok says it can't be shared.,Bagikan komentar atau kirim di chat walaupun TikTok bilang komentar itu tidak bisa dibagikan.
+Always show the expand button in comments,Selalu tampilkan tombol perluas di komentar
+Puts the button that stretches the comments over the whole screen on every video. TikTok only gives it to some accounts. Hide the expand button in comments wins if both are on.,"Menaruh tombol yang membentangkan komentar ke seluruh layar di setiap video. TikTok hanya memberikannya ke sebagian akun. Jika keduanya nyala, Sembunyikan tombol perluas di komentar yang berlaku."
+Keep the video full size under comments,Pertahankan ukuran penuh video di bawah komentar
+"The video keeps its size when you open the comments, and the comments cover its lower part instead of pushing it up into a smaller box.","Video tetap berukuran sama saat kamu membuka komentar, dan komentar menutupi bagian bawahnya, bukan mendorongnya ke atas ke kotak yang lebih kecil."

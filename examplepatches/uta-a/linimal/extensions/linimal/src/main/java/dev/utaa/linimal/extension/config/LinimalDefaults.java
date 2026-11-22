@@ -28,6 +28,7 @@ public final class LinimalDefaults {
             case LINE_AI_MESSAGE_CONTEXT_MENU:
             case LINE_AI_GALLERY_VIEWER:
             case PUSH_NOTIFICATIONS:
+            case OFFICIAL_FONTS:
             case GOOGLE_DRIVE_BACKUP:
             // v1 aliases are routed to their v2 replacement keys by LinimalConfigSchema.
             case ADS:
@@ -39,6 +40,7 @@ public final class LinimalDefaults {
             case PREVIEW_SCROLL:
             case PREVIEW_DISABLE:
             case AMOLED_THEME:
+            case CUSTOM_FONT:
             case SHOPPING:
             case NEWS:
             case WALLET:

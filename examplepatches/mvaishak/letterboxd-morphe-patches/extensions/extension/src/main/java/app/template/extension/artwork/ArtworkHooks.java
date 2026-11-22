@@ -6,9 +6,16 @@ import android.os.Looper;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.TextView;
 
 import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.Lifecycle;
+import androidx.lifecycle.LifecycleEventObserver;
+import androidx.navigation.FloatingWindow;
+import androidx.navigation.NavBackStackEntry;
+import androidx.navigation.NavController;
+import androidx.navigation.Navigation;
 
 import app.template.extension.artwork.ArtworkStore.Film;
 import app.template.extension.artwork.ArtworkStore.Type;
@@ -34,6 +41,7 @@ public final class ArtworkHooks {
     private static final Map<View, Header> FILM_POSTERS = new WeakHashMap<>();
     private static final Map<View, Header> FILM_BACKDROPS = new WeakHashMap<>();
     private static final Map<View, Header> PROFILES = new WeakHashMap<>();
+    private static final Map<View, ProfileVisit> PROFILE_VISITS = new WeakHashMap<>();
     private static final Map<String, Film> RECENT = new LinkedHashMap<>(24, 0.75f, true);
     private static final Handler MAIN = new Handler(Looper.getMainLooper());
 
@@ -75,8 +83,32 @@ public final class ArtworkHooks {
         return localEnabled() ? store.url(id, type) : null;
     }
 
-    private static String profileUrl(String viewed) {
-        return localEnabled() && ArtworkRules.ownsProfile(viewed, account()) ? store.profile(viewed) : null;
+    private static String profileUrl(Fragment fragment, View view, String viewed) {
+        ProfileVisit visit = PROFILE_VISITS.get(view);
+        if (!localEnabled() || !ArtworkRules.ownsProfile(viewed, account())) {
+            if (visit != null) visit.pending = true;
+            return null;
+        }
+        ProfileBackdrop choice = store.profileChoice(viewed);
+        if (choice == null || choice.schedule == null) {
+            if (visit != null) visit.pending = true;
+            return choice == null ? null : choice.images.get(0);
+        }
+        if (visit == null && fragment.getView() != null) {
+            visit = new ProfileVisit(fragment, view);
+            PROFILE_VISITS.put(view, visit);
+        }
+        if (visit != null && fragment.isResumed() && visit.isCurrent(view)
+                && (visit.pending || !equal(visit.member, viewed) || visit.schedule != choice.schedule
+                || (choice.schedule == ProfileBackdrop.Schedule.ON_OPEN && choice.position < 0))) {
+            visit.pending = false;
+            visit.member = viewed;
+            visit.schedule = choice.schedule;
+            visit.day = ArtworkStore.today();
+            if (choice.schedule == ProfileBackdrop.Schedule.ON_OPEN) return store.openProfileVisit(viewed, choice);
+        }
+        return choice.image(visit != null && !visit.pending && equal(visit.member, viewed)
+                ? visit.day : ArtworkStore.today());
     }
 
     public static Object boundPoster(View view, Object state) {
@@ -140,7 +172,10 @@ public final class ArtworkHooks {
         if (!(target instanceof ImageView) || store == null) return original;
         ImageView view = (ImageView) target;
         String id = id(model);
-        remember(metadata(model, original));
+        Film film = metadata(model, original);
+        remember(film);
+        Object title = field(binding, "titleViewMain");
+        if (title instanceof TextView) TitleLogo.bind(fragment, (TextView) title, film);
         String url = filmUrl(id, Type.BACKDROP);
         Header old = FILM_BACKDROPS.put(view, new Header(fragment, binding, model, id, url));
         if (old != null && (old.url != null || url != null)
@@ -156,7 +191,7 @@ public final class ArtworkHooks {
         Object target = field(binding, "userBackdrop");
         if (!(target instanceof ImageView) || store == null) return original;
         ImageView view = (ImageView) target;
-        String url = profileUrl(viewed);
+        String url = profileUrl(fragment, view, viewed);
         Header old = PROFILES.get(view);
         Header next = new Header(fragment, binding, original, viewed, url);
         next.favorite = favorite;
@@ -301,13 +336,64 @@ public final class ArtworkHooks {
 
     static void refreshProfiles() {
         if (store == null) return;
-        for (Header header : new ArrayList<>(PROFILES.values())) {
-            Fragment fragment = header.fragment.get();
-            Object binding = header.binding.get();
-            String url = profileUrl(header.id);
-            if (live(fragment, binding) && !equal(header.url, url)) {
-                invokeDeclared(fragment, "configureBackdrop", header.id, header.model, header.favorite, binding);
+        for (View view : new ArrayList<>(PROFILES.keySet())) refreshProfile(view);
+    }
+
+    private static void refreshProfile(View view) {
+        Header header = PROFILES.get(view);
+        if (header == null) return;
+        Fragment fragment = header.fragment.get();
+        Object binding = header.binding.get();
+        if (!live(fragment, binding)) return;
+        String url = profileUrl(fragment, view, header.id);
+        if (!equal(header.url, url)) {
+            invokeDeclared(fragment, "configureBackdrop", header.id, header.model, header.favorite, binding);
+        }
+    }
+
+    /** The header can bind repeatedly during a visit, including after a pull-to-refresh. */
+    private static final class ProfileVisit {
+        private NavController navigation;
+        private NavBackStackEntry destination;
+        private NavController.OnDestinationChangedListener listener;
+        private boolean pending = true;
+        private String member;
+        private ProfileBackdrop.Schedule schedule;
+        private long day;
+
+        ProfileVisit(Fragment fragment, View view) {
+            fragment.getViewLifecycleOwner().getLifecycle().addObserver(
+                    (LifecycleEventObserver) (source, event) -> {
+                        if (event == Lifecycle.Event.ON_RESUME) {
+                            MAIN.post(() -> refreshProfile(view));
+                        } else if (event == Lifecycle.Event.ON_DESTROY) {
+                            if (navigation != null) navigation.removeOnDestinationChangedListener(listener);
+                            PROFILE_VISITS.remove(view);
+                            PROFILES.remove(view);
+                        }
+                    });
+        }
+
+        boolean isCurrent(View view) {
+            if (navigation == null) {
+                NavController controller;
+                try {
+                    controller = Navigation.findNavController(view);
+                } catch (IllegalStateException unavailable) {
+                    return true; // This build may recreate the view on navigation.
+                }
+                if (controller.getCurrentDestination() instanceof FloatingWindow) return false;
+                destination = controller.getCurrentBackStackEntry();
+                if (destination == null) return false;
+                navigation = controller;
+                listener = (nav, target, args) -> {
+                    if (target instanceof FloatingWindow) return;
+                    if (nav.getCurrentBackStackEntry() != destination) pending = true;
+                    else if (pending) MAIN.post(() -> refreshProfile(view));
+                };
+                navigation.addOnDestinationChangedListener(listener);
             }
+            return navigation.getCurrentBackStackEntry() == destination;
         }
     }
 

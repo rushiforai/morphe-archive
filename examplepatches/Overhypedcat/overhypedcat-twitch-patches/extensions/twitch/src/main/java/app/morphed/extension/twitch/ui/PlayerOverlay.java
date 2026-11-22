@@ -109,7 +109,10 @@ public final class PlayerOverlay {
     private final int[] hostAt = new int[2];
     private SongPillText shownPill;
     private boolean noPillPlaceLogged;
-    private boolean failureShown;
+    /** When it last failed (uptime ms), 0 if it hasn't; and the failures told so far (each told once). */
+    private long failedAt;
+    private int failuresInARow;
+    private final java.util.Set<String> failuresShown = new java.util.HashSet<>();
 
     private PlayerOverlay(Activity activity) {
         this.activity = activity;
@@ -392,9 +395,19 @@ public final class PlayerOverlay {
     }
 
     private void followSafely() {
-        if (failureShown) return; // it broke and said so: left alone from then on
+        // It broke and said so: left alone for a moment, then tried again (a player in a passing state, as an ad
+        // at the stream's start, mustn't take the lock and pill away for good).
+        long left = LockRules.pauseLeft(failedAt, failuresInARow, SystemClock.uptimeMillis());
+        if (left > 0) {
+            if (!followQueued) {
+                followQueued = true;
+                layer.postDelayed(followLater, left);
+            }
+            return;
+        }
         try {
             follow();
+            failuresInARow = 0; // (worked: a next failure pauses only briefly again)
         } catch (Throwable t) {
             failed(t);
         }
@@ -487,11 +500,11 @@ public final class PlayerOverlay {
     /**
      * Puts our part into the player's controls (as their last child, or right after a given one of them), once:
      * it's moved over when the controls are built anew. Only into views that leave it where it's put (React
-     * Native's, a FrameLayout); false (and told) for others.
+     * Native's, a FrameLayout, the native player's ConstraintLayout); false (and told) for others.
      */
     private boolean inject(View view, ViewGroup into, View after) {
         if (view.getParent() == into) return true;
-        if (!(into instanceof FrameLayout) && !reactView(into)) {
+        if (!reactView(into) && !ControlsLayout.takesFreeChildren(classNames(into))) {
             tell("these player controls (" + into.getClass().getName() + ") place their parts themselves,"
                     + " the lock and song pill aren't shown in them");
             return false;
@@ -502,6 +515,13 @@ public final class PlayerOverlay {
         view.setVisibility(View.INVISIBLE); // (shown once it's placed)
         into.addView(view, index < 0 ? into.getChildCount() : index, view.getLayoutParams());
         return true;
+    }
+
+    /** A view's class name and its superclasses' names, its own first. */
+    private static java.util.List<String> classNames(View view) {
+        java.util.List<String> names = new java.util.ArrayList<>();
+        for (Class<?> c = view.getClass(); c != null && c != View.class; c = c.getSuperclass()) names.add(c.getName());
+        return names;
     }
 
     /** A React Native view (it never lays out children it doesn't know: ours stay where they're put). */
@@ -984,10 +1004,18 @@ public final class PlayerOverlay {
         attempt(() -> catchBack(false));
         attempt(() -> show(lockButton, false));
         attempt(() -> show(pill, false));
-        if (failureShown) return;
-        failureShown = true;
+        failedAt = Math.max(1, SystemClock.uptimeMillis());
+        failuresInARow++;
+        lockTarget = Integer.MIN_VALUE; // (placed afresh when it comes back)
+        notFullSince = 0;
+        String message = Messages.of(t);
+        // Told once each (it keeps being tried again all the same); a few kinds at most, in case the words vary.
+        if (failuresShown.size() >= 8 || !failuresShown.add(message)) {
+            Log.w(App.TAG, "The player's lock and song pill failed again (" + failuresInARow + " in a row): " + message);
+            return;
+        }
         DebugLog.log("PROBLEM Player overlay: " + Log.getStackTraceString(t));
-        Toast.makeText(activity, "The screen lock and song pill stopped working: " + Messages.of(t),
+        Toast.makeText(activity, "The screen lock and song pill failed (tried again in a moment): " + message,
                 Toast.LENGTH_LONG).show();
     }
 }

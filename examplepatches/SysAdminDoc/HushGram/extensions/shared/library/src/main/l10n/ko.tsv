@@ -1,6 +1,7 @@
 # Korean for HushGram: the English key, a tab, the translation. One row per string.
 # After editing, run python scripts/gen-l10n.py from the repository root.
 # context: View stories anonymously's second switch, and the label TalkBack reads for its eye button in a story's header
+%1$d hidden in the last 24 hours, %2$d in all	지난 24시간 동안 %1$d개 숨김, 전체 %2$d개
 %1$d of them because storage is low.	그중 %1$d개는 저장 공간이 부족해서입니다.
 %1$s of %2$s	%2$s 중 %1$s
 %1$s so far	현재까지 %1$s
@@ -8,9 +9,12 @@
 %1$s. They were set when you patched, so Pause can't turn them off. To rule one out, patch again and leave out the patch in brackets after it.	%1$s. 패치할 때 적용되었기 때문에 HushGram 일시 정지로는 비활성화할 수 없습니다. 이 중 하나가 원인인지 확인하려면 다시 패치하면서 뒤에 괄호로 표시된 해당 패치를 제외하세요
 A diagnostic report is already being saved.	진단 보고서를 이미 저장하고 있습니다
 A file named %1$s in %2$s paused HushGram.	%2$s에 있는 %1$s 파일 때문에 HushGram이 일시 정지되었습니다
+A reel someone shares in a chat stays closed when you tap it. Photos, videos and shared posts still open.	누군가 채팅에서 공유한 릴스는 탭해도 열리지 않습니다. 사진, 동영상, 공유된 게시물은 그대로 열립니다.
 About	정보
 Add the source to saved photos and videos	저장한 사진과 동영상에 출처 추가
+Adds Copy text to the menu a story's three dots open. It copies the words Instagram found in the picture, and when it found none, Google Lens opens on the story so you can copy them there.	스토리의 점 세 개를 누르면 열리는 메뉴에 텍스트 복사를 추가합니다. Instagram이 사진에서 찾은 단어를 복사하고, 찾은 단어가 없으면 스토리에서 Google 렌즈가 열려 거기서 복사할 수 있습니다.
 Ads and privacy	광고 및 개인정보 보호
+Also in comments	댓글에도 적용
 Asks Android to run Instagram at your screen's fastest refresh rate, at the same resolution. Some phones keep their own limit for apps, and battery saver can still lower it.	화면의 가장 높은 주사율, 같은 해상도로 Instagram을 실행하도록 Android에 요청합니다. 일부 휴대전화는 앱에 자체 제한을 두며, 절전 모드가 주사율을 낮출 수도 있습니다.
 Back	뒤로
 Before you sign in	로그인 전에 읽어보세요
@@ -21,6 +25,7 @@ Clear diagnostic data	진단 데이터 지우기
 Copy a quick report or save the full one to %1$s. Links, IDs, cookies and sign-in details are left out. Check it for other private text before you share it.	간단한 보고서를 복사하거나 전체 보고서를 %1$s에 저장하세요. 링크, ID, 쿠키, 로그인 정보는 제외됩니다. 공유하기 전에 다른 개인 정보가 없는지 확인하세요.
 Copy a short report to the clipboard.	간단한 진단 보고서를 클립보드에 복사합니다
 Copy quick report	빠른 보고서 복사
+Copy text in the story menu	스토리 메뉴에 텍스트 복사 추가
 Copying to the gallery	갤러리에 복사하는 중
 Couldn't find this chat's messages.	채팅 메시지를 찾지 못했어요.
 Couldn't put back the diagnostic data. Try again.	진단 데이터를 복원할 수 없습니다. 다시 시도하세요
@@ -31,15 +36,20 @@ Debug logging	디버그 로그
 Diagnostic data cleared. Tap again to put it back.	진단 데이터가 지워졌습니다. 다시 탭하여 복원하세요
 Diagnostic data put back.	진단 데이터가 복원되었습니다
 Diagnostic report copied to the clipboard.	진단 데이터가 클립보드에 복사되었습니다
+Don't open reels from chats	채팅의 릴스 열지 않기
 Download failed	다운로드 실패
 Downloading	다운로드하는 중
+Draws the Reels icon on the tab bar a bit bigger, so it looks as big as the icons beside it. Tab icon size still sizes every icon on top of that.	탭 바의 릴스 아이콘을 조금 더 크게 그려 옆의 아이콘들과 같은 크기로 보이게 합니다. 탭 아이콘 크기는 그 위에 모든 아이콘의 크기를 계속 조절합니다.
 Empties the activity log and any kept crash that a diagnostic report would include.	진단 보고서에 포함될 활동 기록과 저장된 충돌 기록을 비웁니다.
 Every switch but Debug logging acts as if it were off, and what was set when you patched stays in. Your settings stay as they are.	모든 스위치는 디버그 로깅을 제외하고 활성화된 것처럼 작동하며, 패치할 때 설정되어 있던 상태가 그대로 유지됩니다. 현재 설정은 변경되지 않습니다
 Export a chat as text	채팅을 텍스트로 내보내기
 Export chat	채팅 내보내기
 Export diagnostic report	진단 보고서 내보내기
 From the next start, every switch but Debug logging acts as if it were off. Changes made when you patched stay in, and your choices stay saved.	다음 시작부터 디버그 로깅을 제외한 모든 스위치가 비활성화된 것처럼 작동합니다. 패치할 때 적용된 변경 사항은 그대로 유지되며, 사용자가 선택한 설정도 저장된 상태로 유지됩니다
+Full-size Reels icon	릴스 아이콘 원래 크기로
 Here it is.	여기예요.
+Hides comments that hold a word or phrase from the list too, and comments by an account the list names with @. A hidden comment's replies go with it.	목록의 단어나 문구가 들어간 댓글과, 목록에 @로 적은 계정이 쓴 댓글도 숨깁니다. 숨긴 댓글의 답글도 함께 사라집니다.
+Instagram settings page	Instagram 설정 페이지
 Jump to a date	날짜로 이동
 Jump to the first message	첫 메시지로 이동
 Jump to the first message or a date	첫 메시지 또는 날짜로 이동
@@ -49,13 +59,18 @@ Loading older messages. %1$d messages so far.	이전 메시지를 불러오는 �
 Lock these settings	이 설정 잠그기
 Mark a chat seen when you reply	답장하면 채팅을 읽음으로 표시
 Mark a chat seen when you react	반응하면 채팅을 읽음으로 표시
+Plain rows, switches and colors like Instagram's own settings, dark or light as Instagram is. Takes the place of Black and Light settings page while it's on.	Instagram 자체 설정처럼 단순한 행, 스위치, 색상을 사용하며 Instagram에 맞춰 어둡거나 밝게 표시됩니다. 켜져 있는 동안 검은색 설정 페이지와 밝은 설정 페이지 대신 사용됩니다.
 Reacting to a message in a chat lets the other person see that you've read up to that message. What they sent after it stays unseen to them.	채팅에서 메시지에 반응하면 상대가 그 메시지까지 읽었다는 것을 볼 수 있습니다. 그 뒤에 보낸 메시지는 상대에게 읽지 않은 상태로 남습니다.
 No messages found to save.	저장할 메시지가 없어요.
 Pick a wait from 1 to 72 hours. Locked, nothing here changes until you ask to unlock and the wait is over.	1~72시간 중 대기 시간을 고르세요. 잠기면 잠금 해제를 요청하고 대기 시간이 끝날 때까지 여기서 아무것도 바뀌지 않습니다.
 Ask to unlock	잠금 해제 요청
+Reels from chats are off	채팅의 릴스가 꺼져 있습니다
+Reels on Home below the name	홈의 릴스를 이름 아래에 표시
 Saved to %1$s in lower quality because storage is low	저장 공간이 부족해 %1$s에 낮은 화질로 저장했습니다
 Saved to the gallery in lower quality because storage is low	저장 공간이 부족해 낮은 화질로 갤러리에 저장했습니다
 Sending a message in a chat lets the other person see that you've read what they sent before it. Chats you don't answer stay unseen to them.	채팅에서 메시지를 보내면 상대가 그 이전에 보낸 메시지를 읽었다는 것을 볼 수 있습니다. 답하지 않은 채팅은 상대에게 읽지 않은 상태로 남습니다.
+Shows reels on Home like other posts, with the name and the three-dot menu above the video instead of on top of it. Posts already on screen change when they load again.	홈의 릴스를 다른 게시물처럼 표시해 이름과 점 세 개 메뉴가 동영상 위에 겹치지 않고 동영상 바깥 위쪽에 표시됩니다. 이미 화면에 있는 게시물은 다시 불러올 때 바뀝니다.
+Shows the time played and the story's length at the start of its seek bar, like 0:03 / 0:15. Tap the time to see the time left instead.	스토리 탐색 막대의 시작 부분에 재생한 시간과 스토리 길이를 0:03 / 0:15처럼 표시합니다. 시간을 탭하면 남은 시간이 표시됩니다.
 That's as far back as this chat goes.	이 채팅은 여기까지입니다.
 These settings are locked. Tap to start the %1$s wait, then they open for 10 minutes.	이 설정은 잠겨 있습니다. 탭하면 %1$s 대기가 시작되고, 끝나면 10분 동안 열립니다.
 Unlock asked	잠금 해제 요청됨
@@ -149,6 +164,8 @@ Writes the account that posted, the post date and a link to the post into a save
 You	나
 You paused HushGram.	HushGram이 일시 정지되었습니다
 the re-signed build fix	다시 서명된 빌드 수정
+# context: Pause page, the list of fixes that stay on while HushGram is paused; this one keeps Instagram from closing on phones without Google Play services
+the Play services crash fix	Play 서비스 없는 기기의 비정상 종료 수정
 Don't send reel watch history	릴스 시청 기록 전송하지 않기
 Stops telling Instagram which reels you watched or how far you got. Instagram uses that to pick your Reels. Watched reels may come back.	어떤 릴스를 봤는지, 어디까지 봤는지 Instagram에 알리지 않습니다. Instagram은 이 정보로 릴스를 고릅니다. 이미 본 릴스가 다시 나올 수 있습니다.
 Reels	릴스
@@ -1429,7 +1446,7 @@ Also on Home	홈에도 적용
 Leaves out posts on Home whose caption holds a word or phrase from the list too. Pull down on Home to refresh after changing it.	캡션에 목록의 단어나 문구가 있는 홈 게시물도 숨깁니다. 바꾼 뒤에는 홈을 아래로 당겨 새로고침하세요.
 Leaves out reels in the Reels tab whose caption holds a word or phrase from the list below. A reel you open yourself still plays.	릴스 탭에서 캡션에 아래 목록의 단어나 문구가 들어 있는 릴스를 뺍니다. 직접 연 릴스는 그대로 재생됩니다.
 Blocked words	차단한 단어
-Words or phrases, with a comma or a new line between them. Capital letters don't matter, and a hashtag works too.	단어나 문구를 쉼표나 줄바꿈으로 구분해 입력하세요. 대소문자는 상관없고 해시태그도 됩니다.
+Words or phrases, with a comma or a new line between them. Capital letters don't matter, a hashtag works too, and an @name hides that account's posts.	단어나 문구를 쉼표나 줄바꿈으로 구분해 입력하세요. 대소문자는 상관없고 해시태그도 되며, @이름을 넣으면 그 계정의 게시물이 숨겨집니다.
 No words yet	아직 단어 없음
 %1$d word	단어 %1$d개
 %1$d words	단어 %1$d개
@@ -2159,6 +2176,9 @@ Takes the "Made with Edits" label out of the line under a post's author. The son
 # context: "Sponsored" and "Paid partnership" are Instagram's own labels on feed posts; use the text Instagram shows in this language (#771)
 Hide the line under names	이름 아래 줄 숨기기
 Takes the song, the place and the other labels off the line under the name on posts in your feed. Sponsored and Paid partnership stay. Posts already on screen change when they load again.	피드 게시물에서 이름 아래 줄의 노래, 장소 및 기타 표시를 없앱니다. '광고'와 '유료 광고 포함'은 그대로 둡니다. 이미 화면에 있는 게시물은 다시 불러올 때 바뀝니다.
+# context: a switch under Hide the line under names in HushGram's Feed settings
+Keep the place	장소 유지
+Leaves the place on the line under names, on its own, so it stays put instead of taking turns with the song.	이름 아래 줄에 장소만 남겨서 노래와 번갈아 바뀌지 않고 그대로 있게 합니다.
 # context: "Sponsored" and "Paid partnership" are Instagram's own labels on reels; use the text Instagram shows in this language (#771)
 Hide the line under names on reels	릴스의 이름 아래 줄 숨기기
 Takes the song, the place and the other labels off the line under the name on reels. Sponsored and Paid partnership stay. Reels already on screen change when they load again.	릴스에서 이름 아래 줄의 노래, 장소 및 기타 표시를 없앱니다. '광고'와 '유료 광고 포함'은 그대로 둡니다. 이미 화면에 있는 릴스는 다시 불러올 때 바뀝니다.
@@ -2232,6 +2252,8 @@ The camera, as Instagram has it. Pick a tab and the same swipe opens that tab in
 A swipe right on Home opens %1$s. The + button still opens the camera.	홈에서 오른쪽으로 스와이프하면 %1$s 탭이 열립니다. + 버튼은 계속 카메라를 엽니다.
 Keep the tab bar on a reel's profile	릴스 프로필에서 탭 바 유지
 A profile you open from a reel stays on the tab you're on, with the tab bar under it. Back goes back to the reel.	릴스에서 연 프로필이 지금 있는 탭에서 열리고 아래에 탭 바가 보입니다. 뒤로 가면 릴스로 돌아갑니다.
+Keep the tab bar on reel links	릴스 링크에서 탭 바 유지
+A reel link you open from another app plays on the tab you were on, with the tab bar under it. Back goes back to that tab.	다른 앱에서 연 릴스 링크가 있던 탭에서 재생되고 아래에 탭 바가 보입니다. 뒤로 가면 그 탭으로 돌아갑니다.
 Mute button on reels	릴스 음소거 버튼
 Puts a speaker icon beside a reel. Tap it to turn the sound off or on while the reel keeps playing.	릴스 옆에 스피커 아이콘을 추가합니다. 탭하면 릴스가 계속 재생되는 동안 소리를 끄거나 켭니다.
 Mute button in clear mode	클리어 모드 음소거 버튼
@@ -2533,6 +2555,14 @@ Left off the three-dot menus: %1$s.	점 세 개 메뉴에서 뺀 항목: %1$s.
 Keep 2x after you let go	손을 떼도 2배속 유지
 # context: Summary of Keep 2x after you let go, a switch under Hold for 2x on feed videos (#552)
 A feed video you hold for 2x keeps playing at 2x after you let go. Hold it again to go back to normal speed.	길게 눌러 2배속으로 재생한 피드 동영상은 손을 떼도 2배속으로 계속 재생됩니다. 다시 길게 누르면 보통 속도로 돌아갑니다.
+# context: Feed settings: a switch under Keep 2x after you let go that keeps 2x only after a hold of about 3 seconds (#552)
+Only after a long hold	길게 눌렀을 때만
+# context: Summary of Only after a long hold, a switch under Keep 2x after you let go (#552)
+Keeps 2x only when you hold the video for about 3 seconds. Let go sooner and it goes back to normal speed.	동영상을 약 3초 동안 길게 눌렀을 때만 2배속을 유지합니다. 더 빨리 손을 떼면 보통 속도로 돌아갑니다.
+# context: Feed settings: a switch under Hold for 2x on feed videos that keeps the poster's name over the video while it's held at 2x (#552)
+Keep the name while you hold	길게 누르는 동안 이름 유지
+# context: Summary of Keep the name while you hold, a switch under Hold for 2x on feed videos (#552)
+The name over a feed video stays while you hold it for 2x. Instagram's 2x and time labels don't show then.	피드 동영상을 2배속으로 길게 누르는 동안 동영상 위의 이름이 그대로 있습니다. Instagram의 2배속 및 시간 표시는 나타나지 않습니다.
 # context: Stories settings: title and dialog title of the list under Story ring size that picks how thick story rings are drawn (#528)
 Ring thickness	링 두께
 # context: Stories settings: the Ring thickness choice that keeps the thickness Instagram gives story rings (#528)

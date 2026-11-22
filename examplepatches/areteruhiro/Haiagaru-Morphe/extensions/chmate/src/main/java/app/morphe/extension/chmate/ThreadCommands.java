@@ -10,10 +10,13 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.lang.ref.WeakReference;
+import java.util.concurrent.ConcurrentHashMap;
 
 /** Version-pinned native binding adapters: never infer a posting target from draft text. */
 public final class ThreadCommands {
     private static final String TAG = "haiagaru.thread.commands";
+    private static final ConcurrentHashMap<String,WeakReference<Button>> SITE_IMAGE_BUTTONS=new ConcurrentHashMap<>();
     private ThreadCommands() {}
     private static Object field(Object object, String name) throws Exception {
         for (Class<?> type = object.getClass(); type != null; type = type.getSuperclass()) {
@@ -73,20 +76,24 @@ public final class ThreadCommands {
             if(fragment.getClass().getName().equals("o.p9ExternalSyntheticLambda6")&&!thread)
                 PostAutoReload191.editor(root,url);
             EditText body = (EditText) field(binding, bodyName);
+            GigaFilePosting.bindDraft(fragment,body);
             try{
                 EditText title=(EditText)field(binding,versionTitleField(fragment));
                 String version=body.getContext().getPackageManager().getPackageInfo(body.getContext().getPackageName(),0).versionName;
                 String limitsBoard=(String)target.getClass().getMethod(boardUrlMethod).invoke(target);
                 PostEditorLimits.bind(root,body,title,model,version,limitsBoard,thread);
             }catch(Exception unavailable){android.util.Log.w("Haiagaru","Posting-limit binding unavailable",unavailable);}
-            attachSiteImage(root,body,url);
             ExternalBoardAuth.target(fragment, url, body);
             // 191's authentication target is a board URL even for replies. Handoff
             // must use its native thread permalink, or a reply becomes a new thread.
             String stockTarget = thread ? url : (String) target.getClass().getMethod(
                     fragment.getClass().getName().equals("o.p9ExternalSyntheticLambda6") ? "o" : urlMethod).invoke(target);
+            if (!thread) FilterPosition.dismissPostingPopups(stockTarget, root);
             StockChmatePosting.target(fragment, stockTarget, body);
             EditText name = (EditText) field(binding, nameName);
+            attachSiteImage(root,body,stockTarget);
+            FutabaPostingPopup.bind(fragment, model, root, body, name,
+                    (EditText) field(binding, versionTitleField(fragment)), stockTarget, thread);
             ThreadPostingNames.bind(name,stockTarget,thread);
             BeAutoLogout.editor(fragment, target, thread, url);
             PostingIpWarning.editor(fragment, model);
@@ -116,18 +123,27 @@ public final class ThreadCommands {
     }
     private static void attachSiteImage(View root,EditText body,String url){
         if(url==null||root.findViewWithTag("haiagaru.site.image")!=null)return;
-        final boolean animanch;
-        try{SiteBoardGateway gateway=SiteBoardGateway.get(root.getContext());String target=gateway.attachmentTarget(url);animanch=gateway.boards.get(target.substring(0,target.indexOf(':'))).kind.equals("animanch");}catch(Exception otherBoard){return;}
+        final boolean animanch;final String target;
+        try{SiteBoardGateway gateway=SiteBoardGateway.get(root.getContext());target=gateway.attachmentTarget(url);animanch=gateway.boards.get(target.substring(0,target.indexOf(':'))).kind.equals("animanch");}catch(Exception otherBoard){return;}
         View anchor=body;
         while(anchor.getParent() instanceof ViewGroup){ViewGroup parent=(ViewGroup)anchor.getParent();
             if(parent instanceof LinearLayout&&((LinearLayout)parent).getOrientation()==LinearLayout.VERTICAL){
-                Button button=new Button(root.getContext());button.setTag("haiagaru.site.image");button.setText("画像添付（追加掲示板）");
+                Button button=new Button(root.getContext());button.setTag("haiagaru.site.image");button.setText(siteImageLabel(root.getContext(),target));SITE_IMAGE_BUTTONS.put(target,new WeakReference<>(button));
                 button.setOnClickListener(v->root.getContext().startActivity(new android.content.Intent(root.getContext(),SitePostingImageActivity.class).putExtra("postingUrl",url)));
                 parent.addView(button,parent.indexOfChild(anchor),new LinearLayout.LayoutParams(-1,-2));
                 if(animanch){Button auth=new Button(root.getContext());auth.setTag("haiagaru.site.auth");auth.setText("あにまんの認証");auth.setOnClickListener(v->root.getContext().startActivity(new android.content.Intent(root.getContext(),SiteBoardSettingsActivity.class).putExtra("authenticateAnimanch",true)));parent.addView(auth,parent.indexOfChild(anchor),new LinearLayout.LayoutParams(-1,-2));}
                 return;
             }anchor=parent;
         }
+    }
+    static void updateSiteAttachmentStatus(String target,String filename){
+        WeakReference<Button> ref=SITE_IMAGE_BUTTONS.get(target);Button button=ref==null?null:ref.get();if(button==null){if(ref!=null)SITE_IMAGE_BUTTONS.remove(target,ref);return;}
+        Runnable update=()->{if(button.isAttachedToWindow())button.setText(siteImageLabel(button.getContext(),target));};
+        if(android.os.Looper.myLooper()==android.os.Looper.getMainLooper())update.run();else button.post(update);
+    }
+    private static String siteImageLabel(Context context,String target){
+        String name="";try{name=SiteBoardGateway.get(context).attachmentName(target);}catch(Exception ignored){}
+        return name.isEmpty()?"画像添付（追加掲示板）":"画像添付: "+name;
     }
     private static void choose(EditText body, String profile) {
         choose(body, null, profile, "", true);

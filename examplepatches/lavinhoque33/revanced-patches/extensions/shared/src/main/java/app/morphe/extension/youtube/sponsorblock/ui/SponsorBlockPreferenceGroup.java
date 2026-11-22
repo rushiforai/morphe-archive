@@ -641,8 +641,6 @@ public class SponsorBlockPreferenceGroup extends PreferenceGroup {
 
             setPreferenceIcons();
 
-            Utils.setPreferenceTitlesToMultiLineIfNeeded(this);
-
             updateUI();
         } catch (Exception ex) {
             Logger.printException(() -> "onAttachedToActivity failure", ex);

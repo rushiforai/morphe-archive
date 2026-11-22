@@ -1,7 +1,6 @@
 package app.morphe.extension.mapsautomotive.patches;
 
 import android.app.Activity;
-import android.app.AlertDialog;
 import android.content.Context;
 import android.content.ContextWrapper;
 import android.content.SharedPreferences;
@@ -238,17 +237,17 @@ public final class UiDensityPatch {
 
     /** Injection point: the row title. */
     public static String getSettingsTitle(Context context) {
-        return isThai(context) ? "ขนาดการแสดงผล (UI density)" : "UI density";
+        return isThai(context) ? "ขนาดการแสดงผล" : "Display size";
     }
 
     /** Injection point: the row subtitle, the current choice. */
     public static String getSettingsSummary(Context context) {
         if (!SafeMode.on(context, SafeMode.UI_DENSITY)) {
             boolean thai = isThai(context);
-            return (thai ? "ใช้ขนาดของระบบชั่วคราว · สวิตช์ใน " : "System density for now · switch in ")
-                    + ReportPatch.reportPlace(context, thai);
+            return (thai ? "ใช้ขนาดของระบบชั่วคราว (เปิดคืนใน " : "System size for now (back on in ")
+                    + ReportPatch.reportPlace(context, thai) + ")";
         }
-        String label = describedLabel(context, getTargetDensityDpi(context));
+        String label = describedLabel(context, getTargetDensityDpi(context), true);
         // Settings shown on a display whose owner set its density (a launcher's): the choice does not apply there.
         int other = ownerDensity(context);
         if (other <= 0) return label;
@@ -275,10 +274,10 @@ public final class UiDensityPatch {
         String[] labels = new String[CHOICES.length];
         int checked = 0;
         for (int index = 0; index < CHOICES.length; index++) {
-            labels[index] = describedLabel(host, CHOICES[index]);
+            labels[index] = describedLabel(host, CHOICES[index], false);
             if (CHOICES[index] == current) checked = index;
         }
-        new AlertDialog.Builder(host)
+        new M3.Builder(host)
                 .setTitle(getSettingsTitle(host))
                 .setSingleChoiceItems(labels, checked, (dialog, which) -> {
                     dialog.dismiss();
@@ -292,7 +291,7 @@ public final class UiDensityPatch {
     private static void confirmRestart(Activity activity, int densityDpi) {
         boolean thai = isThai(activity);
         String label = choiceLabel(activity, densityDpi);
-        new AlertDialog.Builder(activity)
+        new M3.Builder(activity)
                 .setTitle(getSettingsTitle(activity))
                 .setMessage(thai
                         ? "Maps จะเริ่มใหม่เพื่อใช้ " + label + " การนำทางที่กำลังทำงานจะหยุด"
@@ -315,11 +314,13 @@ public final class UiDensityPatch {
     }
 
     /** The label with what the choice does, for the chooser and the Settings row. */
-    private static String describedLabel(Context context, int densityDpi) {
+    // The Settings row ([row]) leaves the split-screen warning to the dialog's choices.
+    private static String describedLabel(Context context, int densityDpi, boolean row) {
         boolean thai = isThai(context);
         int dpi = densityDpi > 0 ? densityDpi : Resources.getSystem().getConfiguration().densityDpi;
         String hint = densityDpi == defaultDensityDpi(context) ? (thai ? "ค่าเริ่มต้น" : "default")
-                : dpi > DEFAULT_DENSITY_DPI ? (thai ? "ใหญ่ขึ้น การ์ดอาจล้นเมื่อแบ่งจอ" : "larger, cards may not fit in split screen")
+                : dpi > DEFAULT_DENSITY_DPI ? (row ? (thai ? "ใหญ่ขึ้น" : "larger")
+                : (thai ? "ใหญ่ขึ้น การ์ดอาจล้นเมื่อแบ่งจอ" : "larger, cards may not fit in split screen"))
                 : dpi == CHOICES[CHOICES.length - 1] ? (thai ? "เล็กที่สุด" : "smallest")
                 : dpi < DEFAULT_DENSITY_DPI ? (thai ? "เล็กลง" : "smaller") : null;
         return hint == null ? choiceLabel(context, densityDpi) : choiceLabel(context, densityDpi) + " · " + hint;

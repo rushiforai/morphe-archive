@@ -1,7 +1,6 @@
 package app.morphe.extension.mapsautomotive.patches;
 
 import android.app.Activity;
-import android.app.AlertDialog;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
@@ -61,7 +60,7 @@ final class SendToCarStatus {
      * second dialog. A dialog Android removed with its activity no longer counts; an opening that never
      * finished counts for 10 s.
      */
-    private static WeakReference<AlertDialog> openDialog;
+    private static WeakReference<M3.Dialog> openDialog;
     private static WeakReference<Activity> openHost;
     private static long openingSince;
     private static final long OPENING_MS = 10_000;
@@ -502,7 +501,7 @@ final class SendToCarStatus {
             return;
         }
         // A dialog removed with its activity keeps isShowing(), so its activity must still be alive too.
-        AlertDialog open = openDialog == null ? null : openDialog.get();
+        M3.Dialog open = openDialog == null ? null : openDialog.get();
         Activity owner = openHost == null ? null : openHost.get();
         if (open != null && open.isShowing() && owner != null && !owner.isFinishing() && !owner.isDestroyed()) return;
         long now = SystemClock.elapsedRealtime();
@@ -541,7 +540,7 @@ final class SendToCarStatus {
                 if (message.length() > 0) message.append("\n\n");
                 message.append(line);
             }
-            AlertDialog dialog = new AlertDialog.Builder(host)
+            M3.Dialog dialog = new M3.Builder(host)
                     .setTitle(CarName.getSettingsTitle(host))
                     .setMessage(message)
                     .setPositiveButton(thai ? "ปิด" : "Close", null)
@@ -560,7 +559,7 @@ final class SendToCarStatus {
         try {
             if (host.isFinishing() || host.isDestroyed()) return;
             boolean thai = UiDensityPatch.isThai(host);
-            new AlertDialog.Builder(host)
+            new M3.Builder(host)
                     .setTitle(CarName.getSettingsTitle(host))
                     .setMessage(thai ? "เริ่มแอปใหม่ตอนนี้ไหม แอปจะส่งชื่อรถและลงทะเบียน push ใหม่ในราว 20 วินาที การนำทางที่กำลังทำงานจะหยุด"
                             : "Restart the app now? It sends the car name and registers for push again within about 20 s."

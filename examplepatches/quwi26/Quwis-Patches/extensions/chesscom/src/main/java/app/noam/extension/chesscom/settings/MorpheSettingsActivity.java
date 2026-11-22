@@ -54,6 +54,8 @@ import app.noam.extension.chesscom.gamereview.GameReview;
 import app.noam.extension.chesscom.home.HomeLayout;
 import app.noam.extension.chesscom.home.HomeTabs;
 import app.noam.extension.chesscom.lichesspuzzle.LichessPuzzles;
+import app.noam.extension.chesscom.logs.AppLog;
+import app.noam.extension.chesscom.logs.LogsActivity;
 import app.noam.extension.chesscom.stockfish.Analysis;
 import app.noam.extension.chesscom.stockfish.BridgeBenchmark;
 import app.noam.extension.chesscom.stockfish.BridgeDiscovery;
@@ -78,7 +80,7 @@ public final class MorpheSettingsActivity extends Activity {
     private static final int TEXT_SECONDARY = 0xFFB4B2B0;
     /** Features that take effect when the app starts. */
     private static final List<String> NEED_RESTART = Arrays.asList(
-        Features.AMOLED, Features.ACCENT, Features.NO_ADS, Features.CUSTOM_TABS);
+        Features.AMOLED, Features.ACCENT, Features.NO_ADS, Features.CUSTOM_TABS, Features.LOGS);
 
     /** A change waits for the app to restart; kept across these screens until it does. */
     private static boolean restartPending;
@@ -204,6 +206,7 @@ public final class MorpheSettingsActivity extends Activity {
         if (Features.PAGE_NETWORK_SCAN.equals(page)) return "Find the computer";
         if (Features.PAGE_GREAT_MOVES.equals(page)) return "Great and Brilliant moves";
         if (Features.PAGE_DISCORD.equals(page)) return "Discord Rich Presence";
+        if (Features.PAGE_LOGS.equals(page)) return "App logs";
         if (Features.PAGE_WELCOME.equals(page)) return "Welcome";
         return TITLE;
     }
@@ -247,6 +250,7 @@ public final class MorpheSettingsActivity extends Activity {
         else if (Features.PAGE_NETWORK_SCAN.equals(page)) renderNetworkScan();
         else if (Features.PAGE_GREAT_MOVES.equals(page)) renderGreatMoves();
         else if (Features.PAGE_DISCORD.equals(page)) renderDiscord();
+        else if (Features.PAGE_LOGS.equals(page)) renderLogs();
         else if (Features.PAGE_WELCOME.equals(page)) renderWelcome();
         else renderMain();
     }
@@ -632,6 +636,39 @@ public final class MorpheSettingsActivity extends Activity {
         list.addView(caption("While connected, Discord keeps this status on every device you use. "
             + "Invisible is not offered: it would hide the activity too. The link can be removed in "
             + "Discord under Settings - Authorized Apps."));
+    }
+
+    /**
+     * App logs: the switch that keeps them, a way to open the screen and a way to clear what is
+     * kept. Android gives the app only its own entries, so nothing else on the phone is read.
+     */
+    private void renderLogs() {
+        list.addView(header("What is kept"));
+        LinearLayout keep = card();
+        list.addView(keep, cardParams());
+        keep.addView(switchRow("Keep logs on this phone",
+            "This app's own entries; other apps and games do not appear.",
+            Features.isEnabled(Features.LOGS), checked -> {
+                Features.setEnabled(Features.LOGS, checked);
+                restartNeeded();
+            }));
+        keep.addView(divider(16));
+        keep.addView(infoRow("On this phone", AppLog.describe()));
+
+        list.addView(header("The log"));
+        LinearLayout actions = card();
+        list.addView(actions, cardParams());
+        actions.addView(actionRow("Open the log",
+            "The newest entries, oldest first.", () ->
+            startActivity(new Intent(this, LogsActivity.class))));
+        actions.addView(divider(16));
+        actions.addView(actionRow("Clear", "Deletes what is kept on this phone.", () -> {
+            AppLog.clear();
+            render();
+        }));
+
+        list.addView(caption("Logs stay on this phone and are sent nowhere unless you copy or share "
+            + "them. Android hides the logs of other apps, so the system's own messages are not here."));
     }
 
     private void connectDiscord() {

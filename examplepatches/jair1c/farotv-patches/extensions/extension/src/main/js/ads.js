@@ -34,38 +34,21 @@
         return false;
     }
 
-    function removeAdItems(node, depth) {
-        if (!node || typeof node !== "object" || depth > 30) return 0;
-        var removed = 0;
-        if (Array.isArray(node)) {
-            for (var i = node.length - 1; i >= 0; i--) {
-                if (isAdItem(node[i])) {
-                    node.splice(i, 1);
-                    removed++;
-                } else {
-                    removed += removeAdItems(node[i], depth + 1);
-                }
-            }
-            return removed;
-        }
-        for (var key in node) {
-            if (Object.prototype.hasOwnProperty.call(node, key)) removed += removeAdItems(node[key], depth + 1);
-        }
-        return removed;
-    }
-
     youtv.feature({
         id: "ads",
         nameKey: "feature.ads.name",
         summaryKey: "feature.ads.summary",
         defaultEnabled: true,
-        onResponse: function (response, settings, text) {
+        beforeTree: function (response) {
             if (stripAds(response)) youtv.report("ads: removed ad schedule");
-            if ((response.contents || response.onResponseReceivedActions || response.continuationContents) &&
-                youtv.mentions(text, AD_ITEM_KEYS)) {
-                var removed = removeAdItems(response, 0);
-                if (removed) youtv.report("ads: removed " + removed + " sponsored item(s)");
-            }
+        },
+        treeFilter: {
+            markers: AD_ITEM_KEYS,
+            eligible: function (response) {
+                return !!(response.contents || response.onResponseReceivedActions || response.continuationContents);
+            },
+            item: isAdItem,
+            report: function (removed) { youtv.report("ads: removed " + removed + " sponsored item(s)"); }
         }
     });
 })();

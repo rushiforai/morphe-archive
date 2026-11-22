@@ -13,10 +13,13 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import app.template.extension.alerts.ReleaseAlerts;
 import app.template.extension.artwork.ArtworkHooks;
 import app.template.extension.artwork.ArtworkStore;
 import app.template.extension.artwork.TmdbCredential;
+import app.template.extension.watch.ExternalRatings;
 import app.template.extension.trivia.ImdbTrivia;
+import app.template.extension.watch.WatchHooks;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -30,6 +33,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
+import static app.template.extension.settings.ConfigTransfer.*;
+
 /**
  * Standalone host for {@link ModSettingsView}. Added to the Letterboxd manifest by the "Mod
  * settings" patch and launched from a launcher long-press shortcut / the profile-tab gear.
@@ -41,15 +46,13 @@ import java.util.List;
 public class ModSettingsActivity extends Activity {
 
     private boolean refreshOnCreate;
-    private static final int SETTINGS = 1;
-    private static final int ARTWORK = 2;
-
     private byte[] pendingExport;
     private int pendingExportSections;
     private LinearLayout body;
     private ModSettingsView settings;
     private TextView title;
     private boolean guideOpen;
+    private boolean alertsOpen;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -68,6 +71,7 @@ public class ModSettingsActivity extends Activity {
         root.addView(body, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f));
         settings = new ModSettingsView(this);
         showPage(savedInstanceState != null && savedInstanceState.getBoolean("featureGuideOpen"));
+        if (savedInstanceState != null && savedInstanceState.getBoolean("releaseAlertsOpen")) openReleaseAlerts();
 
         root.setOnApplyWindowInsetsListener(new View.OnApplyWindowInsetsListener() {
             @Override
@@ -78,6 +82,13 @@ public class ModSettingsActivity extends Activity {
             }
         });
 
+        String ratingsId = getIntent().getStringExtra("externalRatingsTmdb");
+        if (ratingsId != null) {
+            title.setText("External ratings");
+            body.removeAllViews();
+            body.addView(app.template.extension.watch.RatingsRow.page(this, ratingsId,
+                    getIntent().getStringExtra("externalRatingsTitle")), new LinearLayout.LayoutParams(-1, -1));
+        }
         setContentView(root);
         if (savedInstanceState != null && savedInstanceState.getBoolean("modsRestartPending")) {
             RestartHelper.promptRestart(this);
@@ -112,7 +123,18 @@ public class ModSettingsActivity extends Activity {
         showPage(true);
     }
 
+    public void openReleaseAlerts() {
+        guideOpen = false;
+        alertsOpen = true;
+        title.setText("Release alerts");
+        body.removeAllViews();
+        body.addView(new app.template.extension.alerts.ReleaseAlertsPage(this),
+                new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT,
+                        LinearLayout.LayoutParams.MATCH_PARENT));
+    }
+
     private void showPage(boolean guide) {
+        alertsOpen = false;
         guideOpen = guide;
         title.setText(guide ? "Feature Guide" : "Letterboxd Mods");
         body.removeAllViews();
@@ -123,7 +145,7 @@ public class ModSettingsActivity extends Activity {
 
     @Override
     public void onBackPressed() {
-        if (guideOpen) showPage(false);
+        if (guideOpen || alertsOpen) showPage(false);
         else super.onBackPressed();
     }
 
@@ -175,8 +197,8 @@ public class ModSettingsActivity extends Activity {
 
     private void chooseBackupSections(boolean export, int available,
                                       java.util.function.IntConsumer onConfirm) {
-        List<String> labels = new ArrayList<>(2);
-        List<Integer> sections = new ArrayList<>(2);
+        List<String> labels = new ArrayList<>(4);
+        List<Integer> sections = new ArrayList<>(4);
         if ((available & SETTINGS) != 0) {
             labels.add("Mods settings");
             sections.add(SETTINGS);
@@ -184,6 +206,14 @@ public class ModSettingsActivity extends Activity {
         if ((available & ARTWORK) != 0) {
             labels.add("Custom artwork");
             sections.add(ARTWORK);
+        }
+        if ((available & ALERTS) != 0) {
+            labels.add("Alerts");
+            sections.add(ALERTS);
+        }
+        if ((available & STREAMING) != 0) {
+            labels.add("Streaming preferences");
+            sections.add(STREAMING);
         }
         ModDialog.choose(this, export ? "Export Mods backup" : "Import Mods backup",
                 labels.toArray(new String[0]), export ? "Export" : "Import", checked -> {
@@ -196,12 +226,11 @@ public class ModSettingsActivity extends Activity {
     }
 
     void pickExport() {
-        chooseBackupSections(true, SETTINGS | ARTWORK, this::openExportPicker);
+        chooseBackupSections(true, ALL, this::openExportPicker);
     }
 
     private byte[] prepareExport(int sections) throws JSONException, IOException {
-        return backupBytes(ConfigTransfer.export(this,
-                (sections & SETTINGS) != 0, (sections & ARTWORK) != 0));
+        return backupBytes(ConfigTransfer.export(this, sections));
     }
 
     private void openExportPicker(int sections) {
@@ -273,8 +302,7 @@ public class ModSettingsActivity extends Activity {
             }
             try {
                 JSONObject backup = ConfigTransfer.readBackup(text);
-                int available = (backup.has("settings") ? SETTINGS : 0)
-                        | (backup.has("artwork") ? ARTWORK : 0);
+                int available = ConfigTransfer.sections(backup);
                 chooseBackupSections(false, available, sections -> importBackup(backup, sections));
             } catch (JSONException e) {
                 toast("Invalid Mods backup. " + e.getMessage());
@@ -286,11 +314,16 @@ public class ModSettingsActivity extends Activity {
         boolean settings = (sections & SETTINGS) != 0;
         boolean artwork = (sections & ARTWORK) != 0;
         try {
-            ConfigTransfer.ImportResult result = ConfigTransfer.importJson(this, backup, settings, artwork);
-            String message = "Imported ";
-            if (settings) message += result.settings + " settings";
-            if (settings && artwork) message += " and ";
-            if (artwork) message += result.artwork.imported + " artwork choices";
+            ConfigTransfer.ImportResult result = ConfigTransfer.importJson(this, backup, sections);
+            if (result.releaseAlerts > 0) ReleaseAlerts.restoreSchedule(this);
+            if (result.streamingAlerts > 0) WatchHooks.restoreSchedule(this);
+            List<String> restored = new ArrayList<>();
+            if (settings) restored.add(result.settings + " settings");
+            if (artwork) restored.add(result.artwork.imported + " artwork choices");
+            if ((sections & ALERTS) != 0) restored.add(result.streamingAlerts + " streaming alerts and "
+                    + result.releaseAlerts + " film release alerts");
+            if (result.streamingServices >= 0) restored.add(result.streamingServices + " streaming service selections");
+            String message = "Imported " + String.join(", ", restored);
             if (result.skippedSettings > 0) message += ". Skipped " + result.skippedSettings + " invalid settings";
             if (result.artwork.occupied > 0) message += ". Kept " + result.artwork.occupied + " existing artwork choices";
             boolean changed = result.settings > 0 || result.artwork.imported > 0;
@@ -318,9 +351,9 @@ public class ModSettingsActivity extends Activity {
 
     void confirmReset(boolean all) {
         ModDialog.show(this, all ? "Reset all Morphe data?" : "Reset settings?",
-                all ? "Delete your Mods settings, custom artwork, TMDB API key, and temporary Mods caches. "
+                all ? "Delete your Mods settings, custom artwork, TMDB and MDBList API keys, and temporary Mods caches. "
                         + "Your Letterboxd account and app data stay as they are."
-                    : "Restore Mods preferences to their defaults. Your custom artwork and TMDB API key are kept.",
+                    : "Restore Mods preferences to their defaults. Your custom artwork and API keys are kept.",
                 "Reset", () -> reset(all), "Cancel", null);
     }
 
@@ -330,6 +363,7 @@ public class ModSettingsActivity extends Activity {
             saved = ConfigTransfer.preferences(this).edit().clear().commit();
             saved &= new ArtworkStore(this).reset();
             saved &= TmdbCredential.remove(this);
+            ExternalRatings.removeKey(this);
             ImdbTrivia.clearCache();
             ArtworkHooks.clearCache();
             File[] caches = getCodeCacheDir().listFiles((dir, name) -> name.equals("morphe-navicon.arsc")
@@ -354,6 +388,7 @@ public class ModSettingsActivity extends Activity {
     @Override
     protected void onSaveInstanceState(Bundle state) {
         super.onSaveInstanceState(state);
+        state.putBoolean("releaseAlertsOpen", alertsOpen);
         state.putBoolean("modsRestartPending", refreshOnCreate);
         state.putBoolean("featureGuideOpen", guideOpen);
         state.putInt("pendingExportSections", pendingExportSections);

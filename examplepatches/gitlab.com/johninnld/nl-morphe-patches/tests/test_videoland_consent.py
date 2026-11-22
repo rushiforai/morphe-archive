@@ -36,9 +36,9 @@ class ConsentPolicyTests(unittest.TestCase):
     def test_startup_returns_native_ready_without_permission_result(self):
         program = graph(CONSENT_CONTRACTS[1]['edits'][0]['effect'])
         self.assertEqual(program, [
-            'new-instance v0, Lri/o;', 'const/4 v1, 0x1', 'const/4 v2, 0x1',
+            'new-instance v0, LPi/q;', 'const/4 v1, 0x1', 'const/4 v2, 0x1',
             'const/4 v3, 0x0',
-            'invoke-direct {v0, v1, v2, v3}, Lri/o;-><init>(ZZLcom/bedrockstreaming/feature/splash/domain/usecase/tasks/f;)V',
+            'invoke-direct {v0, v1, v2, v3}, LPi/q;-><init>(ZZLcom/bedrockstreaming/feature/splash/domain/usecase/tasks/f;)V',
             'return-object v0'])
 
     def test_manual_toggle_records_explicit_opt_in(self):

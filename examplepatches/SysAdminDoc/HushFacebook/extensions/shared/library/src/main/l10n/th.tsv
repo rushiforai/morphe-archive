@@ -515,6 +515,10 @@ The comment box loses its GIF and sticker buttons. Typing, photos and posting wo
 # context: switch title under Comments: hides the Add a comment field at the bottom of the full-screen video viewer
 Hide the video comment box	ซ่อนกล่องความคิดเห็นของวิดีโอ
 The Add a comment box under a full-screen video goes away. Comment boxes on posts stay.	กล่องเขียนความคิดเห็นใต้ฟูลสกรีนวิดีโอจะหายไป แต่กล่องความคิดเห็นในโพสต์จะยังคงอยู่
+# context: switch title under Comments; the bar along the bottom of a live video holds its comment box and the reactions you tap to send
+Hide the live video comment bar	ซ่อนแถบความคิดเห็นของวิดีโอถ่ายทอดสด
+# context: description of that switch; the reactions are the Like, Love, Haha and other faces a tap sends to the live video
+The comment box and the row of reactions along the bottom of a live video go away, so a stray tap can't send one. The live comments stay.	กล่องความคิดเห็นและแถวความรู้สึกที่ด้านล่างของวิดีโอถ่ายทอดสดจะหายไป เพื่อไม่ให้การแตะโดยไม่ตั้งใจส่งความรู้สึกออกไป ความคิดเห็นในไลฟ์ยังอยู่
 # context: switch title under Comments; a reply thread is the replies under a comment, which Facebook folds behind View replies
 Open every reply thread	เปิดทุกเธรดการตอบกลับ
 # context: summary of that switch; View replies is the link Facebook shows under a comment that has replies
@@ -588,6 +592,10 @@ Hide Share under posts	ซ่อน "แชร์" ใต้โพสต์
 Hide Send under posts	ซ่อน "ส่ง" ใต้โพสต์
 # context: summary shared by those five switches
 Takes this button out of the row under posts in the feed. The other buttons stay, and a post with all of its buttons hidden shows no row.	นำปุ่มนี้ออกจากแถวใต้โพสต์ในฟีด ปุ่มอื่นๆ จะยังคงอยู่ และโพสต์ที่ซ่อนปุ่มทั้งหมดจะไม่แสดงแถวปุ่ม
+# context: switch title under News feed; the buttons are Like, Comment, Share and the others in the row under a post
+Ignore taps beside the buttons	ไม่สนใจการแตะข้างปุ่ม
+# context: description of that switch; the reaction icons are the small stacked emoji at the end of that row, and who reacted is the list of people who reacted
+A tap on the empty part of the row under a post, between the buttons and the reaction icons, does nothing instead of opening the comments or who reacted. The buttons work as before.	การแตะส่วนที่ว่างของแถวใต้โพสต์ ระหว่างปุ่มกับไอคอนแสดงความรู้สึก จะไม่ทำอะไรเลยแทนการเปิดความคิดเห็นหรือรายชื่อผู้แสดงความรู้สึก ปุ่มต่าง ๆ ยังทำงานเหมือนเดิม
 # context: what stays in while Hushfacebook is paused, followed by the patch name in brackets; the row in Facebook's own Menu that opens Hushfacebook settings
 # context: a short message when the Hushfacebook row in Facebook's Menu couldn't open the settings
 Hushfacebook settings can't open here. Long-press the Facebook logo instead.	ไม่สามารถเปิดการตั้งค่า Hushfacebook ได้จากที่นี่ ให้แตะโลโก้ Facebook ค้างไว้แทน
@@ -1962,6 +1970,10 @@ Puts the speaker button in the side column of reels, right above the three dots.
 Hide the reaction preview on posts	ซ่อนการแสดงตัวอย่างความรู้สึกบนโพสต์
 # context: summary of that switch; "reactions" are Facebook's Like, Love, Haha and other reactions
 Hides the stacked reaction icons and the reactions count under posts. The space stays, so a tap where they were still opens the list of reactions. To take the number off the Like button too, turn on Hide counts on posts.	ซ่อนไอคอนความรู้สึกที่ซ้อนกันและจำนวนความรู้สึกใต้โพสต์ โดยพื้นที่ว่างจะยังคงอยู่ ดังนั้นการแตะบริเวณนั้นจะยังคงเปิดรายการความรู้สึก หากต้องการนำตัวเลขออกจากปุ่ม "ถูกใจ" ด้วย ให้เปิด "ซ่อนจำนวนบนโพสต์"
+# context: switch title under News feed; the reactions are the small stacked reaction icons (Like, Love, Haha) a post shows next to its count; the Like button is the button under a post, use Facebook's name for it
+Show reactions on the Like button	แสดงความรู้สึกบนปุ่มถูกใจ
+# context: summary of that switch; the faces are those reaction icons; "Hide the reaction preview on posts" is another switch, match its own row
+Moves a post's reaction faces from the end of its button row onto the Like button, right before the count. The Like button likes and reacts as before. A video showing its views there gets one Like face, or your own reaction once you react. Hide the reaction preview on posts overrules it. A change shows on the posts drawn after it.	ย้ายไอคอนความรู้สึกของโพสต์จากท้ายแถวปุ่มไปไว้บนปุ่ม "ถูกใจ" ก่อนตัวเลขพอดี ปุ่ม "ถูกใจ" ยังกดถูกใจและแสดงความรู้สึกได้เหมือนเดิม วิดีโอที่แสดงยอดการดูตรงนั้นจะได้ไอคอนถูกใจหนึ่งอัน หรือความรู้สึกของคุณเองเมื่อคุณแสดงความรู้สึก "ซ่อนการแสดงตัวอย่างความรู้สึกบนโพสต์" มีผลเหนือกว่า การเปลี่ยนแปลงจะเห็นได้ในโพสต์ที่แสดงหลังจากนั้น
 # context: switch title under Comments; the reaction preview is the stack of reaction icons in the corner of a comment
 Hide the reaction preview on comments	ซ่อนการแสดงตัวอย่างความรู้สึกในความคิดเห็น
 # context: summary of that switch; "reactions" are Facebook's Like, Love, Haha and other reactions
@@ -2350,7 +2362,11 @@ Moves a feed video's seek bar closer to the bottom edge, along with Facebook's s
 Seek bar on the bottom edge	แถบเลื่อนที่ขอบด้านล่าง
 Puts a feed video's seek bar right on its bottom edge, so it's out of the way while you scroll. Facebook's speaker and tagged people buttons move up to sit above it. Wins over Lower the seek bar and speaker. Needs Seek bar on feed videos on.	ย้ายแถบเลื่อนของวิดีโอบนฟีดไปไว้ที่ขอบด้านล่างพอดี เพื่อไม่ให้เกะกะขณะที่คุณเลื่อนดู ปุ่มลำโพงและปุ่มแท็กบุคคลของ Facebook จะเลื่อนขึ้นไปอยู่เหนือแถบเลื่อน การตั้งค่านี้มีผลเหนือกว่า "ลดระดับแถบเลื่อนและลำโพงลง" จำเป็นต้องเปิด "แถบเลื่อนในวิดีโอบนฟีด"
 Thin line seek bar	แถบเลื่อนแบบเส้นบาง
-Shows a feed video's seek bar as a thin line right on its bottom edge, like Instagram's, with no dot or times until you drag it. Live videos get it too while they can be rewound. Let go at the far right end to go back to live. Facebook's speaker and tagged people buttons move up to sit above it. Needs Seek bar on feed videos on.	แสดงแถบเลื่อนของวิดีโอบนฟีดเป็นเส้นบางที่ขอบด้านล่างพอดี แบบเดียวกับใน Instagram โดยไม่มีจุดหรือเวลาจนกว่าคุณจะลาก วิดีโอถ่ายทอดสดก็จะมีเส้นนี้ด้วยขณะที่ยังย้อนกลับได้ ปล่อยที่ด้านขวาสุดเพื่อกลับไปที่การถ่ายทอดสด ปุ่มลำโพงและปุ่มแท็กบุคคลของ Facebook จะเลื่อนขึ้นไปอยู่เหนือแถบเลื่อน จำเป็นต้องเปิด "แถบเลื่อนในวิดีโอบนฟีด"
+# context: switch title on the Video and audio page, under Thin line seek bar; while the thin seek bar of a feed video is dragged it stays on the video's bottom edge
+Drag along the bottom edge	ลากไปตามขอบด้านล่าง
+# context: description of that switch; Thin line seek bar is the switch title above it, keep it as translated there
+While you drag the thin line, it stays on the video's bottom edge like Instagram's, with the time in the middle, instead of rising into the full bar with a time bubble. Needs Thin line seek bar on.	ขณะที่คุณลากเส้นบาง เส้นจะอยู่ที่ขอบด้านล่างของวิดีโอแบบเดียวกับใน Instagram โดยแสดงเวลาไว้ตรงกลาง แทนที่จะยกขึ้นเป็นแถบเต็มพร้อมป้ายเวลา จำเป็นต้องเปิด "แถบเลื่อนแบบเส้นบาง"
+Shows a feed video's seek bar as a thin line right on its bottom edge, like Instagram's, with no dot until you drag it. Live videos get it too while they can be rewound. Let go at the far right end to go back to live. Facebook's speaker and tagged people buttons move up to sit above it. Needs Seek bar on feed videos on.	แสดงแถบเลื่อนของวิดีโอบนฟีดเป็นเส้นบางที่ขอบด้านล่างพอดี แบบเดียวกับใน Instagram โดยไม่มีจุดจนกว่าคุณจะลาก วิดีโอถ่ายทอดสดก็จะมีเส้นนี้ด้วยขณะที่ยังย้อนกลับได้ ปล่อยที่ด้านขวาสุดเพื่อกลับไปที่การถ่ายทอดสด ปุ่มลำโพงและปุ่มแท็กบุคคลของ Facebook จะเลื่อนขึ้นไปอยู่เหนือแถบเลื่อน จำเป็นต้องเปิด "แถบเลื่อนในวิดีโอบนฟีด"
 Feed video position	ตำแหน่งวิดีโอบนฟีด
 # context: title of the row that holds a color code for the count badges on the tabs
 Badge color	สีของป้าย
@@ -2408,6 +2424,7 @@ Holding a post's photo opens its reactions, as holding Like does. It comes befor
 Holding a post's video opens its reactions too. It comes before Long press opens comments. With Hold a feed video for 2x on, that one wins and the video plays fast.	การแตะวิดีโอของโพสต์ค้างไว้ก็จะเปิดความรู้สึกขึ้นมาเช่นกัน การตั้งค่านี้จะมีผลก่อน "แตะค้างไว้เพื่อเปิดความคิดเห็น" ถ้าเปิด "แตะค้างที่วิดีโอในฟีดเพื่อเล่น 2x" ไว้ สวิตช์นั้นจะมีผลแทนและวิดีโอจะเล่นเร็วขึ้น
 Reaction	ความรู้สึก
 Pick one each time	เลือกทุกครั้ง
+Slide to pick one	เลื่อนเพื่อเลือก
 Like	ถูกใจ
 Love	รักเลย
 Care	ห่วงใย
@@ -2415,9 +2432,11 @@ Haha	ฮ่าๆ
 Wow	ว้าว
 Sad	เศร้า
 Angry	โกรธ
-Pick one each time. The reactions open over the post, so slide to one and let go, or let go and tap one.	เลือกทุกครั้ง ความรู้สึกจะเปิดขึ้นเหนือโพสต์ ให้เลื่อนนิ้วไปที่ความรู้สึกที่ต้องการแล้วปล่อย หรือปล่อยนิ้วแล้วแตะเลือก
+Pick one each time. The reactions open by your finger, so slide to one and let go, or let go and tap one. A tap anywhere else closes them.	เลือกทุกครั้ง ความรู้สึกจะเปิดขึ้นข้างนิ้วของคุณ ให้เลื่อนนิ้วไปที่ความรู้สึกที่ต้องการแล้วปล่อย หรือปล่อยนิ้วแล้วแตะเลือก แตะที่อื่นเพื่อปิด
+Slide to pick one. The reactions open by your finger, so slide to one and let go. Letting go anywhere else closes them.	เลื่อนเพื่อเลือก ความรู้สึกจะเปิดขึ้นข้างนิ้วของคุณ ให้เลื่อนนิ้วไปที่ความรู้สึกที่ต้องการแล้วปล่อย ปล่อยนิ้วที่อื่นเพื่อปิด
 %1$s. Holding a post gives it straight away.	%1$s การแตะโพสต์ค้างไว้จะใส่ความรู้สึกนี้ทันที
 Holding a post to react will open the reactions to pick from.	การแตะโพสต์ค้างไว้เพื่อแสดงความรู้สึกจะเปิดความรู้สึกขึ้นมาให้เลือก
+Holding a post to react will open the reactions to slide to one.	การแตะโพสต์ค้างไว้เพื่อแสดงความรู้สึกจะเปิดความรู้สึกให้เลื่อนนิ้วไปเลือก
 Holding a post to react will give %1$s.	การแตะโพสต์ค้างไว้เพื่อแสดงความรู้สึกจะใส่ความรู้สึก %1$s
 Select text	เลือกข้อความ
 Done	เรียบร้อย
@@ -2764,6 +2783,16 @@ Takes the song and effect credits off the line under the poster's name on a stor
 Takes the row of suggested replies off the bottom of a story. The reply box stays. Applies from the next story you open.	นำแถวคำแนะนำในการตอบกลับออกจากด้านล่างของสตอรี่ ช่องตอบกลับจะยังคงอยู่ จะมีผลตั้งแต่สตอรี่ถัดไปที่คุณเปิด
 Hide the Subscribe button	ซ่อนปุ่มสมัครรับข้อมูล
 Takes the Subscribe button off the top of a story. Applies from the next story you open.	นำปุ่มสมัครรับข้อมูลออกจากด้านบนของสตอรี่ จะมีผลตั้งแต่สตอรี่ถัดไปที่คุณเปิด
+# context: switch title on the Stories page; the Follow button sits at the top of a story from someone you don't follow
+Hide the Follow button	ซ่อนปุ่มติดตาม
+Takes the Follow button off the top of a story from someone you don't follow. Applies from the next story you open.	นำปุ่มติดตามออกจากด้านบนของสตอรี่ของคนที่คุณไม่ได้ติดตาม จะมีผลตั้งแต่สตอรี่ถัดไปที่คุณเปิด
+# context: switch title on the Stories page; the reply bar is the row under someone else's story with the repost button, the Send message box and the quick reactions
+Hide the reply bar	ซ่อนแถบตอบกลับ
+# context: description of that switch; Send message is the text box Facebook shows in that row
+Takes the bar off the bottom of other people's stories, with the repost button, the Send message box and the quick reactions. Applies from the next story you open.	นำแถบด้านล่างสตอรี่ของคนอื่นออก รวมถึงปุ่มแชร์ซ้ำ ช่องส่งข้อความ และรีแอคชั่นด่วน จะมีผลตั้งแต่สตอรี่ถัดไปที่คุณเปิด
+# context: switch title on the Stories page; Up next is the card Facebook shows over the next stories while it counts down before they play
+Hide the Up next card	ซ่อนการ์ด "ถัดไป"
+Starts the next stories right away, without the Up next card that counts down over the first one. Applies the next time you open stories.	เริ่มสตอรี่ถัดไปทันทีโดยไม่มีการ์ด "ถัดไป" ที่นับถอยหลังบนสตอรี่แรก มีผลในครั้งถัดไปที่คุณเปิดสตอรี่
 Hide create story cards	ซ่อนการ์ดชวนสร้างสตอรี่
 Takes out the cards between stories that ask you to make one, including the full screen card that asks you to continue the story with photos from your gallery. Applies the next time you open stories.	นำการ์ดระหว่างสตอรี่ที่ชวนให้คุณสร้างสตอรี่ออก รวมถึงการ์ดแบบเต็มหน้าจอที่ชวนให้คุณเล่าสตอรี่ต่อด้วยรูปภาพจากแกลเลอรีของคุณ มีผลในครั้งถัดไปที่คุณเปิดสตอรี่
 Progress bar at the bottom	แถบแสดงความคืบหน้าที่ด้านล่าง
@@ -2853,10 +2882,18 @@ Hide the tab bar on the Reels tab	ซ่อนแถบแท็บในแท�
 The tab bar goes away while the Reels tab is open, and the reel gets the whole screen. The other tabs keep the bar. Restart Facebook to see the change.	แถบแท็บจะหายไปขณะที่เปิดแท็บ Reels อยู่ และ Reel จะแสดงเต็มหน้าจอ แท็บอื่นๆ จะยังคงมีแถบแท็บ รีสตาร์ท Facebook เพื่อดูการเปลี่ยนแปลง
 Hide the line along the tab bar	ซ่อนเส้นตามแถบแท็บ
 The thin line Facebook draws along the edge of the tab bar goes away on every tab. Tap a tab to see the change.	เส้นบางที่ Facebook วาดไว้ตามขอบแถบแท็บจะหายไปในทุกแท็บ แตะแท็บใดก็ได้เพื่อดูการเปลี่ยนแปลง
+# context: switch title on the tab bar settings page; a group is a Facebook group's page; the tab bar is the row of Home, Reels, Groups... tabs
+Keep the tab bar in groups	คงแถบแท็บไว้ในกลุ่ม
+# context: summary of that switch; "along the bottom" means at the bottom edge of the screen
+A group you open keeps the tab bar along the bottom, so a tap takes you straight to another tab. Works while the tab bar is at the bottom. Open a group to see the change.	กลุ่มที่คุณเปิดจะยังมีแถบแท็บอยู่ด้านล่าง แตะครั้งเดียวก็ไปยังแท็บอื่นได้ทันที ใช้ได้ขณะที่แถบแท็บอยู่ด้านล่าง เปิดกลุ่มเพื่อดูการเปลี่ยนแปลง
 Playback speed in the post menu	ความเร็วในการเล่นในเมนูโพสต์
 A feed or Watch video's 3-dot menu gets Playback speed, from 0.5x to 3x, live videos too. Off by default, since it hasn't been tried on a real account yet.	เมนูจุดสามจุดของวิดีโอในฟีดหรือ Watch จะมีตัวเลือก "ความเร็วในการเล่น" ตั้งแต่ 0.5x ถึง 3x รวมถึงวิดีโอถ่ายทอดสดด้วย ปิดใช้งานตามค่าเริ่มต้นเนื่องจากยังไม่ได้ทดสอบกับบัญชีจริง
 Double tap to skip on feed videos	แตะสองครั้งเพื่อข้ามในวิดีโอบนฟีด
 Double tap the right side of a playing feed video to jump ahead 10 seconds, or the left side to go back 10. Keep tapping to go further. Live videos work too when they can be rewound. One tap on a side still opens the video, a moment later than usual. With Tap to play on, it needs Inline feed video controls on too.	แตะสองครั้งที่ด้านขวาของวิดีโอบนฟีดที่กำลังเล่นเพื่อข้ามไปข้างหน้า 10 วินาที หรือด้านซ้ายเพื่อย้อนกลับ 10 วินาที แตะต่อไปเรื่อยๆ เพื่อข้ามไปได้ไกลขึ้น วิดีโอถ่ายทอดสดก็ใช้ได้เมื่อสามารถย้อนกลับได้ การแตะครั้งเดียวที่ด้านใดด้านหนึ่งยังคงเปิดวิดีโอ แต่จะช้ากว่าปกติเล็กน้อย หากเปิด "แตะเพื่อเล่น" ไว้ จะต้องเปิด "การควบคุมวิดีโอในฟีดโดยตรง" ด้วย
+# context: switch title under Video playback; a tap on a video in the news feed brings up a pause button in the middle of the video instead of opening it
+Tap shows a pause button on feed videos	แตะเพื่อแสดงปุ่มหยุดชั่วคราวบนวิดีโอในฟีด
+# context: description of that switch; Reels is Facebook's full-screen video viewer, keep the name; the quoted switch names match their own rows
+Tapping a feed video shows a pause button in its middle and the video keeps playing, so a tap doesn't open it in Reels. Tap the button to pause or play. Tap the video again while the button shows to open it. Ads keep their own controls. With Tap to play on, it needs Inline feed video controls on too.	การแตะวิดีโอในฟีดจะแสดงปุ่มหยุดชั่วคราวตรงกลางวิดีโอ และวิดีโอจะเล่นต่อไป การแตะจึงไม่เปิดวิดีโอใน Reels แตะปุ่มเพื่อหยุดชั่วคราวหรือเล่นต่อ แตะวิดีโออีกครั้งขณะที่ปุ่มแสดงอยู่เพื่อเปิดวิดีโอ โฆษณาจะยังคงใช้การควบคุมของตัวเอง หากเปิด "แตะเพื่อเล่น" ไว้ จะต้องเปิด "การควบคุมวิดีโอในฟีดโดยตรง" ด้วย
 Show only comments that match	แสดงเฉพาะความคิดเห็นที่ตรงกัน
 While the search box holds words, comments without them are hidden. Clearing the box brings them back.	ขณะที่มีคำอยู่ในช่องค้นหา ความคิดเห็นที่ไม่มีคำเหล่านั้นจะถูกซ่อน การล้างช่องค้นหาจะทำให้ความคิดเห็นเหล่านั้นกลับมา
 Queue reel saves	เข้าคิวการบันทึก Reels
@@ -2899,7 +2936,7 @@ Interested	สนใจ
 # context: a kind of row in a post's 3-dot menu, offered in the list of rows to hide: Facebook's row asking for fewer posts like this one
 Not interested	ไม่สนใจ
 # context: a kind of row in a post's 3-dot menu, offered in the list of rows to hide: Facebook's row that opens its feed preferences
-Manage your Feed	จัดการฟีดของคุณ
+Manage your Feed / Your algorithm	จัดการฟีดของคุณ / อัลกอริทึมของคุณ
 # context: a kind of row in a post's 3-dot menu, offered in the list of rows to hide: Facebook's row that reports the post
 Report	รายงาน
 # context: a kind of row in a post's 3-dot menu, offered in the list of rows to hide: Facebook's row that plays the video on a TV
@@ -3091,3 +3128,6 @@ Show full names	แสดงชื่อเต็ม
 A long name at the top of a post wraps onto the next line instead of ending in "...". A name that fits still takes one line.	ชื่อยาวที่ด้านบนของโพสต์จะขึ้นบรรทัดใหม่แทนการลงท้ายด้วย "..." ส่วนชื่อที่พอดีจะยังอยู่ในบรรทัดเดียว
 Dark box behind feed video names	กล่องสีเข้มหลังชื่อบนวิดีโอในฟีด
 When a video in your feed has the poster's name on top of the video, that name sits on the same dark box. A change shows on the posts drawn after it.	เมื่อวิดีโอในฟีดข่าวแสดงชื่อของผู้โพสต์ทับอยู่บนวิดีโอ ชื่อนั้นจะอยู่บนกล่องสีเข้มเดียวกัน การเปลี่ยนแปลงจะเห็นในโพสต์ที่โหลดหลังจากนั้น
+Quality settings	การตั้งค่าคุณภาพ
+Request community note	ขอบันทึกจากชุมชน
+Something went wrong	เกิดข้อผิดพลาดบางอย่าง

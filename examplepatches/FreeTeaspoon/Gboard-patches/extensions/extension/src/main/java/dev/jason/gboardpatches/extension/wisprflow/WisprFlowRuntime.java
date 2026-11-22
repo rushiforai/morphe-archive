@@ -10,6 +10,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.os.SystemClock;
 import android.util.Log;
 import android.view.inputmethod.InputConnection;
 import android.widget.Toast;
@@ -19,6 +20,9 @@ import java.util.UUID;
 
 import dev.jason.gboardpatches.extension.R;
 import dev.jason.gboardpatches.extension.settings.GboardSettingsText;
+import dev.jason.gboardpatches.extension.wisprflow.WisprFlowNativeHeader.Dismissal;
+import dev.jason.gboardpatches.extension.wisprflow.WisprFlowSessionState.Action;
+import dev.jason.gboardpatches.extension.wisprflow.WisprFlowSessionState.Phase;
 
 public final class WisprFlowRuntime {
     public static final String PACKAGE = "com.wispr.flowapp";
@@ -27,6 +31,8 @@ public final class WisprFlowRuntime {
     private static final Handler MAIN = new Handler(Looper.getMainLooper());
     private static final long POLL_INTERVAL_MS = 450;
     private static final long METER_INTERVAL_MS = 90;
+    private static final long HEADER_RETRY_INTERVAL_MS = 100;
+    private static final long HEADER_ATTACH_TIMEOUT_MS = 1_000;
     private static final long RESPONSE_TIMEOUT_MS = 5_000;
     private static WeakReference<InputMethodService> input = new WeakReference<>(null);
     private static Session active;
@@ -36,12 +42,25 @@ public final class WisprFlowRuntime {
 
     public static void onInputViewStarted(Object receiver) {
         onInputViewEnded();
-        if (receiver instanceof InputMethodService service) input = new WeakReference<>(service);
+        if (receiver instanceof InputMethodService service) {
+            input = new WeakReference<>(service);
+            if (active != null && active.context == service) active.scheduleHeaderRestore();
+        }
     }
 
     public static void onInputViewEnded() {
         input.clear();
-        if (active != null) active.close(true);
+        if (active != null) active.dismissHeader(Dismissal.IMMEDIATE);
+    }
+
+    public static void onEditorChanged() {
+        if (active != null) active.submittedEditor = null;
+        onInputViewEnded();
+    }
+
+    public static void onServiceDestroyed() {
+        input.clear();
+        if (active != null) active.close(true, Dismissal.IMMEDIATE);
     }
 
     public static Runnable nativeFinishAction(Object controller) {
@@ -58,12 +77,12 @@ public final class WisprFlowRuntime {
         InputConnection editor = service == null ? null : service.getCurrentInputConnection();
         if (editor != null && service.isInputViewShown()) {
             try {
-                active = new Session(service, editor);
+                active = new Session(service);
                 active.start();
                 return;
             } catch (ReflectiveOperationException | RuntimeException failure) {
                 Log.w(TAG, "Could not open the native voice header", failure);
-                if (active != null) active.close(false);
+                if (active != null) active.close(false, Dismissal.IMMEDIATE);
             }
         }
         message(context, R.string.gboard_wispr_flow_header_unavailable);
@@ -109,52 +128,98 @@ public final class WisprFlowRuntime {
 
     private static final class Session {
         final InputMethodService context;
-        final InputConnection editor;
-        final WisprFlowNativeHeader header;
         final String token = UUID.randomUUID().toString();
+        final WisprFlowSessionState state = new WisprFlowSessionState(SystemClock.uptimeMillis());
         final Runnable poll = () -> send("status");
-        final Runnable timeout = () -> fail(R.string.gboard_wispr_flow_bridge_unavailable);
-        String state = "starting";
-        String pendingAction;
-        boolean submitted;
+        final Runnable responseTimeout = () -> fail(R.string.gboard_wispr_flow_bridge_unavailable);
+        final Runnable phaseTimeout = () -> fail(R.string.gboard_wispr_flow_dictation_failed);
+        final Runnable restoreHeader = this::restoreHeader;
+        WisprFlowNativeHeader header;
+        InputConnection submittedEditor;
+        long headerAttachDeadline;
+        long headerGeneration;
         boolean awaitingReply;
 
-        Session(InputMethodService context, InputConnection editor) throws ReflectiveOperationException {
+        Session(InputMethodService context) {
             this.context = context;
-            this.editor = editor;
-            header = new WisprFlowNativeHeader(context,
-                    () -> act("cancel"), () -> act("finish"));
         }
 
         void start() throws ReflectiveOperationException {
-            header.show();
+            attachHeader();
+            schedulePhaseTimeout();
             send("start_inline_v3");
         }
 
-        void act(String command) {
-            if (active != this || pendingAction != null
-                    || (!"starting".equals(state) && !"listening".equals(state))) return;
-            pendingAction = command;
-            if (!awaitingReply && actionReady()) send(command);
+        void attachHeader() throws ReflectiveOperationException {
+            long generation = ++headerGeneration;
+            header = new WisprFlowNativeHeader(context, () -> act(Action.CANCEL, generation),
+                    () -> act(Action.FINISH, generation));
+            header.show();
+            renderHeader(null, null);
         }
 
-        boolean actionReady() {
-            return pendingAction != null && (!"finish".equals(pendingAction) || "listening".equals(state));
+        void scheduleHeaderRestore() {
+            headerAttachDeadline = SystemClock.uptimeMillis() + HEADER_ATTACH_TIMEOUT_MS;
+            MAIN.post(restoreHeader);
+        }
+
+        void restoreHeader() {
+            if (active != this || input.get() != context || header != null || !state.canShowHeader()) return;
+            try {
+                if (context.isInputViewShown() && context.getCurrentInputConnection() != null) {
+                    attachHeader();
+                    return;
+                }
+            } catch (ReflectiveOperationException | RuntimeException failure) {
+                dismissHeader(Dismissal.IMMEDIATE);
+                if (SystemClock.uptimeMillis() >= headerAttachDeadline) {
+                    Log.w(TAG, "Could not restore the native voice header", failure);
+                    message(context, R.string.gboard_wispr_flow_header_unavailable);
+                    return;
+                }
+            }
+            if (SystemClock.uptimeMillis() < headerAttachDeadline) {
+                MAIN.postDelayed(restoreHeader, HEADER_RETRY_INTERVAL_MS);
+            }
+        }
+
+        void act(Action action, long generation) {
+            if (active != this || header == null || generation != headerGeneration) return;
+            InputConnection editor = context.getCurrentInputConnection();
+            if (action == Action.FINISH && editor == null) return;
+            if (!state.queue(action, SystemClock.uptimeMillis())) return;
+            if (action == Action.CANCEL) {
+                submittedEditor = null;
+                dismissHeader(Dismissal.NATIVE);
+            } else {
+                submittedEditor = editor;
+            }
+            schedulePhaseTimeout();
+            if (!awaitingReply) dispatchAction();
+        }
+
+        boolean dispatchAction() {
+            Action action = state.takeReadyAction(SystemClock.uptimeMillis());
+            if (action == null) return false;
+            schedulePhaseTimeout();
+            updateHeader(null, null);
+            send(action.command);
+            return true;
+        }
+
+        void schedulePhaseTimeout() {
+            MAIN.removeCallbacks(phaseTimeout);
+            if (state.deadline() != 0) MAIN.postAtTime(phaseTimeout, state.deadline());
         }
 
         void send(String command) {
             MAIN.removeCallbacks(poll);
             if (active != this) return;
-            if (!hasEditor()) {
-                close(true);
-                return;
-            }
-            if ("finish".equals(command)) submitted = true;
             awaitingReply = true;
-            MAIN.postDelayed(timeout, RESPONSE_TIMEOUT_MS);
+            MAIN.postDelayed(responseTimeout, RESPONSE_TIMEOUT_MS);
             request(context, command, token, (ok, result, payload) -> {
                 if (active != this) return;
-                MAIN.removeCallbacks(timeout);
+                MAIN.removeCallbacks(responseTimeout);
                 awaitingReply = false;
                 if (!ok || result == null) {
                     fail(R.string.gboard_wispr_flow_bridge_unavailable);
@@ -163,40 +228,50 @@ public final class WisprFlowRuntime {
                 switch (result) {
                     case "done" -> complete(payload);
                     case "failed" -> fail(R.string.gboard_wispr_flow_dictation_failed);
-                    case "starting", "listening", "processing", "canceling" -> {
-                        try {
-                            if (!state.equals(result)) {
-                                state = result;
-                                header.update(state);
-                            }
-                            if ("listening".equals(state) && payload != null) {
-                                header.setVoiceLevel(payload.getInt("voice_level"));
-                            }
-                        } catch (ReflectiveOperationException | RuntimeException failure) {
-                            Log.w(TAG, "Could not update the native voice header", failure);
-                            fail(R.string.gboard_wispr_flow_header_unavailable);
-                            return;
-                        }
-                        if (command.equals(pendingAction)) pendingAction = null;
-                        if (actionReady()) send(pendingAction);
-                        else MAIN.postDelayed(poll, "listening".equals(state)
-                                ? METER_INTERVAL_MS : POLL_INTERVAL_MS);
-                    }
+                    case "starting" -> ongoing(command, Phase.STARTING, payload);
+                    case "listening" -> ongoing(command, Phase.LISTENING, payload);
+                    case "processing" -> ongoing(command, Phase.PROCESSING, payload);
+                    case "canceling" -> ongoing(command, Phase.CANCELING, payload);
                     default -> fail(R.string.gboard_wispr_flow_bridge_unavailable);
                 }
             });
         }
 
-        boolean hasEditor() {
-            return context.isInputViewShown() && context.getCurrentInputConnection() == editor;
+        void ongoing(String command, Phase reported, Bundle payload) {
+            state.update(reported, Action.FINISH.command.equals(command), SystemClock.uptimeMillis());
+            if (!state.canShowHeader()) dismissHeader(Dismissal.NATIVE);
+            schedulePhaseTimeout();
+            updateHeader(reported, payload);
+            if (!dispatchAction()) MAIN.postDelayed(poll, header != null && state.phase() == Phase.LISTENING
+                    ? METER_INTERVAL_MS : POLL_INTERVAL_MS);
+        }
+
+        void updateHeader(Phase reported, Bundle payload) {
+            if (header == null) return;
+            try {
+                renderHeader(reported, payload);
+            } catch (ReflectiveOperationException | RuntimeException failure) {
+                Log.w(TAG, "Could not update the native voice header", failure);
+                dismissHeader(Dismissal.IMMEDIATE);
+                scheduleHeaderRestore();
+            }
+        }
+
+        void renderHeader(Phase reported, Bundle payload) throws ReflectiveOperationException {
+            header.update(state.phase());
+            header.setCancelVisible(state.canCancel());
+            if (reported == Phase.LISTENING && state.phase() == Phase.LISTENING && payload != null) {
+                header.setVoiceLevel(payload.getInt("voice_level"));
+            }
         }
 
         void complete(Bundle payload) {
-            String text = submitted && payload != null ? payload.getString("transcript") : null;
-            close(false);
-            if (text == null || text.isEmpty() || !hasEditor()) return;
+            String text = state.submitted() && payload != null ? payload.getString("transcript") : null;
+            close(false, Dismissal.NATIVE);
+            if (text == null || text.isEmpty()) return;
             try {
-                if (editor.commitText(text, 1)) return;
+                if (submittedEditor != null && context.getCurrentInputConnection() == submittedEditor
+                        && submittedEditor.commitText(text, 1)) return;
             } catch (RuntimeException failure) {
                 Log.w(TAG, "Could not insert the Wispr Flow transcript", failure);
             }
@@ -204,20 +279,31 @@ public final class WisprFlowRuntime {
         }
 
         void fail(int messageId) {
-            close(true);
+            close(true, header != null ? Dismissal.CENTER : Dismissal.IMMEDIATE);
             message(context, messageId);
         }
 
-        void close(boolean detach) {
+        void close(boolean detach, Dismissal dismissal) {
             active = null;
             MAIN.removeCallbacks(poll);
-            MAIN.removeCallbacks(timeout);
+            MAIN.removeCallbacks(responseTimeout);
+            MAIN.removeCallbacks(phaseTimeout);
+            dismissHeader(dismissal);
+            if (detach) request(context.getApplicationContext(), "detach", token, (ok, result, payload) -> {});
+        }
+
+        void dismissHeader(Dismissal dismissal) {
+            MAIN.removeCallbacks(restoreHeader);
+            WisprFlowNativeHeader previous = header;
+            if (previous == null) return;
+            headerGeneration++;
             try {
-                header.close();
+                previous.close(dismissal);
             } catch (ReflectiveOperationException | RuntimeException failure) {
                 Log.w(TAG, "Could not release the native voice header", failure);
+            } finally {
+                header = null;
             }
-            if (detach) request(context.getApplicationContext(), "detach", token, (ok, result, payload) -> {});
         }
     }
 

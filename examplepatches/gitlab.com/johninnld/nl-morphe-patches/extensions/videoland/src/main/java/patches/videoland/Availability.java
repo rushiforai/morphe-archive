@@ -53,8 +53,8 @@ public final class Availability {
     public static boolean collection(Block block) {
         if (!(block instanceof Block.LayoutBlock)) return false;
         BlockTemplateId template = block.P;
-        return template == BlockTemplateId.R || template == BlockTemplateId.S || template == BlockTemplateId.T
-            || template == BlockTemplateId.U || template == BlockTemplateId.V || template == BlockTemplateId.X;
+        return template == BlockTemplateId.S || template == BlockTemplateId.T || template == BlockTemplateId.U
+            || template == BlockTemplateId.V || template == BlockTemplateId.W || template == BlockTemplateId.Y;
     }
 
     public static Block visibleBlock(Block block) {
@@ -68,48 +68,48 @@ public final class Availability {
         return new Block.LayoutBlock(original.S, original.T, copy, original.V, original.W);
     }
 
-    public static boolean hideEmpty(Block block, x4.c paging) {
+    public static boolean hideEmpty(Block block, z4.c paging) {
         if (!collection(block) || paging == null || paging.b() != 0) return false;
-        Object state = ((d0.q1) paging.d).getValue();
-        if (!(state instanceof w4.C)) return false;
-        w4.C loads = (w4.C) state;
-        return loads.a instanceof w4.s0$b && loads.b instanceof w4.s0$b
-            && loads.c instanceof w4.s0$b && loads.b.a && loads.c.a;
+        Object state = ((d0.t1) paging.d).getValue();
+        if (!(state instanceof y4.B)) return false;
+        y4.B loads = (y4.B) state;
+        return loads.a instanceof y4.s0$b && loads.b instanceof y4.s0$b
+            && loads.c instanceof y4.s0$b && loads.b.a && loads.c.a;
     }
 
-    public static boolean sectionsChanged(Mk.a$b observer) { return Rows.changed(observer); }
+    public static boolean sectionsChanged(Xk.a$b observer) { return Rows.changed(observer); }
 
-    public static int rowCount(Pk.t row) { return Rows.count(row); }
+    public static int rowCount(al.s row) { return Rows.count(row); }
 
-    public static nv.a visibleFactory(Block block, nv.a original) {
+    public static Bv.a visibleFactory(Block block, Bv.a original) {
         return collection(block) ? new Factory(original) : original;
     }
 
-    private static final class Factory implements nv.a {
-        private final nv.a delegate;
-        Factory(nv.a delegate) { this.delegate = delegate; }
-        @Override public Object invoke() { return wrapSource((w4.W1) delegate.invoke()); }
+    private static final class Factory implements Bv.a {
+        private final Bv.a delegate;
+        Factory(Bv.a delegate) { this.delegate = delegate; }
+        @Override public Object invoke() { return wrapSource((y4.V1) delegate.invoke()); }
     }
 
-    public static w4.W1 wrapSource(w4.W1 original) {
+    public static y4.V1 wrapSource(y4.V1 original) {
         return original instanceof FilteredSource ? original : new FilteredSource(original);
     }
 
-    public static w4.A1 visiblePager(Block block, w4.A1 original) {
-        if (!collection(block) || !(original instanceof w4.H) || original.k() instanceof FilteredSource) return original;
-        w4.H raw = (w4.H) original;
+    public static y4.A1 visiblePager(Block block, y4.A1 original) {
+        if (!collection(block) || !(original instanceof y4.G) || original.k() instanceof FilteredSource) return original;
+        y4.G raw = (y4.G) original;
         // Only the freshly built, unconsumed presentation seed is projected.
-        if (raw.Q.N.size() != 1 || !(raw.Q.N.get(0) instanceof w4.W1$b$c)) return original;
-        w4.W1$b$c seed = (w4.W1$b$c) raw.Q.N.get(0);
+        if (raw.Q.N.size() != 1 || !(raw.Q.N.get(0) instanceof y4.V1$b$c)) return original;
+        y4.V1$b$c seed = (y4.V1$b$c) raw.Q.N.get(0);
         List visible = filter(seed.N);
         FilteredSource source = new FilteredSource(raw.k());
         source.seed(seed);
-        w4.A1$e config = raw.R;
-        w4.A1$b builder = new w4.A1$b(source, new w4.W1$b$c(visible, seed.O, seed.P),
-            new w4.A1$e(config.a, config.b, false, config.d, config.e));
+        y4.A1$e config = raw.R;
+        y4.A1$b builder = new y4.A1$b(source, new y4.V1$b$c(visible, seed.O, seed.P),
+            new y4.A1$e(config.a, config.b, false, config.d, config.e));
         builder.f = raw.P;
         builder.g = raw.h0.e;
-        w4.H result = builder.a();
+        y4.G result = builder.a();
         // loadAround rejects an empty list; the native internal hint accepts it
         // and dispatches asynchronously through the original fetch dispatcher.
         if (visible.isEmpty() && seed.P != null) result.s(0);

@@ -10,6 +10,6 @@ internal val videolandTv = Compatibility(
     description = "Stable controls for the tested Videoland TV build, validated with Premium and free accounts. Hide ads, disable tracking and hide subscription-required catalogue content without changing account rights. The paid ad-supported plan has not been separately validated.",
     formFactor = FormFactor.TV,
     signatures = setOf("6c7782ca5cabbaaf0546c31b63b7a5ed112ef6a00a5422fa263c2516dee2c141"),
-    targets = listOf(AppTarget(version = "1.118.0", versionCode = 1630, minSdk = 24)),
+    targets = listOf(AppTarget(version = "1.119.2", versionCode = 1638, minSdk = 24)),
 )
 internal val originalInput = patches.shared.originalInput(videolandTv)

@@ -71,12 +71,31 @@ Load the local `.mpp` before testing it on a
 target APK. Do not run `generatePatchesList` merely to validate loading:
 that task replaces the release-managed `patches-list.json`.
 
-The Apple Music patches target `com.apple.android.music` 7.0.0 (1614) and
-7.0.1 (1622). Their tested input is an APK merged from an arm64 split set.
-Merge APKM or XAPK splits before applying the patches. Each patch can be
-selected independently.
+The Apple Music patches target `com.apple.android.music` 7.0.0 (1614),
+7.0.1 (1622), and 7.0.2 (1624). Their tested input is an APK merged from an
+arm64 split set. Merge APKM or XAPK splits before applying the patches. Each
+patch can be selected independently.
 Android 13+ provides live refraction. Older versions retain the native blur;
 that fallback has not been verified on a device.
+
+### Liquid Glass rendering
+
+The bottom tabs and mini-player use the active, untinted Regular material
+from iOS 26 beta 2 (`23A5276f`) as their reference. `GlassPyramid` crops the
+live Apple Music backdrop, prepares a quarter-resolution base, and repeatedly
+halves it with the recovered 13-sample filter. `GlassShaders` evaluates a
+continuous-corner signed distance field and blends adjacent blur levels at
+the inner and outer refraction coordinates. The face, ambient bleed and
+shadow use the recovered size and color equations.
+
+The selected tab uses separate backdrop refraction and lifted-content warp.
+The shape field blends toward circular ends as the bounds narrow. The
+backdrop refraction tapers at the lens centerline, where the sampling
+direction changes sides. The renderer uses the Android tab views and springs
+with RenderNode sampling and compositing. The centerline taper, highlight
+settings and chromatic edge are Android adaptations.
+Fidelity depends on the Android backdrop boundaries and on the material the
+iOS compositor selected for the reference frame.
 
 ### Library metadata repair
 

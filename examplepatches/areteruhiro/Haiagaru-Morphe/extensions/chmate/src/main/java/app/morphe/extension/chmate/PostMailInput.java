@@ -12,13 +12,8 @@ final class PostMailInput {
     static void apply(View root){
         if(root instanceof EditText){
             EditText field=(EditText)root;
-            int input=field.getInputType(),variation=input&InputType.TYPE_MASK_VARIATION;
-            boolean email=(input&InputType.TYPE_MASK_CLASS)==InputType.TYPE_CLASS_TEXT
-                    &&(variation==InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS||variation==InputType.TYPE_TEXT_VARIATION_WEB_EMAIL_ADDRESS);
-            String name="";try{name=field.getResources().getResourceEntryName(field.getId());}catch(RuntimeException ignored){}
-            String hint=field.getHint()==null?"":field.getHint().toString().trim();
-            boolean mailHint=hint.matches("(?i)(?:e-?mail|メール(?:欄)?)(?:[：:]|\\s)*");
-            if(!email&&!mailHint&&!name.matches("(?i)(?:.*_)?(?:mail|email)(?:_.*)?"))return;
+            if(!isMail(field))return;
+            int input=field.getInputType();
             // Raw input type keeps the existing key listener, draft text, selection and sage action.
             int plain=(input&~InputType.TYPE_MASK_VARIATION&~InputType.TYPE_TEXT_FLAG_AUTO_COMPLETE&~InputType.TYPE_TEXT_FLAG_AUTO_CORRECT)
                     |InputType.TYPE_CLASS_TEXT|InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS;
@@ -31,6 +26,15 @@ final class PostMailInput {
         }else if(root instanceof ViewGroup){
             ViewGroup group=(ViewGroup)root;for(int i=0;i<group.getChildCount();i++)apply(group.getChildAt(i));
         }
+    }
+    static boolean isMail(EditText field){
+            int input=field.getInputType(),variation=input&InputType.TYPE_MASK_VARIATION;
+            boolean email=(input&InputType.TYPE_MASK_CLASS)==InputType.TYPE_CLASS_TEXT
+                    &&(variation==InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS||variation==InputType.TYPE_TEXT_VARIATION_WEB_EMAIL_ADDRESS);
+            String name="";try{name=field.getResources().getResourceEntryName(field.getId());}catch(RuntimeException ignored){}
+            String hint=field.getHint()==null?"":field.getHint().toString().trim();
+            boolean mailHint=hint.matches("(?i)(?:e-?mail|メール(?:欄)?)(?:[：:]|\\s)*");
+            return email||mailHint||name.matches("(?i)(?:.*_)?(?:mail|email)(?:_.*)?");
     }
     private PostMailInput(){}
 }

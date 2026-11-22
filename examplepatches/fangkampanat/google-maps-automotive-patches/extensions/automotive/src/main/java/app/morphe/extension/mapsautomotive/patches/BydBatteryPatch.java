@@ -1,19 +1,14 @@
 package app.morphe.extension.mapsautomotive.patches;
 
 import android.app.Activity;
-import android.app.AlertDialog;
 import android.app.Application;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.pm.ProviderInfo;
 import android.content.res.AssetManager;
-import android.content.res.ColorStateList;
 import android.database.Cursor;
-import android.graphics.Color;
 import android.graphics.Typeface;
-import android.graphics.drawable.GradientDrawable;
-import android.graphics.drawable.RippleDrawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Handler;
@@ -31,7 +26,6 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
-import android.widget.Switch;
 import android.widget.TextView;
 
 import org.json.JSONArray;
@@ -82,8 +76,9 @@ import app.morphe.extension.shared.Utils;
  * percentage and of the model to the account need the car permission this app never holds; both go
  * while the dialog's Battery on the phone switch is on, the default ({@link PhoneBattery}).
  * <p>
- * On by default on the tested Dolphin (model id 186) with the BYD SDK, off elsewhere, with an
- * "untested" notice on other BYD models; the Settings row's choice is kept
+ * On by default with the BYD SDK (DiLink 3) on the tested Dolphin (model id 186), on the reported models and, from
+ * 0.2.0, on other models where BYD's DiCarServer tables are installed, unless the car's own data was found too far
+ * from its table ({@link #checkMismatch}); off on DiLink 5, with an "untested" notice; the Settings row's choice is kept
  * and wins. Active only in the main process of such a car. Otherwise
  * every injection point returns the original value. A new choice applies after the app restarts,
  * because Maps reads the vehicle type and creates its listeners when it starts.
@@ -124,6 +119,42 @@ public final class BydBatteryPatch {
      * 76 kWh, table 128_2). Only the Dolphin gets its motor power and charging rate ({@link #sendsDolphinPower}).
      */
     private static final int[] DEFAULT_ON_MODEL_IDS = {DOLPHIN_MODEL_ID, 128, 138};
+    /**
+     * Other models with the BYD SDK and DiCarServer's tables start on as well (from 0.2.0), unless their own data
+     * is further from BYD's table than the learning can correct: the speed bands outside these ratios, or BYD's trip log
+     * (which reads high in stop-and-go traffic) outside its own. That verdict is kept and turns the default off from the
+     * next start, with a notice; the owner's choice still wins.
+     */
+    private static final double MISMATCH_BANDS_LOW = 0.6, MISMATCH_BANDS_HIGH = 2.0, MISMATCH_LOG_LOW = 0.5, MISMATCH_LOG_HIGH = 3.0;
+    private static final String KEY_MISMATCH = "model_mismatch", KEY_MISMATCH_TEXT = "model_mismatch_text";
+    /** The speed bands decide once they have this many finished pools (10 km each). */
+    private static final int MISMATCH_POOLS = 2;
+    /**
+     * A capacity below this on a model outside {@link #DEFAULT_ON_MODEL_IDS}, without the owner's choice, is taken for a
+     * plug-in hybrid (DM-i, 8–26.6 kWh on DiLink 3; BYD's smallest electric car, the Seagull, has about 29 usable): not
+     * sent to Maps in that process, off by default from the next start. A DM-i with a larger battery is not caught.
+     */
+    private static final int MIN_BEV_WH = 26000;
+    /** Hybrid-size readings in a row (10 s apart) before the verdict is stored: one stale reading at boot is not one. */
+    private static final int HYBRID_READINGS = 6;
+    /** BYD's trip log as last read: the table it was priced against, its summary and ratio (JSON). */
+    private static final String KEY_TRIP_LOG = "trip_log";
+    /**
+     * The automatic read (at Maps' start, from the file or quietly through the car's ADB): at each start until one read
+     * works, then at most this often; the owner's "Not now" on the dialog's card is kept.
+     */
+    private static final long TRIP_LOG_EVERY_MS = 20 * 3600 * 1000L;
+    /**
+     * The automatic read through the car's ADB waits this long after Maps' start. Quick Controls uses the car's loopback
+     * ADB at boot (its watchdog, split screen with Maps) and could not connect while another ADB client was connected
+     * (2026-11-18); the read itself takes a few seconds.
+     */
+    private static final long TRIP_LOG_ADB_DELAY_MS = 3 * 60 * 1000L;
+    private static final String KEY_TRIP_LOG_DISMISSED = "trip_log_dismissed";
+    /** A range's km per 1% (above 90%, or 90% and below) from its whole percents alone once this many are measured. */
+    private static final int MIN_KM_LEVELS = 5;
+    /** Accepted learning windows before the learned consumption gives the km per 1% (else the speed bands, else none). */
+    private static final int MIN_KM_WINDOWS = 3;
     private static final String MODEL_PROPERTY = "persist.sys.vehicle_40d_code", CAR_SETTINGS_MODEL_KEY = "model_value";
     /** The head unit's software version on DiLink 3 ("dilink3.0_…" on the Dolphin); a report fact only. */
     private static final String FIRMWARE_PROPERTY = "persist.sys.gbClientVersion", VEHICLE_TYPE_PROPERTY = "ro.vehicle.type";
@@ -150,7 +181,7 @@ public final class BydBatteryPatch {
     // The model Maps receives: BYD's table adjusted with values measured on this car (BydCalibration: the auxiliary power
     // while standing, a traction factor from Maps' own forecasts); BYD's table itself only until the calibration is ready
     // or when the adjusted model fails (no choice; an "energy_model" preference left by a test build is ignored).
-    private static final String MODEL_ADJUSTED = "adjusted", MODEL_TABLE = "table";
+    private static final String MODEL_ADJUSTED = "adjusted", MODEL_TABLE = "table", MODEL_FALLBACK = "fallback";
     private static final String CALIBRATION_FILE = "morphe_byd_calibration.txt";
     /** The calibration is saved at most this often, and at once after a route. */
     private static final long CALIBRATION_SAVE_MS = 60000;
@@ -159,6 +190,11 @@ public final class BydBatteryPatch {
 
     private static volatile boolean active;
     private static volatile byte[] energyModel;
+    // What a published energyModel is ("adjusted;factor=…;aux_w=…", MODEL_TABLE or MODEL_FALLBACK), set with it under
+    // MODEL_LOCK; and what the model Maps last read was ("none" before a read), for Battery on the phone.
+    private static final Object MODEL_LOCK = new Object();
+    private static String energyModelKind = "none";
+    private static volatile String mapsReadKind = "none";
     private static volatile double lastSoc = Double.NaN;
     private static volatile long lastSampleAt, lastMapsReadAt;
     // The last reading, kept for the Settings dialog after it turns stale.
@@ -234,6 +270,18 @@ public final class BydBatteryPatch {
     // The dialog's reset while the calibration is still being built: applied once it exists.
     private static volatile boolean calibrationResetPending;
     // Worker thread only.
+    // BYD's trip log: the last summary (this process or stored), why the last read failed, and the reads in progress.
+    private static volatile BydTripLog.Summary tripLog;
+    private static volatile String tripLogError, tripLogSource, tripLogQuiet;
+    private static volatile long tripLogAt;
+    private static volatile boolean tripLogReading, tripLogPermissionAsked, tripLogTried, tripLogAuto, tripLogFileFailed;
+    // The stored verdict as it was when this process started (the default it decided); a hybrid-size battery seen now.
+    private static volatile Boolean startMismatch;
+    private static volatile int smallBatteryWh;
+    // Worker thread only: hybrid-size readings in a row (hybridBattery).
+    private static int smallReadings;
+    // DiCarServer holds one of the tables BYD battery reads (hasEnergyTables), checked once per process; null before.
+    private static volatile Boolean energyTables;
     private static boolean calibrationTried, calibrationDirty, calibrationFailureLogged, adjustedFailureLogged, calibrationSaveFailureLogged;
     private static long calibrationSavedAt;
     private static BydVehicleEnergyFile calibrationFile;
@@ -291,6 +339,16 @@ public final class BydBatteryPatch {
 
     static double modelSoc() {
         return energyModel != null ? sampleSoc : Double.NaN;
+    }
+
+    /** The outside temperature of the last reading (°C), {@link BydOutsideTemperature#UNAVAILABLE} without one. */
+    static int outsideC() {
+        return sampleOutsideC;
+    }
+
+    /** What the model Maps last read was: "adjusted;factor=…;aux_w=…", "table", "fallback", or "none" before a read. */
+    static String mapsModel() {
+        return mapsReadKind;
     }
 
     /** Injection point: each read of Maps' demo_ev_connector_types preference. */
@@ -362,7 +420,10 @@ public final class BydBatteryPatch {
             if (!forecast.isEmpty()) forecastSeen = true;
             // The start-up reset is recorded below but does not close a drive restored after a restart.
             if (forecastSeen) {
-                guided.onForecast(wall, now, forecast, batteryWh, fresh ? sampleSoc : Double.NaN, fresh ? sampleCapacityWh : -1);
+                // The percentage Maps shows for the arrival (above 90% on the car's curve), so the dialog prints the same.
+                int shown = fresh ? BydDisplayCurve.shown(forecast.finalArrivalWh(), sampleCapacityWh) : -1;
+                guided.onForecast(wall, now, forecast, batteryWh, fresh ? sampleSoc : Double.NaN, fresh ? sampleCapacityWh : -1,
+                        shown);
             }
             // The calibration's traction factor compares Maps' forecasts with the battery used.
             BydCalibration calibrating = calibration;
@@ -397,9 +458,15 @@ public final class BydBatteryPatch {
 
     /** Injection point: the energy model for Maps' listener, or null when there is no fresh reading. */
     public static InputStream openEnergyModel(Uri uri) {
-        byte[] model = energyModel;
+        byte[] model;
+        String kind;
+        synchronized (MODEL_LOCK) {
+            model = energyModel;
+            kind = energyModelKind;
+        }
         if (model == null) return null;
         lastMapsReadAt = SystemClock.elapsedRealtime();
+        mapsReadKind = kind;
         // Battery on the phone: a lower whole percent in Maps' model makes Maps upload it soon (never throws).
         PhoneBattery.modelRead(sampleSoc);
         return new ByteArrayInputStream(model);
@@ -453,6 +520,23 @@ public final class BydBatteryPatch {
             } else {
                 publish(sample);
                 failures = 0;
+                // BYD's trip log, once a day after the table is chosen: the file with the storage permission (DiLink 3)
+                // at once, else the car's ADB without asking, TRIP_LOG_ADB_DELAY_MS later (quietTripLog). Neither: the
+                // dialog's card asks the owner once.
+                if (!tripLogTried && !tripLogReading && energyFile != null) {
+                    // tripLogAuto first: the card stays hidden until the automatic attempt is over (no flash while the
+                    // stored summary is restored).
+                    tripLogAuto = true;
+                    tripLogTried = true;
+                    restoreTripLog(energyFile);
+                    if (!tripLogDue()) {
+                        tripLogAuto = false;
+                    } else if (BydTripLogReader.storageRoute() && BydTripLogReader.permitted(context)) {
+                        readTripLog(BydTripLogReader.FILE);
+                    } else if (!postToWorker(BydBatteryPatch::quietTripLog, TRIP_LOG_ADB_DELAY_MS)) {
+                        tripLogAuto = false;
+                    }
+                }
             }
         } catch (Throwable error) {
             BydVehicleModel.unavailable("sdk_error");
@@ -464,6 +548,7 @@ public final class BydBatteryPatch {
             energyModel = null;
             adjustedSent = false;
             lastSoc = Double.NaN;
+            BydDisplayCurve.clear();
             notifyModelChanged();
             ReportLog.i(TAG, "battery reading is stale, energy model withdrawn");
         }
@@ -489,6 +574,12 @@ public final class BydBatteryPatch {
         }
         if (stepped) saveSocStep();
         int capacityWh = Math.max(current, (int) Math.round(capacity));
+        if (sample.soc >= 10 && capacityWh < MIN_BEV_WH && !userChose(context) && !defaultOnModel(modelId(context))) {
+            hybridBattery(capacityWh);
+            return;
+        }
+        // Published from here (the hybrid notice goes); a full-size reading also undoes the hybrid count and its verdict.
+        if (smallReadings > 0 || smallBatteryWh > 0) fullSizeBattery(sample.soc >= 10 && capacityWh >= MIN_BEV_WH ? capacityWh : 0);
         int outsideC = outsideTemperature != null ? outsideTemperature.read() : BydOutsideTemperature.UNAVAILABLE;
         // The table is chosen once, from the first measured capacity.
         boolean nominal = sample.soc < 10 && "nominal_fallback".equals(BydVehicleModel.lowSocCapacityBasis(model));
@@ -511,7 +602,12 @@ public final class BydBatteryPatch {
             encoded = encodeEnergyModel(current, capacityWh, model);
         }
         boolean resumed = energyModel == null;
-        energyModel = encoded;
+        String kind = file == null ? MODEL_FALLBACK : !adjustedSent ? MODEL_TABLE
+                : String.format(Locale.ROOT, "%s;factor=%.3f;aux_w=%d", MODEL_ADJUSTED, sentFactor, sentAuxW);
+        synchronized (MODEL_LOCK) {
+            energyModelKind = kind;
+            energyModel = encoded;
+        }
         sampleSoc = sample.soc;
         sampleEnergyWh = current;
         sampleCapacityWh = capacityWh;
@@ -520,6 +616,9 @@ public final class BydBatteryPatch {
         sampleOutsideC = outsideC;
         lastSampleAt = SystemClock.elapsedRealtime();
         lastSoc = sample.soc;
+        // Maps' percentages on this car's curve (more energy per percent above 90%).
+        BydSpeedBands.LevelStatus high = BydSpeedBands.levelStatus()[0];
+        BydDisplayCurve.set(current, capacityWh, high.count, high.kwhPerPercent * 1000);
         // The first reading at once: the start's first snapshot, taken before it, would hold the report for 60 s.
         // A new model too (a learning reset or a learned value), so the report shows its consumption.
         ReportBuilder.saveSnapshot(context, resumed || model.revision != lastRevision);
@@ -549,10 +648,12 @@ public final class BydBatteryPatch {
             BydVehicleModel.unavailable("learning_error");
             ReportLog.w(TAG, "learning failed: " + BydEnergyReader.describe(error));
         }
-        // Speed bands compare with BYD's table and only feed the dialog.
+        // Speed bands compare with BYD's table (the dialog, the factor's wider bounds); the whole percents count also
+        // without a table (the km per 1%, the battery's place inside its percent, Maps' percentages above 90%).
         try {
-            if (file != null) BydSpeedBands.observe(sample, current, capacityWh, file, massKg(file), bydTemperature(file, outsideC));
-            else BydSpeedBands.unavailable();
+            BydSpeedBands.observe(sample, current, capacityWh, file, file != null ? massKg(file) : 0,
+                    file != null ? bydTemperature(file, outsideC) : outsideC);
+            if (file != null) checkMismatch(BydSpeedBands.speedRatio(), false);
         } catch (Throwable error) {
             BydSpeedBands.unavailable();
             ReportLog.w(TAG, "speed bands failed: " + BydEnergyReader.describe(error));
@@ -812,8 +913,12 @@ public final class BydBatteryPatch {
             if (c == null) {
                 if (!calibrationTried) {
                     calibrationTried = true;
-                    // After this reading, so the first model goes to Maps before the drive records are replayed.
-                    worker.post(() -> startCalibration(file));
+                    BydCalibration loaded = loadCalibration(file);
+                    // A saved one starts now, so this reading's model, the first Maps reads, is the adjusted one: Maps
+                    // uploads the model for phone Maps 5 seconds after it starts, then every 2 hours. One that needs the
+                    // drive records replayed starts after this reading, so the first model goes to Maps before the replay.
+                    if (loaded != null && loaded.seeded()) startCalibration(file, loaded);
+                    else if (loaded != null) worker.post(() -> startCalibration(file, loaded));
                 }
                 return;
             }
@@ -830,6 +935,7 @@ public final class BydBatteryPatch {
             r.vminMv = signalInt(signalText, "vmin");
             r.acOn = acOn;
             r.massKg = massKg(file);
+            c.setSpeedRatio(BydSpeedBands.speedRatio());
             c.observe(r);
             boolean routeEnded = false;
             for (String note : c.drainNotes()) {
@@ -848,19 +954,34 @@ public final class BydBatteryPatch {
         }
     }
 
-    // Worker thread only. Loads the saved calibration, or starts one from the drive records already on the car.
-    private static void startCalibration(BydVehicleEnergyFile file) {
+    // Worker thread only. The saved calibration (a new one when none is saved or it does not load), with the stored trip
+    // log's ratio; null when it cannot be built.
+    private static BydCalibration loadCalibration(BydVehicleEnergyFile file) {
         try {
             BydVehicleEnergyFile.Predictor predictor = file.predictor();
             BydModelParts.Params prior = BydModelParts.Params.table(predictor);
             File stored = new File(context.getFilesDir(), CALIBRATION_FILE);
-            BydCalibration created = BydCalibration.load(stored.isFile() ? readText(stored) : null, prior, predictor.identity());
+            BydCalibration loaded = BydCalibration.load(stored.isFile() ? readText(stored) : null, prior, predictor.identity());
+            loaded.setTripLogRatio(restoreTripLog(file));
+            return loaded;
+        } catch (Throwable error) {
+            ReportLog.w(TAG, "calibration not started: " + BydEnergyReader.describe(error));
+            return null;
+        }
+    }
+
+    // Worker thread only. Uses the loaded calibration, first replaying the drive records already on the car into it when
+    // it has not been seeded.
+    private static void startCalibration(BydVehicleEnergyFile file, BydCalibration created) {
+        try {
             if (!created.seeded()) seedCalibration(created);
             if (calibrationResetPending) {
                 calibrationResetPending = false;
                 created.reset();
             }
             for (String note : created.drainNotes()) ReportLog.i(TAG, note);
+            // As each reading sets it before the calibration observes it, so a model built before the next reading has it too.
+            created.setSpeedRatio(BydSpeedBands.speedRatio());
             calibrationFile = file;
             calibration = created;
             saveCalibration(created);
@@ -1004,36 +1125,354 @@ public final class BydBatteryPatch {
         out.write(value);
     }
 
+    // BYD's trip log (BydTripLog): read by itself at Maps' start (poll), or from the dialog's card on the owner's tap.
+
+    // Worker thread: the automatic read through the car's ADB, TRIP_LOG_ADB_DELAY_MS after the table was chosen at
+    // Maps' start; not when BYD battery went off meanwhile or a read already gave a summary.
+    private static void quietTripLog() {
+        if (tripLogReading || !active || energyFile == null || !tripLogDue()) {
+            tripLogAuto = false;
+            return;
+        }
+        readTripLog(BydTripLogReader.ADB_QUIET);
+    }
+
+    // Worker thread only. No summary priced against this table (restoreTripLog), or the last one is older than
+    // TRIP_LOG_EVERY_MS.
+    private static boolean tripLogDue() {
+        BydTripLog.Summary s = tripLog;
+        long at = tripLogAt, now = System.currentTimeMillis();
+        return s == null || at <= 0 || at > now || now - at >= TRIP_LOG_EVERY_MS;
+    }
+
+    /** The card: no summary yet, the automatic attempt over, and no "Not now". */
+    private static boolean tripLogCardWanted(Context context) {
+        if (!active || energyFile == null || tripLog != null || !tripLogTried || tripLogAuto) return false;
+        try {
+            return !context.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE).getBoolean(KEY_TRIP_LOG_DISMISSED, false);
+        } catch (RuntimeException error) {
+            return false;
+        }
+    }
+
+    private static void dismissTripLogCard(Context context) {
+        context.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE).edit().putBoolean(KEY_TRIP_LOG_DISMISSED, true).apply();
+        ReportLog.i(TAG, "BYD trip log card: not now");
+    }
+
+    /** From the card's Allow: the storage permission first where it works (DiLink 3), else the car's ADB. Main thread. */
+    private static void requestTripLog(Activity activity) {
+        if (tripLogReading || !active) return;
+        boolean storage = BydTripLogReader.storageRoute();
+        if (storage && !BydTripLogReader.permitted(activity) && !tripLogPermissionAsked) {
+            // Android's own dialog; the battery dialog reads the log once the answer is Allow.
+            tripLogPermissionAsked = true;
+            try {
+                BydTripLogReader.requestPermission(activity);
+                return;
+            } catch (RuntimeException error) {
+                ReportLog.w(TAG, "storage permission not requested", error);
+            }
+        }
+        // A file that could not be read (or no storage route): the car's ADB.
+        readTripLog(storage && BydTripLogReader.permitted(activity) && !tripLogFileFailed ? BydTripLogReader.FILE
+                : BydTripLogReader.ADB_ASK);
+    }
+
+    // The file on the worker; the car's ADB on a background thread (asking, it may wait up to a minute for Allow), then
+    // the worker.
+    private static void readTripLog(int route) {
+        tripLogReading = true;
+        tripLogTried = true;
+        boolean adb = route != BydTripLogReader.FILE;
+        Runnable read = () -> {
+            List<BydTripLog.Trip> trips = null;
+            String error = null;
+            try {
+                trips = BydTripLogReader.read(context, route);
+            } catch (Throwable failure) {
+                error = BydEnergyReader.describe(failure);
+            }
+            List<BydTripLog.Trip> result = trips;
+            String failure = error;
+            if (!postToWorker(() -> tripLogDone(result, failure, route), 0)) tripLogReading = false;
+        };
+        if (adb) Utils.runOnBackgroundThread(read);
+        else if (!postToWorker(read, 0)) tripLogReading = false;
+    }
+
+    // Worker thread only. Prices the trips against the table Maps gets, keeps the summary and gives the calibration its ratio.
+    private static void tripLogDone(List<BydTripLog.Trip> trips, String error, int route) {
+        try {
+            tripLogDoneLocked(trips, error, route);
+        } finally {
+            // Last, so the dialog never sees the read over without its result.
+            tripLogAuto = false;
+            tripLogReading = false;
+        }
+    }
+
+    private static void tripLogDoneLocked(List<BydTripLog.Trip> trips, String error, int route) {
+        String source = BydTripLogReader.ROUTES[route];
+        if (trips == null) {
+            // The last good summary keeps its own time and source. A quiet attempt that could not read is no error to
+            // show: the card asks instead (and the next start tries again).
+            if (route == BydTripLogReader.ADB_QUIET) tripLogQuiet = error;
+            else tripLogError = error;
+            if (route == BydTripLogReader.FILE) tripLogFileFailed = true;
+            ReportLog.i(TAG, "BYD trip log not read (" + source + "): " + error);
+            return;
+        }
+        long now = System.currentTimeMillis();
+        try {
+            BydVehicleEnergyFile file = energyFile;
+            BydTripLog.Summary summary = BydTripLog.summarize(trips, file != null ? file.predictor() : null,
+                    file != null ? massKg(file) : 0, file != null ? bydTemperature(file, sampleOutsideC) : 0, sampleEnergyWh,
+                    sampleCapacityWh, now);
+            if (summary.clockBehind()) {
+                // Every trip later than now: the head unit's clock is behind (before its time is set). The last good summary
+                // and the factor's centre stay; the next start reads again.
+                String behind = "the head unit's clock is behind (" + summary.future + " trips dated after today)";
+                if (route == BydTripLogReader.ADB_QUIET) tripLogQuiet = behind;
+                else tripLogError = behind;
+                ReportLog.i(TAG, "BYD trip log not used (" + source + "): " + behind);
+                return;
+            }
+            tripLogAt = now;
+            tripLogSource = source;
+            tripLog = summary;
+            tripLogError = null;
+            ReportLog.i(TAG, "BYD trip log (" + tripLogSource + "): " + summary.describe() + (file != null ? ";table=" + file.name : ""));
+            BydCalibration c = calibration;
+            if (c != null && file != null && calibrationFile == file) c.setTripLogRatio(summary.ratio);
+            if (file != null) {
+                JSONObject stored = new JSONObject().put("table", file.name).put("source", tripLogSource).put("at", tripLogAt)
+                        .put("trips", summary.trips).put("km", summary.km).put("kwh", summary.kwh).put("used", summary.used)
+                        .put("used_km", summary.usedKm).put("used_kwh", summary.usedKwh).put("table_kwh", summary.tableKwh)
+                        .put("newest", summary.newestMs);
+                if (!Double.isNaN(summary.ratio)) stored.put("ratio", summary.ratio);
+                context.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE).edit().putString(KEY_TRIP_LOG, stored.toString()).apply();
+                checkMismatch(summary.ratio, true);
+            }
+        } catch (Throwable failure) {
+            tripLogError = BydEnergyReader.describe(failure);
+            ReportLog.w(TAG, "BYD trip log not used: " + tripLogError);
+        }
+    }
+
+    // Worker thread only. The stored summary when it was priced against [file]'s table: shown in the dialog, its ratio returned.
+    private static double restoreTripLog(BydVehicleEnergyFile file) {
+        try {
+            String text = context.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE).getString(KEY_TRIP_LOG, null);
+            if (text == null) return Double.NaN;
+            JSONObject stored = new JSONObject(text);
+            if (!file.name.equals(stored.optString("table"))) return Double.NaN;
+            BydTripLog.Summary summary = new BydTripLog.Summary();
+            summary.trips = stored.optInt("trips");
+            summary.km = stored.optDouble("km", 0);
+            summary.kwh = stored.optDouble("kwh", 0);
+            summary.used = stored.optInt("used");
+            summary.usedKm = stored.optDouble("used_km", 0);
+            summary.usedKwh = stored.optDouble("used_kwh", 0);
+            summary.tableKwh = stored.optDouble("table_kwh", 0);
+            summary.newestMs = stored.optLong("newest");
+            summary.ratio = stored.optDouble("ratio", Double.NaN);
+            if (tripLog == null) {
+                tripLog = summary;
+                tripLogAt = stored.optLong("at");
+                tripLogSource = stored.optString("source", "file");
+            }
+            return summary.ratio;
+        } catch (Throwable error) {
+            ReportLog.w(TAG, "stored BYD trip log not read: " + BydEnergyReader.describe(error));
+            return Double.NaN;
+        }
+    }
+
+    // Worker thread only. Models outside DEFAULT_ON_MODEL_IDS: a ratio (the speed bands', else the trip log's) further from
+    // BYD's table than the learning covers keeps the default off from the next start; a ratio within keeps it on.
+    private static void checkMismatch(double ratio, boolean tripLogRatio) {
+        if (Double.isNaN(ratio) || defaultOnModel(modelId(context))) return;
+        // The speed bands decide once they have MISMATCH_POOLS pools; the trip log only before.
+        boolean bands = BydSpeedBands.speedPools() >= MISMATCH_POOLS;
+        if (tripLogRatio ? bands : !bands) return;
+        boolean far = tripLogRatio ? ratio < MISMATCH_LOG_LOW || ratio > MISMATCH_LOG_HIGH
+                : ratio < MISMATCH_BANDS_LOW || ratio > MISMATCH_BANDS_HIGH;
+        SharedPreferences preferences = context.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE);
+        if (preferences.getBoolean(KEY_MISMATCH, false) == far) return;
+        String text = String.format(Locale.ROOT, "%s ×%.2f", tripLogRatio ? "trip_log" : "speed_bands", ratio);
+        preferences.edit().putBoolean(KEY_MISMATCH, far).putString(KEY_MISMATCH_TEXT, text).apply();
+        ReportLog.i(TAG, "model check: " + text + (far ? ", far from BYD's table: off by default from the next start"
+                : ", within what the learning covers: on by default"));
+    }
+
+    // Worker thread only. A hybrid-size battery (MIN_BEV_WH): Maps gets no model while the readings say so (withdrawn if it
+    // had one); HYBRID_READINGS in a row store the verdict, which keeps the default off from the next start.
+    private static void hybridBattery(int capacityWh) {
+        if (++smallReadings == HYBRID_READINGS) {
+            String text = String.format(Locale.ROOT, "battery_kwh %.1f", capacityWh / 1000.0);
+            context.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE).edit().putBoolean(KEY_MISMATCH, true)
+                    .putString(KEY_MISMATCH_TEXT, text).apply();
+            ReportLog.i(TAG, "model check: " + text + ", a plug-in hybrid's size in " + HYBRID_READINGS
+                    + " readings: not sent to Maps, off by default from the next start");
+        }
+        smallBatteryWh = capacityWh;
+        BydDisplayCurve.clear();
+        if (energyModel != null) {
+            energyModel = null;
+            adjustedSent = false;
+            notifyModelChanged();
+        }
+    }
+
+    // Worker thread only. A reading published after hybrid-size ones: the dialog's hybrid notice goes. A full-size one
+    // ([capacityWh] above 0: SOC 10% or more, at least MIN_BEV_WH) shows those were not this car's battery: the count starts
+    // again and a verdict they stored in this process is withdrawn. 0: published for another reason (the owner's choice,
+    // SOC below 10%), the count stays.
+    private static void fullSizeBattery(int capacityWh) {
+        smallBatteryWh = 0;
+        if (capacityWh <= 0) return;
+        boolean stored = smallReadings >= HYBRID_READINGS;
+        smallReadings = 0;
+        String text = String.format(Locale.ROOT, "full_size_kwh %.1f", capacityWh / 1000.0);
+        if (stored && mismatchText(context).startsWith("battery_kwh ")) {
+            context.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE).edit().putBoolean(KEY_MISMATCH, false)
+                    .putString(KEY_MISMATCH_TEXT, text).apply();
+        }
+        ReportLog.i(TAG, "model check: " + text + " after hybrid-size readings" + (stored ? ", verdict withdrawn" : ""));
+    }
+
+    /** The owner turned BYD battery on or off in the dialog (the stored choice wins over every default). */
+    private static boolean userChose(Context context) {
+        try {
+            return context.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE).contains(KEY_ENABLED);
+        } catch (RuntimeException error) {
+            return false;
+        }
+    }
+
+    /**
+     * The stored verdict (see {@link #checkMismatch}) as this process read it first: it decides the default at the start
+     * and keeps deciding it until the next start, so a verdict found while running turns nothing off mid-drive.
+     */
+    private static boolean mismatch(Context context) {
+        Boolean value = startMismatch;
+        if (value != null) return value;
+        try {
+            value = context.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE).getBoolean(KEY_MISMATCH, false);
+        } catch (RuntimeException error) {
+            value = false;
+        }
+        startMismatch = value;
+        return value;
+    }
+
+    // The dialog's line: the summary, the read in progress, why it failed, or how to read it.
+    private static String tripLogText(boolean thai) {
+        if (tripLogReading) return thai ? "กำลังอ่าน…" : "Reading…";
+        BydTripLog.Summary s = tripLog;
+        String error = tripLogError;
+        StringBuilder text = new StringBuilder();
+        if (s != null && s.km > 0) {
+            text.append(String.format(Locale.ROOT, thai ? "%.1f" + NBSP + "kWh/100" + NBSP + "km จาก %d ทริป %.0f" + NBSP + "กม. ใน 120 วัน"
+                    : "%.1f" + NBSP + "kWh/100" + NBSP + "km over %d trips, %.0f" + NBSP + "km in 120 days", s.consumption(), s.trips, s.km));
+            if (!Double.isNaN(s.ratio)) {
+                text.append(String.format(Locale.ROOT, thai ? "\nทริปเฉลี่ย 20" + NBSP + "กม./ชม. ขึ้นไป ใช้ไฟ ×%.2f ของตาราง BYD"
+                        : "\nTrips averaging 20" + NBSP + "km/h or more used ×%.2f of BYD's table", s.ratio));
+            }
+        } else if (s != null) {
+            text.append(thai ? "ไม่มีทริปใน 120 วัน" : "No trips in 120 days");
+        }
+        if (error != null) {
+            if (text.length() > 0) text.append('\n');
+            text.append(thai ? "อ่านไม่ได้: " : "Not read: ").append(error);
+        }
+        if (text.length() > 0) return text.toString();
+        return thai ? "ยังไม่ได้อ่าน" : "Not read yet";
+    }
+
+    // The card's text: what Allow does on this car, or why the last tap did not read it.
+    private static String tripLogCardText(boolean thai) {
+        if (tripLogReading) return thai ? "กำลังอ่านบันทึกทริปของรถ…" : "Reading the car's trip log…";
+        StringBuilder text = new StringBuilder(thai ? "ให้ Maps อ่านบันทึกทริปของรถ เพื่อให้แบตแม่นตั้งแต่วันแรก"
+                : "Let Maps read the car's trip log, so the battery is accurate from day one.");
+        boolean storage = BydTripLogReader.storageRoute() && !BydTripLogReader.permitted(context) && !tripLogPermissionAsked;
+        if (!storage) {
+            text.append(thai ? " Maps อ่านผ่าน ADB ของรถ ถ้า Android ถามเรื่องการแก้ไขข้อบกพร่องผ่าน USB ให้กด อนุญาต"
+                    : " Maps reads it through the car's ADB. If Android asks \"Allow USB debugging?\", tap Allow.");
+        }
+        String error = tripLogError;
+        if (error != null) text.append(thai ? "\nอ่านไม่ได้: " : "\nNot read: ").append(error);
+        return text.toString();
+    }
+
+    /** The battery's share above 90% (91 to 100%), for the km per 1% of the whole battery. */
+    private static final double HIGH_SHARE = (100 - BydSpeedBands.HIGH_SOC) / 100.0;
+
+    /**
+     * The dialog's km per 1%, one value for the whole battery, so it no longer changes when the battery passes 90% (Details
+     * keeps the two ranges): each range weighted by its share of the battery, 10% above 90% and
+     * 90% below, so where the owner drove (a charge to 100%) does not pull it up. A range's value: its whole percents once
+     * {@link #MIN_KM_LEVELS}; else its energy per percent (its percents once {@link #MIN_LEVELS}; below 90% else the
+     * reading's own average) over the speed bands' measured consumption, or the learned one after {@link #MIN_KM_WINDOWS}
+     * windows. Without a value for 90% and below: NaN (learning); without one above 90%: the value below alone. The
+     * learner's starting value alone gave 4.5 where one car did 3.2.
+     */
+    static double kmPerPercent(double soc, int energyWh, BydVehicleModel.Status model) {
+        BydSpeedBands.LevelStatus[] levels = BydSpeedBands.levelStatus();
+        double consumption = BydSpeedBands.speedConsumption();
+        if (!(consumption > 0) && model.windows >= MIN_KM_WINDOWS) consumption = model.consumption;
+        double below = rangeKm(levels[1], consumption, energyWh / (soc + BydSocFraction.MIDPOINT));
+        if (Double.isNaN(below)) return Double.NaN;
+        double above = rangeKm(levels[0], consumption, Double.NaN);
+        return Double.isNaN(above) ? below : HIGH_SHARE * above + (1 - HIGH_SHARE) * below;
+    }
+
+    // One range's km per 1%: measured, else its energy per percent ([fallbackWh] with too few percents) over
+    // [consumption] (kWh/100 km); NaN without either.
+    private static double rangeKm(BydSpeedBands.LevelStatus level, double consumption, double fallbackWh) {
+        if (level.count >= MIN_KM_LEVELS && level.kmPerPercent > 0) return level.kmPerPercent;
+        double wh = level.count >= MIN_LEVELS ? level.kwhPerPercent * 1000 : fallbackWh;
+        return consumption > 0 && wh > 0 ? wh / (consumption * 10) : Double.NaN;
+    }
+
+    /** The whole battery's kWh per 1% for Details, weighted as {@link #kmPerPercent}; NaN before 3 percents at 90% and below. */
+    static double kwhPerPercent() {
+        BydSpeedBands.LevelStatus[] levels = BydSpeedBands.levelStatus();
+        if (levels[1].count < MIN_LEVELS) return Double.NaN;
+        if (levels[0].count < MIN_LEVELS) return levels[1].kwhPerPercent;
+        return HIGH_SHARE * levels[0].kwhPerPercent + (1 - HIGH_SHARE) * levels[1].kwhPerPercent;
+    }
+
     // Settings row. The patch adds it to Maps' Settings list, before About & help.
 
     /** Injection point: the row title. */
     public static String getSettingsTitle(Context context) {
-        return UiDensityPatch.isThai(context) ? "แบตเตอรี่รถ BYD (EV)" : "BYD battery (EV)";
+        return UiDensityPatch.isThai(context) ? "แบตเตอรี่ BYD" : "BYD battery";
     }
 
     /** Injection point: the row subtitle, the current state. */
     public static String getSettingsSummary(Context context) {
         boolean thai = UiDensityPatch.isThai(context);
         if (!SafeMode.on(context, SafeMode.BYD_BATTERY)) {
-            return (thai ? "ปิดชั่วคราว · สวิตช์ใน " : "Off for now · switch in ") + ReportPatch.reportPlace(context, thai);
+            return (thai ? "ปิดชั่วคราว (เปิดคืนใน " : "Off for now (back on in ") + ReportPatch.reportPlace(context, thai) + ")";
         }
         if (!isEnabled(context)) {
-            if (untestedByd(context)) return thai ? "ปิด · ยังไม่ได้ทดสอบกับรถรุ่นนี้" : "Off · not tested on this car model";
+            if (untestedByd(context) && mismatch(context)) return thai ? "ปิด · ข้อมูลรถไม่เข้ากัน" : "Off · car data does not fit";
+            if (untestedByd(context)) return thai ? "ปิด · ยังไม่ได้ทดสอบรุ่นนี้" : "Off · model not tested";
             return thai ? "ปิด" : "Off";
         }
-        if (!active) return thai ? "เปิด · ไม่พบระบบรถ BYD" : "On · no BYD vehicle system found";
+        if (!active) return thai ? "เปิด · ไม่พบระบบรถ BYD" : "On · no BYD system found";
+        if (smallBatteryWh > 0) return thai ? "เปิด · แบตขนาดไฮบริด ไม่ส่งให้ Maps" : "On · hybrid-size battery, not sent to Maps";
         double soc = lastSoc;
-        if (Double.isNaN(soc)) return thai ? "เปิด · รอข้อมูลแบตเตอรี่" : "On · waiting for battery data";
+        if (Double.isNaN(soc)) return thai ? "เปิด · รอแบตเตอรี่" : "On · waiting for the battery";
         // With BYD's table the load preset, which the user changes before a trip.
         if (energyFile != null) {
-            return String.format(Locale.ROOT, thai ? "เปิด · แบตเตอรี่ %.0f%% · %s" : "On · battery %.0f%% · %s",
-                    soc, loadName(loadKg, thai).toLowerCase(Locale.ROOT));
+            return String.format(Locale.ROOT, thai ? "เปิด · %.0f%% · %s" : "On · %.0f%% · %s", soc,
+                    loadName(loadKg, thai).toLowerCase(Locale.ROOT));
         }
         BydVehicleModel.Status status = BydVehicleModel.status();
-        String learned = status.windows == 0 ? ""
-                : thai ? " · เรียนรู้ " + status.windows + " ช่วง" : " · learned from " + status.windows + " segments";
-        return String.format(Locale.ROOT, thai ? "เปิด · แบตเตอรี่ %.0f%% · %.1f kWh/100 km%s"
-                : "On · battery %.0f%% · %.1f kWh/100 km%s", soc, status.consumption, learned);
+        return String.format(Locale.ROOT, "%s · %.0f%% · %.1f kWh/100 km", thai ? "เปิด" : "On", soc, status.consumption);
     }
 
     /**
@@ -1056,11 +1495,11 @@ public final class BydBatteryPatch {
             return;
         }
         Activity host = activity;
-        AlertDialog.Builder builder = new AlertDialog.Builder(host).setTitle(getSettingsTitle(host));
-        // The builder's context carries the dialog theme, so the views match the dialog background.
-        BatteryDialog views = new BatteryDialog(host, builder.getContext());
+        M3.Builder builder = new M3.Builder(host).setTitle(getSettingsTitle(host));
+        // The builder's context and colors (Maps' night or day), so the views match the dialog.
+        BatteryDialog views = new BatteryDialog(host, builder.getContext(), builder.colors());
         builder.setView(views.root).setPositiveButton(views.thai ? "ปิดหน้าต่าง" : "Close", null);
-        AlertDialog dialog = builder.create();
+        M3.Dialog dialog = builder.create();
         Handler main = new Handler(Looper.getMainLooper());
         Runnable refresh = new Runnable() {
             @Override
@@ -1075,21 +1514,27 @@ public final class BydBatteryPatch {
         dialog.show();
     }
 
-    /** The dialog's views. Colors come from the dialog theme; sizes are for a head unit at arm's length. */
+    /**
+     * The dialog's views, in Material 3 (M3): Maps' night or day colors; sizes are for a head unit at arm's
+     * length. [primary] and [secondary] are the text colors, [accent] the scheme's primary.
+     */
     private static final class BatteryDialog {
         private static final float NAME_WEIGHT = 1.4f;
         final boolean thai;
         final ScrollView root;
         private final Activity host;
         private final Context themed;
+        private final M3.Colors colors;
         private final int primary, secondary, accent;
-        private final LinearLayout content, battery, load, arrival, phone, lastSection, guidedSection, modelSection, usage,
-                carSection, bandTable, levelTable;
-        private final Switch toggle, phoneToggle;
+        private final LinearLayout content, battery, tripLogCard, load, arrival, phone, phoneDetails, lastSection, guidedSection, modelSection,
+                tripLogSection, usage, carSection, bandTable, levelTable;
+        private final M3.Switch toggle, phoneToggle;
+        private final M3.LevelBar levelBar;
+        private final View tripLogButtons;
         private final View batteryDivider, detailsDivider;
         private final TextView status, intro, percent, energy, batteryNote, healthNote, fallbackUsage, modelNotice, loadCaption,
-                arrivalCaption, phoneStatus, phoneCaption, lastText, guidedText, guidedCaption, modelCaption, usageHeader,
-                usageCaption, detailsToggle, details;
+                arrivalCaption, phoneStatus, phoneCaption, lastText, guidedText, guidedCaption, modelCaption, tripLogCaption, tripLogCardText,
+                usageHeader, usageCaption, detailsToggle, details;
         // The last export's result, shown under the guided drives until the dialog closes.
         private String exportStatus;
         private final TextView[] chips = new TextView[LOADS_KG.length];
@@ -1098,8 +1543,8 @@ public final class BydBatteryPatch {
         private int paintedChargingStop = -1, paintedDestination = -1;
         // The average over all speeds, then city, mixed, highway and above 90% SOC.
         private final Row[] rows = new Row[5];
-        // Per 1% of SOC: above 90%, then 90% and below.
-        private final Row[] levelRows = new Row[2];
+        // Per 1% of SOC: above 90%, 90% and below, then the whole battery (the main view's km per 1%).
+        private final Row[] levelRows = new Row[3];
         private int paintedLoad = -1;
         private boolean detailsOpen;
 
@@ -1107,13 +1552,14 @@ public final class BydBatteryPatch {
             TextView sub, measured, table, difference, pending;
         }
 
-        BatteryDialog(Activity host, Context themed) {
+        BatteryDialog(Activity host, Context themed, M3.Colors colors) {
             this.host = host;
             this.themed = themed;
+            this.colors = colors;
             thai = UiDensityPatch.isThai(host);
-            primary = themeColor(android.R.attr.textColorPrimary, new TextView(themed).getCurrentTextColor());
-            secondary = themeColor(android.R.attr.textColorSecondary, withAlpha(primary, 0xB3));
-            accent = themeColor(android.R.attr.colorAccent, primary);
+            primary = colors.onSurface;
+            secondary = colors.onSurfaceVariant;
+            accent = colors.primary;
 
             content = vertical();
             content.setPadding(0, px(4), 0, px(8));
@@ -1133,7 +1579,7 @@ public final class BydBatteryPatch {
             switchText.addView(switchTitle);
             switchText.addView(status);
             switchRow.addView(switchText, weight(1));
-            toggle = new Switch(themed);
+            toggle = new M3.Switch(themed, colors);
             toggle.setClickable(false);
             toggle.setFocusable(false);
             toggle.setChecked(isEnabled(host));
@@ -1147,26 +1593,59 @@ public final class BydBatteryPatch {
             intro.setPadding(px(24), px(4), px(24), px(8));
             content.addView(intro);
 
-            batteryDivider = divider();
-            content.addView(batteryDivider);
+            // Space above the battery card (shown with it).
+            batteryDivider = new View(themed);
+            content.addView(batteryDivider, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, px(4)));
 
-            // The battery: the percentage large, the energy and the distance per 1% beside it.
-            battery = horizontal();
-            battery.setPadding(px(24), px(12), px(24), px(4));
-            percent = text(40, primary, true);
+            // The battery in a card: the percentage large with the energy beside it (on one baseline), the level bar, then
+            // the distance per 1% and the outside temperature, and the battery's health when the car reports it.
+            battery = vertical();
+            M3.card(battery, colors);
+            battery.setPadding(px(20), px(16), px(20), px(16));
+            LinearLayout batteryTop = horizontal();
+            batteryTop.setGravity(Gravity.TOP);
+            percent = text(44, primary, true);
             percent.setIncludeFontPadding(false);
-            battery.addView(percent, wrap());
-            LinearLayout batteryText = vertical();
-            batteryText.setPadding(px(16), 0, 0, 0);
+            batteryTop.addView(percent, wrap());
             energy = text(17, primary, false);
+            energy.setPadding(px(12), 0, 0, 0);
+            batteryTop.addView(energy, weight(1));
+            battery.addView(batteryTop);
+            levelBar = new M3.LevelBar(themed, colors);
+            LinearLayout.LayoutParams barParams = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT);
+            barParams.setMargins(0, px(14), 0, px(10));
+            battery.addView(levelBar, barParams);
             batteryNote = text(14, secondary, false);
-            batteryText.addView(energy);
-            batteryText.addView(batteryNote);
-            // The battery health and temperatures from the car, when it reports them.
+            battery.addView(batteryNote);
             healthNote = text(14, secondary, false);
-            batteryText.addView(healthNote);
-            battery.addView(batteryText, weight(1));
-            content.addView(battery);
+            battery.addView(healthNote);
+            content.addView(battery, cardParams(8));
+            // BYD's trip log, once: only when Maps could not read it by itself (tripLogCardWanted).
+            tripLogCard = vertical();
+            M3.card(tripLogCard, colors);
+            tripLogCard.setPadding(px(20), px(16), px(20), px(16));
+            tripLogCardText = text(15, primary, false);
+            tripLogCardText.setLineSpacing(0, 1.2f);
+            tripLogCard.addView(tripLogCardText);
+            LinearLayout cardButtons = horizontal();
+            cardButtons.setGravity(Gravity.END);
+            cardButtons.setPadding(0, px(12), 0, 0);
+            Button notNow = M3.button(themed, colors, thai ? "ไม่ต้อง" : "Not now", M3.GRAY);
+            notNow.setOnClickListener(view -> {
+                dismissTripLogCard(host);
+                update();
+            });
+            cardButtons.addView(notNow, wrap());
+            Button allow = M3.button(themed, colors, thai ? "อนุญาต" : "Allow", M3.FILLED);
+            allow.setOnClickListener(view -> {
+                requestTripLog(host);
+                update();
+            });
+            cardButtons.addView(allow, after());
+            tripLogCard.addView(cardButtons);
+            tripLogButtons = cardButtons;
+            content.addView(tripLogCard, cardParams(12));
 
             // Without BYD's table: the consumption Maps plans with, which is the whole model there.
             fallbackUsage = text(15, primary, false);
@@ -1180,17 +1659,20 @@ public final class BydBatteryPatch {
 
             // People and luggage, one tap per preset; Maps gets the mass with the next reading.
             load = section(thai ? "ผู้โดยสารและสัมภาระ" : "People and luggage");
+            // A segmented button: the segments share their borders (each after the first overlaps the one before by the
+            // stroke) and take the height of the tallest label.
             LinearLayout chipRow = horizontal();
             for (int i = 0; i < LOADS_KG.length; i++) {
                 int preset = LOADS_KG[i];
                 TextView chip = text(15, primary, false);
                 chip.setGravity(Gravity.CENTER);
                 chip.setMinHeight(px(48));
-                chip.setPadding(px(6), px(4), px(6), px(4));
+                chip.setPadding(px(8), px(4), px(8), px(4));
                 chip.setText(chipName(preset, thai));
                 chip.setOnClickListener(view -> selectLoad(preset));
-                LinearLayout.LayoutParams params = weight(1);
-                params.setMargins(i == 0 ? 0 : px(4), px(4), i == LOADS_KG.length - 1 ? 0 : px(4), px(4));
+                LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.MATCH_PARENT, 1);
+                // The stroke's own width (M3.segment rounds; px() here truncates).
+                params.setMargins(i == 0 ? 0 : -Math.max(1, M3.px(themed, 1)), px(4), 0, px(4));
                 chipRow.addView(chip, params);
                 chips[i] = chip;
             }
@@ -1210,7 +1692,7 @@ public final class BydBatteryPatch {
             phone = section(thai ? "แบตบนมือถือ" : "Battery on the phone");
             phoneStatus = text(14, secondary, false);
             phoneStatus.setLineSpacing(0, 1.2f);
-            phoneToggle = new Switch(themed);
+            phoneToggle = new M3.Switch(themed, colors);
             phoneToggle.setChecked(PhoneBattery.isOn(host));
             phone.addView(phoneSwitch(thai ? "แสดงแบตใน Google Maps บนมือถือ" : "Show the battery in Google Maps on the phone",
                     phoneStatus, phoneToggle, () -> PhoneBattery.choose(host, !PhoneBattery.isOn(host))));
@@ -1226,21 +1708,17 @@ public final class BydBatteryPatch {
                     + " capacity, weight, power limits, consumption and charging curves, without the battery level or the outside"
                     + " temperature. Google Maps on a phone signed in to the same account can then show this car's battery and"
                     + " the battery on arrival.");
-            phone.addView(phoneCaption);
+            // The explanation goes under Details (phoneDetails, below the toggle).
 
-            // The last guided drive: Maps' battery on arrival at its start against the battery on arrival.
-            lastSection = section(thai ? "ทริปนำทางล่าสุด" : "Last guided drive");
-            lastText = text(15, primary, false);
-            lastText.setLineSpacing(0, 1.2f);
-            lastSection.addView(lastText);
 
             // The details, closed until asked for.
             detailsDivider = divider();
             content.addView(detailsDivider);
-            detailsToggle = text(15, accent, true);
-            detailsToggle.setMinHeight(px(48));
+            // A list row: the word, and a chevron at the end (down closed, up open; update()).
+            detailsToggle = text(16, primary, false);
+            detailsToggle.setMinHeight(px(56));
             detailsToggle.setGravity(Gravity.CENTER_VERTICAL);
-            detailsToggle.setPadding(px(24), 0, px(24), 0);
+            detailsToggle.setPadding(px(24), 0, px(20), 0);
             selectable(detailsToggle);
             detailsToggle.setOnClickListener(view -> {
                 detailsOpen = !detailsOpen;
@@ -1248,6 +1726,17 @@ public final class BydBatteryPatch {
                 if (detailsOpen) root.post(() -> root.smoothScrollTo(0, detailsToggle.getTop()));
             });
             content.addView(detailsToggle);
+
+            // Details (the main view keeps what is set before a trip): the last guided drive, Maps' battery on arrival at
+            // its start against the battery on arrival.
+            lastSection = section(thai ? "ทริปนำทางล่าสุด" : "Last guided drive");
+            lastText = text(15, primary, false);
+            lastText.setLineSpacing(0, 1.2f);
+            lastSection.addView(lastText);
+
+            // Details: what the phone gets while its switch is on.
+            phoneDetails = section(thai ? "แบตบนมือถือ" : "Battery on the phone");
+            phoneDetails.addView(phoneCaption);
 
             // Details: the guided drives before the last one (kept on the car), and the export of the drive records.
             guidedSection = section(thai ? "ทริปก่อนหน้า" : "Earlier drives");
@@ -1258,10 +1747,9 @@ public final class BydBatteryPatch {
             guidedFooter.setGravity(Gravity.CENTER_VERTICAL);
             guidedCaption = text(13, secondary, false);
             guidedFooter.addView(guidedCaption, weight(1));
-            Button export = new Button(themed, null, android.R.attr.buttonBarButtonStyle);
-            export.setText(thai ? "ส่งออกบันทึก" : "Export records");
+            Button export = M3.button(themed, colors, thai ? "ส่งออกบันทึก" : "Export records", M3.OUTLINED);
             export.setOnClickListener(view -> exportRecords());
-            guidedFooter.addView(export, wrap());
+            guidedFooter.addView(export, after());
             guidedSection.addView(guidedFooter);
 
             // Details: the model Maps receives, BYD's table adjusted with the values learned on this car.
@@ -1269,6 +1757,12 @@ public final class BydBatteryPatch {
             modelCaption = text(14, secondary, false);
             modelCaption.setLineSpacing(0, 1.2f);
             modelSection.addView(modelCaption);
+
+            // Details: what BYD's own trip log says (read by itself, or after the card's Allow).
+            tripLogSection = section(thai ? "บันทึกทริปของ BYD" : "BYD's trip log");
+            tripLogCaption = text(14, secondary, false);
+            tripLogCaption.setLineSpacing(0, 1.2f);
+            tripLogSection.addView(tripLogCaption);
 
             // Details: the consumption.
             usage = section("");
@@ -1298,15 +1792,16 @@ public final class BydBatteryPatch {
             levelTable.addView(levelHeading);
             levelRows[0] = row(levelTable, thai ? "แบตมากกว่า 90%" : "Above 90%", null);
             levelRows[1] = row(levelTable, thai ? "แบต 90% ลงมา" : "90% and below", null);
+            levelRows[2] = row(levelTable, thai ? "เฉลี่ยทั้งแบต" : "Whole battery",
+                    thai ? "90% ลงมา 9 ส่วน เกิน 90% 1 ส่วน" : "nine parts at 90% and below, one above");
             usage.addView(levelTable);
             LinearLayout footer = horizontal();
             footer.setGravity(Gravity.CENTER_VERTICAL);
             usageCaption = text(13, secondary, false);
             footer.addView(usageCaption, weight(1));
-            Button reset = new Button(themed, null, android.R.attr.buttonBarButtonStyle);
-            reset.setText(thai ? "ล้างค่า" : "Reset");
+            Button reset = M3.button(themed, colors, thai ? "ล้างค่า" : "Reset", M3.OUTLINED);
             reset.setOnClickListener(view -> confirmResetLearning(host, this::update));
-            footer.addView(reset, wrap());
+            footer.addView(reset, after());
             usage.addView(footer);
 
             // Details: the car and its battery.
@@ -1322,8 +1817,9 @@ public final class BydBatteryPatch {
             boolean enabled = isEnabled(host);
             if (toggle.isChecked() != enabled) toggle.setChecked(enabled);
             if (!enabled || !active) {
-                boolean untested = !enabled && untestedByd(host);
-                status.setText(!enabled ? (untested ? (thai ? "ปิด · ยังไม่ได้ทดสอบกับรถรุ่นนี้" : "Off · not tested on this car model")
+                boolean untested = !enabled && untestedByd(host), far = untested && mismatch(host);
+                status.setText(!enabled ? (far ? (thai ? "ปิด · ข้อมูลรถไม่เข้ากัน" : "Off · the car's data does not fit")
+                        : untested ? (thai ? "ปิด · ยังไม่ได้ทดสอบกับรถรุ่นนี้" : "Off · not tested on this car model")
                         : (thai ? "ปิด" : "Off"))
                         : (thai ? "เปิด · ไม่พบระบบรถ BYD (BYD SDK)" : "On · no BYD vehicle system (BYD SDK) found"));
                 intro.setText(!enabled
@@ -1331,7 +1827,12 @@ public final class BydBatteryPatch {
                         + " เปลี่ยนแล้วแอปจะเริ่มใหม่"
                         : "Turn on so Maps knows the battery level, shows the battery on arrival and plans charging stops."
                         + " The app restarts after a change.")
-                        + (!untested ? "" : thai
+                        + (!far ? "" : thai
+                        ? "\n\nข้อมูลที่วัดจากรถคันนี้ไม่เข้ากับ BYD battery (" + mismatchShown(host, true)
+                        + ") จึงปิดไว้ เปิดเองได้ แต่แบตเมื่อถึงปลายทางอาจคลาดเคลื่อนมาก"
+                        : "\n\nThis car's own data does not fit BYD battery (" + mismatchShown(host, false)
+                        + "), so this starts off. You can turn it on, but the battery on arrival may be far off.")
+                        + (!untested || far ? "" : thai
                         ? "\n\nรถรุ่นนี้ (" + modelText(host, true) + ") ยังไม่มีผลทดสอบ จึงปิดไว้ก่อน เปิดเองได้"
                         + " แต่แบตเมื่อถึงปลายทางอาจคลาดเคลื่อน ไม่รองรับปลั๊กอินไฮบริด (DM-i)"
                         : "\n\nThis car model (" + modelText(host, false) + ") has no test results yet, so this starts off."
@@ -1340,8 +1841,9 @@ public final class BydBatteryPatch {
                         : (thai ? "ไม่พบระบบรถ BYD จึงไม่ได้ส่งข้อมูลแบตให้ Maps ปิดได้ถ้าไม่ใช่รถ BYD"
                         : "No BYD vehicle system found, so Maps gets no battery data. Turn this off on other cars."));
                 show(intro, true);
-                for (View view : new View[]{batteryDivider, battery, fallbackUsage, modelNotice, load, arrival, phone, lastSection,
-                        detailsDivider, detailsToggle, guidedSection, modelSection, usage, carSection}) {
+                for (View view : new View[]{batteryDivider, battery, tripLogCard, fallbackUsage, modelNotice, load, arrival, phone,
+                        lastSection, phoneDetails, detailsDivider, detailsToggle, guidedSection, modelSection, tripLogSection, usage,
+                        carSection}) {
                     show(view, false);
                 }
                 return;
@@ -1350,7 +1852,10 @@ public final class BydBatteryPatch {
             long now = SystemClock.elapsedRealtime();
             boolean fresh = energyModel != null;
             long sampledAt = lastSampleAt, readAt = lastMapsReadAt;
-            status.setText(fresh
+            status.setText(smallBatteryWh > 0
+                    ? (thai ? "เปิด · แบตขนาดไฮบริด (DM-i) ไม่ส่งให้ Maps จะปิดตั้งแต่เปิดแอปครั้งถัดไป"
+                    : "On · a hybrid-size battery (DM-i), not sent to Maps; off from the next start")
+                    : fresh
                     ? readAt == 0 ? (thai ? "เปิด · รอ Maps อ่านข้อมูล" : "On · waiting for Maps to read")
                     : (thai ? "เปิด · ส่งให้ Maps แล้ว" : "On · sent to Maps")
                     : sampledAt == 0 ? (thai ? "เปิด · รออ่านแบตเตอรี่จากรถ" : "On · waiting for the car's battery")
@@ -1363,19 +1868,20 @@ public final class BydBatteryPatch {
             if (sampledAt == 0) {
                 percent.setText("–");
                 percent.setTextColor(secondary);
+                levelBar.setLevel(Float.NaN, colors);
                 energy.setText(thai ? "รออ่านแบตเตอรี่จากรถ" : "Waiting for the car's battery");
                 show(batteryNote, false);
             } else {
                 percent.setText(String.format(Locale.ROOT, "%.0f%%", sampleSoc));
                 percent.setTextColor(fresh ? primary : secondary);
+                levelBar.setLevel((float) (sampleSoc / 100), colors);
                 energy.setText(BydCapacityText.energyLine(sampleEnergyWh, sampleCapacityWh, sampleCapacityFrom, thai));
                 StringBuilder note = new StringBuilder();
                 if (!fresh) note.append(thai ? "อ่านเมื่อ " : "read ").append(ago(now - sampledAt, thai));
-                // The distance per 1% with the capacity Maps receives, the user's own rule of thumb.
-                if (sampleCapacityWh > 0 && model.consumption > 0) {
-                    join(note, String.format(Locale.ROOT, thai ? "≈ %.1f" + NBSP + "กม. ต่อ 1%%" : "≈ %.1f" + NBSP + "km per 1%%",
-                            sampleCapacityWh / (model.consumption * 1000.0)));
-                }
+                // The distance per 1%, the user's own rule of thumb: measured on this car (kmPerPercent), "learning" before.
+                double km = kmPerPercent(sampleSoc, sampleEnergyWh, model);
+                join(note, Double.isNaN(km) ? (thai ? "กม. ต่อ 1%: กำลังเรียนรู้" : "km per 1%: learning")
+                        : String.format(Locale.ROOT, thai ? "≈ %.1f" + NBSP + "กม. ต่อ 1%%" : "≈ %.1f" + NBSP + "km per 1%%", km));
                 if (sampleOutsideC != BydOutsideTemperature.UNAVAILABLE) {
                     join(note, String.format(Locale.ROOT, thai ? "นอกรถ %d" + NBSP + "°C" : "outside %d" + NBSP + "°C", sampleOutsideC));
                 }
@@ -1423,13 +1929,17 @@ public final class BydBatteryPatch {
             boolean phoneOn = PhoneBattery.isOn(host);
             if (phoneToggle.isChecked() != phoneOn) phoneToggle.setChecked(phoneOn);
             phoneStatus.setText(PhoneBattery.status(host, thai));
+            // What the phone gets, in the details: the switch and its state are enough on the main view.
+            show(phoneDetails, detailsOpen);
 
-            show(lastSection, true);
+            show(lastSection, detailsOpen);
             lastText.setText(lastDriveText(thai));
 
             show(detailsDivider, true);
             show(detailsToggle, true);
-            detailsToggle.setText((thai ? "รายละเอียด" : "Details") + (detailsOpen ? "  ▴" : "  ▾"));
+            detailsToggle.setText(thai ? "รายละเอียด" : "Details");
+            detailsToggle.setCompoundDrawablesRelativeWithIntrinsicBounds(null, null,
+                    new M3.Chevron(px(24), secondary, detailsOpen), null);
 
             show(guidedSection, detailsOpen);
             guidedText.setText(earlierDrivesText(thai));
@@ -1438,12 +1948,25 @@ public final class BydBatteryPatch {
             show(modelSection, detailsOpen && file != null);
             if (detailsOpen && file != null) modelCaption.setText(modelDetails(file, thai));
 
+            // After Android's Allow for the storage permission, read the log once.
+            if (tripLogPermissionAsked && !tripLogReading && BydTripLogReader.permitted(host)) {
+                tripLogPermissionAsked = false;
+                readTripLog(BydTripLogReader.FILE);
+            }
+            boolean card = tripLogCardWanted(host);
+            show(tripLogCard, card);
+            if (card) {
+                tripLogCardText.setText(tripLogCardText(thai));
+                show(tripLogButtons, !tripLogReading);
+            }
+            show(tripLogSection, detailsOpen && file != null);
+            if (detailsOpen) tripLogCaption.setText(tripLogText(thai));
+
             show(usage, detailsOpen && energyFileChecked);
             if (file != null) {
                 usageHeader.setText(thai ? "อัตรากินไฟที่วัดได้ (ใช้เทียบ ไม่ได้ส่งให้ Maps)"
                         : "Measured consumption (for comparison, not sent to Maps)");
                 show(bandTable, true);
-                show(levelTable, true);
                 rows[0].sub.setText(sourceText(model, thai));
                 values(rows[0], number(model.consumption), "", "");
                 BydSpeedBands.Status[] bands = BydSpeedBands.status();
@@ -1459,27 +1982,40 @@ public final class BydBatteryPatch {
                                 : (thai ? "ยังไม่มีข้อมูล" : "no data yet"));
                     }
                 }
-                BydSpeedBands.LevelStatus[] levels = BydSpeedBands.levelStatus();
-                for (int i = 0; i < levels.length; i++) {
-                    BydSpeedBands.LevelStatus level = levels[i];
-                    if (level.count > 0) {
-                        values(levelRows[i], String.format(Locale.ROOT, "%.1f", level.kmPerPercent),
-                                String.format(Locale.ROOT, "%.2f", level.kwhPerPercent),
-                                thai ? level.count + " ครั้ง" : level.count + "×");
-                    } else {
-                        pending(levelRows[i], thai ? "ยังไม่มีข้อมูล" : "no data yet");
-                    }
-                }
                 usageCaption.setText("");
             } else {
                 // The value itself is on the main view; here how it is learned, and the reset.
                 usageHeader.setText(thai ? "อัตรากินไฟที่ Maps ใช้" : "Consumption Maps uses");
                 show(bandTable, false);
-                show(levelTable, false);
                 // No-break spaces keep "5% per segment" on one line.
                 usageCaption.setText(thai
                         ? "ปรับอัตโนมัติจากการขับต่อเนื่องช่วงละ 10 กม. และ 5 นาทีขึ้นไป ไม่เกิน" + NBSP + "5%" + NBSP + "ต่อช่วง"
-                        : "Adjusted from continuous driving segments of 10 km and 5 minutes or more, at most 5%" + NBSP + "per" + NBSP + "segment.");
+                        + " หรือ 25% เมื่อสองช่วงติดกันต่างไปทางเดียวกันเกิน 15%"
+                        : "Adjusted from continuous driving segments of 10 km and 5 minutes or more, at most 5%" + NBSP + "per" + NBSP
+                        + "segment, or 25% when two segments in a row differ by more than 15% the same way.");
+            }
+            // The whole percents need no table (DiLink 5 too).
+            show(levelTable, true);
+            BydSpeedBands.LevelStatus[] levels = BydSpeedBands.levelStatus();
+            for (int i = 0; i < levels.length; i++) {
+                BydSpeedBands.LevelStatus level = levels[i];
+                if (level.count > 0) {
+                    values(levelRows[i], String.format(Locale.ROOT, "%.1f", level.kmPerPercent),
+                            String.format(Locale.ROOT, "%.2f", level.kwhPerPercent),
+                            thai ? level.count + " ครั้ง" : level.count + "×");
+                } else {
+                    pending(levelRows[i], thai ? "ยังไม่มีข้อมูล" : "no data yet");
+                }
+            }
+            // The whole battery: the main view's value (the two ranges weighted 1 to 9), so the two always agree.
+            double wholeKm = kmPerPercent(sampleSoc, sampleEnergyWh, model), wholeKwh = kwhPerPercent();
+            long counted = levels[0].count + levels[1].count;
+            if (Double.isNaN(wholeKm)) {
+                pending(levelRows[2], thai ? "ยังไม่มีข้อมูล" : "no data yet");
+            } else {
+                values(levelRows[2], String.format(Locale.ROOT, "%.1f", wholeKm),
+                        Double.isNaN(wholeKwh) ? "–" : String.format(Locale.ROOT, "%.2f", wholeKwh),
+                        thai ? counted + " ครั้ง" : counted + "×");
             }
 
             show(carSection, detailsOpen);
@@ -1520,9 +2056,10 @@ public final class BydBatteryPatch {
             double km = drive.km();
             if (km > 0) out.append(String.format(Locale.ROOT, " · %.0f" + NBSP + (thai ? "กม." : "km"), km));
             out.append('\n').append(brief ? (thai ? "Maps ทำนาย " : "Maps forecast ") : (thai ? "Maps ทำนายตอนออก " : "Maps at the start "))
-                    .append(levelText(drive.firstArrivalWh, drive.capacityWh, brief));
+                    .append(levelText(drive.firstArrivalWh, drive.firstShownPercent, drive.capacityWh, brief));
             if (open) {
-                out.append(thai ? " · ล่าสุด " : " · latest ").append(levelText(drive.lastArrivalWh, drive.capacityWh, brief));
+                out.append(thai ? " · ล่าสุด " : " · latest ")
+                        .append(levelText(drive.lastArrivalWh, drive.lastShownPercent, drive.capacityWh, brief));
                 if (!brief) out.append(String.format(Locale.ROOT, thai ? " · อัปเดต %d ครั้ง" : " · %d updates", drive.updates));
             } else if (drive.endBatteryWh >= 0) {
                 boolean arrived = BydForecast.ARRIVED.equals(drive.endReason);
@@ -1530,7 +2067,7 @@ public final class BydBatteryPatch {
                 String end = !Double.isNaN(drive.endSoc) && drive.endSoc >= 0
                         ? brief ? String.format(Locale.ROOT, "%.0f%%", Math.floor(drive.endSoc))
                         : String.format(Locale.ROOT, "%.0f%% (%.1f" + NBSP + "kWh)", Math.floor(drive.endSoc), drive.endBatteryWh / 1000.0)
-                        : levelText(drive.endBatteryWh, drive.capacityWh, brief);
+                        : levelText(drive.endBatteryWh, -1, drive.capacityWh, brief);
                 out.append(arrived ? (thai ? " · ถึงจริง " : " · arrived with ") : (thai ? " · แบตตอนจบ " : " · battery at the end "))
                         .append(end);
                 int error = drive.errorWh();
@@ -1543,8 +2080,13 @@ public final class BydBatteryPatch {
             return out.toString();
         }
 
-        // "41% (20.1 kWh)"; brief: "41%" (kWh alone without a capacity, as in the full text).
-        private String levelText(int wattHours, int capacityWh, boolean brief) {
+        // "41% (20.1 kWh)"; brief: "41%" (kWh alone without a capacity, as in the full text). The percentage Maps showed
+        // when it is known (above 90% each percent holds more, BydDisplayCurve), else energy × 100 / capacity.
+        private String levelText(int wattHours, int shownPercent, int capacityWh, boolean brief) {
+            if (shownPercent >= 0 && wattHours != Integer.MIN_VALUE) {
+                return brief ? shownPercent + "%"
+                        : String.format(Locale.ROOT, "%d%% (%.1f" + NBSP + "kWh)", shownPercent, wattHours / 1000.0);
+            }
             if (!brief || wattHours == Integer.MIN_VALUE || capacityWh <= 0) return energyText(wattHours, capacityWh);
             return String.format(Locale.ROOT, "%.0f%%", Math.floor(wattHours * 100.0 / capacityWh));
         }
@@ -1648,10 +2190,17 @@ public final class BydBatteryPatch {
                     + (off || !(tooHigh > 0) ? "" : String.format(Locale.ROOT, thai ? " · วัดได้ %d" + NBSP + "W เกินเกณฑ์ %d" + NBSP + "W ไม่นำมาใช้"
                     : " · measured %d" + NBSP + "W, above the %d" + NBSP + "W limit, not used", Math.round(tooHigh),
                     Math.round(BydCalibration.PLAUSIBLE_AUX_W))));
-            line(text, thai ? "แรงต้านและการสูญเสีย" : "Road load and losses", s.tractionWh > 0
-                    ? String.format(Locale.ROOT, thai ? "×%.2f จากค่าทำนายของ Maps %.0f" + NBSP + "กม."
-                    : "×%.2f from Maps' forecasts over %.0f" + NBSP + "km", s.factor, s.km)
-                    : (thai ? "×1.00 (ยังไม่มีค่าทำนายของ Maps ให้เทียบ)" : "×1.00 (no Maps forecast to compare yet)"));
+            line(text, thai ? "แรงต้านและการสูญเสีย" : "Road load and losses", (s.tractionWh > 0
+                    ? String.format(Locale.ROOT, thai ? "×%.2f จากค่าทำนายของ Maps %.0f" + NBSP + "กม. %d เส้นทาง"
+                    : "×%.2f from Maps' forecasts over %.0f" + NBSP + "km, %d routes", s.factor, s.km, s.routes)
+                    : s.center != 1 ? String.format(Locale.ROOT, thai ? "×%.2f จากบันทึกทริปของ BYD (ยังไม่มีค่าทำนายของ Maps ให้เทียบ)"
+                    : "×%.2f from BYD's trip log (no Maps forecast to compare yet)", s.factor)
+                    : (thai ? "×1.00 (ยังไม่มีค่าทำนายของ Maps ให้เทียบ)" : "×1.00 (no Maps forecast to compare yet)"))
+                    // With routes the factor moves from its centre, which BYD's trip log may have set.
+                    + (s.tractionWh > 0 && s.center != 1 ? String.format(Locale.ROOT, thai ? " · เริ่มที่ ×%.2f จากบันทึกทริปของ BYD"
+                    : " · started at ×%.2f from BYD's trip log", s.center) : "")
+                    + (s.learning ? (thai ? " · ยังเรียนรู้" : " · still learning") : "")
+                    + wideText(s.wideBy, thai));
             // After a failure Maps has the table, so nothing "applies" yet.
             if (notice == null) {
                 text.append(s.route ? String.format(Locale.ROOT, thai ? "เส้นทางนี้ใช้ค่าที่ล็อกไว้ตอนเริ่ม (×%.2f)"
@@ -1663,29 +2212,17 @@ public final class BydBatteryPatch {
             return text;
         }
 
+        // The load presets: one segmented button.
         private void paintChips() {
             paintedLoad = loadKg;
-            for (int i = 0; i < chips.length; i++) styleChip(chips[i], LOADS_KG[i] == loadKg);
-        }
-
-        private void styleChip(TextView chip, boolean selected) {
-            int ripple = withAlpha(primary, 0x29);
-            GradientDrawable shape = new GradientDrawable();
-            shape.setCornerRadius(px(10));
-            shape.setColor(selected ? withAlpha(accent, 0x38) : Color.TRANSPARENT);
-            shape.setStroke(px(selected ? 2 : 1), selected ? accent : withAlpha(secondary, 0x80));
-            // A transparent chip would mask the ripple to its outline, so the mask is solid.
-            GradientDrawable mask = new GradientDrawable();
-            mask.setCornerRadius(px(10));
-            mask.setColor(Color.WHITE);
-            chip.setBackground(new RippleDrawable(ColorStateList.valueOf(ripple), shape, mask));
-            chip.setTypeface(selected ? Typeface.DEFAULT_BOLD : Typeface.DEFAULT);
-            chip.setSelected(selected);
+            for (int i = 0; i < chips.length; i++) {
+                M3.segment(chips[i], colors, LOADS_KG[i] == loadKg, i == 0, i == chips.length - 1);
+            }
         }
 
         // A switch row of Battery on the phone: the title and [statusText] on the left, [toggle] on the right. The whole
         // row is the touch target; [flip] stores the new choice, then the dialog refreshes.
-        private LinearLayout phoneSwitch(String title, TextView statusText, Switch toggle, Runnable flip) {
+        private LinearLayout phoneSwitch(String title, TextView statusText, M3.Switch toggle, Runnable flip) {
             LinearLayout row = horizontal();
             row.setMinimumHeight(px(56));
             row.setPadding(0, px(4), 0, px(4));
@@ -1708,21 +2245,23 @@ public final class BydBatteryPatch {
 
         // A label and one chip per choice of [level] (Auto, then the percentages), added to the arrival section.
         private void arrivalChips(String level, TextView[] levelChips, String label) {
-            TextView caption = text(15, primary, false);
+            TextView caption = text(14, secondary, false);
             caption.setText(label);
-            caption.setPadding(0, px(4), 0, 0);
+            caption.setPadding(0, px(8), 0, 0);
             arrival.addView(caption);
             int[] choices = ArrivalBattery.choices(level);
+            // Filter chips, as tall as the tallest of the row.
             LinearLayout chipRow = horizontal();
             for (int i = 0; i < choices.length; i++) {
                 int choice = choices[i];
                 TextView chip = text(15, primary, false);
                 chip.setGravity(Gravity.CENTER);
                 chip.setMinHeight(px(48));
-                chip.setPadding(px(4), px(4), px(4), px(4));
+                chip.setPadding(px(6), px(4), px(6), px(4));
                 chip.setText(choice == ArrivalBattery.AUTO ? (thai ? "อัตโนมัติ" : "Auto") : choice + "%");
                 chip.setOnClickListener(view -> selectArrival(level, choice));
-                LinearLayout.LayoutParams params = weight(choice == ArrivalBattery.AUTO ? 1.6f : 1);
+                LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.MATCH_PARENT,
+                        choice == ArrivalBattery.AUTO ? 1.6f : 1);
                 params.setMargins(i == 0 ? 0 : px(4), px(4), i == choices.length - 1 ? 0 : px(4), px(4));
                 chipRow.addView(chip, params);
                 levelChips[i] = chip;
@@ -1737,7 +2276,7 @@ public final class BydBatteryPatch {
         }
 
         private void paintChoices(TextView[] levelChips, int[] choices, int selected) {
-            for (int i = 0; i < levelChips.length; i++) styleChip(levelChips[i], choices[i] == selected);
+            for (int i = 0; i < levelChips.length; i++) M3.chip(levelChips[i], colors, choices[i] == selected);
         }
 
         // What Auto is, and Google's levels once Maps used them (the labels above the chips say what the choices do).
@@ -1921,32 +2460,36 @@ public final class BydBatteryPatch {
             return cell;
         }
 
+        // A section: its label (M3: primary, medium), then what the caller adds.
         private LinearLayout section(String title) {
             LinearLayout section = vertical();
-            section.setPadding(px(24), px(16), px(24), 0);
-            TextView header = text(14, accent, true);
-            header.setText(title);
-            header.setPadding(0, 0, 0, px(4));
+            section.setPadding(px(24), px(20), px(24), 0);
+            TextView header = M3.label(themed, colors, title);
+            header.setPadding(0, 0, 0, px(8));
             section.addView(header);
             content.addView(section);
             return section;
         }
 
         private View divider() {
-            View divider = new View(themed);
-            divider.setBackgroundColor(withAlpha(secondary, 0x40));
+            View divider = M3.divider(themed, colors);
             LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, Math.max(1, px(1)));
-            params.setMargins(px(24), px(4), px(24), px(4));
+            params.setMargins(0, px(16), 0, 0);
             divider.setLayoutParams(params);
             return divider;
         }
 
-        private TextView text(int sp, int color, boolean bold) {
-            TextView view = new TextView(themed);
-            view.setTextSize(TypedValue.COMPLEX_UNIT_SP, sp);
-            view.setTextColor(color);
-            if (bold) view.setTypeface(Typeface.DEFAULT_BOLD);
-            return view;
+        // A card's place in the content: the dialog's side margins, [top] dp above.
+        private LinearLayout.LayoutParams cardParams(int top) {
+            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT);
+            params.setMargins(px(24), px(top), px(24), 0);
+            return params;
+        }
+
+        // [medium] is M3's medium weight (the old bold).
+        private TextView text(int sp, int color, boolean medium) {
+            return M3.text(themed, sp, color, medium);
         }
 
         private LinearLayout vertical() {
@@ -1963,22 +2506,7 @@ public final class BydBatteryPatch {
         }
 
         private void selectable(View view) {
-            TypedValue ripple = new TypedValue();
-            if (themed.getTheme().resolveAttribute(android.R.attr.selectableItemBackground, ripple, true)) {
-                view.setBackgroundResource(ripple.resourceId);
-            }
-        }
-
-        private int themeColor(int attribute, int fallback) {
-            TypedValue value = new TypedValue();
-            if (!themed.getTheme().resolveAttribute(attribute, value, true)) return fallback;
-            if (value.type >= TypedValue.TYPE_FIRST_COLOR_INT && value.type <= TypedValue.TYPE_LAST_COLOR_INT) return value.data;
-            try {
-                if (value.resourceId != 0) return themed.getColorStateList(value.resourceId).getDefaultColor();
-            } catch (RuntimeException error) {
-                ReportLog.w(TAG, "Dialog color " + attribute + " unavailable", error);
-            }
-            return fallback;
+            M3.selectable(view, colors);
         }
 
         private int px(int dp) {
@@ -1993,6 +2521,13 @@ public final class BydBatteryPatch {
             return new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
         }
 
+        // A button after a caption or another button: 8 dp apart.
+        private LinearLayout.LayoutParams after() {
+            LinearLayout.LayoutParams params = wrap();
+            params.setMarginStart(px(8));
+            return params;
+        }
+
         private static void show(View view, boolean visible) {
             int visibility = visible ? View.VISIBLE : View.GONE;
             if (view.getVisibility() != visibility) view.setVisibility(visibility);
@@ -2001,10 +2536,6 @@ public final class BydBatteryPatch {
         private static void join(StringBuilder text, String part) {
             if (text.length() > 0) text.append(" · ");
             text.append(part);
-        }
-
-        private static int withAlpha(int color, int alpha) {
-            return color & 0x00FFFFFF | alpha << 24;
         }
     }
 
@@ -2060,6 +2591,21 @@ public final class BydBatteryPatch {
     }
 
     /** "41% (20.1 kWh)", or kWh alone without a capacity. */
+    // Why the factor's wider range applies: what agreed with the routes (BydCalibration.Status.wideBy); "" when it does not.
+    private static String wideText(String by, boolean thai) {
+        if (by == null) return "";
+        switch (by) {
+            case "speed_bands":
+                return thai ? " · ขยายช่วงแล้ว (เส้นทางกับช่วงความเร็วตรงกัน)" : " · wider range (routes and speed records agree)";
+            case "trip_log":
+                return thai ? " · ขยายช่วงแล้ว (เส้นทางกับบันทึกทริปของ BYD ตรงกัน)" : " · wider range (routes and BYD's trip log agree)";
+            default:
+                // BydCalibration.WIDE_ALONE_WH: no speed records or trip log to compare, enough routes alone.
+                String kwh = String.format(Locale.ROOT, "%.0f", BydCalibration.WIDE_ALONE_WH / 1000);
+                return thai ? " · ขยายช่วงแล้ว (เส้นทางรวม " + kwh + NBSP + "kWh)" : " · wider range (" + kwh + NBSP + "kWh of routes)";
+        }
+    }
+
     private static String energyText(int wattHours, int capacityWh) {
         if (wattHours == Integer.MIN_VALUE) return "–";
         String kwh = String.format(Locale.ROOT, "%.1f" + NBSP + "kWh", wattHours / 1000.0);
@@ -2094,7 +2640,8 @@ public final class BydBatteryPatch {
     private static void confirmResetLearning(Activity activity, Runnable done) {
         boolean thai = UiDensityPatch.isThai(activity);
         boolean comparison = energyFile != null;
-        new AlertDialog.Builder(activity)
+        new M3.Builder(activity)
+                .setDestructive()
                 .setTitle(comparison ? (thai ? "ล้างค่าที่วัดได้?" : "Reset the measured values?")
                         : (thai ? "ล้างค่าที่เรียนรู้?" : "Reset learning?"))
                 .setMessage(comparison
@@ -2130,7 +2677,7 @@ public final class BydBatteryPatch {
     // dialog stays open behind this one, so Cancel returns to it unchanged.
     private static void confirmRestart(Activity activity, boolean enable) {
         boolean thai = UiDensityPatch.isThai(activity);
-        new AlertDialog.Builder(activity)
+        new M3.Builder(activity)
                 .setTitle(enable ? (thai ? "เปิดใช้แบตเตอรี่รถใน Maps?" : "Use the car's battery in Maps?")
                         : (thai ? "เลิกใช้แบตเตอรี่รถใน Maps?" : "Stop using the car's battery in Maps?"))
                 .setMessage(thai
@@ -2210,11 +2757,43 @@ public final class BydBatteryPatch {
     }
 
     /**
-     * Whether BYD battery starts on without a stored choice: a model in {@link #DEFAULT_ON_MODEL_IDS} with the BYD
-     * SDK, the DiLink 3 platform it was tested and reported on. Wider than {@link #testedModel}, never used for it.
+     * Whether BYD battery starts on without a stored choice, with the BYD SDK (the DiLink 3 platform it was tested and
+     * reported on): a model in {@link #DEFAULT_ON_MODEL_IDS}, or another one with DiCarServer's tables and no mismatch
+     * verdict ({@link #checkMismatch}). Wider than {@link #testedModel}, never used for it.
      */
     private static boolean defaultOn(Context context) {
-        return hasBydSdk() && defaultOnModel(modelId(context));
+        if (!hasBydSdk()) return false;
+        return defaultOnModel(modelId(context)) || hasEnergyTables(context) && !mismatch(context);
+    }
+
+    /**
+     * BYD's DiCarServer is installed and holds at least one of the energy tables BYD battery reads
+     * ({@link BydVehicleEnergyFile#tableOrder}); checked once per process. DiCarServer without them would run on the
+     * fallback model, whose demo-car values no check here can turn off.
+     */
+    private static boolean hasEnergyTables(Context context) {
+        Boolean known = energyTables;
+        if (known != null) return known;
+        boolean found = false;
+        String detail;
+        try {
+            AssetManager assets = context.createPackageContext(DICAR_PACKAGE, 0).getAssets();
+            detail = "none of " + BydVehicleEnergyFile.tableOrder(0);
+            for (String name : BydVehicleEnergyFile.tableOrder(0)) {
+                try (InputStream in = assets.open(name)) {
+                    found = true;
+                    detail = name;
+                    break;
+                } catch (IOException missing) {
+                    // The next table.
+                }
+            }
+        } catch (Throwable error) {
+            detail = BydEnergyReader.describe(error);
+        }
+        energyTables = found;
+        ReportLog.i(TAG, "BYD energy tables in " + DICAR_PACKAGE + ": " + (found ? "found (" + detail + ")" : "not found (" + detail + ")"));
+        return found;
     }
 
     private static boolean defaultOnModel(int id) {
@@ -2314,6 +2893,38 @@ public final class BydBatteryPatch {
         } catch (NumberFormatException error) {
             return MODEL_UNKNOWN;
         }
+    }
+
+    /** The stored mismatch verdict as it is now (mismatch() keeps the one this process started with). */
+    private static boolean storedMismatch(Context context) {
+        try {
+            return context.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE).getBoolean(KEY_MISMATCH, false);
+        } catch (RuntimeException error) {
+            return false;
+        }
+    }
+
+    /** The stored mismatch verdict's numbers ("speed_bands ×2.31"), for the notice. */
+    private static String mismatchText(Context context) {
+        try {
+            return context.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE).getString(KEY_MISMATCH_TEXT, "");
+        } catch (RuntimeException error) {
+            return "";
+        }
+    }
+
+    /** The verdict for the notice: "speed records ×2.31 the table" ("ช่วงความเร็ว ×2.31 ของตาราง"). */
+    private static String mismatchShown(Context context, boolean thai) {
+        String text = mismatchText(context);
+        int at = text.indexOf(' ');
+        if (at < 0) return text;
+        String source = text.substring(0, at), value = text.substring(at + 1);
+        if (source.equals("battery_kwh")) {
+            return thai ? "แบต " + value + " kWh ขนาดของปลั๊กอินไฮบริด (DM-i)" : "battery " + value + " kWh, a plug-in hybrid's size (DM-i)";
+        }
+        boolean log = source.equals("trip_log");
+        return thai ? (log ? "บันทึกทริปของ BYD " : "ช่วงความเร็ว ") + value + " ของตาราง"
+                : (log ? "BYD's trip log " : "speed records ") + value + " the table";
     }
 
     /** "รหัสรุ่น 123" for the untested notices, or that the id could not be read. */
@@ -2427,6 +3038,16 @@ public final class BydBatteryPatch {
                 .put("guided_drives", on ? guidedReport() : JSONObject.NULL)
                 .put("drives", on ? drivesReport() : JSONObject.NULL)
                 .put("calibration", on ? calibrationReport() : JSONObject.NULL)
+                .put("trip_log", on ? tripLogReport() : JSONObject.NULL)
+                .put("display_curve", on ? BydDisplayCurve.status() : JSONObject.NULL)
+                .put("km_per_percent", on && sampled ? finiteOrNull(kmPerPercent(sampleSoc, sampleEnergyWh, BydVehicleModel.status()))
+                        : JSONObject.NULL)
+                .put("model_mismatch", mismatch(context) ? mismatchText(context) : JSONObject.NULL)
+                // The stored verdict now (found or withdrawn while running), which decides the next start.
+                .put("model_mismatch_stored", storedMismatch(context) ? mismatchText(context) : JSONObject.NULL)
+                .put("model_check_text", mismatchText(context).isEmpty() ? JSONObject.NULL : mismatchText(context))
+                .put("small_battery_wh", smallBatteryWh > 0 ? smallBatteryWh : JSONObject.NULL)
+                .put("energy_tables", energyTables != null ? energyTables : JSONObject.NULL)
                 .put("drive_log", on ? BydDriveLog.status() : JSONObject.NULL)
                 .put("signals", on && signalStatus != null ? new JSONObject().put("status", signalStatus)
                         .put("first", signalFirst != null ? keyValues(signalFirst) : JSONObject.NULL) : JSONObject.NULL);
@@ -2527,7 +3148,27 @@ public final class BydBatteryPatch {
                 .put("routes", s.routes)
                 .put("last_route_ratio", finiteOrNull(s.lastRouteRatio))
                 .put("route_active", s.route)
-                .put("seeded", s.seeded);
+                .put("seeded", s.seeded)
+                .put("factor_center", s.center)
+                .put("trip_log_ratio", finiteOrNull(s.tripLogRatio))
+                .put("speed_ratio", finiteOrNull(s.speedRatio))
+                .put("factor_wide", s.wide)
+                .put("factor_wide_by", s.wideBy != null ? s.wideBy : JSONObject.NULL)
+                .put("factor_learning", s.learning);
+    }
+
+    private static JSONObject tripLogReport() throws JSONException {
+        BydTripLog.Summary s = tripLog;
+        JSONObject out = new JSONObject().put("storage_permission", BydTripLogReader.permitted(context))
+                .put("source", tripLogSource != null ? tripLogSource : JSONObject.NULL)
+                .put("read_at", tripLogAt != 0 ? (Object) tripLogAt : JSONObject.NULL)
+                .put("error", tripLogError != null ? tripLogError : JSONObject.NULL)
+                .put("quiet_adb", tripLogQuiet != null ? tripLogQuiet : JSONObject.NULL);
+        if (s == null) return out;
+        return out.put("trips", s.trips).put("km", Math.round(s.km)).put("kwh", Math.round(s.kwh * 10) / 10.0)
+                .put("kwh_100km", finiteOrNull(s.consumption())).put("used", s.used).put("used_km", Math.round(s.usedKm))
+                .put("used_kwh", Math.round(s.usedKwh * 10) / 10.0).put("table_kwh", Math.round(s.tableKwh * 10) / 10.0)
+                .put("ratio", finiteOrNull(s.ratio));
     }
 
     private static Object finiteOrNull(double value) {
@@ -2578,11 +3219,13 @@ public final class BydBatteryPatch {
                     .put("start_wh", drive.startBatteryWh >= 0 ? drive.startBatteryWh : JSONObject.NULL)
                     .put("start_soc", Double.isNaN(drive.startSoc) ? JSONObject.NULL : drive.startSoc)
                     .put("first_arrival_wh", energyOrNull(drive.firstArrivalWh))
+                    .put("first_arrival_shown_percent", drive.firstShownPercent >= 0 ? drive.firstShownPercent : JSONObject.NULL)
                     .put("first_distance_m", drive.firstDistanceM)
                     .put("first_time_s", drive.firstTimeS)
                     .put("first_stops", drive.firstStops)
                     .put("first_quality", drive.firstQuality)
                     .put("last_arrival_wh", energyOrNull(drive.lastArrivalWh))
+                    .put("last_arrival_shown_percent", drive.lastShownPercent >= 0 ? drive.lastShownPercent : JSONObject.NULL)
                     .put("last_distance_m", drive.lastDistanceM)
                     .put("last_time_s", drive.lastTimeS)
                     .put("last_forecast_battery_wh", drive.lastForecastBatteryWh >= 0 ? drive.lastForecastBatteryWh : JSONObject.NULL)

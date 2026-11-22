@@ -145,6 +145,17 @@ class Elf32Test {
     }
 
     @Test
+    fun `growing at least to a size already mapped is a no-op`() {
+        val e = Elf32(elf())
+        e.splice(0x1000, 0x1000)
+        e.growFirstLoadTo(0x2000)
+        assertEquals(0x2000, e.firstLoadFileSize())
+        e.growFirstLoadToAtLeast(0x2000)
+        e.growFirstLoadToAtLeast(0x1000)
+        assertEquals(0x2000, e.firstLoadFileSize())
+    }
+
+    @Test
     fun `claiming memory past the last segment returns its end`() {
         val e = Elf32(elf())
         val flag = e.extendLastLoadMemory(8)
@@ -188,6 +199,7 @@ class Elf32Test {
             "DAILY_DEAL" to NativeEdits.DAILY_DEAL,
             "HIDDEN_WEAPONS" to NativeEdits.HIDDEN_WEAPONS,
             "CURRENCY" to NativeEdits.CURRENCY.mapValues { (_, plan) -> plan.edits },
+            "CIVILIAN_IMMUNITY" to NativeEdits.CIVILIAN_IMMUNITY.mapValues { (_, plan) -> plan.edits },
         )
         for ((name, table) in tables) {
             assertEquals(ABIS.toSet(), table.keys, "$name covers both ABIs")
@@ -204,11 +216,28 @@ class Elf32Test {
             assertEquals(addresses.size, addresses.toSet().size, "$abi: no two patches edit the same word")
 
             val plan = NativeEdits.CURRENCY.getValue(abi)
+            val pad = NativeEdits.PADDING.getValue(abi)
+            val civ = NativeEdits.CIVILIAN_IMMUNITY.getValue(abi)
             assertTrue(plan.caveBytes.length % 2 == 0 && plan.caveBytes.isNotEmpty(), "$abi: cave bytes")
             assertTrue(plan.caveBytes.length / 2 <= plan.load1End - plan.cave, "$abi: the cave fits")
             assertTrue(plan.load1End % 4096 == 0L, "$abi: the segment ends on a page boundary")
             assertTrue(plan.edits.none { it.vaddr >= plan.cave && it.vaddr < plan.load1End },
                 "$abi: no word edit lands inside the cave")
+            assertEquals(plan.load1End, pad.load1End, "$abi: padding matches currency")
+            assertEquals(plan.spliceAtOffset, pad.spliceAtOffset, "$abi: splice matches currency")
+            val currencyEnd = plan.cave + plan.caveBytes.length / 2
+            val civCaves = listOf(
+                civ.blastCave to civ.blastCaveBytes.length / 2,
+                civ.fragCave to civ.fragCaveBytes.length / 2,
+            )
+            for ((cave, size) in civCaves) {
+                assertTrue(cave >= currencyEnd, "$abi: civilian cave 0x%X sits after currency".format(cave))
+                assertTrue(cave + size <= pad.load1End, "$abi: civilian cave 0x%X fits in the padding".format(cave))
+                assertTrue(civ.edits.none { it.vaddr >= cave && it.vaddr < cave + size },
+                    "$abi: no word edit lands inside civilian cave 0x%X".format(cave))
+            }
+            assertTrue(civ.blastCave + civ.blastCaveBytes.length / 2 <= civ.fragCave,
+                "$abi: blast stub does not overlap the frag stub")
         }
         assertEquals(0x1000, NativeEdits.CURRENCY.getValue("armeabi").spliceSize, "armeabi splices one page")
         assertEquals(null, NativeEdits.CURRENCY.getValue("armeabi-v7a").spliceAtOffset, "v7a has room already")
@@ -294,5 +323,60 @@ class Elf32Test {
             assertEquals(0x4AL, branch.new ushr 24, "$abi: becomes bmi")
             assertEquals(branch.old and 0xFFFFFFL, branch.new and 0xFFFFFFL, "$abi: to the same place")
         }
+    }
+
+    @Test
+    fun `civilian immunity nops the vulnerability bne and bls the two damage stubs`() {
+        fun target(at: Long, word: Long): Long {
+            val imm = word and 0xFFFFFFL
+            return at + 8 + 4 * (if (imm and 0x800000L != 0L) imm - 0x1000000L else imm)
+        }
+        fun words(hex: String) = hex.chunked(8).map { chunk ->
+            chunk.chunked(2).map { it.toInt(16) }.foldIndexed(0L) { i, acc, b ->
+                acc or (b.toLong() shl (8 * i))
+            }
+        }
+        for (abi in ABIS) {
+            val plan = NativeEdits.CIVILIAN_IMMUNITY.getValue(abi)
+            val edits = plan.edits
+            assertEquals(3, edits.size, "$abi: three words")
+
+            val nop = edits.single { it.new == 0xE1A00000L }
+            assertEquals(0x1AL, nop.old ushr 24, "$abi: the shot path was a bne")
+            assertTrue(nop.old and 0xFFFFFFL in 4L..5L, "$abi: over the healing-gun check into the body")
+
+            val blasts = edits.filter { it.new ushr 24 == 0xEBL }
+            assertEquals(2, blasts.size, "$abi: two bls")
+            val blast = blasts.minBy { it.vaddr }
+            val frag = blasts.maxBy { it.vaddr }
+            assertEquals(0xE5DL, blast.old ushr 20, "$abi: blast was ldrb")
+            assertEquals(0x3A3L, blast.old and 0xFFFL, "$abi: blast offset 0x3a3")
+            assertEquals(0xE5DL, frag.old ushr 20, "$abi: frag was ldrb")
+            assertEquals(0x3A3L, frag.old and 0xFFFL, "$abi: frag offset 0x3a3")
+            assertEquals(plan.blastCave, target(blast.vaddr, blast.new), "$abi: blast bl reaches its stub")
+            assertEquals(plan.fragCave, target(frag.vaddr, frag.new), "$abi: frag bl reaches its stub")
+
+            val blastStub = words(plan.blastCaveBytes)
+            val fragStub = words(plan.fragCaveBytes)
+            assertEquals(0xE59L, blastStub[0] ushr 20, "$abi: blast stub loads the person type")
+            assertEquals(0x9CL, blastStub[0] and 0xFFFL, "$abi: from offset 0x9c")
+            assertEquals(0xE5DL, blastStub[1] ushr 20, "$abi: then is_civilian")
+            assertEquals(0x55L, blastStub[1] and 0xFFFL, "$abi: at offset 0x55")
+            assertEquals(0xE3500000L, blastStub[2] and 0xFFF0FFFFL, "$abi: cmp #0")
+            assertEquals(0x1A000001L, blastStub[3], "$abi: bne over the original ldrb")
+            assertEquals(0xE12FFF1EL, blastStub[5], "$abi: bx lr back into the function")
+            assertEquals(0xE8BD8FF0L, blastStub.last(), "$abi: civilian return pops the frame")
+
+            assertEquals(0xE59L, fragStub[0] ushr 20, "$abi: frag stub loads the person type")
+            assertEquals(0x9CL, fragStub[0] and 0xFFFL, "$abi: from offset 0x9c")
+            assertEquals(0xE5DL, fragStub[1] ushr 20, "$abi: then is_civilian")
+            assertEquals(0x55L, fragStub[1] and 0xFFFL, "$abi: at offset 0x55")
+            assertEquals(0xE28DD00CL, fragStub[6], "$abi: frag already subtracted 0xc")
+            assertEquals(0xE8BD8FF0L, fragStub[7], "$abi: then pops")
+        }
+        assertEquals(0xECBD8B04L, words(NativeEdits.CIVILIAN_IMMUNITY.getValue("armeabi-v7a").blastCaveBytes)[6],
+            "v7a blast pushed d8 and d9")
+        assertEquals(7, words(NativeEdits.CIVILIAN_IMMUNITY.getValue("armeabi").blastCaveBytes).size,
+            "armeabi blast never pushed VFP regs")
     }
 }

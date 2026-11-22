@@ -70,18 +70,25 @@ internal class RifSymbols(
     val bodyRenderClass: String,
     /** The comments-page adapter (a Thing-list loader): its private `k0(Thing)Z` drops blocked users' comments. */
     val commentsAdapterClass: String,
+    /**
+     * The body render callback interface (`<bodyRenderClass>$b`, BodyRenderTask.Callback)'s
+     * `String` getter for the body's HTML (`j()`/`k()`) ...
+     */
+    val bodyHtmlGetter: String,
+    /** ... and its `boolean` "the HTML is itself HTML-escaped" getter (`l()`/`m()`). */
+    val bodyEscapedGetter: String,
 )
 
 internal val RIF_BUILDS = listOf(
     RifSymbols( // free
         renderCallback = "e", commentBindClass = "Ln2/o;", selftextBindClass = "Le5/g;",
         selftextGetter = "C0", opSelftextBindClass = "Le5/u;", bodyRenderClass = "Ln2/i0;",
-        commentsAdapterClass = "Ln2/r;",
+        commentsAdapterClass = "Ln2/r;", bodyHtmlGetter = "j", bodyEscapedGetter = "l",
     ),
     RifSymbols( // Platinum
         renderCallback = "d", commentBindClass = "Lo2/o;", selftextBindClass = "Lf5/g;",
         selftextGetter = "F0", opSelftextBindClass = "Lf5/u;", bodyRenderClass = "Lo2/i0;",
-        commentsAdapterClass = "Lo2/r;",
+        commentsAdapterClass = "Lo2/r;", bodyHtmlGetter = "k", bodyEscapedGetter = "m",
     ),
 )
 

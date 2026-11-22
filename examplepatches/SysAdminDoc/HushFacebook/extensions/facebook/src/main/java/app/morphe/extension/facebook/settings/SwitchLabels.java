@@ -31,6 +31,7 @@ final class SwitchLabels {
         if (setting == Settings.HIDE_POST_REPOST_BUTTON) return L10n.t("Hide Repost under posts");
         if (setting == Settings.HIDE_POST_SHARE_BUTTON) return L10n.t("Hide Share under posts");
         if (setting == Settings.HIDE_POST_SEND_BUTTON) return L10n.t("Hide Send under posts");
+        if (setting == Settings.IGNORE_POST_ROW_TAPS) return L10n.t("Ignore taps beside the buttons");
         if (setting == Settings.HIDE_AFFILIATE_LINKS) return L10n.t("Hide affiliate product links");
         if (setting == Settings.HIDE_COMMISSION_LABEL) return L10n.t("Hide the Commission eligible label");
         if (setting == Settings.HIDE_SUGGESTED_POSTS) return L10n.t("Hide page suggestions and Facebook's own promos");
@@ -60,6 +61,7 @@ final class SwitchLabels {
         if (setting == Settings.HIDE_POST_COUNTS) return L10n.t("Hide counts on posts");
         if (setting == Settings.HIDE_POST_REACTIONS) return L10n.t("Hide the reaction preview on posts");
         if (setting == Settings.HIDE_COMMENT_REACTIONS) return L10n.t("Hide the reaction preview on comments");
+        if (setting == Settings.REACTIONS_ON_LIKE_BUTTON) return L10n.t("Show reactions on the Like button");
         if (setting == Settings.HIDE_REACTION_BUBBLES) return L10n.t("Hide friends' reactions on photos and videos");
         if (setting == Settings.HIDE_REACTOR_NAMES) return L10n.t("Hide who reacted under posts");
         if (setting == Settings.HIDE_FEED_PROFILE_PICTURES) return L10n.t("Hide profile pictures on posts");
@@ -137,6 +139,9 @@ final class SwitchLabels {
         if (setting == Settings.HIDE_STORY_CREDITS) return L10n.t("Hide song and effect credits");
         if (setting == Settings.HIDE_STORY_REPLY_SUGGESTIONS) return L10n.t("Hide reply suggestions");
         if (setting == Settings.HIDE_STORY_SUBSCRIBE) return L10n.t("Hide the Subscribe button");
+        if (setting == Settings.HIDE_STORY_FOLLOW) return L10n.t("Hide the Follow button");
+        if (setting == Settings.HIDE_STORY_UP_NEXT) return L10n.t("Hide the Up next card");
+        if (setting == Settings.HIDE_STORY_REPLY_BAR) return L10n.t("Hide the reply bar");
         if (setting == Settings.HIDE_STORY_CREATE_CARDS) return L10n.t("Hide create story cards");
         if (setting == Settings.STORY_PROGRESS_BAR) return L10n.t("Progress bar at the bottom");
         if (setting == Settings.STORY_FLAT_SLIDE) return L10n.t("Plain slide between people");
@@ -158,6 +163,7 @@ final class SwitchLabels {
         if (setting == Settings.HIDE_COMMENT_BOX_LINE) return L10n.t("Hide the line over the comment box");
         if (setting == Settings.HIDE_COMMENT_BOX) return L10n.t("Hide the comment box");
         if (setting == Settings.HIDE_VIDEO_COMMENT_COMPOSER) return L10n.t("Hide the video comment box");
+        if (setting == Settings.HIDE_LIVE_COMMENT_BAR) return L10n.t("Hide the live video comment bar");
         if (setting == Settings.OPEN_REPLY_THREADS) return L10n.t("Open every reply thread");
         if (setting == Settings.LOAD_WHOLE_REPLY_THREADS) return L10n.t("Load whole reply threads");
         if (setting == Settings.HIDE_REPLIES_BUTTON) return L10n.t("Hide replies button");
@@ -313,10 +319,12 @@ final class SwitchLabels {
         if (setting == Settings.FEED_VIDEO_SEEK_BAR_LOWER) return L10n.t("Lower the seek bar and speaker");
         if (setting == Settings.FEED_VIDEO_SEEK_BAR_EDGE) return L10n.t("Seek bar on the bottom edge");
         if (setting == Settings.FEED_VIDEO_SEEK_BAR_THIN) return L10n.t("Thin line seek bar");
+        if (setting == Settings.FEED_VIDEO_SEEK_BAR_FLAT_DRAG) return L10n.t("Drag along the bottom edge");
         if (setting == Settings.FEED_VIDEO_FULL_PLAYER_BUTTON) return L10n.t("Full player button on feed videos");
         if (setting == Settings.FEED_VIDEO_FULL_PLAYER_CORNER) return L10n.t("Full player button by the speaker");
         if (setting == Settings.FEED_VIDEO_SKIP_BUTTONS) return L10n.t("Skip buttons on feed videos");
         if (setting == Settings.FEED_VIDEO_DOUBLE_TAP_SKIP) return L10n.t("Double tap to skip on feed videos");
+        if (setting == Settings.FEED_VIDEO_TAP_SHOWS_PAUSE) return L10n.t("Tap shows a pause button on feed videos");
         if (setting == Settings.FEED_VIDEO_SPEED_BUTTON) return L10n.t("Speed button on feed videos");
         if (setting == Settings.FEED_VIDEO_SEEK_BAR_TIMES) return L10n.t("Times on the seek bar");
         if (setting == Settings.FEED_VIDEO_SEEK_BAR_LENGTH) return L10n.t("Full length on the seek bar");
@@ -437,6 +445,7 @@ final class SwitchLabels {
         if (setting == Settings.PHONE_LAYOUT_ON_BIG_SCREENS) return L10n.t("Phone layout on big screens");
         if (setting == Settings.HIDE_REELS_TAB_BAR) return L10n.t("Hide the tab bar on the Reels tab");
         if (setting == Settings.HIDE_TAB_BAR_LINE) return L10n.t("Hide the line along the tab bar");
+        if (setting == Settings.TAB_BAR_IN_GROUPS) return L10n.t("Keep the tab bar in groups");
         if (setting == Settings.TRANSLUCENT_BARS) return L10n.t("See-through bars");
         if (setting == Settings.ROUNDED_TAB_BAR) return L10n.t("Rounded tab bar");
         if (setting == Settings.HIDE_STATUS_BAR) return L10n.t("Hide the status bar");

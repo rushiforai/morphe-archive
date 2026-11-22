@@ -1,3 +1,91 @@
+## [1.7.0](https://github.com/jair1c/farotv-patches/compare/v1.6.0...v1.7.0) (2026-11-21)
+
+### ✨ New Features
+
+* **diagnostics:** medir recursos, tareas largas y coste de parches ([9398549](https://github.com/jair1c/farotv-patches/commit/93985495268e081591deaed91626d16b8ae86c81))
+* **i18n:** incorporar árabe y dirección RTL para pruebas ([9bed63f](https://github.com/jair1c/farotv-patches/commit/9bed63fdb3c99de7bb8e317f2708dd66c5d5e41f)), closes [#16](https://github.com/jair1c/farotv-patches/issues/16)
+
+### 🔧 Improvements
+
+* **icons:** evitar hojas e ilustraciones duplicadas al reinyectar ([b608a8c](https://github.com/jair1c/farotv-patches/commit/b608a8c3a7590c71e5e516328eca758e18cdddac))
+* **player:** evitar reescrituras de estilos sin cambios ([610ddc6](https://github.com/jair1c/farotv-patches/commit/610ddc68ed480e4555f26fb2cf0ae2257bb794c0))
+* reducir recorridos y desplazamientos del filtro Premium ([baeba04](https://github.com/jair1c/farotv-patches/commit/baeba04dacefd8693a1e5700da3c34025e99d05d))
+* repartir el recorrido de estilos en tareas pequeñas ([9bf64d4](https://github.com/jair1c/farotv-patches/commit/9bf64d4fa4badc2babc555dd9d11cd6c76ff5826))
+* reutilizar ajustes y segmentos de SponsorBlock sin solicitudes repetidas ([a04030c](https://github.com/jair1c/farotv-patches/commit/a04030c44ba08c42ae23a539b6b3e854838c6f30))
+* **runtime:** agrupar consultas y limitar la caché de votos ([2102f82](https://github.com/jair1c/farotv-patches/commit/2102f826571063e999652dc266ad0b75e6a8166a))
+* unificar los recorridos de anuncios Premium y Shorts ([79e73f1](https://github.com/jair1c/farotv-patches/commit/79e73f1829dddf7a8fb24576a370690a1be352b2))
+
+### 🐛 Bug Fixes
+
+* **diagnostics:** activar el registro con un retorno booleano ([9379d4b](https://github.com/jair1c/farotv-patches/commit/9379d4b9026308aa881b468661ced2b7c435dcd4))
+* **tv:** devolver las teclas de volumen al control de Android ([aafcccf](https://github.com/jair1c/farotv-patches/commit/aafcccf4fb9647b594e1b8c5786c22fa02fa0293)), closes [#17](https://github.com/jair1c/farotv-patches/issues/17)
+
+## [1.7.0-dev.11](https://github.com/jair1c/farotv-patches/compare/v1.7.0-dev.10...v1.7.0-dev.11) (2026-11-17)
+
+### 🔧 Improvements
+
+* unificar los recorridos de anuncios Premium y Shorts ([79e73f1](https://github.com/jair1c/farotv-patches/commit/79e73f1829dddf7a8fb24576a370690a1be352b2))
+
+## [1.7.0-dev.10](https://github.com/jair1c/farotv-patches/compare/v1.7.0-dev.9...v1.7.0-dev.10) (2026-11-17)
+
+### 🔧 Improvements
+
+* reducir recorridos y desplazamientos del filtro Premium ([baeba04](https://github.com/jair1c/farotv-patches/commit/baeba04dacefd8693a1e5700da3c34025e99d05d))
+
+## [1.7.0-dev.9](https://github.com/jair1c/farotv-patches/compare/v1.7.0-dev.8...v1.7.0-dev.9) (2026-11-17)
+
+### 🔧 Improvements
+
+* repartir el recorrido de estilos en tareas pequeñas ([9bf64d4](https://github.com/jair1c/farotv-patches/commit/9bf64d4fa4badc2babc555dd9d11cd6c76ff5826))
+
+## [1.7.0-dev.8](https://github.com/jair1c/farotv-patches/compare/v1.7.0-dev.7...v1.7.0-dev.8) (2026-11-17)
+
+### 🔧 Improvements
+
+* reutilizar ajustes y segmentos de SponsorBlock sin solicitudes repetidas ([a04030c](https://github.com/jair1c/farotv-patches/commit/a04030c44ba08c42ae23a539b6b3e854838c6f30))
+
+## [1.7.0-dev.7](https://github.com/jair1c/farotv-patches/compare/v1.7.0-dev.6...v1.7.0-dev.7) (2026-11-17)
+
+### 🔧 Improvements
+
+* **icons:** evitar hojas e ilustraciones duplicadas al reinyectar ([b608a8c](https://github.com/jair1c/farotv-patches/commit/b608a8c3a7590c71e5e516328eca758e18cdddac))
+
+## [1.7.0-dev.6](https://github.com/jair1c/farotv-patches/compare/v1.7.0-dev.5...v1.7.0-dev.6) (2026-11-17)
+
+### 🐛 Bug Fixes
+
+* **diagnostics:** activar el registro con un retorno booleano ([9379d4b](https://github.com/jair1c/farotv-patches/commit/9379d4b9026308aa881b468661ced2b7c435dcd4))
+
+## [1.7.0-dev.5](https://github.com/jair1c/farotv-patches/compare/v1.7.0-dev.4...v1.7.0-dev.5) (2026-11-17)
+
+### ✨ New Features
+
+* **diagnostics:** medir recursos, tareas largas y coste de parches ([9398549](https://github.com/jair1c/farotv-patches/commit/93985495268e081591deaed91626d16b8ae86c81))
+
+## [1.7.0-dev.4](https://github.com/jair1c/farotv-patches/compare/v1.7.0-dev.3...v1.7.0-dev.4) (2026-11-17)
+
+### 🔧 Improvements
+
+* **runtime:** agrupar consultas y limitar la caché de votos ([2102f82](https://github.com/jair1c/farotv-patches/commit/2102f826571063e999652dc266ad0b75e6a8166a))
+
+## [1.7.0-dev.3](https://github.com/jair1c/farotv-patches/compare/v1.7.0-dev.2...v1.7.0-dev.3) (2026-11-17)
+
+### 🔧 Improvements
+
+* **player:** evitar reescrituras de estilos sin cambios ([610ddc6](https://github.com/jair1c/farotv-patches/commit/610ddc68ed480e4555f26fb2cf0ae2257bb794c0))
+
+## [1.7.0-dev.2](https://github.com/jair1c/farotv-patches/compare/v1.7.0-dev.1...v1.7.0-dev.2) (2026-11-17)
+
+### 🐛 Bug Fixes
+
+* **tv:** devolver las teclas de volumen al control de Android ([aafcccf](https://github.com/jair1c/farotv-patches/commit/aafcccf4fb9647b594e1b8c5786c22fa02fa0293)), closes [#17](https://github.com/jair1c/farotv-patches/issues/17)
+
+## [1.7.0-dev.1](https://github.com/jair1c/farotv-patches/compare/v1.6.0...v1.7.0-dev.1) (2026-11-17)
+
+### ✨ New Features
+
+* **i18n:** incorporar árabe y dirección RTL para pruebas ([9bed63f](https://github.com/jair1c/farotv-patches/commit/9bed63fdb3c99de7bb8e317f2708dd66c5d5e41f)), closes [#16](https://github.com/jair1c/farotv-patches/issues/16)
+
 ## [1.6.0](https://github.com/jair1c/farotv-patches/compare/v1.5.1...v1.6.0) (2026-11-15)
 
 ### ✨ New Features

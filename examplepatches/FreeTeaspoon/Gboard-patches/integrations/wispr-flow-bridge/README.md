@@ -2,18 +2,21 @@
 
 An experimental LSPosed companion for the Gboard **Wispr Flow** patch. It supports the
 Wispr Flow Android app versions **2.8.5** and **2.8.7**, with patched Gboard **18.5.4**.
-The in-keyboard controls require bridge **0.3.0** and an updated Gboard patch.
+Use bridge **0.3.1** with the current Gboard patch bundle.
 
 The Gboard menu button can be tapped in the menu or held and dragged to the toolbar.
 Tap it to enable keyboard mode and start dictation. Gboard shows its native Advanced
 Voice Typing header during dictation. Tap **×** to discard or **✓** to finish the recording
 and transcribe it. Keyboard mode hides Wispr's floating launcher and recording controls.
-Wispr records and transcribes through its existing service. Gboard uses Wispr’s live mic
-level for its native waveform and inserts the finished transcript into the original field.
+Wispr records and transcribes through its existing service. Gboard uses Wispr's live mic
+level for its native waveform. Recording continues when Gboard hides, and the controls
+return when you reopen it in a text field. Gboard inserts the transcript into the field
+where you tap **✓**.
 
 ## Setup
 
-1. Build and install this module, then enable it in LSPosed with only
+1. Install the bridge APK from the [GitHub releases](https://github.com/FreeTeaspoon/Gboard-patches/releases)
+   or build it yourself. Enable it in LSPosed with only
    `com.wispr.flowapp` selected as its scope. Fully restart Wispr Flow after installing
    or updating the module so its running service loads the new bridge.
 2. Patch Gboard 18.5.4 using this repository's patch bundle and select **Wispr Flow**.
@@ -40,8 +43,8 @@ reviewing its private callback signatures before extending support.
 
 ## Troubleshooting text insertion
 
-Keep the original field focused until transcription finishes. If you switch fields or
-dismiss the keyboard before it completes, check Wispr Flow history for the transcript.
+After tapping **✓**, keep that field focused until transcription finishes. If you switch
+fields before it completes, check Wispr Flow history for the transcript.
 
 ## Build
 

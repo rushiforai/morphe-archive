@@ -1,16 +1,16 @@
 [
   {
     "selection": "consent",
-    "owner": "LB2/c;",
+    "owner": "LBy/d0;",
     "signature": "onSuccess(Lcom/onetrust/otpublishers/headless/Public/Response/OTResponse;)V",
     "registers": 4,
     "count": 17,
-    "graph_sha256": "bacba1ad92b23a394866e5a56fc32c574f534f2fc07239397d913f9685d2ac36",
+    "graph_sha256": "7fa84c91fbeb26139be63743fb201e748265b757a80cc59e110d39c74ae13586",
     "edits": [
       {
         "index": 9,
         "remove": 0,
-        "effect": "iget-object v0, p0, LB2/c;->g:Ljava/lang/Object;\ncheck-cast v0, Lcom/onetrust/otpublishers/headless/Public/OTPublishersHeadlessSDK;\niget-object v1, v0, Lcom/onetrust/otpublishers/headless/Public/OTPublishersHeadlessSDK;->a:Landroid/content/Context;\nconst-string p1, \"patches.videoland.onboarding\"\nconst/4 v0, 0x0\ninvoke-virtual {v1, p1, v0}, Landroid/content/Context;->getSharedPreferences(Ljava/lang/String;I)Landroid/content/SharedPreferences;\nmove-result-object v1\nconst-string p1, \"necessary_consent_policy_v1\"\nconst/4 v0, 0x0\ninvoke-interface {v1, p1, v0}, Landroid/content/SharedPreferences;->getBoolean(Ljava/lang/String;Z)Z\nmove-result v0\nif-eqz v0, :reject\niget-object v0, p0, LB2/c;->g:Ljava/lang/Object;\ncheck-cast v0, Lcom/onetrust/otpublishers/headless/Public/OTPublishersHeadlessSDK;\ninvoke-virtual {v0}, Lcom/onetrust/otpublishers/headless/Public/OTPublishersHeadlessSDK;->shouldShowBanner()Z\nmove-result v0\nif-eqz v0, :done\n:reject\niget-object v0, p0, LB2/c;->g:Ljava/lang/Object;\ncheck-cast v0, Lcom/onetrust/otpublishers/headless/Public/OTPublishersHeadlessSDK;\nconst-string p1, \"Banner - Reject All\"\ninvoke-virtual {v0, p1}, Lcom/onetrust/otpublishers/headless/Public/OTPublishersHeadlessSDK;->saveConsent(Ljava/lang/String;)V\ninvoke-interface {v1}, Landroid/content/SharedPreferences;->edit()Landroid/content/SharedPreferences$Editor;\nmove-result-object v1\nconst-string p1, \"necessary_consent_policy_v1\"\nconst/4 v0, 0x1\ninvoke-interface {v1, p1, v0}, Landroid/content/SharedPreferences$Editor;->putBoolean(Ljava/lang/String;Z)Landroid/content/SharedPreferences$Editor;\nmove-result-object v1\ninvoke-interface {v1}, Landroid/content/SharedPreferences$Editor;->apply()V\n:done\nnop"
+        "effect": "iget-object v0, p0, LBy/d0;->e:Ljava/lang/Object;\ncheck-cast v0, Lcom/onetrust/otpublishers/headless/Public/OTPublishersHeadlessSDK;\niget-object v1, v0, Lcom/onetrust/otpublishers/headless/Public/OTPublishersHeadlessSDK;->a:Landroid/content/Context;\nconst-string p1, \"patches.videoland.onboarding\"\nconst/4 v0, 0x0\ninvoke-virtual {v1, p1, v0}, Landroid/content/Context;->getSharedPreferences(Ljava/lang/String;I)Landroid/content/SharedPreferences;\nmove-result-object v1\nconst-string p1, \"necessary_consent_policy_v1\"\nconst/4 v0, 0x0\ninvoke-interface {v1, p1, v0}, Landroid/content/SharedPreferences;->getBoolean(Ljava/lang/String;Z)Z\nmove-result v0\nif-eqz v0, :reject\niget-object v0, p0, LBy/d0;->e:Ljava/lang/Object;\ncheck-cast v0, Lcom/onetrust/otpublishers/headless/Public/OTPublishersHeadlessSDK;\ninvoke-virtual {v0}, Lcom/onetrust/otpublishers/headless/Public/OTPublishersHeadlessSDK;->shouldShowBanner()Z\nmove-result v0\nif-eqz v0, :done\n:reject\niget-object v0, p0, LBy/d0;->e:Ljava/lang/Object;\ncheck-cast v0, Lcom/onetrust/otpublishers/headless/Public/OTPublishersHeadlessSDK;\nconst-string p1, \"Banner - Reject All\"\ninvoke-virtual {v0, p1}, Lcom/onetrust/otpublishers/headless/Public/OTPublishersHeadlessSDK;->saveConsent(Ljava/lang/String;)V\ninvoke-interface {v1}, Landroid/content/SharedPreferences;->edit()Landroid/content/SharedPreferences$Editor;\nmove-result-object v1\nconst-string p1, \"necessary_consent_policy_v1\"\nconst/4 v0, 0x1\ninvoke-interface {v1, p1, v0}, Landroid/content/SharedPreferences$Editor;->putBoolean(Ljava/lang/String;Z)Landroid/content/SharedPreferences$Editor;\nmove-result-object v1\ninvoke-interface {v1}, Landroid/content/SharedPreferences$Editor;->apply()V\n:done\nnop"
       }
     ]
   },
@@ -20,22 +20,22 @@
     "signature": "invokeSuspend(Ljava/lang/Object;)Ljava/lang/Object;",
     "registers": 16,
     "count": 115,
-    "graph_sha256": "dc3d2749afdac5046616bf46fdb4dc5d6720fd8f1481df041fdf7f5c15b67287",
+    "graph_sha256": "28db9f89d75a4584d734f32eeb5591853a4e18738b8aca5256764f160db116f5",
     "edits": [
       {
         "index": 28,
         "remove": 0,
-        "effect": "new-instance v0, Lri/o;\nconst/4 v1, 0x1\nconst/4 v2, 0x1\nconst/4 v3, 0x0\ninvoke-direct {v0, v1, v2, v3}, Lri/o;-><init>(ZZLcom/bedrockstreaming/feature/splash/domain/usecase/tasks/f;)V\nreturn-object v0"
+        "effect": "new-instance v0, LPi/q;\nconst/4 v1, 0x1\nconst/4 v2, 0x1\nconst/4 v3, 0x0\ninvoke-direct {v0, v1, v2, v3}, LPi/q;-><init>(ZZLcom/bedrockstreaming/feature/splash/domain/usecase/tasks/f;)V\nreturn-object v0"
       }
     ]
   },
   {
     "selection": "consent",
     "owner": "Lcom/bedrockstreaming/feature/pushnotification/data/PushStateManagerImpl;",
-    "signature": "<init>(Landroid/app/Application;Lhi/a;Lhi/d;Lhi/f;Lhi/g;Lvq/a;)V",
+    "signature": "<init>(Landroid/app/Application;LFi/a;LFi/d;LFi/f;LFi/g;LZq/a;)V",
     "registers": 8,
     "count": 49,
-    "graph_sha256": "972db6033fd2bfbaceb7b7505cf833cb9e6c1a9ba1e52c9308cbc561e0d88165",
+    "graph_sha256": "c5697f79e1e508997bc1a1f63ca7a98444414801393138c492c8a7b8227160de",
     "edits": [
       {
         "index": 32,
@@ -47,10 +47,10 @@
   {
     "selection": "consent",
     "owner": "Lcom/bedrockstreaming/feature/pushnotification/data/LegacyPushStateManagerImpl;",
-    "signature": "<init>(Lhi/a;Lhi/f;Lhi/g;Lvq/a;)V",
+    "signature": "<init>(LFi/a;LFi/f;LFi/g;LZq/a;)V",
     "registers": 6,
     "count": 40,
-    "graph_sha256": "8b94be8cf11ca6a517d9a296f01fc982f8894b10dc9550da1669a8358cb6d365",
+    "graph_sha256": "8e15c213d2755008d9867cca85dbcf8a200b299a0e677e5ca52b86198aa9316a",
     "edits": [
       {
         "index": 26,
@@ -62,10 +62,10 @@
   {
     "selection": "consent",
     "owner": "Lcom/bedrockstreaming/feature/pushnotification/data/PushStateManagerImpl;",
-    "signature": "d(Lcom/bedrockstreaming/feature/pushnotification/data/PushStateManagerImpl;Lwy/c;)Ljava/lang/Object;",
+    "signature": "d(Lcom/bedrockstreaming/feature/pushnotification/data/PushStateManagerImpl;Loz/d;)Ljava/lang/Object;",
     "registers": 11,
     "count": 95,
-    "graph_sha256": "79d8a547f0e5fc504345b7fb9d9c8fdb4e41a1c1dbd62fb016187c50f5332a45",
+    "graph_sha256": "fb275189eda9d9ea671278eb08f5ca9e34a5e565c07cd26e7545336c860e0468",
     "edits": [
       {
         "index": 59,
@@ -76,11 +76,11 @@
   },
   {
     "selection": "consent",
-    "owner": "Lgi/a;",
+    "owner": "LEi/a;",
     "signature": "invokeSuspend(Ljava/lang/Object;)Ljava/lang/Object;",
     "registers": 9,
     "count": 52,
-    "graph_sha256": "d37fc1af2ee60edecae9482d1f7b8d25996566215b00fb9d0467f86014f9d881",
+    "graph_sha256": "28bf1d80a648e868d321bc585e780713ba1b65875ade111b6ae51d301d24623a",
     "edits": [
       {
         "index": 37,
@@ -96,14 +96,14 @@
   },
   {
     "selection": "consent",
-    "owner": "LH9/b;",
+    "owner": "LAw/b;",
     "signature": "call()Ljava/lang/Object;",
     "registers": 10,
-    "count": 519,
-    "graph_sha256": "d5aed2a756d31c06fc0796b2275970e966ee2340e5cb4347e23f73a3ebc3f210",
+    "count": 503,
+    "graph_sha256": "04a39194abb8cabea79a216dcf300d7890de534a318d51d1c956b52d1a54993c",
     "edits": [
       {
-        "index": 147,
+        "index": 418,
         "remove": 1,
         "effect": "sget-object v0, Lcom/bedrockstreaming/feature/pushnotification/domain/PushPermissionStatus;->d:Lcom/bedrockstreaming/feature/pushnotification/domain/PushPermissionStatus;"
       }

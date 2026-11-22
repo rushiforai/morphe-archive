@@ -13,8 +13,8 @@ public final class SettingsNavigationTest {
         SettingsNavigation navigation = new SettingsNavigation();
 
         assertEquals(SettingsPage.ROOT, navigation.getCurrentPage());
-        assertTrue(navigation.push(SettingsPage.GENERAL));
-        assertEquals(SettingsPage.GENERAL, navigation.getCurrentPage());
+        assertTrue(navigation.push(SettingsPage.NOTIFICATIONS));
+        assertEquals(SettingsPage.NOTIFICATIONS, navigation.getCurrentPage());
     }
 
     @Test

@@ -34,6 +34,7 @@ object Constants {
             AppTarget(version = "2.4.19-prod"),
             AppTarget(version = "2.5.16-prod"),
             AppTarget(version = "2.6.13-prod"),
+            AppTarget(version = "2.7.6-prod"),
         )
     )
 }

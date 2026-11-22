@@ -141,7 +141,6 @@ public final class MultiResponseNg {
             if(store==null){store=new NativeNgStore(target.activity,category);stores.put(category,store);List<NativeNgStore.Entry> old=store.entries();before.put(category,old);ArrayList<Object> copy=new ArrayList<>();for(NativeNgStore.Entry e:old)copy.add(e.nativeItem);after.put(category,copy);}
             if(p.pattern==null||p.pattern.trim().isEmpty())throw new IllegalArgumentException(">>"+p.number+" の登録条件が空です");
             short flags=WacchoiSuffixNg.registrationFlags((short)0,false,true,p.chain,p.hidden);
-            NgRuleSafety.requireAllowed(category,p.pattern,flags);
             String scope=p.global?null:target.scope;
             Set<String> keys=seen.get(category);
             if(keys==null){keys=new HashSet<>();for(NativeNgStore.Entry e:before.get(category))keys.add(e.pattern+Character.toString(0)+e.flags+Character.toString(0)+e.board);seen.put(category,keys);}

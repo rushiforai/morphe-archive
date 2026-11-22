@@ -27,7 +27,7 @@ val disableTrackingPatch = bytecodePatch(
             if-nez v0, :videoland_disabled
         """.trimIndent() }
         exact("Lcom/bedrockstreaming/component/config/domain/ConfigImpl;",
-            "g(Ljava/lang/String;)Z", 4, 11).addInstructions(0, guards + """
+            "h(Ljava/lang/String;)Z", 4, 11).addInstructions(0, guards + """
 
             goto :videoland_original
             :videoland_disabled
@@ -38,15 +38,15 @@ val disableTrackingPatch = bytecodePatch(
         """.trimIndent())
 
         val tealium = "Lcom/bedrockstreaming/plugin/tealium/TealiumTaggingPlan;"
-        exact(tealium, "n0(Ljava/lang/String;Ljava/util/Map;)V", 11, 18).addInstructions(0, "return-void")
-        exact(tealium, "r0(Ljava/util/Map;)V", 5, 15).addInstructions(0, "return-void")
+        exact(tealium, "J0(Ljava/lang/String;Ljava/util/Map;)V", 11, 18).addInstructions(0, "return-void")
+        exact(tealium, "U0(Ljava/util/Map;)V", 5, 15).addInstructions(0, "return-void")
 
         // The constructor otherwise creates an emitter and sends InitEvent immediately,
         // before the player-session feature flag is read. Keep its initialized object
         // and three dependencies; nullable tracker/session fields remain null.
         val snowplow = "Lcom/bedrockstreaming/plugin/snowplow/SnowplowTracker;"
         exact(snowplow,
-            "<init>(Landroid/content/Context;Ljp/c;LDj/a;Lcom/bedrockstreaming/feature/player/domain/mediaplayer/usecase/GetDeviceVolumeUseCase;Lcom/bedrockstreaming/plugin/snowplow/SnowplowEntityMapper;)V",
+            "<init>(Landroid/content/Context;Lwp/c;LOj/a;Lcom/bedrockstreaming/feature/player/domain/mediaplayer/usecase/GetDeviceVolumeUseCase;Lcom/bedrockstreaming/plugin/snowplow/SnowplowEntityMapper;)V",
             15, 114).apply {
             val anchors = instructions.withIndex().filter { (_, instruction) ->
                 val field = (instruction as? ReferenceInstruction)?.reference as? FieldReference
@@ -58,19 +58,19 @@ val disableTrackingPatch = bytecodePatch(
         }
 
         exact("Lcom/bedrockstreaming/plugin/advertisingid/google/data/GoogleAdvertisingIdSource;",
-            "a()Lx6/a;", 4, 27).addInstructions(0, "sget-object v0, Lx6/b;->a:Lx6/b;\nreturn-object v0")
+            "a()Lz6/a;", 4, 27).addInstructions(0, "sget-object v0, Lz6/b;->a:Lz6/b;\nreturn-object v0")
         exact("Lcom/newrelic/agent/android/NewRelic;",
             "start(Landroid/content/Context;)V", 7, 83).addInstructions(0, "return-void")
 
         // The inspected uploader maps local 403 to fatal, deletes the batch and
         // completes. No redirect, HTTP call or transient retry is introduced.
         // Other methods on this R8-merged class belong to media and stay intact.
-        exact("LA3/T;", "e(LF2/c;)LA3/X;", 16, 184).addInstructions(0, """
-            new-instance v0, LA3/X;
+        exact("LYb/a;", "c(LF2/c;)LA3/b0;", 16, 184).addInstructions(0, """
+            new-instance v0, LA3/b0;
             const/16 v1, 0x193
             const/4 v2, 0x0
             const-wide/16 v3, 0x0
-            invoke-direct {v0, v1, v2, v3, v4}, LA3/X;-><init>(ILjava/net/URL;J)V
+            invoke-direct {v0, v1, v2, v3, v4}, LA3/b0;-><init>(ILjava/net/URL;J)V
             return-object v0
         """.trimIndent())
     }

@@ -1,10 +1,8 @@
-<p align="center">
-  <a href="https://morphe.software/add-source?github=crimera/piko-newx">
-    <img src="assets/add-to-morphe.svg" alt="Add to Morphe" height="48">
-  </a>
-</p>
+# This repository is archived
 
-Builds and publishes the [NewX](https://github.com/crimera/piko/tree/x-lite) patch bundle from the [Piko `x-lite` branch](https://github.com/crimera/piko/tree/x-lite).
+The NewX patches have now been merged into the [main Piko repo](https://github.com/crimera/piko).
+
+If you were using this repo as a patch source, please switch to the main Piko repo.
 
 # Credits
 - [morphe](https://github.com/MorpheApp) - patcher

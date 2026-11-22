@@ -5,6 +5,7 @@ import android.view.ViewGroup
 import android.widget.*
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.LocalOnBackPressedDispatcherOwner
+import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -16,6 +17,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.unit.Density
@@ -36,8 +38,11 @@ internal val LocalArchiveControlLayout = staticCompositionLocalOf { 100 }
 @OptIn(ExperimentalLayoutApi::class, androidx.compose.foundation.ExperimentalFoundationApi::class)
 @Composable private fun CheckerToolbar(view: LinearLayout, revision: Int, modifier: Modifier, changed: () -> Unit) {
     val providers = view.getTag(CheckerBarOptions.PROVIDERS_TAG) == true
+    val palette = view.getTag(CheckerBarOptions.PALETTE_TAG) as? IntArray
+    val barModifier = if (palette == null) modifier else modifier.background(Color(palette[0]))
+    val textColor = if (palette == null) MaterialTheme.colorScheme.primary else Color(palette[1])
     ResizableCheckerBar(view, if (providers) CheckerBarOptions.PROVIDERS else CheckerBarOptions.ACTIONS, 32,
-        if (providers) "検索先切替バーの高さ" else "操作バーの高さ", modifier, changed) { height ->
+        if (providers) "検索先切替バーの高さ" else "操作バーの高さ", barModifier, changed) { height ->
         val scroll = rememberScrollState()
         CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides 0.dp) {
             FlowRow(Modifier.fillMaxWidth().height(height.dp).verticalScroll(scroll),
@@ -51,7 +56,7 @@ internal val LocalArchiveControlLayout = staticCompositionLocalOf { 100 }
                         onLongClick = if (button.isLongClickable) ({ button.performLongClick(); changed() }) else null
                     ).padding(horizontal = 8.dp), contentAlignment = Alignment.Center) {
                         Text(button.text.toString(), fontSize = 13.sp, maxLines = 1,
-                            color = MaterialTheme.colorScheme.primary.copy(alpha = if (button.isEnabled) 1f else .38f))
+                            color = textColor.copy(alpha = if (button.isEnabled) 1f else .38f))
                     }
                 }
             }
@@ -127,6 +132,7 @@ private fun modelFingerprint(view: View?): Long {
     var value = System.identityHashCode(view).toLong()
     value = value * 31 + System.identityHashCode(view.getTag(0x48690b03))
     value = value * 31 + (view.getTag(HissiMenuController.TOOLBAR_HEIGHT_TAG)?.hashCode() ?: 0)
+    value = value * 31 + (view.getTag(CheckerBarOptions.PALETTE_TAG) as? IntArray).contentHashCode()
     value = value * 31 + (view.getTag(HissiMenuController.RESULT_TABS_TAG)?.hashCode() ?: 0)
     value = value * 31 + (view.getTag(EddiArchiveSearchUi.CONTROL_SCALE_TAG)?.hashCode() ?: 0)
     value = value * 31 + (view.getTag(EddiArchiveSearchUi.RESULT_SCALE_TAG)?.hashCode() ?: 0)
@@ -305,15 +311,19 @@ internal fun prepareNativeSurfaces(root: ViewGroup) {
             (0 until view.childCount).all { (view.getChildAt(it) is Button && view.getChildAt(it) !is CompoundButton) || view.getChildAt(it).javaClass == View::class.java }) {
             val resultTab = view.getTag(HissiMenuController.RESULT_TABS_TAG) as? Int
             if (resultTab != null) {
-                val buttons = (0 until view.childCount).mapNotNull { view.getChildAt(it) as? Button }
+                val buttons = (0 until view.childCount).mapNotNull { index ->
+                    val button = view.getChildAt(index) as? Button
+                    if (button?.visibility == View.VISIBLE) index to button else null
+                }
                 if (buttons.isNotEmpty()) {
                     ResizableCheckerBar(view, CheckerBarOptions.TABS, 40, "レス・スレ・名前バーの高さ", changed = changed) { height ->
                         CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides 0.dp) {
-                            TabRow(selectedTabIndex = resultTab.coerceIn(buttons.indices),
+                            ScrollableTabRow(selectedTabIndex = buttons.indexOfFirst { it.first == resultTab }.coerceAtLeast(0),
+                                edgePadding = 0.dp,
                                 modifier = Modifier.height(height.dp),
                                 containerColor = MaterialTheme.colorScheme.surface,
                                 contentColor = MaterialTheme.colorScheme.primary) {
-                                buttons.forEachIndexed { index, button ->
+                                buttons.forEach { (index, button) ->
                                     Tab(selected = index == resultTab, enabled = button.isEnabled,
                                         modifier = Modifier.height(height.dp),
                                         onClick = { button.performClick(); changed() }) {

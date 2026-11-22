@@ -3,7 +3,7 @@ group = "dev.supperelias2.sbs"
 patches {
     about {
         name = "Supperelias2 SBS TV Patches"
-        description = "Unofficial patches for SBS On Demand for Android TV"
+        description = "Video ad removal and sideload support for SBS On Demand on Android TV."
         source = "https://github.com/Supperelias2/sbs-tv-morphe-patches"
         author = "Supperelias2"
         contact = "https://github.com/Supperelias2/sbs-tv-morphe-patches/issues"

@@ -49,10 +49,10 @@ private class LibraryComposeMenu(definingClass: String) : Fingerprint(
     returnType = "V",
 )
 
-private class LibraryComposeMenuState(definingClass: String, stateType: String) : Fingerprint(
+private class LibraryComposeMenuState(definingClass: String, stateType: String, composerType: String) : Fingerprint(
     definingClass = definingClass,
     name = "p",
-    parameters = listOf(stateType, "Ljava/util/List;", "Lz0/m;", "I"),
+    parameters = listOf(stateType, "Ljava/util/List;", composerType, "I"),
     returnType = "V",
 )
 
@@ -78,7 +78,8 @@ val libraryToolsPatch = bytecodePatch(
     compatibleWith(appleMusicCompatibility)
 
     execute {
-        val version701 = packageMetadata.versionName == APPLE_MUSIC_701
+        val versionName = packageMetadata.versionName
+        val use701Bindings = uses701LibraryBindings(versionName)
         listOf(
             "Lcom/apple/android/music/library3/LibraryComposeContentFragment;",
             "Lcom/apple/android/music/library2/LibraryRecyclerContentFragment;",
@@ -89,7 +90,7 @@ val libraryToolsPatch = bytecodePatch(
                 "invoke-static/range {p0 .. p1}, Lapp/voidhack/extension/applemusic/library/LibraryMenu;->addMenu(Ljava/lang/Object;Landroid/view/Menu;)V",
             )
         }
-        LibraryComposeMenu(if (version701) "LBa/T;" else "LAa/U;").method.addInstructions(
+        LibraryComposeMenu(if (use701Bindings) "LBa/T;" else "LAa/U;").method.addInstructions(
             0,
             """
                 invoke-static/range {p1 .. p2}, Lapp/voidhack/extension/applemusic/library/LibraryMenu;->withTools(Ljava/util/List;Landroid/content/Context;)Ljava/util/List;
@@ -97,8 +98,9 @@ val libraryToolsPatch = bytecodePatch(
             """,
         )
         LibraryComposeMenuState(
-            definingClass = if (version701) "LBa/C;" else "LAa/C;",
-            stateType = if (version701) "Lz0/t0;" else "Lz0/p0;",
+            definingClass = if (use701Bindings) "LBa/C;" else "LAa/C;",
+            stateType = if (use701Bindings) "Lz0/t0;" else "Lz0/p0;",
+            composerType = if (versionName == APPLE_MUSIC_702) "Lz0/n;" else "Lz0/m;",
         ).method.addInstructions(
             0,
             """

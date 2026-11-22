@@ -1,0 +1,12 @@
+*.apk
+*.xapk
+*.apks
+*.keystore
+*.jks
+tools/
+analysis/
+build/
+dist/
+findings.md
+progress.md
+task_plan.md

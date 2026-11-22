@@ -1,5 +1,7 @@
 package app.revanced.patches.rif.comments
 
+import app.revanced.patches.rif.shared.hideInlineMediaSettingsForPatcheddit
+import app.revanced.patches.rif.shared.inlineMediaForPatcheddit
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.instructions
 import app.morphe.patcher.fingerprint
@@ -16,18 +18,26 @@ import app.revanced.patches.rif.shared.RIF_COMPATIBILITY
 import app.revanced.patches.rif.shared.requireScratchRegister
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import app.revanced.patches.rif.shared.classes
+import app.revanced.patches.rif.shared.proxy
 
 private const val EXTENSION = "Lapp/revanced/extension/rif/InlineImages;"
+private const val TABLES_EXTENSION = "Lapp/revanced/extension/rif/InlineTables;"
 private const val STEP_SEEK_BAR = "Lapp/revanced/extension/rif/StepSeekBarPreference;"
 
-// Adds the "Inline media" category to the ReVanced screen. The other checkboxes
+// Adds the "Inline media" category to the rif patches screen. The other checkboxes
 // are greyed out when "Inline images" is off.
 val inlineImagesSettingsResourcePatch = resourcePatch(
     description = "Adds the Inline comment images settings.",
 ) {
     compatibleWith(*RIF_COMPATIBILITY)
     dependsOn(revancedSettingsResourcePatch)
+
+    finalize {
+        hideInlineMediaSettingsForPatcheddit()
+    }
 
     execute {
         addRevancedPreferenceCategory("Inline media") { doc, category ->
@@ -78,6 +88,7 @@ val inlineImagesSettingsResourcePatch = resourcePatch(
                     dependency = "INLINE_VIDEOS",
                 ),
             )
+            category.appendChild(doc.checkBoxPreference("INLINE_TABLES", "Inline tables"))
             category.appendChild(
                 doc.checkBoxPreference(
                     "INLINE_IMAGES_LONG_PRESS_SELECT",
@@ -183,10 +194,22 @@ internal val seekBarProgressChangedFingerprint = fingerprint {
     }
 }
 
+// The body's `TextView.setText(CharSequence)`. Another bundle may have replaced it already with a
+// static wrapper taking the same TextView and text (Patcheddit's Inline media does, on Morphe, if it
+// ever runs before us); the TextView is the first register in both. Stock rif has no such wrapper.
+private fun isBodySetText(insn: Instruction): Boolean {
+    val ref = (insn as? ReferenceInstruction)?.reference?.toString() ?: return false
+    return when (insn.opcode) {
+        Opcode.INVOKE_VIRTUAL -> ref == "Landroid/widget/TextView;->setText(Ljava/lang/CharSequence;)V"
+        Opcode.INVOKE_STATIC -> ref.endsWith(";->setText(Landroid/widget/TextView;Ljava/lang/CharSequence;)V")
+        else -> false
+    }
+}
+
 @Suppress("unused")
 val inlineCommentImagesPatch = bytecodePatch(
     name = "Inline comment images",
-    description = "Shows images, GIFs and videos linked in comments and text posts inline.",
+    description = "Shows tables in comments and text posts inline. Patcheddit covers other types of inline media.",
 ) {
     compatibleWith(*RIF_COMPATIBILITY)
     dependsOn(inlineImagesSettingsResourcePatch, revancedSettingsPatch)
@@ -194,13 +217,48 @@ val inlineCommentImagesPatch = bytecodePatch(
     // Bring our extension (InlineImages) into the app.
     extendWith("extensions/extension.mpe")
 
+    finalize {
+        inlineMediaForPatcheddit()
+    }
+
     execute {
         // 1) Embed images into the comment + selftext spannables (background, before
-        // display). p1 = the SpannableStringBuilder argument.
+        // display). p1 = the SpannableStringBuilder argument. Tables are embedded first
+        // (added second, at index 0, so it runs before the images' call): their replaced
+        // range holds links that InlineImages must not see. p0 = the Thing (the callback).
+        // InlineTables.bodyHtml/bodyEscaped are empty stubs; write them to call the callback
+        // interface's getters (names differ per build, RIF_BUILDS), so no reflection is needed.
+        val build = RIF_BUILDS.firstOrNull { it.renderCallback == commentRenderedBodyFingerprint.method.name }
+            ?: throw PatchException("render callback ${commentRenderedBodyFingerprint.method.name} is in no known build")
+        val callbackInterface = build.bodyRenderClass.removeSuffix(";") + "\$b;"
+        val tablesStubs = proxy(classes.first { it.type == TABLES_EXTENSION }).mutableClass.methods
+        tablesStubs.firstOrNull { it.name == "bodyHtml" }?.addInstructions(
+            0,
+            """
+                check-cast p0, $callbackInterface
+                invoke-interface { p0 }, $callbackInterface->${build.bodyHtmlGetter}()Ljava/lang/String;
+                move-result-object v0
+                return-object v0
+            """,
+        ) ?: throw PatchException("InlineTables.bodyHtml not found")
+        tablesStubs.firstOrNull { it.name == "bodyEscaped" }?.addInstructions(
+            0,
+            """
+                check-cast p0, $callbackInterface
+                invoke-interface { p0 }, $callbackInterface->${build.bodyEscapedGetter}()Z
+                move-result v0
+                return v0
+            """,
+        ) ?: throw PatchException("InlineTables.bodyEscaped not found")
+
         for (fingerprint in listOf(commentRenderedBodyFingerprint, threadSelftextEmbedFingerprint)) {
             fingerprint.method.addInstructions(
                 0,
                 "invoke-static { p1 }, $EXTENSION->embed(Landroid/text/SpannableStringBuilder;)V",
+            )
+            fingerprint.method.addInstructions(
+                0,
+                "invoke-static { p0, p1 }, $TABLES_EXTENSION->embed(Ljava/lang/Object;Landroid/text/SpannableStringBuilder;)V",
             )
         }
 
@@ -222,9 +280,7 @@ val inlineCommentImagesPatch = bytecodePatch(
                     "$THREAD_THING->$getter()Ljava/lang/CharSequence;"
             }
             val setTextIndex = bind.instructions.withIndex().indexOfFirst { (i, insn) ->
-                i >= from && insn.opcode == Opcode.INVOKE_VIRTUAL &&
-                    (insn as? ReferenceInstruction)?.reference?.toString() ==
-                    "Landroid/widget/TextView;->setText(Ljava/lang/CharSequence;)V"
+                i >= from && isBodySetText(insn)
             }
             if (setTextIndex == -1) {
                 throw PatchException("body setText not found in ${bind.definingClass}")

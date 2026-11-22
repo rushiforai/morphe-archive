@@ -33,21 +33,28 @@ object Constants {
     // isGooglePlayServicesAvailable, location, Home/Matter, Maps, Dynamite, FCM and the c2dm
     // manifest entries are untouched. Smoke test (bytecode + manifest) and a CLI run without -f;
     // 2026-11-03 emulator (patched build of the release batch, stock control): Google Drive backup sign-in showed MicroG RE's account picker and signed in.
-    // 2026-11-04: updated to version 6.7.8 (versionCode 5454; APKMirror universal APK, arm64-v8a +
-    // armeabi-v7a, same CN=Lee Wilmot signer; paid, so not on the spare Play account). The startup
+    // 2026-11-04: updated to version 6.7.8 (versionCode 5454; universal APK; same CN=Lee Wilmot
+    // signer; paid, so not on the spare Play account). The startup
     // result helper now takes (result, Context, boolean) instead of (result, boolean, Context), so
     // LicenseResultFingerprint accepts either order; the other anchors are unchanged (R8 renames
     // only: rf.w$a -> nt.x$a, rf.a0 -> nt.b0). TaskerSmokeTest passes, including every login-only
     // GmsCore assertion (the four sign-in actions routed, location/Home/telemetry/credentials
     // clients, FCM, Dynamite and the c2dm manifest entries untouched). Emulator not re-run.
-    // 2026-11-18: restored after the 2026-11-14 drop (6.7.9 is paid on Play and no trusted mirror
-    // carries it). The target stays 6.7.8 (5454), the last verified APK; nothing was re-checked.
+    // 2026-11-18: restored after the 2026-11-14 drop.
+    // 2026-11-20: 6.7.9 (versionCode 5455) was the only target. Support for 6.7.8 (5454) is
+    // restored 2026-11-21 because its anchors were previously verified: the LicenseStatus labels,
+    // "Checking cached only", GmsCore actions, "<<default account>>" and sign-in classes all match.
+    // Both APKs use the CN=Lee Wilmot signer. Smoke fixtures belong at apks/tasker/6.7.8/base.apk
+    // and apks/tasker/6.7.9/base.apk; tests skip when a fixture is absent.
     val COMPATIBILITY_TASKER = Compatibility(
         name = "Tasker",
         packageName = "net.dinglisch.android.taskerm",
         apkFileType = ApkFileType.APK,
         appIconColor = 0x4CAF50,
         signatures = setOf("973fe25b9be28fb7436d49582b04277767c852539be31783d134a55621b6636d"), // CN=Lee Wilmot
-        targets = listOf(AppTarget(version = "6.7.8", versionCode = 5454))
+        targets = listOf(
+            AppTarget(version = "6.7.8", versionCode = 5454),
+            AppTarget(version = "6.7.9", versionCode = 5455),
+        ),
     )
 }

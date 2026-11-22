@@ -47,7 +47,7 @@ changed or swapped after publication.
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.1.0](https://github.com/Just-a-lurker/facebook-morphe-patches/releases/tag/v1.1.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;13 patches total
+> **[v1.2.1](https://github.com/Just-a-lurker/facebook-morphe-patches/releases/tag/v1.2.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;13 patches total
 <details open>
 <summary>📦 Facebook&nbsp;&nbsp;•&nbsp;&nbsp;13 patches</summary>
 <br>
@@ -64,7 +64,7 @@ changed or swapped after publication.
 | [Block Instant Games ads](#block-instant-games-ads) | Games you play inside Facebook show no ads. Rewarded ads give no reward. |  |
 | [Block ad telemetry](#block-ad-telemetry) | Stops ad screenshot detection, ad install attribution and several ways Facebook sends your advertising ID. |  |
 | [Block background ad prefetch](#block-background-ad-prefetch) | Stops the background jobs that download ads and the ad-ranking model before you see them. |  |
-| [Dark mode on tablets](#dark-mode-on-tablets) | Turns Facebook's dark mode on for tablets, where its Settings page has no Dark mode row. Phones keep Facebook's own light or dark choice. Off by default: pick it in Morphe Manager before patching. Works as soon as you patch it in, with no switch. |  |
+| [Dark mode on tablets](#dark-mode-on-tablets) | Turns Facebook's dark mode on for tablets, where its Settings page has no Dark mode row. Phones keep Facebook's own light or dark choice. Off by default: pick it in Morphe Manager before patching. By default a tablet is always dark; the Follow the system theme option makes it dark only while the system's dark theme is on. | • Follow the system theme |
 | [Disable Audience Network](#disable-audience-network) | Stops Facebook serving its ads inside other apps on your phone. |  |
 | [Hide affiliate product links](#hide-affiliate-product-links) | Removes affiliate shopping cards from reels, feed posts and comments, Shop now cards on reels, and the shop banner on a profile opened from one. |  |
 | [Hide sponsored Marketplace listings](#hide-sponsored-marketplace-listings) | Removes ads and boosted listings from Marketplace's feed and search results. |  |

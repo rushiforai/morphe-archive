@@ -1,0 +1,4 @@
+# 改行を OS に関係なくそろえる
+* text=auto eol=lf
+*.bat text eol=crlf
+*.jar binary

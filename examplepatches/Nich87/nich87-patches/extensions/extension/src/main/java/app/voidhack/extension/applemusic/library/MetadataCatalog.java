@@ -39,27 +39,45 @@ final class MetadataCatalog {
                     String key = item.has("trackId") ? item.optString("trackId") : item.optString("collectionId");
                     if (batch.contains(key) && "JPN".equals(item.optString("country"))) japanese.put(key, item);
                 }
-            } catch (JSONException exception) { throw new IOException("Japanese catalog lookup failed", exception); }
+            } catch (JSONException exception) {
+                LibraryDaap.Failure failure = new LibraryDaap.Failure(LibraryDaap.Kind.PROTOCOL,
+                        "lookup_jp:json=" + LibraryMetadata.causeName(exception));
+                failure.initCause(exception);
+                throw failure;
+            }
             progress.accept(Math.min(start + 100, requested.size()));
         }
     }
 
-    void load(Set<String> identifiers, IntConsumer progress) throws IOException {
+    void load(String context, Set<String> identifiers, IntConsumer progress) throws IOException {
         List<String> missing = new ArrayList<>(identifiers);
         missing.removeAll(items.keySet());
         for (int start = 0; start < missing.size(); start += 50) {
             checkCancelled();
             List<String> batch = missing.subList(start, Math.min(start + 50, missing.size()));
-            for (String id : batch) if (!id.matches("[1-9][0-9]{0,18}")) throw new IOException("Invalid catalog identity");
+            for (String id : batch) {
+                if (!id.matches("[1-9][0-9]{0,18}")) {
+                    throw new LibraryDaap.Failure(LibraryDaap.Kind.PROTOCOL, context + ":invalid_id");
+                }
+            }
             try {
                 Object response = MusicReflection.invoke("com.apple.android.music.playback.queue.LookupHelper", "lookupMLCoreBlocking",
                         (Object) batch.toArray(new String[0]), "product", false, "metadata-repair");
-                if ((Integer) MusicReflection.call(response, "getStatusCode") != 200) throw new IOException("Catalog lookup failed");
+                int status = (Integer) MusicReflection.call(response, "getStatusCode");
+                if (status != 200) throw new LibraryDaap.Failure(LibraryDaap.Kind.HTTP, status, context + ":lookup");
                 byte[] body = (byte[]) MusicReflection.call(response, "getBody");
-                if (body == null || body.length > DaapCodec.MAX_BODY) throw new IOException("Invalid catalog response");
+                if (body == null || body.length == 0 || body.length > DaapCodec.MAX_BODY) {
+                    throw new LibraryDaap.Failure(LibraryDaap.Kind.PROTOCOL,
+                            context + ":body_size=" + (body == null ? "null" : body.length));
+                }
                 Map<String, JSONObject> found = decode(new JSONObject(new String(body, StandardCharsets.UTF_8)), new LinkedHashSet<>(batch));
                 for (String id : batch) items.put(id, found.get(id));
-            } catch (ReflectiveOperationException | JSONException exception) { throw new IOException("Catalog lookup failed", exception); }
+            } catch (ReflectiveOperationException | JSONException exception) {
+                LibraryDaap.Failure failure = new LibraryDaap.Failure(LibraryDaap.Kind.PROTOCOL,
+                        context + ":" + LibraryMetadata.causeName(exception));
+                failure.initCause(exception);
+                throw failure;
+            }
             progress.accept(Math.min(start + 50, missing.size()));
         }
     }
@@ -138,12 +156,14 @@ final class MetadataCatalog {
     }
 
     private static void collect(Object value, Set<String> wanted, Map<String, JSONObject> result, int depth) throws IOException {
-        if (depth > 16) throw new IOException("Catalog response nesting is too deep");
+        if (depth > 16) throw new LibraryDaap.Failure(LibraryDaap.Kind.PROTOCOL, "decode:depth_exceeded");
         if (value instanceof JSONObject) {
             JSONObject object = (JSONObject) value;
             String id = object.optString("id");
             if (wanted.contains(id) && object.has("kind") && object.has("name")) {
-                if (result.put(id, object) != null) throw new IOException("Ambiguous catalog identity");
+                if (result.put(id, object) != null) {
+                    throw new LibraryDaap.Failure(LibraryDaap.Kind.PROTOCOL, "decode:ambiguous_id");
+                }
                 return;
             }
             Iterator<String> keys = object.keys();

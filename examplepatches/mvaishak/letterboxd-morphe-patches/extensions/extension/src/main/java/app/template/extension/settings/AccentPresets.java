@@ -116,7 +116,7 @@ public final class AccentPresets {
         }
     }
 
-    static int readableText(int preferred, int background) {
+    public static int readableText(int preferred, int background) {
         if (androidx.core.graphics.ColorUtils.calculateContrast(preferred, background) >= 4.5) {
             return preferred;
         }

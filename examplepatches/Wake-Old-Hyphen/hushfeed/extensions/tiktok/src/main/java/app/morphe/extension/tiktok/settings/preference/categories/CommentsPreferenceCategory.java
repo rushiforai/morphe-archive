@@ -253,6 +253,12 @@ public class CommentsPreferenceCategory extends ConditionalPreferenceCategory {
                             + "TikTok where that account is based, or where its latest videos were posted from.",
                     Settings.COUNTRY_FROM_COMMENT_MENU
             ));
+            addPreference(new TogglePreference(
+                    context,
+                    "Share any comment",
+                    "Share a comment or send it in a chat even when TikTok says it can't be shared.",
+                    Settings.SHARE_ANY_COMMENT
+            ));
         }
 
         boolean hiding = SettingsStatus.hideCommentQuickReactionsEnabled
@@ -305,6 +311,21 @@ public class CommentsPreferenceCategory extends ConditionalPreferenceCategory {
                     "Hides the button that stretches the comments over the whole screen. Turn on "
                             + "Open the comments at full height to have them open that way.",
                     Settings.HIDE_COMMENT_EXPAND_BUTTON
+            ));
+            addPreference(new TogglePreference(
+                    context,
+                    "Always show the expand button in comments",
+                    "Puts the button that stretches the comments over the whole screen on every "
+                            + "video. TikTok only gives it to some accounts. Hide the expand button "
+                            + "in comments wins if both are on.",
+                    Settings.SHOW_COMMENT_EXPAND_BUTTON
+            ));
+            addPreference(new TogglePreference(
+                    context,
+                    "Keep the video full size under comments",
+                    "The video keeps its size when you open the comments, and the comments cover "
+                            + "its lower part instead of pushing it up into a smaller box.",
+                    Settings.KEEP_VIDEO_SIZE_UNDER_COMMENTS
             ));
             addPreference(new TogglePreference(
                     context,

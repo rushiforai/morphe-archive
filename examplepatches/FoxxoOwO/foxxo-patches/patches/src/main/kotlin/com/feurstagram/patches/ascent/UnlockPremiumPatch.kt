@@ -15,8 +15,6 @@ import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.feurstagram.patches.shared.Constants.COMPATIBILITY_ASCENT
 
 /*
- * Ascent models the subscription as a `gk4` status object, and every premium gate in the UI is
- * `premiumStatus instanceof ck4` (ck4 = "is premium"). The status is produced in three places
  * Ascent models the subscription as an `sl4` status object, and every premium gate in the UI is
  * `premiumStatus instanceof nl4` (nl4 = "is premium"). The status is produced in two places that
  * have to agree, otherwise the UI flips back to the free state a moment after launch:
@@ -80,11 +78,21 @@ private fun BytecodePatchContext.forceSubscribedServerStatus() {
 }
 
 /**
- * `s81.invokeSuspend`: the mapper is a coroutine state machine whose first branch (`a == 0`) is
- * the subscription mapping. Returning the premium status right after the dispatch field is read
- * skips that mapping (and every suspension point inside it) without touching the second use of
- * the same lambda shape.
+ * `s81.invokeSuspend`: `s81.a` selects which lambda shape this state machine implements, not the
+ * suspension state (`s81.b`). R8 renumbered the variants in 5.0.2: variant 0 is an unrelated
+ * `Lib2`/`t81` flow, while variant 2 (`pswitch_8`) is the one that maps the local purchase state
+ * to an `Lsl4;` status (`ml4` premium, `ql4` promotion, `pl4` expired, `ol4` free).
+ *
+ * Returning the premium status right after the variant is read skips that whole mapping (and every
+ * suspension point inside it) without touching the other variants of the same class. The old
+ * patch kept the 5.0.1 `a == 0` check, so it either did nothing to the premium status or returned
+ * a status object where a different type was expected.
  */
+private const val STATUS_MAPPER_VARIANT = 2
+
+/** v15 is dead when the variant is read and assigned before first use in every branch. */
+private const val SCRATCH_REGISTER = 15
+
 private fun BytecodePatchContext.forcePremiumLocalStatus() {
     val method = mutableClassDefBy(STATUS_MAPPER).methods.singleOrNull { it.name == "invokeSuspend" }
         ?: throw PatchException("Could not find the subscription status mapper ($STATUS_MAPPER->invokeSuspend)")
@@ -99,11 +107,13 @@ private fun BytecodePatchContext.forcePremiumLocalStatus() {
 
     val dispatchRegister = (method.instructions[dispatchIndex] as OneRegisterInstruction).registerA
     val originalCode = method.instructions[dispatchIndex + 1]
+    // v15 is used as a scratch register (see SCRATCH_REGISTER).
 
     method.addInstructionsWithLabels(
         dispatchIndex + 1,
         """
-            if-nez v$dispatchRegister, :original
+            const/4 v$SCRATCH_REGISTER, $STATUS_MAPPER_VARIANT
+            if-ne v$dispatchRegister, v$SCRATCH_REGISTER, :original
             sget-object v$dispatchRegister, $PREMIUM_STATUS->a:$PREMIUM_STATUS
             return-object v$dispatchRegister
         """,

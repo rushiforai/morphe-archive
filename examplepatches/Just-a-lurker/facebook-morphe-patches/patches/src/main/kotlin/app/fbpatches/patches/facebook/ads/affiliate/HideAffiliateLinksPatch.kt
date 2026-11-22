@@ -84,7 +84,7 @@ internal const val FB_USER_SESSION = "Lcom/facebook/auth/usersession/FbUserSessi
  * Facebook shows them. Each place asks its own question first. The "Commission eligible" label has
  * a switch of its own, off by default.
  *
- * - The label (#329) is a row of the reel's disclosure component ([isDisclosureRender], 585 arm64
+ * - The label is a row of the reel's disclosure component ([isDisclosureRender], 585 arm64
  *   `LX/0CRr;->render`, armv7 `LX/0CRu;->render`), which reads one boolean flag off the reel for it.
  *   The render first asks a static check (arm64 `LX/09b5;->A00`, armv7 `LX/09bA;->A00`) whether the
  *   reel has any disclosure at all, and that check reads the same flag. Both answers go through
@@ -108,7 +108,7 @@ internal const val FB_USER_SESSION = "Lcom/facebook/auth/usersession/FbUserSessi
  *   predicate (arm64 `A00(LX/0DkD;LX/0B0Z;)Z`, armv7 `A00(LX/0DkC;LX/0B0c;)Z`) that walks the
  *   model's chain and answers yes only when the card is there, and its one caller (arm64
  *   `LX/0B0e;->A0G`) leaves the plugin out on a no.
- * - On a reel again, the "Shop now" card above the creator's name (#89, a creator's own product on
+ * - On a reel again, the "Shop now" card above the creator's name (a creator's own product on
  *   581) is one of the overlay's call-to-action kinds: products tagged on the reel (PRODUCT_TAGGING,
  *   PRODUCT_TAGGING_V2), the creator's storefront, Shop similar, or the affiliate card itself. The
  *   overlay sorts its kinds into categories and runs them through [CTA_FILTER], which Facebook's
@@ -120,7 +120,7 @@ internal const val FB_USER_SESSION = "Lcom/facebook/auth/usersession/FbUserSessi
  *   static initializer fills four Sets with overlay kinds, reads the MobileConfig switches itself,
  *   answers null when none is on and otherwise drops each kind whose set's category is switched on.
  *   The overlay's builder (`LX/0B8F;->A0C`) and the rec pill's class (`LX/0B7J;->A00`) both call it.
- * - On a creator's profile (#329), the shop banner that floats over the Reels grid comes with the
+ * - On a creator's profile, the shop banner that floats over the Reels grid comes with the
  *   tag a reel, post or feed video puts in the bundle of the profile it opens. One static helper
  *   (585 arm64 `LX/0cuE;->A00(String, Bundle)`, which the reel's author tap calls with "REELS_VDD")
  *   stores it under [PROFILE_ENTRY_POINT], and the profile asks for the banner only with it. The value

@@ -36,10 +36,11 @@ An existing DuckDuckGo Email Protection account and an internet connection are r
 ### Wispr Flow integration
 
 The optional **Wispr Flow** patch adds a draggable dictation button to the toolbar menu.
-The button opens Gboard’s native Advanced Voice Typing header. Tap **×** to discard a
-recording or **✓** to transcribe and insert it. Bridge 0.3.0 hides Wispr's floating controls
-in keyboard mode. This experimental integration targets Gboard 18.5.4, Wispr Flow 2.8.5
-or 2.8.7, and Android 14 or later.
+The button opens Gboard's native Advanced Voice Typing header. Tap **×** to discard a
+recording or **✓** to transcribe and insert it. Recording can continue while the keyboard
+is hidden. Tap a text field to bring back the controls. Bridge 0.3.1 hides Wispr's floating
+controls in keyboard mode. This experimental integration targets Gboard 18.5.4, Wispr Flow
+2.8.5 or 2.8.7, and Android 14 or later.
 See the [bridge setup and build instructions](integrations/wispr-flow-bridge/README.md).
 
 Based on [jasonwu1994/Gboard-patches](https://github.com/jasonwu1994/Gboard-patches). All upstream patches remain available. The original project’s documentation follows below.

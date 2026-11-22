@@ -31,7 +31,8 @@ import java.util.Locale;
  * 99–96% against 0.50 in the middle) and the user gets more distance per percent, so those intervals
  * pool in a band of their own at any speed instead of skewing the speed bands. Each whole percent
  * driven through in one chain also adds its energy and distance to "above 90%" or "90% and below",
- * the user's own measure (km per 1%).
+ * the user's own measure (km per 1%). They need only the BMS energy and the odometer, so they count also without BYD's
+ * table (DiLink 5) or a speed; the bands skip such an interval.
  */
 final class BydSpeedBands {
     private static final String TAG = "MorpheBydBands";
@@ -122,13 +123,17 @@ final class BydSpeedBands {
         }
     }
 
-    /** One sample while BYD's table is used; the mass and outside temperature are the model's. */
+    /**
+     * One sample; the mass and outside temperature are the model's. Without BYD's table ({@code file} null: DiLink 5, or
+     * no table on the car) or without a speed only the whole percents count.
+     */
     static synchronized void observe(BydEnergyReader.Sample sample, int energyWh, int capacityWh,
                                      BydVehicleEnergyFile file, int massKg, int outsideC) {
-        if (!file.name.equals(table) || !file.predictionSha256.equals(tableSha)) {
+        if (file != null && (!file.name.equals(table) || !file.predictionSha256.equals(tableSha))) {
             if (!file.name.equals(table)) {
                 if (table != null) ReportLog.i(TAG, "bands_reset;reason=table_changed;from=" + table + ";to=" + file.name);
-                clear();
+                // The whole percents stay: they are the car's own (BMS energy and odometer), not the table's.
+                clearBands();
             } else if (tableSha != null) {
                 // The same table with other values: its pools compared against the old ones.
                 ReportLog.i(TAG, "bands_reset;reason=table_values_changed;table=" + file.name + ";from=" + tableSha
@@ -144,7 +149,7 @@ final class BydSpeedBands {
             tableSha = file.predictionSha256;
             persist();
         }
-        if (file != predictorFile) {
+        if (file != null && file != predictorFile) {
             predictorFile = file;
             try {
                 predictor = file.predictor();
@@ -153,7 +158,8 @@ final class BydSpeedBands {
                 ReportLog.w(TAG, "no prediction from " + file.name + ": " + error);
             }
         }
-        if (predictor == null || sample.mileageUnit != 1 || !finite(sample.speedKmh)) { chained = false; return; }
+        BydVehicleEnergyFile.Predictor tablePredictor = file != null ? predictor : null;
+        if (sample.mileageUnit != 1) { chained = false; return; }
         if (!chained) { start(sample, energyWh); return; }
         long dt = sample.elapsed - previousAt, stepM = (long) (sample.mileage - previousMileage) * 100;
         int rise = energyWh - previousWh;
@@ -179,7 +185,8 @@ final class BydSpeedBands {
             if (stepLevel == entered + 1) level(entered + 1, stepWh - energyWh, (sample.mileage - stepMileage) * 100L);
             stepLevel = entered; stepWh = energyWh; stepMileage = sample.mileage;
         }
-        if (stationaryMs > MAX_PARKED_MS) {
+        if (stationaryMs > MAX_PARKED_MS || tablePredictor == null || !finite(previousSpeed) || !finite(sample.speedKmh)) {
+            // Parked, or no table or speed for this interval: the bands skip it (its energy and its distance).
             runBand = -1;
         } else {
             double meanKmh = (previousSpeed + sample.speedKmh) / 2;
@@ -193,7 +200,7 @@ final class BydSpeedBands {
             band.poolMetres += stepM;
             band.poolMs += dt;
             band.poolMeasuredWh += previousWh - energyWh;
-            band.poolPredictedWh += predictor.intervalWh(previousSpeed, sample.speedKmh, dt / 1000.0, massKg, sinceStart,
+            band.poolPredictedWh += tablePredictor.intervalWh(previousSpeed, sample.speedKmh, dt / 1000.0, massKg, sinceStart,
                     outsideC, energyWh, capacityWh);
             band.poolSpeedMetres += meanKmh / 3.6 * dt / 1000.0;
             if (band.poolMetres >= POOL_METRES && band.poolMeasuredWh >= POOL_WH) finish(index, massKg, outsideC);
@@ -234,6 +241,36 @@ final class BydSpeedBands {
         double ratio() { return pools > 0 && predicted > 0 ? measured / predicted : Double.NaN; }
     }
 
+    /**
+     * The speed bands' measured consumption over BYD's table's (city, 60–80 and highway together, finished pools only),
+     * NaN without a finished pool.
+     */
+    static synchronized double speedRatio() {
+        double measured = 0, predicted = 0;
+        for (int i = CITY; i <= HIGHWAY; i++) {
+            if (bands[i].pools == 0) continue;
+            measured += bands[i].totalMeasuredWh;
+            predicted += bands[i].totalPredictedWh;
+        }
+        return predicted > 0 ? measured / predicted : Double.NaN;
+    }
+
+    /** Finished pools of the speed bands (city, 60–80 and highway). */
+    static synchronized long speedPools() {
+        return bands[CITY].pools + bands[MIXED].pools + bands[HIGHWAY].pools;
+    }
+
+    /** The speed bands' measured kWh/100 km (city, 60–80 and highway together), NaN without a finished pool. */
+    static synchronized double speedConsumption() {
+        double wh = 0, metres = 0;
+        for (int i = CITY; i <= HIGHWAY; i++) {
+            if (bands[i].pools == 0) continue;
+            wh += bands[i].totalMeasuredWh;
+            metres += bands[i].totalMetres;
+        }
+        return metres > 0 ? wh * 100.0 / metres : Double.NaN;
+    }
+
     static synchronized Status[] status() {
         return new Status[]{new Status(bands[CITY]), new Status(bands[MIXED]), new Status(bands[HIGHWAY]), new Status(bands[ABOVE_90])};
     }
@@ -264,7 +301,9 @@ final class BydSpeedBands {
         group.count++;
         group.wh += wh;
         group.metres += metres;
-        if (++unsaved >= PERSIST_EVERY) persist();
+        // Saved at once (one about every 0.5 kWh): without a table or a speed nothing else saves, and the km per 1% and
+        // the 90%+ curve need them after a restart.
+        persist();
     }
 
     private static void finish(int index, int massKg, int outsideC) {

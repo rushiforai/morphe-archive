@@ -1,6 +1,6 @@
 # Patchcatalogus
 
-**Patchbundel: 1.92.0**
+**Patchbundel: 1.94.0**
 
 Controleer per patch de ondersteunde app-versies en de standaardinstelling. De app-pagina legt uit wat de patch voor het gebruik verandert.
 
@@ -924,9 +924,10 @@ Controleer per patch de ondersteunde app-versies en de standaardinstelling. De a
 
 | Patch | Standaard | App-versies |
 | --- | --- | --- |
-| Disable tracking (Android - v116.4) | Aan | 1.116.4 |
-| Hide ads (Android - v116.4) | Aan | 1.116.4 |
-| Skip consent screens (Android - v116.4) | Aan | 1.116.4 |
+| Disable tracking (Android - v119.2) | Aan | 1.119.2 |
+| Hide ads (Android - v119.2) | Aan | 1.119.2 |
+| Remember last profile (experimental) (Android - v119.2) | Uit | 1.119.2 |
+| Skip consent screens (Android - v119.2) | Aan | 1.119.2 |
 
 ## Videoland Android TV
 
@@ -936,9 +937,10 @@ Controleer per patch de ondersteunde app-versies en de standaardinstelling. De a
 
 | Patch | Standaard | App-versies |
 | --- | --- | --- |
-| Disable tracking (Android TV - v118) | Aan | 1.118.0 |
-| Hide ads (Android TV - v118) | Aan | 1.118.0 |
-| Hide unavailable content (Android TV - v118) | Aan | 1.118.0 |
+| Disable tracking (Android TV - v119.2) | Aan | 1.119.2 |
+| Hide ads (Android TV - v119.2) | Aan | 1.119.2 |
+| Hide unavailable content (Android TV - v119.2) | Aan | 1.119.2 |
+| Remember last profile (experimental) (Android TV - v119.2) | Uit | 1.119.2 |
 
 ## Voetbal International
 

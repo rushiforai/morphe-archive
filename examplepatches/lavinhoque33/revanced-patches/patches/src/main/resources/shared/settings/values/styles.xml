@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Copyright (C) 2026 lavinhoque33
+  Licensed under the GNU General Public License v3.0.
+  Written by lavinhoque33, 2026-11-21.
+-->
+<resources>
+    <style name="revanced_preference_titles">
+        <item name="android:singleLineTitle">false</item>
+    </style>
+</resources>

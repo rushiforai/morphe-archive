@@ -38,6 +38,9 @@
     <string name="voidhack_metadata_result_title">Metadata repair result</string>
     <string name="voidhack_metadata_repair_result">Repairs verified in the cloud: %1$d\nCould not verify: %2$d\nNot processed: %3$d\n\nRepaired information appears on each device when its library syncs.</string>
     <string name="voidhack_metadata_rescan">Check again</string>
+    <string name="voidhack_metadata_save_log">Save log</string>
+    <string name="voidhack_metadata_log_saved">Diagnostic log saved.</string>
+    <string name="voidhack_metadata_log_save_failed">Could not save the diagnostic log.</string>
     <string name="voidhack_metadata_local_refresh_pending">Cloud repairs were saved, but this device could not refresh %1$d songs. Reopen Apple Music after its library finishes syncing.</string>
     <string name="voidhack_metadata_account_changed">Your account changed after the scan. Scan again using the current account.</string>
     <string name="voidhack_metadata_conflict">Your library information changed. Scan again to review the latest metadata.</string>

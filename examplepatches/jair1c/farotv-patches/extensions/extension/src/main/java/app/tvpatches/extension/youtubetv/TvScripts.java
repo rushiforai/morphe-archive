@@ -100,13 +100,23 @@ public final class TvScripts {
 
     private static String cachedScript;
 
+    /** Enabled only when the optional diagnostic patch is selected. */
+    private static boolean getDiagnosticsEnabled() {
+        return false;
+    }
+
+    static boolean diagnosticsEnabled() {
+        return getDiagnosticsEnabled();
+    }
+
     private static String script() {
         if (cachedScript == null) {
             String name = getBrandingName();
             String prefix = "";
+            if (diagnosticsEnabled()) prefix = "window.__farotvDiagnostics=true;\n";
             if (name != null && !name.isEmpty()) {
                 String escaped = name.replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", " ");
-                prefix = "window.__youtvBranding=\"" + escaped + "\";\n";
+                prefix += "window.__youtvBranding=\"" + escaped + "\";\n";
             }
             String youtube = appVersion();
             if (!youtube.isEmpty()) prefix += "window.__youtubeVersion=\"" + youtube + "\";\n";

@@ -1,0 +1,51 @@
+{
+  "collections": [
+    {
+      "id": "working_apps",
+      "title": "Apps",
+      "apps": [
+        {
+          "package": "com.google.android.apps.youtube.vr",
+          "title": "YouTube VR",
+          "motion": 2,
+          "icon_url": "https://raw.githubusercontent.com/patapon888/morphe-patches/main/store/icons/youtube_vr_fg.png",
+          "background_url": "https://raw.githubusercontent.com/patapon888/morphe-patches/main/store/icons/youtube_vr_bg.png"
+        },
+        {
+          "package": "in.fulldive.shell",
+          "title": "Fulldive VR",
+          "motion": 2,
+          "icon_url": "https://raw.githubusercontent.com/patapon888/morphe-patches/main/store/icons/fulldive_fg.png",
+          "background_url": "https://raw.githubusercontent.com/patapon888/morphe-patches/main/store/icons/fulldive_bg.png"
+        },
+        {
+          "package": "com.google.android.apps.photos.daydream",
+          "title": "Google Photos VR",
+          "motion": 1,
+          "icon_url": "https://raw.githubusercontent.com/patapon888/morphe-patches/main/store/icons/photos_vr_fg.png",
+          "background_url": "https://raw.githubusercontent.com/patapon888/morphe-patches/main/store/icons/photos_vr_bg.png"
+        },
+        {
+          "package": "com.google.android.street",
+          "title": "Street View",
+          "motion": 2,
+          "icon_url": "https://raw.githubusercontent.com/patapon888/morphe-patches/main/store/icons/street_view_fg.png",
+          "background_url": "https://raw.githubusercontent.com/patapon888/morphe-patches/main/store/icons/street_view_bg.png"
+        }
+      ]
+    },
+    {
+      "id": "xr_apps",
+      "title": "XR",
+      "apps": [
+        {
+          "package": "com.igalia.wolvic.vanilla",
+          "title": "Wolvic",
+          "motion": 2,
+          "icon_url": "https://raw.githubusercontent.com/patapon888/morphe-patches/main/store/icons/wolvic_fg.png",
+          "background_url": "https://raw.githubusercontent.com/patapon888/morphe-patches/main/store/icons/wolvic_bg.png"
+        }
+      ]
+    }
+  ]
+}

@@ -127,7 +127,7 @@ class BundleObbTest {
 
     @Test
     fun `hand APK wraps resdlEvent so event 100 and 101 both get the openFd base`() {
-        // Working APK: resdlEvent calls orig, then adds embeddedGpkBase for 100 and 101.
+        // Working APK: resdlEvent calls orig, then adds the packed OBB base for 100 and 101.
         // FileMgr getResourceStartPos is 100 and jumps to the method's single return, so a
         // hook inserted in front of that return is skipped. hookResdlEvent replaces it.
         assertEquals(100, ApkObbLayout.EVENT_START)

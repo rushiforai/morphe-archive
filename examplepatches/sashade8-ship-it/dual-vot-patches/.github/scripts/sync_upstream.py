@@ -1584,6 +1584,51 @@ def resolve_stable200_test_dependencies() -> None:
     run("git", "add", "--", path)
 
 
+DEV247_PATCH_BUILD_PATH = "patches/build.gradle.kts"
+DEV247_PATCH_BUILD_CONFLICT_BLOBS = (
+    "6f3a1f0796cbe31ec7ab16b0896cefc3dda68b76",
+    "fa65ef58756947e3c11cfc35d63ae0e467f434e8",
+    "f6d87276332afaf15b0cbaa56eba70d685d2648a",
+)
+
+
+def merge_dev247_patch_build(source: str) -> str:
+    """Keep Dual bundle metadata and upstream's test-build name override."""
+    metadata = r'(?:        (?:description|source|author|contact|website) = "[^\n]+"\n){5}'
+    pattern = (
+        r"(?m)^<<<<<<< [^\n]+\n"
+        r'        name = "Dual VoT Patches"\n'
+        rf"(?P<dual_metadata>{metadata})"
+        r"=======\n"
+        r"(?P<comment>        // Pull request builds pass -PpatchesName to tell test builds apart from releases\.\n)"
+        r'        name = providers\.gradleProperty\("patchesName"\)\.getOrElse\("Morphe Patches"\)\n'
+        rf"{metadata}"
+        r">>>>>>> [^\n]+\n"
+    )
+    replacement = (
+        r'\g<comment>        name = providers.gradleProperty("patchesName").getOrElse("Dual VoT Patches")'
+        "\n"
+        r"\g<dual_metadata>"
+    )
+    merged, count = re.subn(pattern, replacement, source)
+    if count != 1 or re.search(r"(?m)^(<<<<<<<|=======|>>>>>>>)(?: |$)", merged):
+        raise SyncError("Unexpected dev 2.4.0-dev.7 patch build conflict")
+    return merged
+
+
+def resolve_dev247_patch_build_conflict() -> None:
+    path = DEV247_PATCH_BUILD_PATH
+    if path not in unresolved_paths():
+        return
+    blobs = tuple(output_of("git", "rev-parse", f":{stage}:{path}") for stage in (1, 2, 3))
+    if blobs != DEV247_PATCH_BUILD_CONFLICT_BLOBS:
+        return
+    destination = ROOT / path
+    merged = merge_dev247_patch_build(destination.read_text(encoding="utf-8"))
+    destination.write_text(merged, encoding="utf-8", newline="")
+    run("git", "add", "--", path)
+
+
 def merge_ref(
     ref: str,
     project_preference: str,
@@ -1629,6 +1674,7 @@ def merge_ref(
     resolve_youtube_junit_conflict()
     resolve_stable200_test_dependencies()
     resolve_dev1498_vot_sheet_conflict()
+    resolve_dev247_patch_build_conflict()
 
     remaining = unresolved_paths()
     if remaining:

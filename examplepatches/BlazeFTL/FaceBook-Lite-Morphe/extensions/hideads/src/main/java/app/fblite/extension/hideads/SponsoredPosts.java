@@ -4,6 +4,8 @@ import android.util.Log;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -18,6 +20,11 @@ import java.util.Set;
  * advertiser name): the per-photo action rows of a multi-photo post are tappable with references too, and
  * hiding their group hid the photos.
  *
+ * A post opened on its own (from Saved, a notification or a link) is one child that holds the whole post and
+ * is tappable with references, so the rule would hide all of it and leave only the comments. That child carries
+ * the string "fb_permalink" in a field of the component, and is never treated as a sponsored header. The
+ * field is found by its value, not by its obfuscated name.
+ *
  * Children are never removed, because the server updates the feed by child index. They are marked
  * hidden (A2c, which the renderer and hit testing skip) and get height 0, and the feed list stacks
  * rows by height, so no gap is left.
@@ -31,6 +38,8 @@ public final class SponsoredPosts {
 
     private static boolean disabled;
     private static Field id, group, height, hidden, parent, tappable, tappableFlag, references;
+    private static Field[] strings;
+    private static int permalinkLogs;
     private static Method children;
     /** Children at least this tall (px) are Reels. */
     private static final int REELS_HEIGHT = 1800;
@@ -69,7 +78,7 @@ public final class SponsoredPosts {
         for (Object child : posts) {
             int g = (Integer) group.get(child);
             if (g != 0 && (Boolean) tappable.get(child) && (Boolean) tappableFlag.get(child) && references.get(child) != null
-                    && AdTrace.hasNameText(child)) {
+                    && !isPermalink(child) && AdTrace.hasNameText(child)) {
                 if (sponsored == null) sponsored = new HashSet<>();
                 sponsored.add(g);
             }
@@ -98,6 +107,22 @@ public final class SponsoredPosts {
             }
         }
         if (AdLog.enabled()) summarize(posts, byGroup, byLabel, alreadyHidden);
+    }
+
+    /** True for the child that holds a whole post opened on its own (component field value "fb_permalink"). */
+    static boolean isPermalink(Object child) {
+        try {
+            if (strings == null) resolve();
+            for (Field f : strings) {
+                Object v = f.get(child);
+                if (v instanceof String && ((String) v).startsWith("fb_permalink")) {
+                    if (AdLog.enabled() && permalinkLogs++ < 5) AdLog.log("ads", "KEEP permalink post " + AdTrace.describe(child));
+                    return true;
+                }
+            }
+        } catch (Throwable ignored) {
+        }
+        return false;
     }
 
     private static String lastSummary = "";
@@ -141,5 +166,15 @@ public final class SponsoredPosts {
         tappableFlag = component.getDeclaredField("A2m");
         references = container.getDeclaredField("A0M");
         children = Class.forName("X.0hc", false, app).getMethod("ADt");
+        List<Field> found = new ArrayList<>();
+        for (Field f : component.getDeclaredFields()) {
+            if (f.getType() != String.class || Modifier.isStatic(f.getModifiers())) continue;
+            try {
+                f.setAccessible(true);
+            } catch (Throwable ignored) {
+            }
+            found.add(f);
+        }
+        strings = found.toArray(new Field[0]);
     }
 }

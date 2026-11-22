@@ -7,23 +7,25 @@ public final class NgRuleSafetyTest {
         checks++;
     }
     public static void main(String[] args) {
-        String example = ".*[\\x{E000}-\\x{F8FF}\\x{10000}-\\x{FFFFF}].*";
-        ok(NgRuleSafety.containsPrivateUseRange(example), "reported BMP private-use range is detected");
-        ok(NgRuleSafety.containsPrivateUseRange("[\\x{F0000}-\\x{FFFFD}]"), "plane 15 private-use range is detected");
-        ok(NgRuleSafety.containsPrivateUseRange("[\\x{100000}-\\x{10FFFD}]"), "plane 16 private-use range is detected");
-        ok(NgRuleSafety.containsPrivateUseRange("[\\uE000-\\uF8FF]"), "unicode escapes are detected");
-        ok(!NgRuleSafety.containsPrivateUseRange("[\\x{1000}-\\x{2000}]"), "ordinary unicode range remains allowed");
-        ok(NgRuleSafety.rejection("WORD", example, (short) NgRuleSafety.REGEX_FLAG) != null, "private-use regex is rejected");
-        ok(NgRuleSafety.rejection("WORD", "short", (short) 0) != null, "new five-character word is rejected");
-        ok(NgRuleSafety.rejection("WORD", "abcdef", (short) 0) == null, "six-character word is accepted");
-        ok(NgRuleSafety.rejection("WORD", "😀😀😀😀😀😀", (short) 0) == null, "six supplementary code points meet minimum");
-        ok(NgRuleSafety.rejection("WORD", "😀😀😀😀😀", (short) 0) != null, "five supplementary code points are rejected");
-        ok(NgRuleSafety.rejection("ID", "12345", (short) 0) == null, "short IDs are unaffected");
-        ok(NgRuleSafety.rejection("NAME", "abc", (short) 0) == null, "short names are unaffected");
-        ok(NgRuleSafety.rejection("ID", example, (short) NgRuleSafety.REGEX_FLAG) != null, "unsafe regex is rejected for IDs too");
-        ok(NgRuleSafety.rejection("NAME", example, (short) NgRuleSafety.REGEX_FLAG) != null, "unsafe regex is rejected for names too");
-        ok(NgRuleSafety.rejectionForUpdate("WORD", "short", "short", (short) 0) == null, "existing short word can be edited without changing its text");
-        ok(NgRuleSafety.rejectionForUpdate("WORD", "before", "short", (short) 0) != null, "editing a rule to a short word is rejected");
+        for (String category : new String[]{"ID", "NAME", "WORD"}) {
+            ok(NgRuleSafety.rejection(category, "[\\x{E000}-\\x{F8FF}]") == null, "local private-use regex allowed");
+        }
+        ok(NgRuleSafety.rejection("WORD", "短") == null, "one-character local word allowed");
+        ok(NgRuleSafety.rejection("WORD", "😀") == null, "one-emoji local word allowed");
+        ok(NgRuleSafety.rejection("WORD", " \t") != null, "blank word rejected");
+        for (String kind : new String[]{"id", "name", "keyword"}) {
+            for (String regex : new String[]{"[\\x{E000}-\\x{F8FF}]", "[\\x{F0000}-\\x{FFFFD}]",
+                    "[\\x{100000}-\\x{10FFFD}]", "[\\uF8FF-\\uE000]"}) {
+                ok(!SharedNgRules.shareableCondition(kind, regex, true), "shared private-use regex excluded");
+            }
+        }
+        ok(SharedNgRules.shareableCondition("keyword", "日本語.*対象", true), "ordinary shared regex allowed");
+        ok(!SharedNgRules.shareableCondition("keyword", "短", false), "short shared word excluded");
+        String unsafe = "[\\x{E000}-\\x{F8FF}]";
+        String id = "a".repeat(64);
+        SharedNgRules.Rule remote = new SharedNgRules.Rule(id, "*", "name", unsafe, "", 1, false, 1, 0, true);
+        ok(!remote.expressionMatches("\uE000"), "legacy remote private-use regex ignored");
+        ok(remote.localValue(unsafe, true).expressionMatches("\uE000"), "local edit can use private-use regex");
         System.out.println("PASS " + checks + " NG rule safety checks");
     }
 }

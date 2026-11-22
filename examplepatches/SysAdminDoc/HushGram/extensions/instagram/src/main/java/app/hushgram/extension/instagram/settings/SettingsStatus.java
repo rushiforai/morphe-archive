@@ -53,6 +53,10 @@ public final class SettingsStatus {
         return false;
     }
 
+    public static boolean withoutPlayServices() {
+        return false;
+    }
+
     public static boolean removeAdId() {
         return false;
     }
@@ -536,6 +540,10 @@ public final class SettingsStatus {
         return false;
     }
 
+    public static boolean homeReelsBelowName() {
+        return false;
+    }
+
     public static boolean feedSave() {
         return false;
     }
@@ -728,6 +736,10 @@ public final class SettingsStatus {
     }
 
     public static boolean reelProfileTabBar() {
+        return false;
+    }
+
+    public static boolean reelLinkTabBar() {
         return false;
     }
 

@@ -4,9 +4,9 @@ import android.content.Context;
 import android.content.SharedPreferences;
 
 /**
- * Reads the ReVanced settings the patches expose in rif's settings UI.
+ * Reads the settings the patches expose in rif's settings UI.
  *
- * The checkboxes live in a "ReVanced" preference screen that inherits rif's base
+ * The checkboxes live in a "rif patches" preference screen that inherits rif's base
  * settings fragment, so they write booleans to rif's "settings" SharedPreferences
  * file. The app Context comes from a hook in rif's Application.onCreate
  * ({@link #init}); reads are safe from any thread (e.g. the comment-render worker).
@@ -25,6 +25,7 @@ public final class Settings {
     public static final String KEY_INLINE_IMAGES_LONG_PRESS_DELAY = "INLINE_IMAGES_LONG_PRESS_DELAY";
     public static final String KEY_INLINE_VIDEOS = "INLINE_VIDEOS";
     public static final String KEY_INLINE_VIDEOS_AUTOPLAY = "INLINE_VIDEOS_AUTOPLAY";
+    public static final String KEY_INLINE_TABLES = "INLINE_TABLES";
     public static final String KEY_YOUTUBE_CAPTIONS_LANDSCAPE = "YOUTUBE_CAPTIONS_LANDSCAPE";
     public static final String KEY_YOUTUBE_CAPTIONS_VERTICAL = "YOUTUBE_CAPTIONS_VERTICAL";
     public static final String KEY_YOUTUBE_CAPTIONS_SHORTS = "YOUTUBE_CAPTIONS_SHORTS";
@@ -96,7 +97,17 @@ public final class Settings {
     }
 
     public static boolean inlineImages() {
-        return get(KEY_INLINE_IMAGES, true);
+        return !inlineTablesOnly() && get(KEY_INLINE_IMAGES, true);
+    }
+
+    /**
+     * True when another bundle's inline media is patched into this app, so "Inline comment images"
+     * leaves images and videos to it and keeps inline tables only. Decided when patching: the Morphe
+     * bundle rewrites this method to return true when Patcheddit's "Inline media" is applied with it.
+     * Always false in the ReVanced bundle.
+     */
+    public static boolean inlineTablesOnly() {
+        return false;
     }
 
     public static boolean scaleInlineImages() {
@@ -129,6 +140,11 @@ public final class Settings {
 
     public static boolean inlineVideos() {
         return inlineImages() && get(KEY_INLINE_VIDEOS, true);
+    }
+
+    /** Markdown tables drawn inline (on by default; independent of "Inline images"). */
+    public static boolean inlineTables() {
+        return get(KEY_INLINE_TABLES, true);
     }
 
     public static boolean autoplayInlineVideos() {

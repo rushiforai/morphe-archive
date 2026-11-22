@@ -2,7 +2,6 @@ package dev.rikunode.pupil
 
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
-import app.morphe.patcher.patch.booleanOption
 import app.morphe.patcher.patch.bytecodePatch
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
@@ -44,6 +43,25 @@ private object GalleryDetailShortcutFingerprint : Fingerprint(
     returnType = "V",
 )
 
+private object SettingsScreenShortcutFingerprint : Fingerprint(
+    definingClass = "Lxyz/quaver/pupil/ui/compose/settings/SettingsScreenKt;",
+    name = "SettingsScreen\$lambda\$7",
+    parameters = listOf(
+        "Lkotlin/jvm/functions/Function0;",
+        "Lxyz/quaver/pupil/util/Settings;",
+        "Landroidx/compose/runtime/MutableState;",
+        "Landroidx/compose/runtime/MutableState;",
+        "Lkotlin/jvm/functions/Function0;",
+        "Landroid/content/Context;",
+        "Landroidx/activity/compose/ManagedActivityResultLauncher;",
+        "Lkotlin/jvm/functions/Function0;",
+        "Landroidx/compose/foundation/layout/ColumnScope;",
+        "Landroidx/compose/runtime/Composer;",
+        "I",
+    ),
+    returnType = "Lkotlin/Unit;",
+)
+
 private object MainResumeShortcutFingerprint : Fingerprint(
     definingClass = "Lxyz/quaver/pupil/ui/MainComposeActivity;",
     name = "onResume",
@@ -54,19 +72,12 @@ private object MainResumeShortcutFingerprint : Fingerprint(
 @Suppress("unused")
 val favoritesRandomShortcutPatch = bytecodePatch(
     name = "Favorites random shortcut",
-    description = "Show a one-tap random gallery button above the bottom navigation on the Favorites tab in Pupil 6.1.1, with an optional matching left button.",
+    description = "Show one random gallery button on the Favorites tab, with its right/left position selectable in Pupil settings.",
     default = false,
 ) {
     compatibleWith(PupilCompatibility)
 
     extendWith("extensions/extension.mpe")
-
-    val showLeftRandomButton by booleanOption(
-        key = "showLeftRandomButton",
-        default = false,
-        title = "Show left random button",
-        description = "Also show a matching random gallery button on the left side of the Favorites tab.",
-    )
 
     execute {
         val listMethod = GalleryListShortcutFingerprint.method
@@ -106,6 +117,29 @@ val favoritesRandomShortcutPatch = bytecodePatch(
             }
         ) { "Unexpected Pupil 6.1.1 MainComposeActivity.onResume layout" }
 
+        val settingsMethod = SettingsScreenShortcutFingerprint.method
+        val settingsInstructions = settingsMethod.implementation?.instructions
+            ?: error("Pupil 6.1.1 settings bytecode is missing")
+        // Original Pupil 6.1.1 classes.dex: 900 instructions, 46 registers.
+        // Index 866 is Favorites-management Preference, followed by
+        // const/4 and UserIdPreference. v2=Context and v5=ComposerImpl
+        // remain live here; the injected call reads but does not clobber either.
+        require(settingsInstructions.size == 900 &&
+            settingsMethod.implementation?.registerCount == 46 &&
+            settingsInstructions[853].opcode == Opcode.SGET &&
+            (settingsInstructions[853] as? ReferenceInstruction)?.reference?.toString() ==
+                "Lxyz/quaver/pupil/R\$string;->settings_manage_favorites:I" &&
+            settingsInstructions[865].opcode == Opcode.MOVE_OBJECT_FROM16 &&
+            settingsInstructions[866].opcode == Opcode.INVOKE_STATIC_RANGE &&
+            (settingsInstructions[866] as? ReferenceInstruction)?.reference?.toString()?.startsWith(
+                "Lxyz/quaver/pupil/ui/compose/settings/PreferenceKt;->Preference("
+            ) == true &&
+            settingsInstructions[867].opcode == Opcode.CONST_4 &&
+            settingsInstructions[868].opcode == Opcode.INVOKE_STATIC &&
+            (settingsInstructions[868] as? ReferenceInstruction)?.reference?.toString() ==
+                "Lxyz/quaver/pupil/ui/compose/settings/SettingsScreenKt;->UserIdPreference(Landroidx/compose/runtime/Composer;I)V"
+        ) { "Unexpected Pupil 6.1.1 SettingsScreen layout; refusing settings shortcut patch" }
+
         listMethod.addInstructions(
             0,
             """
@@ -124,10 +158,13 @@ val favoritesRandomShortcutPatch = bytecodePatch(
                 invoke-static {}, $SHORTCUT_CLASS->hideForDetail()V
             """.trimIndent(),
         )
-        val installMethod = if (showLeftRandomButton == true) "installWithLeftButton" else "install"
+        settingsMethod.addInstructions(
+            867,
+            "invoke-static {v2, v5}, $SHORTCUT_CLASS->renderPositionPreference(Landroid/content/Context;Ljava/lang/Object;)V",
+        )
         resumeMethod.addInstructions(
             1,
-            "invoke-static {p0}, $SHORTCUT_CLASS->$installMethod(Landroid/app/Activity;)V",
+            "invoke-static {p0}, $SHORTCUT_CLASS->install(Landroid/app/Activity;)V",
         )
     }
 }

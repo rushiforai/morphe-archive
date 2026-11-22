@@ -203,6 +203,7 @@ private val enhancedKeywordContentFilterResourcePatch = resourcePatch {
         addAddOnPreferences(
             switchPreference("morphe_hide_keyword_content_channel"),
             switchPreference("morphe_hide_keyword_content_check_subtitles", summary = true),
+            listPreference("morphe_hide_keyword_content_subtitles_language"),
             switchPreference("morphe_hide_keyword_content_use_and_operator", summary = true),
             switchPreference("morphe_hide_keyword_content_use_regex", summary = true),
             switchPreference("morphe_hide_keyword_content_case_sensitive", summary = true),

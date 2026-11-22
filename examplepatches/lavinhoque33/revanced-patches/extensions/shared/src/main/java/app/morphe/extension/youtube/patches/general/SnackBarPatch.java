@@ -9,7 +9,7 @@
  * - inotia00 (https://github.com/inotia00)
  *
  * Licensed under the GNU General Public License v3.0.
- * Modified by lavinhoque33, 2026-11-18.
+ * Modified by lavinhoque33, 2026-11-21.
  *
  * ------------------------------------------------------------------------
  * GPLv3 Section 7 – Additional Terms & Attribution Requirements
@@ -186,14 +186,31 @@ public final class SnackBarPatch {
 
     public static Context invertSnackBarTheme(Context mContext) {
         if (INVERT_SNACK_BAR_THEME) {
-            String styleId = ThemeUtils.isDarkModeEnabled()
-                    ? "Base.Theme.YouTube.Light"
-                    : "Base.Theme.YouTube.Dark";
-            int styleIdentifier = ResourceUtils.getStyleIdentifier(styleId);
-            mContext = new ContextThemeWrapper(mContext, styleIdentifier);
+            mContext = new ContextThemeWrapper(mContext, invertedSnackBarStyle());
         }
 
         return mContext;
+    }
+
+    /**
+     * Match the snackbar's Chip role without re-theming the playlist background or its native tint.
+     */
+    static Resources.Theme invertPlaylistChipTheme(Resources.Theme theme) {
+        if (!INVERT_SNACK_BAR_THEME) return theme;
+
+        int style = invertedSnackBarStyle();
+        if (style == 0) return theme;
+
+        Resources.Theme inverted = theme.getResources().newTheme();
+        inverted.setTo(theme);
+        inverted.applyStyle(style, true);
+        return inverted;
+    }
+
+    private static int invertedSnackBarStyle() {
+        return ResourceUtils.getStyleIdentifier(ThemeUtils.isDarkModeEnabled()
+                ? "Base.Theme.YouTube.Light"
+                : "Base.Theme.YouTube.Dark");
     }
 
     public static Enum<?> invertSnackBarTheme(Enum<?> appTheme, Enum<?> darkTheme) {

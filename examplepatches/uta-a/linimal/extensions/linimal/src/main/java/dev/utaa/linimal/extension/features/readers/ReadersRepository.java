@@ -65,6 +65,13 @@ final class ReadersRepository {
         }
     }
     private final Map<String, Long> lastSyncAt = new LinkedHashMap<>();
+    /** 同期中のトークと、結果を待つ callback。同じトークの同期は 1 本にまとめます。 */
+    private final Map<String, List<SyncCallback>> syncing = new LinkedHashMap<>();
+    /**
+     * トークごとの記録の世代。同期で記録が変わるたびに増やし、同期の前に始まった読み取りの結果を
+     * キャッシュへ入れず、同期の後の読み取りが前の読み取りの結果に相乗りしないようにします。{@link #cache} で保護します。
+     */
+    private final Map<String, Integer> epochs = new LinkedHashMap<>();
     private final Map<String, List<Callback>> pending = new LinkedHashMap<>();
 
     private ReadersRepository(Context context) {
@@ -107,15 +114,17 @@ final class ReadersRepository {
      * callback は main thread で呼ばれます。
      */
     void load(String key, String chatId, long messageId, String senderMid, Callback callback) {
+        int epoch = epoch(chatId);
+        String pendingKey = key + "\n@" + epoch;
         synchronized (pending) {
-            List<Callback> waiting = pending.get(key);
+            List<Callback> waiting = pending.get(pendingKey);
             if (waiting != null) {
                 waiting.add(callback);
                 return;
             }
             waiting = new ArrayList<>();
             waiting.add(callback);
-            pending.put(key, waiting);
+            pending.put(pendingKey, waiting);
         }
         worker.execute(() -> {
             ReadersSnapshot snapshot = null;
@@ -126,12 +135,14 @@ final class ReadersRepository {
             }
             if (snapshot != null && key != null) {
                 synchronized (cache) {
-                    cache.put(key, new Cached(snapshot, SystemClock.elapsedRealtime()));
+                    if (epoch(chatId) == epoch) {
+                        cache.put(key, new Cached(snapshot, SystemClock.elapsedRealtime()));
+                    }
                 }
             }
             List<Callback> callbacks;
             synchronized (pending) {
-                callbacks = pending.remove(key);
+                callbacks = pending.remove(pendingKey);
             }
             ReadersSnapshot result = snapshot;
             if (callbacks != null) {
@@ -161,6 +172,16 @@ final class ReadersRepository {
                 return;
             }
         }
+        synchronized (syncing) {
+            List<SyncCallback> waiting = syncing.get(chatId);
+            if (waiting != null) {
+                waiting.add(callback);
+                return;
+            }
+            waiting = new ArrayList<>();
+            waiting.add(callback);
+            syncing.put(chatId, waiting);
+        }
         network.execute(() -> {
             boolean success = false;
             try {
@@ -175,7 +196,17 @@ final class ReadersRepository {
                 invalidate(chatId);
             }
             boolean result = success;
-            main.post(() -> deliver(callback, result));
+            List<SyncCallback> callbacks;
+            synchronized (syncing) {
+                callbacks = syncing.remove(chatId);
+            }
+            if (callbacks != null) {
+                main.post(() -> {
+                    for (SyncCallback each : callbacks) {
+                        deliver(each, result);
+                    }
+                });
+            }
         });
     }
 
@@ -192,6 +223,17 @@ final class ReadersRepository {
         String prefix = chatId + '\n';
         synchronized (cache) {
             cache.keySet().removeIf(key -> key.startsWith(prefix));
+            epochs.put(chatId, epoch(chatId) + 1);
+        }
+    }
+
+    private int epoch(String chatId) {
+        if (chatId == null) {
+            return 0;
+        }
+        synchronized (cache) {
+            Integer epoch = epochs.get(chatId);
+            return epoch == null ? 0 : epoch;
         }
     }
 

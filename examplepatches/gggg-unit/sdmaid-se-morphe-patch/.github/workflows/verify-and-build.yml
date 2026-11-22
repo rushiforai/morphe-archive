@@ -1,0 +1,115 @@
+name: Verify SD Maid SE and build Morphe patch
+
+on:
+  push:
+  workflow_dispatch:
+  schedule:
+    - cron: '17 4 * * *'
+
+permissions:
+  contents: read
+
+jobs:
+  verify-upstream:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download latest official FOSS APK
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          asset_url=$(gh api 'repos/d4rken-org/sdmaid-se/releases?per_page=10' --jq '[.[] | .assets[] | select(.name | endswith("FOSS-RELEASE.apk")) | .browser_download_url][0]')
+          test -n "$asset_url"
+          curl --fail --location --retry 3 "$asset_url" --output sdmaid-se-latest.apk
+      - name: Check patch anchor
+        run: python3 tools/verify_apk.py sdmaid-se-latest.apk
+
+  build:
+    needs: verify-upstream
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Build Morphe bundle
+        env:
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_TOKEN: ${{ secrets.MORPHE_PACKAGES_TOKEN || github.token }}
+        run: ./gradlew :patches:buildAndroid --no-daemon
+      - name: Verify bundled license and notices
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          from zipfile import ZipFile
+          bundles = list(Path("patches/build/libs").glob("patches-*.mpp"))
+          assert len(bundles) == 1, "Expected one compiled bundle"
+          with ZipFile(bundles[0]) as bundle:
+              for source in [Path("LICENSE"), Path("NOTICE"), *Path("licenses").glob("*")]:
+                  entry = source.as_posix()
+                  assert bundle.read(entry) == source.read_bytes(), f"Notice mismatch: {entry}"
+          print("PASS: bundle preserves the published license and notices")
+          PY
+      - name: Apply bundle to latest official FOSS APK
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          apk_url=$(gh api 'repos/d4rken-org/sdmaid-se/releases?per_page=10' --jq '[.[] | .assets[] | select(.name | endswith("FOSS-RELEASE.apk")) | .browser_download_url][0]')
+          test -n "$apk_url"
+          curl --fail --location --retry 3 "$apk_url" --output sdmaid-se-latest.apk
+          curl --fail --location --retry 3 'https://github.com/MorpheApp/morphe-desktop/releases/download/v1.18.1/morphe-desktop-1.18.1-all.jar' --output morphe-desktop.jar
+          bundle=$(find patches/build/libs -maxdepth 1 -name 'patches-*.mpp' -print -quit)
+          test -n "$bundle"
+          java -Xmx4g -jar morphe-desktop.jar patch "-p=$bundle" --out=patched.apk --result-file=patch-result.json --unsigned sdmaid-se-latest.apk
+          python3 tools/verify_apk.py --patched patched.apk
+      - uses: actions/upload-artifact@v4
+        if: github.event_name != 'schedule'
+        with:
+          name: sdmaid-se-morphe-patch
+          path: patches/build/libs/patches-*.mpp
+          if-no-files-found: error
+      - name: Attach bundle to tagged release
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh release view "${GITHUB_REF_NAME}" >/dev/null 2>&1; then
+            gh release upload "${GITHUB_REF_NAME}" patches/build/libs/patches-*.mpp LICENSE NOTICE --clobber
+          else
+            gh release create "${GITHUB_REF_NAME}" patches/build/libs/patches-*.mpp LICENSE NOTICE --generate-notes
+          fi
+
+  publish-source:
+    if: startsWith(github.ref, 'refs/tags/') || github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.ref == 'refs/heads/main')
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - name: Refresh Morphe source metadata from the latest stable release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api "repos/${GITHUB_REPOSITORY}/releases/latest" > "${RUNNER_TEMP}/source-release.json"
+          python3 tools/sync_source.py "${RUNNER_TEMP}/source-release.json" --repository "${GITHUB_REPOSITORY}"
+          python3 tools/sync_source.py "${RUNNER_TEMP}/source-release.json" --repository "${GITHUB_REPOSITORY}" --check
+          release_tag=$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["tag_name"])' "${RUNNER_TEMP}/source-release.json")
+          mkdir -p "${RUNNER_TEMP}/source-bundle" dist
+          gh release download "${release_tag}" --repo "${GITHUB_REPOSITORY}" --pattern '*.mpp' --dir "${RUNNER_TEMP}/source-bundle" --clobber
+          cp "${RUNNER_TEMP}/source-bundle/"*.mpp dist/
+          git add patches-bundle.json dist/patches-*.mpp
+          if git diff --cached --quiet; then
+            echo "Morphe source metadata is already up to date."
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'Update Morphe source metadata and released bundle'
+          git push origin HEAD:main

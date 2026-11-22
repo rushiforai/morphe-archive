@@ -90,6 +90,12 @@ public class NotificationNgInstrumentation extends Instrumentation {
             Field preview=frame.getDeclaredField("preview");preview.setAccessible(true);
             check(preview.get(delivery).toString().contains("visible reply")&&preview.get(delivery).toString().contains("chained reply")&&!preview.get(delivery).toString().contains("blocked"),"mixed native preview contains non-NG replies only");
             prefs.edit().putBoolean(key,false).commit();
+            String japaneseDat=indexedDat.replace("normal reply to manual NG","育成落ち 7 引退 2 佐藤 1 戦力外 3");
+            java.nio.file.Files.write(temporary.toPath(),japaneseDat.getBytes("MS932"));
+            Object unfilteredDelivery=frameConstructor.newInstance(target,"fixture",temporary,1);
+            Set<?> unfilteredReplies=(Set<?>)call(nativeWatch,"replies",new Class[]{frame,Context.class},unfilteredDelivery,context);
+            check(unfilteredReplies.contains(5),"native reply detection still runs with NG suppression off");
+            check(preview.get(unfilteredDelivery).toString().contains("育成落ち 7 引退 2 佐藤 1 戦力外 3"),"NG suppression off still uses decoded Japanese preview");
             filtered=(Map<?,?>)call(ng,"filter",signature,context,target,dat,1,8);
             check(filtered.size()==7,"option OFF preserves replies");
             result.putString("result","PASS "+checks+" native notification NG checks");

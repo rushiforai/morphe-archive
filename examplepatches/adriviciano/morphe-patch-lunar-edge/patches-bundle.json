@@ -1,0 +1,7 @@
+{
+  "created_at": "2026-11-20T18:18:22",
+  "description": "Lunar Edge 4.0.2: emisión en segundo plano para Google Cast y DLNA/LG con notificación para detener. Incluye los cuatro parches. Compilación y verificaciones superadas; pendiente prueba física con pantalla apagada.",
+  "download_url": "https://github.com/adriviciano/morphe-patch-lunar-edge/releases/download/v0.3.0/lunar-edge-patches-0.3.0.mpp",
+  "signature_download_url": "",
+  "version": "0.3.0"
+}

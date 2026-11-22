@@ -100,7 +100,7 @@ final class ModSettingsView extends ScrollView {
             column.addView(row);
         }
         if (app.template.extension.artwork.ArtworkHooks.available() && ctx instanceof ModSettingsActivity) {
-            column.addView(actionRow("Artwork & appearance", "Posters, backdrops, and TMDB connection",
+            column.addView(actionRow("Artwork & appearance", "Posters, backdrops, and title logos",
                     () -> ArtworkUi.settings((ModSettingsActivity) ctx)));
         }
         if (Prefs.adultPostersAvailable()) {
@@ -214,6 +214,14 @@ final class ModSettingsView extends ScrollView {
             column.addView(toggleRow("IMDb trivia", "Show a Trivia tab on film pages",
                     Prefs.KEY_IMDB_TRIVIA, true, false));
         }
+        if (ctx instanceof ModSettingsActivity) {
+            column.addView(actionRow("External ratings", "Show selected ratings below streaming availability",
+                    () -> ExternalRatingsUi.open((ModSettingsActivity) ctx)));
+        }
+        if (app.template.extension.alerts.ReleaseAlerts.available() && ctx instanceof ModSettingsActivity) {
+            column.addView(actionRow("Release alerts", "View and check your film release reminders",
+                    () -> ((ModSettingsActivity) ctx).openReleaseAlerts()));
+        }
         column.addView(toggleRow("Runtime as 1h 47m",
                 "Show a film's runtime in hours and minutes instead of \"107 mins\"",
                 Prefs.KEY_RUNTIME_HHMM, true, false));
@@ -322,14 +330,14 @@ final class ModSettingsView extends ScrollView {
 
         header("Backup & Reset");
         column.addView(actionRow("Export Mods backup",
-                "Save settings and custom artwork to a file",
+                "Choose what to save to a file",
                 new Runnable() {
                     @Override public void run() {
                         if (ctx instanceof ModSettingsActivity) ((ModSettingsActivity) ctx).pickExport();
                     }
                 }));
         column.addView(actionRow("Import Mods backup",
-                "Restore settings and fill empty artwork slots",
+                "Restore selected sections from a backup file",
                 new Runnable() {
                     @Override public void run() {
                         if (ctx instanceof ModSettingsActivity) ((ModSettingsActivity) ctx).pickImport();

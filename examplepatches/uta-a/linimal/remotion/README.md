@@ -1,5 +1,23 @@
 # Linimal 紹介動画
 
+## 15秒・横型のモーショングラフィック
+
+`LinimalShort` は1920×1080、30fps、15秒の紹介映像です。大きな文字のアニメーション、画面のBefore / After、設定スイッチ、横方向のワイプで構成しています。無音でも意味が伝わり、外部音源を使わないオリジナルの電子音を添えています。
+
+```sh
+npm run render:short  # out/linimal-short.mp4
+```
+
+- 映像：`src/short/Video.tsx`
+- 音源生成：`scripts/make-short-audio.py` → `public/audio/short-beat.wav`
+- 0〜2秒：LINEをもっと身軽に
+- 2〜5.5秒：不要な表示を消すBefore / After
+- 5.5〜8.5秒：既読をつけずに読む概念図。会話は架空
+- 8.5〜11秒：機能ごとのON / OFF
+- 11〜15秒：プロジェクト名・URL・対象バージョン・非公式の注記
+
+既存の紹介動画はそのまま残しています。
+
 ## デザイン案（Hallmark で作り直したもの）
 
 最初の版（`LinimalPromo`）にあった AI スロップの典型（CSS で描いたスマホの枠、全シーンの小見出し、全要素の浮き上がり、左端だけ太い線のカード、暗い背景での発光、毎回同じ配置、中央揃え）をなくした 2 案です。内容は共通で、尺は実務的版が 49 秒、編集的版が 72 秒です。
@@ -17,6 +35,46 @@ npm run render:editorial
 - 配色とフォントは各案の `src/<utility|editorial>/tokens.ts` にまとめてあります（先頭に Hallmark の記録コメントあり）。
 - 画面のモック演出は `src/shared/screens.tsx` を両案で共有しています。Before 画面で消える箇所を囲む枠の座標も、ここにある `MARKS` です。
 - 最初の版は `LinimalPromo`（`src/Video.tsx`）として残してあります。
+
+## X 向けの短尺版（`LinimalX` / `LinimalXWide`）
+
+X のタイムラインで流すための版です。約 32 秒、30fps、音声なし。自動再生は無音なので、文字だけで内容が伝わるようにしています。場面と尺は共通で、`LinimalX` は 1080×1350（4:5）、`LinimalXWide` は 1920×1080（16:9、左に文字・右に実画面）です。
+
+```sh
+npm run render:x        # out/linimal-x.mp4（H.264、yuv420p）
+npm run render:x-wide   # out/linimal-x-wide.mp4
+```
+
+| 場面 | 長さ | 内容 |
+| --- | --- | --- |
+| つかみ | 2 秒 | 「その LINE、ごちゃごちゃしてない？」 |
+| トーク一覧 | 5 秒 | Before の消える箇所を赤で囲み、ミントの走査線で After に切り替え。下部タブ 5→2 |
+| ホーム | 4 秒 | Before / After をスライダーで往復 |
+| 章タイトル | 2 秒 | 「既読、つけずに読める。」 |
+| 既読の実演 | 6.7 秒 | 長押し → 既読をつけずに開く → すべて既読にする（`src/shared/screens.tsx` のモック演出を速めて再利用） |
+| 既読者 | 4.7 秒 | 既読の横のアイコン → 既読者の一覧 |
+| スイッチ | 3.3 秒 | 主な設定のスイッチが順に ON。「OFF なら公式の LINE と同じ動き」 |
+| エンディング | 4 秒 | ワードマーク、URL、非公式であることと画面が架空であることの注記 |
+
+場面の長さと共通の部品は `src/x/parts.tsx`、各版の配置は `src/x/Video.tsx`（4:5）と `src/x/Wide.tsx`（16:9）、配色とフォントは `src/x/tokens.ts` にあります。
+
+基本版の28秒版：`LinimalBasicWide` → `out/linimal-basic-wide.mp4`（`npm run render:basic-wide`）。1920×1080・30fps・無音。暗色とミントで、0〜2秒つかみ／2〜6.5秒トーク比較／6.5〜9.5秒ホーム比較／9.5〜11秒章タイトル／11〜17.5秒既読操作／17.5〜21秒既読者／21〜24秒設定／24〜28秒URLと注記。操作はモック画像で再現し、設定は実画面ではなく項目紹介の演出。実装は `src/variants/BasicWide.tsx`。
+
+## X 向けの別案（16:9）
+
+同じ内容を方向性を変えて作った 3 本です。どれも 1920×1080、30fps、音声なし。実装は `src/variants/` にあります。
+
+| composition | 出力 | 方向性 | 長さ |
+| --- | --- | --- | --- |
+| `LinimalVTerminal` | `out/linimal-v-terminal.mp4` | 開発者向け。黒地に等幅で、README のコマンドを打ち込み、`patches-list.json` の実在のパッチ名のログを流してから実画面と設計方針へ。ログの書式は演出で、Morphe の実際の出力ではない | 27.8 秒 |
+| `LinimalVChat` | `out/linimal-v-chat.mp4` | 明るい紙色。紹介を架空の 2 人の会話で進め、実画面を写真として差し込む。既読がつかない → 「すべて既読にする」でまとめてつく、を見せ場にする | 28.0 秒 |
+| `LinimalVSplit` | `out/linimal-v-split.mp4` | 左右分割で公式と Linimal を一定の拍で比べる。消える要素に赤い ✕、最後に README の事実（9 か所、7 ページ、個別に ON / OFF） | 24.8 秒 |
+
+```sh
+npm run render:v-terminal
+npm run render:v-chat
+npm run render:v-split
+```
 
 ## 動画の作り方
 

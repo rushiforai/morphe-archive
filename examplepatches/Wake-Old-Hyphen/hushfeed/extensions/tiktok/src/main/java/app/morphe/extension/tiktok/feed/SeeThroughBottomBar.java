@@ -231,7 +231,8 @@ final class SeeThroughBottomBar {
 
     /**
      * The middle of {@code tab}'s icon, from the tab's top: the largest shown view in it that
-     * isn't text, so a count badge or a name never counts. NaN when it has none.
+     * isn't text and draws something, so a count badge, a name or an empty container never
+     * counts. NaN when it has none.
      */
     static float iconMiddle(View tab) {
         float[] best = {0f, Float.NaN};
@@ -250,6 +251,11 @@ final class SeeThroughBottomBar {
             return;
         }
         if (view instanceof android.widget.TextView) return;
+        // An empty container with no background draws nothing, so it can't be the icon. TikTok's
+        // Create tab (47.9.3 LX/05e7) can carry a centered container of its own, and taking that
+        // for the icon puts the tab's middle in the pill's middle, leaving the + high (#474).
+        // Android skips drawing such a view the same way: will-not-draw and nothing behind or over it.
+        if (view.willNotDraw() && view.getBackground() == null && view.getForeground() == null) return;
         float area = (float) view.getWidth() * view.getHeight();
         if (area > best[0]) {
             best[0] = area;
@@ -590,6 +596,12 @@ final class SeeThroughBottomBar {
     static final int LENS_SHEEN = 0x40FFFFFF;
     /** The bubble's rim: bright along its top where the light catches it, faint along its bottom. */
     static final int LENS_RIM_TOP = 0xB0FFFFFF, LENS_RIM_BOTTOM = 0x28FFFFFF;
+    /**
+     * The lens on TikTok's own bar (#483): a thin line and nothing inside, white at 80% on a dark
+     * bar and dark on a light one, since the frosted bubble looked like a heavy frame on a flat bar.
+     */
+    static final int LENS_OUTLINE = 0xCCFFFFFF, LENS_OUTLINE_ON_LIGHT = 0x8C000000;
+    static final float LENS_OUTLINE_DP = 1f;
     /** How far the lens stays in from the pill's top, bottom and ends, and how far past the tab's slot it stands, in dp. */
     static final int LENS_INSET_DP = 3, LENS_GROW_DP = 4;
     /** How much larger the bubble is midway through a slide and under a finger. */
@@ -735,6 +747,9 @@ final class SeeThroughBottomBar {
         private final Paint bubbleSheen = new Paint(Paint.ANTI_ALIAS_FLAG);
         private final Paint bubbleRim = new Paint(Paint.ANTI_ALIAS_FLAG);
         private final Paint bubbleRimOnLight = new Paint(Paint.ANTI_ALIAS_FLAG);
+        /** Whether the lens is a thin outline instead of the glass bubble (#483). */
+        private final boolean outline;
+        private final Paint outlinePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         private final Matrix shade = new Matrix();
         private final RectF target = new RectF();
         private final RectF shown = new RectF();
@@ -771,9 +786,17 @@ final class SeeThroughBottomBar {
         private View tickedTab;
 
         TabLens(float density, Drawable owner, GlassVideoBlur blur) {
+            this(density, owner, blur, false);
+        }
+
+        /** With {@code outline}, the lens is the thin outline TikTok's own bar wears (#483). */
+        TabLens(float density, Drawable owner, GlassVideoBlur blur, boolean outline) {
             this.density = density;
             this.owner = owner;
             this.blur = blur;
+            this.outline = outline;
+            outlinePaint.setStyle(Paint.Style.STROKE);
+            outlinePaint.setStrokeWidth(Math.max(1f, density * LENS_OUTLINE_DP));
             bubbleSheen.setShader(new LinearGradient(0, 0, 0, 1, LENS_SHEEN, LENS_SHEEN & 0x00FFFFFF,
                     Shader.TileMode.CLAMP));
             for (Paint rim : new Paint[]{bubbleRim, bubbleRimOnLight}) {
@@ -973,6 +996,15 @@ final class SeeThroughBottomBar {
          */
         private void paintBubble(Canvas canvas, ViewGroup bar, Rect area, int alpha, boolean onLight) {
             float corner = swollen(capsule);
+            if (outline) {
+                // TikTok's own bar is flat, so its lens is a line with nothing inside (#483).
+                int color = onLight ? LENS_OUTLINE_ON_LIGHT : LENS_OUTLINE;
+                outlinePaint.setColor(withAlpha(color, Color.alpha(color) * alpha / 255f));
+                float half = outlinePaint.getStrokeWidth() / 2f;
+                capsule.inset(half, half);
+                canvas.drawRoundRect(capsule, Math.max(0f, corner - half), Math.max(0f, corner - half), outlinePaint);
+                return;
+            }
             float clear = 1f - 0.4f * Math.max(0f, pressNow);
             RenderNode backdrop = blur == null ? null : blur.drawnBackdrop();
             // Only at full strength: a faded bar would show the magnified video solid.
@@ -1251,7 +1283,8 @@ final class SeeThroughBottomBar {
             super(color);
             base = color;
             this.clear = clear;
-            lens = new TabLens(density, this, null);
+            // TikTok's own bar gets the outline (#483), the clear bar over the video the bubble.
+            lens = new TabLens(density, this, null, !clear);
         }
 
         @Override
@@ -1308,7 +1341,7 @@ final class SeeThroughBottomBar {
 
         LensOverBackground(Drawable theirs, float density) {
             super(theirs, 0);
-            lens = new TabLens(density, this, null);
+            lens = new TabLens(density, this, null, true);
         }
 
         @Override

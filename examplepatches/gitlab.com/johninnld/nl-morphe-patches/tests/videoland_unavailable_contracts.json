@@ -1,14 +1,101 @@
 [
- {"owner": "Ld8/a;", "signature": "<init>(Lcom/bedrockstreaming/component/layout/domain/core/model/Block;Lw4/A1;I)V", "kind": "legacy", "graph_sha256": "5d9a45ebefcaef7fed50001d0fe24da4ec5f2a530e2fbf0dd9df3e85b0a06948"},
- {"owner": "Lf8/a;", "signature": "<init>(Lcom/bedrockstreaming/component/layout/domain/core/model/Block;LIv/j;I)V", "kind": "compose", "graph_sha256": "2bd71aaf6af0576a5c7354d41e6a12ac302a3112c540d21cc149c3a3eccce6c0"},
- {"owner": "Lj8/Q;", "signature": "invokeSuspend(Ljava/lang/Object;)Ljava/lang/Object;", "kind": "factory", "graph_sha256": "92d527ba4ffbaeff3148bbe9b53d4684f3ec65243ca5ab0e6fe3badb8a13a5df", "after": "invoke-direct {v6, v3, v7, v9}, LZf/h;-><init>(Ljava/lang/Object;ILjava/lang/Object;)V", "insertion": 42},
- {"owner": "LPk/t;", "signature": "c()I", "kind": "row", "graph_sha256": "e01deb324d10c40d450d8a718539de7465a59c3947ba9a0a703e09b45b3eae25"},
- {"owner": "Lcom/bedrockstreaming/tornado/compose/block/list/HorizontalListBlockFactory;", "signature": "a(Lfl/d;Lu0/r;Ld0/n;I)V", "kind": "compose_empty", "graph_sha256": "952d10ad6a96df8b7436576a38779e42482ee4046c3c6d73cb3bc23048e20a68", "insertion": 63, "exit": 95, "block_register": 3, "paging_register": 5, "scratch_register": 0},
- {"owner": "Lcom/bedrockstreaming/tornado/compose/block/grid/GridBlockFactory;", "signature": "a(Lfl/d;Lu0/r;Ld0/n;I)V", "kind": "compose_empty", "graph_sha256": "981b505a2446d6e23b287fc6f3428b447468be89dcf05280d3aa0f725eadccc5", "insertion": 63, "exit": 96, "block_register": 3, "paging_register": 5, "scratch_register": 0},
- {"owner": "Lcom/bedrockstreaming/tornado/compose/block/belly/BellyBlockFactory;", "signature": "a(Lfl/d;Lu0/r;Ld0/n;I)V", "kind": "compose_empty", "graph_sha256": "b9ca3197fd36b770d07260d3146ea30e67974dfb49cc8679bd1b68e8ca81b81e", "insertion": 63, "exit": 92, "block_register": 3, "paging_register": 5, "scratch_register": 0},
- {"owner": "Lcom/bedrockstreaming/tornado/compose/block/grid/PaginatedGridBlockFactory;", "signature": "a(Lfl/d;Lu0/r;Ld0/n;I)V", "kind": "compose_empty", "graph_sha256": "4d4a44e4766a7e4939fa09721dd11038eb30596ea6d39d3a70ab8eb37c68a3b5", "insertion": 147, "exit": 178, "block_register": 1, "paging_register": 2, "scratch_register": 0},
- {"owner": "Lhl/l;", "signature": "b(Lf8/a;Lcom/bedrockstreaming/tornado/compose/renderer/TemplateRenderer;Ljava/util/Map;Lzl/D;ZLu0/r;LK/F;Lhl/e;Lnv/e;Lnv/f;Lnv/e;Lnv/e;Ld0/n;I)V", "kind": "compose_empty", "graph_sha256": "e8dbf5515fc2c8310823a99717bf1986dbb1694d816551d7bfc7ba9f79666eb8", "insertion": 213, "exit": 337, "block_register": 0, "paging_register": 7, "scratch_register": 9},
- {"owner": "Ljn/k;", "signature": "c(Lcom/bedrockstreaming/component/layout/domain/core/model/Action;Ljn/e;)Ljn/f;", "kind": "subscription_action", "graph_sha256": "3ea5fa0be6c6338bdab22f3f0bfeb064ab281eb94348532c260835375554a74f"},
- {"owner": "LIo/a;", "signature": "o(Ljava/util/List;)V", "kind": "cover_action_reset", "graph_sha256": "4cde77a26cbf5090e91c4710478a739233d1950865c7694cd60f045fc1720f3c"},
- {"owner": "LMk/a$b;", "signature": "a()V", "kind": "section_notification", "graph_sha256": "db0121fe17dd24ccb17bbb44d6903f4d19ea257154839db4fcd35b131594c168"}
+  {
+    "owner": "Lf8/a;",
+    "signature": "<init>(Lcom/bedrockstreaming/component/layout/domain/core/model/Block;Ly4/A1;I)V",
+    "kind": "legacy",
+    "graph_sha256": "297d7a952a9feb3c066a9374b56fb1f96e0347ee33a490ff9301dfaff4168ccd"
+  },
+  {
+    "owner": "Lh8/a;",
+    "signature": "<init>(Lcom/bedrockstreaming/component/layout/domain/core/model/Block;LWv/j;I)V",
+    "kind": "compose",
+    "graph_sha256": "928259280032e65585003151193adfb2ea18720d247bc8362dbc8ca3dc79d86d"
+  },
+  {
+    "owner": "Ll8/Q;",
+    "signature": "invokeSuspend(Ljava/lang/Object;)Ljava/lang/Object;",
+    "kind": "factory",
+    "graph_sha256": "44ce1e0459ad99298fb84a33fd271905cb8b1138ed6b99cce14b3e337f5a952c",
+    "after": "invoke-direct {v6, v3, v7, v9}, Lb0/x0;-><init>(Ljava/lang/Object;ILjava/lang/Object;)V",
+    "insertion": 42
+  },
+  {
+    "owner": "Lal/s;",
+    "signature": "c()I",
+    "kind": "row",
+    "graph_sha256": "e01deb324d10c40d450d8a718539de7465a59c3947ba9a0a703e09b45b3eae25"
+  },
+  {
+    "owner": "Lcom/bedrockstreaming/tornado/compose/block/list/HorizontalListBlockFactory;",
+    "signature": "a(Lql/c;Lu0/r;Ld0/o;I)V",
+    "kind": "compose_empty",
+    "graph_sha256": "9655b8b5c8037d232836088288ff55b16bd1fcccfcd1d380922ebf8a434ba564",
+    "insertion": 63,
+    "exit": 95,
+    "block_register": 3,
+    "paging_register": 5,
+    "scratch_register": 0
+  },
+  {
+    "owner": "Lcom/bedrockstreaming/tornado/compose/block/grid/GridBlockFactory;",
+    "signature": "a(Lql/c;Lu0/r;Ld0/o;I)V",
+    "kind": "compose_empty",
+    "graph_sha256": "c1f53bc08dc767e70aa1d729fd1672d201bbca95b87deaf005cd1db4be11b111",
+    "insertion": 63,
+    "exit": 96,
+    "block_register": 3,
+    "paging_register": 5,
+    "scratch_register": 0
+  },
+  {
+    "owner": "Lcom/bedrockstreaming/tornado/compose/block/belly/BellyBlockFactory;",
+    "signature": "a(Lql/c;Lu0/r;Ld0/o;I)V",
+    "kind": "compose_empty",
+    "graph_sha256": "30dd8c43c4ed6002a6532d01d4bab6faf81817692889682669454e64e453d372",
+    "insertion": 63,
+    "exit": 92,
+    "block_register": 3,
+    "paging_register": 5,
+    "scratch_register": 0
+  },
+  {
+    "owner": "Lcom/bedrockstreaming/tornado/compose/block/grid/PaginatedGridBlockFactory;",
+    "signature": "a(Lql/c;Lu0/r;Ld0/o;I)V",
+    "kind": "compose_empty",
+    "graph_sha256": "aa165bb07901d46b7e5866a7822640f2c19901aaa8f223646ba6781a180a7883",
+    "insertion": 143,
+    "exit": 178,
+    "block_register": 6,
+    "paging_register": 2,
+    "scratch_register": 3
+  },
+  {
+    "owner": "Lsl/k;",
+    "signature": "b(Lh8/a;Lcom/bedrockstreaming/tornado/compose/renderer/TemplateRenderer;Ljava/util/Map;LKl/G;ZLu0/r;Lcom/bedrockstreaming/component/layout/domain/core/model/Title;LK/F;Lsl/d;LBv/e;LBv/f;LBv/e;LBv/e;Ld0/o;II)V",
+    "kind": "nested_grid_empty",
+    "graph_sha256": "0ba46050f77a0b266907ee01c3a4841e41e3c172efc1db19d49954ed517303e2",
+    "insertion": 258,
+    "exit": 480,
+    "block_register": 7,
+    "paging_register": 16,
+    "scratch_register": 3
+  },
+  {
+    "owner": "Lvn/k;",
+    "signature": "c(Lcom/bedrockstreaming/component/layout/domain/core/model/Action;Lvn/e;)Lvn/f;",
+    "kind": "subscription_action",
+    "graph_sha256": "5a906c96ea46c8da81fb2fa4f39c503d7d8142f827114dc7ec46451d85e46392"
+  },
+  {
+    "owner": "LWo/a;",
+    "signature": "C(Ljava/util/List;)V",
+    "kind": "cover_action_reset",
+    "graph_sha256": "47725bffa86819d8225aa370b6306bc495eb5455f58cf27d31da2369be7cdefc"
+  },
+  {
+    "owner": "LXk/a$b;",
+    "signature": "a()V",
+    "kind": "section_notification",
+    "graph_sha256": "e1938bfa61b6c296922f289e9e8374e3f980884af0e4cb28e8e94e5d6b70a772"
+  }
 ]

@@ -55,7 +55,10 @@ internal val ijiamiPatch = resourcePatch {
     execute {
         val profiles = nativeProfiles()
         if (profiles.isEmpty()) {
-            throw PatchException("No supported Ijiami packer library in assets")
+            throw PatchException(
+                "No supported Ijiami packer library in assets of ${packageMetadata.packageName} " +
+                    "${packageMetadata.versionName}. Patch a version listed as supported for this app.",
+            )
         }
         profiles.forEach { (abi, profile) -> installNativeLibrary(abi, profile) }
 
@@ -143,6 +146,10 @@ private fun ResourcePatchContext.freeDexEntry() =
         .first { !get(it).exists() }
 
 internal fun ResourcePatchContext.installAppHook(hookDex: ByteArray, hookClass: String) {
-    get(freeDexEntry(), copy = false).writeBytes(hookDex)
+    installIjiamiExtension(hookDex)
     get(APP_HOOK_ASSET, copy = false).writeText(hookClass)
+}
+
+internal fun ResourcePatchContext.installIjiamiExtension(dex: ByteArray) {
+    get(freeDexEntry(), copy = false).writeBytes(dex)
 }

@@ -17,7 +17,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - run: |
-          target="$(grep -oP 'AppTarget\(version = "\K[^"]+' patches/SilentTyping.kt)"
+          target="$(grep -oP 'AppTarget\(version = "\K[^"]+' patches/Selection.kt)"
           latest="$(curl -fsSL --retry 3 -A 'Mozilla/5.0' \
             'https://play.google.com/store/apps/details?id=com.Slack&hl=en_US&gl=US' |
             grep -oP '\[\[\["\K[0-9]+(\.[0-9]+){3}(?="\]\])' | head -1)"
@@ -31,4 +31,4 @@ jobs:
           fi
           gh issue create --title "$title" --body "Google Play has Slack $latest; the patches target $target.
 
-          Check the patches against the new APK, then update \`AppTarget\` in \`patches/SilentTyping.kt\`."
+          Check the patches against the new APK, then update \`AppTarget\` in \`patches/Selection.kt\`."

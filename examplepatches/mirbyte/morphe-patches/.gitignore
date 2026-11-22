@@ -132,3 +132,5 @@ node_modules/
 # Ignore IDEA files
 .idea/
 local.properties
+/patches/src/main/kotlin/app/mitrosoft/patches/xbox
+/extensions/extension/src/main/java/app/mitrosoft/extension/xbox

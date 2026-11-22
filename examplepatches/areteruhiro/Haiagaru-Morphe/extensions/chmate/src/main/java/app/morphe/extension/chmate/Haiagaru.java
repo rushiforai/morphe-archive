@@ -438,6 +438,7 @@ public final class Haiagaru {
      * restoring an original-package backup into an optionally renamed installation.
      */
     public static void onProviderCreate(ContentProvider provider) {
+        installCrashLogger(provider);
         if (provider == null) return;
         Context context = provider.getContext();
         if (context == null) return;
@@ -991,7 +992,6 @@ public final class Haiagaru {
         Context resolvedContext = context.getApplicationContext();
         Context appContext = resolvedContext == null ? context : resolvedContext;
         applicationContext = appContext;
-        ThreadScopedNg.removeUnsafeRegexRules(appContext);
         SharedPreferences startupPreferences=preferences(appContext);
         if(!startupPreferences.getBoolean("bottomFilterOpaqueMigrationV1",false))
             startupPreferences.edit().putBoolean(QuickFilterOptions.TRANSPARENT,false)
@@ -1037,7 +1037,7 @@ public final class Haiagaru {
     }
 
     /** Installs the optional crash logger before ChMate's startup provider does any work. */
-    public static synchronized void installCrashLogger(ContentProvider provider) {
+    private static synchronized void installCrashLogger(ContentProvider provider) {
         if (crashLoggerInstalled || provider == null) return;
         Context context = provider.getContext();
         if (context == null) return;
@@ -1061,6 +1061,7 @@ public final class Haiagaru {
         });
         crashLoggerInstalled = true;
         AnrLogs.collect(crashContext);
+        if (Build.VERSION.SDK_INT < 30) CrashReportDelivery.flush(crashContext);
     }
 
     private static void writeCrashLog(Context context, Thread thread, Throwable error)
@@ -1103,6 +1104,7 @@ public final class Haiagaru {
                 + "Device: " + Build.MANUFACTURER + " " + Build.MODEL + "\n"
                 + "Thread: " + thread.getName() + "\n\n"
                 + stackTrace;
+        CrashReportDelivery.enqueue(context, "Crash", now.getTime(), report);
         writeDownloadLog(context, "chmate-crash-" + fileTimestamp + ".txt", report);
     }
 
@@ -3458,6 +3460,7 @@ public final class Haiagaru {
     public static void onSettingsResume(Activity activity) {
         if (activity == null) return;
         applicationContext = activity.getApplicationContext();
+        CrashReportDelivery.firstSettings(activity);
     }
 
     static void showSettingsDialog(Activity activity) {
@@ -3507,6 +3510,12 @@ public final class Haiagaru {
         uploadHosts.setText(text("画像・動画のアップロード先（Imgur／imgbox／imgpile）", "Image / video upload destination (Imgur / imgbox / imgpile)"));
         uploadHosts.setOnClickListener(view -> MediaUploadHosts.showSettings(activity));
         layout.addView(uploadHosts);
+        Switch gigaFileButton = addSwitch(layout,activity,GigaFilePosting.BUTTON_SETTING,
+                preferences.getBoolean(GigaFilePosting.SHOW_BUTTON,false));
+        live.toggle(gigaFileButton,GigaFilePosting.SHOW_BUTTON);
+        Button gigaFileLinks = new Button(activity);
+        GigaFilePosting.bindLinkMode(activity,gigaFileLinks);
+        layout.addView(gigaFileLinks);
         if (ImgurWebUpload.supported(activity)) {
             Switch showImgurUploads = addSwitch(layout, activity,
                     text("メニューに Imgur投稿一覧 を表示", "Show Imgur uploads in the menu"),
@@ -3927,6 +3936,16 @@ public final class Haiagaru {
         Switch stockAlways=addSwitch(layout,activity,"常に通常版ChMateで書き込む",
                 preferences.getBoolean(StockChmatePosting.ALWAYS,false));
         live.toggle(stockAlways,StockChmatePosting.ALWAYS);
+        Switch futabaOfficial = addSwitch(layout, activity, "ふたば img／may の公式投稿ページを開く",
+                preferences.getBoolean(FutabaPostingPopup.OFFICIAL, true));
+        live.toggle(futabaOfficial, FutabaPostingPopup.OFFICIAL);
+        Switch futabaDirect = addSwitch(layout, activity, "ふたば img／may の書き込み専用ビューアを直接開く",
+                preferences.getBoolean(FutabaPostingPopup.DIRECT, true));
+        live.toggle(futabaDirect, FutabaPostingPopup.DIRECT);
+        Button futabaPosting = new Button(activity);
+        futabaPosting.setText("ふたばの書き込み専用ビューアを開く");
+        futabaPosting.setOnClickListener(view -> FutabaPostingPopup.openFromSettings(activity));
+        layout.addView(futabaPosting);
         Switch stockMenu=addSwitch(layout,activity,
                 text("書き込み画面の「︙」に「通常版ChMateで書き込む」を追加", "Add stock ChMate posting to the posting overflow menu"),
                 preferences.getBoolean(StockChmatePosting.SHOW_MENU,true));
@@ -4039,6 +4058,11 @@ public final class Haiagaru {
     private static LinearLayout settingsADVANCED(Activity activity) {
         LinearLayout layout = new LinearLayout(activity);
         layout.setOrientation(LinearLayout.VERTICAL);
+        Button crashReporting = new Button(activity);
+        CrashReportDelivery.bindSetting(activity, crashReporting);
+        layout.addView(crashReporting);
+        Switch animanchHeart = addSwitch(layout,activity,"あにまんのレスにハートボタンを表示",preferences(activity).getBoolean("animanchHeart",true));
+        animanchHeart.setOnCheckedChangeListener((button,on)->preferences(activity).edit().putBoolean("animanchHeart",on).apply());
         SharedPreferences preferences = preferences(activity);
         SharedPreferences chMatePreferences = PreferenceManager.getDefaultSharedPreferences(activity);
         String chMateVersion = "";
@@ -4273,6 +4297,9 @@ public final class Haiagaru {
                 },
                 preferences.getInt(HISSI_VIEWER_THEME_KEY, 0)
         );
+        Spinner kyodemoToolbarPalette = addSpinner(layout, activity, "Kyodemoビューのツールバー配色",
+                CheckerBarOptions.PALETTE_NAMES, CheckerBarOptions.palette(activity));
+        live.choice(kyodemoToolbarPalette, CheckerBarOptions.PALETTE);
         Spinner hissiViewerTextZoom = addSpinner(
                 layout,
                 activity,

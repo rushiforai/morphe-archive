@@ -249,7 +249,7 @@ public final class GestureActions {
         return "nothing".equals(action) || "comments".equals(action) || "like".equals(action)
                 || "like_toggle".equals(action) || "original_sound".equals(action) || "copy_link".equals(action)
                 || "copy_sound_link".equals(action) || "youtube_music".equals(action)
-                || "sleep_timer".equals(action) || "save_frame".equals(action)
+                || "identify_song".equals(action) || "sleep_timer".equals(action) || "save_frame".equals(action)
                 || "save_cover".equals(action) || "clear_display".equals(action)
                 || "open_search".equals(action)
                 || ("not_interested".equals(action) && SettingsStatus.notInterestedEnabled);
@@ -406,6 +406,11 @@ public final class GestureActions {
             Context context = Utils.getActivity();
             YouTubeMusicSearch.open(onScreenAweme(),
                     context != null ? context : Utils.getContext());
+            return true;
+        }
+        if ("identify_song".equals(action)) {
+            // Only the fingerprint goes out, and only now, on the gesture (SongRecognition).
+            SongLookup.start(onScreenAweme(), Utils.getActivity());
             return true;
         }
         if ("sleep_timer".equals(action)) {
@@ -1028,7 +1033,7 @@ public final class GestureActions {
     /**
      * How far a horizontal movement goes toward the profile page: to the left in a left-to-right
      * layout, to the right in a right-to-left one, where TikTok's pager runs the other way. Decided
-     * the way TikTok decides it (X.05Xc.LIZJ): the layout direction of the configuration.
+     * the way TikTok decides it (X.05Xd.LIZJ): the layout direction of the configuration.
      */
     static float towardProfile(Object pager, float dx) {
         boolean rtl = pager instanceof View
@@ -1088,10 +1093,10 @@ public final class GestureActions {
     static final String SERVICE_MANAGER = "com.ss.android.ugc.aweme.framework.services.ServiceManager";
     static final String FAVORITE_SERVICE = "com.ss.android.ugc.aweme.favorites.service.IFavoriteService";
     static final String ACCOUNT_SERVICE = "com.ss.android.ugc.aweme.IAccountUserService";
-    /** The view TikTok's own long press on Favorites places its popup beside (i_0 on 47.9.2). */
-    static final String[] FAVORITE_POPUP_ANCHOR_IDS = {"47.9.2:idf"};
+    /** The view TikTok's own long press on Favorites places its popup beside (i_0 on 47.9.3). */
+    static final String[] FAVORITE_POPUP_ANCHOR_IDS = {"47.9.3:idf"};
     /** The Favorites button itself, for a cell where that view isn't laid out. */
-    static final String[] FAVORITE_BUTTON_IDS = {"47.9.2:iej"};
+    static final String[] FAVORITE_BUTTON_IDS = {"47.9.3:iej"};
     static final ResourceIdCache ANCHOR_IDS = new ResourceIdCache();
     /** What TikTok's feed calls itself when it opens the popup with no cell to ask. */
     static final String FEED_ENTER_FROM = "homepage_hot";
@@ -1107,7 +1112,7 @@ public final class GestureActions {
     }
 
     /**
-     * TikTok's long press on Favorites (VideoFavoriteAssem on 47.9.2) hands the button's place on
+     * TikTok's long press on Favorites (VideoFavoriteAssem on 47.9.3) hands the button's place on
      * screen to the cell's dialog controller, which asks IFavoriteService for its quick favorite
      * popup: the one method there taking a context, the post, where it was opened from and that
      * place as left, top, right and bottom. The popup lists the account's collections beside that
@@ -1154,7 +1159,7 @@ public final class GestureActions {
 
     /**
      * The quick favorite popup on IFavoriteService: its one method taking a context, a post, a
-     * String and an int array and returning nothing (LJIILJJIL on 47.9.2), found by that shape.
+     * String and an int array and returning nothing (LJIILJJIL on 47.9.3), found by that shape.
      * Null, and Hook status says why, without one or with more than one.
      */
     static Method quickFavorite(Class<?> service, Class<?> post) {

@@ -62,6 +62,7 @@ class CheckedInstructionsTest {
                 """.trimIndent(),
             )
         }
+
     }
 
     @Test
@@ -185,5 +186,30 @@ class CheckedInstructionsTest {
             ),
         )
         assertEquals(2, smaliInstructionCount("const-string v0, \"a # b\"\n.array-data 4\n 0x1\n 0x2\n.end array-data"))
+    }
+
+    @Test
+    fun `counts payload blocks and ignores their contents and other directives`() {
+        assertEquals(
+            5,
+            smaliInstructionCount(
+                """
+                    :start
+                    .line 12
+                    const/4 v0, 0x0
+                    .packed-switch 0x0
+                        :zero
+                        :one
+                    .end packed-switch
+                    .sparse-switch
+                        0x7 -> :seven
+                    .end sparse-switch
+                    .array-data 4
+                        0x1
+                    .end array-data
+                    return-void
+                """.trimIndent(),
+            ),
+        )
     }
 }

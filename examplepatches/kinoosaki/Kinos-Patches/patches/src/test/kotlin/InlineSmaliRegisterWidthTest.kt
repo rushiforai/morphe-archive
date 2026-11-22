@@ -16,7 +16,7 @@ import java.io.ByteArrayOutputStream
 import java.io.PrintStream
 
 /**
- * Probes morphe-patcher 1.8.0's inline smali compiler with registers that do not fit a 4-bit
+ * Probes the inline smali compiler with registers that do not fit a 4-bit
  * operand. No APK needed: the target is an in-memory method.
  *
  * Finding (2026-10-16): `InlineSmaliCompiler.compile` throws only on *parser* (and lexer)

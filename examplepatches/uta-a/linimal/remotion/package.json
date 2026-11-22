@@ -8,6 +8,13 @@
     "render": "remotion render LinimalPromo out/linimal-promo.mp4",
     "render:utility": "remotion render LinimalUtility out/linimal-utility.mp4",
     "render:editorial": "remotion render LinimalEditorial out/linimal-editorial.mp4",
+    "render:short": "python3 scripts/make-short-audio.py && remotion render LinimalShort out/linimal-short.mp4 --codec=h264 --crf=18 --pixel-format=yuv420p",
+    "render:x": "remotion render LinimalX out/linimal-x.mp4 --codec=h264 --crf=18 --pixel-format=yuv420p",
+    "render:basic-wide": "remotion render LinimalBasicWide out/linimal-basic-wide.mp4 --codec=h264 --crf=18 --pixel-format=yuv420p",
+    "render:x-wide": "remotion render LinimalXWide out/linimal-x-wide.mp4 --codec=h264 --crf=18 --pixel-format=yuv420p",
+    "render:v-terminal": "remotion render LinimalVTerminal out/linimal-v-terminal.mp4 --codec=h264 --crf=18 --pixel-format=yuv420p",
+    "render:v-chat": "remotion render LinimalVChat out/linimal-v-chat.mp4 --codec=h264 --crf=18 --pixel-format=yuv420p",
+    "render:v-split": "remotion render LinimalVSplit out/linimal-v-split.mp4 --codec=h264 --crf=18 --pixel-format=yuv420p",
     "still": "remotion still"
   },
   "dependencies": {

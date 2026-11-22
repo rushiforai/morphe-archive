@@ -12,9 +12,9 @@ For Hatena Bookmark **5.80 / versionCode 58000** only.
 
 ### Filters and provenance
 
-A scheduled workflow downloads the current public EasyList and AdGuard Japanese Filter, strictly converts only full-host rules (||host^), with exact (@@||host^) exceptions and generic allowlisted CSS, validates host bounds (10,000–100,000), compresses and publishes a snapshot to the [filter-data branch](https://github.com/rikunode/hatena-bookmark-hide-pr-patches/tree/filter-data). The Android helper validates version, counts, bounds and sha256; gzip is limited to 2 MiB. Snapshots are saved via Android AtomicFile with a validated previous file fallback. Network/parse errors fail open and do not affect the previously stored snapshot.
+A scheduled workflow downloads the current public EasyList and AdGuard Japanese Filter, strictly converts only full-host rules (||host^), with exact (@@||host^) exceptions and generic allowlisted CSS, validates host bounds (10,000–100,000), compresses and publishes a snapshot to the [filter-data branch](https://github.com/rikunode/hoshiori/tree/filter-data). The Android helper validates version, counts, bounds and sha256; gzip is limited to 2 MiB. Snapshots are saved via Android AtomicFile with a validated previous file fallback. Network/parse errors fail open and do not affect the previously stored snapshot.
 
-Download: https://raw.githubusercontent.com/rikunode/hatena-bookmark-hide-pr-patches/filter-data/filters.json.gz
+Download: https://raw.githubusercontent.com/rikunode/hoshiori/filter-data/filters.json.gz
 
 Sources and licensing: [EasyList](https://easylist.to/pages/licence.html) (GPL v3+ or CC BY-SA 3.0+) and [AdGuard Japanese Filter](https://github.com/AdguardTeam/AdguardFilters) (GPL-3.0). The [NOTICE](../filter-lists/NOTICE) is copied to the distribution branch.
 

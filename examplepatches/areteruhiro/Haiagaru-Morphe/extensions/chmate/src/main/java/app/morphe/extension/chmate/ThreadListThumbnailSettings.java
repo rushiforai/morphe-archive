@@ -24,12 +24,13 @@ import java.util.Set;
 
 /** Independent, initially disabled thumbnail experiment with board exclusions. */
 final class ThreadListThumbnailSettings {
-    static final String PREFS="haiagaru.thread-list-thumbnail",ENABLE="enabled",BOARDS="boards",SIZE="size_dp",COUNT="max_images";
+    static final String PREFS="haiagaru.thread-list-thumbnail",ENABLE="enabled",FAST_DISPLAY="fast_display",BOARDS="boards",SIZE="size_dp",COUNT="max_images";
     static final String EXCLUDED="excluded_boards_v2",KNOWN_5CH="known_5ch_boards";
     static final int MIN_SIZE_DP=24,MAX_SIZE_DP=96,STEP_SIZE_DP=4,DEFAULT_SIZE_DP=44;
     static final int MIN_COUNT=1,MAX_COUNT=4,DEFAULT_COUNT=1;
     static SharedPreferences prefs(Context context){return context.getSharedPreferences(PREFS,0);}
     static boolean enabled(Context context){return prefs(context).getBoolean(ENABLE,false);}
+    static boolean fastDisplay(Context context){return context!=null&&prefs(context).getBoolean(FAST_DISPLAY,false);}
     static boolean selected(Context context,String board){
         if(!enabled(context))return false;
         migrate(context);
@@ -110,6 +111,14 @@ final class ThreadListThumbnailSettings {
         enabled.setChecked(enabled(activity));
         layout.addView(enabled,new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,ViewGroup.LayoutParams.WRAP_CONTENT));
         enabled.setOnCheckedChangeListener((v,checked)->{prefs(activity).edit().putBoolean(ENABLE,checked).apply();ThreadListThumbnail.refresh();});
+        Switch fast=new Switch(activity);
+        fast.setText("スレ一覧に表示を最速にする（アクセス制限がかかる可能性があります）");
+        fast.setChecked(fastDisplay(activity));
+        layout.addView(fast,new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,ViewGroup.LayoutParams.WRAP_CONTENT));
+        fast.setOnCheckedChangeListener((v,checked)->{prefs(activity).edit().putBoolean(FAST_DISPLAY,checked).apply();ThreadListThumbnail.refresh();});
+        TextView fastHelp=new TextView(activity);
+        fastHelp.setText("ONにすると、表示中の行の画像取得を先に処理し、取得完了後の一覧更新を早めます。サイト別のレート制限、HTTP 429後の待機、通信・画像サイズ上限、Image NG判定は維持します。アクセスが集中すると、接続先から一時的な制限を受ける可能性があります。");
+        layout.addView(fastHelp);
         LinearLayout targets=SettingsSection.add(layout,"画像取得・表示の対象","サイトごとのレート制限と、画像を表示しない板を設定します。",true);
         Button pacing=new Button(activity);
         pacing.setText("画像取得のレート制限対象サイト");

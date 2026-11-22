@@ -25,7 +25,10 @@ public final class ArtworkHooks {
 }
 ''')
     java_files = [sources / path for path in ('artwork/ArtworkRules.java', 'artwork/ArtworkStore.java',
-                  'settings/AccentMath.java', 'settings/Prefs.java', 'settings/ConfigTransfer.java')]
+                  'artwork/ProfileBackdrop.java',
+                  'settings/AccentMath.java', 'settings/Prefs.java', 'settings/ConfigTransfer.java',
+                  'alerts/AlertBackup.java', 'alerts/ReleaseAlert.java',
+                  'watch/WatchAvailability.java', 'watch/WatchPreferences.java')]
     subprocess.run(['javac', '--release', '11', '-classpath', android, '-d', classes,
                     hooks, *java_files, test], check=True)
     jar = directory / 'classes.jar'

@@ -31,6 +31,7 @@ final class GlassController implements View.OnAttachStateChangeListener,
     private float selectedCenter = Float.NaN;
     private float selectedWidth;
     private boolean colorsApplied;
+    private int appliedActiveColor;
     private boolean tintAvailable = true;
     private boolean framePosted;
     private long previousFrame;
@@ -105,11 +106,13 @@ final class GlassController implements View.OnAttachStateChangeListener,
         if (selected != null) {
             boolean dark = inactiveLabel == null ? material.dark
                     : Color.luminance(inactiveLabel.getCurrentTextColor()) > 0.5f;
+            int targetActiveColor = activeColor(selected, dark);
             TextView active = visibleLabel(selected);
-            if (!colorsApplied || material.dark != dark || (tintAvailable && active != null
-                    && active.getCurrentTextColor() != activeColor())) {
+            if (!colorsApplied || material.dark != dark || (tintAvailable
+                    && (appliedActiveColor != targetActiveColor
+                    || (active != null && active.getCurrentTextColor() != targetActiveColor)))) {
                 material.dark = dark;
-                applyColors();
+                applyColors(targetActiveColor);
                 invalidate();
             }
             if (!touch.active()) moveTo(selected, material.selectionWidth > 0f);
@@ -134,15 +137,15 @@ final class GlassController implements View.OnAttachStateChangeListener,
         return null;
     }
 
-    private void applyColors() {
+    private void applyColors(int active) {
         if (tintAvailable) {
-            int active = activeColor();
             ColorStateList colors = new ColorStateList(
                     new int[][]{{android.R.attr.state_checked}, {android.R.attr.state_selected}, {}},
                     new int[]{active, active, material.dark ? 0xfff5f5f7 : 0xff161618});
             try {
                 navigation.getClass().getMethod("setItemIconTintList", ColorStateList.class).invoke(navigation, colors);
                 navigation.getClass().getMethod("setItemTextColor", ColorStateList.class).invoke(navigation, colors);
+                appliedActiveColor = active;
             } catch (ReflectiveOperationException exception) {
                 tintAvailable = false;
                 Log.w(LiquidGlass.TAG, "Keeping native tab tint: navigation API unavailable", exception);
@@ -151,11 +154,17 @@ final class GlassController implements View.OnAttachStateChangeListener,
         colorsApplied = true;
     }
 
-    private int activeColor() {
-        if (material.backdrop != null && (touch.active() || material.press > 0.001f)) {
-            return material.dark ? 0xfff5f5f7 : 0xff161618;
+    private int activeColor(View selected, boolean dark) {
+        if (material.backdrop != null && touch.active() && !lensCoversSelected(selected)) {
+            return dark ? 0xfff5f5f7 : 0xff161618;
         }
-        return material.dark ? LiquidGlass.ACTIVE_DARK : LiquidGlass.ACTIVE_LIGHT;
+        return dark ? LiquidGlass.ACTIVE_DARK : LiquidGlass.ACTIVE_LIGHT;
+    }
+
+    private boolean lensCoversSelected(View selected) {
+        if (menu == null || selected.getWidth() <= 0) return true;
+        float itemCenter = menu.getLeft() + selected.getLeft() + selected.getWidth() / 2f;
+        return Math.abs(material.center - itemCenter) <= selected.getWidth() * 0.35f;
     }
 
     void moveTo(View item, boolean animate) {

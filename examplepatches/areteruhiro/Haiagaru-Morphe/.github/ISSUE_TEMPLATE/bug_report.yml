@@ -11,7 +11,7 @@ body:
         新しいバグ報告を作成する前に、以下を確認してください。
 
         - **重複したバグ報告を投稿しないでください**: 既存の issue と closed issue を確認してください。
-        - クラッシュが発生する場合は、任意パッチ `Save ChMate crash logs` を有効にして再現し、`Download/Haiagaru/` に保存されたクラッシュログを添付してください。
+        - クラッシュが発生する場合は、症状を再現し、`Download/Haiagaru/` に保存されたクラッシュログを添付してください。
   - type: textarea
     attributes:
       label: 不具合の内容
@@ -31,7 +31,7 @@ body:
     attributes:
       label: エラーログ
       description: |
-        クラッシュする場合は、任意パッチ `Save ChMate crash logs` を有効にして再現し、`Download/Haiagaru/` に保存されたクラッシュログを添付してください。
+        クラッシュする場合は、症状を再現し、`Download/Haiagaru/` に保存されたクラッシュログを添付してください。
         logcat を使える場合は、`logcat | grep AndroidRuntime` などで取得した例外ログも貼り付けてください。
       render: shell
   - type: checkboxes

@@ -13,10 +13,15 @@ import com.android.tools.smali.dexlib2.Opcode
  * None reference an obfuscated class or method name, so a re-obfuscated
  * release (which happens every version) does not break them.
  *
- * Verified against AdGuard 4.15.2 (versionCode 42321001):
- *   PlusManager          LH0/b
- *   PaidLicense          LK0/i$n
- *   LicenseDuration      LK0/i$l$a
+ * Verified against:
+ *   AdGuard 4.15.2 (versionCode 42321001):
+ *     PlusManager          LH0/b
+ *     PaidLicense          LK0/i$n
+ *     LicenseDuration      LK0/i$l$a
+ *   AdGuard 4.16.0 (versionCode 42420015):
+ *     PlusManager          LK0/b
+ *     PaidLicense          LN0/i$n
+ *     LicenseDuration      LN0/i$l$a
  */
 
 /** Anchors the PlusManager implementation class. */
@@ -33,6 +38,7 @@ internal val PaidLicenseClass = Fingerprint(
  * PlusManager.getCachedPlusState(): no params, returns PlusState,
  * reads cache (IGET_OBJECT) and writes it back (IPUT_OBJECT).
  * 4.15.2 -> N6()
+ * 4.16.0 -> N6()
  */
 internal val GetPlusState = Fingerprint(
     classFingerprint = PlusManagerClass,
@@ -45,6 +51,7 @@ internal val GetPlusState = Fingerprint(
  * PlusManager.setPlusState(PlusState): one arg, void, writes cache
  * (IPUT_OBJECT) then notifies observers (INVOKE_INTERFACE).
  * 4.15.2 -> rb(LK0/i;)V
+ * 4.16.0 -> xb(LN0/i;)V
  *
  * The IPUT_OBJECT discriminator matters: other one-arg void methods in
  * PlusManager also call INVOKE_INTERFACE and would crash if matched.
@@ -60,6 +67,7 @@ internal val SetPlusState = Fingerprint(
  * PlusManager.fetchAndUpdatePlusState(cacheStrategy, retryStrategy):
  * two args, returns PlusState, INSTANCE_OF then INVOKE_VIRTUAL.
  * 4.15.2 -> l7(LH0/a$a;LH0/a$e;)LK0/i;
+ * 4.16.0 -> o7(LK0/a$a;LK0/a$e;)LN0/i;
  */
 internal val FetchAndUpdatePlusState = Fingerprint(
     classFingerprint = PlusManagerClass,
@@ -77,6 +85,7 @@ internal val FetchAndUpdatePlusState = Fingerprint(
  * PlusManager.fetchPlusStateForPromo(cacheStrategy, retryStrategy):
  * anchored on the Kotlin intrinsic parameter-name checks.
  * 4.15.2 -> P7(LH0/a$a;LH0/a$e;)LK0/i;
+ * 4.16.0 -> l7(LK0/a$a;LK0/a$e;)LN0/i;
  */
 internal val FetchPlusStateForPromo = Fingerprint(
     classFingerprint = PlusManagerClass,
@@ -100,6 +109,7 @@ internal val LifetimeDuration = Fingerprint(
  * PlusManager.activateLicenseKey(String): one String arg, void, backend
  * re-verification via INVOKE_INTERFACE. Optional - skipped if absent.
  * 4.15.2 -> Y2(Ljava/lang/String;)V
+ * 4.16.0 -> O2(Ljava/lang/String;)V
  */
 internal val ActivateLicenseKey = Fingerprint(
     classFingerprint = PlusManagerClass,

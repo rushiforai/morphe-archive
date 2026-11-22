@@ -22,6 +22,7 @@ public final class XPostPreviewTouch {
         }
     }
     static void open(View view, String url) {
+        if (GigaFilePosting.openLink(view.getContext(),url)) return;
             try {
                 Intent intent = browserIntent(url, Haiagaru.xPostPreviewBrowser());
                 if (Haiagaru.xPostPreviewBrowser()) {
@@ -89,6 +90,11 @@ public final class XPostPreviewTouch {
             if(view instanceof TextView)XPostPreview.toggle((TextView)view,id);
         }
     }
+    private static final class GigaLink extends PostLink {
+        GigaLink(String url) { super(url); }
+    }
+    private static final java.util.regex.Pattern GIGA_URL = java.util.regex.Pattern.compile(
+            "https://[0-9]{1,4}\\.gigafile\\.nu/[0-9]{4}-[A-Za-z0-9_-]{8,120}/?(?![A-Za-z0-9_/?#-])");
     private static final class Press {
         final PostLink link;
         final float x, y;
@@ -96,7 +102,7 @@ public final class XPostPreviewTouch {
         Press(PostLink link, MotionEvent event) { this.link=link; x=event.getX(); y=event.getY(); }
     }
     public static boolean onTouch(Object object, MotionEvent event) {
-        if (!(object instanceof TextView)) return false;
+        if (!(object instanceof TextView) || object instanceof android.widget.EditText) return false;
         TextView view=(TextView)object;
         MediaViewerNavigation.rememberBody(view,event);
         XPostPreviewPosition.onTouch(view,event);
@@ -117,12 +123,17 @@ public final class XPostPreviewTouch {
         if(action==MotionEvent.ACTION_UP || action==MotionEvent.ACTION_CANCEL) {
             PRESSES.remove(view);
             if(action==MotionEvent.ACTION_UP && !press.moved
-                    && (press.link instanceof SettingsOptionLinks.OptionLink || (press.link instanceof SiteCards.SiteLink ? Haiagaru.siteCardsEnabled() : Haiagaru.xPostPreviewEnabled()))
+                    && (press.link instanceof GigaLink || press.link instanceof SettingsOptionLinks.OptionLink || (press.link instanceof SiteCards.SiteLink ? Haiagaru.siteCardsEnabled() : Haiagaru.xPostPreviewEnabled()))
                     && event.getEventTime()-event.getDownTime()<ViewConfiguration.getLongPressTimeout()
-                    && hit(view,event)==press.link)press.link.onClick(view);
+                    && sameLink(press.link,hit(view,event)))press.link.onClick(view);
         }
         return true;
     }
+    private static boolean sameLink(PostLink first, PostLink second) {
+        return first == second || first instanceof GigaLink && second instanceof GigaLink
+                && first.getURL().equals(second.getURL());
+    }
+
     private static PostLink hit(TextView view, MotionEvent event) {
         CharSequence text=view.getText(); Layout layout=view.getLayout();
         if(!(text instanceof Spanned)||layout==null)return null;
@@ -133,6 +144,15 @@ public final class XPostPreviewTouch {
         if(x<layout.getLineLeft(line)||x>layout.getLineRight(line))return null;
         int offset=layout.getOffsetForHorizontal(line,x);
         Spanned spans=(Spanned)text;
+        for (URLSpan link : spans.getSpans(offset,offset,URLSpan.class))
+            if (offset>=spans.getSpanStart(link) && offset<spans.getSpanEnd(link)
+                    && MediaUploadWebPolicy.gigaShare(link.getURL())) return new GigaLink(link.getURL());
+        int left=Math.max(0,offset-180), right=Math.min(text.length(),offset+180);
+        if (android.text.TextUtils.indexOf(text,".gigafile.nu/",left,right)>=0) {
+            java.util.regex.Matcher url=GIGA_URL.matcher(text).region(left,right);
+            while(url.find()) if(url.start()<=offset && offset<url.end()
+                    && MediaUploadWebPolicy.gigaShare(url.group())) return new GigaLink(url.group());
+        }
         for(PostLink link:spans.getSpans(offset,offset,PostLink.class))
             if(offset>=spans.getSpanStart(link)&&(offset<spans.getSpanEnd(link)
                     ||link instanceof SiteCards.SiteLink&&offset==spans.getSpanEnd(link)

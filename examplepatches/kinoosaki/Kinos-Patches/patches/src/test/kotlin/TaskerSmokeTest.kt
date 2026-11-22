@@ -8,6 +8,7 @@ import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Assumptions.assumeTrue
+import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import org.w3c.dom.Element
@@ -27,15 +28,37 @@ private fun Method.params(): List<String> = parameterTypes.map(CharSequence::toS
 private fun Method.hasFlags(vararg flags: AccessFlags): Boolean =
     accessFlags == flags.fold(0) { acc, flag -> acc or flag.value }
 
+@Tag("smoke")
 class TaskerSmokeTest {
 
     @TempDir
     lateinit var workDir: File
 
     @Test
-    fun `Enable Full Version forces Licensed and GmsCore support moves only sign-in to MicroG RE`() {
+    fun `6-7-9 Enable Full Version forces Licensed and GmsCore support moves only sign-in to MicroG RE`() {
+        runTaskerFixture(
+            version = "6.7.9",
+            versionCode = 5455,
+            apkCandidates = listOf(
+                "apks/tasker/6.7.9/base.apk",
+                "apks/tasker/base.apk",
+            ),
+        )
+    }
+
+    @Test
+    fun `6-7-8 Enable Full Version forces Licensed and GmsCore support moves only sign-in to MicroG RE`() {
+        runTaskerFixture(
+            version = "6.7.8",
+            versionCode = 5454,
+            apkCandidates = listOf("apks/tasker/6.7.8/base.apk"),
+        )
+    }
+
+    private fun runTaskerFixture(version: String, versionCode: Int, apkCandidates: List<String>) {
         val root = repoRoot()
-        val apk = File(root, "apks/tasker/base.apk")
+        val apk = apkCandidates.map { relative -> File(root, relative) }.firstOrNull { it.exists() }
+            ?: File(root, apkCandidates.first())
 
         // The APK lives in the gitignored apks/ directory. Skip rather than fail when it is
         // absent, so CI stays green; locally it is present and the test really runs.
@@ -45,7 +68,8 @@ class TaskerSmokeTest {
             apk = apk,
             workDir = workDir,
             pkg = PKG,
-            version = "6.7.8",
+            version = version,
+            versionCode = versionCode,
             patchNames = setOf("Enable Full Version", "GmsCore support"),
             allPatches = loadAllPatches(newestPatchBundle(root)),
         )

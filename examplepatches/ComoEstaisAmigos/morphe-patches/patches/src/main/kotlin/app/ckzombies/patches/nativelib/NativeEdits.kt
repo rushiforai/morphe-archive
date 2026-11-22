@@ -105,6 +105,48 @@ internal object NativeEdits {
             WordEdit(0x000F3A18, 0xE5946010L, 0xE3A06001L),
         ),
     )
+    /**
+     * First-segment end after the currency cave's page is mapped. Civilian immunity writes
+     * its stubs at the far end of the same padding so the two patches compose in either order.
+     */
+    val PADDING: Map<String, PaddingPlan> = mapOf(
+        "armeabi" to PaddingPlan(
+            load1End = 0x00597000,
+            spliceAtOffset = 0x00596340,
+            spliceSize = 0x1000,
+        ),
+        "armeabi-v7a" to PaddingPlan(
+            load1End = 0x00567000,
+            spliceAtOffset = null,
+            spliceSize = 0,
+        ),
+    )
+
+    val CIVILIAN_IMMUNITY: Map<String, CivilianPlan> = mapOf(
+        "armeabi" to CivilianPlan(
+            blastCave = 0x00596F80,
+            fragCave = 0x00596FB0,
+            blastCaveBytes = "9c0094e55500d0e5000050e30100001aa303d4e51eff2fe1f08fbde8",
+            fragCaveBytes = "9c3090e55530d3e5000053e30100001aa333d0e51eff2fe10cd08de2f08fbde8",
+            edits = listOf(
+                WordEdit(0x0031F2F0, 0x1A000004L, 0xE1A00000L),
+                WordEdit(0x0031EDC0, 0xE5D003A3L, 0xEB09E06EL),
+                WordEdit(0x0031FA80, 0xE5D033A3L, 0xEB09DD4AL),
+            ),
+        ),
+        "armeabi-v7a" to CivilianPlan(
+            blastCave = 0x00566F80,
+            fragCave = 0x00566FB0,
+            blastCaveBytes = "9c2090e55520d2e5000052e30100001aa323d0e51eff2fe1048bbdecf08fbde8",
+            fragCaveBytes = "9c3090e55530d3e5000053e30100001aa333d0e51eff2fe10cd08de2f08fbde8",
+            edits = listOf(
+                WordEdit(0x003052DC, 0x1A000005L, 0xE1A00000L),
+                WordEdit(0x00304E90, 0xE5D023A3L, 0xEB09883AL),
+                WordEdit(0x00305A08, 0xE5D033A3L, 0xEB098568L),
+            ),
+        ),
+    )
+
     val CURRENCY: Map<String, CurrencyPlan> = mapOf(
         "armeabi" to CurrencyPlan(
             cave = 0x00596340,

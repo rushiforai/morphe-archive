@@ -8,8 +8,8 @@
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to Morphe contributions.
  */
 
-// Modified for Heval's Morphe Patches (2026-10-11): reimplemented on morphe-patcher 1.8.0 and
-// morphe-patches-library 1.0.4 (no matchAllMethodIndicesForEach / matchSingle). Differences from
+// Modified for Heval's Morphe Patches (2026-10-11): adapted for the patcher/library APIs available
+// in this bundle (no matchAllMethodIndicesForEach / matchSingle). Differences from
 // upstream: no YouTube settings screen or link-handling patch, no "Clone app" dependency (the
 // package rename is an option of this patch, default off), no GNP registration hook, no
 // REQUEST_DELETE_PACKAGES permission (the extension has no uninstall flow), the play-services
@@ -177,11 +177,8 @@ fun gmsCoreSupportPatch(
         packageNameOption?.let { it() }
 
         execute {
-            // The two library fingerprints are shared by every app's "GmsCore support" patch.
-            // morphe-patcher 1.8.0 clears cached matches only for registered fingerprints and
-            // drops all registrations after a run, so from their third use in one process (a third
-            // GmsCore app patched by Manager or the smoke test suite) they would return the previous
-            // app's method and the edit would silently miss this app. Drop any stale match first.
+            // The library fingerprints are shared by every app's "GmsCore support" patch.
+            // Clear cached matches before each run so a previous app's method cannot be reused.
             GooglePlayUtilityFingerprint.clearMatch()
             ServiceCheckFingerprint.clearMatch()
             // The per-app fingerprints are top-level objects too, so the same applies to them when

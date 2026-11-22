@@ -37,7 +37,7 @@ import java.util.zip.GZIPInputStream;
  */
 public final class AdBlockHelper {
     private static final String URL_STRING =
-        "https://raw.githubusercontent.com/rikunode/hatena-bookmark-hide-pr-patches/filter-data/filters.json.gz";
+        "https://raw.githubusercontent.com/rikunode/hoshiori/filter-data/filters.json.gz";
     private static final String STYLE_ID = "morphe-adblock-style";
     private static final String PRIMARY = "adblock-filters.json.gz";
     private static final String PREVIOUS = "adblock-filters.previous.json.gz";

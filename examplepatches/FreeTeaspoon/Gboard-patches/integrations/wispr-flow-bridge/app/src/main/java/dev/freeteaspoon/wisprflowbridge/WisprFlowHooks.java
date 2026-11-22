@@ -19,7 +19,6 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.Map;
 import java.util.WeakHashMap;
-import java.util.concurrent.atomic.AtomicReference;
 
 import de.robv.android.xposed.IXposedHookLoadPackage;
 import de.robv.android.xposed.XC_MethodHook;
@@ -108,7 +107,7 @@ public final class WisprFlowHooks implements IXposedHookLoadPackage {
         boolean observedActive;
         boolean canRecoverInOverlay;
         String stopping;
-        volatile AtomicReference<String> submission;
+        volatile InlineSubmission submission;
 
         Session(Service service) {
             owner = new WeakReference<>(service);
@@ -169,14 +168,14 @@ public final class WisprFlowHooks implements IXposedHookLoadPackage {
                 if (!"kotlin.jvm.functions.Function2".equals(callback.getName())) continue;
                 insertionHook = XposedBridge.hookMethod(method, new XC_MethodHook() {
                     @Override protected void beforeHookedMethod(MethodHookParam param) {
-                        AtomicReference<String> recording = submission;
+                        InlineSubmission recording = submission;
                         Object original = param.args[insertion];
                         if (recording == null || param.thisObject != useCase || original == null) return;
                         param.args[insertion] = Proxy.newProxyInstance(callback.getClassLoader(),
                                 new Class<?>[]{callback}, (proxy, called, args) -> {
                                     if (!"invoke".equals(called.getName())) return called.invoke(original, args);
-                                    if (recording == submission && args[0] instanceof String text) {
-                                        recording.compareAndSet(null, text);
+                                    if (args[0] instanceof String text) {
+                                        recording.capture(text);
                                         return true;
                                     }
                                     return false;
@@ -198,6 +197,17 @@ public final class WisprFlowHooks implements IXposedHookLoadPackage {
                 mutableState = XposedHelpers.getObjectField(useCase, "_flowStateFlow");
                 stateHook = XposedHelpers.findAndHookMethod(mutableState.getClass(), "setValue",
                         Object.class, new XC_MethodHook() {
+                            @Override protected void beforeHookedMethod(MethodHookParam param) {
+                                if (param.thisObject != mutableState || param.args[0] == null) return;
+                                InlineSubmission recording = submission;
+                                if (recording == null || !recording.isDiscarded()
+                                        || !"Recording".equals(param.args[0].getClass().getSimpleName())
+                                        || "Recording".equals(overlayState())) return;
+                                main.post(() -> {
+                                    if (submission == recording) submission = null;
+                                });
+                            }
+
                             @Override protected void afterHookedMethod(MethodHookParam param) {
                                 if (param.thisObject == mutableState) refreshVisibility();
                             }
@@ -234,6 +244,7 @@ public final class WisprFlowHooks implements IXposedHookLoadPackage {
             if ("start_inline_v3".equals(command)) {
                 if (insertionHook == null || token != null
                         || !BridgePolicy.canStart(nativeStatus(service))) return null;
+                submission = null;
                 token = sessionToken;
                 startedAt = SystemClock.uptimeMillis();
                 observedActive = false;
@@ -269,13 +280,8 @@ public final class WisprFlowHooks implements IXposedHookLoadPackage {
                 return "done";
             }
             if (stopping == null && BridgePolicy.canStop(status, submit)) {
-                if (submit) submission = new AtomicReference<>();
-                try {
-                    NativeTap.toggle(toggle, eventSink, submit);
-                } catch (Exception failure) {
-                    submission = null;
-                    throw failure;
-                }
+                if (submit) submission = new InlineSubmission();
+                NativeTap.toggle(toggle, eventSink, submit);
                 stopping = submit ? "processing" : "canceling";
                 observedActive = true;
             }
@@ -307,8 +313,8 @@ public final class WisprFlowHooks implements IXposedHookLoadPackage {
                         return "starting";
                     }
                     String state = overlayState();
-                    AtomicReference<String> recording = submission;
-                    String transcript = recording == null ? null : recording.get();
+                    InlineSubmission recording = submission;
+                    String transcript = recording == null ? null : recording.transcript();
                     if (transcript != null) payload.putString("transcript", transcript);
                     boolean failed = !observedActive || "Error".equals(status)
                             || "Error".equals(state) || "Repair".equals(state);
@@ -339,15 +345,21 @@ public final class WisprFlowHooks implements IXposedHookLoadPackage {
                 canRecoverInOverlay = true;
                 log(failure);
             } finally {
-                clearSession();
+                InlineSubmission recording = submission;
+                if (recording != null) recording.discard();
+                releaseSession();
             }
         }
 
         void clearSession() {
+            submission = null;
+            releaseSession();
+        }
+
+        void releaseSession() {
             main.removeCallbacks(expire);
             token = null;
             stopping = null;
-            submission = null;
             refreshVisibility();
         }
 

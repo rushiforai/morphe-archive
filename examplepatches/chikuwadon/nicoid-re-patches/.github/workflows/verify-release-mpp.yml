@@ -16,6 +16,15 @@ on:
       - 'porting/revisions/v2.1.4-*/**'
       - '.github/release-notes/v2.1.4.md'
       - '.github/scripts/stage-v2.1.5-mpp.sh'
+      - '.github/scripts/stage-v2.1.6-mpp.sh'
+      - '.github/scripts/stage-v2.1.7-mpp.sh'
+      - 'porting/revisions/v2.1.7-release/**'
+      - 'porting/revisions/v2.1.7-dev.2/**'
+      - 'porting/revisions/v2.1.7-dev.3/**'
+      - '.github/release-notes/v2.1.7.md'
+      - 'porting/revisions/v2.1.6-release/**'
+      - 'porting/revisions/v2.1.6-dev.5/**'
+      - '.github/release-notes/v2.1.6.md'
       - 'porting/revisions/v2.1.5-*/**'
       - '.github/release-notes/v2.1.5.md'
       - '.github/scripts/verify_android_mpp.py'
@@ -41,6 +50,15 @@ on:
       - 'porting/revisions/v2.1.4-*/**'
       - '.github/release-notes/v2.1.4.md'
       - '.github/scripts/stage-v2.1.5-mpp.sh'
+      - '.github/scripts/stage-v2.1.6-mpp.sh'
+      - '.github/scripts/stage-v2.1.7-mpp.sh'
+      - 'porting/revisions/v2.1.7-release/**'
+      - 'porting/revisions/v2.1.7-dev.2/**'
+      - 'porting/revisions/v2.1.7-dev.3/**'
+      - '.github/release-notes/v2.1.7.md'
+      - 'porting/revisions/v2.1.6-release/**'
+      - 'porting/revisions/v2.1.6-dev.5/**'
+      - '.github/release-notes/v2.1.6.md'
       - 'porting/revisions/v2.1.5-*/**'
       - '.github/release-notes/v2.1.5.md'
       - '.github/scripts/verify_android_mpp.py'
@@ -72,6 +90,10 @@ jobs:
           bash -n .github/scripts/stage-v2.1.4-mpp.sh
           python3 -m py_compile porting/revisions/v2.1.5-dev.17/stage_candidate.py porting/revisions/v2.1.5-release/test_release.py
           bash -n .github/scripts/stage-v2.1.5-mpp.sh
+          python3 -m py_compile porting/revisions/v2.1.6-dev.5/stage_candidate.py porting/revisions/v2.1.6-release/test_release.py
+          bash -n .github/scripts/stage-v2.1.6-mpp.sh
+          python3 -m py_compile porting/revisions/v2.1.7-dev.2/stage_candidate.py porting/revisions/v2.1.7-dev.3/stage_candidate.py porting/revisions/v2.1.7-release/test_release.py
+          bash -n .github/scripts/stage-v2.1.7-mpp.sh
           bash porting/revisions/v2.1.4-dev.3/test_budget.sh
       - name: Prove SHA-256 identity of the approved v2.1.4-dev.3 MPP
         run: |
@@ -88,7 +110,11 @@ jobs:
         run: python3 porting/tests/VerifyCanonicalHelpers.py
       - name: Check the approved stable staging contract and release notes
         run: |
-          if grep -Eq '^version[[:space:]]*=[[:space:]]*2[.]1[.]5[[:space:]]*$' gradle.properties; then
+          if grep -Eq '^version[[:space:]]*=[[:space:]]*2[.]1[.]7[[:space:]]*$' gradle.properties; then
+            python3 porting/revisions/v2.1.7-release/test_release.py
+          elif grep -Eq '^version[[:space:]]*=[[:space:]]*2[.]1[.]6[[:space:]]*$' gradle.properties; then
+            python3 porting/revisions/v2.1.6-release/test_release.py
+          elif grep -Eq '^version[[:space:]]*=[[:space:]]*2[.]1[.]5[[:space:]]*$' gradle.properties; then
             python3 porting/revisions/v2.1.5-release/test_release.py
           elif grep -Eq '^version[[:space:]]*=[[:space:]]*2\.1\.4[[:space:]]*$' gradle.properties; then
             python3 porting/revisions/v2.1.4-release/test_release.py

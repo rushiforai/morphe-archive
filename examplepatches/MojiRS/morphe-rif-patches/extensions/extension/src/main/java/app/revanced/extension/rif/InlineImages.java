@@ -32,6 +32,7 @@ import android.util.Log;
 import android.util.LruCache;
 import android.util.Size;
 import android.view.MotionEvent;
+import android.view.TouchDelegate;
 import android.view.View;
 import android.view.ViewConfiguration;
 import android.view.ViewGroup;
@@ -179,6 +180,33 @@ public final class InlineImages {
         }
         return false;
     };
+
+    /**
+     * TOUCH_LISTENER's work, for when another bundle's inline media owns the TextView's touch
+     * listener (tables-only mode, {@link Settings#inlineTablesOnly}): View.onTouchEvent hands every
+     * touch that listener didn't consume to the touch delegate first, before the TextView's own
+     * click and link handling. Never consumes. Touches that listener consumes are on its media,
+     * not on a table, so missing them is fine.
+     */
+    private static final class TouchRecorder extends TouchDelegate {
+        private final View owner;
+
+        TouchRecorder(View owner) {
+            super(new Rect(), owner);
+            this.owner = owner;
+        }
+
+        @Override
+        public boolean onTouchEvent(MotionEvent event) {
+            try {
+                TOUCH_LISTENER.onTouch(owner, event);
+            } catch (Throwable t) {
+                Log.w(TAG, "table touch failed", t);
+            }
+            return false;
+        }
+    }
+
     // The TextView's own long click, on an image: consumed, so it doesn't start text
     // selection (the comment is selected by our timer instead). TextView then discards the
     // touch's lift itself. Elsewhere in the text, the long press behaves as usual.
@@ -771,10 +799,18 @@ public final class InlineImages {
             List<Animatable> current = new ArrayList<>();
             if (cs instanceof Spanned) {
                 Spanned sp = (Spanned) cs;
-                if (sp.getSpans(0, sp.length(), FitImageSpan.class).length > 0) {
-                    // Image taps and long presses need the touch position (rif's body
-                    // TextViews have no touch or long-click listeners of their own).
-                    tv.setOnTouchListener(TOUCH_LISTENER);
+                if (sp.getSpans(0, sp.length(), FitImageSpan.class).length > 0 || InlineTables.has(sp)) {
+                    // Image (and table) taps and long presses need the touch position (rif's
+                    // body TextViews have no touch or long-click listeners of their own).
+                    if (Settings.inlineTablesOnly()) {
+                        // Another bundle's inline media may own the touch listener (Patcheddit's
+                        // sets one on bodies with media): record through a touch delegate instead.
+                        if (!(tv.getTouchDelegate() instanceof TouchRecorder)) {
+                            tv.setTouchDelegate(new TouchRecorder(tv));
+                        }
+                    } else {
+                        tv.setOnTouchListener(TOUCH_LISTENER);
+                    }
                     tv.setOnLongClickListener(LONG_CLICK);
                     // Fit to the current width now (usually right, as rows are recycled
                     // between comments), and again whenever the width changes.
@@ -1023,10 +1059,16 @@ public final class InlineImages {
         }
     }
 
-    /** True if the last touch on [tv] landed on one of its inline images. */
+    /** The last touch on [v] (x, y in the view), recorded by TOUCH_LISTENER; null if none. */
+    static float[] lastTouch(View v) {
+        return LAST_TOUCH.get(v);
+    }
+
+    /** True if the last touch on [tv] landed on one of its inline images (or tables). */
     private static boolean onImage(TextView tv) {
         CharSequence text = tv.getText();
         if (!(text instanceof Spanned)) return false;
+        if (InlineTables.onTable(tv)) return true;
         for (FitImageSpan span : ((Spanned) text).getSpans(0, text.length(), FitImageSpan.class)) {
             if (!Float.isNaN(tapPosition(tv, span, span.width()))) return true;
         }
@@ -1050,6 +1092,8 @@ public final class InlineImages {
                 // A span change makes the TextView re-flow (and re-draw) that range.
                 sp.setSpan(span, sp.getSpanStart(span), sp.getSpanEnd(span), sp.getSpanFlags(span));
             }
+            // Inline tables take the same width.
+            if (InlineTables.fit(sp, avail)) changed = true;
             if (changed) {
                 tv.requestLayout();
                 tv.invalidate();

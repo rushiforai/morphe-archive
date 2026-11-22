@@ -14,6 +14,7 @@ final class XPostLength {
     static final int POSSIBLE_TRUNCATION_BYTES = 420;
     static final int POSSIBLE_TRUNCATION_POINTS = 280;
     private static final Pattern URL = Pattern.compile("(?i)(?:https?://|www\\.)[^\\s<>]+|t\\.co/[^\\s<>]+");
+    private static final Pattern MENTION = Pattern.compile("@[A-Za-z0-9_]{1,50}");
     private XPostLength() {}
 
     static int visibleBytes(String text, JSONObject post) {
@@ -102,8 +103,7 @@ final class XPostLength {
         int position = 0;
         while (position < text.length() && Character.isWhitespace(text.charAt(position))) position++;
         int end = position;
-        Pattern mention = Pattern.compile("@[A-Za-z0-9_]{1,50}");
-        Matcher matcher = mention.matcher(text);
+        Matcher matcher = MENTION.matcher(text);
         while (position < text.length()) {
             matcher.region(position, text.length());
             if (!matcher.lookingAt()) break;
@@ -121,7 +121,8 @@ final class XPostLength {
         return nonempty(post, "in_reply_to_status_id_str")
                 || nonempty(post, "in_reply_to_status_id")
                 || nonempty(post, "in_reply_to_user_id_str")
-                || nonempty(post, "in_reply_to_screen_name");
+                || nonempty(post, "in_reply_to_screen_name")
+                || post.optJSONObject("legacy") != null && isReply(post.optJSONObject("legacy"));
     }
 
     private static boolean nonempty(JSONObject post, String key) {
@@ -140,21 +141,60 @@ final class XPostLength {
             if (cp == 0x200D || cp == 0xFE0E || cp == 0xFE0F
                     || type == Character.NON_SPACING_MARK || type == Character.ENCLOSING_MARK
                     || type == Character.COMBINING_SPACING_MARK) { index += width; continue; }
-            if (isEmoji(cp)) {
-                points += 2; index += width;
-                while (index < end) {
-                    int next = text.codePointAt(index);
-                    if (isEmojiModifier(next) || next == 0xFE0F || next == 0x20E3) { index += Character.charCount(next); continue; }
-                    if (next == 0x200D && index + 1 < end) {
-                        index += Character.charCount(next);
-                        int joined = text.codePointAt(index); index += Character.charCount(joined); continue;
-                    }
-                    if (isRegional(cp) && isRegional(next)) index += Character.charCount(next);
-                    break;
-                }
-            } else { points += cp <= 0x10FF ? 1 : 2; index += width; }
+            points += isEmoji(cp) || cp > 0x10FF ? 2 : 1;
+            index = isEmoji(cp) ? emojiEnd(text, index, end) : index + width;
         }
         return points;
+    }
+
+    private static int emojiEnd(String text, int index, int end) {
+        int first = text.codePointAt(index);
+        int nextIndex = index + Character.charCount(first);
+        while (nextIndex < end) {
+            int next = text.codePointAt(nextIndex);
+            if (isEmojiModifier(next) || next == 0xFE0F || next == 0x20E3) {
+                nextIndex += Character.charCount(next);
+                continue;
+            }
+            if (next == 0x200D && nextIndex + 1 < end) {
+                nextIndex++;
+                nextIndex += Character.charCount(text.codePointAt(nextIndex));
+                continue;
+            }
+            if (isRegional(first) && isRegional(next)) nextIndex += Character.charCount(next);
+            break;
+        }
+        return nextIndex;
+    }
+
+    /** Fold the displayed text at the same limit used for the selected warning mode. */
+    static String excerpt(String text, int bodyStart, boolean detailed) {
+        int limit = detailed ? POSSIBLE_TRUNCATION_POINTS : POSSIBLE_TRUNCATION_BYTES;
+        Matcher url = URL.matcher(text);
+        url.region(bodyStart, text.length());
+        boolean hasUrl = url.find();
+        int total = 0;
+        for (int start = bodyStart; start < text.length();) {
+            int end;
+            int amount;
+            if (hasUrl && start == url.start()) {
+                end = url.end();
+                amount = detailed ? 23 : text.substring(start, end).getBytes(StandardCharsets.UTF_8).length;
+                hasUrl = url.find();
+            } else {
+                int cp = text.codePointAt(start);
+                end = isEmoji(cp) ? emojiEnd(text, start, text.length()) : start + Character.charCount(cp);
+                int type = Character.getType(cp);
+                if (detailed) amount = cp == 0x200D || cp == 0xFE0E || cp == 0xFE0F
+                        || type == Character.NON_SPACING_MARK || type == Character.ENCLOSING_MARK
+                        || type == Character.COMBINING_SPACING_MARK ? 0 : isEmoji(cp) || cp > 0x10FF ? 2 : 1;
+                else amount = text.substring(start, end).getBytes(StandardCharsets.UTF_8).length;
+            }
+            total += amount;
+            if (total > limit) return text.substring(0, start);
+            start = end;
+        }
+        return text;
     }
 
     private static boolean overlapsMedia(int start, int end, List<Range> ranges) {

@@ -10,6 +10,10 @@ import org.jsoup.nodes.*;
 final class AnimanchPagination {
     interface Fetch {String get(String url)throws IOException;}
     static SiteBoardProtocol.ThreadPage thread(SiteBoardProtocol.Board board,String id,String initial,Fetch fetch)throws IOException{
+        return thread(board,id,initial,fetch,null);
+    }
+    static SiteBoardProtocol.ThreadPage thread(SiteBoardProtocol.Board board,String id,String initial,
+            Fetch fetch, java.util.function.BiConsumer<String,AnimanchProtocol.Reply> actions)throws IOException{
         String origin=board.threadUrl(id),title=null;TreeMap<Integer,AnimanchProtocol.Reply> rows=new TreeMap<>();
         Set<String> visited=new HashSet<>();ArrayDeque<String> pending=new ArrayDeque<>();pending.add(origin);int expected=0;
         while(!pending.isEmpty()){
@@ -18,7 +22,8 @@ final class AnimanchPagination {
             if(title==null)title=slice.title;else if(!title.equals(slice.title))throw new IOException("取得中にスレのタイトルが変わりました。再取得してください");
             // Overlap is normal, including OP repeated on every page. Link previews can differ
             // between cached/mobile pages; retain the first snapshot for each response number.
-            for(AnimanchProtocol.Reply reply:slice.replies)rows.putIfAbsent(reply.number,reply);
+            for(AnimanchProtocol.Reply reply:slice.replies)
+                if(rows.putIfAbsent(reply.number,reply)==null&&actions!=null) actions.accept(address,reply);
             if(rows.size()>10000)throw new IOException("あにまんのレス数が取得上限を超えました");
             Document doc=Jsoup.parse(html,address);
             if(address.equals(origin)){

@@ -32,11 +32,17 @@ import java.util.WeakHashMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.PriorityBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /** Native title-only thumbnail decoration. Works for both ListView and RecyclerView. */
 public final class ThreadListThumbnail {
-    private static final ExecutorService IO=Executors.newFixedThreadPool(2,r->{Thread t=new Thread(r,"Haiagaru-thread-thumbnail");t.setDaemon(true);return t;});
+    private static final AtomicLong TASK_ORDER=new AtomicLong();
+    private static final ExecutorService IO=new ThreadPoolExecutor(2,2,0,TimeUnit.MILLISECONDS,
+            new PriorityBlockingQueue<>(),r->{Thread t=new Thread(r,"Haiagaru-thread-thumbnail");t.setDaemon(true);return t;});
     private static final ExecutorService ANIMANCH_IO=Executors.newSingleThreadExecutor(r->{
         Thread thread=new Thread(r,"Haiagaru-animanch-thumbnail");
         thread.setDaemon(true);
@@ -178,7 +184,7 @@ public final class ThreadListThumbnail {
         Set<String> pending=animanch?ANIMANCH_PENDING:PENDING;
         if((retry!=null&&retry>now)||pending.size()>=(animanch?12:40)||!pending.add(key))return;
         ExecutorService executor=animanch?ANIMANCH_IO:IO;
-        executor.execute(()->{
+        Runnable task=()->{
             try{
                 List<String> sources=SOURCES.get(sourceKey);
                 if(sources==null){
@@ -240,7 +246,16 @@ public final class ThreadListThumbnail {
                 FAILED.put(key,limited.retryAt);
             }catch(Exception unavailable){FAILED.put(key,SystemClock.elapsedRealtime()+15*60_000L);}
             finally{pending.remove(key);}
-        });
+        };
+        if(animanch)executor.execute(task);
+        else executor.execute(new PriorityTask(task,state.title.isShown()?0:1,TASK_ORDER.getAndIncrement()));
+    }
+
+    private static final class PriorityTask implements Runnable,Comparable<PriorityTask>{
+        private final Runnable task;private final int priority;private final long order;
+        PriorityTask(Runnable task,int priority,long order){this.task=task;this.priority=priority;this.order=order;}
+        @Override public void run(){task.run();}
+        @Override public int compareTo(PriorityTask other){int rank=Integer.compare(priority,other.priority);return rank!=0?rank:Long.compare(order,other.order);}
     }
 
     private static byte[] openingImageBytes(Selection state,String url)throws IOException{
@@ -412,7 +427,7 @@ public final class ThreadListThumbnail {
                 if(adapter instanceof BaseAdapter)((BaseAdapter)adapter).notifyDataSetChanged();
                 else adapter.getClass().getMethod("notifyDataSetChanged").invoke(adapter);
             }catch(Exception ignored){/* A future native rebind still consumes the ready bitmap. */}
-        },500);
+        },ThreadListThumbnailSettings.fastDisplay(Haiagaru.applicationContextForExtension())?50:500);
     }
     private ThreadListThumbnail(){}
 }

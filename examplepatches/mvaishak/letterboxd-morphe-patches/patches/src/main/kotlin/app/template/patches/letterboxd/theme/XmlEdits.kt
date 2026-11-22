@@ -72,11 +72,20 @@ internal fun ensurePublicColor(document: Document, resources: Element, name: Str
         val element = publicNodes.item(i) as Element
         if (element.getAttribute("type") == "color" && element.getAttribute("name") == name) return
     }
+    val usedIds = (0 until publicNodes.length).map {
+        (publicNodes.item(it) as Element).getAttribute("id").removePrefix("0x").toLong(16)
+    }.toSet()
+    val preferredId = id.removePrefix("0x").toLong(16)
+    val typePrefix = preferredId and 0xffff0000L
+    val allocatedId = if (preferredId !in usedIds) preferredId else {
+        usedIds.filter { (it and 0xffff0000L) == typePrefix }.max() + 1
+    }
+    check((allocatedId and 0xffff0000L) == typePrefix) { "Color resource ID range exhausted" }
     resources.appendChild(
         document.createElement("public").apply {
             setAttribute("type", "color")
             setAttribute("name", name)
-            setAttribute("id", id)
+            setAttribute("id", "0x" + allocatedId.toString(16))
         },
     )
 }

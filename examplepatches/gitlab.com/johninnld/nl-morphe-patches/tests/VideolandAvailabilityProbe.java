@@ -50,53 +50,53 @@ public final class VideolandAvailabilityProbe {
   List<Object> unlocked=Collections.singletonList(available);check(filter(unlocked)==unlocked,"unlocked list identity retained");
   check(filter(Collections.singletonList(blocked)).isEmpty(),"wholly locked materialized list filters empty");
   check(filter(Collections.emptyList()).isEmpty(),"empty source remains empty");
-  for(String template:new String[]{"R","S","T","U","V","X"}){
+  for(String template:new String[]{"S","T","U","V","W","Y"}){
    Object raw=block(template,original),rawContent=get(raw,"U");
    Object copy=call("visibleBlock",new Class<?>[]{type(MODEL+"Block")},raw);
    check(copy!=raw&&((List<?>)get(get(copy,"U"),"Q")).size()==2,"collection projection "+template);
    check(get(raw,"U")==rawContent&&get(rawContent,"Q")==original,"raw cached model retained "+template);
   }
-  for(String template:new String[]{"W","Y","Z"}){
+  for(String template:new String[]{"X","Z","a0"}){
    Object raw=block(template,original);check(call("visibleBlock",new Class<?>[]{type(MODEL+"Block")},raw)==raw,"structural template preserved "+template);
   }
-  Object series=block("V",Arrays.asList(blocked,available,blocked));
+  Object series=block("W",Arrays.asList(blocked,available,blocked));
   check(Integer.valueOf(0).equals(call("visibleIndex",new Class<?>[]{type(MODEL+"Block"),int.class},series,1)),"retained selection maps into compact list");
   check(Integer.valueOf(0).equals(call("visibleIndex",new Class<?>[]{type(MODEL+"Block"),int.class},series,2)),"removed selection moves to usable neighbor");
  }
 
  static void integration()throws Exception{
   Object play=instance(MODEL+"Target$App$Play"),available=item(play),blocked=item(lock("RequireSubscriptionLock",play));
-  List<Object> items=Arrays.asList(blocked,available,blocked);Object raw=block("V",items);
-  Object legacy=type("d8.a").getConstructor(type(MODEL+"Block"),type("w4.A1"),int.class).newInstance(raw,null,1);
+  List<Object> items=Arrays.asList(blocked,available,blocked);Object raw=block("W",items);
+  Object legacy=type("f8.a").getConstructor(type(MODEL+"Block"),type("y4.A1"),int.class).newInstance(raw,null,1);
   check(get(legacy,"N")!=raw&&get(legacy,"P").equals(0)&&((List<?>)get(get(get(legacy,"N"),"U"),"Q")).get(0)==available,"actual legacy constructor projects model and selection");
-  Class<?> flowType=type("Ev.j");Object flow=Proxy.newProxyInstance(apk,new Class<?>[]{flowType},(p,m,a)->null);
-  Object compose=type("f8.a").getConstructor(type(MODEL+"Block"),flowType,int.class).newInstance(raw,flow,1);
+  Class<?> flowType=type("Wv.j");Object flow=Proxy.newProxyInstance(apk,new Class<?>[]{flowType},(p,m,a)->null);
+  Object compose=type("h8.a").getConstructor(type(MODEL+"Block"),flowType,int.class).newInstance(raw,flow,1);
   check(get(compose,"a")!=raw&&get(compose,"b")==flow&&get(compose,"c").equals(0),"actual newer constructor projects model and retains native flow");
-  Object solo=block("Y",items),info=type("d8.a").getConstructor(type(MODEL+"Block"),type("w4.A1"),int.class).newInstance(solo,null,1);
+  Object solo=block("Z",items),info=type("f8.a").getConstructor(type(MODEL+"Block"),type("y4.A1"),int.class).newInstance(solo,null,1);
   check(get(info,"N")==solo&&get(info,"P").equals(1)&&items.size()==3,"actual structural constructor preserves original items and index");
  }
 
  static Object state(Object value)throws Exception{
-  return Proxy.newProxyInstance(apk,new Class<?>[]{type("d0.q0")},(p,m,a)->m.getName().equals("getValue")?value:null);
+  return Proxy.newProxyInstance(apk,new Class<?>[]{type("d0.s0")},(p,m,a)->m.getName().equals("getValue")?value:null);
  }
  static void composeEmpty()throws Exception{
-  Object page=instance("x4.c");Object empty=type("w4.i0").getConstructor(int.class,int.class,List.class).newInstance(0,0,Collections.emptyList());set(page,"c",state(empty));
-  Object ended=type("w4.s0$b").getConstructor(boolean.class).newInstance(true),pending=type("w4.s0$b").getConstructor(boolean.class).newInstance(false);
-  Object status=instance("w4.C");set(status,"a",pending);set(status,"b",ended);set(status,"c",ended);set(page,"d",state(status));
-  Object collection=block("V",Collections.emptyList());Class<?>[] signature={type(MODEL+"Block"),type("x4.c")};
+  Object page=instance("z4.c");Object empty=type("y4.h0").getConstructor(int.class,int.class,List.class).newInstance(0,0,Collections.emptyList());set(page,"c",state(empty));
+  Object ended=type("y4.s0$b").getConstructor(boolean.class).newInstance(true),pending=type("y4.s0$b").getConstructor(boolean.class).newInstance(false);
+  Object status=instance("y4.B");set(status,"a",pending);set(status,"b",ended);set(status,"c",ended);set(page,"d",state(status));
+  Object collection=block("W",Collections.emptyList());Class<?>[] signature={type(MODEL+"Block"),type("z4.c")};
   check(Boolean.TRUE.equals(call("hideEmpty",signature,collection,page)),"newer exhausted empty collection hides its heading and content");
   set(status,"c",pending);check(Boolean.FALSE.equals(call("hideEmpty",signature,collection,page)),"newer empty collection stays visible while later pages remain");
   set(status,"c",ended);set(status,"a",null);check(Boolean.FALSE.equals(call("hideEmpty",signature,collection,page)),"newer unknown refresh keeps retry UI");
-  set(status,"a",type("w4.s0$a").getConstructor(Throwable.class).newInstance(new IllegalArgumentException("fixture")));check(Boolean.FALSE.equals(call("hideEmpty",signature,collection,page)),"newer native refresh error retains retry UI");
-  set(status,"a",pending);set(status,"c",type("w4.s0$a").getConstructor(Throwable.class).newInstance(new IllegalArgumentException("fixture")));check(Boolean.FALSE.equals(call("hideEmpty",signature,collection,page)),"newer native append error retains retry UI");set(status,"c",ended);
-  set(status,"a",pending);check(Boolean.FALSE.equals(call("hideEmpty",signature,block("Y",Collections.emptyList()),page)),"newer structural blocks remain visible even when empty");
-  Object nonempty=type("w4.i0").getConstructor(int.class,int.class,List.class).newInstance(0,0,Collections.singletonList(new Object()));set(page,"c",state(nonempty));
+  set(status,"a",type("y4.s0$a").getConstructor(Throwable.class).newInstance(new IllegalArgumentException("fixture")));check(Boolean.FALSE.equals(call("hideEmpty",signature,collection,page)),"newer native refresh error retains retry UI");
+  set(status,"a",pending);set(status,"c",type("y4.s0$a").getConstructor(Throwable.class).newInstance(new IllegalArgumentException("fixture")));check(Boolean.FALSE.equals(call("hideEmpty",signature,collection,page)),"newer native append error retains retry UI");set(status,"c",ended);
+  set(status,"a",pending);check(Boolean.FALSE.equals(call("hideEmpty",signature,block("Z",Collections.emptyList()),page)),"newer structural blocks remain visible even when empty");
+  Object nonempty=type("y4.h0").getConstructor(int.class,int.class,List.class).newInstance(0,0,Collections.singletonList(new Object()));set(page,"c",state(nonempty));
   check(Boolean.FALSE.equals(call("hideEmpty",signature,collection,page)),"newer available content remains visible at end of paging");
  }
 
  static void buttons()throws Exception{
-  Class<?> factoryType=type("kn.e");Object factory=Proxy.newProxyInstance(apk,new Class<?>[]{factoryType},(p,m,a)->null);
-  Method presentation=type("kn.k").getMethod("c",type(MODEL+"Action"),factoryType);
+  Class<?> factoryType=type("vn.e");Object factory=Proxy.newProxyInstance(apk,new Class<?>[]{factoryType},(p,m,a)->null);
+  Method presentation=type("vn.k").getMethod("c",type(MODEL+"Action"),factoryType);
   Object play=instance(MODEL+"Target$App$Play"),subscribe=get(item(lock("RequireSubscriptionLock",play)),"N");set(subscribe,"N","Abonneren op Videoland");
   Object originalTarget=get(subscribe,"P");
   check(presentation.invoke(null,subscribe,factory)==null,"actual subscription CTA maps to native absent action");

@@ -1,6 +1,6 @@
 {
   "NOTE": "Do NOT manually edit this file. This file is automatically updated when semantic release (release.yml) runs. Manually editing this file can break your releases and break third party tools that use this file.",
-  "version": "1.2.0",
+  "version": "1.4.0",
   "patches": [
     {
       "name": "Library import, export and downloads",
@@ -40,6 +40,18 @@
               "isExperimental": false,
               "minSdk": null,
               "description": null
+            },
+            {
+              "version": "7.0.2",
+              "versionCodes": {
+                "ARM64_V8A": 1624,
+                "ARMEABI_V7A": 1624,
+                "X86_64": 1624,
+                "X86": 1624
+              },
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
             }
           ]
         }
@@ -48,7 +60,7 @@
     },
     {
       "name": "Liquid Glass bottom bar",
-      "description": "Adds live refractive glass to Apple Music's mini-player and bottom tabs, with whole-bar touch feedback, drag parallax and an animated selection lens. Refraction requires Android 13 or newer.",
+      "description": "Adds live refractive glass to Apple Music's mini-player and bottom tabs, an animated selection lens, and a glass transition between the mini-player and Now Playing. Refraction requires Android 13 or newer.",
       "default": true,
       "category": null,
       "compatiblePackages": [
@@ -80,6 +92,18 @@
                 "ARMEABI_V7A": 1622,
                 "X86_64": 1622,
                 "X86": 1622
+              },
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            },
+            {
+              "version": "7.0.2",
+              "versionCodes": {
+                "ARM64_V8A": 1624,
+                "ARMEABI_V7A": 1624,
+                "X86_64": 1624,
+                "X86": 1624
               },
               "isExperimental": false,
               "minSdk": null,
@@ -124,6 +148,18 @@
                 "ARMEABI_V7A": 1622,
                 "X86_64": 1622,
                 "X86": 1622
+              },
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            },
+            {
+              "version": "7.0.2",
+              "versionCodes": {
+                "ARM64_V8A": 1624,
+                "ARMEABI_V7A": 1624,
+                "X86_64": 1624,
+                "X86": 1624
               },
               "isExperimental": false,
               "minSdk": null,

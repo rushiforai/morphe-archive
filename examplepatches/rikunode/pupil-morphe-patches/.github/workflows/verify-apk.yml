@@ -1,0 +1,35 @@
+name: Build Pupil patch bundle
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'patches/**'
+      - '.github/workflows/verify-apk.yml'
+
+permissions:
+  contents: read
+  packages: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Build Morphe MPP and generate patch metadata
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: ./gradlew buildAndroid generatePatchesList --no-daemon --console=plain
+      - name: Export MPP and patch list for independent APK tests
+        uses: actions/upload-artifact@v4
+        with:
+          name: pupil-morphe-6.1.1-validation
+          if-no-files-found: error
+          retention-days: 3
+          path: |
+            patches/build/libs/patches-*.mpp
+            patches-list.json

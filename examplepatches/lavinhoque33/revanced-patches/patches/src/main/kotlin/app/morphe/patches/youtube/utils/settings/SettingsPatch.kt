@@ -13,7 +13,7 @@
  * (inlined Cairo fragment flag).
  *
  * Licensed under the GNU General Public License v3.0.
- * Modified by lavinhoque33, 2026-11-14.
+ * Modified by lavinhoque33, 2026-11-21.
  *
  * ------------------------------------------------------------------------
  * GPLv3 Section 7 – Additional Terms & Attribution Requirements
@@ -498,6 +498,7 @@ val settingsPatch = resourcePatch(
         ).forEach { xmlFile ->
             copyXmlNode("youtube/settings/host", "values/$xmlFile", "resources")
         }
+        copyXmlNode("shared/settings", "values/styles.xml", "resources")
 
         val valuesV21Directory = get("res").resolve("values-v21")
         if (!valuesV21Directory.isDirectory)

@@ -16,6 +16,10 @@ internal val BytecodePatchContext.classes: List<ClassDef>
         return all
     }
 
+/** ReVanced's `classDefs` (the app's classes), as the same list. */
+internal val BytecodePatchContext.classDefs: List<ClassDef>
+    get() = classes
+
 /** Stand-in for ReVanced's ClassProxy; its mutableClass is Morphe's mutableClassDefBy. */
 internal class MorpheClassProxy(val mutableClass: MutableClass)
 

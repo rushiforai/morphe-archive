@@ -12,43 +12,16 @@ internal object AdUnitIfNeededFingerprint : Fingerprint(
     ),
 )
 
+// Obfuscated names change in every app build. These match 2.5.1 only.
 internal object AdViewLoaderFingerprint : Fingerprint(
-    definingClass = "L_/wo;",
+    definingClass = "L_/Wn;",
     name = "b",
-    returnType = "L_/ci;",
-    parameters = listOf("Ljava/lang/String;"),
-)
-
-internal object AdViewLoaderV2410Fingerprint : Fingerprint(
-    definingClass = "L_/en;",
-    name = "b",
-    returnType = "L_/Rg;",
-    parameters = listOf("Ljava/lang/String;"),
-)
-
-internal object AdViewLoaderV250Fingerprint : Fingerprint(
-    definingClass = "L_/wn;",
-    name = "b",
-    returnType = "L_/kh;",
+    returnType = "L_/Lh;",
     parameters = listOf("Ljava/lang/String;"),
 )
 
 internal object StartupAdLoaderFingerprint : Fingerprint(
-    definingClass = "L_/wo;",
-    name = "e",
-    returnType = "V",
-    parameters = listOf(),
-)
-
-internal object StartupAdLoaderV2410Fingerprint : Fingerprint(
-    definingClass = "L_/en;",
-    name = "e",
-    returnType = "V",
-    parameters = listOf(),
-)
-
-internal object StartupAdLoaderV250Fingerprint : Fingerprint(
-    definingClass = "L_/wn;",
+    definingClass = "L_/Wn;",
     name = "e",
     returnType = "V",
     parameters = listOf(),

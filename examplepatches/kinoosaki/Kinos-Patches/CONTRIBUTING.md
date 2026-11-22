@@ -36,7 +36,7 @@ to your fork) to the branch it runs on, and those commits must never end up in a
 | The app's package, signer and verified version | `COMPATIBILITY_<APP>` in `patches/src/main/kotlin/app/template/patches/shared/Constants.kt` |
 | README category | `.github/scripts/app-categories.json` |
 | Smoke tests | `patches/src/test/kotlin/<App>SmokeTest.kt` |
-| Runtime code a patch needs | `extensions/<module>/` (only when inline smali is not maintainable; copy `extensions/shazam`) |
+| Runtime code a patch needs | `extensions/<module>/` (only when inline smali is not maintainable; copy `extensions/gmscore`) |
 
 **Do not edit generated files:** `patches-list.json`, `patches-bundle.json`, the patch list in
 `README.md`, `CHANGELOG.md` and the version in `gradle.properties` are written by the release
@@ -77,13 +77,15 @@ to it would send every user to a different bundle: a pull request that touches i
 ## Tests and checking your work
 
 Each app has one `<App>SmokeTest.kt` that patches the real APK and asserts on the emitted bytecode.
-The tests skip when the APK is missing (APKs are never committed), so run them locally:
+Tag smoke-test classes with JUnit's `@Tag("smoke")`; `:patches:taskerSmokeTest` selects that tag.
+Smoke tests skip when the APK is missing (APKs are never committed), so run them locally:
 
 ```
-.\gradlew -Pkotlin.daemon.jvmargs=-Xmx4g -Dorg.gradle.jvmargs=-Xmx3g :patches:cleanTest :patches:test --tests <App>SmokeTest --no-build-cache
+.\gradlew -Pkotlin.daemon.jvmargs=-Xmx4g -Dorg.gradle.jvmargs=-Xmx3g :patches:taskerSmokeTest --tests <App>SmokeTest
 ```
 
-Put the APK at `apks/<slug>/base.apk` first. The test fails if the APK's package or version differs
+Put Tasker APK fixtures at `apks/tasker/6.7.8/base.apk` and/or `apks/tasker/6.7.9/base.apk`.
+The test fails if an APK's package or version differs
 from the version it passes or from the patch's target, which is on purpose.
 
 "Applied" only means the patch ran. In your pull request, say how you confirmed the real effect:

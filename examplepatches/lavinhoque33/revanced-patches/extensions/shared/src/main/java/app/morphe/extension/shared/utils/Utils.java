@@ -1263,34 +1263,6 @@ public class Utils {
     }
 
     /**
-     * Set all preferences to multiline titles if the device is not using an English variant.
-     * The English strings are heavily scrutinized and all titles fit on screen
-     * except 2 or 3 preference strings and those do not affect readability.
-     * <p>
-     * Allowing multiline for those 2 or 3 English preferences looks weird and out of place,
-     * and visually it looks better to clip the text and keep all titles 1 line.
-     */
-    public static void setPreferenceTitlesToMultiLineIfNeeded(PreferenceGroup group) {
-        if (!isSDKAbove(26)) {
-            return;
-        }
-
-        String revancedLocale = Utils.getContext().getResources().getConfiguration().locale.getLanguage();
-        if (revancedLocale.equals(Locale.ENGLISH.getLanguage())) {
-            return;
-        }
-
-        for (int i = 0, prefCount = group.getPreferenceCount(); i < prefCount; i++) {
-            Preference pref = group.getPreference(i);
-            pref.setSingleLineTitle(false);
-
-            if (pref instanceof PreferenceGroup subGroup) {
-                setPreferenceTitlesToMultiLineIfNeeded(subGroup);
-            }
-        }
-    }
-
-    /**
      * @return zero, if the resource is not found
      */
     @SuppressLint("DiscouragedApi")

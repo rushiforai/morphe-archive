@@ -46,4 +46,14 @@ public class PlayerOptionsSectionTest {
         assertNull(lines.detail);
         assertEquals(1005, lines.nextTick);
     }
+
+    @Test
+    public void theNativeSheetsSwitchesLineUpWithItsTitles() {
+        // the title 60 px into the list, with 0 padding of its own; or 40 px in, padded 20
+        assertEquals(60, PlayerOptionsSection.sideOf(true, 196, 136, 0, 42));
+        assertEquals(60, PlayerOptionsSection.sideOf(true, 176, 136, 20, 42));
+        assertEquals("no title to go by", 42, PlayerOptionsSection.sideOf(false, 0, 0, 0, 42));
+        assertEquals("a title not where it should be", 42, PlayerOptionsSection.sideOf(true, 100, 136, 0, 42));
+        assertEquals("a title right at the list's edge", 0, PlayerOptionsSection.sideOf(true, 136, 136, 0, 42));
+    }
 }

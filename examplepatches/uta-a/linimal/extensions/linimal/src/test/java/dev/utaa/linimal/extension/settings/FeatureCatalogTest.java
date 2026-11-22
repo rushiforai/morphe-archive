@@ -58,20 +58,22 @@ public final class FeatureCatalogTest {
     }
 
     @Test
-    public void adsPageListsTheSmartChannelHomeAndOpenChatAdsWithoutSections() {
-        List<FeatureCatalog.Entry> entries = FeatureCatalog.installedEntriesForPage(
+    public void adsPageGroupsAdsAndPremiumPrompts() {
+        List<FeatureCatalog.Group> groups = FeatureCatalog.installedGroupsForPage(
                 SettingsPage.ADS, allCatalogFeatureIds());
 
-        assertFeatureIds(entries,
+        assertEquals(2, groups.size());
+        assertGroup(groups.get(0), SettingsSection.ADS_ADS,
                 "linimal.smart-channel-ads",
                 "linimal.home-top-ad",
                 "linimal.square-ads");
-        for (FeatureCatalog.Entry entry : entries) {
-            assertNull(entry.getFeature().name(), entry.getSection());
-        }
-        assertEquals("Smart Channel の広告を表示しない", entries.get(0).getTitle());
-        assertEquals("ホーム内の広告を表示しない", entries.get(1).getTitle());
-        assertEquals("オープンチャットの広告を表示しない", entries.get(2).getTitle());
+        assertGroup(groups.get(1), SettingsSection.ADS_PREMIUM,
+                "linimal.premium",
+                "linimal.premium-settings-row");
+        assertEquals("トーク一覧の広告を非表示", groups.get(0).getEntries().get(0).getTitle());
+        assertEquals("ホームの広告を非表示", groups.get(0).getEntries().get(1).getTitle());
+        assertEquals("オープンチャットの広告を非表示", groups.get(0).getEntries().get(2).getTitle());
+        assertEquals("Premium の案内", groups.get(1).getSection().getTitle());
     }
 
     @Test
@@ -92,7 +94,7 @@ public final class FeatureCatalogTest {
                 "linimal.line-ai-gallery-viewer");
         assertGroup(groups.get(2), SettingsSection.AGENT_I_SETTINGS,
                 "linimal.agent-i-settings");
-        assertEquals("各画面の上部", groups.get(0).getSection().getTitle());
+        assertEquals("画面の上部", groups.get(0).getSection().getTitle());
         assertEquals("トーク", groups.get(1).getSection().getTitle());
         assertEquals("設定", groups.get(2).getSection().getTitle());
     }
@@ -124,14 +126,14 @@ public final class FeatureCatalogTest {
                 "linimal.home-feed-live",
                 "linimal.home-recent-history");
         assertEquals("下部タブ", groups.get(0).getSection().getTitle());
-        assertEquals("トーク一覧の上部", groups.get(1).getSection().getTitle());
-        assertEquals("トークの ＋ メニュー", groups.get(2).getSection().getTitle());
+        assertEquals("トーク一覧", groups.get(1).getSection().getTitle());
+        assertEquals("＋メニュー", groups.get(2).getSection().getTitle());
         assertEquals("ホーム", groups.get(3).getSection().getTitle());
     }
 
     /**
      * 小見出しが場所を示すため、項目名からは重複する接頭辞だけを外します。
-     * ON が非表示を意味することを読み取れるよう、「表示しない」の言い回しは残します。
+     * ON が非表示を意味することを読み取れるよう、「非表示」の言い回しは残します。
      */
     @Test
     public void hidePageTitlesDropTheLocationPrefixButKeepTheSuppressionWording() {
@@ -139,37 +141,44 @@ public final class FeatureCatalogTest {
                 SettingsPage.HIDE, allCatalogFeatureIds());
 
         List<FeatureCatalog.Entry> chatListHeader = groups.get(1).getEntries();
-        assertEquals("AI Friends を表示しない", chatListHeader.get(0).getTitle());
-        assertEquals("カレンダーを表示しない", chatListHeader.get(1).getTitle());
-        assertEquals("オープンチャットを表示しない", chatListHeader.get(2).getTitle());
-        assertEquals("トーク一覧の上部にあるオープンチャットのアイコンを表示しません。",
-                chatListHeader.get(2).getSummary());
+        assertEquals("AI Friends を非表示", chatListHeader.get(0).getTitle());
+        assertEquals("カレンダーを非表示", chatListHeader.get(1).getTitle());
+        assertEquals("オープンチャットを非表示", chatListHeader.get(2).getTitle());
+        assertEquals("トーク一覧の上部にあるアイコンを消します。", chatListHeader.get(2).getSummary());
 
         // + メニューのカレンダーは同じ項目名になるため、説明文で区別します。
         List<FeatureCatalog.Entry> plusMenu = groups.get(2).getEntries();
-        assertEquals("カレンダーを表示しない", plusMenu.get(0).getTitle());
-        assertEquals("チャットの + メニューからカレンダーを取り除きます。", plusMenu.get(0).getSummary());
+        assertEquals("カレンダーを非表示", plusMenu.get(0).getTitle());
+        assertEquals("トークの ＋ メニューから外します。", plusMenu.get(0).getSummary());
     }
 
 
     @Test
-    public void generalPageKeepsThePremiumBrowserNotificationAndBackupEntriesWithoutSections() {
+    public void chatPageGroupsPreviewAndLinkSettings() {
         List<FeatureCatalog.Group> groups = FeatureCatalog.installedGroupsForPage(
-                SettingsPage.GENERAL, allCatalogFeatureIds());
+                SettingsPage.TALK, allCatalogFeatureIds());
+
+        assertEquals(2, groups.size());
+        assertGroup(groups.get(0), SettingsSection.CHAT_PREVIEW,
+                "linimal.preview-disable",
+                "linimal.preview-scroll",
+                "linimal.premium-preview-promotion");
+        assertGroup(groups.get(1), SettingsSection.CHAT_LINKS,
+                "linimal.external-browser");
+        assertEquals("プレビューを使わない", groups.get(0).getEntries().get(0).getTitle());
+        assertEquals("プレビューの Premium 案内を非表示", groups.get(0).getEntries().get(2).getTitle());
+    }
+
+    @Test
+    public void notificationsPageHoldsThePushAndGoogleSignInEntries() {
+        List<FeatureCatalog.Group> groups = FeatureCatalog.installedGroupsForPage(
+                SettingsPage.NOTIFICATIONS, allCatalogFeatureIds());
 
         assertEquals(1, groups.size());
         assertGroup(groups.get(0), null,
-                "linimal.premium",
-                "linimal.premium-settings-row",
-                "linimal.preview-disable",
-                "linimal.premium-preview-promotion",
-                "linimal.preview-scroll",
-                "linimal.external-browser",
                 "linimal.push-notifications",
                 "linimal.google-drive-backup");
-        assertEquals("設定のプレミアムを表示しない", groups.get(0).getEntries().get(1).getTitle());
-        assertEquals("トークのプレビューを無効にする", groups.get(0).getEntries().get(2).getTitle());
-        assertEquals("プレビューの Premium の案内を表示しない", groups.get(0).getEntries().get(3).getTitle());
+        assertEquals("閉じている間も通知を受け取る", groups.get(0).getEntries().get(0).getTitle());
     }
 
     @Test
@@ -182,7 +191,7 @@ public final class FeatureCatalogTest {
         assertFalse(disable.isBlocked(true, true));
         for (FeatureCatalog.Entry entry : java.util.Arrays.asList(scroll, promotion)) {
             assertEquals(LinimalFeature.PREVIEW_DISABLE, entry.getBlockedBy());
-            assertEquals("「トークのプレビューを無効にする」が ON の間は変更できません。", entry.getBlockedSummary());
+            assertEquals("「プレビューを使わない」が ON の間は変更できません。", entry.getBlockedSummary());
             assertTrue(entry.isBlocked(true, true));
             assertFalse(entry.isBlocked(true, false));
             // 無効化のパッチが適用されていない・設定を読めない場合は止めません。
@@ -205,13 +214,15 @@ public final class FeatureCatalogTest {
     }
 
     @Test
-    public void themePageHoldsTheAmoledEntry() {
+    public void themePageHoldsTheAmoledAndFontEntries() {
         List<FeatureCatalog.Group> groups = FeatureCatalog.installedGroupsForPage(
                 SettingsPage.THEME, allCatalogFeatureIds());
 
         assertEquals(1, groups.size());
-        assertGroup(groups.get(0), null, "linimal.amoled-theme");
-        assertEquals("ダークモードの背景を黒にする", groups.get(0).getEntries().get(0).getTitle());
+        assertGroup(groups.get(0), null, "linimal.amoled-theme", "linimal.official-fonts", "linimal.custom-font");
+        assertEquals("ダークモードを真っ黒にする", groups.get(0).getEntries().get(0).getTitle());
+        assertEquals("LINE のフォント設定を有効にする", groups.get(0).getEntries().get(1).getTitle());
+        assertEquals("カスタムフォントを使う", groups.get(0).getEntries().get(2).getTitle());
     }
 
     @Test
@@ -230,7 +241,7 @@ public final class FeatureCatalogTest {
                 "linimal.read-receipt-readers-menu");
         assertGroup(groups.get(3), SettingsSection.READ_RECEIPT_READERS_DATA,
                 "linimal.read-receipt-readers-server-sync");
-        assertEquals("既読マークの横にアイコンを並べる", groups.get(0).getEntries().get(0).getTitle());
+        assertEquals("既読者のアイコンを表示", groups.get(0).getEntries().get(0).getTitle());
     }
 
     @Test

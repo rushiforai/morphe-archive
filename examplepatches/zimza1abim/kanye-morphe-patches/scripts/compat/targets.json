@@ -106,5 +106,18 @@
     "patches": [
       "OpenBot custom font"
     ]
+  },
+  "orca": {
+    "label": "Orca",
+    "repo": "stablyai/orca",
+    "releaseNamePrefix": "Orca Mobile Android ",
+    "apkAsset": "^app-release\\.apk$",
+    "sha256Asset": "^app-release\\.apk\\.sha256$",
+    "locator": null,
+    "versionsFile": "patches/src/main/kotlin/app/template/patches/orca/Compatibility.kt",
+    "patches": [
+      "Orca custom font"
+    ],
+    "adapterPath": "patches/src/main/resources/orca/adapters/{version}.bundle"
   }
 }

@@ -1,5 +1,5 @@
 /*
- * Auto Expand for X
+ * h19e8p Patches
  * Copyright (C) 2026 h19e8p
  *
  * This program is free software: you can redistribute it and/or modify it under
@@ -10,6 +10,8 @@
 
 package app.autoexpand.patches
 
+import app.h19e8p.patches.shared.bundleVersion
+import app.h19e8p.patches.shared.markApplied
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.InstructionLocation
 import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
@@ -21,7 +23,6 @@ import app.morphe.patcher.patch.AppTarget
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.Compatibility
 import app.morphe.patcher.patch.PatchException
-import app.morphe.patcher.patch.booleanOption
 import app.morphe.patcher.patch.bytecodePatch
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
@@ -33,6 +34,7 @@ import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.Reference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import com.android.tools.smali.dexlib2.iface.reference.TypeReference
+import app.h19e8p.patches.settings.settingsPatch
 import java.util.Locale
 import java.util.logging.Logger
 
@@ -128,25 +130,17 @@ private object TimelineRowsReadFingerprint : Fingerprint(
 
 private val logger = Logger.getLogger("AutoExpandPatch")
 
-/** バンドルの版。ビルドの時にリソースに埋め込まれる。拡張が診断ログに書く。 */
-private val bundleVersion: String =
-    AppCreatedFingerprint.javaClass
-        .getResourceAsStream("/app/autoexpand/patches/autoexpand-version.txt")
-        ?.bufferedReader()
-        ?.use { it.readText().trim() }
-        ?: "?"
-
 /**
  * パッチの管理アプリ (Manager) が動いている端末の言語に合わせて、文章を選ぶ。Manager は
  * バンドルを読み込む時に、文章も含めてパッチを組み立てるので、文章は端末の言語設定に従う。
- * パッチ名とオプションのキーは、どちらの言語でも同じ。
+ * パッチ名は、どちらの言語でも同じ。
  */
 private fun text(japanese: String, english: String) = if (Locale.getDefault().language == "ja") japanese else english
 
 @Suppress("unused")
 val autoExpandPatch =
     bytecodePatch(
-        name = "Auto expand hidden posts (standalone)",
+        name = "Auto expand hidden posts",
         description =
             text(
                 "「ポストをさらに表示」の中身を、画面に出る前に裏で読み込み、ボタンを非表示にします。" +
@@ -155,68 +149,20 @@ val autoExpandPatch =
                     "Any button not loaded in the background is tapped automatically when it comes on screen.",
             ),
     ) {
-        // Manager はこの順に並べる。主な機能を上、診断用を下にする。どれも「オンで機能が増える」向きにする。
-        val backgroundFetch by booleanOption(
-            key = "backgroundFetch",
-            default = true,
-            title = text("画面に出る前に裏で読み込む", "Load in the background before it appears"),
-            description =
-                text(
-                    "タイムラインを開いた時に、ボタンの先のポストを裏で読み込みます。" +
-                        "オフにすると、ボタンが画面に来た時の自動タップだけで読み込みます。",
-                    "Loads the posts behind the button in the background when a timeline opens. " +
-                        "When off, posts are loaded only by tapping the button automatically when it comes on screen.",
-                ),
-        )
-        val hideGaps by booleanOption(
-            key = "hideGaps",
-            default = true,
-            title = text("「ポストをさらに表示」を隠す", "Hide \"Show more posts\""),
-            description =
-                text(
-                    "読み込みが始まったボタンと、読み込み済みと記録したボタンを非表示にします。" +
-                        "記録は X のアプリ内の /data/data/com.twitter.android/shared_prefs/autoexpand.xml に保存し、" +
-                        "隠すかどうかに関係なく、同じボタンを読み込み直さないためにも使います。" +
-                        "オフにすると、読み込みは同じように行い、ボタンは残します。",
-                    "Hides the button once loading of its posts has started, and buttons recorded as already loaded. " +
-                        "The record is kept inside X at /data/data/com.twitter.android/shared_prefs/autoexpand.xml and, " +
-                        "whether or not this is on, is also used to avoid loading the same button again. " +
-                        "When off, posts are loaded the same way and the button stays.",
-                ),
-        )
-        val showToasts by booleanOption(
-            key = "showToasts",
-            default = false,
-            title = text("動作時にトーストを表示する", "Show toasts"),
-            description =
-                text(
-                    "裏でポストを取得した時や、ボタンを隠した時・自動でタップして読み込んだ時に、画面に短いメッセージを出します。",
-                    "Shows a short message when posts are loaded in the background, when the button is hidden, " +
-                        "or when an automatic tap loads posts.",
-                ),
-        )
-        val logToFile by booleanOption(
-            key = "logToFile",
-            default = false,
-            title = text("診断ログを記録する", "Record a diagnostic log"),
-            description =
-                text(
-                    "ギャップの処理内容を Download/AutoExpand/AutoExpand-Log.txt に英語で追記します。" +
-                        "X を入れ直した後は AutoExpand-Log-2.txt のように番号の付いたファイルに書きます。",
-                    "Adds what is done with each gap to Download/AutoExpand/AutoExpand-Log.txt, in English. " +
-                        "Once X is installed again, it writes to a numbered file such as AutoExpand-Log-2.txt.",
-                ),
-        )
-
+        // 設定 (裏で読み込む・隠す・トースト・ログ) は、パッチを当てた後に X の
+        // 「設定とプライバシー」→「h19e8p Patches」で変える。Manager のオプションは持たない。
         compatibleWith(X)
-        extendWith("extensions/autoexpand.mpe")
+        // 拡張 (extensions/h19e8p.mpe) は settingsPatch が組み込む。
+        dependsOn(settingsPatch)
 
+        // 旧バンドル「Auto Expand for X」の「Auto expand hidden posts (standalone)」と一緒に当てると、
+        // 同じ名前の拡張のクラスが1つにまとめられ、どちらかの置き換えが見つからずに失敗する。
+        // パッチは名前順に動き、旧拡張は旧パッチの直前に組み込まれるので、ここでは見分けられない。
+        // README で、旧ソースを Manager から消すよう案内している。
         execute {
-            setPlaceholder(CURSOR_CLASS, "autoexpand:opt:backgroundFetch", (backgroundFetch != false).toString())
-            setPlaceholder(CURSOR_CLASS, "autoexpand:opt:hideGaps", (hideGaps == true).toString())
-            setPlaceholder(CURSOR_CLASS, "autoexpand:opt:showToasts", (showToasts == true).toString())
-            setPlaceholder(CURSOR_CLASS, "autoexpand:opt:logToFile", (logToFile == true).toString())
+            markApplied("autoExpand")
             setPlaceholder(CURSOR_CLASS, "autoexpand:info:patchVersion", bundleVersion)
+            setPlaceholder(CURSOR_CLASS, "autoexpand:info:applied", "true")
 
             // ギャップの部品が無いと何もできないので、これだけは必ず見つかる必要がある。
             val gapView =

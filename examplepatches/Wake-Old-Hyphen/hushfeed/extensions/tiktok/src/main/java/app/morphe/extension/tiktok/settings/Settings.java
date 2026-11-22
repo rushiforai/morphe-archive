@@ -1782,6 +1782,8 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting HIDE_COMMENT_BOX_BUTTONS = new BooleanSetting("hide_comment_box_buttons", FALSE);
     /** Draws a comment poll's results before the reader votes, from the counts TikTok already sends. */
     public static final BooleanSetting SHOW_POLL_RESULTS = new BooleanSetting("show_poll_results", FALSE);
+    /** Shares or sends a comment TikTok marks as not shareable, by answering its share block with 0 (#481). */
+    public static final BooleanSetting SHARE_ANY_COMMENT = new BooleanSetting("share_any_comment", FALSE);
     /**
      * A commenter's @username in place of their display name, and in a reply's label once the
      * person it answers has been drawn. Read on each comment bind, so no restart.
@@ -1802,6 +1804,11 @@ public class Settings extends BaseSettings {
     /** One button each at the top of the comments (#371). Read each time the header lays out. */
     public static final BooleanSetting HIDE_COMMENT_CLOSE_BUTTON = new BooleanSetting("hide_comment_close_button", FALSE);
     public static final BooleanSetting HIDE_COMMENT_EXPAND_BUTTON = new BooleanSetting("hide_comment_expand_button", FALSE);
+    /** Answers two comment sheet experiments, read once per TikTok start (#479, CommentSheetGates). */
+    public static final BooleanSetting SHOW_COMMENT_EXPAND_BUTTON =
+            new BooleanSetting("show_comment_expand_button", FALSE, true);
+    public static final BooleanSetting KEEP_VIDEO_SIZE_UNDER_COMMENTS =
+            new BooleanSetting("keep_video_size_under_comments", FALSE, true);
     public static final BooleanSetting LARGER_COMMENT_LIKE_TARGET =
             new BooleanSetting("larger_comment_like_target", FALSE, true);
     public static final BooleanSetting HIDE_COMMENT_EGGS = new BooleanSetting("hide_comment_eggs", FALSE);

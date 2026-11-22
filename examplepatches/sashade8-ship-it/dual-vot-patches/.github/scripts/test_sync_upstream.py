@@ -488,6 +488,57 @@ class SyncUpstreamTests(unittest.TestCase):
             with self.subTest(invalid=invalid), self.assertRaises(sync_upstream.SyncError):
                 sync_upstream.merge_streaming_data_request_dev210(invalid)
 
+    def test_dev247_patch_build_keeps_dual_metadata_and_upstream_build_changes(self):
+        dual_metadata = (
+            '        description = "Morphe patches with Google/other and Yandex voice-over translation"\n'
+            '        source = "https://github.com/sashade8-ship-it/dual-vot-patches.git"\n'
+            '        author = "sashade8-ship-it"\n'
+            '        contact = "https://github.com/sashade8-ship-it"\n'
+            '        website = "https://github.com/sashade8-ship-it/dual-vot-patches"\n'
+        )
+        upstream_metadata = (
+            '        description = "Patches for Morphe"\n'
+            '        source = "git@github.com:MorpheApp/morphe-patches.git"\n'
+            '        author = "MorpheApp"\n'
+            '        contact = "na"\n'
+            '        website = "https://morphe.software"\n'
+        )
+        comment = '        // Pull request builds pass -PpatchesName to tell test builds apart from releases.\n'
+        prefix = '    alias(libs.plugins.animalsniffer)\n'
+        suffix = '        dependsOn("animalsnifferMain")\n'
+        conflict = (
+            '<<<<<<< HEAD\n'
+            '        name = "Dual VoT Patches"\n'
+            + dual_metadata
+            + '=======\n'
+            + comment
+            + '        name = providers.gradleProperty("patchesName").getOrElse("Morphe Patches")\n'
+            + upstream_metadata
+            + '>>>>>>> refs/tags/v2.4.0-dev.7\n'
+        )
+        self.assertEqual(
+            sync_upstream.merge_dev247_patch_build(prefix + conflict + suffix),
+            prefix + comment
+            + '        name = providers.gradleProperty("patchesName").getOrElse("Dual VoT Patches")\n'
+            + dual_metadata + suffix,
+        )
+        for invalid in (conflict.replace("patchesName", "otherProperty"), conflict + conflict):
+            with self.subTest(invalid=invalid), self.assertRaises(sync_upstream.SyncError):
+                sync_upstream.merge_dev247_patch_build(invalid)
+
+    def test_dev247_patch_build_resolver_rejects_unknown_blob_at_every_stage(self):
+        for stage in range(3):
+            blobs = list(sync_upstream.DEV247_PATCH_BUILD_CONFLICT_BLOBS)
+            blobs[stage] = "0" * 40
+            with (
+                self.subTest(stage=stage + 1),
+                mock.patch.object(sync_upstream, "unresolved_paths", return_value=[sync_upstream.DEV247_PATCH_BUILD_PATH]),
+                mock.patch.object(sync_upstream, "output_of", side_effect=blobs),
+                mock.patch.object(sync_upstream, "run") as run,
+            ):
+                sync_upstream.resolve_dev247_patch_build_conflict()
+                run.assert_not_called()
+
     def test_dev210_test_dependencies_keep_alias_and_test_only_kotlin(self):
         conflict = (
             '<<<<<<< HEAD\n'

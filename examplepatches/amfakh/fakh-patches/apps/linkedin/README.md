@@ -1,6 +1,6 @@
 # LinkedIn
 
-Patches for the LinkedIn app (`com.linkedin.android`, versions `4.1.1264`, `4.1.1267`, `4.1.1269`, `4.1.1270`, `4.1.1272`, `4.1.1275` and `4.1.1276`, APKM from APKMirror).
+Patches for the LinkedIn app (`com.linkedin.android`, versions `4.1.1264`, `4.1.1267`, `4.1.1269`, `4.1.1270`, `4.1.1272`, `4.1.1275`, `4.1.1276` and `4.1.1278`, APKM from APKMirror).
 
 ## Patches
 
@@ -65,12 +65,12 @@ chat as read or unread from the chat list still works.
 With [morphe-desktop](https://github.com/MorpheApp/morphe-cli/releases) (needs Java 21):
 
 ```bash
-java -jar morphe-desktop-1.19.1-all.jar patch -p patches/build/libs/patches-<version>.mpp -o linkedin-patched.apk <LinkedIn 4.1.1276 APKM>
+java -jar morphe-desktop-1.19.1-all.jar patch -p patches/build/libs/patches-<version>.mpp -o linkedin-patched.apk <LinkedIn 4.1.1278 APKM>
 ```
 
 ## Getting the APK
 
-Download the `4.1.1276` APKM from APKMirror; `4.1.1264`, `4.1.1267`, `4.1.1269`, `4.1.1270`, `4.1.1272` and `4.1.1275` work too. Morphe Manager looks the app up on
+Download the `4.1.1278` APKM from APKMirror; `4.1.1264`, `4.1.1267`, `4.1.1269`, `4.1.1270`, `4.1.1272`, `4.1.1275` and `4.1.1276` work too. Morphe Manager looks the app up on
 APKMirror itself, so it can take you to that page.
 
 ## Credits

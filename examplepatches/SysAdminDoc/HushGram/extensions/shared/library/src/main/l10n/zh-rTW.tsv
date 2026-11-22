@@ -5,6 +5,7 @@
 # Reference: piko-instagram-en-zh-TW.md (432 English/Traditional Chinese pairs, 2026-10-24).
 # Reference upstream: https://github.com/crimera/piko (GPL-3.0).
 # Reference upstream: SysAdminDoc/HushGram main (16dc74421b1c06fb4e1eef5b20b94cb368868e8c; 2026-10-25).
+%1$d hidden in the last 24 hours, %2$d in all	過去 24 小時隱藏了 %1$d 則，總共 %2$d 則
 %1$d of them because storage is low.	其中 %1$d 個是因為儲存空間不足。
 %1$s of %2$s	%1$s / %2$s
 %1$s so far	目前共 %1$s
@@ -12,9 +13,12 @@
 %1$s. They were set when you patched, so Pause can't turn them off. To rule one out, patch again and leave out the patch in brackets after it.	%1$s。這些是在套用修補程式時設定的，暫停也無法停用。若要排查其中一項，請重新套用修補程式，並排除該項後方括號內的修補程式。
 A diagnostic report is already being saved.	已有診斷報告正在儲存。
 A file named %1$s in %2$s paused HushGram.	%2$s 中名為 %1$s 的檔案使 HushGram 暫停。
+A reel someone shares in a chat stays closed when you tap it. Photos, videos and shared posts still open.	有人在聊天室分享的 Reel，點一下也不會開啟。相片、影片和分享的貼文仍會照常開啟。
 About	關於
 Add the source to saved photos and videos	在儲存的照片和影片中加入來源資訊
+Adds Copy text to the menu a story's three dots open. It copies the words Instagram found in the picture, and when it found none, Google Lens opens on the story so you can copy them there.	在限時動態三個點開啟的選單中加入「複製文字」。它會複製 Instagram 在圖片中找到的文字；如果沒有找到，Google 智慧鏡頭會在限時動態上開啟，讓你在那裡複製。
 Ads and privacy	廣告與隱私
+Also in comments	同時套用至留言
 Asks Android to run Instagram at your screen's fastest refresh rate, at the same resolution. Some phones keep their own limit for apps, and battery saver can still lower it.	要求 Android 以螢幕最高的更新率、相同的解析度執行 Instagram。部分手機會為應用程式設定自己的上限，省電模式也仍可能調低更新率。
 Back	返回
 Before you sign in	登入之前
@@ -25,6 +29,7 @@ Clear diagnostic data	清除診斷資料
 Copy a quick report or save the full one to %1$s. Links, IDs, cookies and sign-in details are left out. Check it for other private text before you share it.	複製簡要報告，或將完整報告儲存至 %1$s。報告不含連結、ID、Cookie 與登入資訊。分享前，請確認是否還有其他私人文字。
 Copy a short report to the clipboard.	將簡要報告複製到剪貼簿。
 Copy quick report	複製簡要報告
+Copy text in the story menu	限時動態選單中的複製文字
 Copying to the gallery	正在複製到相簿
 Couldn't find this chat's messages.	找不到這個聊天的訊息。
 Couldn't put back the diagnostic data. Try again.	無法還原診斷資料，請再試一次。
@@ -35,15 +40,20 @@ Debug logging	偵錯記錄
 Diagnostic data cleared. Tap again to put it back.	已清除診斷資料。再次點擊即可還原。
 Diagnostic data put back.	已還原診斷資料。
 Diagnostic report copied to the clipboard.	已將診斷報告複製到剪貼簿。
+Don't open reels from chats	不開啟聊天室的 Reels
 Download failed	下載失敗
 Downloading	下載中
+Draws the Reels icon on the tab bar a bit bigger, so it looks as big as the icons beside it. Tab icon size still sizes every icon on top of that.	把分頁列上的 Reels 圖示畫得稍大一點，看起來和旁邊的圖示一樣大。分頁圖示大小仍會在此之上調整所有圖示。
 Empties the activity log and any kept crash that a diagnostic report would include.	清空診斷報告會包含的活動記錄與已保存的當機記錄。
 Every switch but Debug logging acts as if it were off, and what was set when you patched stays in. Your settings stay as they are.	除了「偵錯記錄」以外，所有開關都會視為關閉；套用修補程式時的變更仍會保留。你儲存的設定不會改變。
 Export a chat as text	將聊天匯出為文字
 Export chat	匯出聊天
 Export diagnostic report	匯出診斷報告
 From the next start, every switch but Debug logging acts as if it were off. Changes made when you patched stay in, and your choices stay saved.	下次啟動起，除了「偵錯記錄」以外，所有開關都會視為關閉。套用修補程式時的變更仍會保留，你選擇的設定也會繼續儲存。
+Full-size Reels icon	完整大小的 Reels 圖示
 Here it is.	就在這裡。
+Hides comments that hold a word or phrase from the list too, and comments by an account the list names with @. A hidden comment's replies go with it.	也會隱藏含有清單中字詞的留言，以及清單用 @ 指名的帳號所寫的留言。被隱藏留言的回覆也會一起消失.
+Instagram settings page	Instagram 設定頁面
 Jump to a date	跳到某個日期
 Jump to the first message	跳到第一則訊息
 Jump to the first message or a date	跳到第一則訊息或某個日期
@@ -53,13 +63,18 @@ Loading older messages. %1$d messages so far.	正在載入較舊的訊息。目�
 Lock these settings	鎖定這些設定
 Mark a chat seen when you reply	回覆時將聊天標示為已讀
 Mark a chat seen when you react	回應時將聊天標示為已讀
+Plain rows, switches and colors like Instagram's own settings, dark or light as Instagram is. Takes the place of Black and Light settings page while it's on.	與 Instagram 本身設定相同的簡潔列、開關與顏色，隨 Instagram 顯示深色或淺色。開啟時取代黑色設定頁面和淺色設定頁面。
 Reacting to a message in a chat lets the other person see that you've read up to that message. What they sent after it stays unseen to them.	在聊天中對訊息傳送心情回應後，對方會看到你已讀到該則訊息。之後傳來的內容，對方仍看不到已讀。
 No messages found to save.	沒有可儲存的訊息。
 Pick a wait from 1 to 72 hours. Locked, nothing here changes until you ask to unlock and the wait is over.	選擇 1 至 72 小時的等待時間。鎖定後，必須提出解鎖申請並等待時間結束，才能變更此處的設定。
 Ask to unlock	請求解鎖
+Reels from chats are off	聊天室的 Reels 已關閉
+Reels on Home below the name	首頁的 Reels 顯示在名稱下方
 Saved to %1$s in lower quality because storage is low	儲存空間不足，已以較低畫質儲存到 %1$s
 Saved to the gallery in lower quality because storage is low	儲存空間不足，已以較低畫質儲存到相簿
 Sending a message in a chat lets the other person see that you've read what they sent before it. Chats you don't answer stay unseen to them.	在聊天中傳送訊息後，對方會看到你已讀過他們先前傳來的內容。你沒有回覆的聊天，對方仍看不到已讀。
+Shows reels on Home like other posts, with the name and the three-dot menu above the video instead of on top of it. Posts already on screen change when they load again.	讓首頁的 Reels 像其他貼文一樣顯示，名稱和三點選單位於影片上方，不會疊在影片上。畫面上已有的貼文會在重新載入時改變。
+Shows the time played and the story's length at the start of its seek bar, like 0:03 / 0:15. Tap the time to see the time left instead.	在限時動態拖曳列的開頭顯示已播放時間和長度，例如 0:03 / 0:15。點一下時間即可改看剩餘時間.
 That's as far back as this chat goes.	這個聊天只到這裡。
 These settings are locked. Tap to start the %1$s wait, then they open for 10 minutes.	這些設定已鎖定。點擊開始等待 %1$s，之後會開放設定 10 分鐘。
 Unlock asked	已請求解鎖
@@ -153,6 +168,8 @@ Writes the account that posted, the post date and a link to the post into a save
 You	你
 You paused HushGram.	你已暫停 HushGram。
 the re-signed build fix	重新簽署版本修正
+# context: Pause page, the list of fixes that stay on while HushGram is paused; this one keeps Instagram from closing on phones without Google Play services
+the Play services crash fix	無 Play 服務時當機的修正
 Don't send reel watch history	不傳送 Reels 觀看記錄
 Stops telling Instagram which reels you watched or how far you got. Instagram uses that to pick your Reels. Watched reels may come back.	不再向 Instagram 回報你看過哪些 Reels 或觀看進度。Instagram 會用這些資料推薦 Reels，因此已看過的 Reels 可能再次出現。
 Reels	Reels
@@ -1415,7 +1432,7 @@ Also on Home	同時套用至首頁
 Leaves out posts on Home whose caption holds a word or phrase from the list too. Pull down on Home to refresh after changing it.	也略過首頁中說明文字包含清單字詞或片語的貼文。變更後請下拉重新整理首頁。
 Leaves out reels in the Reels tab whose caption holds a word or phrase from the list below. A reel you open yourself still plays.	略過 Reels 分頁中說明文字包含下方清單字詞或片語的 Reels。你自行開啟的 Reel 仍會播放。
 Blocked words	封鎖字詞
-Words or phrases, with a comma or a new line between them. Capital letters don't matter, and a hashtag works too.	以逗號或換行分隔字詞或片語。不區分大小寫，也可使用主題標籤。
+Words or phrases, with a comma or a new line between them. Capital letters don't matter, a hashtag works too, and an @name hides that account's posts.	以逗號或換行分隔字詞或片語。不區分大小寫，也可使用主題標籤，輸入 @名稱 則會隱藏該帳號的貼文。
 No words yet	尚無字詞
 %1$d word	%1$d 個字詞
 %1$d words	%1$d 個字詞
@@ -2163,6 +2180,9 @@ Takes the "Made with Edits" label out of the line under a post's author. The son
 # context: "Sponsored" and "Paid partnership" are Instagram's own labels on feed posts; use the text Instagram shows in this language (#771)
 Hide the line under names	隱藏名稱下方那一行
 Takes the song, the place and the other labels off the line under the name on posts in your feed. Sponsored and Paid partnership stay. Posts already on screen change when they load again.	移除動態消息貼文名稱下方那一行的歌曲、地點和其他標籤。「贊助」和「付費合作」會保留。畫面上已有的貼文會在重新載入時改變。
+# context: a switch under Hide the line under names in HushGram's Feed settings
+Keep the place	保留地點
+Leaves the place on the line under names, on its own, so it stays put instead of taking turns with the song.	名稱下方那一行只留下地點，所以會固定不動，不再和歌曲輪流顯示。
 # context: "Sponsored" and "Paid partnership" are Instagram's own labels on reels; use the text Instagram shows in this language (#771)
 Hide the line under names on reels	隱藏 Reels 名稱下方那一行
 Takes the song, the place and the other labels off the line under the name on reels. Sponsored and Paid partnership stay. Reels already on screen change when they load again.	移除 Reels 名稱下方那一行的歌曲、地點和其他標籤。「贊助」和「付費合作」會保留。畫面上已有的 Reels 會在重新載入時改變。
@@ -2236,6 +2256,8 @@ The camera, as Instagram has it. Pick a tab and the same swipe opens that tab in
 A swipe right on Home opens %1$s. The + button still opens the camera.	在首頁向右滑動會開啟 %1$s。+ 按鈕仍會開啟相機。
 Keep the tab bar on a reel's profile	在 Reel 的個人檔案保留分頁列
 A profile you open from a reel stays on the tab you're on, with the tab bar under it. Back goes back to the reel.	從 Reel 開啟的個人檔案會留在目前的分頁，下方保留分頁列。返回會回到 Reel.
+Keep the tab bar on reel links	在 Reel 連結保留分頁列
+A reel link you open from another app plays on the tab you were on, with the tab bar under it. Back goes back to that tab.	從其他應用程式開啟的 Reel 連結會在你原本的分頁播放，下方保留分頁列。返回會回到那個分頁.
 Mute button on reels	Reels 靜音按鈕
 Puts a speaker icon beside a reel. Tap it to turn the sound off or on while the reel keeps playing.	在 Reel 旁加入喇叭圖示。點一下即可在 Reel 繼續播放時關閉或開啟聲音。
 Mute button in clear mode	清爽模式靜音按鈕
@@ -2537,6 +2559,14 @@ Left off the three-dot menus: %1$s.	已從三點選單中移除：%1$s.
 Keep 2x after you let go	放開後維持 2 倍速
 # context: Summary of Keep 2x after you let go, a switch under Hold for 2x on feed videos (#552)
 A feed video you hold for 2x keeps playing at 2x after you let go. Hold it again to go back to normal speed.	長按以 2 倍速播放的動態影片，放開後仍以 2 倍速播放。再次長按即可恢復正常速度.
+# context: Feed settings: a switch under Keep 2x after you let go that keeps 2x only after a hold of about 3 seconds (#552)
+Only after a long hold	僅在長按較久後
+# context: Summary of Only after a long hold, a switch under Keep 2x after you let go (#552)
+Keeps 2x only when you hold the video for about 3 seconds. Let go sooner and it goes back to normal speed.	只有長按影片約 3 秒時才維持 2 倍速。提早放開就會恢復正常速度.
+# context: Feed settings: a switch under Hold for 2x on feed videos that keeps the poster's name over the video while it's held at 2x (#552)
+Keep the name while you hold	按住時保留名稱
+# context: Summary of Keep the name while you hold, a switch under Hold for 2x on feed videos (#552)
+The name over a feed video stays while you hold it for 2x. Instagram's 2x and time labels don't show then.	按住動態影片以 2 倍速播放時，影片上的名稱會保留。Instagram 的 2 倍速和時間標籤不會顯示.
 # context: Stories settings: title and dialog title of the list under Story ring size that picks how thick story rings are drawn (#528)
 Ring thickness	光圈粗細
 # context: Stories settings: the Ring thickness choice that keeps the thickness Instagram gives story rings (#528)

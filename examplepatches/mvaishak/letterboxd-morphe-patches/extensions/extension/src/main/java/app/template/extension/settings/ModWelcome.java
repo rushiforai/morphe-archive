@@ -27,7 +27,7 @@ public final class ModWelcome {
     private ModWelcome() {}
 
     /** Bump every time {@link #BODY} changes so returning users see it once more. */
-    private static final int BUILD = 14;
+    private static final int BUILD = 16;
     private static final String KEY = "welcome_build";
 
     private static final String TITLE = "What's new";
@@ -37,19 +37,9 @@ public final class ModWelcome {
 
     // Short bullets, section name on its own line, and a blank line between sections.
     private static final String BODY =
-            "Film pages\n"
-          + "•  With IMDb trivia installed, swipe past Releases to find Trivia. "
-          + "The first entries can load while you browse, and loading uses Letterboxd’s spinner.\n"
-          + "•  With Custom artwork installed, open a film’s More menu to change its poster or backdrop. "
-          + "Use Change backdrop on your own profile.\n\n"
-          + "Lists and app icons\n"
-          + "•  Open a list’s More menu and tap Clone to save your own copy.\n"
-          + "•  Open App icon in Settings to change your launcher icon.\n\n"
-          + "Letterboxd Mods\n"
-          + "•  Choose Mods settings, custom artwork, or both when you export or restore a backup.\n"
-          + "•  Open Help & About → Feature Guide for instructions and common questions.\n"
-          + "•  With Profile badge installed, open Mods → Appearance → Profile badge to choose Pro, Patron, or a custom badge.\n"
-          + "•  With Adult posters installed, turn on Show adult posters in Mods → Appearance to see unblurred posters when available.";
+            "Letterboxd 3.6.9\n"
+          + "•  All patches now support Letterboxd 3.6.9.\n"
+          + "•  Fixed an Appearance resource conflict that prevented patching the new version.";
 
     /** Permanent closer — every release. New-to-this-version users still need this. */
     private static final String FOOTER =

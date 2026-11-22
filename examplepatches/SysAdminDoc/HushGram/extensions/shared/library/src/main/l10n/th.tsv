@@ -1,6 +1,7 @@
 # Thai for HushGram: the English key, a tab, the translation. One row per string.
 # After editing, run python scripts/gen-l10n.py from the repository root.
 # Translated by MangaThatsFine: https://github.com/MangaThatsFine/HushGram (PR #593, commit 302a414fca5ff81bb626e67e08ff6261069559c4). GPL-3.0-only.
+%1$d hidden in the last 24 hours, %2$d in all	ซ่อน %1$d รายการใน 24 ชั่วโมงที่ผ่านมา ทั้งหมด %2$d รายการ
 %1$d of them because storage is low.	%1$d รายการเนื่องจากพื้นที่เก็บข้อมูลเหลือน้อย
 %1$s of %2$s	%1$s จาก %2$s
 %1$s so far	%1$s จนถึงตอนนี้
@@ -8,9 +9,12 @@
 %1$s. They were set when you patched, so Pause can't turn them off. To rule one out, patch again and leave out the patch in brackets after it.	%1$s การตั้งค่าเหล่านี้ถูกกำหนดไว้ตอนที่คุณแพตช์ ดังนั้นการหยุดชั่วคราวจะไม่สามารถปิดได้ หากต้องการตัดปัญหา ให้แพตช์ใหม่อีกครั้งโดยไม่ต้องเลือกแพตช์ที่ระบุในวงเล็บด้านหลัง
 A diagnostic report is already being saved.	กำลังบันทึกรายงานการวินิจฉัยอยู่แล้ว
 A file named %1$s in %2$s paused HushGram.	ไฟล์ชื่อ %1$s ใน %2$s ทำให้ HushGram หยุดทำงานชั่วคราว
+A reel someone shares in a chat stays closed when you tap it. Photos, videos and shared posts still open.	รีลส์ที่มีคนแชร์ในแชทจะไม่เปิดเมื่อคุณแตะ รูปภาพ วิดีโอ และโพสต์ที่แชร์ยังเปิดได้ตามปกติ
 About	เกี่ยวกับ
 Add the source to saved photos and videos	เพิ่มแหล่งที่มาลงในรูปภาพและวิดีโอที่บันทึก
+Adds Copy text to the menu a story's three dots open. It copies the words Instagram found in the picture, and when it found none, Google Lens opens on the story so you can copy them there.	เพิ่ม "คัดลอกข้อความ" ลงในเมนูที่เปิดจากจุดสามจุดของสตอรี่ โดยจะคัดลอกคำที่ Instagram พบในภาพ และถ้าไม่พบคำใดเลย Google Lens จะเปิดบนสตอรี่เพื่อให้คุณคัดลอกได้จากที่นั่น
 Ads and privacy	โฆษณาและความเป็นส่วนตัว
+Also in comments	ในความคิดเห็นด้วย
 Asks Android to run Instagram at your screen's fastest refresh rate, at the same resolution. Some phones keep their own limit for apps, and battery saver can still lower it.	ขอให้ Android ใช้งาน Instagram ด้วยอัตรารีเฟรชสูงสุดของหน้าจอที่ความละเอียดเดิม โทรศัพท์บางรุ่นอาจจำกัดอัตราสำหรับแอปไว้ และโหมดประหยัดแบตเตอรี่ยังคงลดอัตราดังกล่าวลงได้
 Back	ย้อนกลับ
 Before you sign in	ก่อนที่คุณจะเข้าสู่ระบบ
@@ -21,6 +25,7 @@ Clear diagnostic data	ล้างข้อมูลการวินิจฉ�
 Copy a quick report or save the full one to %1$s. Links, IDs, cookies and sign-in details are left out. Check it for other private text before you share it.	คัดลอกรายงานฉบับย่อหรือบันทึกรายงานฉบับเต็มไปยัง %1$s ระบบจะไม่รวมลิงก์, ID, คุกกี้ และรายละเอียดการเข้าสู่ระบบ โปรดตรวจสอบข้อความส่วนตัวอื่นๆ ก่อนแชร์
 Copy a short report to the clipboard.	คัดลอกรายงานฉบับย่อไปยังคลิปบอร์ด
 Copy quick report	คัดลอกรายงานฉบับย่อ
+Copy text in the story menu	คัดลอกข้อความในเมนูสตอรี่
 Copying to the gallery	กำลังคัดลอกไปยังแกลเลอรี
 Couldn't find this chat's messages.	ไม่พบข้อความของแชทนี้
 Couldn't put back the diagnostic data. Try again.	ไม่สามารถกู้คืนข้อมูลการวินิจฉัย โปรดลองอีกครั้ง
@@ -31,15 +36,20 @@ Debug logging	การบันทึกข้อมูลดีบัก
 Diagnostic data cleared. Tap again to put it back.	ล้างข้อมูลการวินิจฉัยแล้ว แตะอีกครั้งเพื่อกู้คืน
 Diagnostic data put back.	กู้คืนข้อมูลการวินิจฉัยแล้ว
 Diagnostic report copied to the clipboard.	คัดลอกรายงานการวินิจฉัยไปยังคลิปบอร์ดแล้ว
+Don't open reels from chats	ไม่เปิดรีลส์จากแชท
 Download failed	ดาวน์โหลดไม่สำเร็จ
 Downloading	กำลังดาวน์โหลด
+Draws the Reels icon on the tab bar a bit bigger, so it looks as big as the icons beside it. Tab icon size still sizes every icon on top of that.	วาดไอคอนรีลส์บนแถบแท็บให้ใหญ่ขึ้นเล็กน้อย เพื่อให้ดูใหญ่เท่าไอคอนข้าง ๆ ขนาดไอคอนแท็บยังปรับขนาดไอคอนทั้งหมดเพิ่มจากนั้นได้เหมือนเดิม
 Empties the activity log and any kept crash that a diagnostic report would include.	ล้างบันทึกกิจกรรมและข้อมูลการขัดข้องทั้งหมดที่รายงานการวินิจฉัยจะรวมไว้
 Every switch but Debug logging acts as if it were off, and what was set when you patched stays in. Your settings stay as they are.	สวิตช์ทุกตัวยกเว้นการบันทึกข้อมูลดีบักจะทำงานเสมือนปิดอยู่ และสิ่งที่กำหนดไว้ตอนที่คุณแพตช์จะยังคงมีผล การตั้งค่าของคุณจะยังคงเดิม
 Export a chat as text	ส่งออกแชทเป็นข้อความ
 Export chat	ส่งออกแชท
 Export diagnostic report	ส่งออกรายงานการวินิจฉัย
 From the next start, every switch but Debug logging acts as if it were off. Changes made when you patched stay in, and your choices stay saved.	เมื่อเริ่มแอปใหม่ในครั้งถัดไป สวิตช์ทุกตัวยกเว้นการบันทึกข้อมูลดีบักจะทำงานเสมือนปิดอยู่ การเปลี่ยนแปลงที่ทำไว้ตอนที่คุณแพตช์จะยังคงมีผล และตัวเลือกที่คุณตั้งไว้จะยังได้รับการบันทึก
+Full-size Reels icon	ไอคอนรีลส์ขนาดเต็ม
 Here it is.	อยู่ที่นี่แล้ว
+Hides comments that hold a word or phrase from the list too, and comments by an account the list names with @. A hidden comment's replies go with it.	ซ่อนความคิดเห็นที่มีคำหรือวลีจากรายการด้วย และความคิดเห็นของบัญชีที่รายการระบุด้วย @ คำตอบของความคิดเห็นที่ซ่อนจะหายไปด้วย
+Instagram settings page	หน้าการตั้งค่าแบบ Instagram
 Jump to a date	ข้ามไปยังวันที่
 Jump to the first message	ข้ามไปยังข้อความแรก
 Jump to the first message or a date	ข้ามไปยังข้อความแรกหรือวันที่
@@ -49,13 +59,18 @@ Loading older messages. %1$d messages so far.	กำลังโหลดข้�
 Lock these settings	ล็อกการตั้งค่าเหล่านี้
 Mark a chat seen when you reply	ทำเครื่องหมายว่าอ่านแชทแล้วเมื่อคุณตอบกลับ
 Mark a chat seen when you react	ทำเครื่องหมายว่าอ่านแชทแล้วเมื่อคุณแสดงความรู้สึก
+Plain rows, switches and colors like Instagram's own settings, dark or light as Instagram is. Takes the place of Black and Light settings page while it's on.	แถว สวิตช์ และสีเรียบๆ แบบการตั้งค่าของ Instagram เอง มืดหรือสว่างตาม Instagram ใช้แทนหน้าการตั้งค่าสีดำและหน้าการตั้งค่าสีสว่างขณะที่เปิดอยู่
 Reacting to a message in a chat lets the other person see that you've read up to that message. What they sent after it stays unseen to them.	การแสดงความรู้สึกต่อข้อความในแชทจะทำให้อีกฝ่ายเห็นว่าคุณได้อ่านถึงข้อความนั้นแล้ว ส่วนข้อความที่พวกเขาส่งมาหลังจากนั้นจะยังคงไม่ขึ้นว่าอ่านแล้วสำหรับพวกเขา
 No messages found to save.	ไม่พบข้อความที่จะบันทึก
 Pick a wait from 1 to 72 hours. Locked, nothing here changes until you ask to unlock and the wait is over.	เลือกระยะเวลารอตั้งแต่ 1 ถึง 72 ชั่วโมง เมื่อล็อกแล้ว จะไม่สามารถเปลี่ยนสิ่งใดที่นี่ได้จนกว่าคุณจะขอปลดล็อกและระยะเวลารอสิ้นสุดลง
 Ask to unlock	ขอปลดล็อก
+Reels from chats are off	ปิดรีลส์จากแชทอยู่
+Reels on Home below the name	รีลส์ในหน้าหลักอยู่ใต้ชื่อ
 Saved to %1$s in lower quality because storage is low	บันทึกไปยัง %1$s ในคุณภาพที่ต่ำลงเนื่องจากพื้นที่เก็บข้อมูลเหลือน้อย
 Saved to the gallery in lower quality because storage is low	บันทึกไปยังแกลเลอรีในคุณภาพที่ต่ำลงเนื่องจากพื้นที่เก็บข้อมูลเหลือน้อย
 Sending a message in a chat lets the other person see that you've read what they sent before it. Chats you don't answer stay unseen to them.	การส่งข้อความในแชทจะทำให้อีกฝ่ายเห็นว่าคุณได้อ่านข้อความที่พวกเขาส่งมาก่อนหน้านั้นแล้ว ส่วนแชทที่คุณไม่ได้ตอบกลับจะยังคงไม่ขึ้นว่าอ่านแล้วสำหรับพวกเขา
+Shows reels on Home like other posts, with the name and the three-dot menu above the video instead of on top of it. Posts already on screen change when they load again.	แสดงรีลส์ในหน้าหลักเหมือนโพสต์อื่น โดยมีชื่อและเมนูสามจุดอยู่เหนือวิดีโอแทนที่จะทับอยู่บนวิดีโอ โพสต์ที่แสดงอยู่แล้วจะเปลี่ยนเมื่อโหลดใหม่
+Shows the time played and the story's length at the start of its seek bar, like 0:03 / 0:15. Tap the time to see the time left instead.	แสดงเวลาที่เล่นไปแล้วและความยาวของสตอรี่ที่ต้นแถบเลื่อนเวลา เช่น 0:03 / 0:15 แตะที่เวลาเพื่อดูเวลาที่เหลือแทน
 That's as far back as this chat goes.	นี่คือข้อความย้อนหลังที่สุดของแชทนี้แล้ว
 These settings are locked. Tap to start the %1$s wait, then they open for 10 minutes.	การตั้งค่าเหล่านี้ถูกล็อกไว้ แตะเพื่อเริ่มเวลารอ %1$s จากนั้นการตั้งค่าจะเปิดให้ใช้งานเป็นเวลา 10 นาที
 Unlock asked	ขอปลดล็อกแล้ว
@@ -149,6 +164,8 @@ Writes the account that posted, the post date and a link to the post into a save
 You	คุณ
 You paused HushGram.	คุณหยุด HushGram ชั่วคราว
 the re-signed build fix	การแก้ไขปัญหาบิลด์ที่ลงชื่อใหม่
+# context: Pause page, the list of fixes that stay on while HushGram is paused; this one keeps Instagram from closing on phones without Google Play services
+the Play services crash fix	การแก้ไขแอปปิดเองเมื่อไม่มีบริการ Play
 Don't send reel watch history	ไม่ส่งประวัติการดูรีลส์
 Stops telling Instagram which reels you watched or how far you got. Instagram uses that to pick your Reels. Watched reels may come back.	หยุดส่งข้อมูลให้ Instagram ว่าคุณดูรีลส์ใดไปแล้วหรือดูไปถึงไหนแล้ว Instagram ใช้ข้อมูลนี้เพื่อเลือกคัดสรรรีลส์ให้คุณ รีลส์ที่ดูแล้วอาจวนกลับมาแสดงอีก
 Reels	รีลส์
@@ -1421,7 +1438,7 @@ Also on Home	บนหน้าหลักด้วยเช่นกัน
 Leaves out posts on Home whose caption holds a word or phrase from the list too. Pull down on Home to refresh after changing it.	ละเว้นโพสต์บนหน้าหลักที่มีคำหรือวลีจากรายการนี้ในคำบรรยายด้วยเช่นกัน เลื่อนหน้าหลักลงเพื่อรีเฟรชหลังจากเปลี่ยนแปลงการตั้งค่า
 Leaves out reels in the Reels tab whose caption holds a word or phrase from the list below. A reel you open yourself still plays.	ละเว้นรีลส์ในแท็บรีลส์ที่มีคำหรือวลีจากรายการด้านล่างในคำบรรยาย โดยรีลส์ที่คุณเปิดดูด้วยตนเองจะยังคงเล่นได้ตามปกติ
 Blocked words	คำที่บล็อก
-Words or phrases, with a comma or a new line between them. Capital letters don't matter, and a hashtag works too.	คำหรือวลี โดยคั่นด้วยเครื่องหมายจุลภาคหรือขึ้นบรรทัดใหม่ ตัวพิมพ์ใหญ่-เล็กไม่มีผล และสามารถใช้แฮชแท็กได้เช่นกัน
+Words or phrases, with a comma or a new line between them. Capital letters don't matter, a hashtag works too, and an @name hides that account's posts.	คำหรือวลี โดยคั่นด้วยเครื่องหมายจุลภาคหรือขึ้นบรรทัดใหม่ ตัวพิมพ์ใหญ่-เล็กไม่มีผล ใช้แฮชแท็กได้ และ @ชื่อ จะซ่อนโพสต์ของบัญชีนั้น
 No words yet	ยังไม่มีคำที่บล็อก
 %1$d word	%1$d คำ
 %1$d words	%1$d คำ
@@ -2147,6 +2164,9 @@ Takes the "Made with Edits" label out of the line under a post's author. The son
 # context: "Sponsored" and "Paid partnership" are Instagram's own labels on feed posts; use the text Instagram shows in this language (#771)
 Hide the line under names	ซ่อนบรรทัดใต้ชื่อ
 Takes the song, the place and the other labels off the line under the name on posts in your feed. Sponsored and Paid partnership stay. Posts already on screen change when they load again.	นำเพลง สถานที่ และป้ายอื่นๆ ออกจากบรรทัดใต้ชื่อในโพสต์บนฟีดของคุณ "ได้รับการสนับสนุน" และ "พาร์ทเนอร์ชิพแบบชำระเงิน" ยังคงอยู่ โพสต์ที่แสดงอยู่แล้วจะเปลี่ยนเมื่อโหลดใหม่
+# context: a switch under Hide the line under names in HushGram's Feed settings
+Keep the place	เก็บสถานที่ไว้
+Leaves the place on the line under names, on its own, so it stays put instead of taking turns with the song.	เหลือเฉพาะสถานที่ไว้ในบรรทัดใต้ชื่อ จึงอยู่นิ่งแทนที่จะสลับกับเพลง
 # context: "Sponsored" and "Paid partnership" are Instagram's own labels on reels; use the text Instagram shows in this language (#771)
 Hide the line under names on reels	ซ่อนบรรทัดใต้ชื่อบนรีลส์
 Takes the song, the place and the other labels off the line under the name on reels. Sponsored and Paid partnership stay. Reels already on screen change when they load again.	นำเพลง สถานที่ และป้ายอื่นๆ ออกจากบรรทัดใต้ชื่อบนรีลส์ "ได้รับการสนับสนุน" และ "พาร์ทเนอร์ชิพแบบชำระเงิน" ยังคงอยู่ รีลส์ที่แสดงอยู่แล้วจะเปลี่ยนเมื่อโหลดใหม่
@@ -2230,6 +2250,8 @@ The camera, as Instagram has it. Pick a tab and the same swipe opens that tab in
 A swipe right on Home opens %1$s. The + button still opens the camera.	การปัดขวาบนหน้าหลักจะเปิด %1$s ปุ่ม + ยังคงเปิดกล้อง
 Keep the tab bar on a reel's profile	คงแถบแท็บไว้บนโปรไฟล์ที่เปิดจากรีลส์
 A profile you open from a reel stays on the tab you're on, with the tab bar under it. Back goes back to the reel.	โปรไฟล์ที่คุณเปิดจากรีลส์จะอยู่ในแท็บเดิมที่คุณใช้อยู่ โดยมีแถบแท็บอยู่ด้านล่าง การกดย้อนกลับจะกลับไปที่รีลส์
+Keep the tab bar on reel links	คงแถบแท็บไว้เมื่อเปิดลิงก์รีลส์
+A reel link you open from another app plays on the tab you were on, with the tab bar under it. Back goes back to that tab.	ลิงก์รีลส์ที่คุณเปิดจากแอปอื่นจะเล่นในแท็บที่คุณอยู่ โดยมีแถบแท็บอยู่ด้านล่าง การกดย้อนกลับจะกลับไปที่แท็บนั้น
 Mute button on reels	ปุ่มปิดเสียงในรีลส์
 Puts a speaker icon beside a reel. Tap it to turn the sound off or on while the reel keeps playing.	แสดงไอคอนลำโพงข้างรีลส์ แตะเพื่อปิดหรือเปิดเสียงขณะที่รีลส์ยังเล่นต่อ
 Mute button in clear mode	ปุ่มปิดเสียงในโหมดล้างหน้าจอ
@@ -2531,6 +2553,14 @@ Left off the three-dot menus: %1$s.	นำออกจากเมนูสา�
 Keep 2x after you let go	คง 2 เท่าไว้หลังปล่อยนิ้ว
 # context: Summary of Keep 2x after you let go, a switch under Hold for 2x on feed videos (#552)
 A feed video you hold for 2x keeps playing at 2x after you let go. Hold it again to go back to normal speed.	วิดีโอในฟีดที่คุณกดค้างเพื่อเล่น 2 เท่าจะเล่นด้วยความเร็ว 2 เท่าต่อไปหลังปล่อยนิ้ว กดค้างอีกครั้งเพื่อกลับสู่ความเร็วปกติ
+# context: Feed settings: a switch under Keep 2x after you let go that keeps 2x only after a hold of about 3 seconds (#552)
+Only after a long hold	เฉพาะเมื่อกดค้างนาน
+# context: Summary of Only after a long hold, a switch under Keep 2x after you let go (#552)
+Keeps 2x only when you hold the video for about 3 seconds. Let go sooner and it goes back to normal speed.	คง 2 เท่าไว้เฉพาะเมื่อคุณกดวิดีโอค้างไว้ประมาณ 3 วินาที ปล่อยเร็วกว่านั้นจะกลับสู่ความเร็วปกติ
+# context: Feed settings: a switch under Hold for 2x on feed videos that keeps the poster's name over the video while it's held at 2x (#552)
+Keep the name while you hold	คงชื่อไว้ขณะกดค้าง
+# context: Summary of Keep the name while you hold, a switch under Hold for 2x on feed videos (#552)
+The name over a feed video stays while you hold it for 2x. Instagram's 2x and time labels don't show then.	ชื่อบนวิดีโอในฟีดจะยังอยู่ขณะที่คุณกดค้างเพื่อเล่น 2 เท่า ป้าย 2 เท่าและเวลาของ Instagram จะไม่แสดง
 # context: Stories settings: title and dialog title of the list under Story ring size that picks how thick story rings are drawn (#528)
 Ring thickness	ความหนาของวงแหวน
 # context: Stories settings: the Ring thickness choice that keeps the thickness Instagram gives story rings (#528)

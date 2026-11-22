@@ -90,6 +90,9 @@ final class Strings {
         es("Remove all filters", "Quitar todos los filtros");
         es("Remove all filters for %s?", "¿Quitar todos los filtros de %s?");
         es("Back", "Atrás");
+        es("Search settings", "Buscar ajustes");
+        es("No settings found", "No se encontraron ajustes");
+        es("Create post", "Crear publicación");
 
         // Off, On, and Only.
         es("Off", "Desactivado");

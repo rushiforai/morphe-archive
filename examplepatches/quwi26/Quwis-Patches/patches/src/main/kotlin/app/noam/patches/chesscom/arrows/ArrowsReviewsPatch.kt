@@ -5,7 +5,8 @@ import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstructions
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
-import app.morphe.patcher.patch.resourcePatch
+import app.morphe.patcher.patch.document
+import app.morphe.patcher.patch.patch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.noam.patches.chesscom.misc.settings.settingsPatch
 import app.noam.patches.chesscom.shared.Constants
@@ -23,7 +24,7 @@ import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 private const val ARROWS_CHIP = "${Constants.EXTENSION_PACKAGE}/arrows/ArrowsChip;"
 private const val REVIEW_ACTIVITY = "Lcom/chess/gamereview/v2/GameReviewActivity;"
 
-private val arrowsReviewsResourcePatch = resourcePatch(
+private val arrowsReviewsResourcePatch = patch(
     description = "Adds the Arrows and Clear labels to the review bar.",
 ) {
     execute {

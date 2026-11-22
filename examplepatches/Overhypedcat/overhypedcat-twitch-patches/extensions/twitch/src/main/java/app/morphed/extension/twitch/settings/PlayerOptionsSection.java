@@ -53,12 +53,13 @@ public final class PlayerOptionsSection {
 
     /** Looks for an open Options sheet in this window and adds the section once. */
     public static void scan(Activity activity, View root) {
+        if (!Included.adBlock() && !Included.songRemoval() && !Included.qualityUnlock()) return;
         if (testIdKey == 0) {
             testIdKey = activity.getResources().getIdentifier("react_test_id", "id", activity.getPackageName());
             if (testIdKey == 0) testIdKey = -1;
         }
+        scanNative(activity, root);
         if (testIdKey < 0) return;
-        if (!Included.adBlock() && !Included.songRemoval() && !Included.qualityUnlock()) return;
         View row = find(root);
         if (row == null) return;
         ScrollView scroll = null;
@@ -93,6 +94,93 @@ public final class PlayerOptionsSection {
         });
         DebugLog.log("Player Options: patch switches added");
     }
+
+    /**
+     * The native player's Options sheet (the one with an Apply button; Twitch uses that player for some streams):
+     * Android views, its sections one under the other in a list. The section goes at the end of that list, which
+     * lays it out as one of its own.
+     */
+    private static void scanNative(Activity activity, View root) {
+        if (nativeIds == null) nativeIds = NativeSheetIds.of(activity);
+        if (nativeIds.list == 0) return; // (not in this version of the app: the other sheets are looked for)
+        View scroll = root.findViewById(nativeIds.list);
+        if (scroll == null || !scroll.isShown()) return;
+        if (scroll instanceof ViewGroup && ((ViewGroup) scroll).getChildCount() == 0) return; // (not filled in yet)
+        if (!(scroll instanceof ViewGroup) || !(((ViewGroup) scroll).getChildAt(0) instanceof LinearLayout)) {
+            if (badList.get() != scroll) { // (told once for each such list, not on every layout pass)
+                badList = new WeakReference<>(scroll);
+                failed(new IllegalStateException("the Options list (" + scroll.getClass().getName()
+                        + ") doesn't hold its sections in a column"));
+            }
+            return;
+        }
+        LinearLayout content = (LinearLayout) ((ViewGroup) scroll).getChildAt(0);
+        for (int i = 0; i < content.getChildCount(); i++) {
+            if (content.getChildAt(i).getTag() == NATIVE_SECTION_TAG) return; // there already
+        }
+        // Lined up with the sheet's own section titles.
+        View title = nativeIds.title == 0 ? null : content.findViewById(nativeIds.title);
+        boolean shown = title != null && title.getWidth() > 0;
+        int[] titleAt = new int[2], listAt = new int[2];
+        if (shown) {
+            title.getLocationOnScreen(titleAt);
+            content.getLocationOnScreen(listAt);
+        }
+        // (from where the list's own padding ends: that's where the section starts)
+        int side = sideOf(shown, titleAt[0], listAt[0] + content.getPaddingLeft(), shown ? title.getPaddingLeft() : 0,
+                new Theme(activity).dp(16));
+        // In the look of the sheet's own section titles and rows ("Chat Only" is one, its text the first in it).
+        View row = nativeIds.row == 0 ? null : content.findViewById(nativeIds.row);
+        View section = build(activity, side, title instanceof TextView ? (TextView) title : null, firstText(row));
+        section.setTag(NATIVE_SECTION_TAG);
+        content.addView(section, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT));
+        DebugLog.log("Player Options: patch switches added (native player)");
+    }
+
+    /** Where our rows start in the list: where the sheet's own titles do, or a default without one to go by. */
+    static int sideOf(boolean titleShown, int titleLeft, int listLeft, int titlePadding, int fallback) {
+        int side = titleLeft - listLeft + titlePadding;
+        return titleShown && side >= 0 ? side : fallback;
+    }
+
+    private static WeakReference<View> badList = new WeakReference<>(null);
+
+    /** The native Options sheet's views, by their resource names (0: not in this version of the app). */
+    static final class NativeSheetIds {
+        static final String LIST = "options_scrollview";
+        static final String TITLE = "viewing_options_header";
+        static final String ROW = "chat_only_toggle";
+        final int list, title, row;
+
+        NativeSheetIds(int list, int title, int row) {
+            this.list = list;
+            this.title = title;
+            this.row = row;
+        }
+
+        static NativeSheetIds of(Activity activity) {
+            android.content.res.Resources resources = activity.getResources();
+            String app = activity.getPackageName();
+            return new NativeSheetIds(resources.getIdentifier(LIST, "id", app), resources.getIdentifier(TITLE, "id", app),
+                    resources.getIdentifier(ROW, "id", app));
+        }
+    }
+
+    /** The first text in a view (itself, or the first found among its children), or null. */
+    private static TextView firstText(View view) {
+        if (view instanceof TextView) return (TextView) view;
+        if (!(view instanceof ViewGroup)) return null;
+        ViewGroup group = (ViewGroup) view;
+        for (int i = 0; i < group.getChildCount(); i++) {
+            TextView found = firstText(group.getChildAt(i));
+            if (found != null) return found;
+        }
+        return null;
+    }
+
+    private static NativeSheetIds nativeIds;
+    private static final Object NATIVE_SECTION_TAG = new Object();
 
     /** The first visible row of the Options sheet, in one walk through the window. */
     private static View find(View view) {
@@ -201,6 +289,14 @@ public final class PlayerOptionsSection {
     // --- the section
 
     private static View build(Activity activity, int side) {
+        return build(activity, side, null, null);
+    }
+
+    /**
+     * The section; with a sheet's own section title and row title to take the look of (its text size, font and
+     * color), or null for the look of the React Native sheet's.
+     */
+    private static View build(Activity activity, int side, TextView titleLook, TextView rowLook) {
         Theme theme = new Theme(activity);
         LinearLayout section = new LinearLayout(activity);
         section.setOrientation(LinearLayout.VERTICAL);
@@ -212,9 +308,10 @@ public final class PlayerOptionsSection {
         header.setTextSize(19);
         header.setTypeface(TwitchFonts.regular(activity));
         header.setPadding(side, theme.dp(12), side, theme.dp(10));
+        lookOf(titleLook, header);
         section.addView(header);
 
-        if (Included.adBlock()) section.addView(row(activity, theme, side, "Ad blocker", PatchSettings.AD_BLOCK, null));
+        if (Included.adBlock()) section.addView(row(activity, theme, side, "Ad blocker", PatchSettings.AD_BLOCK, null, rowLook));
 
         TextView songStatus = status(activity, theme);
         TextView songDetail = status(activity, theme); // a problem's whole sentence, under its few words
@@ -231,7 +328,7 @@ public final class PlayerOptionsSection {
         LinearLayout retryLine = new LinearLayout(activity);
         retryLine.setPadding(side, 0, side, theme.dp(4));
         retryLine.addView(retry);
-        View songRow = row(activity, theme, side, "Song removal", PatchSettings.SONG_REMOVAL, songStatus);
+        View songRow = row(activity, theme, side, "Song removal", PatchSettings.SONG_REMOVAL, songStatus, rowLook);
         ViewGroup songTexts = (ViewGroup) ((ViewGroup) songRow).getChildAt(0);
         TextView songName = (TextView) songTexts.getChildAt(0);
         songTexts.addView(songDetail);
@@ -242,7 +339,7 @@ public final class PlayerOptionsSection {
 
         TextView unlockStatus = status(activity, theme);
         if (Included.qualityUnlock()) {
-            section.addView(row(activity, theme, side, "Quality unlock", PatchSettings.QUALITY_UNLOCK, unlockStatus));
+            section.addView(row(activity, theme, side, "Quality unlock", PatchSettings.QUALITY_UNLOCK, unlockStatus, rowLook));
         }
 
         Runnable[] tick = new Runnable[1];
@@ -368,7 +465,17 @@ public final class PlayerOptionsSection {
         view.setTextColor(problem ? theme.danger : theme.secondary);
     }
 
-    private static View row(Context context, Theme theme, int side, String title, String key, TextView status) {
+    /** A text takes the look (size, font, color) of one of the sheet's own, when there's one to go by. */
+    private static void lookOf(TextView look, TextView text) {
+        if (look == null) return;
+        text.setTextSize(android.util.TypedValue.COMPLEX_UNIT_PX, look.getTextSize());
+        text.setTypeface(look.getTypeface());
+        text.setTextColor(look.getTextColors());
+        text.setLetterSpacing(look.getLetterSpacing());
+    }
+
+    private static View row(Context context, Theme theme, int side, String title, String key, TextView status,
+                            TextView look) {
         LinearLayout row = new LinearLayout(context);
         row.setOrientation(LinearLayout.HORIZONTAL);
         row.setGravity(Gravity.CENTER_VERTICAL);
@@ -382,6 +489,7 @@ public final class PlayerOptionsSection {
         name.setTextColor(theme.text);
         name.setTextSize(15);
         name.setTypeface(TwitchFonts.semiBold(context)); // as the sheet's own row titles
+        lookOf(look, name);
         texts.addView(name);
         if (status != null) texts.addView(status);
         LinearLayout.LayoutParams textArea = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1);

@@ -1,0 +1,49 @@
+diff --git a/blutter/sourcelist.cmake b/blutter/sourcelist.cmake
+index 8435cb7..0ad7193 100644
+--- a/blutter/sourcelist.cmake
++++ b/blutter/sourcelist.cmake
+@@ -18,6 +18,7 @@ set(SRCS
+     DartLoader.cpp
+     DartLoader.h
+     DartStub.cpp
++    NonProductStubs.cpp
+     DartStub.h
+     DartThreadInfo.cpp
+     DartThreadInfo.h
+diff --git a/blutter/src/NonProductStubs.cpp b/blutter/src/NonProductStubs.cpp
+new file mode 100644
+index 0000000..2d33be6
+--- /dev/null
++++ b/blutter/src/NonProductStubs.cpp
+@@ -0,0 +1,18 @@
++// Stubs for disassembler/IL-printer symbols that a non-PRODUCT Dart VM library references.
++// Blutter never calls them; they exist only so non-product (release-mode) snapshots can link.
++#include "pch.h"
++#include <vm/compiler/assembler/disassembler.h>
++#include <vm/compiler/api/print_filter.h>
++
++namespace dart {
++void DisassembleToStdout::ConsumeInstruction(char*, intptr_t, char*, intptr_t, Object*, uword) {}
++void DisassembleToStdout::Print(const char*, ...) {}
++void DisassembleToJSONStream::ConsumeInstruction(char*, intptr_t, char*, intptr_t, Object*, uword) {}
++void DisassembleToJSONStream::Print(const char*, ...) {}
++void Disassembler::Disassemble(uword, uword, DisassemblyFormatter*, const Code&, const CodeComments*) {}
++void Disassembler::DisassembleCode(const Function&, const Code&, bool) {}
++void Disassembler::DisassembleStub(const char*, const Code&) {}
++namespace compiler {
++bool PrintFilter::ShouldPrint(const Function&, uint8_t**) { return false; }
++}  // namespace compiler
++}  // namespace dart
+diff --git a/scripts/CMakeLists.txt b/scripts/CMakeLists.txt
+index e755ad8..8fd4e1c 100644
+--- a/scripts/CMakeLists.txt
++++ b/scripts/CMakeLists.txt
+@@ -78,7 +78,7 @@ endif()
+ set(defines ${target_arch} ${target_os}
+ 	NDEBUG DART_PRECOMPILED_RUNTIME
+ 	${dart_pointers} EXCLUDE_CFE_AND_KERNEL_PLATFORM
+-	PRODUCT U_USING_ICU_NAMESPACE=0
++	U_USING_ICU_NAMESPACE=0
+ 	_HAS_EXCEPTIONS=0 DART_TARGET_OS_WINDOWS_UWP
+ )
+ # Dart header can detect DART_HOST_OS_xxx value

@@ -12,7 +12,9 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLa
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
-import app.morphe.patcher.patch.resourcePatch
+import app.morphe.patcher.patch.document
+import app.morphe.patcher.patch.patch
+import app.morphe.patcher.patch.resourceFile
 import app.morphe.patcher.util.smali.ExternalLabel
 import app.noam.patches.chesscom.misc.settings.settingsPatch
 import app.noam.patches.chesscom.shared.Constants
@@ -70,7 +72,7 @@ private val LICHESS_SCREENS = listOf(
 )
 
 /** Lichess's move marks (?! ? ?? badges in its colors, and its words) and its pages. */
-private val lichessMarksResourcePatch = resourcePatch(
+private val lichessMarksResourcePatch = patch(
     description = "Adds Lichess's move badges, colors and words, and the Lichess login and analysis pages, for Lichess reviews.",
 ) {
     execute {
@@ -95,7 +97,11 @@ private val lichessMarksResourcePatch = resourcePatch(
         listOf("inaccuracy", "mistake", "blunder", "quiet").forEach { name ->
             val badge = object {}.javaClass.classLoader?.getResourceAsStream("$LICHESS_MARKS/morphe_lichess_$name.xml")
                 ?: throw PatchException("The $name badge is missing from the patches")
-            badge.use { input -> get("res/drawable/morphe_lichess_$name.xml").outputStream().use { input.copyTo(it) } }
+            badge.use { input ->
+                resourceFile("res/drawable/morphe_lichess_$name.xml", false).apply {
+                    parentFile.mkdirs()
+                }.outputStream().use { input.copyTo(it) }
+            }
         }
         document("res/values/colors.xml").use { document ->
             mapOf("inaccuracy" to "#FF56B4E9", "mistake" to "#FFE69F00", "blunder" to "#FFDF5353").forEach { (name, color) ->

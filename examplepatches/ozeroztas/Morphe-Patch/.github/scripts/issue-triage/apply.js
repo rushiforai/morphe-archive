@@ -9,6 +9,7 @@ const {
   LABEL_BUG,
   LABEL_FEATURE,
   MISSING_INFO_MARKER,
+  POSSIBLE_DUPLICATE_PREFIX,
   ensureLabel,
   removeLabelIfPresent,
   commentAndDelete,
@@ -72,8 +73,8 @@ async function validateDuplicates(github, owner, repo, issueNumber, numbers) {
 function possibleDuplicateComment(duplicates) {
   return [
     duplicates.length === 1
-      ? 'This issue may be a duplicate of an existing issue:'
-      : 'This issue may be a duplicate of existing issues:',
+      ? `${POSSIBLE_DUPLICATE_PREFIX} an existing issue:`
+      : `${POSSIBLE_DUPLICATE_PREFIX} existing issues:`,
     '',
     ...duplicates.map((number) => `- #${number}`),
     '',
@@ -104,13 +105,15 @@ module.exports = async ({ github, getOctokit, context, core }) => {
   }
 
   const { data: issue } = await github.rest.issues.get({ owner, repo, issue_number: issueNumber });
-  if (issue.state !== 'open') {
-    core.info(`#${issueNumber} is no longer open, nothing to do`);
-    return;
+  // An issue that is closed, such as for its versions, still gets its title cleaned up and its type label,
+  // but no comments, deletion or duplicate changes.
+  const open = issue.state === 'open';
+  if (!open) {
+    core.info(`#${issueNumber} is closed, only the title and type label are changed`);
   }
 
   // Requests for apps that are not supported are deleted, nothing else is done.
-  if (decision.unsupported_app === true) {
+  if (open && decision.unsupported_app === true) {
     await core.summary
       .addHeading(`Triage of #${issueNumber}${live ? '' : ' (dry run)'}`, 3)
       .addRaw(`Current title: ${escapeHtml(issue.title)}`, true)
@@ -165,10 +168,10 @@ module.exports = async ({ github, getOctokit, context, core }) => {
 
   // Duplicates. A sure duplicate is closed without a comment, after the other changes.
   // Possible duplicates get a comment and stay open for a maintainer to decide.
-  const [duplicateOf] = Number.isInteger(decision.duplicate_of)
+  const [duplicateOf] = open && Number.isInteger(decision.duplicate_of)
     ? await validateDuplicates(github, owner, repo, issueNumber, [decision.duplicate_of])
     : [];
-  const possibleDuplicates = duplicateOf
+  const possibleDuplicates = !open || duplicateOf
     ? []
     : (await validateDuplicates(github, owner, repo, issueNumber, decision.possible_duplicates)).map(
         (candidate) => candidate.number
@@ -199,7 +202,7 @@ module.exports = async ({ github, getOctokit, context, core }) => {
   const missing = Array.isArray(decision.missing_info)
     ? [...new Set(decision.missing_info.filter((key) => key in MISSING_INFO_TEXT))]
     : [];
-  if (decision.type === 'bug' && !duplicateOf && possibleDuplicates.length === 0 && missing.length > 0) {
+  if (open && decision.type === 'bug' && !duplicateOf && possibleDuplicates.length === 0 && missing.length > 0) {
     actions.push({
       description: `Ask for: ${missing.join(', ')}`,
       run: async () => {

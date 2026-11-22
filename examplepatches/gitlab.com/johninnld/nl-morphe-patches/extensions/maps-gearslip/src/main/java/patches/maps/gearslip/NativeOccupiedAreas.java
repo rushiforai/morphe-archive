@@ -88,7 +88,8 @@ final class NativeOccupiedAreas {
         return false;
     }
 
-    private static List<View> find(View view, String name) {
+    /** Every outermost view under [view] (itself included) whose resource entry name is [name]. */
+    static List<View> find(View view, String name) {
         List<View> found = new ArrayList<>();
         find(view, name, found);
         return found;

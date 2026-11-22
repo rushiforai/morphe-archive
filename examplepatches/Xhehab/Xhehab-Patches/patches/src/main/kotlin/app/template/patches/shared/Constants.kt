@@ -92,7 +92,7 @@ object Constants {
         packageName = "com.rp.hypertrophy",
         apkFileType = ApkFileType.XAPK,
         appIconColor = 0xEC0915,
-        targets = listOf(AppTarget(version = "1.9.0"))
+        targets = listOf(AppTarget(version = "1.11.0"))
     )
 
     // THENX

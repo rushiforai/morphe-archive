@@ -1,6 +1,7 @@
 package app.ckzorigins.patches.compat
 
 import app.ckzorigins.patches.mono.gluBackupPatch
+import app.ckzorigins.patches.mono.stubMobileAppTrackerDeviceIds
 import app.ckzorigins.patches.nativelib.NativeEdits
 import app.ckzorigins.patches.shared.Constants.COMPATIBILITY
 import app.ckzorigins.patches.shared.applyByteEdits
@@ -13,6 +14,7 @@ import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.document
+import app.morphe.patcher.patch.mutableClassDefBy
 import app.morphe.patcher.patch.patch
 import app.morphe.patcher.patch.resourceFile
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
@@ -42,14 +44,13 @@ val modernAndroidPatch = patch(
         requireStockNative(NativeEdits.UNITY, NativeEdits.UNITY_SHA256)
         applyByteEdits(NativeEdits.UNITY, NativeEdits.TEXTREL)
         requireStockNative(NativeEdits.GWALLET, NativeEdits.GWALLET_SHA256)
-        applyByteEdits(NativeEdits.GWALLET, NativeEdits.SERIAL_ID)
+        applyByteEdits(NativeEdits.GWALLET, NativeEdits.SERIAL_ID + NativeEdits.JNI_GUARDS)
         makeBindExplicit(BindMarketBillingServiceFingerprint)
         makeBindExplicit(LicenseCheckAccessFingerprint)
         skipExpansionSizeCheck(ExpansionFileExistsFingerprint.method)
-        MobileAppTrackerDeviceIdFingerprint.method.returnEarly("")
-        MobileAppTrackerDeviceIdFromContextFingerprint.method.returnEarly("")
+        stubMobileAppTrackerDeviceIds()
         UnityDeviceIdFingerprint.method.returnEarly("")
-        zeroWorldWritableMode(PlayHavenApiRequestInitFingerprint.method)
+        zeroPlayHavenWorldWritableIfPresent()
 
         document("AndroidManifest.xml").use { document ->
             val manifest = document.documentElement
@@ -93,6 +94,20 @@ private fun skipExpansionSizeCheck(method: MutableMethod) {
     }
     val dest = (move as OneRegisterInstruction).registerA
     method.addInstruction(exists.index + 2, "return v$dest")
+}
+
+/**
+ * Disable telemetry empties PlayHaven, so the Context constructor is gone and the
+ * MODE_WORLD_WRITEABLE write cannot run. When telemetry is off the original method is
+ * still here and needs the same const/4 2 -> 0 edit as the hand-packaged APK.
+ */
+private fun zeroPlayHavenWorldWritableIfPresent() {
+    val init = mutableClassDefBy("Lcom/playhaven/src/common/PHAPIRequest;").methods.find {
+        it.name == "<init>" &&
+            it.parameterTypes.map { p -> p.toString() } == listOf("Landroid/content/Context;") &&
+            it.implementation != null
+    } ?: return
+    zeroWorldWritableMode(init)
 }
 
 /** Same in-place edit as the hand-packaged APK: MODE_WORLD_WRITEABLE (2) becomes MODE_PRIVATE (0). */

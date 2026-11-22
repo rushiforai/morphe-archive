@@ -1,3 +1,10 @@
+## [0.2.0](https://github.com/zimza1abim/kanye-morphe-patches/compare/v0.1.6...v0.2.0) (2026-11-21)
+
+### ✨ New Features
+
+* add Orca custom font patch
+
+
 ## [0.1.6](https://github.com/zimza1abim/kanye-morphe-patches/compare/v0.1.5...v0.1.6) (2026-11-20)
 
 ### 🚀 Updated App Support

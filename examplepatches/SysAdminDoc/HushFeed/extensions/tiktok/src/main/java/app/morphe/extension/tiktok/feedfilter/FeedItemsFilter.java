@@ -401,6 +401,11 @@ public final class FeedItemsFilter {
         java.lang.reflect.Field field = liteItemsField;
         if (field == null || field.getDeclaringClass() != feedItemList.getClass()) {
             field = feedItemList.getClass().getDeclaredField("items");
+            // A static field of that name would be a write Android 17 refuses once TikTok
+            // targets it, and never the list this feed shows.
+            if (java.lang.reflect.Modifier.isStatic(field.getModifiers())) {
+                throw new NoSuchFieldException("TikTok Lite's items field is static");
+            }
             field.setAccessible(true);
             liteItemsField = field;
         }
@@ -967,6 +972,7 @@ public final class FeedItemsFilter {
                 break;
             }
         }
+        if (Reflect.readField(card, "preciseAd") != null) kind.append(" precise advert");
         return kind.toString();
     }
 
@@ -995,9 +1001,25 @@ public final class FeedItemsFilter {
         for (String name : SEARCH_AD_FIELDS) {
             if (Reflect.readField(card, name) != null) return true;
         }
+        if (isPreciseAd(card)) return true;
 
         Object aweme = Reflect.readField(card, "aweme");
         return aweme instanceof Aweme && getFilterReason(AD_ONLY_FILTERS, (Aweme) aweme) != null;
+    }
+
+    /**
+     * A precise ad (#484): the advert videos ride in the card's {@code preciseAd.awemeCards},
+     * and the card has no video of its own. TikTok's own answer misses it (its ad id set reads
+     * the card's video, a Shop patch's videos, a LIVE and the bought card shapes, never this
+     * one), while the Top results' ad pass hands every one of those videos to the search ad
+     * service as an advert. A precise ad with no videos draws nothing, so it isn't one.
+     */
+    @SuppressWarnings("rawtypes")
+    static boolean isPreciseAd(Object card) {
+        Object precise = Reflect.readField(card, "preciseAd");
+        if (precise == null) return false;
+        Object videos = Reflect.readField(precise, "awemeCards");
+        return videos instanceof List && !((List) videos).isEmpty();
     }
 
     /**

@@ -266,6 +266,7 @@ public class ColdStartHooksTest {
                 LocalProfileCounts.text("812 friends"));
         assertFalse("a post row built before the context got Save", PostActionButtonsForTests.addsSave());
         assertFalse("a post row built before the context got Download", PostActionButtonsForTests.addsDownload());
+        assertFalse("a post row built before the context lost its tap", PostActionButtonsForTests.leavesTheTapOff());
         assertFalse("a Marketplace feed query sent before the context skipped its ads",
                 MarketplaceAdFilterForTests.asksTheFeedToSkipAds());
         assertFalse("a Marketplace ads query sent before the context was held back",
@@ -283,6 +284,7 @@ public class ColdStartHooksTest {
         assertNull(ReelDeclutter.filterChips(Arrays.asList(new TypedFeedUnit("XFBFBShortsRemixAttribution"))));
         assertFalse("a Reels tab audio line drawn before the context came off", ReelDeclutter.hideAudioLine());
         assertFalse("a Made with Edits line taken before the context came off", ReelDeclutter.hideEditsLabel());
+        assertFalse("a Made with Edits pill taken before the context came off", ReelDeclutter.hideEditsPill());
         assertFalse("a slow connection message posted before the context was held back",
                 ReelDeclutter.hideSlowConnectionMessage());
         assertFalse("an Up next lookup skipped before the context came off", ReelDeclutter.skipUpNextFetch());
@@ -391,6 +393,9 @@ public class ColdStartHooksTest {
         assertFalse("a story's credit line drawn before the context lost its credits", StoryViewerCleanup.hideCredits());
         assertFalse("a story's suggested replies drawn before the context drew nothing",
                 StoryViewerCleanup.hideReplySuggestions());
+        assertFalse("a story's Follow button drawn before the context drew nothing", StoryViewerCleanup.hideFollow());
+        assertFalse("a story's reply bar drawn before the context drew nothing", StoryViewerCleanup.hideReplyBar());
+        assertTrue("a story page opened before the context skipped its Up next card", StoryViewerCleanup.showUpNext(true));
         assertFalse("a story played before the context got a progress bar", StoryProgressBarForTests.drawsABar());
         assertFalse("a swipe between people before the context kept the pages flat",
                 StoryViewerCleanupForTests.flattensACubeTurn());

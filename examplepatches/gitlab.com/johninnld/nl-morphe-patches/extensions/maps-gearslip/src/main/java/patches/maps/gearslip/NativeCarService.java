@@ -30,6 +30,13 @@ public final class NativeCarService extends Service {
     /** DriveDeck's extension service: exact rectangles of its floating pieces (its player). */
     static final String OVERLAY_SERVICE="map_overlays",OVERLAY_HOST="app.drivedeck.IMapOverlayHost",OVERLAY_CALLBACK="app.drivedeck.IMapOverlayCallback";
     static final int MAX_OVERLAYS=16;
+    /**
+     * Both one-way, and ignored by a host that does not know them. Adapter to host ({@value #OVERLAY_HOST},
+     * after 1 register and 2 occupied boxes): one boolean, "Maps' route preview is shown". Host to adapter
+     * ({@value #OVERLAY_CALLBACK}, after 1 overlays and 2 gesture start): no arguments, "start guidance",
+     * heard only from the session's UID.
+     */
+    static final int PREVIEW_SHOWN=3,START_GUIDANCE=3;
     private final Handler main = new Handler(Looper.getMainLooper());
     private final Object lock = new Object();
     private final Map<Intent.FilterComparison, Binding> bindings = new HashMap<>();
@@ -53,6 +60,8 @@ public final class NativeCarService extends Service {
         NativeGuidance guidance;
         boolean navigating;
         NativeGuidance.Snapshot navigation;
+        /** What the host was last told about the route preview; it starts out knowing "not shown". */
+        boolean previewSent;
         long lastTripAt=-1;
         final NativeScreenStack screens=new NativeScreenStack();
         Runnable tripUpdate;
@@ -164,6 +173,7 @@ public final class NativeCarService extends Service {
         session.stopCallbacks.clear();
         if(session.guidance!=null){try{session.guidance.close();}catch(Exception error){Log.w("MapsNativeCar","Native guidance listener cleanup failed",error);}session.guidance=null;}
         endNavigation(session);
+        endPreview(session);
         clearKeyboard(session);
         if (session.host != null && session.death != null) session.host.unlinkToDeath(session.death, 0);
         session.host = null;
@@ -183,6 +193,7 @@ public final class NativeCarService extends Service {
         session.failure = error;
         clearKeyboard(session);
         endNavigation(session);
+        endPreview(session);
         if(session.stopTimeout!=null)main.removeCallbacks(session.stopTimeout);
         for(IBinder callback:session.stopCallbacks)CarProtocol.complete(callback,null,error);
         session.stopCallbacks.clear();
@@ -293,6 +304,7 @@ public final class NativeCarService extends Service {
             if(service.transact(1,request,reply,0)){
                 reply.readException();session.overlayHost=service;
                 session.renderer.setOccupiedListener(areas->sendOccupied(session,areas));
+                session.renderer.setRoutePreviewListener(shown->sendPreview(session,shown));
             }
         }catch(Exception refused){Log.w("MapsNativeCar","Host overlays unavailable",refused);}
         finally{reply.recycle();request.recycle();}
@@ -311,6 +323,38 @@ public final class NativeCarService extends Service {
         finally{request.recycle();}
     }
 
+    /** Transaction 3 on the host's service, one-way: one boolean, whether Maps' route preview is up. Sent when it changes. */
+    private void sendPreview(Session session,boolean shown){
+        if(active!=session||session.closed)return;
+        transactPreview(session,shown);
+    }
+    /** The host's countdown ends with the preview: the last word to a host that was told "shown" is "not shown". */
+    private void endPreview(Session session){
+        if(session.previewSent)transactPreview(session,false);
+    }
+    private void transactPreview(Session session,boolean shown){
+        IBinder service=session.overlayHost;
+        if(service==null)return;
+        Parcel request=Parcel.obtain();
+        try{
+            request.writeInterfaceToken(OVERLAY_HOST);request.writeInt(shown?1:0);
+            // The result is not looked at: a host that does not know this transaction just ignores it.
+            service.transact(PREVIEW_SHOWN,request,null,IBinder.FLAG_ONEWAY);
+            session.previewSent=shown;
+        }catch(Exception gone){Log.w("MapsNativeCar","Host overlay service gone",gone);session.overlayHost=null;}
+        finally{request.recycle();}
+    }
+
+    /**
+     * The host asks Maps to start the route it is showing, as the driver's tap on Start would. Maps' own
+     * Start is pressed only when it is up and usable, and never while guidance already runs; the host
+     * learns of the result as it does for a driver's tap, through the navigation it starts.
+     */
+    private void startGuidance(Session session){
+        if(active!=session||session.closed||session.failure!=null||session.renderer==null||session.navigating)return;
+        if(session.renderer.startRoutePreview())refreshGuidance(session);
+    }
+
     /** One-way updates of the host's floating pieces; only the authenticated host's UID is heard. */
     private final class OverlayBinder extends Binder{
         private final Session session;
@@ -323,6 +367,13 @@ public final class NativeCarService extends Service {
                 float x,y;
                 try{x=data.readFloat();y=data.readFloat();}catch(RuntimeException malformed){return true;}
                 main.post(()->{if(active==session&&!session.closed&&session.failure==null&&session.renderer!=null)session.renderer.gestureStart(x,y);});
+                return true;
+            }
+            if(code==START_GUIDANCE){
+                // No arguments: the host asks Maps to press its own Start. Nothing is returned; it hears
+                // of the result as it does for a driver's tap.
+                if(Binder.getCallingUid()!=session.uid)return true;
+                main.post(()->startGuidance(session));
                 return true;
             }
             if(code!=1)return false;

@@ -1,5 +1,9 @@
 # SBS playback patch preparation
 
+These are historical notes from the initial SBS 6.3.0 investigation. The VOD
+and live patches have since been released as stable. See the repository
+README and generated patch list for current support and testing status.
+
 Status: experimental direct-VOD preference patch compiled successfully and
 applied with Morphe Desktop 1.16.0 to the source APKM. The resulting APK was
 rebuilt and its provider-selection bytecode re-read with apkanalyzer. The

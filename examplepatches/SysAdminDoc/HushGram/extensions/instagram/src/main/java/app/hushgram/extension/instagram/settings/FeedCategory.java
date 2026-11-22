@@ -69,6 +69,7 @@ final class FeedCategory {
         boolean feedFollow = build.contains(PatchFamily.FEED_FOLLOW);
         boolean editsLabel = build.contains(PatchFamily.EDITS_LABEL);
         boolean headerLine = build.contains(PatchFamily.FEED_HEADER_LINE);
+        boolean homeReels = build.contains(PatchFamily.HOME_REELS_BELOW_NAME);
         boolean feedSave = build.contains(PatchFamily.FEED_SAVE);
         boolean menuItems = build.contains(PatchFamily.MENU_ITEMS);
         boolean watchAgain = build.contains(PatchFamily.WATCH_AGAIN);
@@ -82,7 +83,7 @@ final class FeedCategory {
         PreferenceCategory feed = suggestions || following || swipe || fullResolution || homeFeed || feedViewHistory || tabSwipe
                 || askLike || askRefresh || saveTray || postTime || hiddenLikes || backHome || homePlace || feedSound || feedTapPause || feedHoldFast || feedSeekBar || longPressZoom
                 || roundedCorners || carouselArrows || ambientLight
-                || fullScreen || feedFollow || editsLabel || headerLine || feedSave || watchAgain || hideCaptions || expandCaptions || feedAudioIcon || feedAutoScroll || homeTopBar
+                || fullScreen || feedFollow || editsLabel || headerLine || homeReels || feedSave || watchAgain || hideCaptions || expandCaptions || feedAudioIcon || feedAutoScroll || homeTopBar
                 || activityBubbles || menuItems
                 ? category(screen, L10n.t("Feed"), SettingsIcons.FEED,
                         L10n.t("Choose what Home shows and how it behaves.")) : null;
@@ -276,6 +277,12 @@ final class FeedCategory {
             feed.addPreference(toggle(context, Settings.HOLD_FEED_VIDEO_KEEP, L10n.t("Keep 2x after you let go"),
                     L10n.t("A feed video you hold for 2x keeps playing at 2x after you let go. Hold it again to go back "
                             + "to normal speed.")));
+            feed.addPreference(toggle(context, Settings.HOLD_FEED_VIDEO_KEEP_LONG, L10n.t("Only after a long hold"),
+                    L10n.t("Keeps 2x only when you hold the video for about 3 seconds. Let go sooner and it goes back "
+                            + "to normal speed.")));
+            feed.addPreference(toggle(context, Settings.HOLD_FEED_VIDEO_KEEP_NAME, L10n.t("Keep the name while you hold"),
+                    L10n.t("The name over a feed video stays while you hold it for 2x. Instagram's 2x and time labels "
+                            + "don't show then.")));
         }
         if (feedSeekBar) {
             feed.addPreference(toggle(context, Settings.FEED_SEEK_BAR, L10n.t("Seek bar on feed videos"),
@@ -382,6 +389,14 @@ final class FeedCategory {
                     L10n.t("Takes the song, the place and the other labels off the line under the "
                             + "name on posts in your feed. Sponsored and Paid partnership stay. Posts already on screen "
                             + "change when they load again.")));
+            feed.addPreference(toggle(context, Settings.KEEP_FEED_HEADER_PLACE, L10n.t("Keep the place"),
+                    L10n.t("Leaves the place on the line under names, on its own, so it stays put instead of "
+                            + "taking turns with the song.")));
+        }
+        if (homeReels) {
+            feed.addPreference(toggle(context, Settings.HOME_REELS_BELOW_NAME, L10n.t("Reels on Home below the name"),
+                    L10n.t("Shows reels on Home like other posts, with the name and the three-dot menu above the video "
+                            + "instead of on top of it. Posts already on screen change when they load again.")));
         }
         if (feedSave) {
             feed.addPreference(toggle(context, Settings.SAVE_IN_POST_MENU, L10n.t("Save in the post menu"),

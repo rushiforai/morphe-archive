@@ -1,0 +1,4 @@
+# Three generic AWRL anti-adblock warning selectors. Source in NOTICE.
+.ad-blocker-warning
+.main_adbalert
+.pane-emediate

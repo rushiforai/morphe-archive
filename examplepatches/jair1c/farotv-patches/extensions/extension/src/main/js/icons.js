@@ -5,6 +5,10 @@
 // that picture with the SVG below. Sub-switches use their feature's icon unless they have their own.
 (function () {
     if (!window.youtv || !youtv.setIcons) return;
+    // Navigation can inject the bundle repeatedly into the same document.
+    // Rebuild only if our sheet was removed; each new document gets its own sheet.
+    if (window.__farotvIconsSheet &&
+        document.adoptedStyleSheets.indexOf(window.__farotvIconsSheet) !== -1) return;
 
     var C = "#0598C9", L = "#3FD3FF", R = "#FF4E45", Y = "#FFE27A", T = "#19E3B1", W = "#F1F1F1";
     var STROKE = ' fill="none" stroke-linecap="round" stroke-linejoin="round" ';
@@ -94,6 +98,7 @@
         var sheet = new CSSStyleSheet();
         sheet.replaceSync(rules.join("\n"));
         document.adoptedStyleSheets = document.adoptedStyleSheets.concat([sheet]);
+        window.__farotvIconsSheet = sheet;
     } catch (e) {
         youtv.report("icons failed: " + e);
     }

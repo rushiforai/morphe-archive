@@ -10,8 +10,9 @@ public enum SettingsPage {
     HIDE,
     READ_RECEIPT,
     READ_RECEIPT_READERS,
+    TALK,
     THEME,
-    GENERAL;
+    NOTIFICATIONS;
 
     /**
      * 保存時に使用する安定したページ識別子を返します。

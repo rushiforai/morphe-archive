@@ -29,6 +29,7 @@ public final class Prefs {
     public static final String KEY_HIDE_SPONSORED_SPOTLIGHT = "hide_sponsored_spotlight";
     public static final String KEY_IMDB_TRIVIA = "imdb_trivia";
     public static final String KEY_ARTWORK_MODE = "artwork_mode";
+    public static final String KEY_TMDB_TITLE_LOGOS = "tmdb_title_logos";
     static final String KEY_SHOW_ADULT_POSTERS = "show_adult_posters";
     private static boolean adultPostersAvailable;
 
@@ -49,6 +50,8 @@ public final class Prefs {
 
     // "Hide Where to Watch"
     public static final String KEY_HIDE_WHERE_TO_WATCH = "hide_where_to_watch";
+    public static final String KEY_EXTERNAL_RATINGS_ENABLED = "external_ratings_enabled";
+    public static final String KEY_EXTERNAL_RATINGS_SOURCES = "external_ratings_sources";
 
     // "Runtime as 1h 47m" on the film page
     public static final String KEY_RUNTIME_HHMM = "runtime_hhmm";

@@ -7,11 +7,20 @@
 (function () {
     if (!window.youtv || !youtv.request) return;
 
-    var cache = {};     // videoId -> dislikes
+    var cache = new Map(); // videoId -> { dislikes, expires }; bounded to long TV sessions.
+    var CACHE_LIMIT = 100;
+    var CACHE_TTL = 10 * 60 * 1000;
+    var numberFormatter = null;
+    var formatterLocale = null;
 
     function compact(n) {
         try {
-            return new Intl.NumberFormat(youtv.locale(), { notation: "compact", maximumFractionDigits: 1 }).format(n);
+            var language = youtv.locale();
+            if (!numberFormatter || formatterLocale !== language) {
+                numberFormatter = new Intl.NumberFormat(language, { notation: "compact", maximumFractionDigits: 1 });
+                formatterLocale = language;
+            }
+            return numberFormatter.format(n);
         } catch (e) {}
         if (n >= 1e6) return (Math.round(n / 1e5) / 10) + " M";
         if (n >= 1e3) return (Math.round(n / 1e2) / 10) + " K";
@@ -24,8 +33,9 @@
 
     function apply(renderer, dislikes) {
         var label = youtv.t("ryd.count", { count: dislikes });
-        renderer.dislikeCountText = text(compact(dislikes), label);
-        renderer.dislikeCountWithUndislikeText = text(compact(dislikes), label);
+        var count = compact(dislikes);
+        renderer.dislikeCountText = text(count, label);
+        renderer.dislikeCountWithUndislikeText = text(count, label);
         renderer.dislikeCountWithDislikeText = text(compact(dislikes + 1), youtv.t("ryd.count", { count: dislikes + 1 }));
     }
 
@@ -58,16 +68,19 @@
                 if (renderer.hideDislikeButton) return;
                 var id = renderer.target.videoId;
                 if (!/^[A-Za-z0-9_-]{11}$/.test(id)) return;
-                if (cache[id] !== undefined) {
-                    apply(renderer, cache[id]);
+                var cached = cache.get(id);
+                if (cached && cached.expires > Date.now()) {
+                    apply(renderer, cached.dislikes);
                     return;
                 }
+                cache.delete(id);
                 youtv.request("https://returnyoutubedislikeapi.com/votes?videoId=" + id, function (status, body) {
                     if (status !== 200) return;
                     var data;
                     try { data = youtv.rawParse(body); } catch (e) { return; }
-                    if (!data || typeof data.dislikes !== "number") return;
-                    cache[id] = data.dislikes;
+                    if (!data || typeof data.dislikes !== "number" || !isFinite(data.dislikes) || data.dislikes < 0) return;
+                    if (!cache.has(id) && cache.size >= CACHE_LIMIT) cache.delete(cache.keys().next().value);
+                    cache.set(id, { dislikes: data.dislikes, expires: Date.now() + CACHE_TTL });
                     apply(renderer, data.dislikes);
                     youtv.report("ryd: " + id + " " + data.dislikes + " dislikes");
                 });

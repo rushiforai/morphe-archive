@@ -113,6 +113,27 @@ public class ImageHostingTest {
     }
 
     @Test
+    public void rifsRetryOfTheSameTaskReusesTheFirstParams() {
+        ImageHosting.forgetAssets();
+        String image = "https://reddit-uploaded-media.s3-accelerate.amazonaws.com/retry1";
+        ImageHosting.rememberAsset("retry1", image, "image/png", null);
+        Object task = new Object();
+        c<String, String>[] first = ImageHosting.fixParams(form(image), task);
+        assertEquals("image", value(first, "kind"));
+        // After a token refresh rif asks the same task again: no "sent already" re-upload.
+        c<String, String>[] again = ImageHosting.fixParams(form(image), task);
+        assertEquals(image, value(again, "url"));
+        assertEquals("image", value(again, "kind"));
+        // A new send (a new task) of the same upload is still refused.
+        try {
+            ImageHosting.fixParams(form(image), new Object());
+            org.junit.Assert.fail("a second post with the same upload");
+        } catch (ImageHosting.SubmitRefused expected) {
+            // fine
+        }
+    }
+
+    @Test
     public void retriesDroppedConnectionsAndSomeHttpErrorsOnly() {
         assertTrue(ImageHosting.isRetryableHttp(500, ""));
         assertTrue(ImageHosting.isRetryableHttp(503, "<Error><Code>SlowDown</Code></Error>"));

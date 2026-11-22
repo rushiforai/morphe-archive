@@ -1,3 +1,45 @@
+## [1.7.6](https://github.com/sabbirdj/viper-patches/compare/v1.7.5...v1.7.6) (2026-11-22)
+
+### 🐛 Bug Fixes
+
+* **build:** attach buildAndroid to the real publish task ([57e6d56](https://github.com/sabbirdj/viper-patches/commit/57e6d568b4ca266f609935db8f42c5e56059a776))
+
+## [1.7.5](https://github.com/sabbirdj/viper-patches/compare/v1.7.4...v1.7.5) (2026-11-22)
+
+### 🐛 Bug Fixes
+
+* **build:** run buildAndroid so releases are DEX-merged and signed ([c3ae6f2](https://github.com/sabbirdj/viper-patches/commit/c3ae6f226816debef578cfb9ccd9b01f00e618f8))
+
+## [1.7.4](https://github.com/sabbirdj/viper-patches/compare/v1.7.3...v1.7.4) (2026-11-22)
+
+### 🐛 Bug Fixes
+
+* **signing:** set MORPHE_SIGNING_KEY so releases are signed ([663a6a7](https://github.com/sabbirdj/viper-patches/commit/663a6a7fc006661ef031027f85a3e661d9e5a6aa))
+
+## [1.7.3](https://github.com/sabbirdj/viper-patches/compare/v1.7.2...v1.7.3) (2026-11-22)
+
+### 🐛 Bug Fixes
+
+* **release:** make .releaserc valid JSON and drop the dev branch ([eae22d3](https://github.com/sabbirdj/viper-patches/commit/eae22d37c089e381eadc67981e0dff6eab1db030))
+
+## [1.7.2](https://github.com/sabbirdj/viper-patches/compare/v1.7.1...v1.7.2) (2026-11-22)
+
+### 🐛 Bug Fixes
+
+* **signing:** restore original morphe-signing.pub ([059a6a8](https://github.com/sabbirdj/viper-patches/commit/059a6a8a52b31281a0d89ab50a93476231976b93))
+
+## [1.7.1](https://github.com/sabbirdj/viper-patches/compare/v1.7.0...v1.7.1) (2026-11-22)
+
+### 🐛 Bug Fixes
+
+* **signing:** regenerate morphe-signing.pub for MORPHE_SIGNING_KEY ([e6e38c2](https://github.com/sabbirdj/viper-patches/commit/e6e38c2b1379b44e8857989613eddd3d5472362d))
+
+## [1.7.0](https://github.com/sabbirdj/viper-patches/compare/v1.6.1...v1.7.0) (2026-11-22)
+
+### ✨ New Features
+
+* **amberit:** add Disable location gate patch ([1073625](https://github.com/sabbirdj/viper-patches/commit/10736255743441f5e85d7842f3904628ba2a6464))
+
 ## [1.6.1](https://github.com/sabbirdj/viper-patches/compare/v1.6.0...v1.6.1) (2026-11-14)
 
 ### 🐛 Bug Fixes

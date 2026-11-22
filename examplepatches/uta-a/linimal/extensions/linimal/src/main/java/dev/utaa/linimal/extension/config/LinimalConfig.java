@@ -198,6 +198,14 @@ public final class LinimalConfig {
         return isEnabled(LinimalFeature.AMOLED_THEME);
     }
 
+    public boolean isOfficialFontsEnabled() {
+        return isEnabled(LinimalFeature.OFFICIAL_FONTS);
+    }
+
+    public boolean isCustomFontEnabled() {
+        return isEnabled(LinimalFeature.CUSTOM_FONT);
+    }
+
     public boolean isNewsSuppressionEnabled() {
         return isEnabled(LinimalFeature.NEWS);
     }

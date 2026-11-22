@@ -1,3 +1,11 @@
+## [1.110.0](https://github.com/serajr/x-twitter-patches/compare/v1.109.0...v1.110.0) (2026-11-21)
+
+## [1.110.0-dev.1](https://github.com/serajr/x-twitter-patches/compare/v1.109.0...v1.110.0-dev.1) (2026-11-21)
+
+## [1.109.0](https://github.com/serajr/x-twitter-patches/compare/v1.108.0...v1.109.0) (2026-11-21)
+
+## [1.109.0-dev.1](https://github.com/serajr/x-twitter-patches/compare/v1.108.0...v1.109.0-dev.1) (2026-11-21)
+
 ## [1.108.0](https://github.com/serajr/x-twitter-patches/compare/v1.107.0...v1.108.0) (2026-11-20)
 
 ## [1.108.0-dev.1](https://github.com/serajr/x-twitter-patches/compare/v1.107.0...v1.108.0-dev.1) (2026-11-20)

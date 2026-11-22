@@ -34,6 +34,13 @@ patches template and this repository's release setup (`.releaserc`, `release.yml
 - `./gradlew generatePatchesList` regenerates `patches-list.json`. The release runs this;
   never commit the result by hand.
 
+## Sources
+
+Patches are developed against the Facebook APK itself. The project began from ideas in
+[Hushfacebook](https://github.com/SysAdminDoc/Hushfacebook) and has since branched off from it
+completely: don't port, compare against or sync with it. The file headers and [NOTICE](NOTICE)
+keep the acknowledgment GPL-3.0 requires; leave those as they are.
+
 ## Commit convention
 
 Always use [semantic commit](https://kapeli.com/cheat_sheets/Semantic_Commits.docset/Contents/Resources/Documents/index)

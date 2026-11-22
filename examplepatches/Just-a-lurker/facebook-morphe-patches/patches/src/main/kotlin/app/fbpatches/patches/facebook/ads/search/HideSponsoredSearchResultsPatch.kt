@@ -9,6 +9,7 @@ import app.fbpatches.patches.facebook.shared.EXTENSION_CLASSES
 import app.fbpatches.patches.facebook.shared.EXTENSION_PACKAGE
 import app.fbpatches.patches.facebook.shared.body
 import app.fbpatches.patches.facebook.shared.extensionPatch
+import app.fbpatches.patches.facebook.shared.holdsString
 import app.fbpatches.patches.facebook.shared.literal
 import app.fbpatches.patches.facebook.shared.methodReference
 import app.fbpatches.patches.facebook.shared.parameterRegister
@@ -20,6 +21,7 @@ import app.morphe.patcher.StringComparisonType
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
+import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.smali.ExternalLabel
@@ -29,6 +31,7 @@ import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
+import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 
 /*
  * A search results page is a list of modules (people, posts, pages, videos, ads). Each module reads
@@ -61,6 +64,17 @@ private val AD_ROLES = listOf(
     "SEARCH_ADS_DISCOVERY_HEADER",
     "SEARCH_ADS_FLOATING_SEE_MORE",
 )
+
+/**
+ * What the top-position ad module logs for its first ad slot. Only its render method holds it.
+ *
+ * The top-position ads, the ads Facebook can put above a search's results, come through a query
+ * of their own (SearchTopPositionAdsQuery, sent from SearchResultsFragment) instead of among the
+ * page's modules, so the page filter never sees them. The answer goes into one loaded state,
+ * (ads, final), that the module's render tells apart with instance-of and reads its ads from. A
+ * final state with no ads is how the render reads an answer that has none, and it draws nothing.
+ */
+private const val TOP_POSITION_FIRST_AD = "STREAM_TOP_POSITION_AD_MODULE_FIRST_AD"
 
 private const val PAGE_MODULES = 1
 private val PAGE_TAIL = listOf(IMMUTABLE_LIST, IMMUTABLE_LIST, IMMUTABLE_LIST, STRING, STRING, STRING, STRING, "Z", "Z")
@@ -177,5 +191,44 @@ val hideSponsoredSearchResultsPatch = bytecodePatch(
             """,
             ExternalLabel("facebook", constructor.getInstruction(0)),
         )
+
+        // The ads above the results come apart from the page: see TOP_POSITION_FIRST_AD.
+        emptyTopPositionAds()?.let { patchLog.warning("$PATCH: $it. Ads above the search results may still show.") }
     }
+}
+
+/**
+ * Makes every loaded state of the top-position ad module start with no ads and as final, whatever
+ * the query answered. Null when done, or why not.
+ */
+private fun BytecodePatchContext.emptyTopPositionAds(): String? {
+    val renders = classDefByStrings(TOP_POSITION_FIRST_AD, StringComparisonType.EQUALS)
+        .filterNot { it.type.startsWith(EXTENSION_CLASSES) }
+        .flatMap { owner -> owner.methods.filter { holdsString(it, TOP_POSITION_FIRST_AD) } }
+    val render = renders.singleOrNull()
+        ?: return "found ${renders.size} methods holding \"$TOP_POSITION_FIRST_AD\", expected 1"
+
+    // The loaded state: a type the render checks with instance-of, built only from (ads, final).
+    val states = render.body()
+        .filter { it.opcode == Opcode.INSTANCE_OF }
+        .map { ((it as ReferenceInstruction).reference as TypeReference).type }
+        .distinct()
+        .mapNotNull { classDefByOrNull(it) }
+        .filter { state ->
+            val constructors = state.methods.filter { it.name == "<init>" }
+            constructors.size == 1 && constructors.single().parameters() == listOf(IMMUTABLE_LIST, "Z")
+        }
+    val state = states.singleOrNull()
+        ?: return "the top-position ad render checks ${states.size} (ads, final) states, expected 1"
+
+    val constructor = mutableClassDefBy(state.type).methods.single { it.name == "<init>" }
+    constructor.addInstructions(
+        0,
+        """
+            invoke-static {}, $IMMUTABLE_LIST->of()$IMMUTABLE_LIST
+            move-result-object p1
+            const/16 p2, 0x1
+        """,
+    )
+    return null
 }

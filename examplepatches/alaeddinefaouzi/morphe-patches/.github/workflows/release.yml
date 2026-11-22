@@ -1,0 +1,117 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  release:
+    name: Build & Release Morphe Patches
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      GITHUB_ACTOR: ${{ github.actor }}
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+          cache: 'gradle'
+
+      - name: Build Patches with Gradle
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_ACTOR: ${{ github.actor }}
+        run: |
+          chmod +x gradlew
+          VERSION="${GITHUB_REF_NAME#v}"
+          echo "Building version $VERSION from tag $GITHUB_REF_NAME"
+          ./gradlew :patches:buildAndroid -Pversion="$VERSION" --no-daemon
+
+      - name: Generate Patches List
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_ACTOR: ${{ github.actor }}
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          ./gradlew generatePatchesList -Pversion="$VERSION" -x jar -x build --no-daemon || true
+
+      - name: Finalize Android Bundle and Verify Dex
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          ./gradlew :patches:buildAndroid -Pversion="$VERSION" --no-daemon
+          echo "=== Content of patches/build/libs ==="
+          ls -la patches/build/libs/ || true
+          find patches/build/libs/ -name "*.mpp" -not -name "*-sources.mpp" -not -name "*-javadoc.mpp" -exec cp {} "patches-${VERSION}.mpp" \;
+          echo "=== Verifying classes.dex in patches-${VERSION}.mpp ==="
+          python3 -c "
+          import zipfile, sys
+          mpp_path = f'patches-{sys.argv[1]}.mpp'
+          with zipfile.ZipFile(mpp_path, 'r') as z:
+              names = z.namelist()
+              print(f'Inspecting {mpp_path} ({len(names)} entries):')
+              for n in names:
+                  if 'dex' in n:
+                      print(f'  - {n} ({z.getinfo(n).file_size} bytes)')
+              if 'classes.dex' not in names:
+                  print('FATAL ERROR: classes.dex missing from bundle!', file=sys.stderr)
+                  sys.exit(1)
+              print('SUCCESS: classes.dex verified!')
+          " "$VERSION"
+          ls -la "patches-${VERSION}.mpp"
+
+      - name: Generate patches-bundle.json
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          NOW=$(date -u +"%Y-%m-%dT%H:%M:%S")
+          cat <<EOF > patches-bundle.json
+          {
+            "version": "$VERSION",
+            "created_at": "$NOW",
+            "description": "@alaeddinefaouzi - Curated patches for Android apps and games",
+            "download_url": "https://github.com/${{ github.repository }}/releases/download/${GITHUB_REF_NAME}/patches-${VERSION}.mpp"
+          }
+          EOF
+          echo "Generated patches-bundle.json:"
+          cat patches-bundle.json
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: "@alaeddinefaouzi Patches ${{ github.ref_name }}"
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+          fail_on_unmatched_files: true
+          files: |
+            patches-*.mpp
+            patches-bundle.json
+            patches-bundle.png
+            patches-list.json
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Sync manifests to main
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git fetch origin main
+          git checkout main
+          git add patches-bundle.json patches-list.json
+          git commit -m "chore(release): sync manifests to ${GITHUB_REF_NAME}" || true
+          git push origin main || true

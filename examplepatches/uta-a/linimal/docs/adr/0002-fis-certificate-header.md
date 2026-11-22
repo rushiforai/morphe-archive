@@ -8,7 +8,7 @@
 
 再署名した LINE では、アプリを閉じている間に push 通知が届かない。LINE に同梱された Firebase Installations (FIS) SDK は、アプリ自身の署名から SHA-1 を計算して `X-Android-Cert` ヘッダーに載せる。Google 側の API key は公式 LINE の証明書にしか許可されていないため、FIS の登録が `BAD CONFIG` で拒否され、FCM token を取得できない。
 
-ADR 0001 は「再署名は公式署名または integrity 検査を回避する目的ではない」とし、互換性文書は署名検査が主要機能を妨げた場合に「回避を暗黙に追加せず go/no-go とする」としている。通知は主要機能であり、この問題はその go/no-go の判断に当たる。
+通知は主要機能であり、この問題は go/no-go の判断に当たる。
 
 検討した選択肢:
 

@@ -8,12 +8,7 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.removeInstruction
 import app.morphe.patcher.methodCall
-import app.morphe.patcher.patch.PatchException
-import app.morphe.patcher.patch.classDefForEach
-import app.morphe.patcher.patch.mutableClassDefBy
 import app.morphe.patcher.patch.patch
-
-private const val TAPJOY_CONNECT = "Lcom/tapjoy/TapjoyConnect;"
 
 /**
  * Glu's Tapjoy wrapper. It stores the activity, then connects to Tapjoy. Every other method of
@@ -61,11 +56,19 @@ internal object TapjoyConnectInstanceFingerprint : Fingerprint(
  * patch depends on it, so the message is there whichever patch the player applies.
  *
  * OpenFeint's servers closed in 2012, and [openFeintPatch] keeps the SDK from starting: every
- * call the game makes into it first checks a flag that only a finished `initialize()` sets. Its
- * 319 classes are then dead code, and one antivirus engine, AhnLab V3, flags them
- * (`PUP/Android.SmsReg`, already on Glu's own APK; OpenFeint sends no SMS). Each becomes an empty
- * shell (see [emptyClasses]). In the mode Morphe Manager patches with, the old bytes stay behind
- * in the original dex without their class definitions, and AhnLab no longer flags that either.
+ * call the game makes into it first checks a flag that only a finished `initialize()` sets.
+ * PlayHaven's two publisher requests are the same story ([deadServiceRequestsPatch]).
+ *
+ * The leftover SDK classes still carry their URL constants: Flurry, Tapjoy (except
+ * [TAPJOY_CONNECT]), PlayHaven, Urban Airship, and OpenFeint. After the wrappers return,
+ * those classes are empty shells ([emptyDeadSdks]). Urban Airship `takeOff` lives in
+ * `GluApplication.onCreate`, which never calls `super.onCreate()`, so
+ * returning there is enough. `GluPlatformActivity.onCreate` still reads the APID through
+ * PushManager for JNI initialise, so that getter is put back as a stub.
+ *
+ * In the mode Morphe Manager patches with, the old bytes stay behind in the original dex
+ * without their class definitions, and AhnLab no longer flags OpenFeint either
+ * (`PUP/Android.SmsReg`, already on Glu's own APK; OpenFeint sends no SMS).
  */
 @Suppress("unused")
 val deadServersPatch = patch(
@@ -75,17 +78,20 @@ val deadServersPatch = patch(
 ) {
     compatibleWith(COMPATIBILITY_CK_ZOMBIES)
 
-    dependsOn(serverCheckStallPatch, deadServersNativePatch, openFeintPatch, obbMessagePatch)
+    dependsOn(
+        serverCheckStallPatch,
+        deadServersNativePatch,
+        openFeintPatch,
+        deadServiceRequestsPatch,
+        obbMessagePatch,
+    )
 
     execute {
         // Find everything first, so an APK that differs from Glu's is refused before any edit.
         val initialize = TapjoyInitializeFingerprint.method
         val connect = TapjoyInitializeFingerprint.instructionMatches.first().index
         val getter = TapjoyConnectInstanceFingerprint.method
-        val openFeint = buildList { classDefForEach { if (it.type.startsWith(OPENFEINT_PACKAGE)) add(it.type) } }
-        if (openFeint.size != OPENFEINT_CLASSES) {
-            throw PatchException("Expected $OPENFEINT_CLASSES OpenFeint classes, found ${openFeint.size}")
-        }
+        emptyDeadSdks()
 
         initialize.removeInstruction(connect)
         initialize.addInstruction(connect, "nop")
@@ -97,7 +103,5 @@ val deadServersPatch = patch(
                 return-object v0
             """,
         )
-
-        emptyClasses(openFeint.map { mutableClassDefBy(it) })
     }
 }

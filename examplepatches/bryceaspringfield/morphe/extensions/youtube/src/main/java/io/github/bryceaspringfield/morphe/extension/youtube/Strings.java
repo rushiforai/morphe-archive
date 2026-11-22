@@ -22,6 +22,7 @@ final class Strings {
         put("cat_auto", "Automatic actions", "Acciones automáticas");
         put("cat_layout", "Layout", "Diseño");
         put("cat_fixes", "Fixes", "Correcciones");
+        put("cat_extras", "YouTube Extras", "YouTube Extras");
         put("channel_rules", "Channel filters", "Filtros por canal");
         put("channel_rules_summary",
                 "One rule a line, CHANNEL: RULE. The channel is an @handle, a channel ID, or its name. Rules: all, live, shorts, playlists, <5:00, >1:00:00, a word or \"phrase\" of the title, or comments: word. Example: @channel: live, shorts",

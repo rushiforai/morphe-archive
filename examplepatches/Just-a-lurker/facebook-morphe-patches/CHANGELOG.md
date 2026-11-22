@@ -1,3 +1,39 @@
+## [1.2.1](https://github.com/Just-a-lurker/facebook-morphe-patches/compare/v1.2.0...v1.2.1) (2026-11-21)
+
+### 🐛 Bug Fixes
+
+* guard the feed's replace swaps and empty search's top-position ads ([8d502d7](https://github.com/Just-a-lurker/facebook-morphe-patches/commit/8d502d74cb3e130288a390a6c9e087cdee15c2a3))
+
+## [1.2.1-dev.1](https://github.com/Just-a-lurker/facebook-morphe-patches/compare/v1.2.0...v1.2.1-dev.1) (2026-11-21)
+
+### 🐛 Bug Fixes
+
+* guard the feed's replace swaps and empty search's top-position ads ([8d502d7](https://github.com/Just-a-lurker/facebook-morphe-patches/commit/8d502d74cb3e130288a390a6c9e087cdee15c2a3))
+
+## [1.2.0](https://github.com/Just-a-lurker/facebook-morphe-patches/compare/v1.1.1...v1.2.0) (2026-11-21)
+
+### ✨ New Features
+
+* add a Follow the system theme option to Dark mode on tablets ([8827b72](https://github.com/Just-a-lurker/facebook-morphe-patches/commit/8827b72bf9e8dc6e3b1f245ffdf7613b6254f3f5))
+
+## [1.2.0-dev.1](https://github.com/Just-a-lurker/facebook-morphe-patches/compare/v1.1.1...v1.2.0-dev.1) (2026-11-21)
+
+### ✨ New Features
+
+* add a Follow the system theme option to Dark mode on tablets ([8827b72](https://github.com/Just-a-lurker/facebook-morphe-patches/commit/8827b72bf9e8dc6e3b1f245ffdf7613b6254f3f5))
+
+## [1.1.1](https://github.com/Just-a-lurker/facebook-morphe-patches/compare/v1.1.0...v1.1.1) (2026-11-21)
+
+### 🐛 Bug Fixes
+
+* filter the Reels loader's page appends and edge swap ([8b49a7f](https://github.com/Just-a-lurker/facebook-morphe-patches/commit/8b49a7f814fdd1b21eca23171a67e91bd267f235))
+
+## [1.1.1-dev.1](https://github.com/Just-a-lurker/facebook-morphe-patches/compare/v1.1.0...v1.1.1-dev.1) (2026-11-21)
+
+### 🐛 Bug Fixes
+
+* filter the Reels loader's page appends and edge swap ([8b49a7f](https://github.com/Just-a-lurker/facebook-morphe-patches/commit/8b49a7f814fdd1b21eca23171a67e91bd267f235))
+
 ## [1.1.0](https://github.com/Just-a-lurker/facebook-morphe-patches/compare/v1.0.2...v1.1.0) (2026-11-08)
 
 ### ✨ New Features

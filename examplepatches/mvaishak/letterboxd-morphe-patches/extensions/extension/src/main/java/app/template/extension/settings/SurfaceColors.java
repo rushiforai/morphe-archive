@@ -12,17 +12,17 @@ import android.content.Context;
  * You's patch-time palette), so simply reading their current value through this {@link Context}'s
  * {@code Resources} already reflects whichever is active — no special-casing needed.
  */
-final class SurfaceColors {
+public final class SurfaceColors {
 
     private SurfaceColors() {}
 
     /** The app's main background surface. */
-    static int background(Context ctx) {
+    public static int background(Context ctx) {
         return resolve(ctx, new String[]{"windowBackground", "gray181C20"}, 0xFF0D0D0D);
     }
 
     /** A slightly elevated surface, for cards and dialogs. */
-    static int elevated(Context ctx) {
+    public static int elevated(Context ctx) {
         return resolve(ctx, new String[]{"gray202830", "gray1C242C"}, 0xFF161616);
     }
 

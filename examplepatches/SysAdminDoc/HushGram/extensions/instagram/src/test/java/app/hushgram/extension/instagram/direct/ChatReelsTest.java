@@ -6,6 +6,7 @@ package app.hushgram.extension.instagram.direct;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 import static org.robolectric.Shadows.shadowOf;
@@ -27,6 +28,7 @@ import org.robolectric.annotation.Config;
 import org.robolectric.annotation.Implementation;
 import org.robolectric.annotation.Implements;
 import org.robolectric.shadows.ShadowSystemClock;
+import org.robolectric.shadows.ShadowToast;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -61,6 +63,7 @@ public class ChatReelsTest {
         Settings.SWIPE_CHAT_REELS.resetToDefault();
         Settings.STOP_AFTER_CHAT_REELS.resetToDefault();
         Settings.ONLY_RECEIVED_CHAT_REELS.resetToDefault();
+        Settings.BLOCK_CHAT_REELS.resetToDefault();
         BaseSettings.PAUSED.save(false);
         PauseForTests.resume();
         HookStatus.clear();
@@ -445,6 +448,58 @@ public class ChatReelsTest {
         assertTrue("past the wait", ChatReels.open(message("m1"), null));
     }
 
+    /** A share is a reel the way Instagram's opener tells: its media's product type, or with no media its card's link. */
+    @Test
+    public void aShareIsAReelByItsProductTypeOrItsLink() {
+        assertTrue("a reel's media", ChatReels.isReel("clips", null));
+        assertFalse("a post's media", ChatReels.isReel("feed", null));
+        assertFalse("a carousel's media", ChatReels.isReel("carousel_container", "https://www.instagram.com/reel/abc/"));
+        assertTrue("no media, a reel link", ChatReels.isReel(null, "https://www.instagram.com/reel/abc/"));
+        assertTrue("no media, a reels link", ChatReels.isReel(null, "https://www.instagram.com/reels/abc/"));
+        assertFalse("no media, a post link", ChatReels.isReel(null, "https://www.instagram.com/p/abc/"));
+        assertFalse("no media, a profile named reel later on", ChatReels.isReel(null, "https://www.instagram.com/someone/reel/"));
+        assertFalse("no media, a site with no path", ChatReels.isReel(null, "https://www.instagram.com"));
+        assertFalse("nothing to go by", ChatReels.isReel(null, null));
+        assertFalse("an empty link", ChatReels.isReel(null, ""));
+    }
+
+    /** With Don't open reels from chats on, a tapped reel stays shut with a note, and a photo or post opens (#810). */
+    @Test
+    public void aReelFromAChatStaysShutWhileTheSwitchIsOn() {
+        ShadowToast.reset();
+        Object wrapper = new Object();
+        assertTrue("off to start", ChatReels.mayOpen(wrapper, w -> "clips", w -> null));
+        assertNull("nothing said while it opens", ShadowToast.getTextOfLatestToast());
+
+        Settings.BLOCK_CHAT_REELS.save(true);
+        assertTrue("a shared post opens", ChatReels.mayOpen(wrapper, w -> "feed", w -> null));
+        assertTrue("a link to a post opens", ChatReels.mayOpen(wrapper, w -> null, w -> "https://www.instagram.com/p/abc/"));
+        assertTrue("a missing wrapper opens", ChatReels.mayOpen(null, w -> "clips", w -> null));
+        assertFalse("a shared reel stays shut", ChatReels.mayOpen(wrapper, w -> "clips", w -> null));
+        shadowOf(Looper.getMainLooper()).idle();
+        assertEquals("Reels from chats are off", ShadowToast.getTextOfLatestToast());
+        assertFalse("a reel's link stays shut", ChatReels.mayOpen(wrapper, w -> null, w -> "https://www.instagram.com/reel/abc/"));
+        assertTrue(HookStatus.report().toString(), HookStatus.report().toString().contains("reel from a chat kept closed"));
+
+        assertTrue("a broken read opens", ChatReels.mayOpen(wrapper, w -> { throw new IllegalStateException("gone"); }, w -> null));
+        PauseForTests.pause(HushgramPause.Reason.SWITCH);
+        assertTrue("paused, a reel opens", ChatReels.mayOpen(wrapper, w -> "clips", w -> null));
+        PauseForTests.resume();
+        Settings.BLOCK_CHAT_REELS.save(false);
+        assertTrue("switched back off, a reel opens", ChatReels.mayOpen(wrapper, w -> "clips", w -> null));
+        assertTrue("unpatched, the bridges answer nothing and it opens", ChatReels.mayOpen(wrapper));
+    }
+
+    /** A tap the switch keeps shut lets the next tap on that message through to the switch again, not the repeat-tap wait. */
+    @Test
+    public void aShutReelDoesntHoldTheNextTap() {
+        Settings.BLOCK_CHAT_REELS.save(true);
+        Object message = message("m1");
+        assertTrue("the tap", ChatReels.open(message, null));
+        assertFalse("its reel stays shut", ChatReels.mayOpen(new Object(), w -> "clips", w -> null));
+        assertTrue("tapping it again asks again", ChatReels.open(message, null));
+    }
+
     /** The viewer is an activity of its own, so the chat's pausing means it's up and Back opens it again. */
     @Test
     public void theViewersActivityLetsTheNextTapOpen() {
@@ -489,6 +544,45 @@ public class ChatReelsTest {
         assertTrue("the viewer's gone, so the next shared reel chains", ChatReels.chain(0));
         assertTrue(ChatReels.chaining());
         assertTrue(HookStatus.missing(FamilyNames.CHAT_REELS).toString(), HookStatus.missing(FamilyNames.CHAT_REELS).isEmpty());
+    }
+
+    /**
+     * A chat with a Blend pages its own shared reels first (#804): yes for a chat's viewer with the
+     * chat's id while the switch is on, and no for any other viewer, a chat without an id, the switch
+     * off, paused or unready settings, so Instagram's Blend source stays.
+     */
+    @Test
+    public void aChatWithABlendGoesThroughItsOwnReelsFirst() {
+        assertTrue("a chat with an id", ChatReels.blendAfterChat(Source.DIRECT, "340282366841710300949128"));
+        assertFalse("a search's viewer", ChatReels.blendAfterChat(Source.DIRECT_SEARCH, "340282366841710300949128"));
+        assertFalse("the Reels tab", ChatReels.blendAfterChat(Source.CLIPS_TAB, "340282366841710300949128"));
+        assertFalse("no source", ChatReels.blendAfterChat(null, "340282366841710300949128"));
+        assertFalse("not an enum", ChatReels.blendAfterChat("DIRECT", "340282366841710300949128"));
+        assertFalse("no id", ChatReels.blendAfterChat(Source.DIRECT, null));
+        assertFalse("an empty id", ChatReels.blendAfterChat(Source.DIRECT, ""));
+        assertTrue(HookStatus.missing(FamilyNames.CHAT_REELS).toString(), HookStatus.missing(FamilyNames.CHAT_REELS).isEmpty());
+
+        Settings.SWIPE_CHAT_REELS.save(false);
+        assertFalse("off", ChatReels.blendAfterChat(Source.DIRECT, "340282366841710300949128"));
+        Settings.SWIPE_CHAT_REELS.save(true);
+
+        BaseSettings.PAUSED.save(true);
+        PauseForTests.pause(HushgramPause.Reason.SWITCH);
+        assertFalse("paused", ChatReels.blendAfterChat(Source.DIRECT, "340282366841710300949128"));
+        BaseSettings.PAUSED.save(false);
+        PauseForTests.resume();
+
+        SettingsContextRule.withoutContext(() ->
+                assertFalse("no context", ChatReels.blendAfterChat(Source.DIRECT, "340282366841710300949128")));
+        assertTrue("back on", ChatReels.blendAfterChat(Source.DIRECT, "340282366841710300949128"));
+    }
+
+    /** The viewer a shared comment's tap opens keeps Instagram's Blend, as it keeps Instagram's chain answer (#662). */
+    @Test
+    public void aSharedCommentsViewerKeepsInstagramsBlend() {
+        Robolectric.buildActivity(Activity.class).setup();
+        ChatReels.commentTapped();
+        assertFalse(ChatReels.blendAfterChat(Source.DIRECT, "340282366841710300949128"));
     }
 
     /** A comment's tap that opens nothing within the wait lets go, and the next viewer chains as before. */

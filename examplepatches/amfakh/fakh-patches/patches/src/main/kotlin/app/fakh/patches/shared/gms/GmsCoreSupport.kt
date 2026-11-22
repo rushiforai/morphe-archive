@@ -24,6 +24,7 @@ import app.morphe.patcher.patch.mutableClassDefBy
 import app.morphe.patcher.patch.mutableClassDefByOrNull
 import app.morphe.patcher.patch.resourceFile
 import app.morphe.patcher.util.proxy.mutableTypes.MutableClass
+import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
@@ -121,7 +122,7 @@ fun redirectToGmsCore(signature: String) {
     // reports as too old for the APIs that need Play services 25.24 or newer (Credential Manager's Identity
     // Credentials API, which GmsCore lacks), so the Google sign-in falls back to the one GmsCore implements.
     // Only the (Context, int) overloads: the (Context) one delegates to them and has no version parameter.
-    mutableClass(PLAY_SERVICES_UTIL).methods.filter { it.parameterTypes.size == 2 }.forEach { method ->
+    playServicesUtil().methods.filter { it.parameterTypes.size == 2 }.forEach { method ->
         when (method.name) {
             "isGooglePlayServicesAvailable" -> method.addInstructions(
                 0,
@@ -195,6 +196,22 @@ fun warnWithoutGmsCore(hook: String, vararg entries: Pair<String, String>) {
         }
     }
     if (hooked == 0) throw PatchException("No Google sign-in entry point found")
+}
+
+/**
+ * Play services' availability class: by its public name when the app keeps it, otherwise (R8 moved it to the default
+ * package but kept the public method names) the class with both static `(Context, int)` availability methods.
+ */
+private fun playServicesUtil(): MutableClass {
+    mutableClassDefByOrNull(PLAY_SERVICES_UTIL)?.let { return it }
+    var found: ClassDef? = null
+    classDefForEach { classDef ->
+        val names = classDef.methods.filter {
+            AccessFlags.STATIC.isSet(it.accessFlags) && it.parameterTypes.map(CharSequence::toString) == listOf("Landroid/content/Context;", "I")
+        }.map { it.name }
+        if ("isGooglePlayServicesAvailable" in names && "ensurePlayServicesAvailable" in names) found = classDef
+    }
+    return found?.let { mutableClassDefBy(it) } ?: throw PatchException("$PLAY_SERVICES_UTIL not found")
 }
 
 /** The class with type [type]. */

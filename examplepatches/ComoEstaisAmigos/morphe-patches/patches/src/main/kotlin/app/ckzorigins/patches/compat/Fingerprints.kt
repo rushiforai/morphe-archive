@@ -42,7 +42,10 @@ internal object LicenseCheckAccessFingerprint : Fingerprint(
 /**
  * Tune/MobileAppTracker reads IMEI. On Android 10 and later TelephonyManager.getDeviceId
  * throws SecurityException and kills the process after the intro, even with targetSdk 25.
+ * Disable telemetry empties this class before Modern Android runs, so these fingerprints
+ * are not matched anymore; [stubMobileAppTrackerDeviceIds] puts the empty-string stubs back.
  */
+@Suppress("unused")
 internal object MobileAppTrackerDeviceIdFingerprint : Fingerprint(
     definingClass = "Lcom/mobileapptracker/MobileAppTracker;",
     name = "getDeviceId",
@@ -50,6 +53,7 @@ internal object MobileAppTrackerDeviceIdFingerprint : Fingerprint(
     parameters = listOf(),
 )
 
+@Suppress("unused")
 internal object MobileAppTrackerDeviceIdFromContextFingerprint : Fingerprint(
     definingClass = "Lcom/mobileapptracker/MobileAppTracker;",
     name = "getDeviceId",
@@ -67,7 +71,10 @@ internal object UnityDeviceIdFingerprint : Fingerprint(
 /**
  * PlayHaven writes SharedPreferences with MODE_WORLD_WRITEABLE. Android N and later throw
  * SecurityException. The hand-packaged APK turns that const/4 2 into 0 (MODE_PRIVATE).
+ * Disable telemetry empties this class; Modern Android only edits the constructor when
+ * the body is still there.
  */
+@Suppress("unused")
 internal object PlayHavenApiRequestInitFingerprint : Fingerprint(
     definingClass = "Lcom/playhaven/src/common/PHAPIRequest;",
     name = "<init>",

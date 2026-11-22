@@ -1531,6 +1531,17 @@ An exception names one creator, so a pattern can't be one: %1$s	Bir istisna tek 
 An exception takes a handle or id, not a display name: %1$s	Bir istisna hesap adı veya kimlik alır, görünen ad değil: %1$s
 Also on a block list, so still hidden: %1$s	Bir engelleme listesinde de var, bu yüzden gizli kalır: %1$s
 Find the sound on YouTube Music	Sesi YouTube Music'te bul
+Identify the song with Shazam	Şarkıyı Shazam ile tanı
+This video has no sound to identify	Bu videoda tanınacak bir ses yok
+Still looking up the song	Şarkı hâlâ aranıyor
+Looking up the song	Şarkı aranıyor
+Shazam didn't recognize this song	Shazam bu şarkıyı tanımadı
+This sound is too quiet to identify	Bu ses tanınmak için çok kısık
+Shazam is busy. Try again later.	Shazam meşgul. Daha sonra tekrar deneyin.
+The song couldn't be looked up. Try again.	Şarkı aranamadı. Tekrar deneyin.
+%1$s by %2$s	%1$s, sanatçı: %2$s
+Song copied	Şarkı kopyalandı
+YouTube Music	YouTube Music
 YouTube Music isn't installed	YouTube Music yüklü değil
 This video's sound has no title to look for	Bu videonun sesinin aranacak bir başlığı yok
 YouTube Music didn't open. Open it yourself to search.	YouTube Music açılmadı. Kendin açıp sesi ara.
@@ -3115,3 +3126,10 @@ Hide the Add bio prompt TikTok shows on your own profile while it has no bio. Yo
 Show the picture before saving	Kaydetmeden önce resmi göster
 With the long press save on, holding a profile picture opens it full screen at full size, with a Save button under it.	Uzun basarak kaydetme açıkken bir profil fotoğrafına basılı tutmak onu tam ekranda, tam boyutta açar ve altında bir Kaydet düğmesi olur.
 The profile picture couldn't be loaded. Try again.	Profil fotoğrafı yüklenemedi. Yeniden dene.
+Share any comment	Her yorumu paylaş
+Share a comment or send it in a chat even when TikTok says it can't be shared.	TikTok paylaşılamaz dese bile bir yorumu paylaş veya sohbette gönder.
+# context: Comment tools switches; Hide the expand button in comments is another switch's title
+Always show the expand button in comments	Yorumlarda genişletme düğmesini hep göster
+Puts the button that stretches the comments over the whole screen on every video. TikTok only gives it to some accounts. Hide the expand button in comments wins if both are on.	Yorumları tüm ekrana yayan düğmeyi her videoya koyar. TikTok bu düğmeyi yalnızca bazı hesaplara verir. İkisi de açıksa Yorumlarda genişletme düğmesini gizle geçerli olur.
+Keep the video full size under comments	Yorumların altında videoyu tam boyutta tut
+The video keeps its size when you open the comments, and the comments cover its lower part instead of pushing it up into a smaller box.	Yorumları açtığında video boyutunu korur, yorumlar da videoyu yukarı, daha küçük bir kutuya itmek yerine alt kısmını örter.

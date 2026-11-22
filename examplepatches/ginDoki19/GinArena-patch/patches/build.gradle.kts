@@ -108,6 +108,63 @@ val buildMxPlayerExtensionMpe = tasks.register("buildMxPlayerExtensionMpe") {
     }
 }
 
+// Playfy pin/arrange extension. Playfy TV targets Android 5.0 (minSdk 21), so this dexes at
+// min-api 21 - the value the released extensions/playfy.mpe was built with - not the 24
+// the MX Player / OneDM tasks use.
+val playfyExtClassesDir = layout.buildDirectory.dir("playfyExt/classes")
+val playfyExtWorkDir = layout.buildDirectory.dir("playfyExt/work")
+val playfyGeneratedResourcesDir = layout.buildDirectory.dir("generated/playfyMpeResources")
+
+val compilePlayfyExtensionJava = tasks.register<JavaCompile>("compilePlayfyExtensionJava") {
+    dependsOn(compileMxPlayerExtensionStubs)
+    source = fileTree("src/extension/playfy/java")
+    classpath = files(mxStubClassesDir)
+    destinationDirectory.set(playfyExtClassesDir)
+    options.release.set(8)
+}
+
+val buildPlayfyExtensionMpe = tasks.register("buildPlayfyExtensionMpe") {
+    dependsOn(compilePlayfyExtensionJava)
+    inputs.dir(playfyExtClassesDir)
+    inputs.dir(mxStubClassesDir)
+    outputs.dir(playfyGeneratedResourcesDir)
+
+    doLast {
+        val classesDir = playfyExtClassesDir.get().asFile
+        val stubsDir = mxStubClassesDir.get().asFile
+        val workDir = playfyExtWorkDir.get().asFile.apply {
+            deleteRecursively()
+            mkdirs()
+        }
+        val programJar = workDir.resolve("program.jar")
+        val stubsJar = workDir.resolve("stubs.jar")
+        val dexDir = workDir.resolve("dex").apply { mkdirs() }
+
+        packDirToJar(classesDir, programJar)
+        packDirToJar(stubsDir, stubsJar)
+
+        val outResRoot = playfyGeneratedResourcesDir.get().asFile.apply {
+            deleteRecursively()
+        }
+        val outMpeFile = outResRoot.resolve("extensions/playfy.mpe").apply {
+            parentFile.mkdirs()
+        }
+
+        val d8Cmd = D8Command.builder()
+            .addProgramResourceProvider(ArchiveResourceProvider.fromArchive(programJar.toPath(), true))
+            .addClasspathFiles(listOf(stubsJar.toPath()))
+            .setMode(CompilationMode.RELEASE)
+            .setMinApiLevel(21)
+            .setOutput(dexDir.toPath(), OutputMode.DexIndexed)
+            .build()
+        D8.run(d8Cmd)
+
+        val compiledDex = dexDir.resolve("classes.dex")
+        check(compiledDex.isFile) { "D8 did not emit classes.dex in $dexDir" }
+        compiledDex.copyTo(outMpeFile, overwrite = true)
+    }
+}
+
 val onedmExtClassesDir = layout.buildDirectory.dir("onedmExt/classes")
 val onedmExtWorkDir = layout.buildDirectory.dir("onedmExt/work")
 val onedmGeneratedResourcesDir = layout.buildDirectory.dir("generated/onedmMpeResources")
@@ -165,15 +222,16 @@ val buildOnedmExtensionMpe = tasks.register("buildOnedmExtensionMpe") {
 sourceSets.named("main") {
     resources.srcDir(mxGeneratedResourcesDir)
     resources.srcDir(onedmGeneratedResourcesDir)
+    resources.srcDir(playfyGeneratedResourcesDir)
 }
 
 tasks {
     named("processResources") {
-        dependsOn(buildMxPlayerExtensionMpe, buildOnedmExtensionMpe)
+        dependsOn(buildMxPlayerExtensionMpe, buildOnedmExtensionMpe, buildPlayfyExtensionMpe)
     }
 
     matching { it.name == "sourcesJar" }.configureEach {
-        dependsOn(buildMxPlayerExtensionMpe, buildOnedmExtensionMpe)
+        dependsOn(buildMxPlayerExtensionMpe, buildOnedmExtensionMpe, buildPlayfyExtensionMpe)
     }
 
     register<JavaExec>("generatePatchesList") {

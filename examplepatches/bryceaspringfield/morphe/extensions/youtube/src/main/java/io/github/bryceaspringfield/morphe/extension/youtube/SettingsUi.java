@@ -53,12 +53,12 @@ public final class SettingsUi {
             PreferenceScreen root = fragment.getPreferenceScreen();
             if (root == null || root.findPreference("yx_channel_filters") != null) return;
             Context ctx = fragment.getContext();
-            PreferenceGroup feed = screenOf(root, "morphe_settings_screen_03_feed");
-            PreferenceGroup player = screenOf(root, "morphe_settings_screen_05_player");
-            PreferenceGroup video = screenOf(root, "morphe_settings_screen_12_video");
-            PreferenceGroup dearrow = screenOf(root, "morphe_settings_screen_02_dearrow");
-            PreferenceGroup ryd = screenOf(root, "morphe_settings_screen_09_return_youtube_dislike");
-            PreferenceGroup misc = screenOf(root, "morphe_settings_screen_11_misc");
+            PreferenceGroup feed = screenOf(root, "feed");
+            PreferenceGroup player = category(ctx, screenOf(root, "player"), "cat_extras");
+            PreferenceGroup video = category(ctx, screenOf(root, "video"), "cat_extras");
+            PreferenceGroup dearrow = category(ctx, screenOf(root, "dearrow"), "cat_extras");
+            PreferenceGroup ryd = category(ctx, screenOf(root, "return_youtube_dislike"), "cat_extras");
+            PreferenceGroup misc = category(ctx, screenOf(root, "misc"), "cat_extras");
 
             PreferenceCategory filters = category(ctx, feed, "cat_filters");
             Preference channels = new Preference(ctx);
@@ -186,31 +186,32 @@ public final class SettingsUi {
     }
 
     /**
-     * Morphe's own screen, found at any depth by the start of its key. Morphe adds a suffix to each screen's key by how
-     * its patch sorts the screen (_sort_by_title, _sort_by_key, or _sort_by_unsorted), and the suffix differs with the
-     * patch options and the Morphe version, so an exact key left the Player options loose on the main screen (seen
-     * 2026-11-15). The root screen is the last resort.
+     * Morphe's own screen, found at any depth by its name. A screen's key is morphe_settings_screen_NN_name plus a
+     * suffix for how its patch sorts the screen (_sort_by_title, _sort_by_key, or _sort_by_unsorted). The number
+     * belongs to the key and differs from the number in the screen's title string (the player's key is 06_player,
+     * its title 05_player_title), so a key built from the title's number matched nothing and left the Player,
+     * Return YouTube Dislike, and Miscellaneous rows loose at the end of the main screen (0.3.10). The name alone is
+     * matched, whatever the number. The root screen is the last resort.
      */
-    private static PreferenceGroup screenOf(PreferenceScreen root, String prefix) {
-        PreferenceGroup g = find(root, prefix);
+    private static PreferenceGroup screenOf(PreferenceScreen root, String name) {
+        PreferenceGroup g = find(root, java.util.regex.Pattern.compile("morphe_settings_screen_\\d+_" + name + "(_sort_.*)?"));
         if (g != null) return g;
-        Logger.printDebug(() -> "YouTube Extras: Morphe screen " + prefix + " not found, using the root");
+        Logger.printException(() -> "YouTube Extras: Morphe screen " + name + " not found, using the root");
         return root;
     }
 
-    private static PreferenceGroup find(PreferenceGroup group, String prefix) {
+    private static PreferenceGroup find(PreferenceGroup group, java.util.regex.Pattern key) {
         for (int i = 0; i < group.getPreferenceCount(); i++) {
             Preference p = group.getPreference(i);
             if (p instanceof PreferenceGroup g) {
-                if (g.getKey() != null && g.getKey().startsWith(prefix)) return g;
-                PreferenceGroup inner = find(g, prefix);
+                if (g.getKey() != null && key.matcher(g.getKey()).matches()) return g;
+                PreferenceGroup inner = find(g, key);
                 if (inner != null) return inner;
             }
         }
         return null;
     }
 
-    /** "3 channels: Name, @handle, ..." or the editor's description when there are none. */
     private static String channelSummary() {
         java.util.List<ChannelFilterUi.Entry> entries = ChannelFilterUi.read(XSettings.CHANNEL_RULES.get(), new java.util.ArrayList<>());
         if (entries.isEmpty()) return Strings.get("cf_summary_none");

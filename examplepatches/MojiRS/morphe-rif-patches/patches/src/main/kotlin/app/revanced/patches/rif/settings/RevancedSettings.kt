@@ -12,8 +12,16 @@ import org.w3c.dom.Element
 
 private const val REVANCED_PREFS = "res/xml/revanced_preferences.xml"
 
+// Name of our settings entry and the title bar of the screen it opens.
+private const val SETTINGS_TITLE = "rif patches"
+
+private const val SETTINGS_FRAGMENT = "app.revanced.extension.rif.RevancedSettingsFragment"
+
+// Key of Patcheddit's settings entry in rif's root settings.
+private const val PATCHEDDIT_ENTRY_KEY = "morphe_settings_entry"
+
 /**
- * Shared framework patch: creates an empty "ReVanced" preference screen and adds
+ * Shared framework patch: creates an empty "rif patches" preference screen and adds
  * a top-of-list entry that opens it. Feature patches depend on this and add their
  * own [PreferenceCategory][addRevancedPreferenceCategory] to the screen.
  *
@@ -26,20 +34,37 @@ val revancedSettingsResourcePatch = resourcePatch(
     compatibleWith(*RIF_COMPATIBILITY)
 
     execute {
-        // Create the (initially empty) ReVanced preference screen.
+        // Create the (initially empty) preference screen. rif's base fragment shows the
+        // screen's android:title in the title bar, falling back to "rif is fun" without one.
         get(REVANCED_PREFS, false).writeText(
             """<?xml version="1.0" encoding="utf-8"?>
-<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto" />
+<PreferenceScreen android:title="$SETTINGS_TITLE" xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto" />
 """,
         )
 
-        // Add a "ReVanced" entry at the very top of the root settings list.
+        // Add our entry at the very top of the root settings list.
         document("res/xml/root_preferences.xml").use { doc ->
             val screen = doc.documentElement
             val entry = doc.createElement("Preference")
-            entry.setAttribute("android:fragment", "app.revanced.extension.rif.RevancedSettingsFragment")
-            entry.setAttribute("app:title", "rif patches")
+            entry.setAttribute("android:fragment", SETTINGS_FRAGMENT)
+            entry.setAttribute("app:title", SETTINGS_TITLE)
             screen.insertBefore(entry, screen.firstChild)
+        }
+    }
+
+    // Patcheddit adds its own styled entry near the top. Put ours just below it. Patch
+    // order across bundles isn't guaranteed, so this runs in finalize, after every execute.
+    finalize {
+        document("res/xml/root_preferences.xml").use { doc ->
+            val prefs = doc.getElementsByTagName("*")
+            val all = (0 until prefs.length).map { prefs.item(it) as Element }
+            val ours = all.firstOrNull { it.getAttribute("android:fragment") == SETTINGS_FRAGMENT }
+            val theirs = all.firstOrNull {
+                it.getAttribute("android:key") == PATCHEDDIT_ENTRY_KEY || it.getAttribute("app:key") == PATCHEDDIT_ENTRY_KEY
+            }
+            if (ours != null && theirs != null) {
+                theirs.parentNode.insertBefore(ours, theirs.nextSibling)
+            }
         }
     }
 }
@@ -77,7 +102,7 @@ val revancedSettingsPatch = bytecodePatch(
 
 /**
  * Appends a titled `<PreferenceCategory>` (a subheader + its preferences) to the
- * shared ReVanced settings screen. Call from a feature patch's resource patch
+ * shared rif patches settings screen. Call from a feature patch's resource patch
  * that depends on [revancedSettingsResourcePatch].
  */
 internal fun ResourcePatchContext.addRevancedPreferenceCategory(

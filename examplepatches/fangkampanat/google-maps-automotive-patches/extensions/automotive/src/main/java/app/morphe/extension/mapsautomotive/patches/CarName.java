@@ -1,7 +1,6 @@
 package app.morphe.extension.mapsautomotive.patches;
 
 import android.app.Activity;
-import android.app.AlertDialog;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.text.InputFilter;
@@ -200,7 +199,7 @@ public final class CarName {
 
     /** Injection point: the row title. */
     public static String getSettingsTitle(Context context) {
-        return "Send to car";
+        return UiDensityPatch.isThai(context) ? "ส่งไปยังรถ" : "Send to car";
     }
 
     /** The name editor's title. */
@@ -212,8 +211,8 @@ public final class CarName {
     public static String getSettingsSummary(Context context) {
         boolean thai = UiDensityPatch.isThai(context);
         if (!SafeMode.on(context, SafeMode.SEND_TO_CAR)) {
-            return (thai ? "ใช้ชื่อของ Maps ชั่วคราว · สวิตช์ใน " : "Maps' name for now · switch in ")
-                    + ReportPatch.reportPlace(context, thai);
+            return (thai ? "ใช้ชื่อของ Maps ชั่วคราว (เปิดคืนใน " : "Maps' name for now (back on in ")
+                    + ReportPatch.reportPlace(context, thai) + ")";
         }
         String name = storedName(context);
         String shown = name != null ? name : mapsName(context) + (thai ? " (ชื่อของ Maps)" : " (Maps' name)");
@@ -240,7 +239,10 @@ public final class CarName {
         boolean thai = UiDensityPatch.isThai(host);
         String current = storedName(host);
 
-        EditText input = new EditText(host);
+        M3.Builder builder = new M3.Builder(host);
+        // An outlined M3 field in the dialog's colors.
+        EditText input = new EditText(builder.getContext());
+        M3.field(input, builder.colors());
         input.setSingleLine(true);
         input.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_CAP_WORDS);
         input.setImeOptions(EditorInfo.IME_ACTION_DONE);
@@ -250,13 +252,12 @@ public final class CarName {
             input.setText(current);
             input.setSelection(input.getText().length());
         }
-        FrameLayout frame = new FrameLayout(host);
+        FrameLayout frame = new FrameLayout(builder.getContext());
         int padding = Math.round(24 * host.getResources().getDisplayMetrics().density);
-        frame.setPadding(padding, 0, padding, 0);
+        frame.setPadding(padding, Math.round(8 * host.getResources().getDisplayMetrics().density), padding, 0);
         frame.addView(input);
 
-        AlertDialog.Builder builder = new AlertDialog.Builder(host)
-                .setTitle(editorTitle(host))
+        builder.setTitle(editorTitle(host))
                 .setMessage(thai
                         ? "Google Maps ในมือถือแสดงชื่อนี้สำหรับรถคันนี้ ในหน้าเส้นทางและในส่งไปที่รถยนต์ ชื่อนี้เก็บในบัญชี"
                         + " Google ของคุณ จึงไม่ควรใส่ชื่อคนหรือเลขทะเบียนรถ เว้นว่างไว้เพื่อใช้ชื่อของ Maps"
@@ -269,14 +270,14 @@ public final class CarName {
         if (current != null) {
             builder.setNeutralButton(thai ? "ใช้ชื่อของ Maps" : "Use Maps' name", (dialog, which) -> save(host, null, current));
         }
-        AlertDialog dialog = builder.create();
+        M3.Dialog dialog = builder.create();
         // Typed text is lost on an outside tap; Cancel and Back still close it.
         dialog.setCanceledOnTouchOutside(false);
         // The keyboard's Done (or Enter) saves, as the Save button does.
         input.setOnEditorActionListener((view, actionId, event) -> {
             boolean enter = event != null && event.getKeyCode() == KeyEvent.KEYCODE_ENTER && event.getAction() == KeyEvent.ACTION_DOWN;
             if (actionId != EditorInfo.IME_ACTION_DONE && !enter) return false;
-            dialog.getButton(AlertDialog.BUTTON_POSITIVE).performClick();
+            dialog.getButton(M3.Dialog.BUTTON_POSITIVE).performClick();
             return true;
         });
         dialog.show();
@@ -307,7 +308,7 @@ public final class CarName {
             // Maps' own name is what goes up while Send to car is off anyway.
             toast(activity, thai ? "บันทึกแล้ว" : "Saved.");
         } else {
-            new AlertDialog.Builder(activity)
+            new M3.Builder(activity)
                     .setTitle(editorTitle(activity))
                     .setMessage(thai
                             ? "บันทึกแล้ว จะใช้ชื่อนี้เมื่อเปิด Send to car อีกครั้งใน " + ReportPatch.reportPlace(activity, true)
@@ -322,7 +323,7 @@ public final class CarName {
     private static void confirmRestart(Activity activity) {
         boolean thai = UiDensityPatch.isThai(activity);
         String later = thai ? "บันทึกแล้ว จะส่งชื่อตอนเปิดแอปครั้งถัดไป" : "Saved. The name is sent at the next start.";
-        new AlertDialog.Builder(activity)
+        new M3.Builder(activity)
                 .setTitle(editorTitle(activity))
                 .setMessage(thai
                         ? "บันทึกแล้ว แอปส่งชื่อขึ้นบัญชี Google ราว 20 วินาทีหลังเริ่ม เริ่มใหม่ตอนนี้เลยไหม"

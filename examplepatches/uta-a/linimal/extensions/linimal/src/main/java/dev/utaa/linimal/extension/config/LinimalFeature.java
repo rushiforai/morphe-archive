@@ -56,6 +56,8 @@ public enum LinimalFeature {
     PREVIEW_SCROLL("linimal.preview-scroll"),
     PREVIEW_DISABLE("linimal.preview-disable"),
     AMOLED_THEME("linimal.amoled-theme"),
+    OFFICIAL_FONTS("linimal.official-fonts"),
+    CUSTOM_FONT("linimal.custom-font"),
     READ_WITHOUT_RECEIPT("linimal.read-without-receipt"),
     NOTIFICATION_READ_WITHOUT_RECEIPT("linimal.chat.notification-read-without-receipt"),
     READ_RECEIPT_READERS_ICONS("linimal.read-receipt-readers-icons"),

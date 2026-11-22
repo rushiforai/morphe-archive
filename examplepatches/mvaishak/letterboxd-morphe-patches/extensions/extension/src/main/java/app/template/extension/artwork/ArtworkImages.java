@@ -16,10 +16,21 @@ public final class ArtworkImages {
     }
 
     public static void load(ImageView view, String url, Result result) {
+        load(view, url, 0, 0, result);
+    }
+
+    public static void loadBackdropThumbnail(ImageView view, String url) {
+        load(view, TmdbClient.sized(url, "w300"), null);
+    }
+
+    static void load(ImageView view, String url, int width, int height, Result result) {
         view.setImageDrawable(null);
         try {
             Object manager = manager(view);
             Object request = manager.getClass().getMethod("load", String.class).invoke(manager, url);
+            if (width > 0 && height > 0) {
+                request.getClass().getMethod("override", int.class, int.class).invoke(request, width, height);
+            }
             feedback(request, result);
             request.getClass().getMethod("into", ImageView.class).invoke(request, view);
         } catch (ReflectiveOperationException e) {

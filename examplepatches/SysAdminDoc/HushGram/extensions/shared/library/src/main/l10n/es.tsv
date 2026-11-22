@@ -1,5 +1,6 @@
 # Spanish for HushGram: the English key, a tab, the translation. One row per string.
 # After editing, run python scripts/gen-l10n.py from the repository root.
+%1$d hidden in the last 24 hours, %2$d in all	%1$d ocultos en las últimas 24 horas, %2$d en total
 %1$d of them because storage is low.	%1$d de ellos porque queda poco almacenamiento.
 %1$s of %2$s	%1$s de %2$s
 %1$s so far	%1$s hasta ahora
@@ -7,9 +8,12 @@
 %1$s. They were set when you patched, so Pause can't turn them off. To rule one out, patch again and leave out the patch in brackets after it.	%1$s. Estos cambios se aplicaron al parchear, así que Pausar no puede desactivarlos. Para descartar uno, vuelve a parchear sin el parche que aparece entre paréntesis después de él.
 A diagnostic report is already being saved.	Ya se está guardando un informe de diagnóstico.
 A file named %1$s in %2$s paused HushGram.	Un archivo llamado %1$s en %2$s pausó HushGram.
+A reel someone shares in a chat stays closed when you tap it. Photos, videos and shared posts still open.	Un reel que alguien comparte en un chat no se abre al tocarlo. Las fotos, los videos y las publicaciones compartidas se siguen abriendo.
 About	Acerca de
 Add the source to saved photos and videos	Añadir el origen a las fotos y vídeos guardados
+Adds Copy text to the menu a story's three dots open. It copies the words Instagram found in the picture, and when it found none, Google Lens opens on the story so you can copy them there.	Añade Copiar texto al menú que abren los tres puntos de una historia. Copia las palabras que Instagram encontró en la imagen y, si no encontró ninguna, Google Lens se abre en la historia para que puedas copiarlas allí.
 Ads and privacy	Anuncios y privacidad
+Also in comments	También en los comentarios
 Asks Android to run Instagram at your screen's fastest refresh rate, at the same resolution. Some phones keep their own limit for apps, and battery saver can still lower it.	Pide a Android que ejecute Instagram a la tasa de refresco más alta de tu pantalla, con la misma resolución. Algunos teléfonos ponen su propio límite a las apps, y el ahorro de batería aún puede bajarla.
 Back	Atrás
 Before you sign in	Antes de iniciar sesión
@@ -20,6 +24,7 @@ Clear diagnostic data	Borrar datos de diagnóstico
 Copy a quick report or save the full one to %1$s. Links, IDs, cookies and sign-in details are left out. Check it for other private text before you share it.	Copia un informe rápido o guarda el completo en %1$s. Se omiten enlaces, ID, cookies y datos de inicio de sesión. Revisa si hay otro texto privado antes de compartirlo.
 Copy a short report to the clipboard.	Copia un informe breve en el portapapeles.
 Copy quick report	Copiar informe rápido
+Copy text in the story menu	Copiar texto en el menú de la historia
 Copying to the gallery	Copiando a la galería
 Couldn't find this chat's messages.	No se hallan los mensajes.
 Couldn't put back the diagnostic data. Try again.	No se restauraron los datos de diagnóstico. Reinténtalo.
@@ -30,15 +35,20 @@ Debug logging	Registro de depuración
 Diagnostic data cleared. Tap again to put it back.	Diagnóstico borrado. Toca de nuevo para restaurarlo.
 Diagnostic data put back.	Se restauraron los datos de diagnóstico.
 Diagnostic report copied to the clipboard.	Informe de diagnóstico copiado en el portapapeles.
+Don't open reels from chats	No abrir reels de los chats
 Download failed	No se pudo descargar
 Downloading	Descargando
+Draws the Reels icon on the tab bar a bit bigger, so it looks as big as the icons beside it. Tab icon size still sizes every icon on top of that.	Dibuja el icono de Reels de la barra de pestañas un poco más grande, para que se vea tan grande como los iconos de al lado. Tamaño de los iconos de pestañas sigue cambiando todos los iconos además de eso.
 Empties the activity log and any kept crash that a diagnostic report would include.	Vacía el registro de actividad y cualquier fallo guardado que incluiría un informe de diagnóstico.
 Every switch but Debug logging acts as if it were off, and what was set when you patched stays in. Your settings stay as they are.	Todos los interruptores, salvo el Registro de depuración, funcionan como si estuvieran desactivados, y lo que se aplicó al parchear se mantiene. Tu configuración no cambia.
 Export a chat as text	Exportar un chat como texto
 Export chat	Exportar chat
 Export diagnostic report	Exportar informe de diagnóstico
 From the next start, every switch but Debug logging acts as if it were off. Changes made when you patched stay in, and your choices stay saved.	Desde el próximo inicio, todos los interruptores, salvo el Registro de depuración, funcionan como si estuvieran desactivados. Lo que se aplicó al parchear se mantiene, y tus preferencias quedan guardadas.
+Full-size Reels icon	Icono de Reels a tamaño completo
 Here it is.	Aquí está.
+Hides comments that hold a word or phrase from the list too, and comments by an account the list names with @. A hidden comment's replies go with it.	Oculta también los comentarios que contienen una palabra o frase de la lista, y los comentarios de las cuentas que la lista nombra con @. Las respuestas de un comentario oculto se van con él.
+Instagram settings page	Página de ajustes de Instagram
 Jump to a date	Ir a una fecha
 Jump to the first message	Ir al primer mensaje
 Jump to the first message or a date	Ir al primer mensaje o a una fecha
@@ -48,13 +58,18 @@ Loading older messages. %1$d messages so far.	Cargando mensajes anteriores. %1$d
 Lock these settings	Bloquear estos ajustes
 Mark a chat seen when you reply	Marcar un chat como visto al responder
 Mark a chat seen when you react	Marcar un chat como visto al reaccionar
+Plain rows, switches and colors like Instagram's own settings, dark or light as Instagram is. Takes the place of Black and Light settings page while it's on.	Filas, interruptores y colores sencillos como los de los propios ajustes de Instagram, oscuros o claros según Instagram. Sustituye a Página de ajustes negra y Página de ajustes clara mientras está activada.
 Reacting to a message in a chat lets the other person see that you've read up to that message. What they sent after it stays unseen to them.	Al reaccionar a un mensaje en un chat, la otra persona ve que leíste hasta ese mensaje. Lo que te mandó después sigue sin verse para ella.
 No messages found to save.	No hay mensajes que guardar.
 Pick a wait from 1 to 72 hours. Locked, nothing here changes until you ask to unlock and the wait is over.	Elige una espera de 1 a 72 horas. Con el bloqueo, aquí no cambia nada hasta que pidas desbloquear y termine la espera.
 Ask to unlock	Pedir desbloqueo
+Reels from chats are off	Reels de chats desactivados
+Reels on Home below the name	Reels en Inicio debajo del nombre
 Saved to %1$s in lower quality because storage is low	Se guardó en %1$s con menos calidad porque queda poco almacenamiento
 Saved to the gallery in lower quality because storage is low	Se guardó en la galería con menos calidad porque queda poco almacenamiento
 Sending a message in a chat lets the other person see that you've read what they sent before it. Chats you don't answer stay unseen to them.	Al enviar un mensaje en un chat, la otra persona ve que leíste lo que te mandó antes. Los chats que no respondes siguen sin verse para ella.
+Shows reels on Home like other posts, with the name and the three-dot menu above the video instead of on top of it. Posts already on screen change when they load again.	Muestra los reels en Inicio como las demás publicaciones, con el nombre y el menú de tres puntos encima del video en lugar de sobre él. Las publicaciones que ya están en pantalla cambian cuando se vuelven a cargar.
+Shows the time played and the story's length at the start of its seek bar, like 0:03 / 0:15. Tap the time to see the time left instead.	Muestra el tiempo reproducido y la duración de la historia al inicio de su barra de reproducción, como 0:03 / 0:15. Toca el tiempo para ver lo que queda.
 That's as far back as this chat goes.	El chat no llega más atrás.
 These settings are locked. Tap to start the %1$s wait, then they open for 10 minutes.	Estos ajustes están bloqueados. Toca para empezar la espera de %1$s y luego se abren durante 10 minutos.
 Unlock asked	Desbloqueo pedido
@@ -148,6 +163,8 @@ Writes the account that posted, the post date and a link to the post into a save
 You	Tú
 You paused HushGram.	Pausaste HushGram.
 the re-signed build fix	el arreglo para la nueva firma
+# context: Pause page, the list of fixes that stay on while HushGram is paused; this one keeps Instagram from closing on phones without Google Play services
+the Play services crash fix	el arreglo del cierre sin servicios de Google Play
 Don't send reel watch history	No enviar el historial de reels vistos
 Stops telling Instagram which reels you watched or how far you got. Instagram uses that to pick your Reels. Watched reels may come back.	Instagram deja de saber qué reels viste y hasta dónde llegaste. Instagram lo usa para elegir tus Reels. Los reels que ya viste pueden volver.
 Reels	Reels
@@ -1430,7 +1447,7 @@ Also on Home	También en Inicio
 Leaves out posts on Home whose caption holds a word or phrase from the list too. Pull down on Home to refresh after changing it.	Quita también de Inicio las publicaciones cuyo texto contiene una palabra o frase de la lista. Desliza Inicio hacia abajo para actualizar después de cambiarlo.
 Leaves out reels in the Reels tab whose caption holds a word or phrase from the list below. A reel you open yourself still plays.	Quita de la pestaña Reels los reels cuyo texto contiene una palabra o frase de la lista de abajo. Un reel que abras tú sigue reproduciéndose.
 Blocked words	Palabras bloqueadas
-Words or phrases, with a comma or a new line between them. Capital letters don't matter, and a hashtag works too.	Palabras o frases, separadas por una coma o un salto de línea. Las mayúsculas no importan, y un hashtag también sirve.
+Words or phrases, with a comma or a new line between them. Capital letters don't matter, a hashtag works too, and an @name hides that account's posts.	Palabras o frases, separadas por una coma o un salto de línea. Las mayúsculas no importan, un hashtag también sirve, y un @nombre oculta las publicaciones de esa cuenta.
 No words yet	Aún no hay palabras
 %1$d word	%1$d palabra
 %1$d words	%1$d palabras
@@ -2160,6 +2177,9 @@ Takes the "Made with Edits" label out of the line under a post's author. The son
 # context: "Sponsored" and "Paid partnership" are Instagram's own labels on feed posts; use the text Instagram shows in this language (#771)
 Hide the line under names	Ocultar la línea bajo los nombres
 Takes the song, the place and the other labels off the line under the name on posts in your feed. Sponsored and Paid partnership stay. Posts already on screen change when they load again.	Quita la canción, el lugar y las demás etiquetas de la línea bajo el nombre en las publicaciones de tu feed. «Publicidad» y «Colaboración pagada» se quedan. Las publicaciones que ya están en pantalla cambian cuando se vuelven a cargar.
+# context: a switch under Hide the line under names in HushGram's Feed settings
+Keep the place	Mantener el lugar
+Leaves the place on the line under names, on its own, so it stays put instead of taking turns with the song.	Deja el lugar solo en la línea bajo el nombre, así se queda fijo en vez de turnarse con la canción.
 # context: "Sponsored" and "Paid partnership" are Instagram's own labels on reels; use the text Instagram shows in this language (#771)
 Hide the line under names on reels	Ocultar la línea bajo los nombres en reels
 Takes the song, the place and the other labels off the line under the name on reels. Sponsored and Paid partnership stay. Reels already on screen change when they load again.	Quita la canción, el lugar y las demás etiquetas de la línea bajo el nombre en los reels. «Publicidad» y «Colaboración pagada» se quedan. Los reels que ya están en pantalla cambian cuando se vuelven a cargar.
@@ -2233,6 +2253,8 @@ The camera, as Instagram has it. Pick a tab and the same swipe opens that tab in
 A swipe right on Home opens %1$s. The + button still opens the camera.	Deslizar a la derecha en Inicio abre %1$s. El botón + sigue abriendo la cámara.
 Keep the tab bar on a reel's profile	Mantener la barra de pestañas en el perfil de un reel
 A profile you open from a reel stays on the tab you're on, with the tab bar under it. Back goes back to the reel.	Un perfil que abres desde un reel se queda en la pestaña en la que estás, con la barra de pestañas debajo. Atrás te lleva de vuelta al reel.
+Keep the tab bar on reel links	Mantener la barra de pestañas en los enlaces de reels
+A reel link you open from another app plays on the tab you were on, with the tab bar under it. Back goes back to that tab.	Un enlace de reel que abres desde otra app se reproduce en la pestaña en la que estabas, con la barra de pestañas debajo. Atrás te lleva de vuelta a esa pestaña.
 Mute button on reels	Botón de silencio en los reels
 Puts a speaker icon beside a reel. Tap it to turn the sound off or on while the reel keeps playing.	Pone un icono de altavoz junto a un reel. Tócalo para quitar o poner el sonido mientras el reel sigue reproduciéndose.
 Mute button in clear mode	Botón de silencio en el modo limpio
@@ -2534,6 +2556,14 @@ Left off the three-dot menus: %1$s.	Quitado de los menús de tres puntos: %1$s.
 Keep 2x after you let go	Mantener 2x al soltar
 # context: Summary of Keep 2x after you let go, a switch under Hold for 2x on feed videos (#552)
 A feed video you hold for 2x keeps playing at 2x after you let go. Hold it again to go back to normal speed.	Un video del feed que mantienes presionado para 2x sigue a 2x cuando lo sueltas. Mantenlo presionado otra vez para volver a la velocidad normal.
+# context: Feed settings: a switch under Keep 2x after you let go that keeps 2x only after a hold of about 3 seconds (#552)
+Only after a long hold	Solo tras una pulsación larga
+# context: Summary of Only after a long hold, a switch under Keep 2x after you let go (#552)
+Keeps 2x only when you hold the video for about 3 seconds. Let go sooner and it goes back to normal speed.	Mantiene 2x solo si mantienes pulsado el video unos 3 segundos. Si sueltas antes, vuelve a la velocidad normal.
+# context: Feed settings: a switch under Hold for 2x on feed videos that keeps the poster's name over the video while it's held at 2x (#552)
+Keep the name while you hold	Mantener el nombre al pulsar
+# context: Summary of Keep the name while you hold, a switch under Hold for 2x on feed videos (#552)
+The name over a feed video stays while you hold it for 2x. Instagram's 2x and time labels don't show then.	El nombre sobre un video del feed se queda mientras lo mantienes pulsado para 2x. Las etiquetas de 2x y de tiempo de Instagram no aparecen.
 # context: Stories settings: title and dialog title of the list under Story ring size that picks how thick story rings are drawn (#528)
 Ring thickness	Grosor de los aros
 # context: Stories settings: the Ring thickness choice that keeps the thickness Instagram gives story rings (#528)

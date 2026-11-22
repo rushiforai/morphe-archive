@@ -185,6 +185,15 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting SETTINGS_LIGHT_LOOK =
             new BooleanSetting("hushgram_settings_light_look", FALSE);
 
+    /**
+     * Instagram's own look for HushGram's page (#797): flat rows, plain section names and
+     * Instagram's switch, in its colours, dark or light as Instagram is. It takes the place of the
+     * black and light looks while it's on. Off to start. A settings-page choice, read saved even
+     * during Pause.
+     */
+    public static final BooleanSetting SETTINGS_INSTAGRAM_LOOK =
+            new BooleanSetting("hushgram_settings_instagram_look", FALSE);
+
     /** A settings-page choice, read saved even during Pause. Existing backup names stay the default. */
     public static final BooleanSetting DATE_SETTINGS_EXPORT =
             new BooleanSetting("hushgram_date_settings_export", FALSE);
@@ -538,6 +547,24 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting HOLD_FEED_VIDEO_KEEP =
             new BooleanSetting("hushgram_hold_feed_video_keep", FALSE, parent(HOLD_FEED_VIDEO_FAST));
+
+    /**
+     * With {@link #HOLD_FEED_VIDEO_KEEP} on, only a hold of about 3 seconds keeps 2x, and a shorter one
+     * goes back to normal speed when the finger lifts
+     * ({@link app.hushgram.extension.instagram.feed.FeedHoldSpeed#LONG_HOLD_MS}). Read on every lift,
+     * so it needs no restart. Off to start (#552).
+     */
+    public static final BooleanSetting HOLD_FEED_VIDEO_KEEP_LONG =
+            new BooleanSetting("hushgram_hold_feed_video_keep_long", FALSE, parent(HOLD_FEED_VIDEO_KEEP));
+
+    /**
+     * A feed video held for 2x under {@link #HOLD_FEED_VIDEO_FAST} keeps its look: the name over it
+     * stays, and Instagram's 2x and time labels don't come up
+     * ({@link app.hushgram.extension.instagram.feed.FeedHoldSpeed#keepsLook}). Read on every press, so
+     * it needs no restart. Off to start (#552).
+     */
+    public static final BooleanSetting HOLD_FEED_VIDEO_KEEP_NAME =
+            new BooleanSetting("hushgram_hold_feed_video_keep_name", FALSE, parent(HOLD_FEED_VIDEO_FAST));
 
     /**
      * A seek bar along the bottom of the video playing in a feed, which moves the video to where a
@@ -1088,6 +1115,12 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushgram_messages_after_chat_reels", FALSE, parent(SWIPE_CHAT_REELS));
 
     /**
+     * A reel shared in a chat stays closed when it's tapped, while photos, videos and shared posts still
+     * open ({@link app.hushgram.extension.instagram.direct.ChatReels#mayOpen(Object)}, #810). Off to start.
+     */
+    public static final BooleanSetting BLOCK_CHAT_REELS = new BooleanSetting("hushgram_block_chat_reels", FALSE);
+
+    /**
      * A photo or video opened from a chat pages up and down through the chat's other photos, videos and
      * shared posts, in chat order ({@link app.hushgram.extension.instagram.direct.ChatMediaWalk}, #350).
      * Off to start.
@@ -1632,6 +1665,20 @@ public class Settings extends BaseSettings {
      */
     public static final EnumSetting<StorySeekBarPosition> STORY_SEEK_BAR_POSITION =
             new EnumSetting<>("hushgram_story_seek_bar_position", StorySeekBarPosition.ABOVE, parent(STORY_SEEK_BAR));
+
+    /**
+     * The time played and the story's length at the start of {@link #STORY_SEEK_BAR}'s bar, "0:03 / 0:15"
+     * (#784, {@link app.hushgram.extension.instagram.stories.StorySeekBar}). Read as the bar updates. Off to start.
+     */
+    public static final BooleanSetting STORY_SEEK_TIME =
+            new BooleanSetting("hushgram_story_seek_bar_time", FALSE, parent(STORY_SEEK_BAR));
+
+    /**
+     * The time on the story seek bar counts down what's left, "-0:12 / 0:15" (#784). A tap on the time
+     * flips it. Off to start.
+     */
+    public static final BooleanSetting STORY_SEEK_TIME_LEFT =
+            new BooleanSetting("hushgram_story_seek_bar_time_left", FALSE, parent(STORY_SEEK_TIME));
 
     /**
      * A speed button in a video story's header that plays it at 1x, 1.5x or 2x, kept for the next
@@ -2989,6 +3036,15 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushgram_hide_caption_word_home", FALSE, parent(HIDE_CAPTION_WORD_REELS));
 
     /**
+     * {@link #REELS_BLOCKED_WORDS} in a post's comments too (#807): a comment whose words hold one,
+     * or whose author the list names with an @name, gets no row, and its replies go with it
+     * ({@link app.hushgram.extension.instagram.reels.CaptionWordReels#dropsComment}). Waits for
+     * {@link #HIDE_CAPTION_WORD_REELS}, and is off to start.
+     */
+    public static final BooleanSetting HIDE_CAPTION_WORD_COMMENTS =
+            new BooleanSetting("hushgram_hide_caption_word_comments", FALSE, parent(HIDE_CAPTION_WORD_REELS));
+
+    /**
      * Reels whose caption is in a language not listed in {@link #REELS_KEPT_LANGUAGES}
      * ({@link app.hushgram.extension.instagram.reels.CaptionLanguage}). Read as each page of reels
      * arrives. Off to start (#495).
@@ -3300,12 +3356,48 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushgram_hide_feed_header_line", FALSE);
 
     /**
+     * With Hide the line under names on, the place stays on that line, alone, so it stays put instead
+     * of taking turns with the song and the labels (#771). Read as each post's header is built, so it
+     * needs no restart. Off to start.
+     */
+    public static final BooleanSetting KEEP_FEED_HEADER_PLACE =
+            new BooleanSetting("hushgram_keep_feed_header_place", FALSE, parent(HIDE_FEED_HEADER_LINE));
+
+    /**
      * The line under a reel's author: the song, the place and the other labels taking turns there
      * (#771, {@link app.hushgram.extension.instagram.feed.HeaderLine#reelLine}). Sponsored and Paid
      * partnership stay. Read as each reel's author row is built, so it needs no restart. Off to start.
      */
     public static final BooleanSetting HIDE_REEL_HEADER_LINE =
             new BooleanSetting("hushgram_hide_reel_header_line", FALSE);
+
+    /**
+     * Reels on Home laid out like other posts, the name and the three-dot menu above the video
+     * instead of on top of it (#788, {@link app.hushgram.extension.instagram.feed.HomeReelHeader}).
+     * Read as each row of Home is laid out, so it needs no restart. Off to start.
+     */
+    public static final BooleanSetting HOME_REELS_BELOW_NAME =
+            new BooleanSetting("hushgram_home_reels_below_name", FALSE);
+
+    /**
+     * How many reels, Home posts and comments Blocked words has hidden in all (#807,
+     * {@link app.hushgram.extension.instagram.reels.CaptionWordStats}). Kept out of exported
+     * configurations.
+     */
+    public static final LongSetting CAPTION_WORD_HIDDEN_TOTAL =
+            new LongSetting("hushgram_caption_word_hidden_total", 0L, false, false);
+
+    /**
+     * The last 24 hours of {@link #CAPTION_WORD_HIDDEN_TOTAL}, a count per hour as "hour:count" pairs
+     * between commas (#807). Kept out of exported configurations.
+     */
+    public static final StringSetting CAPTION_WORD_HIDDEN_HOURS =
+            new StringSetting("hushgram_caption_word_hidden_hours", "", false, false);
+
+    static {
+        // The counts are a record, not a switch: Pause HushGram still shows them as they were.
+        Setting.keepWhenPaused(CAPTION_WORD_HIDDEN_TOTAL, CAPTION_WORD_HIDDEN_HOURS);
+    }
 
     /**
      * A Save row in a feed post's menu, or Remove from saved on a saved post (#569,
@@ -4046,6 +4138,14 @@ public class Settings extends BaseSettings {
             new EnumSetting<>("hushgram_tab_icon_size", app.hushgram.extension.instagram.misc.TabIconSize.INSTAGRAM);
 
     /**
+     * Draws the Reels tab's icon a bit bigger than Instagram does ({@link app.hushgram.extension.instagram.misc.TabIcons},
+     * #793), since its narrow glyph looks smaller than the icons beside it. Tab icon size scales it on top.
+     * It takes effect on the next frame. Starts off.
+     */
+    public static final BooleanSetting FULL_SIZE_REELS_ICON =
+            new BooleanSetting("hushgram_full_size_reels_icon", FALSE);
+
+    /**
      * The speed locked with Instagram's own 2x lock on a reel stays for the next reels, until the
      * lock is slid off, a hold at the edge is let go of, or Instagram restarts.
      */
@@ -4265,6 +4365,14 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushgram_reel_profile_tab_bar", FALSE);
 
     /**
+     * A reel link opened from another app plays on the tab you were on, with the tab bar under it
+     * (#385, {@link app.hushgram.extension.instagram.reels.ReelLinkTabBar}). Read at each link, so
+     * it needs no restart. Off to start.
+     */
+    public static final BooleanSetting REEL_LINK_TAB_BAR =
+            new BooleanSetting("hushgram_reel_link_tab_bar", FALSE);
+
+    /**
      * After {@link #REEL_CAP_COUNT} reels in a session, swiping in Reels stops until Instagram has been
      * in the background for {@link #REEL_CAP_BREAK} minutes
      * ({@link app.hushgram.extension.instagram.reels.ReelScrolling}). Read at each new reel. Off to start.
@@ -4370,6 +4478,15 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting TEXT_BUTTON_ON_STORIES =
             new BooleanSetting("hushgram_text_button_on_stories", FALSE);
+
+    /**
+     * Copy text in the menu a story's three dots open (#789,
+     * {@link app.hushgram.extension.instagram.stories.StoryCopyText}): it copies the words Instagram
+     * read in the story's picture, and opens Google Lens on the story when it read none. The row
+     * rides on Download any story's menu hooks. Off to start.
+     */
+    public static final BooleanSetting STORY_COPY_TEXT_IN_MENU =
+            new BooleanSetting("hushgram_story_copy_text_in_menu", FALSE);
 
     /**
      * The Mark as seen and Download buttons sit at the bottom right of a story, in the row with Like

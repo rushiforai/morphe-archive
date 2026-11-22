@@ -193,9 +193,10 @@ public final class EnhancedKeywordContentFilter extends EnhancedBufferPhraseFilt
     private static final int TEXT_CONTENT_FIELD_NUMBER = 1;
     private static final int RANGE_START_FIELD_NUMBER = 1;
     private static final int RANGE_LENGTH_FIELD_NUMBER = 2;
-    private static final int STYLE_RUNS_FIELD_NUMBER = 3;
-    private static final int COMMAND_RUNS_FIELD_NUMBER = 4;
-    private static final int ATTACHMENT_RUNS_FIELD_NUMBER = 5;
+    private static final int STYLE_RUNS_FIELD_NUMBER = 5;
+    private static final int COMMAND_RUNS_FIELD_NUMBER = 6;
+    private static final int ATTACHMENT_RUNS_FIELD_NUMBER = 7;
+    private static final int DECORATION_RUNS_FIELD_NUMBER = 8;
     private static final int INNERTUBE_COMMAND_FIELD_NUMBER = 169495254;
     private static final int BROWSE_ENDPOINT_FIELD_NUMBER = 48687626;
     private static final int LOCKUP_METADATA_VIEW_MODEL_FIELD_NUMBER = 8178;
@@ -1171,9 +1172,11 @@ public final class EnhancedKeywordContentFilter extends EnhancedBufferPhraseFilt
             if (fn == TEXT_CONTENT_FIELD_NUMBER) {
                 field1Count++;
                 if (field1Count > 1) return false;
-            } else if (fn == STYLE_RUNS_FIELD_NUMBER
+            } else if (fn == 3 || fn == 4
+                    || fn == STYLE_RUNS_FIELD_NUMBER
                     || fn == COMMAND_RUNS_FIELD_NUMBER
-                    || fn == ATTACHMENT_RUNS_FIELD_NUMBER) {
+                    || fn == ATTACHMENT_RUNS_FIELD_NUMBER
+                    || fn == DECORATION_RUNS_FIELD_NUMBER) {
                 hasStyleOrRunField = true;
             }
         }
@@ -1581,7 +1584,7 @@ public final class EnhancedKeywordContentFilter extends EnhancedBufferPhraseFilt
     private static final int SUBTITLE_READ_TIMEOUT_MS = 10_000;
     private static final String INNERTUBE_PLAYER_URL =
             "https://www.youtube.com/youtubei/v1/player?prettyPrint=false";
-    private static final int MAX_SUBTITLE_MATCH_ITEMS = 5;
+    private static final int MAX_SUBTITLE_MATCH_ITEMS = 10;
     private static final int MAX_TIMESTAMPS_PER_WORD = 3;
     private static final long MIN_TIMESTAMP_GAP_MS = 20_000L;
     private static final Pattern SUBTITLE_BRACKETS_PATTERN = Pattern.compile("\\[[^]]*]");
@@ -1657,9 +1660,18 @@ public final class EnhancedKeywordContentFilter extends EnhancedBufferPhraseFilt
         }
     }
 
+    private static String getSubtitleLanguageMode() {
+        String mode = KeywordFilterSettings.HIDE_KEYWORD_CONTENT_SUBTITLES_LANGUAGE.get();
+        if (mode == null || mode.isEmpty()) {
+            return "original";
+        }
+        return mode.trim().toLowerCase(Locale.ROOT);
+    }
+
     private static SubtitleScanState ensureSubtitleScanStarted(String videoId, int rulesVer,
                                                                List<KeywordRule> rules) {
-        String cacheKey = videoId + "|" + rulesVer;
+        String langMode = getSubtitleLanguageMode();
+        String cacheKey = videoId + "|" + rulesVer + "|" + langMode;
         synchronized (subtitleScanCache) {
             SubtitleScanState existing = subtitleScanCache.get(cacheKey);
             if (existing != null) {
@@ -1677,10 +1689,15 @@ public final class EnhancedKeywordContentFilter extends EnhancedBufferPhraseFilt
         try {
             List<SubtitleLine> lines = fetchSubtitleLines(videoId);
             if (!lines.isEmpty()) {
-                Map<String, SubtitleMatchItem> byWordKey = new LinkedHashMap<>();
-                Set<String> seenSnippets = new HashSet<>();
+                List<SubtitleMatchItem> itemList = new ArrayList<>();
+                Map<String, Integer> countByWord = new LinkedHashMap<>();
+                Map<String, Long> lastMsByWord = new LinkedHashMap<>();
+                Map<String, Set<String>> seenTsByWord = new LinkedHashMap<>();
 
                 for (int i = 0, size = lines.size(); i < size; i++) {
+                    if (itemList.size() >= MAX_SUBTITLE_MATCH_ITEMS) {
+                        break;
+                    }
                     SubtitleLine line = lines.get(i);
                     String text = line.text;
                     if (text.length() < 2) continue;
@@ -1691,41 +1708,35 @@ public final class EnhancedKeywordContentFilter extends EnhancedBufferPhraseFilt
                     String wordKey = matchedWord.toLowerCase(Locale.ROOT).trim();
                     if (wordKey.isEmpty()) continue;
 
-                    SubtitleMatchItem existing = byWordKey.get(wordKey);
-                    if (existing != null) {
-                        if (line.startMs - existing.lastTimestampMs >= MIN_TIMESTAMP_GAP_MS
-                                && existing.timestamps.size() < MAX_TIMESTAMPS_PER_WORD) {
-                            String ts = formatTimestamp(line.startMs);
-                            if (!existing.timestamps.contains(ts)) {
-                                existing.timestamps.add(ts);
-                                existing.timestampMsList.add(line.startMs);
-                                existing.lastTimestampMs = line.startMs;
-                            }
-                        }
+                    int wordCount = countByWord.getOrDefault(wordKey, 0);
+                    if (wordCount >= MAX_TIMESTAMPS_PER_WORD) {
+                        continue;
+                    }
+                    Long lastMs = lastMsByWord.get(wordKey);
+                    if (lastMs != null && line.startMs - lastMs < MIN_TIMESTAMP_GAP_MS) {
                         continue;
                     }
 
-                    if (byWordKey.size() >= MAX_SUBTITLE_MATCH_ITEMS) {
+                    String ts = formatTimestamp(line.startMs);
+                    Set<String> seenTs = seenTsByWord.computeIfAbsent(wordKey, k -> new HashSet<>());
+                    if (!seenTs.add(ts)) {
                         continue;
                     }
 
                     String snippet = buildCleanSubtitleSnippet(text, matchedWord, 42);
-                    String snippetKey = snippet.toLowerCase(Locale.ROOT);
-                    if (!seenSnippets.add(snippetKey)) {
-                        continue;
-                    }
-
-                    byWordKey.put(wordKey, new SubtitleMatchItem(
+                    itemList.add(new SubtitleMatchItem(
                             matchedWord,
                             snippet,
-                            formatTimestamp(line.startMs),
+                            ts,
                             line.startMs
                     ));
+                    countByWord.put(wordKey, wordCount + 1);
+                    lastMsByWord.put(wordKey, line.startMs);
                 }
 
-                if (!byWordKey.isEmpty()) {
-                    List<SubtitleMatchItem> itemList = new ArrayList<>(byWordKey.values());
-                    List<ChipSeekPoint> points = new ArrayList<>();
+                if (!itemList.isEmpty()) {
+                    itemList.sort((a, b) -> Long.compare(a.lastTimestampMs, b.lastTimestampMs));
+                    List<ChipSeekPoint> points = new ArrayList<>(itemList.size());
                     for (SubtitleMatchItem item : itemList) {
                         for (int k = 0; k < item.timestamps.size(); k++) {
                             points.add(new ChipSeekPoint(
@@ -2051,7 +2062,7 @@ public final class EnhancedKeywordContentFilter extends EnhancedBufferPhraseFilt
         if (videoId == null || videoId.isEmpty()) {
             return null;
         }
-        return subtitleScanCache.get(videoId + "|" + filter.currentRulesVersion);
+        return subtitleScanCache.get(videoId + "|" + filter.currentRulesVersion + "|" + getSubtitleLanguageMode());
     }
 
     /**
@@ -2290,8 +2301,6 @@ public final class EnhancedKeywordContentFilter extends EnhancedBufferPhraseFilt
         return best;
     }
 
-    private static final int DECORATION_RUNS_FIELD_NUMBER = 8;
-
     private static boolean prependTextAndShiftRuns(List<ProtoNode> textFields, ProtoNode content,
                                                    String prefix) {
         String originalText = content.decodeUtf8();
@@ -2307,83 +2316,129 @@ public final class EnhancedKeywordContentFilter extends EnhancedBufferPhraseFilt
             if (run == content || run.children == null) {
                 continue;
             }
-            int fn = run.getFieldNumber();
-            if (fn != STYLE_RUNS_FIELD_NUMBER
-                    && fn != COMMAND_RUNS_FIELD_NUMBER
-                    && fn != ATTACHMENT_RUNS_FIELD_NUMBER
-                    && fn != DECORATION_RUNS_FIELD_NUMBER) {
-                continue;
-            }
-            shiftRunRange(run.children, originalLength, prefixLength,
-                    fn == STYLE_RUNS_FIELD_NUMBER, fn == DECORATION_RUNS_FIELD_NUMBER);
+            shiftRunRange(run, originalLength, prefixLength);
         }
 
         content.setText(prefix + originalText);
         return true;
     }
 
-    private static void shiftRunRange(List<ProtoNode> runFields, int originalLength,
-                                      int prefixLength, boolean isStyleRun, boolean isDecorationRun) {
-        List<ProtoNode> rangeMessage = resolveRunRangeMessage(runFields, originalLength, isDecorationRun);
-        if (rangeMessage == null) {
+    private static void shiftRunRange(ProtoNode run, int originalLength, int prefixLength) {
+        ProtoNode rangeOwner = findRangeMessageOwner(run, originalLength);
+        if (rangeOwner == null || rangeOwner.children == null) {
             return;
         }
+        List<ProtoNode> rangeMessage = rangeOwner.children;
         ProtoNode startNode = ProtoNode.field(rangeMessage, RANGE_START_FIELD_NUMBER);
         ProtoNode lengthNode = ProtoNode.field(rangeMessage, RANGE_LENGTH_FIELD_NUMBER);
-        if (lengthNode == null || lengthNode.getVarint() == null) {
+        Long startVal = startNode != null ? startNode.getVarint() : null;
+        Long lenVal = lengthNode != null ? lengthNode.getVarint() : null;
+        if (startVal == null && lenVal == null) {
             return;
         }
-        long start = (startNode != null && startNode.getVarint() != null) ? startNode.getVarint() : 0L;
-        long len = lengthNode.getVarint();
-        if (start < 0 || len <= 0 || start + len > originalLength) {
+
+        long start = startVal != null ? startVal : 0L;
+        long len = lenVal != null ? lenVal : 0L;
+        if (start < 0 || len < 0 || start > originalLength) {
             return;
         }
 
         // Full-text base StyleRun: keep start = 0 and extend length to cover prefix + originalText
         // so both the subtitle block and the end of the description receive the exact base style.
-        if (isStyleRun && start == 0L && len >= originalLength) {
+        // Exclude CommandRun (field 3/4 sub-messages) and AttachmentRun (field 3 sub-message).
+        boolean isFlatStyleRun = (rangeOwner == run)
+                && hasNoSubMessageField(run.children, 3)
+                && hasNoSubMessageField(run.children, 4);
+        if (isFlatStyleRun && start == 0L && len >= originalLength) {
             if (startNode != null) {
                 startNode.setVarint(0L);
             }
-            lengthNode.setVarint(len + prefixLength);
+            if (lengthNode != null && len < Integer.MAX_VALUE - prefixLength) {
+                lengthNode.setVarint(len + prefixLength);
+            }
             return;
         }
 
-        // All other runs (including runs starting at 0 where start_index was omitted on wire):
+        if (start + len > originalLength) {
+            return;
+        }
+
+        // All other runs (StyleRun, CommandRun, AttachmentRun, DecorationRun, including runs
+        // starting at 0 where start_index was omitted on wire in proto3):
         // shift start_index by +prefixLength and keep length unchanged.
         long shiftedStart = start + prefixLength;
-        if (startNode != null && startNode.getVarint() != null) {
+        if (startVal != null) {
             startNode.setVarint(shiftedStart);
         } else {
             ProtoNode newStart = createVarintNode(RANGE_START_FIELD_NUMBER, shiftedStart);
             if (newStart != null) {
                 rangeMessage.add(0, newStart);
+                // newStart has parent == null, so mark rangeOwner and all ancestors modified
+                // via lengthNode.setVarint(len) so ProtoNode.write() serializes the updated run.
+                lengthNode.setVarint(len);
             }
         }
     }
 
-    @Nullable
-    private static List<ProtoNode> resolveRunRangeMessage(List<ProtoNode> runFields,
-                                                          int originalLength,
-                                                          boolean isDecorationRun) {
-        ProtoNode directLength = ProtoNode.field(runFields, RANGE_LENGTH_FIELD_NUMBER);
-        if (directLength != null && directLength.getVarint() != null) {
-            return runFields;
+    private static boolean hasNoSubMessageField(List<ProtoNode> fields, int fieldNumber) {
+        for (int i = 0, size = fields.size(); i < size; i++) {
+            ProtoNode field = fields.get(i);
+            if (field.getFieldNumber() == fieldNumber && field.children != null) {
+                return false;
+            }
         }
-        if (isDecorationRun) {
-            for (int i = 0, size = runFields.size(); i < size; i++) {
-                List<ProtoNode> child = runFields.get(i).children;
-                if (child == null) continue;
-                ProtoNode lenNode = ProtoNode.field(child, RANGE_LENGTH_FIELD_NUMBER);
-                if (lenNode != null && lenNode.getVarint() != null) {
-                    long len = lenNode.getVarint();
-                    if (len > 0 && len <= originalLength) {
-                        return child;
+        return true;
+    }
+
+    @Nullable
+    private static ProtoNode findRangeMessageOwner(ProtoNode run, int originalLength) {
+        // Pass 1: BFS across all sub-messages (including 9-digit TextDecorator extensions inside
+        // DecorationRun, matching Morphe's OriginalDescription.findRangeMessage) for an explicit
+        // start_index varint (field 1).
+        ProtoNode omittedStartCandidate = null;
+        Queue<ProtoNode> queue = new ArrayDeque<>();
+        queue.add(run);
+
+        while (!queue.isEmpty()) {
+            ProtoNode current = queue.remove();
+            List<ProtoNode> fields = current.children;
+            if (fields == null) {
+                continue;
+            }
+
+            ProtoNode startNode = ProtoNode.field(fields, RANGE_START_FIELD_NUMBER);
+            ProtoNode lengthNode = ProtoNode.field(fields, RANGE_LENGTH_FIELD_NUMBER);
+            Long startVal = startNode != null ? startNode.getVarint() : null;
+            Long lenVal = lengthNode != null ? lengthNode.getVarint() : null;
+
+            if (startVal != null) {
+                long len = lenVal != null ? lenVal : 0L;
+                if (startVal >= 0 && len >= 0 && startVal <= originalLength) {
+                    if (current == run || startVal + len <= originalLength) {
+                        return current;
+                    }
+                }
+            } else if (omittedStartCandidate == null && startNode == null && lenVal != null && lenVal > 0) {
+                // Proto3 omits start_index when it is 0. Remember the closest valid candidate
+                // as Pass 2 fallback only if no explicit start_index exists in any sub-message.
+                if (current == run || lenVal <= originalLength) {
+                    omittedStartCandidate = current;
+                }
+            }
+
+            for (int i = 0, size = fields.size(); i < size; i++) {
+                ProtoNode child = fields.get(i);
+                if (child.children != null) {
+                    int fn = child.getFieldNumber();
+                    if (fn != INNERTUBE_COMMAND_FIELD_NUMBER
+                            && fn != LOGGING_DIRECTIVES_FIELD_NUMBER
+                            && fn != RENDERER_CONTEXT_FIELD_NUMBER) {
+                        queue.add(child);
                     }
                 }
             }
         }
-        return null;
+        return omittedStartCandidate;
     }
 
     @Nullable
@@ -2463,9 +2518,10 @@ public final class EnhancedKeywordContentFilter extends EnhancedBufferPhraseFilt
         SubtitleScanState state = getActiveVideoSubtitleState();
         if (state != null && !state.items.isEmpty()) {
             String lowerBanner = bannerSlice.toLowerCase(Locale.ROOT);
+            Set<String> highlightedWords = new HashSet<>();
             for (SubtitleMatchItem item : state.items) {
                 String lowerWord = item.matchedWord.toLowerCase(Locale.ROOT);
-                if (lowerWord.isEmpty()) continue;
+                if (lowerWord.isEmpty() || !highlightedWords.add(lowerWord)) continue;
                 int searchFrom = firstNewline > startIdx ? (firstNewline - startIdx) : 0;
                 while (searchFrom < lowerBanner.length()) {
                     int wIdx = lowerBanner.indexOf(lowerWord, searchFrom);
@@ -2814,8 +2870,13 @@ public final class EnhancedKeywordContentFilter extends EnhancedBufferPhraseFilt
 
     private record SubtitleLine(long startMs, String text) {}
 
+    private record CaptionTrackInfo(String baseUrl, String lang, boolean isAsr, boolean isGemini) {}
+
     private static List<SubtitleLine> fetchSubtitleLines(String videoId) {
         Utils.verifyOffMainThread();
+        final String langMode = getSubtitleLanguageMode();
+        final String appLang = getAppLanguageCode();
+
         // 1. Try ANDROID_VR client first (does not require poToken) and ANDROID client with auth
         String[][] clients = {
                 {"ANDROID_VR", "1.60.19", "28", "com.google.android.apps.youtube.vr.oculus/1.60.19 (Linux; U; Android 12; en_US; Quest 2) gzip"},
@@ -2823,7 +2884,8 @@ public final class EnhancedKeywordContentFilter extends EnhancedBufferPhraseFilt
         };
         for (String[] client : clients) {
             try {
-                String[] innertube = fetchCaptionUrlFromInnertube(videoId, client[0], client[1], client[2], client[3]);
+                String[] innertube = fetchCaptionUrlFromInnertube(
+                        videoId, client[0], client[1], client[2], client[3], langMode, appLang);
                 String captionUrl = innertube[0];
                 String poToken = innertube[1];
                 if (captionUrl != null) {
@@ -2840,7 +2902,8 @@ public final class EnhancedKeywordContentFilter extends EnhancedBufferPhraseFilt
             }
         }
 
-        for (String lang : List.of("ru", "en", "en-US", "uk")) {
+        List<String> fallbackLangs = buildTimedTextFallbackLanguages(langMode, appLang);
+        for (String lang : fallbackLangs) {
             try {
                 String url = "https://www.youtube.com/api/timedtext?v=" + videoId
                         + "&lang=" + lang + "&kind=asr&fmt=json3";
@@ -2857,11 +2920,54 @@ public final class EnhancedKeywordContentFilter extends EnhancedBufferPhraseFilt
         return Collections.emptyList();
     }
 
+    private static List<String> buildTimedTextFallbackLanguages(String langMode, String appLang) {
+        List<String> langs = new ArrayList<>();
+        if (!"original".equals(langMode) && !"app".equals(langMode) && !langMode.isEmpty()) {
+            langs.add(langMode);
+        }
+        if (!appLang.isEmpty() && !langs.contains(appLang)) {
+            langs.add(appLang);
+        }
+        for (String def : List.of("ru", "en", "en-US", "uk")) {
+            if (!langs.contains(def)) {
+                langs.add(def);
+            }
+        }
+        return langs;
+    }
+
+    private static String getAppLanguageCode() {
+        try {
+            Context ctx = Utils.getContext();
+            if (ctx != null) {
+                Locale locale = ctx.getResources().getConfiguration().getLocales().get(0);
+                if (locale != null && !locale.getLanguage().isEmpty()) {
+                    return normalizeLangCode(locale.getLanguage());
+                }
+            }
+        } catch (Exception ignored) {
+        }
+        return normalizeLangCode(Locale.getDefault().getLanguage());
+    }
+
+    private static String normalizeLangCode(@Nullable String raw) {
+        if (raw == null || raw.isEmpty()) {
+            return "";
+        }
+        String lower = raw.trim().toLowerCase(Locale.ROOT);
+        int sep = lower.indexOf('-');
+        if (sep < 0) sep = lower.indexOf('_');
+        return sep > 0 ? lower.substring(0, sep) : lower;
+    }
+
     private static String[] fetchCaptionUrlFromInnertube(String videoId, String clientName,
                                                          String clientVersion, String clientIdHeader,
-                                                         String userAgent) throws Exception {
+                                                         String userAgent, String langMode,
+                                                         String appLang) throws Exception {
+        String hl = appLang.isEmpty() ? "en" : appLang;
         String body = "{\"context\":{\"client\":{\"clientName\":\"" + clientName + "\","
-                + "\"clientVersion\":\"" + clientVersion + "\"}},"
+                + "\"clientVersion\":\"" + clientVersion + "\","
+                + "\"hl\":\"" + hl + "\"}},"
                 + "\"videoId\":\"" + videoId + "\"}";
 
         HttpURLConnection conn = Requester.openConnection(INNERTUBE_PLAYER_URL);
@@ -2891,7 +2997,7 @@ public final class EnhancedKeywordContentFilter extends EnhancedBufferPhraseFilt
         }
 
         String response = Requester.parseString(conn);
-        return new String[]{selectBestCaptionTrackUrl(response), extractPoToken(response)};
+        return new String[]{selectBestCaptionTrackUrl(response, langMode, appLang), extractPoToken(response)};
     }
 
     @Nullable
@@ -2904,49 +3010,146 @@ public final class EnhancedKeywordContentFilter extends EnhancedBufferPhraseFilt
     }
 
     @Nullable
-    private static String selectBestCaptionTrackUrl(String json) {
-        int tracksIdx = json.indexOf("\"captionTracks\":[");
-        if (tracksIdx < 0) return null;
-
-        String preferredLang = Locale.getDefault().getLanguage().toLowerCase(Locale.ROOT);
-        String firstUrl = null;
-        String firstNonGemini = null;
-        String preferredLangUrl = null;
-        String ruUrl = null;
-        int searchFrom = tracksIdx;
-
-        while (true) {
-            int baseUrlIdx = json.indexOf("\"baseUrl\":\"", searchFrom);
-            if (baseUrlIdx < 0 || baseUrlIdx > tracksIdx + 50_000) break;
-            baseUrlIdx += "\"baseUrl\":\"".length();
-
-            int endIdx = json.indexOf('"', baseUrlIdx);
-            if (endIdx < 0) break;
-
-            String url = json.substring(baseUrlIdx, endIdx)
-                    .replace("\\u0026", "&")
-                    .replace("\\u003d", "=")
-                    .replace("\\u003e", ">")
-                    .replace("\\u003c", "<");
-
-            if (firstUrl == null) firstUrl = url;
-            boolean nonGemini = !url.contains("variant=gemini");
-            if (firstNonGemini == null && nonGemini) firstNonGemini = url;
-
-            String urlLang = extractLangParam(url).split("-")[0].toLowerCase(Locale.ROOT);
-            if (preferredLangUrl == null && nonGemini && preferredLang.equals(urlLang)) {
-                preferredLangUrl = url;
-            }
-            if (ruUrl == null && nonGemini && "ru".equals(urlLang)) {
-                ruUrl = url;
+    private static String selectBestCaptionTrackUrl(String json, String langMode, String appLang) {
+        try {
+            JSONObject root = new JSONObject(json);
+            JSONObject captions = root.optJSONObject("captions");
+            JSONObject renderer = captions != null
+                    ? captions.optJSONObject("playerCaptionsTracklistRenderer")
+                    : null;
+            JSONArray tracksArr = renderer != null ? renderer.optJSONArray("captionTracks") : null;
+            if (tracksArr == null || tracksArr.length() == 0) {
+                return null;
             }
 
-            searchFrom = endIdx + 1;
+            List<CaptionTrackInfo> tracks = new ArrayList<>(tracksArr.length());
+            for (int i = 0, len = tracksArr.length(); i < len; i++) {
+                JSONObject obj = tracksArr.optJSONObject(i);
+                if (obj == null) continue;
+                String baseUrl = obj.optString("baseUrl", "");
+                if (baseUrl.isEmpty()) continue;
+
+                String lang = normalizeLangCode(obj.optString("languageCode", ""));
+                if (lang.isEmpty()) {
+                    lang = normalizeLangCode(extractLangParam(baseUrl));
+                }
+                String vssId = obj.optString("vssId", "");
+                String kind = obj.optString("kind", "");
+                boolean isAsr = "asr".equalsIgnoreCase(kind)
+                        || vssId.startsWith("a.")
+                        || baseUrl.contains("kind=asr");
+                boolean isGemini = baseUrl.contains("variant=gemini");
+                tracks.add(new CaptionTrackInfo(baseUrl, lang, isAsr, isGemini));
+            }
+            if (tracks.isEmpty()) {
+                return null;
+            }
+
+            String originalLang = detectOriginalVideoLanguage(root, tracks);
+
+            if ("app".equals(langMode)) {
+                String url = findCaptionTrackForLanguage(tracks, appLang);
+                if (url != null) return url;
+                url = findCaptionTrackForLanguage(tracks, originalLang);
+                if (url != null) return url;
+            } else if (!"original".equals(langMode) && !langMode.isEmpty()) {
+                String url = findCaptionTrackForLanguage(tracks, normalizeLangCode(langMode));
+                if (url != null) return url;
+                url = findCaptionTrackForLanguage(tracks, originalLang);
+                if (url != null) return url;
+                url = findCaptionTrackForLanguage(tracks, appLang);
+                if (url != null) return url;
+            } else {
+                // Default ("original"): always prefer the original spoken language of the video
+                // so a Russian video with English translation uses Russian captions, and an English
+                // video with Russian translation uses English captions.
+                String url = findCaptionTrackForLanguage(tracks, originalLang);
+                if (url != null) return url;
+                url = findCaptionTrackForLanguage(tracks, appLang);
+                if (url != null) return url;
+            }
+
+            // Generic fallback: first non-Gemini manual track, then any non-Gemini, then first track.
+            for (CaptionTrackInfo t : tracks) {
+                if (!t.isGemini() && !t.isAsr()) return t.baseUrl();
+            }
+            for (CaptionTrackInfo t : tracks) {
+                if (!t.isGemini()) return t.baseUrl();
+            }
+            return tracks.get(0).baseUrl();
+        } catch (Exception ex) {
+            Logger.printDebug(() -> "selectBestCaptionTrackUrl JSON parse failed", ex);
+            return null;
+        }
+    }
+
+    @Nullable
+    private static String detectOriginalVideoLanguage(JSONObject playerRoot, List<CaptionTrackInfo> tracks) {
+        // Signal 1: Original audio track in streamingData.adaptiveFormats (multi-audio videos).
+        String defaultAudioLang = null;
+        JSONObject streamingData = playerRoot.optJSONObject("streamingData");
+        JSONArray formats = streamingData != null ? streamingData.optJSONArray("adaptiveFormats") : null;
+        if (formats != null) {
+            for (int i = 0, len = formats.length(); i < len; i++) {
+                JSONObject fmt = formats.optJSONObject(i);
+                if (fmt == null) continue;
+                JSONObject audioTrack = fmt.optJSONObject("audioTrack");
+                if (audioTrack == null) continue;
+                String trackId = audioTrack.optString("id", "");
+                int dot = trackId.indexOf('.');
+                String lang = normalizeLangCode(dot > 0 ? trackId.substring(0, dot) : trackId);
+                if (lang.isEmpty()) continue;
+
+                String displayName = audioTrack.optString("displayName", "").toLowerCase(Locale.ROOT);
+                String xtags = fmt.optString("xtags", "").toLowerCase(Locale.ROOT);
+                if (xtags.contains("acont=original")
+                        || displayName.contains("original")
+                        || displayName.contains("оригинал")) {
+                    return lang;
+                }
+                if (defaultAudioLang == null && audioTrack.optBoolean("audioIsDefault", false)) {
+                    defaultAudioLang = lang;
+                }
+            }
         }
 
-        if (preferredLangUrl != null) return preferredLangUrl;
-        if (ruUrl != null) return ruUrl;
-        return firstNonGemini != null ? firstNonGemini : firstUrl;
+        // Signal 2: ASR track (kind="asr" / vssId="a.XX") is generated from the original spoken audio.
+        for (CaptionTrackInfo t : tracks) {
+            if (t.isAsr() && !t.isGemini() && !t.lang().isEmpty()) {
+                return t.lang();
+            }
+        }
+        for (CaptionTrackInfo t : tracks) {
+            if (t.isAsr() && !t.lang().isEmpty()) {
+                return t.lang();
+            }
+        }
+
+        return defaultAudioLang;
+    }
+
+    @Nullable
+    private static String findCaptionTrackForLanguage(List<CaptionTrackInfo> tracks, @Nullable String targetLang) {
+        if (targetLang == null || targetLang.isEmpty()) {
+            return null;
+        }
+        // Prefer manual non-Gemini captions in the target language over auto-generated ASR.
+        for (CaptionTrackInfo t : tracks) {
+            if (!t.isGemini() && !t.isAsr() && targetLang.equals(t.lang())) {
+                return t.baseUrl();
+            }
+        }
+        for (CaptionTrackInfo t : tracks) {
+            if (!t.isGemini() && targetLang.equals(t.lang())) {
+                return t.baseUrl();
+            }
+        }
+        for (CaptionTrackInfo t : tracks) {
+            if (targetLang.equals(t.lang())) {
+                return t.baseUrl();
+            }
+        }
+        return null;
     }
 
     private static String extractLangParam(String url) {

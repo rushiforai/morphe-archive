@@ -22,6 +22,30 @@ internal data class CurrencyPlan(
 )
 
 /**
+ * Executable padding claimed at the end of the first PT_LOAD so independent caves can sit
+ * there without moving virtual addresses. `armeabi` has no slack in the file, so one page
+ * is spliced in first; `armeabi-v7a` already has the bytes.
+ */
+internal data class PaddingPlan(
+    val load1End: Long,
+    val spliceAtOffset: Long?,
+    val spliceSize: Int,
+)
+
+/**
+ * Two tiny stubs plus three word edits. Each stub is entered instead of the original
+ * `ldrb` of the neutralized flag in a player-damage function: it returns at once when
+ * the unit is a civilian, and otherwise does that `ldrb` and comes back.
+ */
+internal data class CivilianPlan(
+    val blastCave: Long,
+    val fragCave: Long,
+    val blastCaveBytes: String,
+    val fragCaveBytes: String,
+    val edits: List<WordEdit>,
+)
+
+/**
  * A little-endian ELF32 file read and written by virtual address, the way the dynamic linker
  * maps it, never by raw file offset. That is what lets independent patches compose: splicing a
  * page into a file moves file offsets but no virtual address.
@@ -114,6 +138,11 @@ internal class Elf32(bytes: ByteArray) {
         }
     }
 
+    fun firstLoadFileSize(): Long {
+        val header = programHeaderOffsets.first { u32(it) == PT_LOAD }
+        return u32(header + 16)
+    }
+
     /**
      * Grows the first PT_LOAD so that it maps up to [end], which must be on a page boundary.
      * The bytes it takes in are the ones between the old end of the segment and that boundary.
@@ -125,6 +154,15 @@ internal class Elf32(bytes: ByteArray) {
         check(end <= data.size.toLong()) { "the file does not reach 0x%08X".format(end) }
         putU32(header + 16, end) // p_filesz
         putU32(header + 20, end) // p_memsz
+    }
+
+    /**
+     * [growFirstLoadTo] but safe to run twice: a later patch that also needs the padding
+     * does nothing when the first segment already maps to [end].
+     */
+    fun growFirstLoadToAtLeast(end: Long) {
+        if (firstLoadFileSize() >= end) return
+        growFirstLoadTo(end)
     }
 
     /**

@@ -20,14 +20,12 @@ val compileAppAbi = tasks.register<JavaCompile>("compileAppAbi") {
 val appAbi = tasks.register<Jar>("appAbi") {
     dependsOn(compileAppAbi)
     from(compileAppAbi.flatMap { it.destinationDirectory })
-    // macOS folds Bv/ and bv/ on disk; retain the declared package in the JAR.
-    // macOS folds Bv/ and bv/ (now Fv/ and fv/) on disk; retain the declared
-    // package of both case-variant ABI classes inside the JAR.
+    // The app declares Tv.x and tv.c in case-distinct packages.
     eachFile {
-        if (path == "fv/x.class") path = "Fv/x.class"
-        if (path == "Fv/c.class") path = "fv/c.class"
+        if (path == "tv/x.class") path = "Tv/x.class"
+        if (path == "Tv/c.class") path = "tv/c.class"
     }
-    inputs.property("abiPackageCasing", 2)
+    inputs.property("abiPackageCasing", 3)
     archiveFileName.set("videoland-compile-only-abi.jar")
     destinationDirectory.set(layout.buildDirectory.dir("app-abi"))
 }

@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2026 lavinhoque33
  * Licensed under the GNU General Public License v3.0.
- * Modified by lavinhoque33, 2026-11-20.
+ * Modified by lavinhoque33, 2026-11-21.
  * Written by lavinhoque33, 2026-11-18.
  */
 
@@ -24,6 +24,9 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Outline;
+import android.graphics.PorterDuff;
+import android.graphics.drawable.GradientDrawable;
+import android.view.ContextThemeWrapper;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -37,6 +40,7 @@ import org.robolectric.annotation.GraphicsMode;
 import app.morphe.extension.shared.settings.Setting;
 import app.morphe.extension.shared.utils.Utils;
 import app.morphe.extension.youtube.settings.Settings;
+import app.morphe.extension.youtube.utils.ThemeUtils;
 
 @RunWith(RobolectricTestRunner.class)
 // Export uses the process-wide settings registry. Give this YouTube suite its own app class loader.
@@ -67,6 +71,7 @@ public class SnackBarDrawableTest {
         Settings.SNACK_BAR_STROKE_WIDTH.resetToDefault();
         Settings.SNACK_BAR_PLAYLIST_RADIUS.resetToDefault();
         Settings.SNACK_BAR_PLAYLIST_BORDER.resetToDefault();
+        Settings.INVERT_SNACK_BAR_THEME.resetToDefault();
     }
 
     @Test
@@ -206,6 +211,9 @@ public class SnackBarDrawableTest {
         assertEquals(Color.RED, borderOnly.getPixel(32, 32));
         assertEquals(stockOutlineRadius, outlineRadius(playlist), 0f);
 
+        Settings.SNACK_BAR_STROKE_COLOR.save("#8000FF00");
+        assertEquals(composite(0x8000FF00, Color.RED), draw(playlist).getPixel(32, 1));
+
         Settings.SNACK_BAR_STROKE_WIDTH.resetToDefault();
         assertTrue(stock.sameAs(draw(playlist)));
         Settings.SNACK_BAR_STROKE_WIDTH.save(4f);
@@ -241,6 +249,76 @@ public class SnackBarDrawableTest {
     }
 
     @Test
+    public void playlistChipMatchesSnackBarInLightAndDarkWithoutInversion() {
+        assertPlaylistChipMatrix(false);
+    }
+
+    @Test
+    @Config(instrumentedPackages = "snackbar.fixture.inverted")
+    public void invertedChipContrastsWithNativePlaylistFillInLightAndDark() {
+        // Invert snack bar theme is restart-bound. Give its enabled value a separate sandbox.
+        assertPlaylistChipMatrix(true);
+    }
+
+    private void assertPlaylistChipMatrix(boolean invert) {
+        exposeThemeTestAttribute();
+        Settings.INVERT_SNACK_BAR_THEME.save(invert);
+        Settings.SNACK_BAR_BORDER_PRESET.save(CHIP);
+        Settings.SNACK_BAR_STROKE_WIDTH.save(1f);
+        Settings.SNACK_BAR_CORNER_RADIUS.save(15f);
+        Settings.SNACK_BAR_PLAYLIST_RADIUS.save(true);
+
+        for (boolean dark : new boolean[]{ true, false }) {
+            ThemeUtils.updateLightDarkModeStatus(dark ? 2 : 1);
+            int style = dark ? android.R.style.Theme_Material : android.R.style.Theme_Material_Light;
+            int effectiveStyle = dark != invert ? android.R.style.Theme_Material : android.R.style.Theme_Material_Light;
+            int expectedChip = themeColor(theme(effectiveStyle));
+            Context appearance = new ContextThemeWrapper(RuntimeEnvironment.getApplication(), style);
+            Context effective = SnackBarPatch.invertSnackBarTheme(appearance);
+            assertEquals(invert, effective != appearance);
+            int snackbarFill = dark != invert ? 0xFFF1F1F1 : 0xFF0F0F0F;
+            SnackBarDrawable snackbar = shape(new SnackBarDrawable(), 8, snackbarFill);
+            snackbar.captureBase(resources, effective.getTheme());
+            // GradientDrawable antialiases a 1 dp stroke against the canvas at the outer edge.
+            GradientDrawable reference = new GradientDrawable();
+            reference.setColor(snackbarFill);
+            reference.setCornerRadius(15f * density);
+            reference.setStroke(snackbar.strokeWidthPx(), expectedChip);
+            reference.setBounds(snackbar.getBounds());
+            assertEquals(draw(reference).getPixel(32, 0), draw(snackbar).getPixel(32, 0));
+
+            assertPlaylistChipPixels(new SnackBarDrawable.Playlist(), 8, appearance.getTheme(), dark, expectedChip);
+            assertPlaylistChipPixels(new SnackBarDrawable.RoundedPlaylist(), 32, appearance.getTheme(), dark,
+                    expectedChip);
+        }
+    }
+
+    private void assertPlaylistChipPixels(SnackBarDrawable.Playlist playlist, int stockRadius,
+                                          Resources.Theme nativeTheme, boolean dark, int expectedChip) {
+        int nativeFill = dark ? 0xFF0F0F0F : 0xFFFFFFFF;
+        shape(playlist, stockRadius, nativeFill);
+        // Give the rounded pill a straight top segment; a square would sample the antialiased arc.
+        playlist.setBounds(0, 0, 64, 48);
+        playlist.captureBase(resources, nativeTheme);
+        // YouTube's playlist binder can replace the visible fill with a nearly opaque palette color.
+        playlist.setColorFilter(dark ? 0xF21B0C0C : 0xF2F4F0ED, PorterDuff.Mode.SRC_IN);
+        Settings.SNACK_BAR_PLAYLIST_BORDER.save(false);
+        Bitmap stock = draw(playlist, nativeFill);
+        int surface = stock.getPixel(32, 32);
+        assertNotEquals(nativeFill, surface);
+
+        Settings.SNACK_BAR_PLAYLIST_BORDER.save(true);
+        Bitmap outlined = draw(playlist, nativeFill);
+        int lastStrokePixel = playlist.strokeWidthPx() - 1;
+        assertEquals(composite(expectedChip, stock.getPixel(32, lastStrokePixel)),
+                outlined.getPixel(32, lastStrokePixel));
+        assertEquals(stock.getPixel(32, lastStrokePixel + 1), outlined.getPixel(32, lastStrokePixel + 1));
+        assertEquals(surface, outlined.getPixel(32, 32));
+        assertEquals(nativeFill, playlist.getColor().getDefaultColor());
+        assertEquals((stockRadius == 8 ? 15f : stockRadius) * density, playlist.getCornerRadius(), 0f);
+    }
+
+    @Test
     public void roundedPlaylistGetsBorderWithoutChangingItsPillRadius() {
         SnackBarDrawable pill = shape(new SnackBarDrawable.RoundedPlaylist(), 32, Color.RED);
         Bitmap stock = draw(pill);
@@ -273,17 +351,22 @@ public class SnackBarDrawableTest {
         return outline.getRadius();
     }
 
-    private static final int TEST_CHIP_ATTRIBUTE = android.R.attr.textColorPrimary;
+    private static final int TEST_CHIP_ATTRIBUTE = android.R.attr.colorBackground;
 
     @SuppressWarnings("deprecation")
     private void exposeThemeTestAttribute() {
-        // Map YouTube's private attribute to a real framework color role in the SDK test resources.
+        // The Chip background is dark in the dark app theme and light in the light app theme.
         Resources indexed = new Resources(resources.getAssets(), resources.getDisplayMetrics(),
                 resources.getConfiguration()) {
             @Override
             public int getIdentifier(String name, String defType, String defPackage) {
-                return "ytChipBackground".equals(name) && "attr".equals(defType)
-                        ? TEST_CHIP_ATTRIBUTE : super.getIdentifier(name, defType, defPackage);
+                if ("ytChipBackground".equals(name) && "attr".equals(defType)) return TEST_CHIP_ATTRIBUTE;
+                if ("style".equals(defType)) {
+                    if ("Base.Theme.YouTube.Dark".equals(name)) return android.R.style.Theme_Material;
+                    if ("Base.Theme.YouTube.Light".equals(name)) return android.R.style.Theme_Material_Light;
+                }
+
+                return super.getIdentifier(name, defType, defPackage);
             }
         };
         Utils.setContext(new ContextWrapper(RuntimeEnvironment.getApplication()) {
@@ -317,9 +400,15 @@ public class SnackBarDrawableTest {
         return drawable;
     }
 
-    private static Bitmap draw(SnackBarDrawable drawable) {
+    private static Bitmap draw(GradientDrawable drawable) {
+        return draw(drawable, Color.TRANSPARENT);
+    }
+
+    private static Bitmap draw(GradientDrawable drawable, int background) {
         Bitmap target = Bitmap.createBitmap(64, 64, Bitmap.Config.ARGB_8888);
-        drawable.draw(new Canvas(target));
+        Canvas canvas = new Canvas(target);
+        canvas.drawColor(background);
+        drawable.draw(canvas);
         return target;
     }
 }

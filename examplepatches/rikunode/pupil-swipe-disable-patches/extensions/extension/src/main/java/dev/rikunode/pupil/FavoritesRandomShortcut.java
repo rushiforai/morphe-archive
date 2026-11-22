@@ -1,6 +1,9 @@
 package dev.rikunode.pupil;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.Context;
+import android.content.ContextWrapper;
 import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
 import android.view.Gravity;
@@ -9,6 +12,8 @@ import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.Toast;
 import java.lang.ref.WeakReference;
+import java.lang.reflect.Method;
+import kotlin.Unit;
 import kotlin.jvm.functions.Function0;
 import kotlin.jvm.functions.Function1;
 
@@ -18,8 +23,9 @@ public final class FavoritesRandomShortcut {
             "xyz.quaver.pupil.ui.viewmodel.FavoritesViewModel";
     private static Object viewModel;
     private static Function1 showDetail;
-    private static WeakReference<ImageButton> rightButton = new WeakReference<>(null);
-    private static WeakReference<ImageButton> leftButton = new WeakReference<>(null);
+    private static final String PREFS_NAME = "pupil_morphe_shortcut";
+    private static final String SIDE_KEY = "random_button_side";
+    private static WeakReference<ImageButton> shortcutButton = new WeakReference<>(null);
     private static boolean openingRandom;
     private static boolean onFavorites;
     private static boolean detailVisible;
@@ -53,24 +59,78 @@ public final class FavoritesRandomShortcut {
     }
 
     public static void install(Activity activity) {
-        installButtons(activity, false);
-    }
-
-    public static void installWithLeftButton(Activity activity) {
-        installButtons(activity, true);
-    }
-
-    private static void installButtons(Activity activity, boolean showLeft) {
         FrameLayout root = activity.findViewById(android.R.id.content);
         if (root == null) return;
 
-        if (rightButton.get() == null || rightButton.get().getParent() != root) {
-            rightButton = new WeakReference<>(createButton(activity, root, false));
-        }
-        if (showLeft && (leftButton.get() == null || leftButton.get().getParent() != root)) {
-            leftButton = new WeakReference<>(createButton(activity, root, true));
+        boolean left = isLeft(activity);
+        ImageButton button = shortcutButton.get();
+        if (button == null || button.getParent() != root) {
+            button = createButton(activity, root, left);
+            shortcutButton = new WeakReference<>(button);
+        } else {
+            button.setLayoutParams(buttonParams(activity, left));
         }
         refreshVisibility();
+    }
+
+    // Called inside the original settings ColumnScope composition, immediately after
+    // the existing Favorites-management Preference. Reuse Pupil's own Preference UI.
+    public static void renderPositionPreference(Context context, Object composer) {
+        String current = isLeft(context) ? "左" : "右";
+        Function0 onClick = () -> {
+            Context owner = context;
+            while (owner instanceof ContextWrapper && !(owner instanceof Activity)) {
+                owner = ((ContextWrapper) owner).getBaseContext();
+            }
+            if (owner instanceof Activity) {
+                Activity activity = (Activity) owner;
+                new AlertDialog.Builder(activity)
+                        .setTitle("ランダムボタンの位置")
+                        .setSingleChoiceItems(new String[]{"右", "左"}, isLeft(context) ? 1 : 0,
+                                (dialog, which) -> {
+                                    context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+                                            .edit().putString(SIDE_KEY, which == 1 ? "left" : "right")
+                                            .apply();
+                                    dialog.dismiss();
+                                    activity.recreate();
+                                })
+                        .setNegativeButton("キャンセル", null)
+                        .show();
+            }
+            return Unit.INSTANCE;
+        };
+        try {
+            Class<?> preferences = Class.forName(
+                    "xyz.quaver.pupil.ui.compose.settings.PreferenceKt");
+            Method preference = null;
+            for (Method candidate : preferences.getDeclaredMethods()) {
+                if ("Preference".equals(candidate.getName())
+                        && candidate.getParameterTypes().length == 12) {
+                    preference = candidate;
+                    break;
+                }
+            }
+            if (preference == null) throw new NoSuchMethodException("Preference/12");
+            preference.invoke(null, "ランダムボタンの位置", null, current,
+                    false, false, null, onClick, null, null, composer, 0, 446);
+        } catch (ReflectiveOperationException | RuntimeException error) {
+            return;
+        }
+    }
+
+    private static boolean isLeft(Context context) {
+        return "left".equals(context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+                .getString(SIDE_KEY, "right"));
+    }
+
+    private static FrameLayout.LayoutParams buttonParams(Activity activity, boolean left) {
+        int size = dp(activity, 54);
+        FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(size, size);
+        params.gravity = (left ? Gravity.START : Gravity.END) | Gravity.BOTTOM;
+        if (left) params.leftMargin = dp(activity, 16);
+        else params.rightMargin = dp(activity, 16);
+        params.bottomMargin = dp(activity, 146);
+        return params;
     }
 
     private static ImageButton createButton(Activity activity, FrameLayout root, boolean left) {
@@ -93,21 +153,15 @@ public final class FavoritesRandomShortcut {
         button.setOnClickListener(ignored -> openRandom(button));
         button.setVisibility(View.GONE);
 
-        FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(size, size);
-        params.gravity = (left ? Gravity.START : Gravity.END) | Gravity.BOTTOM;
-        if (left) params.leftMargin = dp(activity, 16);
-        else params.rightMargin = dp(activity, 16);
-        params.bottomMargin = dp(activity, 146);
-        root.addView(button, params);
+        root.addView(button, buttonParams(activity, left));
         button.addOnAttachStateChangeListener(new View.OnAttachStateChangeListener() {
             @Override
             public void onViewAttachedToWindow(View view) {}
 
             @Override
             public void onViewDetachedFromWindow(View view) {
-                if (rightButton.get() == view) rightButton.clear();
-                if (leftButton.get() == view) leftButton.clear();
-                if (rightButton.get() == null && leftButton.get() == null) {
+                if (shortcutButton.get() == view) {
+                    shortcutButton.clear();
                     viewModel = null;
                     showDetail = null;
                     onFavorites = false;
@@ -145,10 +199,8 @@ public final class FavoritesRandomShortcut {
     private static void refreshVisibility() {
         int visibility = onFavorites && !detailVisible && viewModel != null && showDetail != null
                 ? View.VISIBLE : View.GONE;
-        ImageButton right = rightButton.get();
-        ImageButton left = leftButton.get();
-        if (right != null) right.setVisibility(visibility);
-        if (left != null) left.setVisibility(visibility);
+        ImageButton button = shortcutButton.get();
+        if (button != null) button.setVisibility(visibility);
     }
 
     private static int dp(Activity activity, int value) {

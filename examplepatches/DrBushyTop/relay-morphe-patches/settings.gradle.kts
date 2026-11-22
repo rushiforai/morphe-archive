@@ -28,3 +28,6 @@ settings {
         proguardFiles(rootProject.projectDir.resolve("extensions/proguard-rules.pro").toString())
     }
 }
+
+// Compile-only stand-ins for Relay classes used by the extension.
+include(":stub")

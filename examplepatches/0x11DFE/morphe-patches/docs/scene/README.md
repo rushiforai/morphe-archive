@@ -2,7 +2,7 @@
 
 omarea's device toolbox. The "Scene N1" license is enforced client-side with a
 root daemon and an activation server. Supported versions: N1 2026.10 Alpha13,
-N1 2026.11 PreRelease 1, N1 2026.11 PreRelease 2.
+N1 2026.11 PreRelease 1, N1 2026.11 PreRelease 2, N1 2026.11 PreRelease 5.
 APK downloads: [download.omarea.com](https://download.omarea.com/#/platform)
 and the [omarea mirror](https://omarea.lanzout.com/b0he4yszi).
 
@@ -74,6 +74,40 @@ gate provably stays open. Unknown or non-root setups are untouched.
 
 Logs one line per daemon instance to `files/gp.log` next to the daemon.
 
+### Runtime self-verification of the gate offsets
+
+The IV-relative offsets (MASTER = IV-720, RESTRICT = IV+319578) are a
+property of each daemon build's Go data layout, not of the app. N1 2026.11
+PreRelease 5 ships a rewritten daemon (the IV anchor moved from image
+offset `0x69c230` to `0x6ae7d0`), and on it the old offsets are stale: with
+the poker dead through a full app reconnect + validator cycle, dashboard
+stats kept updating and a writable-memory diff showed no daemon writes at
+the deltas - that build simply has no monitor gate. Conversely, nothing but
+the daemon ever closes the gate on builds that have one.
+
+The poker therefore proves the offsets per daemon instance before it ever
+writes: until one of the two candidate bytes is OBSERVED changing (the
+validator engaging RESTRICT ~40s after an app connect, or the 63s one-shot
+clearing MASTER), it only reads (2s cadence for ~10 minutes, then 10s).
+The first daemon-initiated change arms it (`/dev/.mp_gate_evid`, keyed by
+daemon pid); from then on it pokes and holds as before. Daemons younger
+than ~30s only refresh the observation baseline: a fresh daemon
+initializes its Go globals during its first seconds, and those startup
+writes are init noise, not gate evidence (observed as a false arm ~10s
+after daemon spawn on a PR5 reboot before this grace existed). The
+earliest legitimate validator write is an app connect plus its 40s delay,
+so the grace cannot mask a real gate event; it also covers a daemon
+restarting under a live observation loop. Gate-less builds
+like PR5's daemon are never touched at all. An earlier revision
+(v1.12.7) used a hardcoded daemon-md5 blacklist instead; it was replaced
+by this runtime check because a static list cannot cover future builds.
+
+If a future build re-freezes the stats WHILE the poker is running and
+never arms, the daemon closed a gate elsewhere: re-derive the offsets
+(snapshot the small rw regions, force a reconnect, snapshot again, diff
+for 00->01 / 01->00 flips near the IV anchor) and update the deltas in
+`DaemonGateBypassPatch.kt`.
+
 ## Technical reference: what the unlock replicates
 
 The known "Scene N1" mod for `N1 2026.10 Alpha13` edits exactly three methods in
@@ -124,7 +158,12 @@ all three builds.
 ## Updating to a new Scene build
 
 1. Add the new `versionName` to `COMPATIBILITY_SCENE` in `shared/Constants.kt`.
-2. If the release fails to patch: verify the license state parser still starts
+2. Daemon updates need no action: the embedded poker verifies the gate
+   offsets at runtime per daemon instance (it only writes after observing
+   the daemon change a candidate byte). Only if stats freeze WITH the poker
+   running do the offsets need re-deriving (see the runtime
+   self-verification section above).
+3. If the release fails to patch: verify the license state parser still starts
    with the three-instruction state load (`this.b.toString()`), and that the
    fingerprinted strings (`success@`, `yyyy-MM-dd`, `MD5`, `random_id2`) still
    appear in the expected methods.

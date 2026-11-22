@@ -58,6 +58,24 @@ final class Morphe {
     private static final Lookup PANELS_OPEN = new Lookup("shared.EngagementPanel", "checkIdsInQueue", List.class);
     private static final Lookup LAST_OPENED_PANEL = new Lookup("shared.EngagementPanel", "getLastOpenedPanelId");
     private static final Lookup GET_VIDEO_TIME = new Lookup("patches.VideoInformation", "getVideoTime");
+    private static final Lookup GET_VIDEO_ID = new Lookup("patches.VideoInformation", "getVideoId");
+
+    /**
+     * @return The id of the video of the player, or null if not available.
+     */
+    static String getVideoId() {
+        Method method = GET_VIDEO_ID.get();
+        if (method == null) {
+            return null;
+        }
+        try {
+            String videoId = (String) method.invoke(null);
+            return videoId == null || videoId.isEmpty() ? null : videoId;
+        } catch (Exception ex) {
+            Log.e(TAG, "getVideoId failure", ex);
+            return null;
+        }
+    }
     private static final Lookup GET_PLAYBACK_SPEED = new Lookup("patches.VideoInformation", "getPlaybackSpeed");
     private static final Lookup CHANGE_PLAYBACK_SPEED = new Lookup("patches.VideoInformation",
             "changePlaybackSpeed", float.class);

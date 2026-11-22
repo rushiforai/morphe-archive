@@ -4,10 +4,10 @@ patches {
     about {
         name = "rikunode Pupil patches"
         description = "Minimal patches for the Pupil Android gallery reader"
-        source = "https://github.com/rikunode/pupil-swipe-disable-patches"
+        source = "https://github.com/rikunode/pupil-morphe-patches"
         author = "rikunode"
         contact = "https://github.com/rikunode"
-        website = "https://github.com/rikunode/pupil-swipe-disable-patches"
+        website = "https://github.com/rikunode/pupil-morphe-patches"
         license = "GPLv3"
     }
 }

@@ -50,7 +50,7 @@ Single-bundle CLI patching passed locally. Manager installation and fresh Google
 
 ## Patches list
 
-The bundle contains **13 patches for one app**, including the compatibility dependencies. See the generated [patch catalog](patches-list.json) for options and defaults.
+The bundle contains **14 patches for one app**, including the compatibility dependencies. See the generated [patch catalog](patches-list.json) for options and defaults.
 
 | Patch | What it does |
 | --- | --- |
@@ -60,6 +60,7 @@ The bundle contains **13 patches for one app**, including the compatibility depe
 | **AMOLED dark theme** | Turns the main dark mode background, bottom bar and reader pages pure black. Only applies while WebNovel's dark mode is on. The Patch controls switch starts on; cards, dialogs, artwork and WebView/Flutter screens stay stock. Works with or without Material You colors. |
 | **Main navigation controls** | Reorders bottom tabs and optionally hides Featured, Writing or Explore. Opens Library at launch when Featured is hidden. Library and Profile remain reachable. |
 | **Copy and translate** | Adds **Copy** and **Translate** to the long-press menu of chapter and paragraph comments and their replies, and hides Dislike. Translates with WebNovel's own machine translation into a language chosen in Patch controls (default: app language). Long-press a book's details page to select, copy or translate its synopsis. Book reviews stay stock; author's note selection does not work yet. |
+| **Hide blocked authors' books** | Removes books by users you blocked from tag and genre results. Searching for a book by name still finds it. Fetches your block list and each blocked user's book list with WebNovel's own requests. Blocks made in the app apply at once; blocks made on the website can take up to a minute. Signed out, nothing is hidden. |
 | **Disable reader reward timer** | Optional switch that stops the corner controller and ticker, not just its widget. **Enabling it stops timer-based reading rewards.** Starts off; independent reading statistics remain. Battery savings are not measured. |
 | **Disable Firebase Analytics** | Optional build-time deactivation of Firebase Analytics. Does not disable Firebase Auth/FCM, other trackers or anti-tamper reporting. Repatch without it to restore the native collection policy. |
 | **Custom fonts** | Experimental separate UI/reader TTF/OTF imports and resets. Further font work is paused; leave unselected. |

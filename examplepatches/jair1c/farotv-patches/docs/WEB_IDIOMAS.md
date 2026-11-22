@@ -1,6 +1,6 @@
 # Idiomas de la web
 
-La página de GitHub Pages (`docs/index.html`, controlador `docs/site.js`) ofrece un selector superior con español, inglés, chino simplificado, hindi, árabe, portugués, francés, bengalí, ruso y urdu. Son idiomas de la web; los catálogos de la aplicación para TV son independientes y continúan ofreciendo español e inglés.
+La página de GitHub Pages (`docs/index.html`, controlador `docs/site.js`) ofrece un selector superior con español, inglés, chino simplificado, hindi, árabe, portugués, francés, bengalí, ruso y urdu. Son idiomas de la web; los catálogos de la aplicación para TV son independientes y ofrecen español, inglés y árabe (este último en desarrollo).
 
 La selección inicial usa el parámetro `?lang=`, después la preferencia local guardada y después los idiomas del navegador. Las variantes regionales usan el idioma base. Si ninguno está disponible, usa inglés. El selector guarda la elección cuando el navegador lo permite y actualiza el enlace sin recargar la página. Las estadísticas se descargan una sola vez y se vuelven a presentar con los formatos numéricos y de fecha del idioma seleccionado.
 

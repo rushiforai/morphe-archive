@@ -7,7 +7,11 @@ import app.morphe.patcher.patch.AppTarget
 import app.morphe.patcher.patch.Compatibility
 import app.morphe.patcher.patch.bytecodePatch
 
-internal const val APPLE_MUSIC_701 = "7.0.1"
+private const val APPLE_MUSIC_701 = "7.0.1"
+internal const val APPLE_MUSIC_702 = "7.0.2"
+
+internal fun uses701LibraryBindings(versionName: String?) =
+    versionName == APPLE_MUSIC_701 || versionName == APPLE_MUSIC_702
 
 internal val appleMusicCompatibility = Compatibility(
     name = "Apple Music",
@@ -17,6 +21,7 @@ internal val appleMusicCompatibility = Compatibility(
     targets = listOf(
         AppTarget(version = "7.0.0", versionCode = 1614),
         AppTarget(version = APPLE_MUSIC_701, versionCode = 1622),
+        AppTarget(version = APPLE_MUSIC_702, versionCode = 1624),
     ),
 )
 
@@ -31,7 +36,7 @@ internal val appleMusicLibraryBindings = bytecodePatch {
     extendWith("extensions/extension.mpe")
 
     execute {
-        if (packageMetadata.versionName == APPLE_MUSIC_701) {
+        if (uses701LibraryBindings(packageMetadata.versionName)) {
             LibraryClassName.method.replaceInstruction(0, "return-object p1")
         }
     }

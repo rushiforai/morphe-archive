@@ -1,6 +1,6 @@
 # Patch catalogue
 
-**Patch bundle: 1.92.0**
+**Patch bundle: 1.94.0**
 
 Check the supported app versions and default setting for each patch. The app page explains what each patch changes when using the app.
 
@@ -924,9 +924,10 @@ Check the supported app versions and default setting for each patch. The app pag
 
 | Patch | Default | App versions |
 | --- | --- | --- |
-| Disable tracking (Android - v116.4) | On | 1.116.4 |
-| Hide ads (Android - v116.4) | On | 1.116.4 |
-| Skip consent screens (Android - v116.4) | On | 1.116.4 |
+| Disable tracking (Android - v119.2) | On | 1.119.2 |
+| Hide ads (Android - v119.2) | On | 1.119.2 |
+| Remember last profile (experimental) (Android - v119.2) | Off | 1.119.2 |
+| Skip consent screens (Android - v119.2) | On | 1.119.2 |
 
 ## Videoland Android TV
 
@@ -936,9 +937,10 @@ Check the supported app versions and default setting for each patch. The app pag
 
 | Patch | Default | App versions |
 | --- | --- | --- |
-| Disable tracking (Android TV - v118) | On | 1.118.0 |
-| Hide ads (Android TV - v118) | On | 1.118.0 |
-| Hide unavailable content (Android TV - v118) | On | 1.118.0 |
+| Disable tracking (Android TV - v119.2) | On | 1.119.2 |
+| Hide ads (Android TV - v119.2) | On | 1.119.2 |
+| Hide unavailable content (Android TV - v119.2) | On | 1.119.2 |
+| Remember last profile (experimental) (Android TV - v119.2) | Off | 1.119.2 |
 
 ## Voetbal International
 

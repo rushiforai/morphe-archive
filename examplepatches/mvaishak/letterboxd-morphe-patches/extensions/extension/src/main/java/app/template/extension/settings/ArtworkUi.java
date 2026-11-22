@@ -9,6 +9,7 @@ import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.GradientDrawable;
+import android.graphics.drawable.InsetDrawable;
 import android.graphics.drawable.RippleDrawable;
 import android.net.Uri;
 import android.os.Handler;
@@ -42,6 +43,8 @@ import app.template.extension.artwork.ArtworkImages;
 import app.template.extension.artwork.ArtworkStore;
 import app.template.extension.artwork.ArtworkStore.Film;
 import app.template.extension.artwork.ArtworkStore.Type;
+import app.template.extension.artwork.ProfileBackdrop;
+import app.template.extension.artwork.ProfileBackdrop.Schedule;
 import app.template.extension.artwork.TmdbClient;
 import app.template.extension.artwork.TmdbCredential;
 import app.template.extension.ui.LoadingIndicator;
@@ -81,28 +84,239 @@ public final class ArtworkUi {
     }
 
     private static void openProfile(Context context, String member, Runnable after) {
-        if (member == null || !member.equals(ArtworkHooks.account())) return;
-        Screen screen = new Screen(context, "Change profile backdrop", null);
+        if (member != null && member.equals(ArtworkHooks.account())) {
+            new ProfileEditor(context, member, after).show();
+        }
+    }
+
+    private static final class ProfileEditor {
+        final Context context;
+        final String member;
+        final Runnable after;
+        final Screen screen;
+        final ArtworkStore store;
+        final LinearLayout sources;
+        final LinearLayout rotation;
+        final List<String> images = new ArrayList<>();
+        final List<ImageView> thumbnails = new ArrayList<>();
+        final TextView mode;
+        final Job search;
+        boolean rotating;
+        Schedule schedule = Schedule.ON_OPEN;
+
+        ProfileEditor(Context context, String member, Runnable after) {
+            this.context = context;
+            this.member = member;
+            this.after = after;
+            screen = new Screen(context, "Change profile backdrop", null);
+            store = new ArtworkStore(context);
+            ProfileBackdrop saved = store.profileChoice(member);
+            rotating = saved != null && saved.schedule != null;
+            if (rotating) {
+                schedule = saved.schedule;
+                images.addAll(saved.images);
+            } else if (saved != null) {
+                images.addAll(saved.images);
+            }
+
+            LinearLayout body = profileBody(screen);
+            screen.section(body, "Backdrop mode");
+            mode = screen.dropdown("", null);
+            mode.setOnClickListener(anchor -> {
+                Map<String, Runnable> options = new LinkedHashMap<>();
+                options.put("Single image", () -> setMode(false));
+                options.put("Rotate images", () -> setMode(true));
+                screen.showMenu(anchor, options, mode.getText().toString());
+            });
+            body.addView(mode);
+            sources = screen.column();
+            body.addView(sources);
+            search = profileSources(screen, sources, this);
+            rotation = screen.column();
+            body.addView(rotation);
+
+            screen.addToolbarButton("More options", "ic_more_vert_white_24dp", anchor -> {
+                if (!member.equals(ArtworkHooks.account())) return;
+                Map<String, Runnable> options = new LinkedHashMap<>();
+                options.put("Use image URL", () -> enterUrl(context, url -> select(url, null)));
+                String current = store.profile(member);
+                if (current != null) {
+                    options.put("View saved backdrop", () ->
+                            preview(context, Type.BACKDROP, current, member, null, null, null));
+                    options.put("Restore original", () -> {
+                        store.saveProfile(member, null);
+                        screen.dismiss();
+                    });
+                }
+                screen.showMenu(anchor, options, null);
+            }, 1);
+            screen.onDismiss = () -> {
+                search.cancel();
+                clearThumbnails();
+                if (after != null) after.run();
+            };
+        }
+
+        void show() {
+            render();
+            screen.root.setFocusableInTouchMode(true);
+            screen.root.requestFocus();
+            screen.show(false);
+        }
+
+        void setMode(boolean rotate) {
+            rotating = rotate;
+            if (rotating) search.cancel();
+            render();
+        }
+
+        void render() {
+            String modeLabel = rotating ? "Rotate images" : "Single image";
+            mode.setText(modeLabel);
+            mode.setContentDescription("Backdrop mode: " + modeLabel);
+            sources.setVisibility(rotating ? View.GONE : View.VISIBLE);
+            rotation.setVisibility(rotating ? View.VISIBLE : View.GONE);
+            clearThumbnails();
+            rotation.removeAllViews();
+            if (!rotating) return;
+
+            screen.section(rotation, "Rotate");
+            TextView timing = screen.dropdown(scheduleLabel(schedule), null);
+            timing.setContentDescription("Rotate: " + scheduleLabel(schedule));
+            timing.setOnClickListener(anchor -> {
+                Map<String, Runnable> options = new LinkedHashMap<>();
+                for (Schedule item : Schedule.values()) {
+                    options.put(scheduleLabel(item), () -> {
+                        schedule = item;
+                        timing.setText(scheduleLabel(item));
+                        timing.setContentDescription("Rotate: " + scheduleLabel(item));
+                    });
+                }
+                screen.showMenu(anchor, options, scheduleLabel(schedule));
+            });
+            rotation.addView(timing);
+            if (!images.isEmpty()) {
+                screen.section(rotation, "Selected backdrops");
+                addSelectedGrid();
+            }
+            rotation.addView(screen.outlineButton("Add backdrop", this::browse));
+            if (images.size() < 2) screen.note(rotation, "Select at least two backdrops.");
+            TextView save = screen.button("Save rotation", true, () -> {
+                if (store.saveProfileRotation(member, schedule, images)) screen.dismiss();
+                else screen.message("Couldn't save rotation", "Check that you’re still signed in to this profile.");
+            });
+            save.setEnabled(images.size() >= 2);
+            rotation.addView(save, new LinearLayout.LayoutParams(-1, -2));
+        }
+
+        private void addSelectedGrid() {
+            for (int i = 0; i < images.size(); i += 2) {
+                LinearLayout row = screen.horizontal();
+                LinearLayout.LayoutParams rowSize = new LinearLayout.LayoutParams(-1, -2);
+                rowSize.bottomMargin = screen.dp(8);
+                rotation.addView(row, rowSize);
+                screen.share(row, selectedThumbnail(images.get(i), i + 1));
+
+                View right = i + 1 < images.size()
+                        ? selectedThumbnail(images.get(i + 1), i + 2) : new View(context);
+                LinearLayout.LayoutParams rightSize = new LinearLayout.LayoutParams(0, -2, 1);
+                rightSize.setMarginStart(screen.dp(8));
+                row.addView(right, rightSize);
+            }
+        }
+
+        private View selectedThumbnail(String url, int position) {
+            FrameLayout tile = new FrameLayout(context) {
+                @Override protected void onMeasure(int widthSpec, int heightSpec) {
+                    int width = MeasureSpec.getSize(widthSpec);
+                    int height = Math.max(screen.dp(48), Math.round(width * 9f / 16f));
+                    super.onMeasure(widthSpec, MeasureSpec.makeMeasureSpec(height, MeasureSpec.EXACTLY));
+                }
+            };
+            tile.setBackground(screen.shape(screen.surface, 8, 0));
+            tile.setClipToOutline(true);
+
+            ImageView thumb = new ImageView(context);
+            thumb.setScaleType(ImageView.ScaleType.CENTER_CROP);
+            thumb.setContentDescription("Preview backdrop " + position);
+            thumb.setFocusable(true);
+            thumb.setForeground(screen.ripple(Color.TRANSPARENT, 8));
+            thumb.setOnClickListener(view -> preview(context, Type.BACKDROP, url, member, null, null, null));
+            tile.addView(thumb, new FrameLayout.LayoutParams(-1, -1));
+            thumbnails.add(thumb);
+            ArtworkImages.loadBackdropThumbnail(thumb, url);
+
+            ImageButton remove = screen.iconButton("Remove backdrop " + position, "close",
+                    android.R.drawable.ic_menu_close_clear_cancel, view -> {
+                        images.remove(url);
+                        render();
+                    });
+            remove.setBackground(new InsetDrawable(screen.ripple(screen.surface, 24), screen.dp(9)));
+            int iconPadding = screen.dp(15);
+            remove.setPadding(iconPadding, iconPadding, iconPadding, iconPadding);
+            FrameLayout.LayoutParams removeSize = new FrameLayout.LayoutParams(screen.dp(48), screen.dp(48),
+                    Gravity.TOP | Gravity.END);
+            tile.addView(remove, removeSize);
+            return tile;
+        }
+
+        private void clearThumbnails() {
+            for (ImageView thumb : thumbnails) ArtworkImages.clear(thumb);
+            thumbnails.clear();
+        }
+
+        private void browse() {
+            Screen browse = new Screen(context, "Add backdrop", null);
+            Job job = profileSources(browse, profileBody(browse), this);
+            browse.addToolbarButton("More options", "ic_more_vert_white_24dp", anchor -> {
+                Map<String, Runnable> options = new LinkedHashMap<>();
+                options.put("Use image URL", () -> enterUrl(context, url -> select(url, browse::dismiss)));
+                browse.showMenu(anchor, options, null);
+            }, 1);
+            browse.onDismiss = job::cancel;
+            browse.root.setFocusableInTouchMode(true);
+            browse.root.requestFocus();
+            browse.show(false);
+        }
+
+        void select(String url, Runnable onChange) {
+            if (rotating && images.contains(url)) {
+                preview(context, Type.BACKDROP, url, member, null, null, null);
+                return;
+            }
+            if (rotating) {
+                preview(context, Type.BACKDROP, url, member, () -> {
+                    images.add(url);
+                    render();
+                }, null, onChange, "Add to rotation");
+            } else {
+                preview(context, Type.BACKDROP, url, member, () -> {
+                    store.saveProfile(member, url);
+                    images.clear();
+                    images.add(url);
+                }, null, () -> {
+                    if (onChange != null) onChange.run();
+                    screen.dismiss();
+                });
+            }
+        }
+
+        private static String scheduleLabel(Schedule schedule) {
+            return schedule == Schedule.DAILY ? "Daily" : "On profile open";
+        }
+    }
+
+    private static LinearLayout profileBody(Screen screen) {
         screen.root.setPaddingRelative(0, screen.dp(8), 0, screen.dp(12));
         screen.header.setPaddingRelative(screen.dp(16), 0, screen.dp(4), 0);
         LinearLayout body = screen.body();
         body.setPaddingRelative(screen.dp(16), 0, screen.dp(16), 0);
-        ArtworkStore store = new ArtworkStore(context);
-        screen.addToolbarButton("More options", "ic_more_vert_white_24dp", anchor -> {
-            if (!member.equals(ArtworkHooks.account())) return;
-            Map<String, Runnable> options = new LinkedHashMap<>();
-            options.put("Use image URL", () -> enterUrl(context, url ->
-                    preview(context, Type.BACKDROP, url, member, () -> store.saveProfile(member, url),
-                            null, null)));
-            String current = store.profile(member);
-            if (current != null) {
-                options.put("View saved backdrop", () ->
-                        preview(context, Type.BACKDROP, current, member, null, null, null));
-                options.put("Restore original", () -> store.saveProfile(member, null));
-            }
-            screen.showMenu(anchor, options, null);
-        }, 1);
+        return body;
+    }
 
+    private static Job profileSources(Screen screen, LinearLayout body, ProfileEditor editor) {
+        Context context = screen.context;
+        ArtworkStore store = editor.store;
         LinearLayout searchBar = screen.horizontal();
         EditText query = screen.input("Film title", InputType.TYPE_CLASS_TEXT);
         query.setImeOptions(EditorInfo.IME_ACTION_SEARCH);
@@ -111,9 +325,6 @@ public final class ArtworkUi {
         TextView searchButton = screen.button("Search", false, null);
         searchBar.addView(searchButton);
         body.addView(searchBar);
-        screen.root.setFocusableInTouchMode(true);
-        screen.root.requestFocus();
-
         Job job = new Job(screen, body);
         LinearLayout results = screen.column();
         body.addView(results);
@@ -121,7 +332,9 @@ public final class ArtworkUi {
         for (Film film : ArtworkHooks.recentFilms()) films.put(film.id, film);
         for (Film film : store.films()) films.putIfAbsent(film.id, film);
         Callback<Film> choose = film -> {
-            if (member.equals(ArtworkHooks.account())) new Picker(context, film, member, null).show();
+            if (editor.member.equals(ArtworkHooks.account())) {
+                new Picker(context, film, editor.member, null, editor, screen).show();
+            }
         };
         Runnable showRecent = () -> {
             results.removeAllViews();
@@ -174,12 +387,8 @@ public final class ArtworkUi {
             }
             @Override public void afterTextChanged(Editable value) {}
         });
-        screen.onDismiss = () -> {
-            job.cancel();
-            if (after != null) after.run();
-        };
         showRecent.run();
-        screen.show(false);
+        return job;
     }
 
     static void settings(ModSettingsActivity activity) {
@@ -208,13 +417,17 @@ public final class ArtworkUi {
                 });
             }
             screen.section(body, "Custom artwork");
+            screen.titleLogosToggle(body, connected);
             int count = store.films().size();
             screen.row(body, "Manage custom artwork", count + (count == 1 ? " customized film" : " customized films"),
                     () -> manage(activity, screen.redraw));
             screen.section(body, "Profile backdrop");
             if (account == null) screen.note(body, "Sign in to change your profile backdrop.");
             else {
-                screen.row(body, "Change backdrop", null, () -> openProfile(activity, account, screen.redraw));
+                ProfileBackdrop backdrop = store.profileChoice(account);
+                String summary = backdrop == null ? null : backdrop.schedule == null ? "Single image"
+                        : backdrop.images.size() + " backdrops · " + ProfileEditor.scheduleLabel(backdrop.schedule);
+                screen.row(body, "Change backdrop", summary, () -> openProfile(activity, account, screen.redraw));
                 if (store.profile(account) != null) {
                     screen.row(body, "Restore original profile backdrop", null, () -> {
                         store.saveProfile(account, null);
@@ -412,6 +625,12 @@ public final class ArtworkUi {
 
     private static void preview(Context context, Type type, String url, String member,
                                 Runnable apply, Runnable useOnProfile, Runnable after) {
+        preview(context, type, url, member, apply, useOnProfile, after,
+                type == Type.POSTER ? "Use poster" : "Use backdrop");
+    }
+
+    private static void preview(Context context, Type type, String url, String member,
+                                Runnable apply, Runnable useOnProfile, Runnable after, String primaryLabel) {
         String title = member != null ? "Preview profile backdrop"
                 : type == Type.POSTER ? "Preview poster" : "Preview film backdrop";
         Screen screen = new Screen(context, title, null);
@@ -452,7 +671,7 @@ public final class ArtworkUi {
         LoadingIndicator loading = new LoadingIndicator(context, false);
         body.addView(loading, new LinearLayout.LayoutParams(-1, -2));
         loading.setLoading(true);
-        TextView confirm = screen.button(type == Type.POSTER ? "Use poster" : "Use backdrop", true, () -> {
+        TextView confirm = screen.button(primaryLabel, true, () -> {
             if (member != null && !member.equals(ArtworkHooks.account())) {
                 status.setText("The signed-in profile has changed.");
                 return;
@@ -504,6 +723,8 @@ public final class ArtworkUi {
         final TextView posters;
         final TextView backdrops;
         final GridAdapter adapter;
+        final ProfileEditor profile;
+        final Screen profileSource;
         Type type = Type.POSTER;
         TmdbClient.Images images;
         int languageFilter;
@@ -512,7 +733,14 @@ public final class ArtworkUi {
         Runnable browseClick;
 
         Picker(Context context, Film film, String member, Runnable after) {
+            this(context, film, member, after, null, null);
+        }
+
+        Picker(Context context, Film film, String member, Runnable after, ProfileEditor profile,
+               Screen profileSource) {
             this.film = film;
+            this.profile = profile;
+            this.profileSource = profileSource;
             this.member = member;
             this.after = after;
             store = new ArtworkStore(context);
@@ -603,11 +831,10 @@ public final class ArtworkUi {
             Map<String, Runnable> options = new LinkedHashMap<>();
             options.put("Use image URL", this::manual);
             String url = saved();
-            if (url != null) {
+            if (url != null && (profile == null || !profile.rotating)) {
                 options.put("View saved artwork",
                         () -> ArtworkUi.preview(screen.context, type, url, member, null, null, null));
-                options.put(member != null ? "Restore original profile backdrop" : "Restore original " + type.label,
-                        this::restore);
+                if (member == null) options.put("Restore original " + type.label, this::restore);
             }
             if (member == null && after != null && store.url(film.id, Type.POSTER) != null
                     && store.url(film.id, Type.BACKDROP) != null) {
@@ -650,20 +877,31 @@ public final class ArtworkUi {
             Type choice = type;
             String url = selection.get(choice);
             if (url == null) return;
+            if (profile != null) {
+                profile.select(url, () -> {
+                    screen.dismiss();
+                    if (profileSource != profile.screen) profileSource.dismiss();
+                });
+                return;
+            }
             String account = ArtworkHooks.account();
-            Runnable shortcut = member == null && choice == Type.BACKDROP && account != null ? () ->
+            Runnable shortcut = choice == Type.BACKDROP && account != null ? () -> {
+                ProfileBackdrop saved = store.profileChoice(account);
+                if (saved == null || saved.schedule == null) {
                     ArtworkUi.preview(screen.context, choice, url, account,
-                            () -> store.saveProfile(account, url), null, screen::dismiss)
-                    : null;
-            ArtworkUi.preview(screen.context, choice, url, member, () -> {
-                if (member == null) store.save(film, choice, url);
-                else store.saveProfile(member, url);
-            }, shortcut, screen::dismiss);
+                            () -> store.saveProfile(account, url), null, screen::dismiss);
+                } else if (account.equals(ArtworkHooks.account())) {
+                    ProfileEditor editor = new ProfileEditor(screen.context, account, null);
+                    editor.show();
+                    editor.select(url, null);
+                }
+            } : null;
+            ArtworkUi.preview(screen.context, choice, url, null,
+                    () -> store.save(film, choice, url), shortcut, screen::dismiss);
         }
 
         void restore() {
-            if (member == null) store.restore(film.id, type);
-            else store.saveProfile(member, null);
+            store.restore(film.id, type);
             selection.remove(type);
             render();
             if (after != null) after.run();
@@ -835,7 +1073,8 @@ public final class ArtworkUi {
             }
 
             private void bind(ImageView view, TmdbClient.Image item, int index) {
-                boolean selected = item.url.equals(savedUrl);
+                boolean inRotation = profile != null && profile.rotating;
+                boolean selected = inRotation ? profile.images.contains(item.url) : item.url.equals(savedUrl);
                 view.setVisibility(View.VISIBLE);
                 view.setScaleType(ImageView.ScaleType.CENTER_CROP);
                 view.setBackground(screen.shape(screen.surface, 8, 0));
@@ -843,7 +1082,7 @@ public final class ArtworkUi {
                 view.setForeground(selected ? screen.shape(Color.TRANSPARENT, 8, screen.accent) : null);
                 view.setSelected(selected);
                 view.setContentDescription((type == Type.POSTER ? "Preview poster " : "Preview backdrop ") + (index + 1)
-                        + (selected ? ", current artwork" : ""));
+                        + (selected ? inRotation ? ", in rotation" : ", current artwork" : ""));
                 view.setOnClickListener(v -> selectAndPreview(item.url));
                 view.setFocusable(true);
                 if (!item.thumbnail.equals(view.getTag())) {
@@ -941,10 +1180,15 @@ public final class ArtworkUi {
         }
 
         void addToolbarButton(String label, String drawable, View.OnClickListener click, int index) {
-            ImageButton button = new ImageButton(context);
-            int icon = context.getResources().getIdentifier(drawable, "drawable", context.getPackageName());
             int fallback = "Close".equals(label) ? android.R.drawable.ic_menu_close_clear_cancel
                     : android.R.drawable.ic_menu_more;
+            ImageButton button = iconButton(label, drawable, fallback, click);
+            heading.addView(button, index, new LinearLayout.LayoutParams(dp(48), dp(48)));
+        }
+
+        ImageButton iconButton(String label, String drawable, int fallback, View.OnClickListener click) {
+            ImageButton button = new ImageButton(context);
+            int icon = context.getResources().getIdentifier(drawable, "drawable", context.getPackageName());
             button.setImageResource(icon != 0 ? icon : fallback);
             button.setImageTintList(ColorStateList.valueOf(AccentPresets.readableText(Color.WHITE, surface)));
             button.setScaleType(ImageView.ScaleType.FIT_CENTER);
@@ -952,7 +1196,7 @@ public final class ArtworkUi {
             button.setBackground(ripple(Color.TRANSPARENT, 24));
             button.setContentDescription(label);
             button.setOnClickListener(click);
-            heading.addView(button, index, new LinearLayout.LayoutParams(dp(48), dp(48)));
+            return button;
         }
 
         void showMenu(View anchor, Map<String, Runnable> options, String selected) {
@@ -1144,6 +1388,30 @@ public final class ArtworkUi {
             row.setBackground(ripple(Color.TRANSPARENT, 10));
             row.setOnClickListener(view -> action.run());
             row.setFocusable(true);
+            container.addView(row);
+        }
+
+        void titleLogosToggle(LinearLayout container, boolean connected) {
+            String title = "Use TMDB title logos";
+            LinearLayout row = new LinearLayout(context);
+            row.setMinimumHeight(dp(48));
+            row.setGravity(Gravity.CENTER_VERTICAL);
+            row.setPadding(dp(6), dp(7), dp(6), dp(7));
+            row.setBackground(ripple(Color.TRANSPARENT, 10));
+
+            LinearLayout labels = column();
+            labels.addView(text(title, 16, Color.WHITE));
+            labels.addView(text(connected ? "Show logos on film pages when available."
+                    : "Connect TMDB to show logos on film pages.", 14, SECONDARY));
+            row.addView(labels, new LinearLayout.LayoutParams(0, -2, 1));
+
+            PillToggle toggle = new PillToggle(context);
+            toggle.setAccent(accent);
+            toggle.setContentDescription(title);
+            toggle.setChecked(Prefs.getBoolean(Prefs.KEY_TMDB_TITLE_LOGOS, false), false);
+            toggle.setOnToggle(checked -> Prefs.putBoolean(Prefs.KEY_TMDB_TITLE_LOGOS, checked));
+            row.addView(toggle, new LinearLayout.LayoutParams(-2, -2));
+            row.setOnClickListener(view -> toggle.performClick());
             container.addView(row);
         }
 

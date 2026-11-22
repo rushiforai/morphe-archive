@@ -15,5 +15,17 @@ public final class CheckerBarOptions {
     public static void save(Context context, String key, int value) {
         SettingsProfiles.prefs(context).edit().putInt(key, Math.max(20, Math.min(80, value))).apply();
     }
+    public static final String PALETTE = "kyodemoToolbarPalette";
+    public static final int PALETTE_TAG = 0x48690b0b;
+    static final String[] PALETTE_NAMES = {"本文の配色に合わせる", "ダーク", "AMOLEDブラック", "ライト"};
+
+    static int palette(Context context) {
+        int value = SettingsProfiles.prefs(context).getInt(PALETTE, 0);
+        return value >= 0 && value < PALETTE_NAMES.length ? value : 0;
+    }
+
+    static void savePalette(Context context, int choice) {
+        SettingsProfiles.prefs(context).edit().putInt(PALETTE, choice).apply();
+    }
     private CheckerBarOptions() { }
 }

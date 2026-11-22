@@ -1,3 +1,27 @@
+## [1.0.4](https://github.com/hu-liberator/patches/compare/v1.0.3...v1.0.4) (2026-11-21)
+
+### 🐛 Bug Fixes
+
+* fix crash ([d897f87](https://github.com/hu-liberator/patches/commit/d897f87fbd99587ade7a943a438045a4c8368e78))
+
+## [1.0.4-dev.1](https://github.com/hu-liberator/patches/compare/v1.0.3...v1.0.4-dev.1) (2026-11-21)
+
+### 🐛 Bug Fixes
+
+* fix crash ([d897f87](https://github.com/hu-liberator/patches/commit/d897f87fbd99587ade7a943a438045a4c8368e78))
+
+## [1.0.3](https://github.com/hu-liberator/patches/compare/v1.0.2...v1.0.3) (2026-11-21)
+
+### 🐛 Bug Fixes
+
+* add fixes for update ([f2e8449](https://github.com/hu-liberator/patches/commit/f2e8449492f9c2ab0e61d5c13cc51fa9ee5a9f8f))
+
+## [1.0.3-dev.1](https://github.com/hu-liberator/patches/compare/v1.0.2...v1.0.3-dev.1) (2026-11-21)
+
+### 🐛 Bug Fixes
+
+* add fixes for update ([f2e8449](https://github.com/hu-liberator/patches/commit/f2e8449492f9c2ab0e61d5c13cc51fa9ee5a9f8f))
+
 ## [1.0.2](https://github.com/hu-liberator/patches/compare/v1.0.1...v1.0.2) (2026-10-17)
 
 ### 🐛 Bug Fixes

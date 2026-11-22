@@ -23,6 +23,18 @@ BASH = next(
 )
 
 
+def _is_bash_usable():
+    if not BASH:
+        return False
+    try:
+        return subprocess.run([BASH, "-c", "exit 0"], capture_output=True, timeout=5).returncode == 0
+    except Exception:
+        return False
+
+
+BASH_USABLE = _is_bash_usable()
+
+
 def shell_step(filename, step_name):
     """Extract one literal run block, keeping the workflow as the tested source."""
     lines = (ROOT / ".github/workflows" / filename).read_text(encoding="utf-8").splitlines()
@@ -78,7 +90,7 @@ curl() {
 '''
 
 
-@unittest.skipUnless(BASH, "Bash is required for offline workflow checks")
+@unittest.skipUnless(BASH_USABLE, "Bash is required and must be usable for offline workflow checks")
 class ReleaseChecksTest(unittest.TestCase):
     def run_block(self, filename, step_name, mocks, env, setup=None):
         with tempfile.TemporaryDirectory(prefix="heval-release-check-") as tmp:

@@ -8,7 +8,15 @@ function ngMatchModeSupported_(c){return [0,16,32].includes(c.flags&0x70);}
 /** Java Pattern syntax is validated by Android, never by GAS's different RegExp engine.
  * Keep expressions as bounded data; receivers skip an invalid Pattern individually. */
 function ngRegexValid_(c){
- return typeof c.value==='string'&&c.value.length>0&&c.value.length<=2000;
+ if(typeof c.value!=='string'||!c.value.length||c.value.length>2000)return false;
+ if(!c.regex&&(Number(c.flags)&32)===0)return true;
+ const ranges=/\\(?:x\{([0-9a-f]{1,6})\}|u([0-9a-f]{4}))\s*-\s*\\(?:x\{([0-9a-f]{1,6})\}|u([0-9a-f]{4}))/gi;
+ for(const match of c.value.matchAll(ranges)){
+  const a=parseInt(match[1]||match[2],16),b=parseInt(match[3]||match[4],16);
+  const low=Math.min(a,b),high=Math.max(a,b);
+  if((low<=0xf8ff&&high>=0xe000)||(low<=0xffffd&&high>=0xf0000)||(low<=0x10fffd&&high>=0x100000))return false;
+ }
+ return true;
 }
 function ngPolicy_(c,votes,config){
  if(!c.value||c.value.length>2000)return {state:'rejected',reason:'invalid_value',minLevel:5,minVotes:0};

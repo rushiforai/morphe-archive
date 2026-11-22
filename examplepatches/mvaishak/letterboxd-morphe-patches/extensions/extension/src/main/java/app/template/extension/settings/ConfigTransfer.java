@@ -3,7 +3,9 @@ package app.template.extension.settings;
 import android.content.Context;
 import android.content.SharedPreferences;
 
+import app.template.extension.alerts.AlertBackup;
 import app.template.extension.artwork.ArtworkStore;
+import app.template.extension.watch.WatchPreferences;
 
 import org.json.JSONException;
 
@@ -12,10 +14,15 @@ import org.json.JSONObject;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-/** Versioned backup of user preferences and local artwork assignments. */
+/** Versioned backup of user preferences, artwork, and pending alerts. */
 public final class ConfigTransfer {
 
-    public static final int FORMAT = 3;
+    public static final int FORMAT = 4;
+    static final int SETTINGS = 1;
+    static final int ARTWORK = 2;
+    static final int ALERTS = 4;
+    static final int STREAMING = 8;
+    static final int ALL = SETTINGS | ARTWORK | ALERTS | STREAMING;
     private static final String APP = "letterboxd-morphe-patches";
 
     private static final boolean STR = false;
@@ -41,9 +48,12 @@ public final class ConfigTransfer {
         KEYS.put(Prefs.KEY_HIDE_VIDEO_STORE, BOOL);
         KEYS.put(Prefs.KEY_HIDE_SPONSORED_SPOTLIGHT, BOOL);
         KEYS.put(Prefs.KEY_ARTWORK_MODE, STR);
+        KEYS.put(Prefs.KEY_TMDB_TITLE_LOGOS, BOOL);
         KEYS.put(Prefs.KEY_SHOW_ADULT_POSTERS, BOOL);
         KEYS.put(Prefs.KEY_IMDB_TRIVIA, BOOL);
         KEYS.put(Prefs.KEY_HIDE_WHERE_TO_WATCH, BOOL);
+        KEYS.put(Prefs.KEY_EXTERNAL_RATINGS_ENABLED, BOOL);
+        KEYS.put(Prefs.KEY_EXTERNAL_RATINGS_SOURCES, STR);
         KEYS.put(Prefs.KEY_RUNTIME_HHMM, BOOL);
         KEYS.put(Prefs.KEY_OPEN_IN_PLAYER, BOOL);
         KEYS.put(Prefs.KEY_STREAMING_APP, STR);
@@ -57,15 +67,17 @@ public final class ConfigTransfer {
     private ConfigTransfer() {}
 
     public static String export(Context ctx) throws JSONException {
-        return export(ctx, true, true);
+        return export(ctx, ALL);
     }
 
-    static String export(Context ctx, boolean includeSettings, boolean includeArtwork) throws JSONException {
+    static String export(Context ctx, int sections) throws JSONException {
         JSONObject root = new JSONObject();
         root.put("format", FORMAT);
         root.put("app", APP);
-        if (includeSettings) root.put("settings", exportSettings(ctx));
-        if (includeArtwork) root.put("artwork", new ArtworkStore(ctx).backup());
+        if ((sections & SETTINGS) != 0) root.put("settings", exportSettings(ctx));
+        if ((sections & ARTWORK) != 0) root.put("artwork", new ArtworkStore(ctx).backup());
+        if ((sections & ALERTS) != 0) root.put("alerts", AlertBackup.export(ctx));
+        if ((sections & STREAMING) != 0) root.put("streaming", WatchPreferences.backup(ctx));
         return root.toString(2);
     }
 
@@ -88,16 +100,21 @@ public final class ConfigTransfer {
         public final int settings;
         public final int skippedSettings;
         public final ArtworkStore.Merge artwork;
+        public final int streamingServices, streamingAlerts, releaseAlerts;
 
-        ImportResult(int settings, int skippedSettings, ArtworkStore.Merge artwork) {
+        ImportResult(int settings, int skippedSettings, ArtworkStore.Merge artwork,
+                     int streamingServices, int streamingAlerts, int releaseAlerts) {
             this.settings = settings;
             this.skippedSettings = skippedSettings;
             this.artwork = artwork;
+            this.streamingServices = streamingServices;
+            this.streamingAlerts = streamingAlerts;
+            this.releaseAlerts = releaseAlerts;
         }
     }
 
     public static ImportResult importJson(Context ctx, String text) throws JSONException {
-        return importJson(ctx, readBackup(text), true, true);
+        return importJson(ctx, readBackup(text), ALL);
     }
 
     static JSONObject readBackup(String text) throws JSONException {
@@ -107,17 +124,25 @@ public final class ConfigTransfer {
                 || (Integer) version < 1 || (Integer) version > FORMAT) {
             throw new JSONException("Unknown Mods backup format");
         }
-        if ((Integer) version < FORMAT || root.has("settings")) root.getJSONObject("settings");
+        if ((Integer) version <= 2 || root.has("settings")) root.getJSONObject("settings");
         if ((Integer) version == 2 || root.has("artwork")) root.getJSONObject("artwork");
-        if (!root.has("settings") && !root.has("artwork")) {
-            throw new JSONException("Backup contains no settings or artwork");
-        }
+        if (root.has("alerts")) root.getJSONObject("alerts");
+        if (root.has("streaming")) root.getJSONObject("streaming");
+        if (sections(root) == 0) throw new JSONException("Backup contains no supported sections");
         return root;
     }
 
-    static ImportResult importJson(Context ctx, JSONObject root, boolean includeSettings,
-                                   boolean includeArtwork) throws JSONException {
-        JSONObject settings = includeSettings ? root.optJSONObject("settings") : null;
+    static int sections(JSONObject root) {
+        return (root.has("settings") ? SETTINGS : 0) | (root.has("artwork") ? ARTWORK : 0)
+                | (root.has("alerts") ? ALERTS : 0) | (root.has("streaming") ? STREAMING : 0);
+    }
+
+    static ImportResult importJson(Context ctx, JSONObject root, int sections) throws JSONException {
+        JSONObject settings = (sections & SETTINGS) != 0 ? root.optJSONObject("settings") : null;
+        WatchPreferences.Backup streaming = (sections & STREAMING) != 0 && root.has("streaming")
+                ? WatchPreferences.readBackup(root.getJSONObject("streaming")) : null;
+        AlertBackup.Prepared alerts = (sections & ALERTS) != 0 && root.has("alerts")
+                ? AlertBackup.read(root.getJSONObject("alerts")) : null;
         SharedPreferences.Editor editor = preferences(ctx).edit();
         int applied = 0;
         int skipped = 0;
@@ -133,13 +158,16 @@ public final class ConfigTransfer {
             else editor.putString(key, (String) value);
             applied++;
         }
-        ArtworkStore.Merge artwork = includeArtwork && root.has("artwork")
+        ArtworkStore.Merge artwork = (sections & ARTWORK) != 0 && root.has("artwork")
                 ? new ArtworkStore(ctx).mergeBackup(root.getJSONObject("artwork"))
                 : new ArtworkStore.Merge();
         if (applied > 0 && !editor.commit()) {
             throw new IllegalStateException("Couldn't save settings. Some artwork may have been restored.");
         }
-        return new ImportResult(applied, skipped, artwork);
+        int services = streaming == null ? -1 : streaming.restore(ctx);
+        int streamingAlerts = alerts == null ? 0 : alerts.restoreStreaming(ctx);
+        int releaseAlerts = alerts == null ? 0 : alerts.restoreReleases(ctx);
+        return new ImportResult(applied, skipped, artwork, services, streamingAlerts, releaseAlerts);
     }
 
     static boolean resetSettings(Context ctx) {

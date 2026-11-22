@@ -570,6 +570,29 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushfacebook_hide_story_subscribe", FALSE);
 
     /**
+     * The Follow button leaves the top of a story from someone you don't follow ({@link
+     * app.morphe.extension.facebook.stories.StoryViewerCleanup}, #543). Starts off. Read as the button draws.
+     */
+    public static final BooleanSetting HIDE_STORY_FOLLOW =
+            new BooleanSetting("hushfacebook_hide_story_follow", FALSE);
+
+    /**
+     * The next people's stories open without the "Up next" card that holds the first one still while
+     * it counts down ({@link app.morphe.extension.facebook.stories.StoryViewerCleanup}, #544). Starts
+     * off. Read as each person's stories open.
+     */
+    public static final BooleanSetting HIDE_STORY_UP_NEXT =
+            new BooleanSetting("hushfacebook_hide_story_up_next", FALSE);
+
+    /**
+     * The bar under someone else's story leaves: the repost button, the Send message box and the quick
+     * reactions ({@link app.morphe.extension.facebook.stories.StoryViewerCleanup}, #542). Starts off.
+     * Read as the bar draws.
+     */
+    public static final BooleanSetting HIDE_STORY_REPLY_BAR =
+            new BooleanSetting("hushfacebook_hide_story_reply_bar", FALSE);
+
+    /**
      * The "Add to story" card Facebook puts between other people's stories, the plain one and the
      * ones built from photos in the phone's gallery, stays out of the viewer ({@link
      * app.morphe.extension.facebook.stories.StoryViewerCleanup}, #439). Starts off. Read as the
@@ -682,6 +705,14 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushfacebook_hide_post_share_button", FALSE);
     public static final BooleanSetting HIDE_POST_SEND_BUTTON =
             new BooleanSetting("hushfacebook_hide_post_send_button", FALSE);
+
+    /**
+     * A tap on the empty part of the row under a post, between its buttons and the reaction faces,
+     * does nothing instead of opening the comments or who reacted (#540, {@link
+     * app.morphe.extension.facebook.feed.PostRowTaps}). The buttons keep their own taps. Starts off.
+     */
+    public static final BooleanSetting IGNORE_POST_ROW_TAPS =
+            new BooleanSetting("hushfacebook_ignore_post_row_taps", FALSE);
 
     /**
      * The ads and boosted listings of Marketplace's feed: its query asks the server to skip them,
@@ -1636,6 +1667,14 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushfacebook_hide_video_comment_composer", FALSE);
 
     /**
+     * The bar along the bottom of a live video, with its comment box and the row of reactions you
+     * tap to send, is held gone ({@link app.morphe.extension.facebook.comments.LiveCommentBar},
+     * #537). The live comments themselves stay. Off by default.
+     */
+    public static final BooleanSetting HIDE_LIVE_COMMENT_BAR =
+            new BooleanSetting("hushfacebook_hide_live_comment_bar", FALSE);
+
+    /**
      * Every comment starts with its reply thread open, as if View replies had been tapped
      * ({@link app.morphe.extension.facebook.comments.CommentSheetOptions}). Off by default. A
      * change shows on the next comments drawn.
@@ -1956,12 +1995,27 @@ public class Settings extends BaseSettings {
 
     /**
      * With {@link #FEED_VIDEO_SEEK_BAR} on, the bar is a thin line flush with the video's bottom
-     * edge, as on Instagram, with no thumb or times until a drag, and a live video that can be
-     * rewound gets it too. It sits on the edge as {@link #FEED_VIDEO_SEEK_BAR_EDGE} does (#431).
+     * edge, as on Instagram, with no thumb until a drag, and a live video that can be rewound gets
+     * it too. It sits on the edge as {@link #FEED_VIDEO_SEEK_BAR_EDGE} does (#431). With
+     * {@link #FEED_VIDEO_SEEK_BAR_TIMES} on, its times sit just above its two ends (#487).
      * Starts off.
      */
     public static final BooleanSetting FEED_VIDEO_SEEK_BAR_THIN =
             new BooleanSetting("hushfacebook_feed_video_seek_bar_thin", FALSE) {
+                @Override
+                protected void onValueChanged() {
+                    FeedVideoControls.settingsChanged();
+                }
+            };
+
+    /**
+     * With {@link #FEED_VIDEO_SEEK_BAR_THIN} on, a drag keeps the line on the video's bottom edge, a
+     * little thicker, with its dot centered on that edge and the time in the middle above it, as
+     * Instagram's does, where the line otherwise rises into the full bar with a time bubble (#539).
+     * Starts off.
+     */
+    public static final BooleanSetting FEED_VIDEO_SEEK_BAR_FLAT_DRAG =
+            new BooleanSetting("hushfacebook_feed_video_seek_bar_flat_drag", FALSE) {
                 @Override
                 protected void onValueChanged() {
                     FeedVideoControls.settingsChanged();
@@ -2037,6 +2091,19 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting FEED_VIDEO_DOUBLE_TAP_SKIP =
             new BooleanSetting("hushfacebook_feed_video_double_tap_skip", FALSE);
+
+    /**
+     * A tap on a feed video brings up a play/pause button in its middle, as Facebook's reels viewer
+     * does, rather than opening it, and the video goes on playing. A tap on the video while the
+     * button shows opens it as before (#538). Taps are asked at each press. Starts off.
+     */
+    public static final BooleanSetting FEED_VIDEO_TAP_SHOWS_PAUSE =
+            new BooleanSetting("hushfacebook_feed_video_tap_shows_pause", FALSE) {
+                @Override
+                protected void onValueChanged() {
+                    FeedVideoControls.settingsChanged();
+                }
+            };
 
     /**
      * A button on a feed video that shows its speed and steps it on a tap: 1x, 1.25x, 1.5x, 2x,
@@ -3200,6 +3267,14 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushfacebook_hide_tab_bar_line", FALSE);
 
     /**
+     * A group's page, which Facebook opens on a screen of its own with no tab bar, gets a copy of the
+     * main screen's tab bar along its bottom (#503, {@link app.morphe.extension.facebook.navigation.GroupTabBar}).
+     * Off by default. Asked as each group's page comes to the front, so a change shows on the next one.
+     */
+    public static final BooleanSetting TAB_BAR_IN_GROUPS =
+            new BooleanSetting("hushfacebook_tab_bar_in_groups", FALSE);
+
+    /**
      * The top bar and the tab bar let the feed show through, with a blur of it behind them on
      * Android 12 and newer (#124, {@link app.morphe.extension.facebook.navigation.TranslucentBars}).
      * Asked as each frame of the main screen draws, so a change shows right away. A kept tab bar is
@@ -3456,6 +3531,15 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting HIDE_COMMENT_REACTIONS =
             new BooleanSetting("hushfacebook_hide_comment_reaction_preview", FALSE);
+
+    /**
+     * A post's stacked reaction faces leave the end of its button row and sit on its Like button,
+     * right before the count ({@link app.morphe.extension.facebook.feed.LikeButtonFaces}, #541). Off
+     * by default, and {@link #HIDE_POST_REACTIONS} overrules it. A change shows on the posts drawn
+     * after it.
+     */
+    public static final BooleanSetting REACTIONS_ON_LIKE_BUTTON =
+            new BooleanSetting("hushfacebook_reactions_on_like_button", FALSE);
 
     /**
      * The friend bubbles over a post's photo or video, each a friend's picture with the reaction they

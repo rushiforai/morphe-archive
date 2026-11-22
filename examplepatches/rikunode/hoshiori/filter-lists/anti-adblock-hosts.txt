@@ -1,0 +1,5 @@
+# Reviewed Ad-Shield dedicated resource hosts. Sources in NOTICE.
+# The upstream EasyList currently has only optioned popup/document rules for these hosts.
+html-load.com
+css-load.com
+content-loader.com

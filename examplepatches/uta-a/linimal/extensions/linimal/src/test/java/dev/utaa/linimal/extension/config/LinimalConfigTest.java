@@ -39,6 +39,7 @@ public final class LinimalConfigTest {
             LinimalFeature.LINE_AI_GALLERY_VIEWER,
             LinimalFeature.PUSH_NOTIFICATIONS,
             LinimalFeature.GOOGLE_DRIVE_BACKUP,
+            LinimalFeature.OFFICIAL_FONTS,
             LinimalFeature.ADS,
             LinimalFeature.LINE_AI);
 
@@ -88,6 +89,8 @@ public final class LinimalConfigTest {
             LinimalFeature.PREVIEW_DISABLE,
             LinimalFeature.SQUARE_ADS,
             LinimalFeature.AMOLED_THEME,
+            LinimalFeature.OFFICIAL_FONTS,
+            LinimalFeature.CUSTOM_FONT,
             LinimalFeature.READ_RECEIPT_READERS_ICONS,
             LinimalFeature.READ_RECEIPT_READERS_TAP,
             LinimalFeature.READ_RECEIPT_READERS_OTHERS_COUNT,
@@ -117,6 +120,8 @@ public final class LinimalConfigTest {
         assertFalse(config.isPremiumPreviewPromotionSuppressionEnabled());
         assertFalse(config.isPreviewScrollEnabled());
         assertFalse(config.isAmoledThemeEnabled());
+        assertFalse(config.isOfficialFontsEnabled());
+        assertFalse(config.isCustomFontEnabled());
         assertFalse(PreviewScrollHooks.allowScroll(false));
         assertTrue(PreviewScrollHooks.allowScroll(true));
         assertFalse(config.isPreviewDisableEnabled());
@@ -130,7 +135,8 @@ public final class LinimalConfigTest {
     }
 
     /**
-     * 新規インストールで ON になるのは、広告と Agent i・LINE AI の抑制、push 通知の復旧だけです。
+     * 新規インストールで ON になるのは、広告と Agent i・LINE AI の抑制と、再署名で壊れた公式機能
+     * （push 通知、Google ログイン、フォント設定）の復旧だけです。
      * ほかは LINE の元の挙動のままにし、利用者が設定画面で選びます。
      */
     @Test

@@ -41,4 +41,16 @@
         <item>below</item>
         <item>hidden</item>
     </string-array>
+    <string-array name="morphe_hide_keyword_content_subtitles_language_entries">
+        <item>@string/morphe_hide_keyword_subtitles_lang_original</item>
+        <item>@string/morphe_hide_keyword_subtitles_lang_app</item>
+        <item>@string/morphe_hide_keyword_subtitles_lang_ru</item>
+        <item>@string/morphe_hide_keyword_subtitles_lang_en</item>
+    </string-array>
+    <string-array name="morphe_hide_keyword_content_subtitles_language_entry_values">
+        <item>original</item>
+        <item>app</item>
+        <item>ru</item>
+        <item>en</item>
+    </string-array>
 </resources>

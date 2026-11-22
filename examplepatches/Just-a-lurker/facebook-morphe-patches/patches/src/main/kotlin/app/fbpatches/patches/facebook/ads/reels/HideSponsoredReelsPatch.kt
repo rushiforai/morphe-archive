@@ -62,7 +62,7 @@ val hideSponsoredReelsPatch = bytecodePatch(
         fillReelItemStubs(items)
         pages.pageInserts.forEach { it.filterPageFirst(adBase) }
         pages.announcePage.filterPageFirst(adBase, ANNOUNCED_AD_FILTER)
-        pages.insertItem.dropItemFirst(adBase)
+        pages.itemInserts.forEach { it.dropItemFirst(adBase) }
         pages.addPage.filterSectionsFirst(adBase)
 
         // The Reels tab's story loader draws those ads from Facebook's ad pool one slot at a time,
@@ -72,7 +72,7 @@ val hideSponsoredReelsPatch = bytecodePatch(
         poolVends.forEach { it.holdPoolAdFirst() }
 
         // The Reels row in the News feed draws its ad tiles from a second pool, through the same
-        // two base methods (#216). A build that moved it keeps the rest: see ReelsAdPool.kt.
+        // two base methods. A build that moved it keeps the rest: see ReelsAdPool.kt.
         try {
             fbShortsAdPoolVends(poolVends).forEach { it.holdPoolAdFirst(HOLD_ROW_AD) }
         } catch (moved: PatchException) {

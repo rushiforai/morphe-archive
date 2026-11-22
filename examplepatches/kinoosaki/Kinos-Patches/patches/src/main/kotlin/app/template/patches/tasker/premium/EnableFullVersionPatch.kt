@@ -17,6 +17,11 @@ val enableFullVersionPatch = bytecodePatch(
     compatibleWith(COMPATIBILITY_TASKER)
 
     execute {
+        LicenseResponseFingerprint.clearMatch()
+        CachedLicenseFingerprint.clearMatch()
+        FreshLicenseFingerprint.clearMatch()
+        LicenseResultFingerprint.clearMatch()
+
         // 1. LVL / licence-server response mapping: every status getter reports Licensed.
         val statusGetters = LicenseResponseFingerprint.classDef.methods.filter {
             it.returnType == LICENSE_STATUS && it.parameterTypes.isEmpty() && it.implementation != null

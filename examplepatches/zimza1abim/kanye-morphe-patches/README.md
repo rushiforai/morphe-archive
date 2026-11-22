@@ -35,6 +35,7 @@
 | 🗒️ | **Joplin** | `net.cozic.joplin` | Flash-free custom font · Blush Pink theme |
 | 🧩 | **Anytype** | `io.anytype.app` | App-wide custom font |
 | 🤖 | **OpenBot** | `run.openbot.mobile` | App-wide custom font · System default · Installed fonts |
+| 🐋 | **Orca** | `dev.orca.app` | App-wide font · Installed fonts · TTF import |
 | 🔐 | **Bitwarden** | `com.x8bit.bitwarden` | Passphrase length · Custom special characters · Passkeys in patched browsers |
 
 Get the original APKs from each app's official GitHub releases.
@@ -48,6 +49,7 @@ Get the original APKs from each app's official GitHub releases.
 | Joplin | [laurent22/joplin-android](https://github.com/laurent22/joplin-android/releases) | `joplin-v<version>.apk` |
 | Anytype | [anyproto/anytype-kotlin](https://github.com/anyproto/anytype-kotlin/releases) | `anytype-<version>-arm64-v8a.apk` |
 | OpenBot | [nightly-labs/openbot](https://github.com/nightly-labs/openbot/releases) (`OpenBot for Android …`) | `OpenBot-<version>.apk` |
+| Orca | [stablyai/orca](https://github.com/stablyai/orca/releases) (`Orca Mobile Android …`) | `app-release.apk` |
 | Bitwarden | [bitwarden/android](https://github.com/bitwarden/android/releases) (`Password Manager …`) | `com.x8bit.bitwarden.apk` |
 
 > [!IMPORTANT]
@@ -63,7 +65,7 @@ Get the original APKs from each app's official GitHub releases.
 <tr>
 <th width="33%">🌍 Browsers (Brave · Bare · Titanium)</th>
 <th width="33%">📝 Notes (Notesnook · Joplin)</th>
-<th width="33%">🧩 Anytype · 🤖 OpenBot</th>
+<th width="33%">🧩 Anytype · 🤖 OpenBot · 🐋 Orca</th>
 </tr>
 <tr valign="top">
 <td>
@@ -86,6 +88,7 @@ Get the original APKs from each app's official GitHub releases.
 - Adds a **Font** row to the settings
 - Anytype: pick a TTF or OTF file
 - OpenBot: follow the phone font, or use an installed **font APK** or a **TTF file**
+- Orca: the phone font, bundled Pretendard, an installed **font APK**, a system font or a **TTF file**, applied to every screen including chats, code and the terminal; each row previews its own face
 - The chosen file is validated and copied into the app's private storage
 
 </td>
@@ -134,6 +137,7 @@ flowchart LR
 | Joplin | <kbd>Settings</kbd> → <kbd>Appearance</kbd> → <kbd>Custom font</kbd> | Blush Pink is in the theme list |
 | Anytype | <kbd>Settings</kbd> → <kbd>Application</kbd> → <kbd>Font</kbd> → <kbd>Choose custom font…</kbd> | TTF or OTF files |
 | OpenBot | <kbd>Settings</kbd> → <kbd>Appearance</kbd> → <kbd>Font</kbd> | System default follows the phone font |
+| Orca | <kbd>Settings</kbd> → <kbd>Appearance</kbd> → <kbd>Font</kbd> | Tap <kbd>Restart Orca</kbd> to redraw open screens |
 
 > [!TIP]
 > To go back to the original font, pick the default option on the same screen (Joplin: <kbd>Turn off custom font</kbd>).
@@ -179,6 +183,7 @@ Each listed version passed patching and verification. Other versions may fail to
 | Joplin | `net.cozic.joplin` | `3.7.10` `3.7.11` `3.7.12` |
 | Notesnook | `com.streetwriters.notesnook` | `3.4.14` `3.4.15` `3.4.16` |
 | OpenBot | `run.openbot.mobile` | `1.4.12` |
+| Orca | `dev.orca.app` | `0.0.68` |
 <!-- VERSIONS_END -->
 
 > [!NOTE]
@@ -187,7 +192,7 @@ Each listed version passed patching and verification. Other versions may fail to
 ## 🩹 Patches
 
 <!-- PATCHES_START -->
-> **[v0.1.6](../../releases/tag/v0.1.6)**&nbsp;&nbsp;•&nbsp;&nbsp;18 patches total
+> **[v0.2.0](../../releases/tag/v0.2.0)**&nbsp;&nbsp;•&nbsp;&nbsp;19 patches total
 <details>
 <summary>📦 Anytype&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
@@ -318,6 +323,21 @@ Each listed version passed patching and verification. Other versions may fail to
 
 </details>
 
+<details>
+<summary>📦 Orca&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 0.0.68 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Orca custom font](#orca-custom-font) | Choose a system, installed or imported font in Settings > Appearance > Font. Code and icon fonts keep their faces. |  |
+
+</details>
+
 <!-- PATCHES_END -->
 
 ---
@@ -403,6 +423,8 @@ No. The patch code makes no network requests. The font you choose is stored only
 | [ShadowHook](https://github.com/bytedance/android-inline-hook) (ByteDance) | MIT | `libshadowhook.so`, `native/brave/font/include/shadowhook.h` |
 | [Joplin](https://github.com/laurent22/joplin) | AGPL-3.0 | `patches/src/main/resources/joplin/` bundles, built from the official `android-v<version>` tags with `scripts/joplin/` |
 | [Notesnook](https://github.com/streetwriters/notesnook) | GPL-3.0 | `patches/src/main/resources/notesnook/` bundles, built from the official `<version>-android` tags with `scripts/notesnook/` |
+| [Orca](https://github.com/stablyai/orca) | MIT | `patches/src/main/resources/orca/adapters/` bundles, built from the official `android-v<version>` tags with `orca/build-bundle.cjs` |
+| [Pretendard](https://github.com/orioncactus/pretendard) | OFL-1.1 | `patches/src/main/resources/orca/fonts/`, unmodified, with `OFL.txt` |
 
 ---
 

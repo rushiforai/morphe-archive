@@ -14,8 +14,10 @@ import android.util.Log;
  * Settings page comes from its server, and on tablets it has no Dark mode row, so there is no way
  * to turn dark mode on there.
  *
- * <p>This turns a light answer dark on a tablet and leaves every other answer alone. Facebook asks
- * as each screen applies its theme, so a change shows fully once Facebook restarts.
+ * <p>This turns a light answer dark on a tablet and leaves every other answer alone. With the
+ * patch's Follow the system theme option, a tablet is dark only while the system's dark theme is
+ * on. Facebook asks as each screen applies its theme, so a change shows fully once Facebook
+ * restarts.
  *
  * <p>Fails open: on any error the answer is Facebook's own.
  */
@@ -30,18 +32,29 @@ public final class DarkMode {
     }
 
     /**
-     * Injection point. Called with each answer of Facebook's dark mode controller.
+     * Injection point. Called with each answer of Facebook's dark mode controller, as an int
+     * because ART lets a boolean method return a register it types as int.
      *
-     * @return true on a tablet, else Facebook's own answer.
+     * @return true on a tablet (only while the system is dark when {@link #followsSystem} says so),
+     *     else Facebook's own answer.
      */
-    public static boolean answer(boolean facebooks) {
-        if (facebooks) return true;
+    public static boolean answer(int facebooks) {
+        if (facebooks != 0) return true;
         try {
-            Configuration configuration = Resources.getSystem().getConfiguration();
-            return configuration.smallestScreenWidthDp >= TABLET_SMALLEST_WIDTH_DP;
+            // The system's configuration, not Facebook's: Facebook themes its own screens from this
+            // answer, so reading its configuration would read the answer back.
+            Configuration system = Resources.getSystem().getConfiguration();
+            if (system.smallestScreenWidthDp < TABLET_SMALLEST_WIDTH_DP) return false;
+            if (!followsSystem()) return true;
+            return (system.uiMode & Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES;
         } catch (Throwable t) {
             Log.w(TAG, "DarkMode.answer failed", t);
-            return facebooks;
+            return false;
         }
+    }
+
+    /** Filled in by the patch: true when its Follow the system theme option is on. */
+    public static boolean followsSystem() {
+        return false;
     }
 }

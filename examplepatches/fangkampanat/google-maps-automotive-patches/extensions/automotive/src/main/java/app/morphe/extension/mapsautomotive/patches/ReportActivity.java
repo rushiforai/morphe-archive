@@ -4,6 +4,7 @@ import android.app.ActionBar;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.view.MenuItem;
 
@@ -38,9 +39,12 @@ public final class ReportActivity extends Activity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        // The manifest gives no theme, so the window would take Maps' application theme.
-        setTheme(android.R.style.Theme_DeviceDefault);
+        // The manifest gives no theme, so the window would take Maps' application theme. Dark or light with the M3 colors
+        // (in this process the system's night flag), on the M3 surface, so the screen's views can be read.
+        M3.Colors colors = M3.colors(this);
+        setTheme(colors.night ? android.R.style.Theme_DeviceDefault : android.R.style.Theme_DeviceDefault_Light);
         super.onCreate(savedInstanceState);
+        getWindow().setBackgroundDrawable(new ColorDrawable(colors.surface));
         boolean thai = UiDensityPatch.isThai(this);
         String name = ReportPatch.reportName(this);
         setTitle(thai || name == null ? ReportPatch.getSettingsTitle(this) : name);

@@ -74,4 +74,23 @@ object Constants {
         )
     )
 
+    val COMPATIBILITY_AMBERIT = Compatibility(
+        name = "AmberIT",
+        packageName = "com.amberit.dialer",
+        // Distributed as a split bundle (.apks): base + arm64 + xxhdpi.
+        apkFileType = ApkFileType.APKM,
+        appIconColor = 0x009688,
+        targets = listOf(
+            // Version the location-gate patch was developed and verified
+            // against (hand-built v2 .apks, confirmed working on device
+            // 2026-11-22).
+            AppTarget(
+                version = "1.3.2",
+                versionCodes = mapOf(
+                    SupportedAbi.ARM64_V8A to 103021
+                )
+            )
+        )
+    )
+
 }

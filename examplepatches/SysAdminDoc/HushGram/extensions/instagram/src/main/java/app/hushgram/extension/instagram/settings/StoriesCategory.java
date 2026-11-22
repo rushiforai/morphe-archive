@@ -131,6 +131,12 @@ final class StoriesCategory {
                             + "video. Photos don't get one.")));
             stories.add(storySeekBarLookRow(context));
             stories.add(storySeekBarPositionRow(context));
+            stories.add(toggle(context, Settings.STORY_SEEK_TIME, L10n.t("Time on the seek bar"),
+                    L10n.t("Shows the time played and the story's length at the start of its seek bar, like "
+                            + "0:03 / 0:15. Tap the time to see the time left instead.")));
+            stories.add(toggle(context, Settings.STORY_SEEK_TIME_LEFT, L10n.t("Show the time left"),
+                    L10n.t("The time on the seek bar counts down what's left of the video, like -0:33 / 0:45. "
+                            + "A tap on the time switches back.")));
         }
         if (build.contains(PatchFamily.STORY_SPEED)) {
             stories.add(toggle(context, Settings.STORY_SPEED_BUTTON, L10n.t("Speed button on stories"),
@@ -248,6 +254,10 @@ final class StoriesCategory {
             stories.add(toggle(context, Settings.TEXT_BUTTON_ON_STORIES, L10n.t("Copy text button on stories"),
                     L10n.t("Puts a Lens icon at the top of a story, beside the three dots. Tap it and Google Lens "
                             + "opens on what's showing, so you can select and copy its text.")));
+            stories.add(toggle(context, Settings.STORY_COPY_TEXT_IN_MENU, L10n.t("Copy text in the story menu"),
+                    L10n.t("Adds Copy text to the menu a story's three dots open. It copies the words Instagram "
+                            + "found in the picture, and when it found none, Google Lens opens on the story so you "
+                            + "can copy them there.")));
         }
         if (build.contains(PatchFamily.STORY_SEEN) || build.contains(PatchFamily.STORY_DOWNLOAD)) {
             stories.add(toggle(context, Settings.STORY_BUTTONS_BY_THUMB, L10n.t("Story buttons at the bottom"),

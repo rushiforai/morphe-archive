@@ -44,6 +44,9 @@ public class CaptionWordSettingsTest {
         RuntimeEnvironment.getApplication().getApplicationInfo().targetSdkVersion = 37;
         Settings.HIDE_CAPTION_WORD_REELS.resetToDefault();
         Settings.REELS_BLOCKED_WORDS.resetToDefault();
+        // Other classes' filters count what they hide in these, and a count adds a line to the row.
+        Settings.CAPTION_WORD_HIDDEN_TOTAL.resetToDefault();
+        Settings.CAPTION_WORD_HIDDEN_HOURS.resetToDefault();
         BaseSettings.PAUSED.save(false);
         PauseForTests.resume();
         BaseSettings.SAFE_MODE.save(false);
@@ -56,9 +59,12 @@ public class CaptionWordSettingsTest {
         Settings.HIDE_CAPTION_WORD_REELS.resetToDefault();
         Settings.REELS_BLOCKED_WORDS.resetToDefault();
         Settings.HIDE_CAPTION_WORD_HOME.resetToDefault();
+        Settings.HIDE_CAPTION_WORD_COMMENTS.resetToDefault();
         Settings.HIDE_OTHER_LANGUAGE_REELS.resetToDefault();
         Settings.HIDE_OTHER_LANGUAGE_HOME.resetToDefault();
         Settings.REELS_KEPT_LANGUAGES.resetToDefault();
+        Settings.CAPTION_WORD_HIDDEN_TOTAL.resetToDefault();
+        Settings.CAPTION_WORD_HIDDEN_HOURS.resetToDefault();
         Settings.SIGN_IN_NOTICE_HIDDEN.resetToDefault();
     }
     private void open(boolean installed) throws Exception {
@@ -116,6 +122,23 @@ public class CaptionWordSettingsTest {
         assertEquals(1, filters.length);
         assertEquals(ConfigurationBackup.MAX_WORDS_TEXT, ((InputFilter.LengthFilter) filters[0]).getMax());
     }
+    /** Once the list has hidden something, the row says how much on a line under its count of words (#807). */
+    @Test public void theRowSaysHowMuchTheListHid() throws Exception {
+        long hour = System.currentTimeMillis() / (60L * 60L * 1000L);
+        Settings.CAPTION_WORD_HIDDEN_TOTAL.save(340L);
+        Settings.CAPTION_WORD_HIDDEN_HOURS.save((hour - 30) + ":200," + (hour - 2) + ":5," + hour + ":7");
+        open(true);
+        HushgramPreferenceFragment.WordsRow words =
+                (HushgramPreferenceFragment.WordsRow) page.getPreferenceScreen().findPreference(Settings.REELS_BLOCKED_WORDS.key);
+        words.setText("spoiler\n@clickbait.daily");
+        assertEquals("the hours more than a day old don't count", "2 words\n12 hidden in the last 24 hours, 340 in all",
+                words.getSummary().toString());
+
+        Settings.CAPTION_WORD_HIDDEN_TOTAL.resetToDefault();
+        Settings.CAPTION_WORD_HIDDEN_HOURS.resetToDefault();
+        words.setText("spoiler");
+        assertEquals("nothing hidden yet, no line for it", "1 word", words.getSummary().toString());
+    }
     /** Also on Home sits under the list, off to start and waiting for the switch, only with Home's reads in the build. */
     @Test public void alsoOnHomeSitsUnderTheListWithHomesReadsInTheBuild() throws Exception {
         PatchFamily.feedTypesForTests = true;
@@ -149,6 +172,33 @@ public class CaptionWordSettingsTest {
             PatchFamily.feedTypesForTests = null;
         }
     }
+    /** #807: Also in comments sits under the list, off to start, waits for the switch and goes in a backup. */
+    @Test public void alsoInCommentsSitsUnderTheListAndWaitsForTheSwitch() throws Exception {
+        PatchFamily.feedTypesForTests = false;
+        try {
+            open(true);
+            SwitchPreference hide = (SwitchPreference) page.getPreferenceScreen().findPreference(Settings.HIDE_CAPTION_WORD_REELS.key);
+            Preference words = page.getPreferenceScreen().findPreference(Settings.REELS_BLOCKED_WORDS.key);
+            SwitchPreference comments = (SwitchPreference) page.getPreferenceScreen().findPreference(Settings.HIDE_CAPTION_WORD_COMMENTS.key);
+            assertNotNull(comments);
+            assertEquals("Also in comments", comments.getTitle().toString());
+            assertEquals("Hides comments that hold a word or phrase from the list too, and comments by an account "
+                    + "the list names with @. A hidden comment's replies go with it.", comments.getSummary().toString());
+            assertFalse("off to start", comments.isChecked());
+            PreferenceCategory section = categoryHolding(page.getPreferenceScreen(), words);
+            assertEquals("right under the list without Home's reads", indexIn(section, words) + 1, indexIn(section, comments));
+            assertFalse("waits for the switch", comments.isEnabled());
+            hide.setChecked(true);
+            ShadowLooper.idleMainLooper();
+            assertTrue(comments.isEnabled());
+            assertTrue("a backup keeps it", ConfigurationBackup.eligible().containsKey(Settings.HIDE_CAPTION_WORD_COMMENTS.key));
+            page.searchSettings("hide reels by caption words");
+            assertNotNull("the patch's name finds it", comments.getParent());
+            page.searchSettings("");
+        } finally {
+            PatchFamily.feedTypesForTests = null;
+        }
+    }
     /** Hide reels in other languages (#495): its switch, the languages row and Also on Home sit under the caption word rows and wait for the switch. */
     @Test public void theLanguageRowsSitUnderTheCaptionWordRowsAndWaitForTheirSwitch() throws Exception {
         PatchFamily.feedTypesForTests = true;
@@ -169,7 +219,9 @@ public class CaptionWordSettingsTest {
             assertFalse("off to start", otherHome.isChecked());
             PreferenceCategory section = categoryHolding(page.getPreferenceScreen(), words);
             assertSame(section, categoryHolding(page.getPreferenceScreen(), hide));
-            assertEquals("right after the caption word rows", indexIn(section, home) + 1, indexIn(section, hide));
+            Preference comments = page.getPreferenceScreen().findPreference(Settings.HIDE_CAPTION_WORD_COMMENTS.key);
+            assertEquals("Also in comments after Also on Home", indexIn(section, home) + 1, indexIn(section, comments));
+            assertEquals("right after the caption word rows", indexIn(section, comments) + 1, indexIn(section, hide));
             assertEquals(indexIn(section, hide) + 1, indexIn(section, kept));
             assertEquals(indexIn(section, kept) + 1, indexIn(section, otherHome));
 

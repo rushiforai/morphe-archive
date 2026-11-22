@@ -3,10 +3,10 @@ patches {
     about {
         name = "Hatena Bookmark native ad filter"
         description = "Remove native PR entries from Hatena Bookmark feeds without hiding normal articles"
-        source = "https://github.com/rikunode/hatena-bookmark-hide-pr-patches"
+        source = "https://github.com/rikunode/hoshiori"
         author = "rikunode"
         contact = "https://github.com/rikunode"
-        website = "https://github.com/rikunode/hatena-bookmark-hide-pr-patches"
+        website = "https://github.com/rikunode/hoshiori"
         license = "GPLv3"
     }
 }

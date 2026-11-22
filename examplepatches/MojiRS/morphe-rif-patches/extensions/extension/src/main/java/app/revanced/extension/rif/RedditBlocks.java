@@ -37,9 +37,16 @@ public final class RedditBlocks {
     /** The real page is about 190 KB with the text at the very end; read at most this much. */
     private static final int MAX_BODY = 1 << 20;
 
-    /** Loaders whose 403 body was the block page. Written on a worker thread, read on main. */
-    private static final Map<Object, Boolean> BLOCKED =
-            Collections.synchronizedMap(new WeakHashMap<Object, Boolean>());
+    /**
+     * Loaders whose last 403 body was the block page, with when it was seen. Written on a worker
+     * thread, read on main. A flag older than {@link #FLAG_MS} is ignored: the block page came back
+     * on a request whose error never reached {@link #handle}, and a later error is unrelated.
+     */
+    private static final Map<Object, Long> BLOCKED =
+            Collections.synchronizedMap(new WeakHashMap<Object, Long>());
+
+    /** A blocked request's error reaches the fragment within moments; a stale flag is older. */
+    static final long FLAG_MS = 30_000;
 
     /** Whether the response being handled on this thread answers a signed-in (OAuth) request. */
     private static final ThreadLocal<Boolean> SIGNED_IN = new ThreadLocal<Boolean>();
@@ -71,7 +78,9 @@ public final class RedditBlocks {
         byte[] bytes = head.toByteArray();
         try {
             if (Boolean.TRUE.equals(SIGNED_IN.get()) && isBlockPage(bytes)) {
-                BLOCKED.put(loader, Boolean.TRUE);
+                BLOCKED.put(loader, System.currentTimeMillis());
+            } else {
+                BLOCKED.remove(loader);
             }
         } catch (Throwable t) {
             Log.w("RedditBlocks", "inspect failed", t);
@@ -86,7 +95,9 @@ public final class RedditBlocks {
      */
     public static boolean handle(Object loader, Context context) {
         try {
-            if (loader == null || BLOCKED.remove(loader) == null) return false;
+            if (loader == null) return false;
+            Long seen = BLOCKED.remove(loader);
+            if (seen == null || System.currentTimeMillis() - seen > FLAG_MS) return false;
             Context ctx = context != null ? context : Settings.context();
             if (ctx == null) return false;
             Toast.makeText(ctx, MESSAGE, Toast.LENGTH_LONG).show();

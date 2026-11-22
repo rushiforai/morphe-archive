@@ -12,6 +12,8 @@ import java.util.concurrent.*;
 import java.util.regex.*;
 import org.json.*;
 import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
 
 /** Opt-in loopback transport for ChMate's standard subject/DAT/posting reader. */
 final class SiteBoardGateway {
@@ -34,6 +36,8 @@ final class SiteBoardGateway {
     private final Map<String,String> previewSources=Collections.synchronizedMap(new LinkedHashMap<String,String>(64,.75f,true){
         @Override protected boolean removeEldestEntry(Map.Entry<String,String> e){return size()>256;}
     });
+    private final android.util.LruCache<String,Map<Integer,AnimanchAction>> animanchActions = new android.util.LruCache<>(16);
+    private final Set<String> animanchVotesInFlight = ConcurrentHashMap.newKeySet();
     private final Set<String> posting=ConcurrentHashMap.newKeySet();
     private final Set<Socket> clients=ConcurrentHashMap.newKeySet();
     private final Map<String,Long> sent=new ConcurrentHashMap<>();
@@ -354,8 +358,8 @@ final class SiteBoardGateway {
     }
     /** Copy/share conversion does not activate a disabled board or start the gateway. */
     synchronized String originalUrl(String address){
-        try{URI uri=URI.create(address);if(!"127.0.0.1".equals(uri.getHost())||uri.getPort()!=-1&&uri.getPort()!=port||uri.getUserInfo()!=null||uri.getRawQuery()!=null||!("http".equals(uri.getScheme())||"https".equals(uri.getScheme())))return address;
-            Matcher thread=Pattern.compile("/test/read\\.cgi/("+KEY_PATTERN+")/([0-9]{1,12})/(?:([1-9][0-9]{0,5})|[ln][0-9]+)?").matcher(uri.getRawPath());
+        try{URI uri=URI.create(address);if(!"127.0.0.1".equals(uri.getHost())||uri.getUserInfo()!=null||uri.getRawQuery()!=null||!("http".equals(uri.getScheme())||"https".equals(uri.getScheme())))return address;
+            Matcher thread=Pattern.compile("/test/read\\.cgi/("+KEY_PATTERN+")/([0-9]{1,12})(?:/([0-9ln-]*))?").matcher(uri.getRawPath());
             Matcher board=Pattern.compile("/("+KEY_PATTERN+")/").matcher(uri.getRawPath());
              Matcher image=Pattern.compile("/m/("+KEY_PATTERN+")/((?:arc/)?img)/([1-9][0-9]{0,11})/([1-9][0-9]{0,11})\\.jpg").matcher(uri.getRawPath());
             if(image.matches()){
@@ -364,7 +368,7 @@ final class SiteBoardGateway {
             }
             if(thread.matches()){
                 SiteBoardProtocol.Board target=boards.get(thread.group(1));if(target==null)return address;String id=sourceThread(thread.group(2));if(isRanking(target)){String result=rankingSource(id);return result==null?address:result;}if(newsBoard(thread.group(1)))return newsSources.containsKey(id)?newsSources.get(id):address;String result=target.threadUrl(id);
-                if(target.kind.equals("animanch")&&thread.group(3)!=null)result+="#res"+thread.group(3);return result;
+                if(target.kind.equals("animanch")&&thread.group(3)!=null&&thread.group(3).matches("[1-9][0-9]{0,5}"))result+="#res"+thread.group(3);return result;
             }
             if(board.matches()&&boards.containsKey(board.group(1)))return boards.get(board.group(1)).url;
         }catch(Exception invalid){/* Leave unrelated/malformed copied text intact. */}return address;
@@ -404,6 +408,18 @@ final class SiteBoardGateway {
         if(target==null||!target.matches(KEY_PATTERN+":(?:new|[1-9][0-9]{0,11})")||!boardEnabled(target.substring(0,target.indexOf(':'))))throw new IOException("使用しない板です");
         long now=android.os.SystemClock.elapsedRealtime();attachments.entrySet().removeIf(e->now-e.getValue().created>600000);
         if(image==null){attachments.remove(target);return;}if(!attachments.containsKey(target)&&attachments.size()>=4)throw new IOException("添付の待機数が上限です。他の添付を解除してください");attachments.put(target,new PendingImage(image));
+    }
+    String attachmentName(String target){PendingImage pending=attachments.get(target);return pending==null?"":pending.image.displayName;}
+    SitePostProtocol.Image popupAttachment(String target)throws IOException{
+        PendingImage pending=attachments.get(target);
+        if(pending==null)return null;
+        if(android.os.SystemClock.elapsedRealtime()-pending.created>600000)throw new IOException("添付画像を選び直してください");
+        return pending.image;
+    }
+    void clearPopupAttachment(String target,SitePostProtocol.Image image){
+        PendingImage pending=attachments.get(target);
+        if(pending!=null&&pending.image==image&&attachments.remove(target,pending))
+            ThreadCommands.updateSiteAttachmentStatus(target,"");
     }
     synchronized String globalSearchUrl(String id)throws IOException{
         if(id==null||!id.matches("[0-9a-f-]{36}"))throw new IOException("検索結果のIDが不正です");
@@ -624,9 +640,159 @@ final class SiteBoardGateway {
     private synchronized void mergeNews(List<BakusaiNews.Item> items)throws IOException{boolean changed=false;for(BakusaiNews.Item item:items)if(!newsSources.containsKey(item.id)){newsSources.put(item.id,item.url);changed=true;}SharedPreferences.Editor edit=prefs.edit();while(newsSources.size()>256){String oldest=newsSources.keySet().iterator().next();newsSources.remove(oldest);edit.remove("yamiCount:"+oldest);}if(changed&&!edit.putString("yamiSources",new JSONObject(newsSources).toString()).commit())throw new IOException("ニュースの元URLを保存できません");}
     private List<SiteBoardProtocol.Topic> newsTopics()throws IOException{SitePostProtocol.Plan plan=BakusaiNews.request();Response response=transport.post(plan,plan.url);if(response.status!=200)throw new IOException("関連ニュースの取得エラー（HTTP "+response.status+"）");List<BakusaiNews.Item> items=BakusaiNews.catalogue(response.text());mergeNews(items);List<SiteBoardProtocol.Topic> topics=new ArrayList<>();for(BakusaiNews.Item item:items)topics.add(new SiteBoardProtocol.Topic(item.id,item.title,prefs.getInt("yamiCount:"+item.id,0)));return topics;}
     private SiteBoardProtocol.ThreadPage thread(SiteBoardProtocol.Board board,String id,String html)throws IOException{
-        if(board.kind.equals("animanch"))return AnimanchPagination.thread(board,id,html,url->{if(!boardEnabled(board))throw new IOException("使用しない板です");return page(url);});
+        if (board.kind.equals("animanch")) {
+            Map<Integer,AnimanchAction> actions = new HashMap<>();
+            SiteBoardProtocol.ThreadPage result = AnimanchPagination.thread(board,id,html,url->{
+                if(!boardEnabled(board))throw new IOException("使用しない板です");
+                return page(url);
+            },(address,reply)->{
+                if(reply.heart||reply.own||reply.heartCount>=0)
+                    actions.put(reply.number,new AnimanchAction(address,reply.heart,reply.own,reply.heartCount));
+            });
+            synchronized (animanchActions) {
+                restoreAnimanchVotes(id, actions);
+                animanchActions.put(id,Collections.unmodifiableMap(actions));
+            }
+            return result;
+        }
         return board.kind.equals("bakusai")?BakusaiPagination.thread(board,id,html,url->{if(!boardEnabled(board))throw new IOException("使用しない板です");return page(url);}):SiteBoardProtocol.thread(board,id,html);
     }
+    static final class AnimanchAction {
+        final String page;
+        final boolean heart, own;
+        volatile int heartCount;
+        volatile boolean voted;
+        AnimanchAction(String page, boolean heart, boolean own, int heartCount) {
+            this.page = page;
+            this.heart = heart;
+            this.own = own;
+            this.heartCount = heartCount;
+        }
+        String heartLabel() {
+            int count = heartCount;
+            return (voted ? "❤" : "♡") + (count < 0 ? "" : " " + count);
+        }
+    }
+
+    Map<Integer,AnimanchAction> animanchActions(String thread) {
+        synchronized (animanchActions) {
+            Map<Integer,AnimanchAction> actions = animanchActions.get(thread);
+            if (actions != null) return actions;
+            Map<Integer,AnimanchAction> cached = new HashMap<>();
+            restoreAnimanchVotes(thread, cached);
+            actions = Collections.unmodifiableMap(cached);
+            animanchActions.put(thread, actions);
+            return actions;
+        }
+    }
+
+    private void restoreAnimanchVotes(String thread, Map<Integer,AnimanchAction> actions) {
+        for (String saved : prefs.getStringSet("animanchHeart:" + thread, Collections.emptySet())) {
+            String[] parts = saved.split(":", 2);
+            int number = AnimanchProtocol.heartCount(parts[0]);
+            if (number < 1) continue;
+            int count = parts.length == 2 ? AnimanchProtocol.heartCount(parts[1]) : -1;
+            AnimanchAction action = actions.get(number);
+            if (action == null) {
+                action = new AnimanchAction("", false, false, count);
+                actions.put(number, action);
+            }
+            if (action.heartCount < 0) action.heartCount = count;
+            action.voted = true;
+        }
+    }
+
+    void runAnimanchAction(String thread, int number, boolean delete, AnimanchAction expected) throws Exception {
+        if (delete) {
+            sendAnimanchAction(thread, number, true, expected);
+            return;
+        }
+        String vote = thread + ":" + number;
+        if (!animanchVotesInFlight.add(vote)) throw new IOException("このレスのハートを処理中です");
+        try {
+            if (expected.voted) return;
+            int count = sendAnimanchAction(thread, number, false, expected);
+            synchronized (animanchActions) {
+                String key = "animanchHeart:" + thread;
+                Set<String> voted = new HashSet<>(prefs.getStringSet(key, Collections.emptySet()));
+                String response = Integer.toString(number);
+                voted.removeIf(saved -> saved.equals(response) || saved.startsWith(response + ":"));
+                voted.add(response + ":" + count);
+                prefs.edit().putStringSet(key, voted).apply();
+                expected.heartCount = count;
+                expected.voted = true;
+                Map<Integer,AnimanchAction> latest = animanchActions.get(thread);
+                AnimanchAction action = latest == null ? null : latest.get(number);
+                if (action != null) {
+                    action.heartCount = Math.max(action.heartCount, count);
+                    action.voted = true;
+                }
+            }
+        } finally {
+            animanchVotesInFlight.remove(vote);
+        }
+    }
+
+    private int sendAnimanchAction(String thread, int number, boolean delete, AnimanchAction expected) throws Exception {
+        Map<Integer,AnimanchAction> current = animanchActions.get(thread);
+        if (!siteEnabled("animanch") || current == null || current.get(number) != expected
+                || !(delete ? expected.own : expected.heart)) throw new IOException("更新してからやり直してください");
+        boolean useCookies=prefs.getBoolean("cookies:bbs.animanch.com",false);
+        if (delete && !useCookies)
+            throw new IOException("自分のレスを削除するには、設定の「あにまんの認証」で認証情報を利用してください");
+        String actionUrl=delete?AnimanchProtocol.ORIGIN+"/debug/core.php":AnimanchProtocol.POST;
+        if(useCookies){
+            String cookie=CookieManager.getInstance().getCookie(actionUrl);
+            if(cookie==null||cookie.isEmpty())
+                throw new IOException("あにまんの認証Cookieが操作先にありません。設定から認証をやり直し、「認証情報を利用」を押してください");
+        }
+        Response pageResponse=transport.get(expected.page);
+        String html=pageResponse.text();
+        if(pageResponse.status!=200)
+            throw new IOException(animanchActionResponseError(pageResponse.status,html));
+        if(AnimanchProtocol.cloudflareChallenge(html))
+            throw new IOException("Cloudflareの認証確認が必要です。設定からあにまんの認証をやり直してください");
+        Document document = Jsoup.parse(html,expected.page);
+        Element canonical = document.selectFirst("link[rel=canonical]");
+        if (canonical != null && !thread.equals(AnimanchProtocol.threadId(canonical.absUrl("href"))))
+            throw new IOException("レスの照合ができませんでした");
+        Element post = document.selectFirst("#resList > li#res" + number);
+        String token = AnimanchProtocol.actionToken(post,thread,number,delete);
+        if (token.isEmpty())
+            throw new IOException((delete?"削除":"ハート")+"の操作情報を再取得できませんでした。認証状態を確認してスレを更新してください");
+        if(!siteEnabled("animanch"))throw new IOException("あにまん掲示板の使用がオフです");
+        SitePostProtocol.Plan plan = new SitePostProtocol.Plan(actionUrl,null,"UTF-8",false,
+                Collections.singletonMap(delete?"delete":"vote",token),expected.page);
+        Response result = transport.post(plan, actionUrl);
+        String answer=result.text();
+        if(result.status!=200)throw new IOException(animanchActionResponseError(result.status,answer));
+        int count = delete ? -1 : AnimanchProtocol.confirmedHeartCount(answer);
+        if(delete?!answer.trim().isEmpty():count<0)
+            throw new IOException(animanchActionResponseError(result.status,answer));
+        return count;
+    }
+
+    private static String animanchActionResponseError(int status,String body){
+        if(AnimanchProtocol.cloudflareChallenge(body))
+            return "Cloudflareの認証確認が必要です。設定からあにまんの認証をやり直し、「認証情報を利用」を押してください";
+        String detail=AnimanchProtocol.postingError(body);
+        if(!detail.isEmpty())return detail.substring(1);
+        if(status==401||status==403)
+            return "あにまんから認証を拒否されました（HTTP "+status+"）。認証をやり直してからスレを更新してください";
+        if(status!=200)return "あにまんから操作を拒否されました（HTTP "+status+"）。スレを更新して状態を確認してください";
+        return "あにまんから操作結果を確認できませんでした。二重操作を避け、スレを更新して状態を確認してください";
+    }
+
+    static String animanchActionFailure(Throwable error){
+        if(error instanceof SocketTimeoutException)
+            return "あにまんへの通信がタイムアウトしました。スレを更新してからやり直してください";
+        String message=error==null?null:error.getMessage();
+        if(error instanceof IOException&&message!=null&&!message.trim().isEmpty()
+                &&message.length()<=420&&!message.contains("<")&&!message.contains(">")
+                &&message.indexOf('\n')<0&&message.indexOf('\r')<0)return message;
+        return "あにまんの操作に失敗しました。認証状態とスレの状態を確認し、更新してからやり直してください";
+    }
+
     List<SiteBoardMenuProtocol.Choice> menu(String kind,int region)throws IOException{
         if(kind.equals("edge"))return SiteBoardMenuProtocol.parse(kind,"");
         return SiteBoardMenuProtocol.parse(kind,page(SiteBoardMenuProtocol.source(kind,region)));

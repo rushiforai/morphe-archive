@@ -20,8 +20,6 @@ Linimal is an independent project and is not an official project of LINE or Morp
 - **Pure black dark mode**: makes the background and bottom tabs black (`#000000`) for OLED screens.
 - **Other**: hide LINE Premium prompts, disable chat previews or make them scrollable, open links in an external browser, and support for notifications and Google login and backup.
 
-Ads, Premium, and Agent i / LINE AI are only hidden. Ad delivery, billing, and LINE's network traffic are not changed.
-
 ## Supported version
 
 | Item | Value |
@@ -60,14 +58,14 @@ java -jar morphe-desktop-*-all.jar patch \
 
 The patched LINE has a different signature from the official app, so it cannot be installed over it. Migrate in this order:
 
-1. Complete the [MicroG-RE setup](#use-microg-re-for-google-login-and-backup).
+1. Complete the [MicroG-RE setup](#google-sign-in-with-microg-re).
 2. In the official LINE app, back up your chats to Google Drive.
 3. Uninstall the official LINE app and install the LINE patched with Linimal.
 4. Log in and restore from Google Drive.
 
 ## Usage
 
-`Linimal` is added at the bottom of LINE's settings screen. Its settings are split into 7 pages: `Ads`, `Agent i & LINE AI`, `Hide items`, `Read receipts`, `Readers`, `Theme`, and `General`.
+`Linimal` is added at the bottom of LINE's settings screen. Its settings are split into 8 pages: `Ads`, `AI features`, `Visible items`, `Privacy`, `Readers`, `Chats`, `Appearance`, and `Notifications & sign-in`.
 
 Linimal's settings screen, messages, and notifications follow LINE's display language and are shown in Japanese, English, Traditional Chinese, Thai, or Indonesian. Other languages fall back to English.
 
@@ -79,41 +77,43 @@ Display settings that hide parts of the screen take effect after the app restart
 
 | Page | Setting | Default | Description |
 | --- | --- | --- | --- |
-| Ads | Hide Smart Channel ads | ON | Hides the Smart Channel at the top of the chat list. |
-| Ads | Hide ads on Home | ON | Hides ad slots on Home and ad cards in the feed. |
+| Ads | Hide chat list ads | ON | Hides the Smart Channel at the top of the chat list. |
+| Ads | Hide Home ads | ON | Hides ad slots on Home and ad cards in the feed. |
 | Ads | Hide OpenChat ads | ON | Hides ads in OpenChat chats, threads, and notes. |
-| Agent i & LINE AI | Hide Agent i at the top of Home | ON | |
-| Agent i & LINE AI | Hide Agent i at the top of Wallet | ON | |
-| Agent i & LINE AI | Hide Agent i in the chat list search bar | ON | The search bar widens to fill the space. |
-| Agent i & LINE AI | Hide Agent i in chat info | ON | |
-| Agent i & LINE AI | Hide Agent i in the message box | ON | Hides Agent i and AI reply suggestions in the message box. |
-| Agent i & LINE AI | Hide Agent i in the + menu | ON | Hides the "Show Agent i in chat" toggle at the top of the chat + menu. |
-| Agent i & LINE AI | Hide LINE AI in the message long-press menu | ON | Also removes the LINE AI button next to image messages. |
-| Agent i & LINE AI | Hide LINE AI in the photo and video viewer | ON | |
-| Agent i & LINE AI | Hide Agent i in Settings | ON | |
-| Hide items | Hide Shopping / News / Wallet / Apps | OFF | Removes them from the bottom tabs. VOOM is always removed regardless of settings because the service has ended. |
-| Hide items | Hide AI Friends / Calendar / OpenChat | OFF | Hides the icons at the top of the chat list. |
-| Hide items | Hide Calendar / LINE Gift / LINE Pay | OFF | Removes them from the chat + menu. |
-| Hide items | Hide recommendations / trending / post cards on Home / live streams / featured collections / recent history | OFF | Hides each section on Home. |
-| Read receipts | Add "Read without receipt" to the menu | OFF | Chats opened from the long-press menu (or from the preview's menu when scroll previews are shown) stay unread. Shows a manual read button for each received message and a button to mark the whole chat as read. By default, sending a message marks the chat as read. |
-| Read receipts | Open from notifications without read receipt | OFF | Applies the same unread handling and manual read buttons to regular chats opened from notifications. By default, sending a message marks the chat as read. Independent of the menu setting. |
-| Read receipts | Keep unread after sending | OFF | In chats opened without read receipts, receipts stay off even after you send a message. What you actually read and reply to won't match what the other person sees, which may cause misunderstandings or trouble. |
-| Read receipts | Stop automatic read receipts in chats | OFF | In regular chats, only manual read actions are sent. While reading without receipts, if "Keep unread after sending" is off, a read receipt is allowed once when you send a message. OpenChat and similar chats are not covered. |
-| Readers | Show icons next to the read mark | OFF | In groups and multi-person chats, shows icons of up to 4 members who read your message next to "Read". |
-| Readers | Show read count on others' messages | OFF | Shows "Read N" above the time on others' messages, counting readers other than the sender and you. |
-| Readers | Show reader icons on others' messages | OFF | Shows the icons of members who read it above the time on others' messages. When both this and the read count are on, the icons appear outside the read count (farther from the bubble). |
-| Readers | Tap the read mark to open the list | OFF | Tapping "Read" on your messages, or the read count or icons on others' messages, opens a list of members who have and haven't read it. |
-| Readers | Add "Readers" to the long-press menu | OFF | Opens the same list from the message long-press menu. Also works on others' messages. |
-| Readers | Sync with the server when opening the list | OFF | See below. |
-| Theme | Pure black background in dark mode | OFF | When the device is in dark mode, makes the screen background, bottom tabs, and navigation bar pure black (`#000000`). Cards and bubbles keep their original colors. Parts colored by themes don't change. Takes effect after a restart. |
-| General | Hide Premium prompts | OFF | Hides the LINE Premium prompt shown when you unsend a message. |
-| General | Hide Premium in Settings | OFF | Hides the Premium row on LINE's settings screen. |
-| General | Disable chat previews | OFF | Long-pressing a chat in the chat list opens the classic long-press menu instead of the preview. While on, the two preview settings below can't be changed (their saved values are kept). LINE Labs and your Premium subscription don't change. Takes effect after a restart. |
-| General | Hide Premium prompts in previews | OFF | Hides the LINE Premium prompt and menu row in the scroll preview. The "You can scroll the screen" message stays. |
-| General | Make previews scrollable | OFF | Lets you scroll the chat preview opened by a long press. Does not change when previews are offered. Takes effect after a restart. |
-| General | Open links in an external browser | OFF | Opens http / https links in chat text, rich messages, rich menus, and cards in your device's browser. LINE login and payment links open as before. |
-| General | Get notifications while the app is closed | ON | See below. |
-| General | Use MicroG-RE for Google login and backup | ON | See below. |
+| Ads | Hide unsend prompt | OFF | Hides the LINE Premium prompt shown when you unsend a message. |
+| Ads | Hide Premium in settings | OFF | Hides the Premium row on LINE's settings screen. |
+| AI features | Hide Agent i on Home | ON | |
+| AI features | Hide Agent i in Wallet | ON | |
+| AI features | Hide Agent i in search bar | ON | The search bar widens to fill the space. |
+| AI features | Hide Agent i in chat info | ON | |
+| AI features | Hide Agent i in input bar | ON | Hides Agent i and AI reply suggestions in the message box. |
+| AI features | Hide Agent i in + menu | ON | Hides the "Show Agent i in chat" toggle at the top of the chat + menu. |
+| AI features | Hide LINE AI in long-press menu | ON | Also removes the LINE AI button next to image messages. |
+| AI features | Hide LINE AI in photo viewer | ON | |
+| AI features | Hide Agent i in settings | ON | |
+| Visible items | Hide Shopping / News / Wallet / Apps | OFF | Removes them from the bottom tabs. VOOM is always removed regardless of settings because the service has ended. |
+| Visible items | Hide AI Friends / Calendar / OpenChat | OFF | Hides the icons at the top of the chat list. |
+| Visible items | Hide Calendar / LINE Gift / LINE Pay | OFF | Removes them from the chat + menu. |
+| Visible items | Hide recommendations / trending / post cards / live streams / featured / recent services | OFF | Hides each section on Home. |
+| Privacy | Read without receipt | OFF | Chats opened from the long-press menu (or from the preview's menu when scroll previews are shown) stay unread. Shows a manual read button for each received message and a button to mark the whole chat as read. By default, sending a message marks the chat as read. |
+| Privacy | Open from notifications without read receipt | OFF | Applies the same unread handling and manual read buttons to regular chats opened from notifications. By default, sending a message marks the chat as read. Independent of the menu setting. |
+| Privacy | Stay unread after sending | OFF | In chats opened without read receipts, receipts stay off even after you send a message. What you actually read and reply to won't match what the other person sees, which may cause misunderstandings or trouble. |
+| Privacy | Don't mark as read automatically | OFF | In regular chats, only manual read actions are sent. While reading without receipts, if "Stay unread after sending" is off, a read receipt is allowed once when you send a message. OpenChat and similar chats are not covered. |
+| Readers | Show reader icons | OFF | In groups and multi-person chats, shows icons of up to 4 members who read your message next to "Read". |
+| Readers | Show read count | OFF | Shows "Read N" above the time on others' messages, counting readers other than the sender and you. |
+| Readers | Show reader icons | OFF | Shows the icons of members who read it above the time on others' messages. When both this and the read count are on, the icons appear outside the read count (farther from the bubble). |
+| Readers | Tap to open the list | OFF | Tapping "Read" on your messages, or the read count or icons on others' messages, opens a list of members who have and haven't read it. |
+| Readers | Add to long-press menu | OFF | Opens the same list from the message long-press menu. Also works on others' messages. |
+| Readers | Sync with server on open | OFF | See below. |
+| Chats | Don't use previews | OFF | Long-pressing a chat in the chat list opens the classic long-press menu instead of the preview. While on, the two preview settings below can't be changed (their saved values are kept). LINE Labs and your Premium subscription don't change. Takes effect after a restart. |
+| Chats | Make previews scrollable | OFF | Lets you scroll the chat preview opened by a long press. Does not change when previews are offered. Takes effect after a restart. |
+| Chats | Hide Premium prompt in preview | OFF | Hides the LINE Premium prompt and menu row in the scroll preview. The "You can scroll the screen" message stays. |
+| Chats | Open links in an external browser | OFF | Opens http / https links in chat text, rich messages, rich menus, and cards in your device's browser. LINE login and payment links open as before. |
+| Appearance | Pure black dark mode | OFF | When the device is in dark mode, makes the screen background, bottom tabs, and navigation bar pure black (`#000000`). Cards and bubbles keep their original colors. Parts colored by themes don't change. Takes effect after a restart. |
+| Appearance | Enable LINE's font settings | ON | Lets you choose and use the fonts in LINE's settings even on a re-signed LINE. Only for LINE's own font providers, the signature check is skipped. Which fonts you can use depends on your LINE subscription; this does not unlock fonts you haven't subscribed to. Takes effect after a restart. |
+| Appearance | Use a custom font | OFF | Uses a TrueType or OpenType font (up to 64 MB) imported with "Choose font file" for text on LINE screens. Takes priority over the font chosen in LINE's settings. The file is stored in LINE's private app storage and is not sent anywhere. If LINE repeatedly stops during startup, the font is no longer used. Takes effect after a restart. |
+| Notifications & sign-in | Get notifications while closed | ON | See below. |
+| Notifications & sign-in | Google sign-in with MicroG-RE | ON | See below. |
 
 ## Read without receipt
 
@@ -121,7 +121,7 @@ Read receipts and clearing the local unread state are paused only for the readin
 
 ### Opening a chat
 
-In LINE 26.16.0, on accounts that have scroll previews, long-pressing a chat opens a preview screen instead of the menu. In that case, Linimal adds the same row at the top of the menu at the bottom of the preview. If you turn on "Disable chat previews" under General and restart, a long press opens the classic menu again, and the same row appears in that menu. Tapping it closes the preview and opens the chat without sending a read receipt. By default, whether the preview can be scrolled follows LINE's own logic. Turn on "Make previews scrollable" under General and restart to make it scrollable. This does not add previews to accounts that don't have them, and billing and network traffic are not changed. Read receipts stay paused when the app briefly goes to the background, the screen locks, you view photos or videos, or you keep reading for a long time. When the screen is recreated because of a configuration change, the session continues only if its saved marker matches.
+In LINE 26.16.0, on accounts that have scroll previews, long-pressing a chat opens a preview screen instead of the menu. In that case, Linimal adds the same row at the top of the menu at the bottom of the preview. If you turn on "Don't use previews" under Chats and restart, a long press opens the classic menu again, and the same row appears in that menu. Tapping it closes the preview and opens the chat without sending a read receipt. By default, whether the preview can be scrolled follows LINE's own logic. Turn on "Make previews scrollable" under Chats and restart to make it scrollable. This does not add previews to accounts that don't have them. Read receipts stay paused when the app briefly goes to the background, the screen locks, you view photos or videos, or you keep reading for a long time. When the screen is recreated because of a configuration change, the session continues only if its saved marker matches.
 
 ### What you see while reading and "Mark all as read"
 
@@ -132,21 +132,21 @@ Space matching the button's height is added at the bottom of the list so the lat
 
 Tapping it runs LINE's own read and unread-clearing logic, and on success ends the reading session and returns to normal LINE behavior.
 If it is interrupted before sending, the session continues. If the network fails, LINE's own read logic keeps the request and retries it, so Linimal returns to normal behavior.
-This works even when "Keep unread after sending" or "Stop automatic read receipts in chats" is on.
+This works even when "Stay unread after sending" or "Don't mark as read automatically" is on.
 
 There is no way to mark messages as read only up to a certain point. Sending only the tapped position still marked every message as read in the other person's official LINE for web, as confirmed on a real device, so this was removed.
 
 ### When you send a message
 
-By default, sending a message while reading ends the pause, and LINE's existing logic applies the local unread state and the read receipt at that moment. This covers text, stickers, images, and other sends queued from verified parts of the chat UI. Canceling input or failing before the message is queued does not end the pause. Linimal doesn't wait for the network send to finish. Even when "Stop automatic read receipts in chats" is on, this one read receipt is allowed once, after which your existing settings apply.
+By default, sending a message while reading ends the pause, and LINE's existing logic applies the local unread state and the read receipt at that moment. This covers text, stickers, images, and other sends queued from verified parts of the chat UI. Canceling input or failing before the message is queued does not end the pause. Linimal doesn't wait for the network send to finish. Even when "Don't mark as read automatically" is on, this one read receipt is allowed once, after which your existing settings apply.
 
-"Keep unread after sending" is off by default. When on, chats opened without read receipts from the menu or notifications stay paused and keep their unread badge even after you send, and the banner changes to "Read receipts are off. Sending a message won't mark this chat as read". Read receipts in chats opened normally are not changed. Existing settings are kept, and updates never turn this setting on by themselves.
+"Stay unread after sending" is off by default. When on, chats opened without read receipts from the menu or notifications stay paused and keep their unread badge even after you send, and the banner changes to "Read receipts are off. Sending a message won't mark this chat as read". Read receipts in chats opened normally are not changed. Existing settings are kept, and updates never turn this setting on by themselves.
 
 **Caution: even if you read and reply, the other person still sees your messages as unread. What actually happens won't match the read status, which may cause misunderstandings or trouble, so only turn this on when you need it.**
 
 ### When reading ends
 
-The pause ends when you close the chat, switch to another chat, or turn off the read-without-receipt setting you used to open it. Reopening the same chat normally doesn't bring the pause back. If you turn off only "Keep unread after sending", the read receipt is applied on your next send. Only a pending reservation for a chat screen that was never confirmed to open is discarded after 30 minutes on a monotonic clock. If Linimal can't confirm the owner or observe the end of the session, it falls back to LINE's own read logic.
+The pause ends when you close the chat, switch to another chat, or turn off the read-without-receipt setting you used to open it. Reopening the same chat normally doesn't bring the pause back. If you turn off only "Stay unread after sending", the read receipt is applied on your next send. Only a pending reservation for a chat screen that was never confirmed to open is discarded after 30 minutes on a monotonic clock. If Linimal can't confirm the owner or observe the end of the session, it falls back to LINE's own read logic.
 
 ### Opening from notifications
 
@@ -159,15 +159,15 @@ The list is built from the read records LINE saves on this device to show "Read 
 - Groups and multi-person chats are supported. Nothing is shown in one-on-one chats or OpenChat.
 - Members who haven't read it are the current members minus those who have. You and the sender are not included in the list.
 - Display names prefer the names you set. Icons are fetched as thumbnails from the same public CDN LINE uses (`profile.line-scdn.net`) and kept only in memory.
-- When `Sync with the server when opening the list` is on, each time you open the list Linimal runs the same read sync LINE runs periodically, for that chat only, and then refreshes the list. When off, only the records on the device are used and nothing is sent for syncing.
+- When `Sync with server on open` is on, Linimal runs the same read sync LINE runs periodically, for that chat only, when you open the chat and each time you open the list, and then refreshes what is shown. The sync on opening a chat runs once, right after it opens, and only when read count or reader icons on others' messages are on. When off, only the records on the device are used and nothing is sent for syncing.
 
 ## Notifications and Google integration
 
-### Get notifications while the app is closed
+### Get notifications while closed
 
 Because the patched LINE has a different signature, it doesn't receive notifications while the app is closed as is. This setting replaces the signature info sent to Google when registering for notifications with that of the official LINE app. No extra setup is needed.
 
-### Use MicroG-RE for Google login and backup
+### Google sign-in with MicroG-RE
 
 As is, the patched LINE can't log in with a Google account or back up to and restore from Google Drive. This setting performs only that authorization through [MicroG-RE](https://github.com/MorpheApp/MicroG-RE). To use it, you need to:
 

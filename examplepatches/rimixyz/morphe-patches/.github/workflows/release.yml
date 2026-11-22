@@ -4,6 +4,10 @@ on:
   workflow_dispatch:
   push:
 
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   release:
     name: Release

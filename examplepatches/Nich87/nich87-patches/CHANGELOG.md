@@ -1,3 +1,63 @@
+## [1.4.0](https://github.com/Nich87/nich87-patches/compare/v1.3.0...v1.4.0) (2026-11-22)
+
+### ✨ New Features
+
+* Add diagnostics for Apple Music metadata repair ([9dc51ec](https://github.com/Nich87/nich87-patches/commit/9dc51ec04a346b368be59b657dd4c17d807e0cfc))
+* Animate Liquid Glass between the mini-player and Now Playing ([7dab857](https://github.com/Nich87/nich87-patches/commit/7dab8574cc97cd6c20378cfaab24f26d73ccd54f))
+* Crossfade track metadata between the mini-player and Now Playing ([33a1d78](https://github.com/Nich87/nich87-patches/commit/33a1d78243d44655bd6aede738c28a8e238adccf))
+* Dismiss Now Playing with a swipe over playback controls ([ac911f4](https://github.com/Nich87/nich87-patches/commit/ac911f464961ca2aa6dd106304f982139c3b2dfb))
+* Port iOS 26 beta 2 Regular glass to Apple Music ([6317c09](https://github.com/Nich87/nich87-patches/commit/6317c095efa4c5f02095203c3c4f044d6b8dcade))
+* Port the refractive Apple Music tab lens ([5be6321](https://github.com/Nich87/nich87-patches/commit/5be632189afd4850a9a36e3f35715387e2d80731))
+
+### 🐛 Bug Fixes
+
+* Keep the Apple Music tab lens from clipping ([a804eda](https://github.com/Nich87/nich87-patches/commit/a804eda9292c281ad4c8e05b85c276f5f596f0be))
+* Refine Apple Music glass refraction and rim shading ([2e492fc](https://github.com/Nich87/nich87-patches/commit/2e492fce04fb8262034e0ce39cf905b3eee84847))
+* Scan large Apple Music cloud libraries ([0079fb2](https://github.com/Nich87/nich87-patches/commit/0079fb2349eb21f5bf19a8750e0662964b3d49c1))
+* Smooth refraction across the lifted tab lens ([b7b1091](https://github.com/Nich87/nich87-patches/commit/b7b1091b2659f09aecf922cc9d62cf9db09233eb))
+* Stabilize Now Playing dismissal swipes and glass transition ([8e5a884](https://github.com/Nich87/nich87-patches/commit/8e5a8846ef5d6c68b6ddb8ab612252c2250d862a))
+
+## [1.4.0-dev.3](https://github.com/Nich87/nich87-patches/compare/v1.4.0-dev.2...v1.4.0-dev.3) (2026-11-22)
+
+### 🐛 Bug Fixes
+
+* Scan large Apple Music cloud libraries ([0079fb2](https://github.com/Nich87/nich87-patches/commit/0079fb2349eb21f5bf19a8750e0662964b3d49c1))
+
+## [1.4.0-dev.2](https://github.com/Nich87/nich87-patches/compare/v1.4.0-dev.1...v1.4.0-dev.2) (2026-11-22)
+
+### ✨ New Features
+
+* Add diagnostics for Apple Music metadata repair ([9dc51ec](https://github.com/Nich87/nich87-patches/commit/9dc51ec04a346b368be59b657dd4c17d807e0cfc))
+
+## [1.4.0-dev.1](https://github.com/Nich87/nich87-patches/compare/v1.3.0...v1.4.0-dev.1) (2026-11-21)
+
+### ✨ New Features
+
+* Animate Liquid Glass between the mini-player and Now Playing ([7dab857](https://github.com/Nich87/nich87-patches/commit/7dab8574cc97cd6c20378cfaab24f26d73ccd54f))
+* Crossfade track metadata between the mini-player and Now Playing ([33a1d78](https://github.com/Nich87/nich87-patches/commit/33a1d78243d44655bd6aede738c28a8e238adccf))
+* Dismiss Now Playing with a swipe over playback controls ([ac911f4](https://github.com/Nich87/nich87-patches/commit/ac911f464961ca2aa6dd106304f982139c3b2dfb))
+* Port iOS 26 beta 2 Regular glass to Apple Music ([6317c09](https://github.com/Nich87/nich87-patches/commit/6317c095efa4c5f02095203c3c4f044d6b8dcade))
+* Port the refractive Apple Music tab lens ([5be6321](https://github.com/Nich87/nich87-patches/commit/5be632189afd4850a9a36e3f35715387e2d80731))
+
+### 🐛 Bug Fixes
+
+* Keep the Apple Music tab lens from clipping ([a804eda](https://github.com/Nich87/nich87-patches/commit/a804eda9292c281ad4c8e05b85c276f5f596f0be))
+* Refine Apple Music glass refraction and rim shading ([2e492fc](https://github.com/Nich87/nich87-patches/commit/2e492fce04fb8262034e0ce39cf905b3eee84847))
+* Smooth refraction across the lifted tab lens ([b7b1091](https://github.com/Nich87/nich87-patches/commit/b7b1091b2659f09aecf922cc9d62cf9db09233eb))
+* Stabilize Now Playing dismissal swipes and glass transition ([8e5a884](https://github.com/Nich87/nich87-patches/commit/8e5a8846ef5d6c68b6ddb8ab612252c2250d862a))
+
+## [1.3.0](https://github.com/Nich87/nich87-patches/compare/v1.2.0...v1.3.0) (2026-11-21)
+
+### ✨ New Features
+
+* Support Apple Music 7.0.2 ([634f3e5](https://github.com/Nich87/nich87-patches/commit/634f3e5fe44555730d6c59415bb623c838c84aec)), closes [#6](https://github.com/Nich87/nich87-patches/issues/6)
+
+## [1.3.0-dev.1](https://github.com/Nich87/nich87-patches/compare/v1.2.0...v1.3.0-dev.1) (2026-11-21)
+
+### ✨ New Features
+
+* Support Apple Music 7.0.2 ([634f3e5](https://github.com/Nich87/nich87-patches/commit/634f3e5fe44555730d6c59415bb623c838c84aec)), closes [#6](https://github.com/Nich87/nich87-patches/issues/6)
+
 ## [1.2.0](https://github.com/Nich87/nich87-patches/compare/v1.1.0...v1.2.0) (2026-11-18)
 
 ### ✨ New Features

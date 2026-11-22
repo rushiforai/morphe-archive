@@ -1,0 +1,49 @@
+name: Update in-app browser ad-block filters
+
+on:
+  schedule:
+    - cron: "27 3 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: adblock-filter-data-publish
+  cancel-in-progress: false
+
+jobs:
+  update-filters:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Fetch, convert and validate official lists
+        run: |
+          python3 scripts/update_adblock_filters.py --output "$RUNNER_TEMP/filters.json.gz"
+          python3 -m unittest discover -s tests -p test_adblock_filters.py -v
+      - name: Publish only verified snapshot to filter-data
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          cp filter-lists/NOTICE "$RUNNER_TEMP/NOTICE"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if git ls-remote --exit-code --heads origin filter-data >/dev/null 2>&1; then
+            git fetch origin filter-data
+            git switch -C filter-data origin/filter-data
+          else
+            git switch --orphan filter-data
+          fi
+          cp "$RUNNER_TEMP/filters.json.gz" filters.json.gz
+          cp "$RUNNER_TEMP/NOTICE" NOTICE
+          git add filters.json.gz NOTICE
+          if ! git diff --cached --quiet; then
+            git commit -m "data: refresh EasyList and AdGuard Japanese snapshot"
+            git push origin HEAD:filter-data
+          fi

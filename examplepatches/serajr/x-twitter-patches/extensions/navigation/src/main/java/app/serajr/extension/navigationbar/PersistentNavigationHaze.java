@@ -1,11 +1,6 @@
 package app.serajr.extension.navigationbar;
 
-import android.content.ContentResolver;
 import android.content.Context;
-import android.database.ContentObserver;
-import android.os.Handler;
-import android.os.Looper;
-import android.provider.Settings;
 import android.os.SystemClock;
 import android.util.Log;
 import java.lang.reflect.Field;
@@ -17,23 +12,20 @@ public final class PersistentNavigationHaze {
     private static int lastBottomBarSize = Integer.MIN_VALUE;
     private static long lastLayerLogMs;
 
+    private static final String ACTION = "serajr.x.HAZE_UPDATE";
+    private static final String PREFS_NAME = "serajr_navigation_haze";
     private static final String SETTINGS_KEY = "serajr_x_fix_nav_bar_haze_disable_blur";
     private static final String RADIUS_KEY = "serajr_x_haze_radius";
     private static final String MAGENTA_KEY = "serajr_x_haze_debug_magenta";
     private static final String TINT_ALPHA_KEY = "serajr_x_haze_tint_alpha";
-
-    // Native injected Haze noise amount. Range: 0.0 to 1.0; default: 0.05.
-    // Read on initialization/settings change, never from the composition path.
     private static final String NOISE_KEY = "serajr_x_haze_noise_factor";
-    private static final float DEFAULT_NOISE_FACTOR = 0.05f;
-    private static final float MIN_NOISE_FACTOR = 0.0f;
-    private static final float MAX_NOISE_FACTOR = 1.0f;
-    private static final float DEFAULT_TINT_ALPHA = 0.75f;
-    private static final float MIN_TINT_ALPHA = 0.0f;
-    private static final float MAX_TINT_ALPHA = 1.0f;
+    private static final String MASK_LENGTH_KEY = "serajr_x_haze_mask_length";
+    private static final String RESET_KEY = "serajr_x_fix_nav_bar_haze_global_reset";
     private static final float DEFAULT_RADIUS = 32.0f;
-    private static final float MIN_RADIUS = 0.0f;
-    private static final float MAX_RADIUS = 64.0f;
+    private static final float DEFAULT_TINT_ALPHA = 0.75f;
+    private static final float DEFAULT_NOISE_FACTOR = 0.05f;
+    // Positive infinity preserves the T4E-T3 native mask gradient endpoint.
+    private static final float DEFAULT_MASK_LENGTH = Float.POSITIVE_INFINITY;
     private static final long MAGENTA_COLOR = -0xff0100000000L;
 
     private static volatile boolean disableNativeBlur;
@@ -41,78 +33,134 @@ public final class PersistentNavigationHaze {
     private static volatile int debugMagentaMode;
     private static volatile float navigationTintAlpha = DEFAULT_TINT_ALPHA;
     private static volatile float navigationNoiseFactor = DEFAULT_NOISE_FACTOR;
-    private static ContentObserver settingsObserver;
+    private static volatile float navigationMaskLength = DEFAULT_MASK_LENGTH;
+    private static android.content.BroadcastReceiver receiver;
+    private static android.content.SharedPreferences preferences;
 
     private PersistentNavigationHaze() { }
 
     public static synchronized void initialize(Context context) {
-        if (settingsObserver != null) return;
+        if (receiver != null) return;
         try {
             Context app = context.getApplicationContext();
             if (app == null) return;
-            final ContentResolver resolver = app.getContentResolver();
-            ContentObserver observer = new ContentObserver(new Handler(Looper.getMainLooper())) {
+            preferences = app.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+            loadPreferences();
+            android.content.BroadcastReceiver newReceiver = new android.content.BroadcastReceiver() {
                 @Override
-                public void onChange(boolean selfChange) {
-                    refreshSettings(resolver);
+                public void onReceive(Context context, android.content.Intent intent) {
+                    if (intent != null && ACTION.equals(intent.getAction())) {
+                        applyUpdate(intent);
+                    }
                 }
             };
-            resolver.registerContentObserver(Settings.Global.getUriFor(SETTINGS_KEY), false, observer);
-            resolver.registerContentObserver(Settings.Global.getUriFor(RADIUS_KEY), false, observer);
-            resolver.registerContentObserver(Settings.Global.getUriFor(MAGENTA_KEY), false, observer);
-            resolver.registerContentObserver(Settings.Global.getUriFor(TINT_ALPHA_KEY), false, observer);
-            resolver.registerContentObserver(Settings.Global.getUriFor(NOISE_KEY), false, observer);
-            settingsObserver = observer;
-            refreshSettings(resolver);
-            Log.i(TAG, "T4E-T3 observer registered (blur, radius, magenta, tint alpha, noise)");
-        } catch (RuntimeException e) {
-            Log.w(TAG, "T4E-T3 observer initialization failed", e);
+            android.content.IntentFilter filter = new android.content.IntentFilter(ACTION);
+            // API 33+ requires an explicit exported flag for non-system broadcasts.
+            // The receiver is intentionally limited to harmless visual settings.
+            if (android.os.Build.VERSION.SDK_INT >= 33) {
+                // Resolve the framework overload at runtime. Some patch/R8 builds
+                // incorrectly rewrite the direct three-argument call into a
+                // missing synthetic static method (La;->a(...)).
+                Method register = Context.class.getMethod(
+                        "registerReceiver",
+                        android.content.BroadcastReceiver.class,
+                        android.content.IntentFilter.class,
+                        int.class);
+                register.invoke(app, newReceiver, filter, 2 /* RECEIVER_EXPORTED */);
+            } else {
+                app.registerReceiver(newReceiver, filter);
+            }
+            receiver = newReceiver;
+            Log.i(TAG, "T4E-T4 broadcast receiver registered; preferences loaded");
+            logConfiguration("initial");
+        } catch (Exception | LinkageError e) {
+            Log.w(TAG, "T4E-T4 receiver initialization failed", e);
         }
     }
 
-    private static void refreshSettings(ContentResolver resolver) {
-        try {
-            disableNativeBlur = Settings.Global.getInt(resolver, SETTINGS_KEY, 0) == 1;
-        } catch (RuntimeException e) {
+    private static float clamp(float value, float low, float high, float fallback) {
+        return Float.isNaN(value) ? fallback : Math.max(low, Math.min(high, value));
+    }
+
+    private static float clampMask(float value) {
+        return Float.isNaN(value) ? DEFAULT_MASK_LENGTH
+                : (Float.isInfinite(value) ? DEFAULT_MASK_LENGTH : Math.max(0f, Math.min(512f, value)));
+    }
+
+    private static void loadPreferences() {
+        android.content.SharedPreferences p = preferences;
+        disableNativeBlur = p.getBoolean(SETTINGS_KEY, false);
+        navigationBlurRadius = clamp(p.getFloat(RADIUS_KEY, DEFAULT_RADIUS), 0f, 64f, DEFAULT_RADIUS);
+        debugMagentaMode = Math.max(0, Math.min(3, p.getInt(MAGENTA_KEY, 0)));
+        navigationTintAlpha = clamp(p.getFloat(TINT_ALPHA_KEY, DEFAULT_TINT_ALPHA), 0f, 1f, DEFAULT_TINT_ALPHA);
+        navigationNoiseFactor = clamp(p.getFloat(NOISE_KEY, DEFAULT_NOISE_FACTOR), 0f, 1f, DEFAULT_NOISE_FACTOR);
+        navigationMaskLength = clampMask(p.getFloat(MASK_LENGTH_KEY, DEFAULT_MASK_LENGTH));
+    }
+
+    private static synchronized void applyUpdate(android.content.Intent intent) {
+        android.content.SharedPreferences p = preferences;
+        if (p == null) return;
+        if (intent.getBooleanExtra(RESET_KEY, false)) {
             disableNativeBlur = false;
-            Log.w(TAG, "T4E-T3 blur setting read failed; using native blur", e);
-        }
-        try {
-            float value = Settings.Global.getFloat(resolver, RADIUS_KEY, DEFAULT_RADIUS);
-            navigationBlurRadius = Float.isNaN(value) ? DEFAULT_RADIUS
-                    : Math.max(MIN_RADIUS, Math.min(MAX_RADIUS, value));
-        } catch (RuntimeException e) {
             navigationBlurRadius = DEFAULT_RADIUS;
-            Log.w(TAG, "T4E-T3 radius setting read failed; using default", e);
-        }
-        try {
-            int mode = Settings.Global.getInt(resolver, MAGENTA_KEY, 0);
-            debugMagentaMode = Math.max(0, Math.min(3, mode));
-        } catch (RuntimeException e) {
             debugMagentaMode = 0;
-            Log.w(TAG, "T4E-T3 magenta setting read failed; using default", e);
-        }
-        try {
-            float value = Settings.Global.getFloat(resolver, TINT_ALPHA_KEY, DEFAULT_TINT_ALPHA);
-            navigationTintAlpha = Float.isNaN(value) ? DEFAULT_TINT_ALPHA
-                    : Math.max(MIN_TINT_ALPHA, Math.min(MAX_TINT_ALPHA, value));
-        } catch (RuntimeException e) {
             navigationTintAlpha = DEFAULT_TINT_ALPHA;
-            Log.w(TAG, "T4E-T3 tint alpha setting read failed; using default", e);
-        }
-        try {
-            float value = Settings.Global.getFloat(resolver, NOISE_KEY, DEFAULT_NOISE_FACTOR);
-            navigationNoiseFactor = Float.isNaN(value) ? DEFAULT_NOISE_FACTOR
-                    : Math.max(MIN_NOISE_FACTOR, Math.min(MAX_NOISE_FACTOR, value));
-        } catch (RuntimeException e) {
             navigationNoiseFactor = DEFAULT_NOISE_FACTOR;
-            Log.w(TAG, "T4E-T3 noise setting read failed; using default", e);
+            navigationMaskLength = DEFAULT_MASK_LENGTH;
+            p.edit().clear().apply();
+            logConfiguration("RESET");
+            return;
         }
-        Log.i(TAG, "T4E-T3 disableNativeBlur=" + disableNativeBlur
+        android.content.SharedPreferences.Editor edit = p.edit();
+        boolean changed = false;
+        if (intent.hasExtra(SETTINGS_KEY)) {
+            disableNativeBlur = intent.getBooleanExtra(SETTINGS_KEY, false);
+            edit.putBoolean(SETTINGS_KEY, disableNativeBlur);
+            changed = true;
+        }
+        if (intent.hasExtra(RADIUS_KEY)) {
+            navigationBlurRadius = clamp(intent.getFloatExtra(RADIUS_KEY, DEFAULT_RADIUS), 0f, 64f, DEFAULT_RADIUS);
+            edit.putFloat(RADIUS_KEY, navigationBlurRadius);
+            changed = true;
+        }
+        if (intent.hasExtra(MAGENTA_KEY)) {
+            debugMagentaMode = Math.max(0, Math.min(3, intent.getIntExtra(MAGENTA_KEY, 0)));
+            edit.putInt(MAGENTA_KEY, debugMagentaMode);
+            changed = true;
+        }
+        if (intent.hasExtra(TINT_ALPHA_KEY)) {
+            navigationTintAlpha = clamp(intent.getFloatExtra(TINT_ALPHA_KEY, DEFAULT_TINT_ALPHA), 0f, 1f, DEFAULT_TINT_ALPHA);
+            edit.putFloat(TINT_ALPHA_KEY, navigationTintAlpha);
+            changed = true;
+        }
+        if (intent.hasExtra(NOISE_KEY)) {
+            navigationNoiseFactor = clamp(intent.getFloatExtra(NOISE_KEY, DEFAULT_NOISE_FACTOR), 0f, 1f, DEFAULT_NOISE_FACTOR);
+            edit.putFloat(NOISE_KEY, navigationNoiseFactor);
+            changed = true;
+        }
+        if (intent.hasExtra(MASK_LENGTH_KEY)) {
+            navigationMaskLength = clampMask(intent.getFloatExtra(MASK_LENGTH_KEY, DEFAULT_MASK_LENGTH));
+            edit.putFloat(MASK_LENGTH_KEY, navigationMaskLength);
+            changed = true;
+        }
+        if (changed) {
+            edit.apply();
+            logConfiguration("UPDATE");
+        }
+    }
+
+    private static void logConfiguration(String event) {
+        Log.i(TAG, "T4E-T4 " + event
+                + " disableNativeBlur=" + disableNativeBlur
                 + " radius=" + navigationBlurRadius
                 + " magentaMode=" + debugMagentaMode
                 + " tintAlpha=" + navigationTintAlpha
-                + " noiseFactor=" + navigationNoiseFactor);
+                + " noiseFactor=" + navigationNoiseFactor
+                + " maskLength=" + navigationMaskLength);
+    }
+
+    public static float getNavigationMaskLength() {
+        return navigationMaskLength;
     }
 
     public static float getNavigationNoiseFactor() {

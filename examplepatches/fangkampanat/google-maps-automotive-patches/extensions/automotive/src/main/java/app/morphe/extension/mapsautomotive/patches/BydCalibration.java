@@ -67,8 +67,29 @@ final class BydCalibration {
     static final int MIN_CURRENT_RAW = 0, MAX_CURRENT_RAW = 10000;
     /** Standing seconds at a knot: the prior counts as this much, a knot is learned from this much, its sums halve above this. */
     static final double AUX_PRIOR_S = 300, AUX_LEARNED_S = 600, AUX_HALVE_S = 4 * 3600;
-    /** The traction factor: shrunk toward 1 by this much traction energy (Wh), bounded, its sums halved above this. */
+    /**
+     * The traction factor: shrunk toward its centre by this much traction energy (Wh), bounded, its sums halved above
+     * this. The centre is 1, or BYD's trip log's (see {@link #setTripLogRatio}). With the wider bounds the shrink is
+     * {@link #FACTOR_PRIOR_WIDE_WH}: consistent evidence moves the factor faster.
+     */
     static final double FACTOR_PRIOR_WH = 8000, MIN_FACTOR = 0.85, MAX_FACTOR = 1.25, FACTOR_HALVE_WH = 40000;
+    static final double FACTOR_PRIOR_WIDE_WH = 3000;
+    /**
+     * Wider bounds once the evidence is large and consistent: at least this many routes and this much traction energy
+     * (Wh), and the speed bands (else BYD's trip log) on the same side (above {@link #AGREE_ABOVE} for a factor above
+     * {@link #MAX_FACTOR}, below {@link #AGREE_BELOW} for one below {@link #MIN_FACTOR}); with neither, this much
+     * traction energy alone ({@link #WIDE_ALONE_WH}). A car that uses 1.5–2× BYD's table (model 128, one owner's report)
+     * could never get past 1.25 before.
+     */
+    static final double WIDE_MIN_FACTOR = 0.6, WIDE_MAX_FACTOR = 2.0, WIDE_MIN_WH = 3000, WIDE_ALONE_WH = 8000;
+    static final double AGREE_ABOVE = 1.15, AGREE_BELOW = 0.95;
+    static final int WIDE_MIN_ROUTES = 2;
+    /**
+     * BYD's trip log against the table at each trip's mean speed reads high in stop-and-go traffic (the Dolphin: 1.29,
+     * while its routes measured 1.12-1.17), so the centre moves this share of the way from 1 to the log's ratio, within
+     * these, and only when that lands outside the normal bounds: a car the normal bounds cover (the Dolphin) keeps 1.
+     */
+    static final double LOG_WEIGHT = 0.5, MIN_CENTER = 0.7, MAX_CENTER = 1.6;
     /** A forecast stretch: at most this long, its distance within max(500 m, 10 %) of the odometer's. */
     static final long MAX_SEGMENT_MS = 300000;
     static final int SEGMENT_SLACK_M = 500;
@@ -119,6 +140,12 @@ final class BydCalibration {
         boolean route, seeded;
         /** The factor sent now (frozen during a route). */
         double sentFactor = 1;
+        /** The factor's centre (1, or from BYD's trip log), the trip log's and the speed bands' ratios (NaN: none). */
+        double center = 1, tripLogRatio = Double.NaN, speedRatio = Double.NaN;
+        /** The wider bounds apply; the factor is still learning (fewer routes or less traction energy than they need). */
+        boolean wide, learning = true;
+        /** What agreed for the wider bounds: "speed_bands", "trip_log" or "routes" (traction energy alone); null if not wide. */
+        String wideBy;
         String describe;
     }
 
@@ -168,6 +195,8 @@ final class BydCalibration {
     private double actualTractionWh, mapsTractionWh, evidenceKm, lastRouteRatio = Double.NaN;
     private int routes;
     private boolean seeded;
+    // Transient, set at each start and reading: the centre from BYD's trip log, its ratio and the speed bands'.
+    private double center = 1, tripLogRatio = Double.NaN, speedRatio = Double.NaN;
     // Transient: the chain of readings.
     private Reading last;
     // Transient: the distance by speed (m), the last reading's speed, the intervals it could not integrate (no speed, a
@@ -430,9 +459,25 @@ final class BydCalibration {
         return auxWattsLocked(tempC, acOn);
     }
 
-    /** The traction factor from the evidence so far (1 without any). */
+    /** The traction factor from the evidence so far (its centre without any). */
     synchronized double factor() {
         return factorLocked();
+    }
+
+    /**
+     * BYD's trip log: the energy its trips used over the table's at their mean speeds (BydTripLog), NaN without one. The
+     * factor's centre moves part of the way to it, so a car far from BYD's table starts closer on its first route.
+     */
+    synchronized void setTripLogRatio(double ratio) {
+        tripLogRatio = known(ratio) && ratio > 0 ? ratio : Double.NaN;
+        double moved = Double.isNaN(tripLogRatio) ? 1
+                : Math.max(MIN_CENTER, Math.min(MAX_CENTER, 1 + (tripLogRatio - 1) * LOG_WEIGHT));
+        center = moved >= MIN_FACTOR && moved <= MAX_FACTOR ? 1 : moved;
+    }
+
+    /** The speed bands' measured consumption over the table's (BydSpeedBands.speedRatio), NaN without a finished pool. */
+    synchronized void setSpeedRatio(double ratio) {
+        speedRatio = known(ratio) && ratio > 0 ? ratio : Double.NaN;
     }
 
     synchronized Status status() {
@@ -458,6 +503,12 @@ final class BydCalibration {
         s.route = route;
         s.seeded = seeded;
         s.sentFactor = sentFactor;
+        s.center = center;
+        s.tripLogRatio = tripLogRatio;
+        s.speedRatio = speedRatio;
+        s.wide = wide(rawFactor());
+        s.wideBy = wideBy(rawFactor());
+        s.learning = routes < WIDE_MIN_ROUTES || mapsTractionWh < WIDE_MIN_WH;
         s.describe = describeLocked();
         return s;
     }
@@ -767,11 +818,33 @@ final class BydCalibration {
         return sum;
     }
 
+    private double rawFactor() {
+        return mapsTractionWh > 0 ? actualTractionWh / mapsTractionWh : Double.NaN;
+    }
+
     private double factorLocked() {
-        if (!(mapsTractionWh > 0)) return 1;
-        double raw = actualTractionWh / mapsTractionWh;
-        double shrunk = 1 + (raw - 1) * mapsTractionWh / (mapsTractionWh + FACTOR_PRIOR_WH);
-        return Math.max(MIN_FACTOR, Math.min(MAX_FACTOR, shrunk));
+        double raw = rawFactor();
+        boolean wide = wide(raw);
+        double prior = wide ? FACTOR_PRIOR_WIDE_WH : FACTOR_PRIOR_WH;
+        double shrunk = Double.isNaN(raw) ? center : center + (raw - center) * mapsTractionWh / (mapsTractionWh + prior);
+        double min = wide ? WIDE_MIN_FACTOR : Math.min(MIN_FACTOR, center), max = wide ? WIDE_MAX_FACTOR : Math.max(MAX_FACTOR, center);
+        return Math.max(min, Math.min(max, shrunk));
+    }
+
+    // The wider bounds: a raw factor beyond the normal bounds from enough routes and traction energy, and the speed bands
+    // (else the trip log) on its side; with neither, more traction energy.
+    private boolean wide(double raw) {
+        if (Double.isNaN(raw) || raw >= MIN_FACTOR && raw <= MAX_FACTOR) return false;
+        if (routes < WIDE_MIN_ROUTES || mapsTractionWh < WIDE_MIN_WH) return false;
+        double other = !Double.isNaN(speedRatio) ? speedRatio : tripLogRatio;
+        if (Double.isNaN(other)) return mapsTractionWh >= WIDE_ALONE_WH;
+        return raw > MAX_FACTOR ? other > AGREE_ABOVE : other < AGREE_BELOW;
+    }
+
+    // The source wide() used: the speed bands, else the trip log, else the traction energy alone; null when not wide.
+    private String wideBy(double raw) {
+        if (!wide(raw)) return null;
+        return !Double.isNaN(speedRatio) ? "speed_bands" : !Double.isNaN(tripLogRatio) ? "trip_log" : "routes";
     }
 
     private String describeLocked() {
@@ -782,11 +855,17 @@ final class BydCalibration {
             aux.append(Math.round(knotWatts(i, pack))).append(learned(i, pack) ? "*" : "");
         }
         double off = offWatts(pack);
-        return String.format(Locale.ROOT, "pack=%s/%.0fWh;aux=%s;off=%s;factor=%.3f(raw=%s,maps_traction=%.0fWh,km=%.1f,routes=%d)",
+        return String.format(Locale.ROOT, "pack=%s/%.0fWh;aux=%s;off=%s;factor=%.3f(raw=%s,maps_traction=%.0fWh,km=%.1f,routes=%d"
+                        + ",center=%.3f,trip_log=%s,bands=%s,wide=%b,wide_by=%s)",
                 Double.isNaN(pack) ? "none" : String.format(Locale.ROOT, "%.1f", pack), packBmsWh, aux,
                 Double.isNaN(off) ? "none" : String.valueOf(Math.round(off)), factorLocked(),
                 mapsTractionWh > 0 ? String.format(Locale.ROOT, "%.3f", actualTractionWh / mapsTractionWh) : "none",
-                mapsTractionWh, evidenceKm, routes);
+                mapsTractionWh, evidenceKm, routes, center, ratioText(tripLogRatio), ratioText(speedRatio), wide(rawFactor()),
+                wideBy(rawFactor()) != null ? wideBy(rawFactor()) : "none");
+    }
+
+    private static String ratioText(double ratio) {
+        return Double.isNaN(ratio) ? "none" : String.format(Locale.ROOT, "%.3f", ratio);
     }
 
     private static boolean known(double value) {

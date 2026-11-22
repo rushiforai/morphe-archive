@@ -18,7 +18,7 @@ val sideloadCompatibilityPatch = bytecodePatch(
             packageName = "com.sbs.ondemand.tv",
             apkFileType = ApkFileType.APKM,
             appIconColor = 0xDCBD1D,
-            targets = listOf(AppTarget(version = "6.3.1"))
+            targets = listOf(AppTarget(version = "6.4.0"), AppTarget(version = "6.3.1"))
         )
     )
 

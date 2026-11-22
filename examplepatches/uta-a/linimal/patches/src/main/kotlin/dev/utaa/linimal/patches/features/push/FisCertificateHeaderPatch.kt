@@ -14,7 +14,7 @@ import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
-import dev.utaa.linimal.patches.features.chat.chatListHeaderButtonsPatch
+import dev.utaa.linimal.patches.features.font.customFontPatch
 import dev.utaa.linimal.patches.shared.Constants
 import dev.utaa.linimal.patches.status.PatchId
 import dev.utaa.linimal.patches.status.PatchStatus
@@ -77,7 +77,7 @@ val fisCertificateHeaderPatch = bytecodePatch(
             PatchAvailability.UNAVAILABLE
         }
     }
-    dependsOn(chatListHeaderButtonsPatch)
+    dependsOn(customFontPatch)
 
     execute {
         val certificate = Constants.LINE_ORIGINAL_CERTIFICATE_SHA1

@@ -46,7 +46,7 @@ private const val HOLD_POOL_AD = "$EXTENSION_PACKAGE/ads/ReelsAds;->holdPoolAd()
  * `LX/05Ym;` on armeabi-v7a, which overrides the second vend itself and gets a base-calling
  * override for the first). The Reels row in the News
  * feed builds one as its sponsored pool (FbShortsIFUSponsoredPool) next to its organic pool, so an
- * ad tile in that row comes from it and never asks the Reels tab's pool (#216). Its constructor
+ * ad tile in that row comes from it and never asks the Reels tab's pool. Its constructor
  * logs this literal, and no other class holds it.
  */
 internal const val FB_SHORTS_POOL = "FBShortsSponsoredPool."

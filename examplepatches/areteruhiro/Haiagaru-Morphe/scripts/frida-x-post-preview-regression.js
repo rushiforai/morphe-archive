@@ -12,9 +12,8 @@ Java.perform(function () {
     const value = Object.assign({id_str:'123', text:text, user:{name:'test',screen_name:'test'}, created_at:'now'}, extra||{});
     return Preview.parse.overload('java.lang.String','java.lang.String').call(Preview, JSON.stringify(value), '123');
   }
-  function possibly(data) {
-    const field=data.getClass().getDeclaredField('possiblyTruncated');field.setAccessible(true);return field.getBoolean(data);
-  }
+  function possibly(data) { return data.possiblyTruncated(Prefs.getInt(key, 1) === 0); }
+  function notice(data, full, detailed) { return String(data.notice(full, detailed, data.body(full, detailed))); }
   try {
     Prefs.edit().putInt(key, 1).apply();
     const reply='@a '+'漢'.repeat(139);
@@ -23,6 +22,20 @@ Java.perform(function () {
     check(!possibly(post(reply,{in_reply_to_status_id_str:'1'})), 'detailed mode excludes the reply handle');
     check(!possibly(post('漢'.repeat(140))), 'Detailed exact 280-point post remains displayable');
     check(possibly(post('漢'.repeat(140)+'a')), 'Detailed warning starts above 280 points');
+    const weighted = post('@reply ' + 'a'.repeat(281), {in_reply_to_status_id_str:'1'});
+    check(String(weighted.body(false,true)) === '@reply ' + 'a'.repeat(280), 'collapsed preview uses 280 points and excludes reply handle');
+    check(String(weighted.body(false,false)).endsWith('a'.repeat(281)), 'switching to byte mode uses cached body with the new limit');
+    check(notice(weighted,false,true) === '［以下省略］', 'locally shortened display uses the short caption');
+    check(notice(weighted,true,true) === '［省略の可能性］', 'full display preserves possible server truncation warning');
+    const short = '漢'.repeat(140);
+    const limited = post(short, {full_text:short, truncated:true});
+    check(notice(limited,true,true) === '［省略の可能性］', 'repeated full_text with server truncation is not full content');
+    const note = post(short, {truncated:true,note_tweet:{text:short+'続き'}});
+    check(notice(note,true,true) === '' && String(note.body(true,true)).endsWith('続き'), 'a complete Note recovers the full display');
+    const quoted = post('引用しました', {quoted_tweet:{id_str:'456'}});
+    const quote=quoted.getClass().getDeclaredField('quote');quote.setAccessible(true);
+    check(quote.getBoolean(quoted) && !quote.getBoolean(post('https://x.com/example/status/456')), 'only quote metadata sets the quote label');
+
     const links=Java.use('android.text.SpannableStringBuilder').$new();
     const method=Preview.class.getDeclaredMethod('appendBody',Java.array('java.lang.Class',[links.getClass(),Java.use('java.lang.String').class]));
     method.setAccessible(true);method.invoke(null,Java.array('java.lang.Object',[links,'Card URL https://example.com/path).']));

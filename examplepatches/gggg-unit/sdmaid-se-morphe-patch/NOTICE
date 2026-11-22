@@ -1,0 +1,102 @@
+gggg-unit SD Maid SE FOSS Patches
+================================
+
+Independent third-party patch bundle compatible with Morphe.
+Maintainer: gggg-unit
+Project-specific adaptation and packaging changes: 2026-10-21
+Source: https://github.com/gggg-unit/sdmaid-se-morphe-patch
+License for project-specific patch code and scripts: GNU GPL version 3;
+see LICENSE. Preserve applicable upstream notices when redistributing.
+
+This project is not affiliated with or endorsed by d4rken, SD Maid SE,
+the Morphe project, Doom/rushiranpise, or Paresh Maheshwari.
+Names identify the target app, compatibility, and credited references.
+No trademark rights are granted or claimed.
+
+The FOSS adaptation targets UpgradeRepoFoss.Info.isPro. Its fingerprint,
+validation scripts, source metadata automation, and packaging differ from
+the referenced Google Play patches. No original SD Maid APK, artwork,
+logos, translations, or documentation are distributed in the bundle.
+
+SD Maid SE: d4rken and contributors
+https://github.com/d4rken-org/sdmaid-se
+Code license: GPLv3, with exclusions described in the upstream README.
+The GitHub/FOSS upgrade model relies on user goodwill and sponsorship.
+https://github.com/d4rken-org/sdmaid-se/discussions/536
+Support the original developer: https://github.com/sponsors/d4rken
+
+Reference patch strategies and build scaffolding:
+- Doom's patches / rushiranpise and contributors, GPLv3
+  https://github.com/rushiranpise/morphe-patches
+  Reference revision: 36e542058f41bf49791cffe67e37beba8460a2ad
+  SD Maid reference: patches/src/main/kotlin/app/template/patches/sdmaidse/UnlockProPatch.kt
+- Paresh Maheshwari and contributors, GPLv3
+  https://gitlab.com/Paresh-Maheshwari/paresh-patches
+  Reference revision: 84b5e5b507f5d289b092356675c1c5bb1e4a0387
+  SD Maid reference: patches/src/main/kotlin/app/paresh/patches/sdmaidse/premium/
+
+Morphe Patcher 1.8.0, Morphe Patches template, and Morphe contributors
+provide the patch development API and build ecosystem.
+https://github.com/MorpheApp/morphe-patcher/tree/v1.8.0
+https://github.com/MorpheApp/morphe-patches-template
+Their applicable upstream notices are preserved below. Including those
+notices does not imply endorsement of this independent project.
+
+Gradle wrapper: Copyright 2015 the original authors.
+The wrapper scripts retain their original notices. The wrapper is
+Apache-2.0 licensed; see licenses/Gradle-APACHE-2.0.txt, reproduced from
+https://github.com/gradle/gradle/blob/v9.7.0/LICENSE
+The full Gradle distribution and Morphe build dependencies are obtained
+separately and retain their respective licenses.
+
+Preserved notice from the referenced Doom/template scaffold
+----------------------------------------------------------
+Morphe NOTICE
+=============
+
+7c. Project Name Restriction
+----------------------------
+
+This license does not grant permission to use the name "Morphe", or any
+name, logo, or branding that is confusingly similar, as the name or
+primary identifying mark of any modified version, fork, or derivative work.
+
+Any redistribution or derivative work must adopt a distinct name and
+branding that clearly differentiates it from the Morphe project and does
+not cause confusion as to source or origin.
+
+References to Morphe are permitted solely for descriptive compatibility
+purposes (e.g., "compatible with Morphe" or "XYZ patches for use with Morphe"),
+provided that such references:
+
+- Are accurate, factual, and non-misleading;
+- Do not suggest authorship by the Morphe project; and
+- Appear only in a secondary or descriptive context, not as part of the product or project name.
+
+Preserved notice from Morphe Patcher 1.8.0
+----------------------------------------
+Morphe NOTICE
+
+https://github.com/MorpheApp/morphe-patcher
+
+=============
+
+Portions of this software are provided "AS IS" by the Morphe software project.
+Any express or implied warranties, including the implied warranties of
+merchantability and fitness for a particular purpose, are disclaimed.
+
+
+GPLv3 Section 7c: Prohibiting Misrepresentation of Origin
+
+You are prohibited from misrepresenting the origin of the Program,
+and modified versions of the Program must be identified and marked in
+reasonable ways as different from the original version so as not to cause
+confusion regarding their origin.
+
+
+GPLv3 Section 7e: Declining Grant of Trademark Rights
+
+This License does not grant any rights or permission under trademark law
+to use the name "Morphe" or any of the Program's trade names, trademarks,
+service marks, or logos.
+

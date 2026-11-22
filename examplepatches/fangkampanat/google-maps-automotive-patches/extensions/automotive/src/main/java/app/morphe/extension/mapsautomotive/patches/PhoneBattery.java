@@ -28,10 +28,19 @@ import app.morphe.extension.shared.Utils;
  * <b>The energy model.</b> Maps' energy-model task writes the car's model 5 seconds after each start and then every
  * 2 hours (a server value). It checks the permission three times. Once when Maps expects the car's model and has none
  * yet ({@link #modelPending}): with the permission it returns success without writing. And twice before it adds the
- * model's two parts ({@link #shareModel}), each with the battery level, outside temperature and a few other live values
- * cleared by Maps. While the switch is on and BYD battery feeds Maps, the two checks return true; the first one throws,
- * so Maps' own catch returns Retry and WorkManager runs the task again 2 minutes later instead of waiting 2 hours.
- * Otherwise each returns Maps' value. Switched off, the next run writes the record without the model.
+ * model's two parts ({@link #shareModel}), each with the battery level and a few other live values cleared by Maps.
+ * While the switch is on and BYD battery feeds Maps, the two checks return true; the first one throws, so Maps' own
+ * catch returns Retry and WorkManager runs the task again 2 minutes later instead of waiting 2 hours. Otherwise each
+ * returns Maps' value. Switched off, the next run writes the record without the model.
+ * <p>
+ * <b>The outside temperature.</b> Maps also clears the outside temperature in both parts. While the model goes up, both
+ * parts keep the temperature BYD battery put in the model ({@link #keepModelTemperature}), so Google's side gets the
+ * model as the car plans with it, the A/C draw by temperature included.
+ * <p>
+ * <b>Which model.</b> The upload carries the model Maps read last. BYD battery loads its saved calibration before its
+ * first model, so the upload after a start carries the adjusted model (this car's consumption), not BYD's table: with
+ * the table, phone Maps showed 3 to 6 points more on arrival than the car on routes of about 200 km. The report keeps
+ * which one the last upload carried.
  * <p>
  * One switch for both: in a car test phone Maps showed the battery only once both went up, and its battery on
  * arrival then matched the car's. Nothing else leaves the car; both go in Maps' own uploads.
@@ -56,8 +65,15 @@ public final class PhoneBattery {
     private static volatile long lastModelAt;
     private static volatile boolean lastModelPending, lastModelShared;
     private static volatile int modelChecks, modelShares, modelRetries;
+    /** The model Maps had read before its last upload with the model (BydBatteryPatch.mapsModel), null before one. */
+    private static volatile String lastUploadModel;
     private static volatile String loggedModelState;
     private static volatile boolean modelFailureLogged;
+    /** The parts of Maps' model uploads in this process that kept the outside temperature (two per upload), the last. */
+    private static volatile int temperatureKeeps;
+    private static volatile long lastTemperatureKeepAt;
+    private static volatile int lastKeptOutsideC = BydOutsideTemperature.UNAVAILABLE;
+    private static volatile boolean temperatureLogged, temperatureFailureLogged;
     /** After Maps reads a changed percent, the wait for it to take the model in, and the least time between such runs. */
     private static final long CHANGE_DELAY_MS = 3000, MIN_CHANGE_INTERVAL_MS = 60000;
     /** Maps' live vehicle info timer task (null before Maps schedules it). */
@@ -187,6 +203,35 @@ public final class PhoneBattery {
         return modelCheck(false);
     }
 
+    /**
+     * Injection point: where the energy-model task clears the outside temperature (field 7 of the vehicle info) in each of
+     * the two parts it uploads, a copy of BYD battery's model and Maps' own model made from it. True skips the clear, so
+     * the part keeps the temperature BYD battery put in the model. True while the switch is on and BYD battery is active;
+     * otherwise false, Maps' own behaviour. Never throws.
+     */
+    public static boolean keepModelTemperature() {
+        try {
+            boolean keep = BydBatteryPatch.isActive() && Utils.isContextSet() && isOn(Utils.getContext());
+            if (!keep) return false;
+            int outsideC = BydBatteryPatch.outsideC();
+            temperatureKeeps++;
+            lastTemperatureKeepAt = SystemClock.elapsedRealtime();
+            lastKeptOutsideC = outsideC;
+            if (!temperatureLogged) {
+                temperatureLogged = true;
+                ReportLog.i(TAG, "Energy model on the phone: Maps' upload keeps the outside temperature"
+                        + (outsideC == BydOutsideTemperature.UNAVAILABLE ? " (the model's own)" : " (" + outsideC + " °C)"));
+            }
+            return true;
+        } catch (Throwable error) {
+            if (!temperatureFailureLogged) {
+                temperatureFailureLogged = true;
+                ReportLog.w(TAG, "Energy model on the phone: the outside temperature check failed", error);
+            }
+            return false;
+        }
+    }
+
     /** Whether the model goes in Maps' upload now; records the check. Never throws. */
     private static boolean modelCheck(boolean pending) {
         try {
@@ -197,10 +242,15 @@ public final class PhoneBattery {
             lastModelShared = share;
             modelChecks++;
             if (share && pending) modelRetries++;
-            if (share && !pending) modelShares++;
+            String model = null;
+            if (share && !pending) {
+                modelShares++;
+                model = BydBatteryPatch.mapsModel();
+                lastUploadModel = model;
+            }
             String state = !active ? "off (BYD battery not active)" : !share ? "off"
                     : pending ? "on, Maps has no model yet and retries in 2 minutes"
-                    : "on, Maps' upload carries the model";
+                    : "on, Maps' upload carries the model (" + model + ")";
             if (!state.equals(loggedModelState)) {
                 loggedModelState = state;
                 ReportLog.i(TAG, "Energy model on the phone " + state);
@@ -320,6 +370,12 @@ public final class PhoneBattery {
                         .put("retries", modelRetries)
                         .put("last_check_age_s", modelAt == 0 ? JSONObject.NULL : (SystemClock.elapsedRealtime() - modelAt) / 1000)
                         .put("last_check", modelAt == 0 ? JSONObject.NULL
-                                : !lastModelShared ? "not_shared" : lastModelPending ? "retry" : "shared"));
+                                : !lastModelShared ? "not_shared" : lastModelPending ? "retry" : "shared")
+                        .put("last_upload_model", lastUploadModel == null ? JSONObject.NULL : lastUploadModel)
+                        .put("temperature_kept", temperatureKeeps)
+                        .put("last_temperature_keep_age_s", lastTemperatureKeepAt == 0 ? JSONObject.NULL
+                                : (SystemClock.elapsedRealtime() - lastTemperatureKeepAt) / 1000)
+                        .put("last_kept_outside_c", lastTemperatureKeepAt == 0
+                                || lastKeptOutsideC == BydOutsideTemperature.UNAVAILABLE ? JSONObject.NULL : lastKeptOutsideC));
     }
 }

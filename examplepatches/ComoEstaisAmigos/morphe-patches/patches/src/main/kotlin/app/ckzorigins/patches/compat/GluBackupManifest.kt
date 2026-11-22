@@ -6,8 +6,8 @@ import org.w3c.dom.Element
 
 /**
  * Glu ships `GluBackupAgent` plus `android.permission.BACKUP`. The permission is
- * signature|privileged, so a user build never holds it; VirusTotal still flags the
- * uses-permission. The agent is what `adb backup` actually hits: key-value helpers
+ * signature|privileged, so a user build never holds it. The agent is what
+ * `adb backup` actually hits: key-value helpers
  * from encrypted properties, not a full file dump. The hand APK papered over that
  * with `fullBackupOnly`. Drop the agent instead, and the system uses default full backup.
  */

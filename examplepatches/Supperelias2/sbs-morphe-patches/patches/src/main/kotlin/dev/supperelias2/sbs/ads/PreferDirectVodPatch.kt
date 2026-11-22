@@ -5,6 +5,8 @@ import app.morphe.patcher.patch.ApkFileType
 import app.morphe.patcher.patch.AppTarget
 import app.morphe.patcher.patch.Compatibility
 import app.morphe.patcher.patch.bytecodePatch
+import dev.supperelias2.sbs.morphe.registerFeature
+import dev.supperelias2.sbs.morphe.settingsPatch
 
 private const val ITEM = "Lcom/sbs/ondemand/model/playback/PlaybackResponse\$PlaybackItem;"
 private const val AKAMAI = "Lcom/sbs/ondemand/model/playback/PlaybackStreamProvider\$AkamaiHLSProvider;"
@@ -13,8 +15,7 @@ private const val AKAMAI = "Lcom/sbs/ondemand/model/playback/PlaybackStreamProvi
 @Suppress("unused")
 val preferDirectVodPatch = bytecodePatch(
     name = "Prefer direct VOD stream",
-    description = "Prefers an available Akamai VOD stream over Google DAI. " +
-        "Keeps original selection for live or missing alternatives. Ad removal is not guaranteed.",
+    description = "Removes pre-roll and mid-roll video ads by selecting SBS's direct VOD stream when available.",
     default = true
 ) {
     compatibleWith(
@@ -23,15 +24,16 @@ val preferDirectVodPatch = bytecodePatch(
             packageName = "com.sbs.ondemand.android",
             apkFileType = ApkFileType.APKM,
             appIconColor = 0xDCBD1D,
-            targets = listOf(AppTarget(version = "6.3.0"))
+            targets = listOf(AppTarget(version = "6.4.0", isExperimental = true), AppTarget(version = "6.3.0"))
         )
     )
-    dependsOn(playbackCompatibilityPatch)
+    dependsOn(playbackCompatibilityPatch, settingsPatch)
 
     execute {
+        registerFeature("remove_vod_ads")
         val method = ProviderSelectionFingerprint.method
         val fallback = FallbackProviderFingerprint.method
-        // Verified against versionCode 16435's disassembly: five locals, three
+        // Verified against the supported builds: five locals, three
         // parameter registers. Fail on a different layout instead of overwriting p0.
         check(method.implementation?.registerCount == 8) {
             "Unexpected SBS provider-selection register layout"
@@ -41,6 +43,9 @@ val preferDirectVodPatch = bytecodePatch(
         method.addInstructionsWithLabels(
             0,
             """
+                invoke-static {}, Ldev/supperelias2/sbs/morphe/features/GeneralHooks;->removeVodAds()Z
+                move-result v0
+                if-eqz v0, :sbs_original
                 const-string v0, "vod"
                 invoke-virtual {p1}, $ITEM->getStreamType()Ljava/lang/String;
                 move-result-object v1

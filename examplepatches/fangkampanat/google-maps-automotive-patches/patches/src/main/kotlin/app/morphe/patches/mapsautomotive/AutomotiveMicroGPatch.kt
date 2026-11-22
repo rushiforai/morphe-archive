@@ -69,7 +69,7 @@ private const val AAOS_CERT_SHA256_ANDROID_13_PLUS = "d22cc500299fb22873a01a010d
 private const val GMS_CORE_PACKAGE_NAME = "app.revanced.android.gms"
 internal const val GMS_CORE_VENDOR_GROUP = "app.revanced"
 internal const val C2DM_PACKAGE_NAME = "app.revanced.android.c2dm"
-private const val MAIN_CLASS = "Lcom/google/android/maps/MapsActivity;"
+internal const val MAIN_CLASS = "Lcom/google/android/maps/MapsActivity;"
 private const val MAIN_ACTIVITY_NAME = "com.google.android.maps.MapsActivity"
 private const val APPLICATION_NAME = "com.google.android.apps.gmm.car.embedded.app.EmbeddedGoogleMapsApplication"
 internal const val APPLICATION_CLASS = "Lcom/google/android/apps/gmm/car/embedded/app/EmbeddedGoogleMapsApplication;"
@@ -164,7 +164,7 @@ internal object IncludedFeatures {
 val automotiveMicroGPatch = bytecodePatch(
     name = "Google Maps Automotive for MicroG-RE",
     description = "Runs Google Maps for Android Automotive on Android 10 with MicroG-RE 7.3.0, named " +
-        "\"$DEFAULT_APP_NAME\" unless the App name option says otherwise. Adds UI density, language, driver side and color scheme settings, " +
+        "\"$DEFAULT_APP_NAME\" unless the App name option says otherwise. Adds display size, language, driver side and day/night color settings, " +
         "a problem report, an update check and a safe mode. The cluster map uses the main map's colors and satellite layer.",
     default = true,
 ) {

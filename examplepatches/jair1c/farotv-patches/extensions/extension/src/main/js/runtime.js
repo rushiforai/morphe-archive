@@ -49,10 +49,21 @@
     var registry = null;        // YouTube's known client settings ({ KEY: true })
     var defaults = null;        // YouTube's client setting defaults (Map)
 
+    // Cache decoding, not storage reads: native switches must take effect immediately.
+    var decodedSettings = Object.create(null);
     function readSetting(setting) {
         try {
-            var stored = parse(localStorage.getItem(STORAGE_PREFIX + setting.key));
-            if (stored && typeof stored.data === "boolean") return stored.data;
+            var raw = localStorage.getItem(STORAGE_PREFIX + setting.key);
+            var cached = decodedSettings[setting.key];
+            if (!cached || cached.raw !== raw) {
+                var value;
+                try {
+                    var stored = raw === null ? null : parse(raw);
+                    if (stored && typeof stored.data === "boolean") value = stored.data;
+                } catch (e) {}
+                cached = decodedSettings[setting.key] = { raw: raw, value: value };
+            }
+            if (typeof cached.value === "boolean") return cached.value;
         } catch (e) {}
         return setting.defaultValue;
     }
@@ -376,30 +387,77 @@
     // makes them (TvScripts.onTitle sees "@req <id> <url>", only for an allow-list of hosts) and
     // hands the answer back through youtv.deliver(id, status, body).
     var pending = {};
+    var pendingUrls = Object.create(null);
     var nextRequest = 1;
 
     function request(url, callback) {
+        var existing = pendingUrls[url];
+        if (existing && pending[existing]) {
+            pending[existing].callbacks.push(callback);
+            return existing;
+        }
         var id = nextRequest++;
-        pending[id] = callback;
+        var entry = { url: url, callbacks: [callback], timer: null };
+        pending[id] = entry;
+        pendingUrls[url] = id;
+        entry.timer = setTimeout(function () { deliver(id, 0, ""); }, 60000);
         report("@req " + id + " " + url);
-        setTimeout(function () { delete pending[id]; }, 60000);
+        return id;
     }
 
     function deliver(id, status, body) {
-        var callback = pending[id];
+        var entry = pending[id];
+        if (!entry) return;
         delete pending[id];
-        if (!callback) return;
-        try {
-            callback(status, body);
-        } catch (e) {
-            report("request " + id + " callback failed: " + e);
+        delete pendingUrls[entry.url];
+        clearTimeout(entry.timer);
+        entry.callbacks.forEach(function (callback) {
+            try { callback(status, body); }
+            catch (e) { report("request " + id + " callback failed: " + e); }
+        });
+    }
+
+    // ---- shared tree filters ------------------------------------------------------------------
+    function filterResponseTree(response, text) {
+        var started = profiling ? clock() : 0;
+        var active = [];
+        for (var i = 0; i < features.length; i++) {
+            var feature = features[i];
+            var definition = feature.definition;
+            var rule = definition.treeFilter;
+            if (!rule || !feature.enabled()) continue;
+            try {
+                if (definition.beforeTree) definition.beforeTree(response);
+                if ((!rule.eligible || rule.eligible(response)) && youtv.mentions(text, rule.markers)) {
+                    active.push({ rule: rule, removed: 0 });
+                }
+            } catch (e) { report(feature.id + ": prepare failed: " + e); }
+        }
+        var visited = active.length ? youtv.applyTreeFilters(response, active) : 0;
+        for (var i = 0; i < active.length; i++) {
+            if (active[i].removed && active[i].rule.report) active[i].rule.report(active[i].removed);
+        }
+        if (profiling) {
+            var stats = profiling.treeFilters;
+            var elapsed = clock() - started;
+            stats.responses++; stats.walks += active.length ? 1 : 0;
+            stats.rules += active.length; stats.nodes += visited;
+            stats.ms += elapsed; stats.maxMs = Math.max(stats.maxMs, elapsed);
         }
     }
 
     // ---- response hook ------------------------------------------------------------------------
+    function emptyPerformance() {
+        return { responses: 0, chars: 0, parseMs: 0, scriptsMs: 0, maxScriptsMs: 0, features: {}, treeFilters: { responses: 0, walks: 0, rules: 0, nodes: 0, ms: 0, maxMs: 0 } };
+    }
+    var profiling = window.__farotvDiagnostics && window.performance &&
+        typeof window.performance.now === "function" ? emptyPerformance() : null;
+    function clock() { return window.performance.now(); }
     JSON.parse = function () {
+        var started = profiling ? clock() : 0;
         var result = parse.apply(this, arguments);
         if (!result || typeof result !== "object") return result;
+        var parsedAt = profiling ? clock() : 0;
         // The raw text is passed on so features can skip responses without their markers
         // (youtv.mentions): searching the text is much cheaper than walking the parsed tree.
         var text = typeof arguments[0] === "string" ? arguments[0] : "";
@@ -408,14 +466,37 @@
         } catch (e) {
             report("settings: inject failed: " + e);
         }
+        var treeDone = false;
         for (var i = 0; i < features.length; i++) {
             var feature = features[i];
+            if (feature.definition.treeFilter) {
+                if (!treeDone && feature.enabled()) {
+                    treeDone = true;
+                    try { filterResponseTree(result, text); }
+                    catch (e) { report("tree filters failed: " + e); }
+                }
+                continue;
+            }
             if (typeof feature.definition.onResponse !== "function" || !feature.enabled()) continue;
+            var featureStart = profiling ? clock() : 0;
             try {
                 feature.definition.onResponse(result, feature.settings, text);
             } catch (e) {
                 report(feature.id + ": failed: " + e);
             }
+            if (profiling) {
+                var own = profiling.features[feature.id] || { calls: 0, ms: 0, maxMs: 0 };
+                var elapsed = clock() - featureStart;
+                own.calls++; own.ms += elapsed; own.maxMs = Math.max(own.maxMs, elapsed);
+                profiling.features[feature.id] = own;
+            }
+        }
+        if (profiling) {
+            var scriptsMs = clock() - parsedAt;
+            profiling.responses++; profiling.chars += text.length;
+            profiling.parseMs += parsedAt - started;
+            profiling.scriptsMs += scriptsMs;
+            profiling.maxScriptsMs = Math.max(profiling.maxScriptsMs, scriptsMs);
         }
         return result;
     };
@@ -437,6 +518,11 @@
         },
         setIcons: setIcons,
         deliver: deliver,
+        performanceSnapshot: function () {
+            var snapshot = profiling;
+            if (snapshot) profiling = emptyPerformance();
+            return snapshot;
+        },
         status: function () {
             return {
                 registry: !!registry,

@@ -265,6 +265,23 @@ internal fun BytecodePatchContext.captionBridges(
     null
 }
 
+/**
+ * The same for who posted a Media: its `user` and that user's `username`, for the @names in Hide
+ * reels by caption words' list (#807). A build where either can't be told answers null, after the
+ * patch log says why and what [without] leaves out, and the patch goes in without them.
+ */
+internal fun BytecodePatchContext.authorBridges(patch: String, without: String): (() -> Unit)? = try {
+    val owner = pandoGetter(patch, MEDIA, "user", USER)
+    val username = pandoGetter(patch, USER, "username", "Ljava/lang/String;")
+    bridgeWriter(patch, listOf(
+        Bridge("owner", MEDIA, virtual(owner)),
+        Bridge("username", USER, virtual(username)),
+    ))
+} catch (unknown: PatchException) {
+    patchLog.warning("${unknown.message}. $without.")
+    null
+}
+
 /** The same for an account's username alone, for a save named after an account found elsewhere. */
 internal fun BytecodePatchContext.usernameBridge(patch: String): () -> Unit {
     val username = pandoGetter(patch, USER, "username", "Ljava/lang/String;")
@@ -292,6 +309,15 @@ internal fun BytecodePatchContext.storyMusicBridges(patch: String): () -> Unit {
         Bridge("storyImageWithMusic", MEDIA, virtual(photoWithMusic)),
         Bridge("originalMediaType", MEDIA, virtual(postedAs)),
     ))
+}
+
+/**
+ * The same for a story's `accessibility_caption`, Instagram's description of what a photo shows,
+ * which quotes the words it read in the picture. Copy text in the story menu copies those (#789).
+ */
+internal fun BytecodePatchContext.altTextBridge(patch: String): () -> Unit {
+    val altText = pandoGetter(patch, MEDIA, "accessibility_caption", "Ljava/lang/String;")
+    return bridgeWriter(patch, listOf(Bridge("accessibilityCaption", MEDIA, virtual(altText))))
 }
 
 /**

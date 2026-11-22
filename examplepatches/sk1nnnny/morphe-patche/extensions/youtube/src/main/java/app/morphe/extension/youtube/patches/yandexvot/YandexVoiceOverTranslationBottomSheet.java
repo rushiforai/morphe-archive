@@ -43,7 +43,6 @@ import app.morphe.extension.shared.settings.preference.SeekBarPreference.SeekBar
 import app.morphe.extension.shared.theme.ThemeUtils;
 import app.morphe.extension.shared.ui.Dim;
 import app.morphe.extension.shared.ui.SheetBottomDialog;
-import app.morphe.extension.youtube.patches.playback.speed.CustomPlaybackSpeedPatch;
 import app.morphe.extension.youtube.settings.YandexVotSettings;
 import app.morphe.extension.youtube.shared.PlayerType;
 
@@ -330,7 +329,7 @@ public class YandexVoiceOverTranslationBottomSheet {
         button.setGravity(Gravity.CENTER);
         ShapeDrawable background = new ShapeDrawable(new RoundRectShape(
                 Dim.roundedCorners(20), null, null));
-        background.getPaint().setColor(CustomPlaybackSpeedPatch.getAdjustedBackgroundColor(false));
+        background.getPaint().setColor(getAdjustedBackgroundColor(false));
         button.setBackground(background);
         final int size = Dim.dp36;
         LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(size, size);
@@ -374,8 +373,8 @@ public class YandexVoiceOverTranslationBottomSheet {
 
         Runnable updateSelection = () -> {
             boolean useLive = YandexVotSettings.YANDEX_VOT_USE_LIVE_VOICES.get();
-            int selectedColor = CustomPlaybackSpeedPatch.getAdjustedBackgroundColor(true);
-            int unselectedColor = CustomPlaybackSpeedPatch.getAdjustedBackgroundColor(false);
+            int selectedColor = getAdjustedBackgroundColor(true);
+            int unselectedColor = getAdjustedBackgroundColor(false);
             ShapeDrawable standardBg = (ShapeDrawable) standardButton.getBackground();
             ShapeDrawable liveBg = (ShapeDrawable) liveButton.getBackground();
             standardBg.getPaint().setColor(useLive ? unselectedColor : selectedColor);
@@ -424,7 +423,7 @@ public class YandexVoiceOverTranslationBottomSheet {
 
         ShapeDrawable background = new ShapeDrawable(new RoundRectShape(
                 Dim.roundedCorners(12), null, null));
-        background.getPaint().setColor(CustomPlaybackSpeedPatch.getAdjustedBackgroundColor(false));
+        background.getPaint().setColor(getAdjustedBackgroundColor(false));
         button.setBackground(background);
         button.setPadding(Dim.dp12, Dim.dp8, Dim.dp12, Dim.dp8);
         return button;
@@ -448,7 +447,7 @@ public class YandexVoiceOverTranslationBottomSheet {
         android.graphics.drawable.StateListDrawable bg = new android.graphics.drawable.StateListDrawable();
         bg.addState(new int[]{android.R.attr.state_pressed},
                 new android.graphics.drawable.ColorDrawable(
-                        CustomPlaybackSpeedPatch.getAdjustedBackgroundColor(true)));
+                        getAdjustedBackgroundColor(true)));
         bg.addState(new int[]{}, new android.graphics.drawable.ColorDrawable(Color.TRANSPARENT));
         row.setBackground(bg);
 
@@ -475,6 +474,34 @@ public class YandexVoiceOverTranslationBottomSheet {
         row.setOnClickListener(v -> switchView.setChecked(!setting.get()));
 
         return row;
+    }
+
+    /**
+     * Adjusts the bottom sheet dialog background color for button/control contrast
+     * without depending on upstream CustomPlaybackSpeedPatch internals.
+     */
+    private static int getAdjustedBackgroundColor(boolean isSelected) {
+        final int baseColor = getDialogBackgroundColor();
+        final int alpha = Color.alpha(baseColor);
+        final int r = Color.red(baseColor);
+        final int g = Color.green(baseColor);
+        final int b = Color.blue(baseColor);
+        final boolean isDark = (r + g + b) < 384;
+
+        if (isDark) {
+            final float factor = isSelected ? 1.25f : 1.115f;
+            final int minBoost = isSelected ? 40 : 22;
+            int nr = Math.min(255, Math.max(Math.round(r * factor), r + minBoost));
+            int ng = Math.min(255, Math.max(Math.round(g * factor), g + minBoost));
+            int nb = Math.min(255, Math.max(Math.round(b * factor), b + minBoost));
+            return Color.argb(alpha, nr, ng, nb);
+        } else {
+            final float factor = isSelected ? 0.90f : 0.95f;
+            int nr = Math.max(0, Math.round(r * factor));
+            int ng = Math.max(0, Math.round(g * factor));
+            int nb = Math.max(0, Math.round(b * factor));
+            return Color.argb(alpha, nr, ng, nb);
+        }
     }
 
 }

@@ -7,7 +7,9 @@
 This repository contains patches for [Morphe](https://morphe.software/), an open-source Android
 patching tool for modifying apps like YouTube and Reddit to block ads and add new features.
 
-[![Import](https://img.shields.io/badge/Import-blue?style=for-the-badge&label=Morphe%20Manager)][import-adobo]
+<a href="https://morphe.software/add-source?github=jkennethcarino/adobo">
+  <img src=".github/assets/add-to-morphe.svg" alt="Add to Morphe" height="48" />
+</a>
 
 ## Features
 
@@ -22,122 +24,15 @@ patching tool for modifying apps like YouTube and Reddit to block ads and add ne
 ## Patches
 
 <!-- PATCHES_START -->
-[![Branch](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2Fjkennethcarino%2Fadobo%2Frefs%2Fheads%2Fmain%2Fpatches-list.json&query=version&label=main)][releases] ![Patches](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2Fjkennethcarino%2Fadobo%2Frefs%2Fheads%2Fmain%2Fpatches-list.json&query=%24.patches.length&style=social&label=Patches)
-<details>
-<summary>📦 Gboard&nbsp;&nbsp;•&nbsp;&nbsp;9 patches</summary>
-<br>
+> **[v2.0.1](https://github.com/jkennethcarino/adobo/releases/tag/v2.0.1)**&nbsp;&nbsp;&middot;&nbsp;&nbsp;`main`&nbsp;&nbsp;&middot;&nbsp;&nbsp;**55 patches** across **4 apps**&nbsp;&nbsp;&middot;&nbsp;&nbsp;[Full details](PATCHES.md)
 
-**Package name:** `com.google.android.inputmethod.latin`
-
-| Patch Name | Description | Options |
-|------------|-------------|---------|
-| Always-incognito mode | Always opens Gboard in incognito mode to disable typing history collection and personalization. |  |
-| Enable OCR feature | Enables the Scan Text feature to extract text from images and insert them into text fields. |  |
-| Enable Undo feature | Enables the undo feature to quickly undo or correct typing mistakes. |  |
-| Enable access points menu redesign | Enables the redesign of the additional actions menu. |  |
-| Enable clipboard in incognito | Enables clipboard support in incognito mode. |  |
-| Enable extended clipboard history | Enables extending the clipboard history expiration time. |  |
-| Enable key shape selection | Enables an option to select a key shape from the theme. |  |
-| Enable voice typing in incognito | Enables voice typing in incognito mode. |  |
-| Toggle feature flags | Toggles Gboard feature flags to enable or disable experimental or hidden features. | • Feature flags<br>• Enable feature flags |
-
-</details>
-
-<details>
-<summary>📦 Reddit&nbsp;&nbsp;•&nbsp;&nbsp;26 patches</summary>
-<br>
-
-**Package name:** `com.reddit.frontpage`
-
-**Supported versions:**
-
-| 2026.43.0 | 2026.42.0 | 2026.41.0 | 2026.40.0 | 2026.24.0 |
-| :---: | :---: | :---: | :---: | :---: |
-
-| Patch Name | Description | Options |
-|------------|-------------|---------|
-| Colorize comment indent lines | Replaces the default gray comment indent lines with color-coded lines. | • Show indent line at current depth only<br>• Line color 1<br>• Line color 2<br>• Line color 3<br>• Line color 4<br>• Line color 5<br>• Line color 6<br>• Line color 7<br>• Line color 8 |
-| Disable bottom navigation bar auto-hide | Prevents the bottom navigation bar from hiding when scrolling down. |  |
-| Disable home feed auto-refresh | Disables the automatic refresh of the home feed after viewing a post or after being away from the app. |  |
-| Disable home feed refresh on back to exit | Disables the back-to-top scroll and home feed refresh on back navigation to exit. |  |
-| Disable home feed swipe | Disables the horizontal page swipe gesture used to switch feeds. |  |
-| Disable home screen redirect | Disables the automatic redirect to the home screen after being away from the app or returning from the background. |  |
-| Disable post detail swipe | Disables the horizontal swipe gesture used to navigate between posts. |  |
-| Disable screenshot banner | Disables the banner that shows up after taking a screenshot. |  |
-| Enable guest mode | Enables browsing Reddit without signing in. |  |
-| Hide Ask button from search bar | Hides the Ask button (Reddit Answers) from the search bar. |  |
-| Hide awards | Hides the awards on Reddit posts and comments. |  |
-| Hide community highlights | Hides the community highlights section. |  |
-| Hide community menu badge | Hides the red notification badge on the community menu (hamburger menu). |  |
-| Hide crosspost | Hides the crosspost on Reddit posts. |  |
-| Hide post view counts | Removes the "views" indicator from the post metadata. |  |
-| Hide prominent search bar | Hides the new prominent search bar on the main screen. Applicable only to version 2026.24.0 and earlier. |  |
-| Hide related posts | Hides the related posts section displayed at the bottom of a post. |  |
-| Hide search answers preview | Hides the Reddit Answers preview section at the top of search results. |  |
-| Hide share count | Hides the share count on Reddit posts. |  |
-| Hide upvote scores | Hides the scores on Reddit posts and comments. | • Hide post scores<br>• Hide comment scores |
-| Hide user community badges | Hides the user community badges on Reddit comments. |  |
-| Hide user flairs | Hides the user flairs on Reddit comments. |  |
-| Make system navigation bar transparent | Sets the system navigation bar to fully transparent. |  |
-| Open external links directly | Opens external links directly without going through out.reddit.com. |  |
-| Remove ads and telemetry | Removes ads and telemetry everywhere. |  |
-| Sanitize share links | Unshortens and removes the tracking query parameters from shared links. |  |
-
-</details>
-
-<details>
-<summary>📦 9GAG&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
-<br>
-
-**Package name:** `com.ninegag.android.app`
-
-**Supported versions:**
-
-| 8.26.1 | 8.25.1 | 8.24.8 | 8.23.0 | 8.22.0 |
-| :---: | :---: | :---: | :---: | :---: |
-
-| Patch Name | Description | Options |
-|------------|-------------|---------|
-| Disable forced update dialog | Disables the forced update dialog on an outdated app version. |  |
-| Remove 9GAG's ads, trackers, and analytics | Removes ads, trackers, and analytics in the 9GAG app. |  |
-| Sanitize share links | Removes the tracking query parameters from shared links. |  |
-
-</details>
-
-<details>
-<summary>📦 IMDb&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
-<br>
-
-**Package name:** `com.imdb.mobile`
-
-| Patch Name | Description | Options |
-|------------|-------------|---------|
-| Remove IMDb's ads, trackers, and analytics | Removes ads, trackers, and analytics in the IMDb app. |  |
-
-</details>
-
-<details>
-<summary>🌐 Universal&nbsp;&nbsp;•&nbsp;&nbsp;13 patches</summary>
-<br>
-
-| Patch Name | Description | Options |
-|------------|-------------|---------|
-| Block ads, trackers, and analytics | Blocks ads, trackers, analytics, and unwanted content in apps and games using a hosts file. | • Hosts file<br>• Redirection IP<br>• Wildcard blocking |
-| Change package name | Appends ".adobo" to the package name by default. Changing the package name of the app can lead to unexpected issues. | • Package name<br>• Update permissions<br>• Update other permissions<br>• Update content providers |
-| Deactivate Firebase Analytics | Deactivates Firebase Analytics and removes its associated broadcast receivers and services. |  |
-| Deactivate Firebase Performance Monitoring | Deactivates the collection of performance data on app start up time, network requests, and other related metrics. |  |
-| Disable Google Safe Browsing in WebView | Disables the Google Safe Browsing checks in WebView. This doesn't apply to WebView within the SDK Runtime. |  |
-| Disable metrics collection in WebView | Disables the collection of diagnostic data or usage statistics that are sent to Google. |  |
-| Disable mobile ads | Disables banner, interstitial, and other ad formats. | • AppLovin MAX<br>• BIGO<br>• Google AdMob<br>• Meta Audience Network<br>• Mintegral<br>• myTarget<br>• Pangle<br>• TopOn<br>• Unity<br>• Liftoff Monetize<br>• Yandex Advertising Network |
-| Remove internet permission | Removes unnecessary internet permission from apps that can still work without internet access. |  |
-| Remove screenshot detection | Prevents the app from detecting when a screenshot is taken. |  |
-| Replace Google Maps API key | Replaces the Google Maps API key with a custom key. | • Maps API Key |
-| Spoof Advertising ID | Spoofs the device's advertising ID with a string of zeros. |  |
-| Spoof Firebase certificate hash | Spoofs the app's package certificate hash used by Firebase Installations so that push notifications, remote config, and other Firebase services continue to work as expected. | • Certificate hash |
-| Spoof signature verification | Spoofs the signature verification when the app starts up. It is recommended to use the unmodified app to work properly. | • Package name<br>• Base64-encoded signature |
-
-</details>
-
+| App | Package name | Supported versions | Patches |
+|---|---|---|---|
+| [**9GAG**](PATCHES.md#9gag) | [`com.ninegag.android.app`](https://play.google.com/store/apps/details?id=com.ninegag.android.app) | `8.30.04`, `8.29.08`, `8.26.1`, `8.25.1`, `8.24.8` | 3 |
+| [**Gboard**](PATCHES.md#gboard) | [`com.google.android.inputmethod.latin`](https://play.google.com/store/apps/details?id=com.google.android.inputmethod.latin) | `Any` | 10 |
+| [**IMDb**](PATCHES.md#imdb) | [`com.imdb.mobile`](https://play.google.com/store/apps/details?id=com.imdb.mobile) | `Any` | 1 |
+| [**Reddit**](PATCHES.md#reddit) | [`com.reddit.frontpage`](https://play.google.com/store/apps/details?id=com.reddit.frontpage) | `2026.47.0`, `2026.46.0`, `2026.45.0`, `2026.44.0`, `2026.24.0` | 28 |
+| [**Universal**](PATCHES.md#universal) | - | `Any` | 13 |
 <!-- PATCHES_END -->
 
 ## Getting Started
@@ -147,7 +42,7 @@ or [Morphe Desktop](https://github.com/MorpheApp/morphe-desktop).
 
 ### Morphe Manager
 
-#### Option A: One-click import (requires v1.11.0 or later)
+#### Option A: One-click import
 
 Tap [this link](https://morphe.software/add-source?github=jkennethcarino/adobo) to import Adobong
 Morphe patches directly into Morphe Manager in just a click!
@@ -155,25 +50,44 @@ Morphe patches directly into Morphe Manager in just a click!
 #### Option B: Manual import
 
 1. Open the **Morphe Manager** app.
-2. On the main screen, tap the _folder_ icon in the bottom-left corner.
-3. Tap the "**+**" icon next to **Patch Sources**.
-4. On the **Add patch source** screen, select the **Remote** tab (selected by default).
-5. Set the patch source URL to the following, then tap **Add**:
+2. Switch to the **Sources** tab, then tap the **+** icon in the top-right corner.
+3. On the **Add patch source** bottom sheet, copy and paste the following to the _Source URL_ text
+   field:
+    ```
+    https://github.com/jkennethcarino/adobo
+    ```
+4. Optional: Toggle on _Pre-release patches_ for early access to new features.
+5. Lastly, tap **Add** to import this patch source.
 
-```
-https://github.com/jkennethcarino/adobo
-```
+> [!NOTE]
+> **For advanced users:** Enable **Expert mode** to choose which patches to apply and configure their
+options, instead of using the default selections.
 
 <details>
-  <summary><h3>Universal ReVanced Manager</h3></summary>
+  <summary><h3>Universal Patch Manager</h3></summary>
   <ol>
-    <li>Open the <strong><a href="https://github.com/Jman-Github/Universal-ReVanced-Manager">URV Manager</a></strong> app.</li>
+    <li>Open the <strong><a href="https://github.com/Jman-Github/Universal-Patch-Manager">UP Manager</a></strong> app.</li>
     <li>Switch to the <strong>Patch Bundles</strong> tab.</li>
     <li>Tap the <em>globe</em> icon in the bottom-right corner.</li>
-    <li>On the <strong>Discover patch bundles</strong> screen, search for "Adobo" in the <strong>Search by bundle name</strong> text field.</li>
+    <li>On the <strong>Discovery</strong> screen, search for <code>Adobo</code> in the <strong>Search bundles</strong> text field.</li>
     <li>In the search results, tap the <strong>Import</strong> button for the <code>jkennethcarino/adobo</code> patch bundle.</li>
   </ol>
 </details>
+
+## Verifying the Patch Bundle
+
+The Adobo patch bundle on GitHub is signed with
+a [Morphe signing key](https://github.com/MorpheApp/morphe-documentation/blob/533356050d990de5d681888ee79d376b0b6b02b1/docs/morphe-development/2_signing.md)
+that has the following fingerprint:
+
+```
+9fc4 b658 48b7 093a
+```
+
+To check it, open the **Morphe Manager** app, switch to the **Patches** tab,
+then expand the **Adobo** patch source. Verify that the **Signed by** value shown there matches the
+fingerprint above (tapping on it copies
+the [public key](https://github.com/jkennethcarino/adobo/blob/6ab6865fe7a3fc9306afa19e3cb42718442ffc38/morphe-signing.pub)).
 
 ## Building
 
@@ -187,12 +101,12 @@ maintain your own version.
 
 I do welcome feature requests and bug reports. I won't implement patches that bypass payments or
 premium features; the only exception is removing ads, annoyances, and analytics. Since I work on
-this in my spare time, I can't commit to implementing patches or fixes quickly. Open an
+this in my free time, I can't commit to implementing patches or fixes quickly. Open an
 [issue](https://github.com/jkennethcarino/adobo/issues) here to report a bug or suggest a feature.
 
 ## Disclaimer
 
-> [!WARNING]  
+> [!WARNING]
 > These patches are provided as-is for personal use.
 >
 > Use them at your own risk. I'm not responsible for any potential issues, including violations of
@@ -203,7 +117,6 @@ this in my spare time, I can't commit to implementing patches or fixes quickly. 
 Adobo is licensed under the [GNU General Public License v3.0 (GPL-3.0)][gpl-3.0].
 See [LICENSE](LICENSE) for details.
 
-[import-adobo]: https://morphe.software/add-source?github=jkennethcarino/adobo
 [gh-actions]: https://github.com/jkennethcarino/adobo/actions
 [releases]: https://github.com/jkennethcarino/adobo/releases
 [gpl-3.0]: https://www.gnu.org/licenses/gpl-3.0.html

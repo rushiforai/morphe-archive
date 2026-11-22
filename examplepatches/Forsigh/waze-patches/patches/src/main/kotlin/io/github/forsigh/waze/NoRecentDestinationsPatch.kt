@@ -63,12 +63,11 @@ val noRecentDestinationsPatch = bytecodePatch(
         Compatibility(
             name = "Waze",
             packageName = "com.waze",
+            // Same rule as the shared compatibility: one release, one Waze build. The read bridge
+            // this row hooks also exists on earlier builds, but a bundle is only claimed for the
+            // version it was verified against.
             targets = listOf(
-                AppTarget(version = "5.26.5.0"),
-                AppTarget(version = "5.26.90.901"),
-                AppTarget(version = "5.27.0.1"),
-                AppTarget(version = "5.27.4.900"),
-                AppTarget(version = "5.27.90.900"),
+                AppTarget(version = "5.28.4.900"),
             ),
         ),
     )

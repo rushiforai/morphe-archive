@@ -34,7 +34,7 @@ import java.util.logging.Logger
 // returns the original value unless BYD battery is turned on in Settings on a BYD car and its feature
 // switch is on. All hooks are required: a missing anchor, an ambiguity or an unknown layout fails the patch.
 // The battery on arrival at charging stops and at the destination is part of this patch (ArrivalBatteryHooks.kt),
-// and so is the battery on the phone (PhoneBatteryHooks.kt).
+// and so are the battery on the phone (PhoneBatteryHooks.kt) and Maps' battery percentages (DisplayCurveHooks.kt).
 
 internal const val BYD_BATTERY_CLASS = "Lapp/morphe/extension/mapsautomotive/patches/BydBatteryPatch;"
 private const val ENERGY_PROVIDER_CLASS = "app.morphe.extension.mapsautomotive.patches.BydEnergyModelProvider"
@@ -134,8 +134,8 @@ private val bydEnergyProviderPatch = resourcePatch {
 val bydBatteryPatch = bytecodePatch(
     name = "BYD battery (EV)",
     description = "Feeds the BYD battery into Maps' EV routing (battery on arrival, chargers). " +
-        "On by default on the tested BYD Dolphin and on BYD model ids 128 and 138, where owners' reports show it working; off with an " +
-        "\"untested\" notice on other BYD models and on DiLink 5. A Settings row turns it on or off " +
+        "On by default on DiLink 3 cars with BYD's energy tables, unless the car's own data is too far from the table; off on " +
+        "DiLink 5. A Settings row turns it on or off " +
         "and sets the battery to arrive with at charging stops and at the destination. By default Maps also sends the battery " +
         "percentage and this car's energy model to your Google account, so Google Maps on your phone can show the battery; " +
         "a switch there turns that off.",
@@ -154,6 +154,7 @@ val bydBatteryPatch = bytecodePatch(
         captureEnergyForecast()
         useArrivalBattery()
         usePhoneBattery()
+        useDisplayCurve()
         IncludedFeatures.settingsRows += BYD_BATTERY_CLASS
         IncludedFeatures.features += "byd_battery"
     }

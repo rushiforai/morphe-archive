@@ -1,18 +1,23 @@
 package app.morphe.patches.mapsautomotive
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
+import app.morphe.patcher.util.smali.ExternalLabel
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.builder.BuilderInstruction
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
+import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.ThreeRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
@@ -30,6 +35,10 @@ import java.util.logging.Logger
 //   on true the task returns success without writing: PhoneBattery.modelPending, which throws instead while
 //   the switch is on, so the task's catch of everything returns Retry. The other two come before it adds the
 //   model's two parts: PhoneBattery.shareModel.
+//   Before the upload the task clears the outside temperature, field 7 of the vehicle info, in both parts: in the
+//   copy of our model within the task, in Maps' own model in a static helper of the task's class. Each clear is
+//   skipped while PhoneBattery.keepModelTemperature returns true, so Google's side gets the temperature that the
+//   model's A/C draw by temperature needs. Field numbers come from the classes' protobuf message info.
 // Maps' other checks of the permission are not touched. Maps runs the live vehicle info task from a 2-minute timer; the
 // timer's runnable goes to PhoneBattery.liveTask, which runs it once more soon after the battery percent drops.
 // Required: a missing anchor, an ambiguity or an unknown layout fails the patch.
@@ -65,6 +74,7 @@ internal fun BytecodePatchContext.usePhoneBattery() {
     requireExtensionMethod(PHONE_BATTERY_CLASS, "modelPending", listOf("Z"), "Z")
     requireExtensionMethod(PHONE_BATTERY_CLASS, "shareModel", listOf("Z"), "Z")
     requireExtensionMethod(PHONE_BATTERY_CLASS, "liveTask", listOf(RUNNABLE), "V")
+    requireExtensionMethod(PHONE_BATTERY_CLASS, "keepModelTemperature", emptyList(), "Z")
     val check = carEnergyCheck()
     useLiveVehicleInfo(check)
     useEnergyModelUpload(check)
@@ -221,6 +231,227 @@ private fun BytecodePatchContext.useEnergyModelUpload(check: String) {
             "in v${registers[0]} at ${calls[0] + 1} (no model yet) passes through PhoneBattery.modelPending, in " +
             "v${registers[1]} at ${calls[1] + 1} and v${registers[2]} at ${calls[2] + 1} through PhoneBattery.shareModel",
     )
+    keepOutsideTemperature(task, method)
+}
+
+private const val OUTSIDE_TEMPERATURE_FIELD = 7
+private const val PROTO_FLOAT = 1
+private const val KEEP_LABEL = "morphe_keep_temperature"
+
+// The outside temperature in both parts of the upload. In the task (already hooked above, so the indices are the
+// mutable method's) one store of a constant 0 into field 7 of a message; in the task's class one static helper
+// taking and returning the same message type, called by the task, with one such store. Both are skipped while
+// PhoneBattery.keepModelTemperature returns true.
+private fun BytecodePatchContext.keepOutsideTemperature(task: Method, taskMethod: MutableMethod) {
+    fun unexpected(reason: String): Nothing = throw PatchException("Unexpected outside temperature in the energy-model task $task: $reason")
+    val taskClears = temperatureClears(taskMethod.implementation!!.instructions)
+    val taskClear = taskClears.singleOrNull() ?: unexpected("expected one clear of field $OUTSIDE_TEMPERATURE_FIELD, found ${taskClears.size}")
+
+    val helpers = (classDefByOrNull(task.definingClass) ?: unexpected("no class")).methods.mapNotNull { helper ->
+        val parameter = helper.parameterTypes.singleOrNull()?.toString()
+        if (!AccessFlags.STATIC.isSet(helper.accessFlags) || parameter == null || !parameter.startsWith("L") ||
+            helper.returnType != parameter
+        ) {
+            return@mapNotNull null
+        }
+        val clears = temperatureClears(helper.implementation?.instructions?.toList() ?: return@mapNotNull null)
+        if (clears.isEmpty()) null else helper to clears
+    }
+    val (helper, helperClears) = helpers.singleOrNull() ?: unexpected("expected one static helper with such a clear, found ${helpers.map { it.first }}")
+    val helperClear = helperClears.singleOrNull() ?: unexpected("expected one clear in $helper, found ${helperClears.size}")
+    val helperSignature = helper.definingClass + "->" + helper.name + helper.parameterTypes.joinToString("", "(", ")") + helper.returnType
+    if (taskMethod.implementation!!.instructions.none { it.invoked()?.signature() == helperSignature }) {
+        unexpected("the task does not call $helper")
+    }
+
+    val taskField = keepTemperature(taskMethod, taskClear)
+    val helperField = keepTemperature(mutableMethodOf(helper), helperClear)
+    phoneLogger.info(
+        "Energy model on the phone: the outside temperature stays in Maps' upload while PhoneBattery.keepModelTemperature " +
+            "is true: $taskField in $task at $taskClear (our model's copy), $helperField in $helper at $helperClear (Maps' model)",
+    )
+}
+
+// Indices of the stores of a constant 0 (set just before) into field 7, a float, of a protobuf-lite message.
+private fun BytecodePatchContext.temperatureClears(code: List<Instruction>): List<Int> = code.indices.filter { index ->
+    val store = code[index]
+    val field = store.fieldOf()
+    if (store.opcode != Opcode.IPUT || field == null || field.type != "F") return@filter false
+    val zero = code.getOrNull(index - 1)
+    if (zero == null || zero.opcode !in setOf(Opcode.CONST_4, Opcode.CONST_16, Opcode.CONST) ||
+        (zero as NarrowLiteralInstruction).narrowLiteral != 0 ||
+        (zero as OneRegisterInstruction).registerA != (store as TwoRegisterInstruction).registerA
+    ) {
+        return@filter false
+    }
+    val proto = protoLayout(field.definingClass)?.fields?.singleOrNull { it.name == field.name }
+    proto != null && proto.number == OUTSIDE_TEMPERATURE_FIELD && proto.type == PROTO_FLOAT
+}
+
+// Skips the clear at [store] (and the clear of its has-bit just before, if the field has one) while
+// PhoneBattery.keepModelTemperature returns true. The stored register holds 0 again after the skipped part on both
+// paths, as Maps uses it later. Returns the field.
+private fun BytecodePatchContext.keepTemperature(method: MutableMethod, store: Int): String {
+    val code = method.implementation!!.instructions
+    val field = code[store].fieldOf()!!
+    fun unexpected(reason: String): Nothing = throw PatchException("Unexpected clear of ${field.signature()} in $method: $reason")
+    val put = code[store] as TwoRegisterInstruction
+    val value = put.registerA
+    val layout = protoLayout(field.definingClass) ?: unexpected("no message info")
+    val hasBit = layout.fields.single { it.name == field.name }.hasBit
+    val start = if (hasBit == null) {
+        store
+    } else {
+        val bitsName = layout.hasBitsFields.getOrNull(hasBit / 32) ?: unexpected("no has-bits field for bit $hasBit")
+        val bits = "${field.definingClass}->$bitsName:I"
+        val read = code.getOrNull(store - 4) as? TwoRegisterInstruction
+        val clear = code.getOrNull(store - 3)
+        val write = code.getOrNull(store - 2) as? TwoRegisterInstruction
+        val cleared = read != null && read.opcode == Opcode.IGET && read.fieldOf()?.signature() == bits &&
+            read.registerB == put.registerB &&
+            clear != null && clear.opcode in setOf(Opcode.AND_INT_LIT8, Opcode.AND_INT_LIT16) &&
+            (clear as NarrowLiteralInstruction).narrowLiteral == (1 shl (hasBit % 32)).inv() &&
+            (clear as TwoRegisterInstruction).registerA == read.registerA && clear.registerB == read.registerA &&
+            write != null && write.opcode == Opcode.IPUT && write.fieldOf()?.signature() == bits &&
+            write.registerA == read.registerA && write.registerB == put.registerB
+        if (!cleared) unexpected("its has-bit $hasBit is not cleared just before")
+        store - 4
+    }
+    if (store + 1 >= code.size) unexpected("nothing follows the store")
+    (start..store + 1).forEach { if (code[it].location.labels.isNotEmpty()) unexpected("the instruction at $it is a branch target") }
+
+    method.addInstructions(store + 1, "const/16 v$value, 0x0")
+    val after = method.implementation!!.instructions[store + 1]
+    method.addInstructionsWithLabels(
+        start,
+        """
+            invoke-static {}, $PHONE_BATTERY_CLASS->keepModelTemperature()Z
+            move-result v$value
+            if-nez v$value, :$KEEP_LABEL
+            const/16 v$value, 0x0
+        """.trimIndent(),
+        ExternalLabel(KEEP_LABEL, after),
+    )
+    return field.signature()
+}
+
+private class ProtoField(val number: Int, val type: Int, val name: String, val hasBit: Int?)
+
+private class ProtoLayout(val hasBitsFields: List<String>, val fields: List<ProtoField>)
+
+// The field layout of a protobuf-lite message class, from the message info its dynamic method builds and passes to a
+// constructor (default instance, String, Object[]): the info string and the objects (the has-bits fields' names, then
+// each field's name, plus the class of a message list and the verifier of a closed enum). Null when the class builds
+// none. Oneofs and maps are not expected in the classes read here and fail.
+private fun BytecodePatchContext.protoLayout(classType: String): ProtoLayout? {
+    val classDef = classDefByOrNull(classType) ?: return null
+    val (info, objects) = classDef.methods.firstNotNullOfOrNull { messageInfo(it) } ?: return null
+    fun unexpected(reason: String): Nothing = throw PatchException("Unexpected message info of $classType: $reason")
+    var at = 0
+    fun next(): Int {
+        if (at >= info.length) unexpected("ends early")
+        var char = info[at++].code
+        if (char < 0xD800) return char
+        var result = char and 0x1FFF
+        var shift = 13
+        while (true) {
+            if (at >= info.length) unexpected("ends early")
+            char = info[at++].code
+            if (char < 0xD800) return result or (char shl shift)
+            result = result or ((char and 0x1FFF) shl shift)
+            shift += 13
+        }
+    }
+    next()
+    val fieldCount = next()
+    if (fieldCount == 0) return ProtoLayout(emptyList(), emptyList())
+    val oneofs = next()
+    val hasBitsCount = next()
+    repeat(6) { next() }
+    if (oneofs != 0) unexpected("oneofs")
+    val hasBitsFields = objects.take(hasBitsCount).map { it as? String ?: unexpected("has-bits field $it") }
+    var position = hasBitsCount
+    val fields = List(fieldCount) {
+        val number = next()
+        val typeWithBits = next()
+        val type = typeWithBits and 0xFF
+        if (type >= 50) unexpected("map or oneof field $number")
+        val name = objects.getOrNull(position++) as? String ?: unexpected("no name for field $number")
+        if (type == 27 || type == 49 || (type == 12 || type == 30 || type == 44) && (typeWithBits and 0x800) != 0) position++
+        val hasBit = if ((typeWithBits and 0x1000) != 0 && type <= 17) next() else null
+        ProtoField(number, type, name, hasBit)
+    }
+    if (at != info.length || position != objects.size) unexpected("${info.length - at} chars and ${objects.size - position} objects left")
+    return ProtoLayout(hasBitsFields, fields)
+}
+
+private val BRANCHES = setOf(
+    Opcode.GOTO, Opcode.GOTO_16, Opcode.GOTO_32, Opcode.IF_EQ, Opcode.IF_NE, Opcode.IF_LT, Opcode.IF_GE, Opcode.IF_GT,
+    Opcode.IF_LE, Opcode.IF_EQZ, Opcode.IF_NEZ, Opcode.IF_LTZ, Opcode.IF_GEZ, Opcode.IF_GTZ, Opcode.IF_LEZ,
+    Opcode.PACKED_SWITCH, Opcode.SPARSE_SWITCH, Opcode.RETURN, Opcode.RETURN_VOID, Opcode.RETURN_WIDE,
+    Opcode.RETURN_OBJECT, Opcode.THROW,
+)
+private val CONSTANTS = setOf(Opcode.CONST_4, Opcode.CONST_16, Opcode.CONST, Opcode.CONST_HIGH16)
+
+private object ArrayValue
+
+// The info string and objects in [method], if it builds a message info: straight-line code from a new Object[] to the
+// constructor call, its indices constants set there or before the method's first branch.
+private fun messageInfo(method: Method): Pair<String, List<Any?>>? {
+    val code = method.implementation?.instructions?.toList() ?: return null
+    val build = code.indexOfFirst { instruction ->
+        instruction.opcode == Opcode.INVOKE_DIRECT && instruction.invoked()?.let {
+            it.name == "<init>" && it.parameterTypes.map { type -> type.toString() }.let { types ->
+                types.size == 3 && types[1] == "Ljava/lang/String;" && types[2] == "[Ljava/lang/Object;"
+            }
+        } == true
+    }
+    if (build < 0) return null
+    val newArray = (build - 1 downTo 0).firstOrNull {
+        code[it].opcode == Opcode.NEW_ARRAY && code[it].typeOf() == "[Ljava/lang/Object;"
+    } ?: return null
+    val blockStart = (newArray - 1 downTo 0).firstOrNull { code[it].opcode in BRANCHES }?.plus(1) ?: 0
+    val registers = HashMap<Int, Any?>()
+    for (instruction in code) {
+        if (instruction.opcode in BRANCHES) break
+        if (instruction.opcode in CONSTANTS) {
+            registers[(instruction as OneRegisterInstruction).registerA] = (instruction as NarrowLiteralInstruction).narrowLiteral
+        }
+    }
+    val array = HashMap<Int, Any?>()
+    var size = -1
+    for (index in blockStart until build) {
+        val instruction = code[index]
+        when (instruction.opcode) {
+            in CONSTANTS -> registers[(instruction as OneRegisterInstruction).registerA] = (instruction as NarrowLiteralInstruction).narrowLiteral
+            Opcode.CONST_STRING, Opcode.CONST_STRING_JUMBO -> registers[(instruction as OneRegisterInstruction).registerA] = instruction.text()
+            Opcode.NEW_ARRAY -> {
+                if (index != newArray) return null
+                size = registers[(instruction as TwoRegisterInstruction).registerB] as? Int ?: return null
+                registers[instruction.registerA] = ArrayValue
+            }
+            Opcode.APUT_OBJECT -> {
+                val aput = instruction as ThreeRegisterInstruction
+                if (registers[aput.registerB] !== ArrayValue) return null
+                val position = registers[aput.registerC] as? Int ?: return null
+                array[position] = registers[aput.registerA] ?: return null
+            }
+            else -> if (instruction.opcode.setsRegister()) {
+                val register = (instruction as OneRegisterInstruction).registerA
+                registers[register] = when (instruction.opcode) {
+                    Opcode.CONST_CLASS -> "class " + instruction.typeOf()
+                    Opcode.SGET_OBJECT -> "field " + instruction.fieldOf()?.signature()
+                    else -> null
+                }
+                if (instruction.opcode.setsWideRegister()) registers[register + 1] = null
+            }
+        }
+    }
+    val arguments = code[build].argumentRegisters()
+    if (arguments.size != 4) return null
+    val info = registers[arguments[2]] as? String ?: return null
+    if (size < 0 || registers[arguments[3]] !== ArrayValue || array.keys != (0 until size).toSet()) return null
+    return info to (0 until size).map { array[it] }
 }
 
 // The one method that reads [elementType] and calls [check]; returns it with the indices of those calls.

@@ -1,44 +1,44 @@
 package patches.videoland;
 
-import fv.c;
+import tv.c;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
-import w4.W1;
-import w4.W1$a;
-import w4.W1$a$a;
-import w4.W1$a$c;
-import w4.W1$b$a;
-import w4.W1$b$c;
-import w4.X1;
+import y4.V1;
+import y4.V1$a;
+import y4.V1$a$a;
+import y4.V1$a$c;
+import y4.V1$b$a;
+import y4.V1$b$c;
+import y4.W1;
 
 /** Filters materialized pages after the native source has computed its raw keys. */
-public final class FilteredSource extends W1 {
-    final W1 delegate;
+public final class FilteredSource extends V1 {
+    final V1 delegate;
     volatile boolean exhausted;
     volatile boolean awaitingPublication;
     private final List<Runnable> stateObservers = new ArrayList<>();
 
-    public FilteredSource(W1 source) {
+    public FilteredSource(V1 source) {
         delegate = Objects.requireNonNull(source);
         source.a.b(new Invalidation(this));
         a.b(new Invalidation(source));
     }
 
-    @Override public Object b(X1 state) {
+    @Override public Object b(W1 state) {
         // Visible anchors are not raw positional offsets. Native default refresh
         // starts at its first key, retaining all available earlier content.
         return null;
     }
 
-    @Override public Object d(W1$a params, c caller) {
+    @Override public Object d(V1$a params, c caller) {
         Operation operation = new Operation(this, params, caller);
         Object result = delegate.d(params, operation);
-        return result == ev.a.N ? result : operation.process(result);
+        return result == sv.a.N ? result : operation.process(result);
     }
 
-    void seed(W1$b$c original) {
+    void seed(V1$b$c original) {
         exhausted = original.P == null;
         awaitingPublication = false;
     }
@@ -58,26 +58,26 @@ public final class FilteredSource extends W1 {
         }
     }
 
-    private static final class Invalidation implements nv.a {
-        private final W1 peer;
-        Invalidation(W1 peer) { this.peer = peer; }
-        @Override public Object invoke() { peer.c(); return Zu.M.a; }
+    private static final class Invalidation implements Bv.a {
+        private final V1 peer;
+        Invalidation(V1 peer) { this.peer = peer; }
+        @Override public Object invoke() { peer.c(); return nv.M.a; }
     }
 
     private static final class Operation extends c {
         private final FilteredSource owner;
-        private W1$a params;
+        private V1$a params;
         private final boolean prepend;
         private boolean first = true;
         private Object firstPrevious;
         private Object firstNext;
         private final HashSet<Object> visited = new HashSet<>();
 
-        Operation(FilteredSource owner, W1$a params, c caller) {
+        Operation(FilteredSource owner, V1$a params, c caller) {
             super(caller);
             this.owner = owner;
             this.params = params;
-            prepend = params instanceof W1$a$c;
+            prepend = params instanceof V1$a$c;
             if (params.a() != null) visited.add(params.a());
         }
 
@@ -85,9 +85,9 @@ public final class FilteredSource extends W1 {
 
         Object process(Object value) {
             while (true) {
-                M5.h.b0(value); // Preserve cancellation/exceptional completion.
-                if (!(value instanceof W1$b$c)) return value;
-                W1$b$c raw = (W1$b$c) value;
+                lb.B.m(value); // Preserve cancellation/exceptional completion.
+                if (!(value instanceof V1$b$c)) return value;
+                V1$b$c raw = (V1$b$c) value;
                 if (first) {
                     firstPrevious = raw.O;
                     firstNext = raw.P;
@@ -100,16 +100,16 @@ public final class FilteredSource extends W1 {
                     Object nextKey = prepend ? firstNext : raw.P;
                     if (!prepend) owner.pageReady(nextKey == null, !visible.isEmpty());
                     // Raw placeholder counts cannot describe a compact list.
-                    return new W1$b$c(visible, previousKey, nextKey);
+                    return new V1$b$c(visible, previousKey, nextKey);
                 }
                 if (!visited.add(next)) {
-                    return new W1$b$a(new IllegalStateException("Content page key did not advance"));
+                    return new V1$b$a(new IllegalStateException("Content page key did not advance"));
                 }
                 params = prepend
-                    ? new W1$a$c(next, params.a, params.b)
-                    : new W1$a$a(next, params.a, params.b);
+                    ? new V1$a$c(next, params.a, params.b)
+                    : new V1$a$a(next, params.a, params.b);
                 value = owner.delegate.d(params, this);
-                if (value == ev.a.N) return value;
+                if (value == sv.a.N) return value;
             }
         }
     }

@@ -123,7 +123,7 @@ final class SiteCards {
     static final class SiteLink extends XPostPreviewTouch.PostLink {
         SiteLink(String url){super(url);}
         @Override public void onClick(android.view.View view){
-            if(!Haiagaru.siteCardsEnabled())return;
+            if(!Haiagaru.siteCardsEnabled() || GigaFilePosting.openLink(view.getContext(),getURL()))return;
             try{view.getContext().startActivity(new android.content.Intent(android.content.Intent.ACTION_VIEW,android.net.Uri.parse(getURL()))
                     .addCategory(android.content.Intent.CATEGORY_BROWSABLE).addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK));}
             catch(RuntimeException missing){Toast.makeText(view.getContext(),"リンクを開けるアプリがありません",Toast.LENGTH_SHORT).show();}

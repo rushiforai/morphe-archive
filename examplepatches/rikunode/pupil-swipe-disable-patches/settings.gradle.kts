@@ -1,4 +1,4 @@
-rootProject.name = "pupil-swipe-disable-patches"
+rootProject.name = "pupil-morphe-patches"
 
 pluginManagement {
     repositories {

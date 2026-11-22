@@ -1,3 +1,22 @@
+## [1.26.0](https://github.com/sqzass/lustx-patches/compare/v1.25.0...v1.26.0) (2026-11-22)
+
+### ✨ New Features
+
+* add `Bypass screen recording detection` patch ([8fd4e73](https://github.com/sqzass/lustx-patches/commit/8fd4e734929393b46d9c0dbe9a5ac9fb92e1a1e9))
+* add `Bypass screenshot detection` patch ([156a130](https://github.com/sqzass/lustx-patches/commit/156a130a3bc1f2c0cd3ac3d998d55ff8d0d175f9))
+* update `MEGA`'s `Unlock Pro` so it lets you unlock different tiers of pro. ([bb18b39](https://github.com/sqzass/lustx-patches/commit/bb18b39258c7d00a13de7a4df94a91de3661adce))
+
+### 🐛 Bug Fixes
+
+* lint stage in github releases ([4ab2d92](https://github.com/sqzass/lustx-patches/commit/4ab2d92ddbb1288462bb7332385a94a4ce3a665d))
+* missing newline at end of UnlockMegaProPatch.kt ([9f0909d](https://github.com/sqzass/lustx-patches/commit/9f0909da7945e0fa169e2df9bf6ad6b58104dacd))
+
+## [1.25.0](https://github.com/sqzass/lustx-patches/compare/v1.24.0...v1.25.0) (2026-11-21)
+
+### ✨ New Features
+
+* add MEGA patch ([a8a2710](https://github.com/sqzass/lustx-patches/commit/a8a271088339fc72f498503e3d5d6f34687d7443))
+
 ## [1.24.0](https://github.com/sqzass/lustx-patches/compare/v1.23.0...v1.24.0) (2026-11-19)
 
 ### ✨ New Features

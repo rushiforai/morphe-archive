@@ -1,12 +1,12 @@
-group = "app.template"
+group = "app.rimixyz"
 
 patches {
     about {
         name = "rimixyz Morphe Patches"
         description = "All-in-one personal Morphe patches — Made in Brazil. 100% AI-crafted, tested before release."
-        source = "git@github.com:rimixyz/morphe-patches.git"
+        source = "https://github.com/rimixyz/morphe-patches.git"
         author = "rimixyz"
-        contact = "na"
+        contact = "https://github.com/rimixyz/morphe-patches/issues"
         website = "https://github.com/rimixyz/morphe-patches"
         license = "GPLv3"
     }

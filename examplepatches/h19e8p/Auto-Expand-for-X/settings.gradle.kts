@@ -1,4 +1,4 @@
-rootProject.name = "auto-expand-for-x"
+rootProject.name = "h19e8p-patches"
 
 pluginManagement {
     repositories {
@@ -19,7 +19,7 @@ pluginManagement {
 }
 
 plugins {
-    id("app.morphe.patches") version "1.3.3"
+    id("app.morphe.patches") version "1.3.4"
 }
 
 settings {

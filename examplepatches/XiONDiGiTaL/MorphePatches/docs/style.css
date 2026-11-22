@@ -308,7 +308,20 @@ ul { margin: 0; padding: 0; list-style: none; }
 .step code, .inline-code {
   padding: 2px 6px; border-radius: 5px; background: rgba(255, 255, 255, 0.05);
   font-family: var(--font-mono); font-size: 0.74rem; color: #d7e3ff;
+  /* Source URLs and long paths break instead of widening their panel. */
+  overflow-wrap: anywhere;
 }
+
+.table code { overflow-wrap: anywhere; }
+
+/* Two-column fact tables: long URLs wrap instead of widening the panel. */
+.mirror-table { table-layout: fixed; }
+.mirror-table th[scope="row"] { width: 38%; }
+.mirror-table td, .mirror-table td a { overflow-wrap: anywhere; word-break: break-word; }
+
+/* Wide inventory tables scroll sideways on a phone instead of the page. */
+.table-scroll { overflow-x: auto; padding-bottom: 4px; }
+.table-scroll .table { min-width: 660px; }
 
 .panel {
   border: 1px solid var(--line); border-radius: var(--radius); background: var(--panel);

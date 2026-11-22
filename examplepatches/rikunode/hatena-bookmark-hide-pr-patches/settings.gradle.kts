@@ -1,4 +1,4 @@
-rootProject.name = "hatena-bookmark-hide-pr-patches"
+rootProject.name = "hoshiori"
 pluginManagement {
     includeBuild("build-logic/morphe-patches-gradle-plugin")
     repositories {

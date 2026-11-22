@@ -78,7 +78,7 @@ def parse_commits(subjects):
     """User-facing commits as dicts {label, scopes, subject}, deduplicated, in the given order.
 
     Skips merge/revert commits, non-conventional subjects, types other than feat/fix/perf, and
-    "updated to version ..." commits (the Updated apps table covers those).
+    "updated to version ..." commits (the Updated apps section covers those).
     """
     commits, seen = [], set()
     for line in subjects:
@@ -293,7 +293,7 @@ def resolve_scope(scope, names, dir_index):
 def covered_by_added_patches(subject, added):
     """True for an "add X, Y and Z" feat whose every item is a patch added in this release.
 
-    An "updated to version ..." part is ignored (the Updated apps table covers it).
+    An "updated to version ..." part is ignored (the Updated apps section covers it).
     """
     match = re.match(r"^adds?\s+(.+)$", subject.strip().rstrip("."), re.IGNORECASE)
     if not match or not added:
@@ -443,11 +443,12 @@ def render_notes(old_list, new_list, subjects, repo, version, date, dir_index=No
         key=lambda p: sort_key(new_apps, p),
     )
     if updated:
-        lines = ["### ⬆️ Updated apps", "| App | From | To |", "|---|---|---|"]
+        lines = ["### ⬆️ Updated apps"]
         for package in updated:
             lines.append(
-                f"| {new_apps[package]['name']} | {format_versions(old_apps[package]['versions'])} "
-                f"| {format_versions(new_apps[package]['versions'])} |"
+                f"- **{new_apps[package]['name']}:** "
+                f"{format_versions(old_apps[package]['versions'])} → "
+                f"{format_versions(new_apps[package]['versions'])}"
             )
         sections.append("\n".join(lines))
 

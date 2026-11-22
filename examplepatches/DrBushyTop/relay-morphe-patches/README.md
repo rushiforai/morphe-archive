@@ -47,6 +47,18 @@ Extra [Morphe](https://morphe.software) patches for Relay for Reddit, made to be
   down), Reddit's silent copy plays as before.
 - **Fix video crashes**: Relay crashed on a post whose video has no URL (opening the post's More menu,
   for one), and when the video controls button was tapped before a video loaded.
+- **Restore random subreddits**: Reddit removed `r/random` and `r/randnsfw`, so Relay's **Random
+  Subreddit** and **RandomNSFW Subreddit** menu items (in the Subreddits sheet's menu) showed an empty
+  feed. They now pick a subreddit themselves and work as before: the feed switches to the subreddit picked,
+  and Refresh picks another one.
+  - Random picks from Reddit's popular subreddits list, about the 1,000 most active subreddits right now,
+    NSFW ones excluded. The first 100 load before the first pick (a second or two); the rest load in the
+    background.
+  - RandomNSFW picks from about 2,000 NSFW subreddits with 10k or more subscribers, bundled with the patch
+    (Reddit's popular list leaves NSFW subreddits out). The list comes from r/NSFW411's directory and
+    Reddit's subreddit search; `scripts/nsfw-subreddits.py` rebuilds it. It needs an account with NSFW
+    content turned on.
+  - A pick that has since been banned or made private is skipped, and another one is picked.
 - **Reject ad consent**: Relay's free version asks for consent to ad cookies and personal data with
   Google's consent form. The form now never shows, and Relay stores the answer "Reject all" gives: no
   consent and no legitimate interest for any purpose, special feature or vendor (IAB list and Google's
@@ -71,9 +83,9 @@ Add both sources to Morphe Manager, then patch Relay with patcheddit's patches a
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.6.3](https://github.com/DrBushyTop/relay-morphe-patches/releases/tag/v1.6.3)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;14 patches total
+> **[v1.7.0](https://github.com/DrBushyTop/relay-morphe-patches/releases/tag/v1.7.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;16 patches total
 <details open>
-<summary>📦 Relay for Reddit&nbsp;&nbsp;•&nbsp;&nbsp;7 patches</summary>
+<summary>📦 Relay for Reddit&nbsp;&nbsp;•&nbsp;&nbsp;8 patches</summary>
 <br>
 
 **Package name:** `free.reddit.news`
@@ -91,12 +103,13 @@ Add both sources to Morphe Manager, then patch Relay with patcheddit's patches a
 | [Open Reddit images in the image viewer](#open-reddit-images-in-the-image-viewer) | Opens i.redd.it and preview.redd.it images (.jpeg, .webp, ...) in Relay's image viewer. Relay only recognised .jpg and .png, so these went to the browser, which Reddit now redirects to the comment thread. Also plays Reddit's MP4 copies of GIFs in Relay's video player. |  |
 | [Prefer high refresh rate](#prefer-high-refresh-rate) | Asks for the display's highest refresh rate while Relay is scrolling or animating, so scrolling is not held at 60 Hz on adaptive refresh rate phones. The request is dropped once the screen is still, so static content can run at a lower rate. |  |
 | [Reject ad consent](#reject-ad-consent) | Answers Relay's ad consent request (Google's cookie and personal data form) with "reject all" without showing it: no purposes, no vendors, no legitimate interest. An answer given before is replaced. |  |
+| [Restore random subreddits](#restore-random-subreddits) | Makes the Random Subreddit and RandomNSFW Subreddit menu items work again. Reddit removed r/random and r/randnsfw, so Relay now picks one itself: Random from Reddit's popular subreddits, RandomNSFW from a list of NSFW subreddits bundled with the patch. Refresh picks another one, as before. |  |
 | [Show comment images inline](#show-comment-images-inline) | Draws pictures and GIFs linked in a comment (Reddit uploads, Giphy, i.imgur) inside the comment instead of as a link. Tapping one opens it full screen as before. GIFs animate on Wi-Fi and show a still on mobile data. Follows Relay's NSFW Thumbnails setting. Can be turned off, or limited to Wi-Fi, in Settings > Behaviour > Comments. |  |
 
 </details>
 
 <details open>
-<summary>📦 Relay for Reddit Pro&nbsp;&nbsp;•&nbsp;&nbsp;7 patches</summary>
+<summary>📦 Relay for Reddit Pro&nbsp;&nbsp;•&nbsp;&nbsp;8 patches</summary>
 <br>
 
 **Package name:** `reddit.news`
@@ -114,6 +127,7 @@ Add both sources to Morphe Manager, then patch Relay with patcheddit's patches a
 | [Open Reddit images in the image viewer](#open-reddit-images-in-the-image-viewer) | Opens i.redd.it and preview.redd.it images (.jpeg, .webp, ...) in Relay's image viewer. Relay only recognised .jpg and .png, so these went to the browser, which Reddit now redirects to the comment thread. Also plays Reddit's MP4 copies of GIFs in Relay's video player. |  |
 | [Prefer high refresh rate](#prefer-high-refresh-rate) | Asks for the display's highest refresh rate while Relay is scrolling or animating, so scrolling is not held at 60 Hz on adaptive refresh rate phones. The request is dropped once the screen is still, so static content can run at a lower rate. |  |
 | [Reject ad consent](#reject-ad-consent) | Answers Relay's ad consent request (Google's cookie and personal data form) with "reject all" without showing it: no purposes, no vendors, no legitimate interest. An answer given before is replaced. |  |
+| [Restore random subreddits](#restore-random-subreddits) | Makes the Random Subreddit and RandomNSFW Subreddit menu items work again. Reddit removed r/random and r/randnsfw, so Relay now picks one itself: Random from Reddit's popular subreddits, RandomNSFW from a list of NSFW subreddits bundled with the patch. Refresh picks another one, as before. |  |
 | [Show comment images inline](#show-comment-images-inline) | Draws pictures and GIFs linked in a comment (Reddit uploads, Giphy, i.imgur) inside the comment instead of as a link. Tapping one opens it full screen as before. GIFs animate on Wi-Fi and show a still on mobile data. Follows Relay's NSFW Thumbnails setting. Can be turned off, or limited to Wi-Fi, in Settings > Behaviour > Comments. |  |
 
 </details>
@@ -128,7 +142,9 @@ Add both sources to Morphe Manager, then patch Relay with patcheddit's patches a
   those by hand.
 - Releases are signed with the key in the `MORPHE_SIGNING_KEY` secret; `morphe-signing.pub` is its public half.
 - `adb shell setprop log.tag.RelayInlineMedia DEBUG` turns on the inline media patch's debug log;
-  `RelayRefreshRate`, `RelayDimBlack`, `RelayGifSound` and `RelayAdConsent` do the same for the refresh rate, black level, GIF sound and ad consent patches.
+  `RelayRefreshRate`, `RelayDimBlack`, `RelayGifSound`, `RelayAdConsent` and `RelayRandom` do the same for the refresh rate, black level, GIF sound, ad consent and random subreddit patches.
+- `stub/` holds compile-only copies of the Relay classes the extension calls (Relay's minified RxJava
+  and its Reddit API interface). They are never packaged: the patched app has the real ones.
 - The extension is shrunk to `app.drbushytop.**` only (see `extensions/proguard-rules.pro`). That keeps its
   classes from colliding with patcheddit's extension when both bundles are applied to one APK.
 

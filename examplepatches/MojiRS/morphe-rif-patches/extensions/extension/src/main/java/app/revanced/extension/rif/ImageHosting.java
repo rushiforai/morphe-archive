@@ -38,10 +38,12 @@ import java.net.URLEncoder;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.WeakHashMap;
 
 /**
  * "Reddit image hosting": the Submit screen's Image ("media") tab uploads to Reddit instead of
@@ -179,6 +181,23 @@ public final class ImageHosting {
 
     /** The image post just sent (set by {@link #fixParams}, used once by {@link #wrapResponse}). */
     private static Asset pendingPost;
+
+    /** What {@link #fixParams} made of one SubmitTask's form: its parameters and their asset. */
+    private static final class Fixed {
+        final c<String, String>[] pairs;
+        final Asset asset;
+
+        Fixed(c<String, String>[] pairs, Asset asset) {
+            this.pairs = pairs;
+            this.asset = asset;
+        }
+    }
+
+    /**
+     * Per SubmitTask, as {@link SelfPostMedia}'s BUILT: after a signed-in 401/403 rif refreshes the
+     * token and asks d0 again, which must not upload a second time (the asset is marked sent).
+     */
+    private static final Map<Object, Fixed> FIXED = Collections.synchronizedMap(new WeakHashMap<Object, Fixed>());
 
     /** The newest finished upload of this process: the one the "post as GIF" switch belongs to. */
     private static Asset lastUploaded;
@@ -394,6 +413,15 @@ public final class ImageHosting {
         String id = null;
         try {
             if (pairs == null) return pairs;
+            Fixed fixed = task != null ? FIXED.get(task) : null;
+            if (fixed != null) {
+                // rif's retry of the same task: send what the first attempt sent, and expect its post.
+                Log.w(TAG, "submit retried: reusing asset " + fixed.asset.id);
+                synchronized (ASSETS) {
+                    pendingPost = fixed.asset;
+                }
+                return fixed.pairs;
+            }
             int kindAt = -1;
             int urlAt = -1;
             int titleAt = -1;
@@ -465,6 +493,7 @@ public final class ImageHosting {
         synchronized (ASSETS) {
             pendingPost = asset;
         }
+        if (task != null) FIXED.put(task, new Fixed(pairs, asset));
         return pairs;
     }
 
@@ -979,6 +1008,7 @@ public final class ImageHosting {
     static void forgetAssets() {
         synchronized (ASSETS) {
             ASSETS.clear();
+            FIXED.clear();
             pendingPost = null;
             lastUploaded = null;
         }

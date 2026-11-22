@@ -515,6 +515,10 @@ The comment box loses its GIF and sticker buttons. Typing, photos and posting wo
 # context: switch title under Comments: hides the Add a comment field at the bottom of the full-screen video viewer
 Hide the video comment box	Ocultar el cuadro de comentarios de los videos
 The Add a comment box under a full-screen video goes away. Comment boxes on posts stay.	Desaparece el cuadro para comentar debajo de un video en pantalla completa. Los cuadros de comentarios de las publicaciones se quedan.
+# context: switch title under Comments; the bar along the bottom of a live video holds its comment box and the reactions you tap to send
+Hide the live video comment bar	Ocultar la barra de comentarios en videos en vivo
+# context: description of that switch; the reactions are the Like, Love, Haha and other faces a tap sends to the live video
+The comment box and the row of reactions along the bottom of a live video go away, so a stray tap can't send one. The live comments stay.	El cuadro de comentarios y la fila de reacciones de la parte inferior de un video en vivo desaparecen, para que un toque sin querer no envíe una. Los comentarios en vivo se quedan.
 # context: switch title under Comments; a reply thread is the replies under a comment, which Facebook folds behind View replies
 Open every reply thread	Abrir todos los hilos de respuestas
 # context: summary of that switch; View replies is the link Facebook shows under a comment that has replies
@@ -588,6 +592,10 @@ Hide Share under posts	Ocultar Compartir debajo de las publicaciones
 Hide Send under posts	Ocultar Enviar debajo de las publicaciones
 # context: summary shared by those five switches
 Takes this button out of the row under posts in the feed. The other buttons stay, and a post with all of its buttons hidden shows no row.	Quita este botón de la fila debajo de las publicaciones del feed. Los demás botones se quedan, y una publicación con todos sus botones ocultos no muestra la fila.
+# context: switch title under News feed; the buttons are Like, Comment, Share and the others in the row under a post
+Ignore taps beside the buttons	Ignorar los toques junto a los botones
+# context: description of that switch; the reaction icons are the small stacked emoji at the end of that row, and who reacted is the list of people who reacted
+A tap on the empty part of the row under a post, between the buttons and the reaction icons, does nothing instead of opening the comments or who reacted. The buttons work as before.	Un toque en la parte vacía de la fila debajo de una publicación, entre los botones y los iconos de reacciones, no hace nada en vez de abrir los comentarios o quién reaccionó. Los botones funcionan como antes.
 # context: what stays in while Hushfacebook is paused, followed by the patch name in brackets; the row in Facebook's own Menu that opens Hushfacebook settings
 # context: a short message when the Hushfacebook row in Facebook's Menu couldn't open the settings
 Hushfacebook settings can't open here. Long-press the Facebook logo instead.	La configuración de Hushfacebook no se puede abrir aquí. Mantén pulsado el logotipo de Facebook.
@@ -1962,6 +1970,10 @@ Puts the speaker button in the side column of reels, right above the three dots.
 Hide the reaction preview on posts	Ocultar la vista previa de reacciones en las publicaciones
 # context: summary of that switch; "reactions" are Facebook's Like, Love, Haha and other reactions
 Hides the stacked reaction icons and the reactions count under posts. The space stays, so a tap where they were still opens the list of reactions. To take the number off the Like button too, turn on Hide counts on posts.	Oculta los iconos de reacciones apilados y el número de reacciones bajo las publicaciones. El espacio se mantiene, así que tocar donde estaban sigue abriendo la lista de reacciones. Para quitar también el número del botón Me gusta, activa Ocultar los números en las publicaciones.
+# context: switch title under News feed; the reactions are the small stacked reaction icons (Like, Love, Haha) a post shows next to its count; the Like button is the button under a post, use Facebook's name for it
+Show reactions on the Like button	Mostrar las reacciones en el botón Me gusta
+# context: summary of that switch; the faces are those reaction icons; "Hide the reaction preview on posts" is another switch, match its own row
+Moves a post's reaction faces from the end of its button row onto the Like button, right before the count. The Like button likes and reacts as before. A video showing its views there gets one Like face, or your own reaction once you react. Hide the reaction preview on posts overrules it. A change shows on the posts drawn after it.	Mueve los iconos de reacciones de una publicación del final de su fila de botones al botón Me gusta, justo antes del número. El botón Me gusta sigue dando Me gusta y reaccionando como antes. Un video que muestra ahí sus reproducciones recibe un icono de Me gusta, o tu propia reacción cuando reaccionas. Ocultar la vista previa de reacciones en las publicaciones tiene prioridad. Un cambio se ve en las publicaciones que se muestran después.
 # context: switch title under Comments; the reaction preview is the stack of reaction icons in the corner of a comment
 Hide the reaction preview on comments	Ocultar la vista previa de reacciones en los comentarios
 # context: summary of that switch; "reactions" are Facebook's Like, Love, Haha and other reactions
@@ -2350,7 +2362,11 @@ Moves a feed video's seek bar closer to the bottom edge, along with Facebook's s
 Seek bar on the bottom edge	Barra de progreso en el borde inferior
 Puts a feed video's seek bar right on its bottom edge, so it's out of the way while you scroll. Facebook's speaker and tagged people buttons move up to sit above it. Wins over Lower the seek bar and speaker. Needs Seek bar on feed videos on.	Pone la barra de progreso de un video del feed justo en su borde inferior, para que no estorbe al desplazarte. Los botones de altavoz y de personas etiquetadas de Facebook suben para quedar encima de ella. Tiene prioridad sobre “Bajar la barra de progreso y el altavoz”. Necesita “Barra de progreso en videos del feed” activado.
 Thin line seek bar	Barra de progreso como línea fina
-Shows a feed video's seek bar as a thin line right on its bottom edge, like Instagram's, with no dot or times until you drag it. Live videos get it too while they can be rewound. Let go at the far right end to go back to live. Facebook's speaker and tagged people buttons move up to sit above it. Needs Seek bar on feed videos on.	Muestra la barra de progreso de un video del feed como una línea fina justo en su borde inferior, como la de Instagram, sin punto ni tiempos hasta que la arrastras. Los videos en vivo también la tienen mientras se puedan retroceder. Suelta en el extremo derecho para volver al vivo. Los botones de altavoz y de personas etiquetadas de Facebook suben para quedar encima de ella. Necesita “Barra de progreso en videos del feed” activado.
+# context: switch title on the Video and audio page, under Thin line seek bar; while the thin seek bar of a feed video is dragged it stays on the video's bottom edge
+Drag along the bottom edge	Arrastrar por el borde inferior
+# context: description of that switch; Thin line seek bar is the switch title above it, keep it as translated there
+While you drag the thin line, it stays on the video's bottom edge like Instagram's, with the time in the middle, instead of rising into the full bar with a time bubble. Needs Thin line seek bar on.	Mientras arrastras la línea fina, se queda en el borde inferior del video como la de Instagram, con el tiempo en el centro, en vez de convertirse en la barra completa con una burbuja de tiempo. Necesita “Barra de progreso como línea fina” activado.
+Shows a feed video's seek bar as a thin line right on its bottom edge, like Instagram's, with no dot until you drag it. Live videos get it too while they can be rewound. Let go at the far right end to go back to live. Facebook's speaker and tagged people buttons move up to sit above it. Needs Seek bar on feed videos on.	Muestra la barra de progreso de un video del feed como una línea fina justo en su borde inferior, como la de Instagram, sin punto hasta que la arrastras. Los videos en vivo también la tienen mientras se puedan retroceder. Suelta en el extremo derecho para volver al vivo. Los botones de altavoz y de personas etiquetadas de Facebook suben para quedar encima de ella. Necesita “Barra de progreso en videos del feed” activado.
 Feed video position	Posición del video del feed
 # context: title of the row that holds a color code for the count badges on the tabs
 Badge color	Color de insignias
@@ -2408,6 +2424,7 @@ Holding a post's photo opens its reactions, as holding Like does. It comes befor
 Holding a post's video opens its reactions too. It comes before Long press opens comments. With Hold a feed video for 2x on, that one wins and the video plays fast.	Mantener pulsado el video de una publicación también abre sus reacciones. Va antes que Mantener pulsado abre los comentarios. Con Mantener pulsado un vídeo del feed para 2x activado, ese gana y el video se reproduce rápido.
 Reaction	Reacción
 Pick one each time	Elegir cada vez
+Slide to pick one	Deslizar para elegir
 Like	Me gusta
 Love	Me encanta
 Care	Me importa
@@ -2415,9 +2432,11 @@ Haha	Me divierte
 Wow	Me asombra
 Sad	Me entristece
 Angry	Me enoja
-Pick one each time. The reactions open over the post, so slide to one and let go, or let go and tap one.	Elegir cada vez. Las reacciones se abren sobre la publicación, así que desliza hasta una y suelta, o suelta y toca una.
+Pick one each time. The reactions open by your finger, so slide to one and let go, or let go and tap one. A tap anywhere else closes them.	Elegir cada vez. Las reacciones se abren junto a tu dedo, así que desliza hasta una y suelta, o suelta y toca una. Un toque en cualquier otro lugar las cierra.
+Slide to pick one. The reactions open by your finger, so slide to one and let go. Letting go anywhere else closes them.	Deslizar para elegir. Las reacciones se abren junto a tu dedo, así que desliza hasta una y suelta. Soltar en cualquier otro lugar las cierra.
 %1$s. Holding a post gives it straight away.	%1$s. Mantener pulsada una publicación la da al instante.
 Holding a post to react will open the reactions to pick from.	Mantener pulsada una publicación para reaccionar abrirá las reacciones para elegir.
+Holding a post to react will open the reactions to slide to one.	Mantener pulsada una publicación para reaccionar abrirá las reacciones para deslizar hasta una.
 Holding a post to react will give %1$s.	Mantener pulsada una publicación para reaccionar dará %1$s.
 Select text	Seleccionar texto
 Done	Listo
@@ -2764,6 +2783,16 @@ Takes the song and effect credits off the line under the poster's name on a stor
 Takes the row of suggested replies off the bottom of a story. The reply box stays. Applies from the next story you open.	Quita la fila de respuestas sugeridas de la parte inferior de una historia. El cuadro de respuesta se queda. Se aplica desde la próxima historia que abras.
 Hide the Subscribe button	Ocultar el botón Suscribirse
 Takes the Subscribe button off the top of a story. Applies from the next story you open.	Quita el botón Suscribirse de la parte superior de una historia. Se aplica desde la próxima historia que abras.
+# context: switch title on the Stories page; the Follow button sits at the top of a story from someone you don't follow
+Hide the Follow button	Ocultar el botón Seguir
+Takes the Follow button off the top of a story from someone you don't follow. Applies from the next story you open.	Quita el botón Seguir de la parte superior de una historia de alguien a quien no sigues. Se aplica desde la próxima historia que abras.
+# context: switch title on the Stories page; the reply bar is the row under someone else's story with the repost button, the Send message box and the quick reactions
+Hide the reply bar	Ocultar la barra de respuesta
+# context: description of that switch; Send message is the text box Facebook shows in that row
+Takes the bar off the bottom of other people's stories, with the repost button, the Send message box and the quick reactions. Applies from the next story you open.	Quita la barra de la parte inferior de las historias de otras personas, con el botón para volver a compartir, el cuadro Enviar mensaje y las reacciones rápidas. Se aplica desde la próxima historia que abras.
+# context: switch title on the Stories page; Up next is the card Facebook shows over the next stories while it counts down before they play
+Hide the Up next card	Ocultar la tarjeta A continuación
+Starts the next stories right away, without the Up next card that counts down over the first one. Applies the next time you open stories.	Empieza las siguientes historias enseguida, sin la tarjeta A continuación que hace una cuenta atrás sobre la primera. Se aplica la próxima vez que abras las historias.
 Hide create story cards	Ocultar tarjetas para crear historias
 Takes out the cards between stories that ask you to make one, including the full screen card that asks you to continue the story with photos from your gallery. Applies the next time you open stories.	Quita las tarjetas entre historias que te piden crear una, incluida la tarjeta a pantalla completa que te pide continuar la historia con fotos de tu galería. Se aplica la próxima vez que abras las historias.
 Progress bar at the bottom	Barra de progreso abajo
@@ -2853,10 +2882,18 @@ Hide the tab bar on the Reels tab	Ocultar la barra de pestañas en la pestaña R
 The tab bar goes away while the Reels tab is open, and the reel gets the whole screen. The other tabs keep the bar. Restart Facebook to see the change.	La barra de pestañas desaparece mientras la pestaña Reels está abierta y el reel ocupa toda la pantalla. Las demás pestañas mantienen la barra. Reinicia Facebook para ver el cambio.
 Hide the line along the tab bar	Ocultar la línea de la barra de pestañas
 The thin line Facebook draws along the edge of the tab bar goes away on every tab. Tap a tab to see the change.	La línea fina que Facebook dibuja en el borde de la barra de pestañas desaparece en todas las pestañas. Toca una pestaña para ver el cambio.
+# context: switch title on the tab bar settings page; a group is a Facebook group's page; the tab bar is the row of Home, Reels, Groups... tabs
+Keep the tab bar in groups	Mantener la barra de pestañas en los grupos
+# context: summary of that switch; "along the bottom" means at the bottom edge of the screen
+A group you open keeps the tab bar along the bottom, so a tap takes you straight to another tab. Works while the tab bar is at the bottom. Open a group to see the change.	Un grupo que abres conserva la barra de pestañas abajo, así un toque te lleva directo a otra pestaña. Funciona mientras la barra de pestañas está abajo. Abre un grupo para ver el cambio.
 Playback speed in the post menu	Velocidad de reproducción en el menú de la publicación
 A feed or Watch video's 3-dot menu gets Playback speed, from 0.5x to 3x, live videos too. Off by default, since it hasn't been tried on a real account yet.	El menú de tres puntos de un vídeo del feed o de Watch incluye Velocidad de reproducción, de 0,5x a 3x, también en vídeos en directo. Apagado por defecto, porque aún no se ha probado en una cuenta real.
 Double tap to skip on feed videos	Tocar dos veces para saltar en videos del feed
 Double tap the right side of a playing feed video to jump ahead 10 seconds, or the left side to go back 10. Keep tapping to go further. Live videos work too when they can be rewound. One tap on a side still opens the video, a moment later than usual. With Tap to play on, it needs Inline feed video controls on too.	Toca dos veces el lado derecho de un video del feed en reproducción para adelantar 10 segundos, o el lado izquierdo para retroceder 10. Sigue tocando para saltar más. También funciona en videos en vivo cuando se pueden retroceder. Un solo toque en un lado sigue abriendo el video, un momento más tarde de lo habitual. Si “Toca para reproducir” está activado, también necesita “Controles de video en el feed”.
+# context: switch title under Video playback; a tap on a video in the news feed brings up a pause button in the middle of the video instead of opening it
+Tap shows a pause button on feed videos	Tocar muestra un botón de pausa en videos del feed
+# context: description of that switch; Reels is Facebook's full-screen video viewer, keep the name; the quoted switch names match their own rows
+Tapping a feed video shows a pause button in its middle and the video keeps playing, so a tap doesn't open it in Reels. Tap the button to pause or play. Tap the video again while the button shows to open it. Ads keep their own controls. With Tap to play on, it needs Inline feed video controls on too.	Al tocar un video del feed aparece un botón de pausa en el centro y el video sigue reproduciéndose, así que un toque no lo abre en Reels. Toca el botón para pausar o reproducir. Vuelve a tocar el video mientras se ve el botón para abrirlo. Los anuncios conservan sus propios controles. Si “Toca para reproducir” está activado, también necesita “Controles de video en el feed”.
 Show only comments that match	Mostrar solo los comentarios que coinciden
 While the search box holds words, comments without them are hidden. Clearing the box brings them back.	Mientras el cuadro de búsqueda tenga palabras, se ocultan los comentarios que no las contienen. Al vaciar el cuadro, vuelven.
 Queue reel saves	Poner en cola las descargas de reels
@@ -2899,7 +2936,7 @@ Interested	Me interesa
 # context: a kind of row in a post's 3-dot menu, offered in the list of rows to hide: Facebook's row asking for fewer posts like this one
 Not interested	No me interesa
 # context: a kind of row in a post's 3-dot menu, offered in the list of rows to hide: Facebook's row that opens its feed preferences
-Manage your Feed	Administrar tu feed
+Manage your Feed / Your algorithm	Administrar tu feed / Tu algoritmo
 # context: a kind of row in a post's 3-dot menu, offered in the list of rows to hide: Facebook's row that reports the post
 Report	Reportar
 # context: a kind of row in a post's 3-dot menu, offered in the list of rows to hide: Facebook's row that plays the video on a TV
@@ -3091,3 +3128,6 @@ Show full names	Mostrar nombres completos
 A long name at the top of a post wraps onto the next line instead of ending in "...". A name that fits still takes one line.	Un nombre largo en la parte superior de una publicación sigue en la línea siguiente en lugar de terminar en "...". Un nombre que cabe sigue ocupando una sola línea.
 Dark box behind feed video names	Recuadro oscuro detrás de los nombres en videos del feed
 When a video in your feed has the poster's name on top of the video, that name sits on the same dark box. A change shows on the posts drawn after it.	Cuando un video de tu feed muestra el nombre de quien publica encima del video, ese nombre aparece sobre el mismo recuadro oscuro. El cambio se ve en las publicaciones que se cargan después.
+Quality settings	Configuración de calidad
+Request community note	Solicitar nota de la comunidad
+Something went wrong	Algo salió mal

@@ -1,7 +1,6 @@
 package app.morphe.extension.mapsautomotive.patches;
 
 import android.app.Activity;
-import android.app.AlertDialog;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
@@ -20,7 +19,6 @@ import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.CheckBox;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
@@ -118,7 +116,7 @@ public final class UpdateCheck {
      * Main thread: the dialog on screen, and when a tap started opening one, so a second tap opens no second
      * dialog (as in SendToCarStatus).
      */
-    private static WeakReference<AlertDialog> openDialog;
+    private static WeakReference<M3.Dialog> openDialog;
     private static WeakReference<Activity> openHost;
     private static long openingSince;
     private static final long OPENING_MS = 10_000;
@@ -1022,7 +1020,7 @@ public final class UpdateCheck {
             return;
         }
         // A dialog removed with its activity keeps isShowing(), so its activity must still be alive too.
-        AlertDialog open = openDialog == null ? null : openDialog.get();
+        M3.Dialog open = openDialog == null ? null : openDialog.get();
         Activity owner = openHost == null ? null : openHost.get();
         if (open != null && open.isShowing() && owner != null && !owner.isFinishing() && !owner.isDestroyed()) return;
         long now = SystemClock.elapsedRealtime();
@@ -1049,7 +1047,7 @@ public final class UpdateCheck {
     private static final class InstallRow {
         final Context context;
         final TextView action, status;
-        AlertDialog dialog;
+        M3.Dialog dialog;
         Offer offer;
 
         InstallRow(Context context, TextView action, TextView status) {
@@ -1101,7 +1099,7 @@ public final class UpdateCheck {
             boolean thai = UiDensityPatch.isThai(host);
             String projectUrl = BuildConfig.MAPS_CAR_PROJECT_URL;
             String page = projectUrl + PAGE_ANCHOR;
-            AlertDialog.Builder builder = new AlertDialog.Builder(host).setTitle(getSettingsTitle(host));
+            M3.Builder builder = new M3.Builder(host).setTitle(getSettingsTitle(host));
             ReportPatch.Views views = new ReportPatch.Views(builder.getContext());
             int screen = Math.min(host.getResources().getDisplayMetrics().widthPixels, host.getResources().getDisplayMetrics().heightPixels);
             // From the window's width, not the orientation: a half screen is "landscape" too (ReportPatch.QrLayout).
@@ -1149,12 +1147,21 @@ public final class UpdateCheck {
                 top.addView(words);
             }
             content.addView(top);
-            CheckBox auto = new CheckBox(views.themed);
-            auto.setText(asks ? (thai ? "ตรวจอัตโนมัติวันละครั้ง (ติดต่อ GitHub และเซิร์ฟเวอร์รายงาน)" : "Check once a day (contacts GitHub and the report server)")
+            // A switch row (M3): the text, then the switch; the whole row turns it.
+            LinearLayout autoRow = views.horizontal();
+            autoRow.setMinimumHeight(views.px(56));
+            M3.selectable(autoRow, views.colors);
+            TextView autoText = views.text(16, views.primary, false);
+            autoText.setText(asks ? (thai ? "ตรวจอัตโนมัติวันละครั้ง (ติดต่อ GitHub และเซิร์ฟเวอร์รายงาน)" : "Check once a day (contacts GitHub and the report server)")
                     : thai ? "ตรวจอัตโนมัติวันละครั้ง (ติดต่อ GitHub)" : "Check once a day (contacts GitHub)");
-            auto.setTextColor(views.primary);
+            autoText.setPadding(0, 0, views.px(16), 0);
+            autoRow.addView(autoText, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
+            M3.Switch auto = views.toggle();
             auto.setChecked(state.auto);
-            auto.setMinHeight(views.px(48));
+            auto.setClickable(false);
+            auto.setFocusable(false);
+            autoRow.addView(auto, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+            autoRow.setOnClickListener(row -> auto.toggle());
             Context app = host.getApplicationContext();
             // What the dialog shows, for the Settings row's subtitle after a change.
             State[] shown = {state};
@@ -1166,9 +1173,9 @@ public final class UpdateCheck {
                 String after = rowNow(shown[0], thai);
                 if (updateRow(host, container, rowText[0], after)) rowText[0] = after;
             });
-            LinearLayout.LayoutParams autoLayout = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            LinearLayout.LayoutParams autoLayout = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
             autoLayout.topMargin = views.px(12);
-            content.addView(auto, autoLayout);
+            content.addView(autoRow, autoLayout);
             ScrollView root = new ScrollView(views.themed);
             root.addView(content);
             builder.setView(root)
@@ -1180,7 +1187,7 @@ public final class UpdateCheck {
             if (ReportPatch.hasBrowser(host, view)) {
                 builder.setNegativeButton(thai ? "เปิดในเบราว์เซอร์" : "Open in browser", (dialog, which) -> ReportPatch.openLink(host, view, thai));
             }
-            AlertDialog dialog = builder.create();
+            M3.Dialog dialog = builder.create();
             install.dialog = dialog;
             // Closing the dialog stops a download (an install Android already has goes on).
             dialog.setOnDismissListener(closed -> ApkInstaller.cancel());
@@ -1189,7 +1196,7 @@ public final class UpdateCheck {
             ReportLog.i(TAG, "Update dialog: " + (!asks ? "server not asked" : install.offer != null ? "APK " + install.offer.version + " to install"
                     : "no APK to install") + ", signer " + (sameSigner == null ? "unreadable or not set" : sameSigner ? "same" : "different")
                     + ", " + layout.describe(views));
-            Button check = dialog.getButton(AlertDialog.BUTTON_NEUTRAL);
+            Button check = dialog.getButton(M3.Dialog.BUTTON_NEUTRAL);
             if (check != null) check.setOnClickListener(button -> checkFromDialog(host, container, dialog, message, check, shown, rowText, thai, asks, install));
             openDialog = new WeakReference<>(dialog);
             openHost = new WeakReference<>(host);
@@ -1203,7 +1210,7 @@ public final class UpdateCheck {
      * "Check now": a check off the main thread, then the dialog, the Settings row and the report screen show its
      * result. While a daily check runs, it waits for that one (up to 60 s) and shows what it stored.
      */
-    private static void checkFromDialog(Activity host, View container, AlertDialog dialog, TextView message, Button button,
+    private static void checkFromDialog(Activity host, View container, M3.Dialog dialog, TextView message, Button button,
                                         State[] shown, String[] rowText, boolean thai, boolean asks, InstallRow install) {
         boolean own = checking.compareAndSet(false, true);
         button.setEnabled(false);
@@ -1235,7 +1242,7 @@ public final class UpdateCheck {
         }
     }
 
-    private static void showResult(Activity host, View container, AlertDialog dialog, TextView message, Button button, State[] shown,
+    private static void showResult(Activity host, View container, M3.Dialog dialog, TextView message, Button button, State[] shown,
                                    String[] rowText, State result, boolean thai, boolean asks, InstallRow install) {
         try {
             Context app = host.getApplicationContext();

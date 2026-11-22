@@ -48,11 +48,11 @@ import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
  *
  * That bridge only serves games opened in their own screen. Most games now run inside Facebook's
  * main screen from code Facebook downloads after install, which brings its own bridge the patch
- * can't reach (#168). Both register their bridge on a WebView extending the same base class, the
+ * can't reach. Both register their bridge on a WebView extending the same base class, the
  * one the bridge's constructor is handed (its one parameter, in the constructor holding the name
  * "QuicksilverAndroid" the bridge is registered under). That base extends WebView directly and
  * doesn't override addJavascriptInterface, so the patch gives it one that hands each bridge to
- * GameBridge.wrap first, which puts a game bridge behind one of Hushfacebook's own.
+ * GameBridge.wrap first, which puts a game bridge behind the extension's own.
  */
 internal const val PATCH = "Block Instant Games ads"
 

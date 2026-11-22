@@ -77,7 +77,7 @@ public final class PersonalNgSubmissions {
                         }
                         total+=count;details.append(category).append(": ").append(count).append("件\n").append(examples);
                     }
-                    result="対象 "+total+"件（内容表示は先頭80件まで）\n無効・2000文字超の登録と、5文字未満または英字だけのNGワードは除外します。\n"+details;
+                    result="対象 "+total+"件（内容表示は先頭80件まで）\n無効な登録、2000文字超、5文字未満または英字だけのNGワード、私用領域の範囲を含む正規表現は送信しません。\n"+details;
                 }catch(Exception error){result="一覧を読み込めませんでした："+error.getMessage();}
                 final String text=result;activity.runOnUiThread(()->{if(activity.isFinishing()||activity.isDestroyed())return;preview.setEnabled(true);
                     TextView body=new TextView(activity);body.setText(text);body.setTextIsSelectable(true);ScrollView scroll=new ScrollView(activity);scroll.addView(body);
@@ -108,7 +108,8 @@ public final class PersonalNgSubmissions {
         // comparison removes a previous "other/all boards" condition after refresh.
         if(board.isEmpty()||board.equals("unknown.invalid/unresolved"))return null;
         String kind=category.equals("ID")?"id":category.equals("WORD")?"keyword":"name",value=entry.pattern;
-        boolean regex=(entry.flags&0x20)!=0;
+        boolean regex=(entry.flags&NgRuleSafety.REGEX_FLAG)!=0;
+        if(!SharedNgRules.shareableCondition(kind,value,regex))return null;
         if(category.equals("NAME")&&!regex){
             if(value.matches("-[A-Za-z0-9+/]{4}")){kind="suffix";value=value.substring(1);}
             else if(value.matches("[A-Za-z0-9+/]{4}-")){kind="prefix";value=value.substring(0,4);}
@@ -154,7 +155,8 @@ public final class PersonalNgSubmissions {
             SharedPreferences p=prefs();long generation=p.getLong("generation",0);String endpoint=SharedNg.endpoint();String sourceKey=hash(endpoint);JSONObject previous=new JSONObject(p.getString("snapshot."+sourceKey,"{}")),now=new JSONObject();
             JSONArray oldQueue=new JSONArray(p.getString("queue."+sourceKey,"[]")),queue=new JSONArray(),additions=new JSONArray();
             for(int i=0;i<oldQueue.length();i++){JSONObject row=oldQueue.getJSONObject(i);
-                if(!"delete".equals(row.optString("action"))&&"keyword".equals(row.optString("kind"))&&!SharedNgRules.shareableKeyword(row.optString("value")))continue;
+                if(!"delete".equals(row.optString("action"))&&!SharedNgRules.shareableCondition(
+                        row.optString("kind"),row.optString("value"),row.optBoolean("regex")))continue;
                 queue.put(row);
             }
             boolean queueFiltered=queue.length()!=oldQueue.length();

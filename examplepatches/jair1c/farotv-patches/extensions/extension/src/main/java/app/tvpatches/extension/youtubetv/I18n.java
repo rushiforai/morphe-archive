@@ -34,6 +34,11 @@ final class I18n {
         return language == null ? Locale.getDefault().toLanguageTag() : language;
     }
 
+    static boolean isRtl() {
+        String tag = language().toLowerCase(Locale.ROOT).replace('_', '-');
+        return tag.equals("ar") || tag.startsWith("ar-");
+    }
+
     static String text(String key, String... values) {
         try {
             if (catalogs == null) catalogs = new JSONObject(TvTranslationsPayload.JSON);

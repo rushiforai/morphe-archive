@@ -19,6 +19,8 @@ import dev.utaa.linimal.patches.features.agenti.agentIWalletHeaderPatch
 import dev.utaa.linimal.patches.features.browser.externalBrowserChatTextLinkPatch
 import dev.utaa.linimal.patches.features.chat.chatListHeaderButtonsPatch
 import dev.utaa.linimal.patches.features.chat.chatPlusMenuPatch
+import dev.utaa.linimal.patches.features.font.customFontPatch
+import dev.utaa.linimal.patches.features.font.fontProviderOwnCertificatePatch
 import dev.utaa.linimal.patches.features.home.homeContentsRecommendationPatch
 import dev.utaa.linimal.patches.features.home.homeFeaturedCollectionsPatch
 import dev.utaa.linimal.patches.features.home.homeFeedLoadingIndicatorPatch
@@ -103,7 +105,9 @@ class LinimalPatchTest {
             googleAuthTokenRoutingPatch.dependencies,
         )
         assertEquals(setOf(patchStatusResourcePatch), googleAuthMicrogManifestPatch.dependencies)
-        assertEquals(setOf(chatListHeaderButtonsPatch), fisCertificateHeaderPatch.dependencies)
+        assertEquals(setOf(customFontPatch), fisCertificateHeaderPatch.dependencies)
+        assertEquals(setOf(fontProviderOwnCertificatePatch), customFontPatch.dependencies)
+        assertEquals(setOf(chatListHeaderButtonsPatch), fontProviderOwnCertificatePatch.dependencies)
         assertEquals(setOf(notificationReadWithoutReceiptEntryPatch), chatListHeaderButtonsPatch.dependencies)
         assertEquals(setOf(readWithoutReceiptManualReadPatch), notificationReadWithoutReceiptEntryPatch.dependencies)
         assertEquals(setOf(readWithoutReceiptSendPatch), readWithoutReceiptManualReadPatch.dependencies)

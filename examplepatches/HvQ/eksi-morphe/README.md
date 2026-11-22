@@ -10,7 +10,7 @@ Morphe patch source for Ekşi Sözlük.
 ## Supported App
 
 - Package: `com.eksiteknoloji.eksisozluk`
-- Version: `2.5.0` (patch bundle 0.1.5). Bundles up to 0.1.4 support `2.4.9` and `2.4.10`.
+- Version: `2.5.1` (patch bundle 0.1.6). Older bundles support older app versions.
 - APK type: regular APK
 
 ## Morphe Manager Source

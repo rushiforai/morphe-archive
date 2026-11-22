@@ -95,8 +95,7 @@ public final class TmdbClient {
             return java.util.Collections.singletonList(new Match(film.tmdb, film.label(), true));
         }
         if (film.imdb != null) {
-            List<Match> matches = matches(get("/find/" + film.imdb, "external_source=imdb_id")
-                    .optJSONArray("movie_results"), true);
+            List<Match> matches = findByImdb(film.imdb);
             if (!matches.isEmpty()) return matches;
         }
         if (film.title.isEmpty()) return java.util.Collections.emptyList();
@@ -105,16 +104,42 @@ public final class TmdbClient {
         return matches(get("/search/movie", query).optJSONArray("results"), false);
     }
 
+    private List<Match> findByImdb(String imdb) throws Failure {
+        return matches(get("/find/" + imdb, "external_source=imdb_id").optJSONArray("movie_results"), true);
+    }
+
+    String titleLogo(ArtworkStore.Film film, String language) throws Failure {
+        String tmdb = film.tmdb;
+        if (tmdb == null && film.imdb != null) {
+            List<Match> matches = findByImdb(film.imdb);
+            if (matches.size() == 1) tmdb = matches.get(0).id;
+        }
+        if (tmdb == null) return null;
+        JSONArray logos = movieImages(tmdb).optJSONArray("logos");
+        String fallback = null;
+        for (Image logo : images(logos, "w500")) {
+            if (!logo.thumbnail.endsWith(".png")) continue;
+            int rank = ArtworkRules.titleLogoLanguageRank(logo.language, language);
+            if (rank == 0) return logo.thumbnail;
+            if (rank == 1 && fallback == null) fallback = logo.thumbnail;
+        }
+        return fallback;
+    }
+
     public List<Match> search(String title) throws Failure {
         String query = "query=" + Uri.encode(title) + "&include_adult=false";
         return matches(get("/search/movie", query).optJSONArray("results"), true);
     }
 
     public Images images(String id) throws Failure {
-        if (!id.matches("[0-9]{1,10}")) throw new Failure("No matching film on TMDB.");
-        JSONObject response = get("/movie/" + id + "/images", null);
+        JSONObject response = movieImages(id);
         return new Images(images(response.optJSONArray("posters"), "w342"),
                 images(response.optJSONArray("backdrops"), "w300"));
+    }
+
+    private JSONObject movieImages(String id) throws Failure {
+        if (!id.matches("[0-9]{1,10}")) throw new Failure("No matching film on TMDB.");
+        return get("/movie/" + id + "/images", null);
     }
 
     private static List<Image> images(JSONArray array, String size) {

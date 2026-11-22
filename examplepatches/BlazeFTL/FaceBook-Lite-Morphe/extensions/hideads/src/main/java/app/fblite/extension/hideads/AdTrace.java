@@ -359,7 +359,7 @@ final class AdTrace {
         if (node == null || depth > 30) return false;
         if (container.isInstance(node) && component.isInstance(node)
                 && (Integer) fGroup.get(node) != 0 && (Boolean) fA2X.get(node) && (Boolean) fA2k.get(node) && fRefs.get(node) != null
-                && hasNameText(node)) {
+                && !SponsoredPosts.isPermalink(node) && hasNameText(node)) {
             return true;
         }
         for (Object child : children(node)) if (matchesFeedRule(child, depth + 1)) return true;

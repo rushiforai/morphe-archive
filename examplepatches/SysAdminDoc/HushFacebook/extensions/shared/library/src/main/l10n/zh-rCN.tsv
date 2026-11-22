@@ -515,6 +515,10 @@ The comment box loses its GIF and sticker buttons. Typing, photos and posting wo
 # context: switch title under Comments: hides the Add a comment field at the bottom of the full-screen video viewer
 Hide the video comment box	隐藏视频评论框
 The Add a comment box under a full-screen video goes away. Comment boxes on posts stay.	全屏视频下方的评论框会消失。帖子里的评论框不受影响。
+# context: switch title under Comments; the bar along the bottom of a live video holds its comment box and the reactions you tap to send
+Hide the live video comment bar	隐藏直播视频的评论栏
+# context: description of that switch; the reactions are the Like, Love, Haha and other faces a tap sends to the live video
+The comment box and the row of reactions along the bottom of a live video go away, so a stray tap can't send one. The live comments stay.	直播视频底部的评论框和那排心情会消失，这样误触就不会发出心情。直播评论仍然保留。
 # context: switch title under Comments; a reply thread is the replies under a comment, which Facebook folds behind View replies
 Open every reply thread	展开所有回复
 # context: summary of that switch; View replies is the link Facebook shows under a comment that has replies
@@ -588,6 +592,10 @@ Hide Share under posts	隐藏帖子下方的分享
 Hide Send under posts	隐藏帖子下方的发送
 # context: summary shared by those five switches
 Takes this button out of the row under posts in the feed. The other buttons stay, and a post with all of its buttons hidden shows no row.	从动态中帖子下方的按钮行里移除这个按钮。其他按钮保留，所有按钮都隐藏的帖子不显示按钮行。
+# context: switch title under News feed; the buttons are Like, Comment, Share and the others in the row under a post
+Ignore taps beside the buttons	忽略按钮旁边的点按
+# context: description of that switch; the reaction icons are the small stacked emoji at the end of that row, and who reacted is the list of people who reacted
+A tap on the empty part of the row under a post, between the buttons and the reaction icons, does nothing instead of opening the comments or who reacted. The buttons work as before.	点按帖子下方那一行的空白处（按钮和心情图标之间）不会有任何反应，而不是打开评论或谁发了心情。按钮照常可用。
 # context: what stays in while Hushfacebook is paused, followed by the patch name in brackets; the row in Facebook's own Menu that opens Hushfacebook settings
 # context: a short message when the Hushfacebook row in Facebook's Menu couldn't open the settings
 Hushfacebook settings can't open here. Long-press the Facebook logo instead.	Hushfacebook 设置无法在这里打开。请改为长按 Facebook 徽标。
@@ -1957,6 +1965,10 @@ Puts the speaker button in the side column of reels, right above the three dots.
 Hide the reaction preview on posts	隐藏帖子上的回应预览
 # context: summary of that switch; "reactions" are Facebook's Like, Love, Haha and other reactions
 Hides the stacked reaction icons and the reactions count under posts. The space stays, so a tap where they were still opens the list of reactions. To take the number off the Like button too, turn on Hide counts on posts.	隐藏帖子下方叠放的回应图标和回应数量。空间仍保留，因此点按它们原来所在的位置仍会打开回应列表。如果也要去掉“赞”按钮上的数字，请打开“隐藏帖子上的数字”。
+# context: switch title under News feed; the reactions are the small stacked reaction icons (Like, Love, Haha) a post shows next to its count; the Like button is the button under a post, use Facebook's name for it
+Show reactions on the Like button	在“赞”按钮上显示回应
+# context: summary of that switch; the faces are those reaction icons; "Hide the reaction preview on posts" is another switch, match its own row
+Moves a post's reaction faces from the end of its button row onto the Like button, right before the count. The Like button likes and reacts as before. A video showing its views there gets one Like face, or your own reaction once you react. Hide the reaction preview on posts overrules it. A change shows on the posts drawn after it.	把帖子的回应图标从按钮行的末尾移到“赞”按钮上，紧挨在数字前面。“赞”按钮仍像以前一样点赞和回应。在那里显示播放次数的视频会显示一个“赞”图标，你回应后则显示你自己的回应。“隐藏帖子上的回应预览”优先。更改会在之后显示的帖子上生效。
 # context: switch title under Comments; the reaction preview is the stack of reaction icons in the corner of a comment
 Hide the reaction preview on comments	隐藏评论上的回应预览
 # context: summary of that switch; "reactions" are Facebook's Like, Love, Haha and other reactions
@@ -2345,7 +2357,11 @@ Moves a feed video's seek bar closer to the bottom edge, along with Facebook's s
 Seek bar on the bottom edge	进度条贴底边
 Puts a feed video's seek bar right on its bottom edge, so it's out of the way while you scroll. Facebook's speaker and tagged people buttons move up to sit above it. Wins over Lower the seek bar and speaker. Needs Seek bar on feed videos on.	把动态视频的进度条放在底边上，滑动时不容易误触。Facebook 的扬声器和标记的人按钮会上移到它上方。优先于“降低进度条和扬声器按钮”。需要开启“动态视频上的进度条”。
 Thin line seek bar	细线进度条
-Shows a feed video's seek bar as a thin line right on its bottom edge, like Instagram's, with no dot or times until you drag it. Live videos get it too while they can be rewound. Let go at the far right end to go back to live. Facebook's speaker and tagged people buttons move up to sit above it. Needs Seek bar on feed videos on.	把动态视频的进度条显示成贴着底边的一条细线，和 Instagram 的一样，拖动之前不显示圆点和时间。直播视频在可以回退时也会显示。在最右端松手即可回到直播。Facebook 的扬声器和标记的人按钮会上移到它上方。需要开启“动态视频上的进度条”。
+# context: switch title on the Video and audio page, under Thin line seek bar; while the thin seek bar of a feed video is dragged it stays on the video's bottom edge
+Drag along the bottom edge	沿底边拖动
+# context: description of that switch; Thin line seek bar is the switch title above it, keep it as translated there
+While you drag the thin line, it stays on the video's bottom edge like Instagram's, with the time in the middle, instead of rising into the full bar with a time bubble. Needs Thin line seek bar on.	拖动细线时，它会像 Instagram 那样留在视频底边，时间显示在中间，而不会升起变成带时间气泡的完整进度条。需要开启“细线进度条”。
+Shows a feed video's seek bar as a thin line right on its bottom edge, like Instagram's, with no dot until you drag it. Live videos get it too while they can be rewound. Let go at the far right end to go back to live. Facebook's speaker and tagged people buttons move up to sit above it. Needs Seek bar on feed videos on.	把动态视频的进度条显示成贴着底边的一条细线，和 Instagram 的一样，拖动之前不显示圆点。直播视频在可以回退时也会显示。在最右端松手即可回到直播。Facebook 的扬声器和标记的人按钮会上移到它上方。需要开启“动态视频上的进度条”。
 Feed video position	动态视频播放位置
 # context: title of the row that holds a color code for the count badges on the tabs
 Badge color	徽章颜色
@@ -2403,6 +2419,7 @@ Holding a post's photo opens its reactions, as holding Like does. It comes befor
 Holding a post's video opens its reactions too. It comes before Long press opens comments. With Hold a feed video for 2x on, that one wins and the video plays fast.	长按帖子的视频也会打开它的心情选项。它优先于“长按打开评论”。开启“按住动态消息视频以 2 倍速播放”时，以该开关为准，视频会快速播放.
 Reaction	心情
 Pick one each time	每次都选择
+Slide to pick one	滑动选择
 Like	赞
 Love	大爱
 Care	抱抱
@@ -2410,9 +2427,11 @@ Haha	笑趴
 Wow	哇
 Sad	心碎
 Angry	怒
-Pick one each time. The reactions open over the post, so slide to one and let go, or let go and tap one.	每次都选择。心情选项会在帖子上方打开，滑到其中一个后松手，或者松手后点一个。
+Pick one each time. The reactions open by your finger, so slide to one and let go, or let go and tap one. A tap anywhere else closes them.	每次都选择。心情选项会在手指旁打开，滑到其中一个后松手，或者松手后点一个。点其他任何地方会关闭它们.
+Slide to pick one. The reactions open by your finger, so slide to one and let go. Letting go anywhere else closes them.	滑动选择。心情选项会在手指旁打开，滑到其中一个后松手。在其他地方松手会关闭它们.
 %1$s. Holding a post gives it straight away.	%1$s。长按帖子会立即发表这个心情。
 Holding a post to react will open the reactions to pick from.	长按帖子来发表心情将打开心情选项供你选择.
+Holding a post to react will open the reactions to slide to one.	长按帖子来发表心情将打开心情选项供你滑动选择.
 Holding a post to react will give %1$s.	长按帖子来发表心情将发表%1$s.
 Select text	选择文字
 Done	完成
@@ -2759,6 +2778,16 @@ Takes the song and effect credits off the line under the poster's name on a stor
 Takes the row of suggested replies off the bottom of a story. The reply box stays. Applies from the next story you open.	去掉快拍底部那一排建议回复。回复框会保留。从你打开的下一个快拍开始生效。
 Hide the Subscribe button	隐藏订阅按钮
 Takes the Subscribe button off the top of a story. Applies from the next story you open.	去掉快拍顶部的订阅按钮。从你打开的下一个快拍开始生效。
+# context: switch title on the Stories page; the Follow button sits at the top of a story from someone you don't follow
+Hide the Follow button	隐藏关注按钮
+Takes the Follow button off the top of a story from someone you don't follow. Applies from the next story you open.	去掉你没关注的人的快拍顶部的关注按钮。从你打开的下一个快拍开始生效。
+# context: switch title on the Stories page; the reply bar is the row under someone else's story with the repost button, the Send message box and the quick reactions
+Hide the reply bar	隐藏回复栏
+# context: description of that switch; Send message is the text box Facebook shows in that row
+Takes the bar off the bottom of other people's stories, with the repost button, the Send message box and the quick reactions. Applies from the next story you open.	去掉别人快拍底部的那一栏，连同转发按钮、发消息框和快速表情回应。从你打开的下一个快拍开始生效。
+# context: switch title on the Stories page; Up next is the card Facebook shows over the next stories while it counts down before they play
+Hide the Up next card	隐藏“接下来”卡片
+Starts the next stories right away, without the Up next card that counts down over the first one. Applies the next time you open stories.	立即开始播放下一组快拍，不再显示在第一个快拍上倒计时的“接下来”卡片。下次打开快拍时生效。
 Hide create story cards	隐藏创建快拍卡片
 Takes out the cards between stories that ask you to make one, including the full screen card that asks you to continue the story with photos from your gallery. Applies the next time you open stories.	去掉快拍之间邀请你发快拍的卡片，包括邀请你用图库照片继续快拍的全屏卡片。下次打开快拍时生效。
 Progress bar at the bottom	底部进度条
@@ -2848,10 +2877,18 @@ Hide the tab bar on the Reels tab	在 Reels 标签页隐藏标签栏
 The tab bar goes away while the Reels tab is open, and the reel gets the whole screen. The other tabs keep the bar. Restart Facebook to see the change.	打开 Reels 标签页时标签栏会消失，Reels 占满整个屏幕。其他标签页保留标签栏。重启 Facebook 后可看到更改.
 Hide the line along the tab bar	隐藏标签栏边上的线
 The thin line Facebook draws along the edge of the tab bar goes away on every tab. Tap a tab to see the change.	Facebook 沿标签栏边缘画的细线会在所有标签页消失。点按任一标签页即可看到更改.
+# context: switch title on the tab bar settings page; a group is a Facebook group's page; the tab bar is the row of Home, Reels, Groups... tabs
+Keep the tab bar in groups	在小组中保留标签栏
+# context: summary of that switch; "along the bottom" means at the bottom edge of the screen
+A group you open keeps the tab bar along the bottom, so a tap takes you straight to another tab. Works while the tab bar is at the bottom. Open a group to see the change.	打开的小组会在底部保留标签栏，点按一下就能直接切换到其他标签页。仅在标签栏位于底部时有效。打开一个小组即可看到更改.
 Playback speed in the post menu	帖子菜单中的播放速度
 A feed or Watch video's 3-dot menu gets Playback speed, from 0.5x to 3x, live videos too. Off by default, since it hasn't been tried on a real account yet.	动态消息或 Watch 视频的三点菜单会加入播放速度，从 0.5 倍到 3 倍，直播视频也可以。默认关闭，因为尚未在真实账号上试过。
 Double tap to skip on feed videos	动态视频双击快进快退
 Double tap the right side of a playing feed video to jump ahead 10 seconds, or the left side to go back 10. Keep tapping to go further. Live videos work too when they can be rewound. One tap on a side still opens the video, a moment later than usual. With Tap to play on, it needs Inline feed video controls on too.	双击正在播放的动态视频右侧可前进 10 秒，双击左侧可后退 10 秒。继续点按可以跳得更远。直播视频在可以回退时也适用。单击一侧仍会打开视频，只是比平时稍晚一点。开启“点按播放”时，还需要开启“动态消息视频控件”。
+# context: switch title under Video playback; a tap on a video in the news feed brings up a pause button in the middle of the video instead of opening it
+Tap shows a pause button on feed videos	点按动态视频显示暂停按钮
+# context: description of that switch; Reels is Facebook's full-screen video viewer, keep the name; the quoted switch names match their own rows
+Tapping a feed video shows a pause button in its middle and the video keeps playing, so a tap doesn't open it in Reels. Tap the button to pause or play. Tap the video again while the button shows to open it. Ads keep their own controls. With Tap to play on, it needs Inline feed video controls on too.	点按动态视频会在中间显示暂停按钮，视频继续播放，这样点按不会在 Reels 中打开它。点按按钮可暂停或播放。按钮显示时再次点按视频即可打开。广告保留原有控件。开启“点按播放”时，还需要开启“动态消息视频控件”。
 Show only comments that match	只显示匹配的评论
 While the search box holds words, comments without them are hidden. Clearing the box brings them back.	搜索框中有文字时，不含这些文字的评论会被隐藏。清空搜索框即可恢复。
 Queue reel saves	排队保存 Reels
@@ -2894,7 +2931,7 @@ Interested	感兴趣
 # context: a kind of row in a post's 3-dot menu, offered in the list of rows to hide: Facebook's row asking for fewer posts like this one
 Not interested	不感兴趣
 # context: a kind of row in a post's 3-dot menu, offered in the list of rows to hide: Facebook's row that opens its feed preferences
-Manage your Feed	管理你的动态
+Manage your Feed / Your algorithm	管理你的动态 / 你的算法
 # context: a kind of row in a post's 3-dot menu, offered in the list of rows to hide: Facebook's row that reports the post
 Report	举报
 # context: a kind of row in a post's 3-dot menu, offered in the list of rows to hide: Facebook's row that plays the video on a TV
@@ -3086,3 +3123,6 @@ Show full names	显示完整名字
 A long name at the top of a post wraps onto the next line instead of ending in "...". A name that fits still takes one line.	帖子顶部的长名字会换到下一行，而不是以“...”结尾。放得下的名字仍只占一行。
 Dark box behind feed video names	动态消息视频名字的深色底框
 When a video in your feed has the poster's name on top of the video, that name sits on the same dark box. A change shows on the posts drawn after it.	当动态消息中的视频把发布者姓名显示在视频上时，这个名字也会显示在同样的深色底框上。更改在之后加载的帖子上生效。
+Quality settings	画质设置
+Request community note	申请社区笔记
+Something went wrong	出了点问题

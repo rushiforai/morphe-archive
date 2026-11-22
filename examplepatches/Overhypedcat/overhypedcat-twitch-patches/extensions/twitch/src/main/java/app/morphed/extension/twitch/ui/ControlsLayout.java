@@ -43,6 +43,28 @@ public final class ControlsLayout {
     }
 
     /**
+     * Layouts that leave a child with no rules of its own at their top left, without moving their other children
+     * for it: our parts go into those (they're moved to their place by their translation). A LinearLayout, say,
+     * would make room for it and push the player's own buttons along.
+     */
+    private static final String[] FREE_LAYOUTS = {
+            "android.widget.FrameLayout",
+            "android.widget.RelativeLayout",
+            "androidx.constraintlayout.widget.ConstraintLayout", // the native player's controls (Twitch 31.8)
+    };
+
+    /**
+     * Whether a view of this class (its name and its superclasses' names, the class's own first) takes our parts
+     * without moving its own children for them.
+     */
+    public static boolean takesFreeChildren(java.util.List<String> classAndSuperclasses) {
+        for (String name : classAndSuperclasses) {
+            for (String free : FREE_LAYOUTS) if (free.equals(name)) return true;
+        }
+        return false;
+    }
+
+    /**
      * The left edge of the lock button: one step after the last of the top row's left-hand buttons, a step being
      * what the player leaves between two of them (or, with one button only, its width and a tenth).
      *

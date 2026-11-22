@@ -1,3 +1,33 @@
+## [1.12.9](https://github.com/0x11DFE/morphe-patches/compare/v1.12.8...v1.12.9) (2026-11-21)
+
+### Bug Fixes
+
+* **scene:** ignore daemon startup writes when arming the gate poker ([d6e6eb5](https://github.com/0x11DFE/morphe-patches/commit/d6e6eb56e7c276f603f351d2e60adb692304ca2f))
+
+## [1.12.8](https://github.com/0x11DFE/morphe-patches/compare/v1.12.7...v1.12.8) (2026-11-21)
+
+### Bug Fixes
+
+* **scene:** make the gate poker verify its offsets at runtime ([861519c](https://github.com/0x11DFE/morphe-patches/commit/861519c0881ce5d569d72abe240b15f445fe18b4))
+
+## [1.12.7](https://github.com/0x11DFE/morphe-patches/compare/v1.12.6...v1.12.7) (2026-11-21)
+
+### Bug Fixes
+
+* **scene:** correct the daemon ELF magic check types ([2bcea3b](https://github.com/0x11DFE/morphe-patches/commit/2bcea3bd9453424f70e7c8ed6be847561b767f27))
+* **scene:** skip the gate poker on daemon builds with stale offsets ([5297508](https://github.com/0x11DFE/morphe-patches/commit/52975085b808764bc6fe4748efeb53813a682828))
+
+### Updated App Support
+
+* **scene:** support N1 2026.11 PreRelease 5 ([9f64461](https://github.com/0x11DFE/morphe-patches/commit/9f64461db66a752288dd8cb1cb349d563ca9d301))
+
+## [1.12.6](https://github.com/0x11DFE/morphe-patches/compare/v1.12.5...v1.12.6) (2026-11-21)
+
+### Bug Fixes
+
+* **scene:** make the daemon gate poker idle-cheap ([06d39ce](https://github.com/0x11DFE/morphe-patches/commit/06d39cee8d4fe84a9febfd83fc2a586aa21f7d31))
+* **scene:** repair the duplicated poker block in the patch source ([d094ca3](https://github.com/0x11DFE/morphe-patches/commit/d094ca3b46ed15603acb6ae467b1fbcf71e8a5b0))
+
 ## [1.12.5](https://github.com/0x11DFE/morphe-patches/compare/v1.12.4...v1.12.5) (2026-11-19)
 
 ### Bug Fixes

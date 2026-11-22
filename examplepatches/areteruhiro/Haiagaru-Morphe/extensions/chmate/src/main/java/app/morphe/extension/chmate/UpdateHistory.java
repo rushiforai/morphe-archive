@@ -238,6 +238,12 @@ final class UpdateHistory {
     private static void addFeatureSetting(LinearLayout content, Activity activity, ReleaseFeatureOptions.Option option) {
         SharedPreferences main = SettingsProfiles.prefs(activity);
         switch (option) {
+            case FUTABA_OFFICIAL_POSTING:
+                toggle(content,activity,SettingsProfiles.prefs(activity),"ふたば img／may の公式投稿ページを開く",
+                        FutabaPostingPopup.OFFICIAL,true,null); break;
+            case FUTABA_DIRECT_POSTING:
+                toggle(content,activity,SettingsProfiles.prefs(activity),"ふたば img／may の書き込み専用ビューアを直接開く",
+                        FutabaPostingPopup.DIRECT,true,null); break;
             case WACCHOI_COPY_UPPER:
             case WACCHOI_COPY_LOWER:
                 boolean upper=option==ReleaseFeatureOptions.Option.WACCHOI_COPY_UPPER;
@@ -350,6 +356,29 @@ final class UpdateHistory {
                 toggle(content,activity,SettingsProfiles.prefs(activity),"HOMEの3点メニューにメモを表示","homeResponseNotesMenu",true,activity::invalidateOptionsMenu); break;
             case ARCHIVE_VIEWER_MODE:
                 Button viewerMode=new Button(activity);viewerMode.setText("専用ビューア1／2を選ぶ");viewerMode.setOnClickListener(view->ArchiveSearchLayout.choose(activity));content.addView(viewerMode);break;
+            case CRASH_REPORTING:
+                Button crashReporting = new Button(activity);
+                CrashReportDelivery.bindSetting(activity,crashReporting);
+                content.addView(crashReporting);
+                break;
+            case ANIMANCH_HEART:
+                toggle(content,activity,SettingsProfiles.prefs(activity),"あにまんのレスにハートボタンを表示","animanchHeart",true,null); break;
+            case KYODEMO_TOOLBAR_PALETTE:
+                Button palette = new Button(activity);
+                Runnable updatePalette = () -> palette.setText("Kyodemoのツールバー配色："
+                        + CheckerBarOptions.PALETTE_NAMES[CheckerBarOptions.palette(activity)]);
+                updatePalette.run();
+                palette.setOnClickListener(view -> new HaiagaruDialog.Builder(activity)
+                        .setTitle("Kyodemoビューのツールバー配色")
+                        .setSingleChoiceItems(CheckerBarOptions.PALETTE_NAMES, CheckerBarOptions.palette(activity),
+                                (dialog, which) -> {
+                                    CheckerBarOptions.savePalette(activity, which);
+                                    updatePalette.run();
+                                    dialog.dismiss();
+                                })
+                        .setNegativeButton("閉じる", null).show());
+                content.addView(palette);
+                break;
             case X_POST_TRUNCATION_MODE:
                 Button xWarningMode=new Button(activity);
                 Runnable updateXMode=()->xWarningMode.setText("X投稿の省略判定："+(Haiagaru.xPostWarningThresholdMode()==0?"詳細判定（280ポイント）":"簡易判定（420バイト）"));
@@ -393,6 +422,14 @@ final class UpdateHistory {
                 boolean installed = ImageModeration.available(activity);
                 toggle(content, activity, main, installed ? label : label + "（画像検出ZIPが必要）", key, false, null)
                         .setEnabled(installed); break;
+            case GIGAFILE_BUTTON:
+                toggle(content,activity,SettingsProfiles.prefs(activity),GigaFilePosting.BUTTON_SETTING,
+                        GigaFilePosting.SHOW_BUTTON,false,null); break;
+            case GIGAFILE_LINK_MODE:
+                Button gigaMode = new Button(activity);
+                GigaFilePosting.bindLinkMode(activity,gigaMode);
+                content.addView(gigaMode);
+                break;
             case UPLOAD_DESTINATION:
                 toggle(content, activity, FeatureSwitches.prefs(activity), "画像・動画のアップロード時にアップロード先を選ぶ",
                         MediaUploadHosts.ASK_DESTINATION, false, null); break;

@@ -63,46 +63,77 @@
     var accent = new CSSStyleSheet();
     var seenRules = {};
     var accentRules = [];
-    function collect(rules) {
-        for (var i = 0; i < rules.length; i++) {
-            var rule = rules[i];
-            if (rule.cssRules && !rule.selectorText) {
-                collect(rule.cssRules);
-                continue;
-            }
-            if (!rule.style || !rule.selectorText) continue;
-            var css = rule.style.cssText;
-            RED.lastIndex = 0;
-            if (!RED.test(css) || seenRules[rule.selectorText + css]) continue;
-            seenRules[rule.selectorText + css] = true;
-            var decls = [];
-            for (var j = 0; j < rule.style.length; j++) {
-                var prop = rule.style[j];
-                var value = rule.style.getPropertyValue(prop);
-                RED.lastIndex = 0;
-                if (!RED.test(value)) continue;
-                decls.push(prop + ": " + amber(value) + " !important");
-            }
-            if (decls.length) accentRules.push(rule.selectorText + " { " + decls.join("; ") + " }");
-        }
-    }
+    // Walk CSS in small scheduled slices instead of scanning all sheets in one task.
+    var pendingRules = [];
+    var scanning = false;
+    var rescan = false;
     var lastSheetCount = -1;
-    function recolor() {
-        var sheets = document.styleSheets;
-        if (sheets.length === lastSheetCount) return;
-        lastSheetCount = sheets.length;
-        var before = accentRules.length;
-        for (var i = 0; i < sheets.length; i++) {
-            try { collect(sheets[i].cssRules); } catch (e) {}
+    var metrics = window.__farotvDiagnostics ? { passes: 0, slices: 0, rules: 0, ms: 0, maxSliceMs: 0 } : null;
+    if (metrics) window.__farotvBrandingPerformance = metrics;
+    function now() {
+        return window.performance && typeof performance.now === "function" ? performance.now() : Date.now();
+    }
+    function collectRule(rule) {
+        if (!rule.style || !rule.selectorText) return;
+        var css = rule.style.cssText;
+        RED.lastIndex = 0;
+        if (!RED.test(css) || seenRules[rule.selectorText + css]) return;
+        seenRules[rule.selectorText + css] = true;
+        var decls = [];
+        for (var j = 0; j < rule.style.length; j++) {
+            var prop = rule.style[j];
+            var value = rule.style.getPropertyValue(prop);
+            RED.lastIndex = 0;
+            if (!RED.test(value)) continue;
+            decls.push(prop + ": " + amber(value) + " !important");
         }
-        if (accentRules.length !== before) {
+        if (decls.length) accentRules.push(rule.selectorText + " { " + decls.join("; ") + " }");
+    }
+    function scanSlice() {
+        var started = now();
+        var count = 0;
+        while (pendingRules.length && count < 64 && (count === 0 || now() - started < 4)) {
+            var frame = pendingRules[pendingRules.length - 1];
+            try {
+                if (frame.index >= frame.rules.length) { pendingRules.pop(); continue; }
+                var rule = frame.rules[frame.index++];
+                count++;
+                if (rule.cssRules && !rule.selectorText) {
+                    pendingRules.push({ rules: rule.cssRules, index: 0 });
+                } else collectRule(rule);
+            } catch (ignored) { pendingRules.pop(); }
+        }
+        function recordSlice() {
+            if (!metrics) return;
+            var elapsed = now() - started;
+            metrics.slices++; metrics.rules += count; metrics.ms += elapsed;
+            metrics.maxSliceMs = Math.max(metrics.maxSliceMs, elapsed);
+        }
+        if (pendingRules.length) { recordSlice(); setTimeout(scanSlice, 0); return; }
+        if (accentRules.length !== rulesBeforeScan) {
             try {
                 accent.replaceSync(accentRules.join("\n"));
                 youtv.report("branding: " + accentRules.length + " red rule(s) recoloured");
-            } catch (e) {
-                youtv.report("branding: recolour failed: " + e);
-            }
+            } catch (e) { youtv.report("branding: recolour failed: " + e); }
         }
+        scanning = false;
+        recordSlice();
+        if (rescan) { rescan = false; recolor(); }
+    }
+    var rulesBeforeScan = 0;
+    function recolor() {
+        var sheets = document.styleSheets;
+        if (sheets.length === lastSheetCount) return;
+        if (scanning) { rescan = true; return; }
+        lastSheetCount = sheets.length;
+        rulesBeforeScan = accentRules.length;
+        // Push backwards so rules retain their original cascade order.
+        for (var i = sheets.length - 1; i >= 0; i--) {
+            try { pendingRules.push({ rules: sheets[i].cssRules, index: 0 }); } catch (ignored) {}
+        }
+        scanning = true;
+        if (metrics) metrics.passes++;
+        setTimeout(scanSlice, 0);
     }
     try {
         document.adoptedStyleSheets = document.adoptedStyleSheets.concat([accent]);

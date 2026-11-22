@@ -41,6 +41,7 @@ tasks {
         mainClass.set("util.PatchListGeneratorKt")
         // Read exactly patches-<version>.mpp, not a stale bundle left in build/libs.
         systemProperty("patches.version", project.version.toString())
+        systemProperty("patches.list.output", rootProject.file("patches-list.json").absolutePath)
     }
 
     // Used by gradle-semantic-release-plugin.
@@ -55,33 +56,35 @@ tasks {
 // See patches/src/test/kotlin/.
 dependencies {
     testImplementation(kotlin("test"))
-    // Truecaller smoke test reads resource ids from the stock resources.arsc (patcher 2.3.0 writes no decoded
-    // public.xml); same ARSCLib build as morphe-patcher 2.3.0 (a runtime-only dependency there).
-    testImplementation("com.github.MorpheApp:ARSCLib:675bed2de3")
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
 }
 
 tasks.test {
-    useJUnitPlatform()
-    // Smoke tests load the built bundle and gitignored APKs at runtime, outside the Java
-    // source set. Include both in Gradle's cache key so a changed/added/removed fixture or
-    // patch bundle cannot reuse a result from another input. A plain :patches:test also
-    // builds the bundle before the harness selects it. The harness loads exactly
-    // patches-<version>.mpp (util.selectPatchBundle), so stale bundles are not inputs.
+    useJUnitPlatform {
+        excludeTags("smoke")
+    }
+}
+
+tasks.register<Test>("taskerSmokeTest") {
+    description = "Applies the Tasker patches to the local APK fixture and checks emitted bytecode"
+    group = "verification"
+    testClassesDirs = sourceSets["test"].output.classesDirs
+    classpath = sourceSets["test"].runtimeClasspath
+    dependsOn("testClasses")
+    useJUnitPlatform {
+        includeTags("smoke")
+    }
     dependsOn("buildAndroid")
     systemProperty("patches.version", project.version.toString())
     inputs.files(layout.buildDirectory.file("libs/patches-${project.version}.mpp"))
         .withPropertyName("patchBundle")
         .withPathSensitivity(PathSensitivity.RELATIVE)
-    inputs.files(rootProject.fileTree("apks") { include("*/base.apk") })
+    inputs.files(rootProject.fileTree("apks") { include("**/base.apk") })
         .withPropertyName("apkFixtures")
         .withPathSensitivity(PathSensitivity.RELATIVE)
-    // The smoke tests load the full APK (up to ~390 MB, multidex) and parse every emitted
-    // dex in memory.
+    // The smoke test loads a multidex APK and parses every emitted dex in memory.
     maxHeapSize = "4g"
-    // Fingerprints are top-level vals, so one instance is shared by every test in the JVM and
-    // the patcher caches its match on it. In one JVM a later test's app (different R8 names)
-    // then reuses the earlier app's cached class (Niagara/Sofascore failed on FotMob's Ljrg).
-    // Manager and the CLI run one session per process; give each test class its own JVM too.
+    // Fingerprints are top-level vals; isolate smoke-test classes so cached matches cannot
+    // leak between patching sessions.
     forkEvery = 1
 }

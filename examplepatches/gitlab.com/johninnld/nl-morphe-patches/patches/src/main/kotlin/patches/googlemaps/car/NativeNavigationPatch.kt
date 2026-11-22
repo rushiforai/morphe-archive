@@ -5,6 +5,7 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OffsetInstruction
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
@@ -57,6 +58,40 @@ internal fun bindMapsCarSearch(
         if-eq v0, v1, :native_local_search
         return-void
     """, ExternalLabel("original_car_search", body[0]), ExternalLabel("native_local_search", body[localIndex]))
+}
+
+/**
+ * The resource ids, in the one Maps version this patch targets (26.44.06.1006895251), of the views the
+ * extension presses to start guidance on the host's request. Their names are the extension's own list,
+ * `NativeRoutePreview.START_NAMES`: one place for the names, and a test that these keys equal it, in
+ * order. The ids are those of the footer builder's own resource table entries; how both were established
+ * is in docs/research/2026-11-22-maps-start-guidance-design.md, section 1.
+ */
+internal val MAPS_ROUTE_PREVIEW_START_IDS = linkedMapOf(
+    "place_details_navigation_footer_action_button" to 0x7f0b0906,
+    "place_details_navigation_footer_spinner_or_action_icon" to 0x7f0b0909,
+)
+
+/**
+ * Refuse a Maps whose car route preview no longer builds the Start views the extension presses: the
+ * footer builder (`snl.a()`, the car place details' navigation footer) must be one method, and must
+ * still use every id above. A Start the extension cannot find at run time is silent; one the patch
+ * cannot find here stops the patch.
+ */
+internal fun validateMapsRoutePreviewStart(
+    classBy: (String) -> ClassDef,
+    ids: Map<String, Int> = MAPS_ROUTE_PREVIEW_START_IDS,
+) {
+    check(ids.isNotEmpty()) { "Maps' car route preview Start control is not identified" }
+    val builders = classBy("Lsnl;").methods.filter {
+        it.name == "a" && it.parameterTypes.isEmpty() && it.returnType == "Lbhjq;"
+    }
+    check(builders.size == 1) { "Maps' car route preview footer builder changed" }
+    val literals = (builders.single().implementation?.instructions ?: emptyList())
+        .mapNotNull { (it as? NarrowLiteralInstruction)?.narrowLiteral }.toSet()
+    for ((name, id) in ids) {
+        check(id in literals) { "Maps' car route preview Start view changed: $name" }
+    }
 }
 
 /** Keep unsupported private clients disconnected; never forge a retail-host grant. */
@@ -285,6 +320,7 @@ val nativeCarNavigationPatch = bytecodePatch(
         requireMethod("Lbesz;", "f", listOf("Landroid/view/Surface;"), "V")
         requireField("Lbesz;", "b", "Ljava/lang/Object;")
         validateMapsGuidanceComponent { classDefBy(it) }
+        validateMapsRoutePreviewStart({ classDefBy(it) })
         bindMapsCarSearch({ classDefBy(it) }) { owner, name, parameters, result ->
             mutableClassDefBy(owner).methods.single { it.name == name && it.parameterTypes.map(CharSequence::toString) == parameters && it.returnType == result }
         }

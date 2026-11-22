@@ -74,6 +74,11 @@
     <string name="morphe_hide_keyword_content_check_subtitles_summary">Finds filtered words in the opened video\'s subtitles and shows them natively in the description without hiding the video</string>
     <string name="morphe_hide_keyword_subtitles_inline">In subtitles: %s</string>
     <string name="morphe_hide_keyword_subtitles_header">Matches in subtitles</string>
+    <string name="morphe_hide_keyword_content_subtitles_language_title">Subtitle scan language</string>
+    <string name="morphe_hide_keyword_subtitles_lang_original">Original video language</string>
+    <string name="morphe_hide_keyword_subtitles_lang_app">App language</string>
+    <string name="morphe_hide_keyword_subtitles_lang_ru">Russian</string>
+    <string name="morphe_hide_keyword_subtitles_lang_en">English</string>
     <string name="morphe_hide_keyword_debug_badge">[Matched: "%1$s" in %2$s]</string>
     <string name="morphe_hide_keyword_log_title">Filter match log</string>
     <string name="morphe_hide_keyword_log_summary">Entries: %s</string>

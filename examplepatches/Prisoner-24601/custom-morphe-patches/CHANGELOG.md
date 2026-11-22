@@ -1,3 +1,27 @@
+## [1.15.0](https://github.com/Prisoner-24601/custom-morphe-patches/compare/v1.14.1...v1.15.0) (2026-11-21)
+
+### ✨ New Features
+
+* Remove from watch history menu item for videos in feeds and lists ([46f765f](https://github.com/Prisoner-24601/custom-morphe-patches/commit/46f765fcbed8852de5137b9cd2879f3dda6d7eb4))
+
+## [1.14.1](https://github.com/Prisoner-24601/custom-morphe-patches/compare/v1.14.0...v1.14.1) (2026-11-21)
+
+### 🐛 Bug Fixes
+
+* Keyboard top comments shortcut opens new comments on Top when no Top button is shown ([646e8d8](https://github.com/Prisoner-24601/custom-morphe-patches/commit/646e8d84c9caa9df9984e5f875175dd9c7dcbeed))
+
+## [1.14.0](https://github.com/Prisoner-24601/custom-morphe-patches/compare/v1.13.0...v1.14.0) (2026-11-21)
+
+### ✨ New Features
+
+* Keyboard top comments shortcut: K shows the Top comments, such as to leave the Timed comments ([77e75d2](https://github.com/Prisoner-24601/custom-morphe-patches/commit/77e75d2379d57e84fe5d836ab4fb5d7b726bd2eb))
+
+## [1.13.0](https://github.com/Prisoner-24601/custom-morphe-patches/compare/v1.12.0...v1.13.0) (2026-11-21)
+
+### ✨ New Features
+
+* Morphe UI size on monitors: Morphe buttons and dialogs follow the screen the app is on ([06d230d](https://github.com/Prisoner-24601/custom-morphe-patches/commit/06d230d0da6f9ef2a45fb39aee4869679ee49191))
+
 ## [1.12.0](https://github.com/Prisoner-24601/custom-morphe-patches/compare/v1.11.0...v1.12.0) (2026-11-21)
 
 ### ✨ New Features

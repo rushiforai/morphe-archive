@@ -133,7 +133,7 @@ Morpheのログにある`ERROR`／例外と末尾を確認してください。H
 
 ChMate標準のバックアップ／復元、またはHaiagaruのローカルバックアップを使用してください。MEGAは任意パッチです。
 
-`Save ChMate crash logs`を有効にすると、未処理例外のログを`Download/Haiagaru/`へ保存します。報告時にはアプリ・Haiagaruの版、再現手順、エラー末尾を添えてください。Cookieやトークン、認証情報入りバックアップは公開しないでください。
+Haiagaruは未処理例外のログを`Download/Haiagaru/`へ保存します。報告時にはアプリ・Haiagaruの版、再現手順、エラー末尾を添えてください。Cookieやトークン、認証情報入りバックアップは公開しないでください。
 
 ## 既知の制約とFAQ
 

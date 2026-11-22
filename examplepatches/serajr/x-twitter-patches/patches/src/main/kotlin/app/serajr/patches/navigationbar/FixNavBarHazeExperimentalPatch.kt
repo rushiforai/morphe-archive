@@ -92,7 +92,6 @@ private const val LAST_ROOT_CLASS = "${MAIN_ACTIVITY}->serajrNavLastRootClass:Lj
 // Keeps the injected Navigation Bar Haze visible behind the native bottom bar.
 // Values: false = follow the visibility gate, true = always render.
 // Default: true.
-private const val FORCE_HAZE_ALWAYS_VISIBLE = true
 
 // Defines the default maximum blur radius used by the progressive Haze.
 // The native progressive shader reduces the radius toward the upper edge.
@@ -193,7 +192,7 @@ private fun Method.isNativeBlurRecorder(): Boolean {
 @Suppress("unused")
 val fixNavigationBarHazeExperimentalPatch = bytecodePatch(
     name = "Fix Navigation Bar Haze (Experimental)",
-    description = "D3-K1A.11-T10-B1-T4E-T3: runtime noise, tint alpha, blur radius and magenta diagnostics with native progressive Haze.",
+    description = "D3-K1A.11-T10-B1-T4E-T4: broadcast runtime controls, preferences, mask length, persistent overlay.",
     default = false
 ) {
     compatibleWith(Constants.COMPATIBILITY_X)
@@ -725,7 +724,8 @@ val fixNavigationBarHazeExperimentalPatch = bytecodePatch(
                         move-result-object v0
                         invoke-static {v0}, Ljava/util/Arrays;->asList([Ljava/lang/Object;)Ljava/util/List;
                         move-result-object v0
-                        const/high16 v1, 0x7f800000
+                        invoke-static {}, $NAV_EXTENSION->getNavigationMaskLength()F
+                        move-result v1
                         const/4 v2, 0x0
                         const/4 v3, 0x0
                         invoke-static {v0, v1, v2, v3}, $PROGRESSIVE_MASK_FACTORY
@@ -756,16 +756,27 @@ val fixNavigationBarHazeExperimentalPatch = bytecodePatch(
             """.trimIndent(), ExternalLabel("serajr_progressive_stock", 1))
             val cache = "${MAIN_ACTIVITY}->serajrNavProgressive:${PROGRESSIVE_CALLBACK}"
             addStaticField("serajrNavProgressive", PROGRESSIVE_CALLBACK)
+            val maskLengthCache = "${MAIN_ACTIVITY}->serajrNavMaskLength:F"
+            addStaticField("serajrNavMaskLength", "F")
             addStaticMethod(
                 name = "serajrGetNavProgressive",
-                parameters = emptyList(), returnType = PROGRESSIVE_CALLBACK, registers = 1,
+                parameters = emptyList(), returnType = PROGRESSIVE_CALLBACK, registers = 2,
                 body = """
+                    invoke-static {}, $NAV_EXTENSION->getNavigationMaskLength()F
+                    move-result v1
                     sget-object v0, $cache
-                    if-nez v0, :progressive_ready
+                    if-eqz v0, :progressive_rebuild
+                    sget v0, $maskLengthCache
+                    cmpl-float v0, v0, v1
+                    if-eqz v0, :progressive_ready_cached
+                    :progressive_rebuild
                     new-instance v0, $PROGRESSIVE_CALLBACK
                     invoke-direct {v0}, ${PROGRESSIVE_CALLBACK}-><init>()V
                     sput-object v0, $cache
-                    :progressive_ready
+                    sput v1, $maskLengthCache
+                    return-object v0
+                    :progressive_ready_cached
+                    sget-object v0, $cache
                     return-object v0
                 """
             )
@@ -1172,50 +1183,7 @@ val fixNavigationBarHazeExperimentalPatch = bytecodePatch(
             parameters = listOf("Ldev/chrisbanes/haze/a1;", "Landroidx/compose/runtime/Composer;"),
             returnType = "V", registers = 15, public = true,
             body = """
-                invoke-static {}, $GET_STATE_DESCRIPTOR
-                move-result-object v6
-
-                invoke-virtual {v6}, $MUTABLE_STATE_GET
-                move-result-object v6
-
-                check-cast v6, Ljava/lang/Boolean;
-                invoke-virtual {v6}, Ljava/lang/Boolean;->booleanValue()Z
-                move-result v6
-
-                move v10, v6
-
-                xor-int/lit8 v6, v6, 0x1
-
-                invoke-static {}, $GET_FEED_DESCRIPTOR
-                move-result-object v9
-
-                invoke-virtual {v9}, $MUTABLE_STATE_GET
-                move-result-object v9
-
-                check-cast v9, Ljava/lang/Boolean;
-                invoke-virtual {v9}, Ljava/lang/Boolean;->booleanValue()Z
-                move-result v9
-
-                invoke-static {}, $GET_ROOT_CONTEXT
-                move-result-object v7
-                invoke-virtual {v7}, $MUTABLE_STATE_GET
-                move-result-object v7
-                check-cast v7, Ljava/lang/Integer;
-                invoke-virtual {v7}, Ljava/lang/Integer;->intValue()I
-                move-result v7
-
-                # Root context is encoded as 0 (other), 1 (O), 2 (Tabs).
-                and-int/lit8 v11, v7, 0x1
-                ushr-int/lit8 v8, v7, 0x1
-                and-int/2addr v8, v9
-                or-int/2addr v11, v8
-                ${if (FORCE_HAZE_ALWAYS_VISIBLE) {
-                    "const/4 v6, 0x1"
-                } else {
-                    "and-int/2addr v6, v11"
-                }}
-
-                invoke-static {v10, v11, v6}, $DIAG_HOOK
+                # No Feed, Bottom Bar or Root Context visibility reads.
 
                 # Preserve the validated geometry before applying Haze.
                 sget-object v0, $MODIFIER_SINGLETON
@@ -1250,17 +1218,12 @@ val fixNavigationBarHazeExperimentalPatch = bytecodePatch(
                 invoke-static {v2, v3}, $NAV_EXTENSION->resolveBackgroundColor(J)J
                 move-result-wide v2
 
-                # Visibility gate 0/1 -> 64-bit mask 0/-1.
-                neg-int v9, v6
-                int-to-long v9, v9
-                and-long/2addr v2, v9
-                and-long/2addr v7, v9
                 new-instance v4, Ldev/chrisbanes/haze/blur/g0;
                 invoke-direct {v4, v7, v8}, Ldev/chrisbanes/haze/blur/g0;-><init>(J)V
 
                 invoke-static {p1}, Lcom/x/compose/core/m0;->b(Landroidx/compose/runtime/Composer;)Z
                 move-result v5
-                and-int/2addr v6, v5
+                move v6, v5
                 move-object v1, p0
                 invoke-static {}, $NAV_EXTENSION->getNavigationBlurRadius()F
                 move-result v5

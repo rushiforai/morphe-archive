@@ -521,6 +521,10 @@ The comment box loses its GIF and sticker buttons. Typing, photos and posting wo
 # context: switch title under Comments: hides the Add a comment field at the bottom of the full-screen video viewer
 Hide the video comment box	Скрывать поле комментария под видео
 The Add a comment box under a full-screen video goes away. Comment boxes on posts stay.	Поле «Добавить комментарий» под полноэкранным видео исчезает. Поля комментариев под публикациями остаются.
+# context: switch title under Comments; the bar along the bottom of a live video holds its comment box and the reactions you tap to send
+Hide the live video comment bar	Скрыть панель комментариев в прямых эфирах
+# context: description of that switch; the reactions are the Like, Love, Haha and other faces a tap sends to the live video
+The comment box and the row of reactions along the bottom of a live video go away, so a stray tap can't send one. The live comments stay.	Поле комментария и ряд реакций внизу прямого эфира исчезают, чтобы случайное нажатие ничего не отправило. Комментарии к эфиру остаются.
 # context: switch title under Comments; a reply thread is the replies under a comment, which Facebook folds behind View replies
 Open every reply thread	Открывать все ветки ответов
 # context: summary of that switch; View replies is the link Facebook shows under a comment that has replies
@@ -594,6 +598,10 @@ Hide Share under posts	Скрывать кнопку «Поделиться» п
 Hide Send under posts	Скрывать кнопку «Отправить» под публикациями
 # context: summary shared by those five switches
 Takes this button out of the row under posts in the feed. The other buttons stay, and a post with all of its buttons hidden shows no row.	Удаляет эту кнопку из строки под публикациями в Ленте. Остальные кнопки остаются. Если скрыты все кнопки публикации, строка не отображается.
+# context: switch title under News feed; the buttons are Like, Comment, Share and the others in the row under a post
+Ignore taps beside the buttons	Игнорировать нажатия рядом с кнопками
+# context: description of that switch; the reaction icons are the small stacked emoji at the end of that row, and who reacted is the list of people who reacted
+A tap on the empty part of the row under a post, between the buttons and the reaction icons, does nothing instead of opening the comments or who reacted. The buttons work as before.	Нажатие на пустую часть строки под публикацией, между кнопками и значками реакций, ничего не делает вместо открытия комментариев или списка отреагировавших. Кнопки работают как раньше.
 # context: what stays in while Hushfacebook is paused, followed by the patch name in brackets; the row in Facebook's own Menu that opens Hushfacebook settings
 # context: a short message when the Hushfacebook row in Facebook's Menu couldn't open the settings
 Hushfacebook settings can't open here. Long-press the Facebook logo instead.	Здесь нельзя открыть настройки Hushfacebook. Вместо этого нажмите и удерживайте логотип Facebook.
@@ -2006,6 +2014,10 @@ Puts the speaker button in the side column of reels, right above the three dots.
 Hide the reaction preview on posts	Скрывать предварительный просмотр реакций под публикациями
 # context: summary of that switch; "reactions" are Facebook's Like, Love, Haha and other reactions
 Hides the stacked reaction icons and the reactions count under posts. The space stays, so a tap where they were still opens the list of reactions. To take the number off the Like button too, turn on Hide counts on posts.	Скрывает значки реакций и счетчик реакций под публикациями. Пустое место остается, поэтому нажатие на него по-прежнему открывает список реакций. Чтобы также убрать число с кнопки «Нравится», включите настройку «Скрывать счетчики под публикациями».
+# context: switch title under News feed; the reactions are the small stacked reaction icons (Like, Love, Haha) a post shows next to its count; the Like button is the button under a post, use Facebook's name for it
+Show reactions on the Like button	Показывать реакции на кнопке «Нравится»
+# context: summary of that switch; the faces are those reaction icons; "Hide the reaction preview on posts" is another switch, match its own row
+Moves a post's reaction faces from the end of its button row onto the Like button, right before the count. The Like button likes and reacts as before. A video showing its views there gets one Like face, or your own reaction once you react. Hide the reaction preview on posts overrules it. A change shows on the posts drawn after it.	Переносит значки реакций публикации с конца ряда кнопок на кнопку «Нравится», прямо перед числом. Кнопка «Нравится» ставит отметку «Нравится» и реакции, как раньше. Видео, у которого там показаны просмотры, получает один значок «Нравится» или вашу реакцию, когда вы отреагируете. Настройка «Скрывать предварительный просмотр реакций под публикациями» имеет приоритет. Изменение видно на публикациях, показанных после него.
 # context: switch title under Comments; the reaction preview is the stack of reaction icons in the corner of a comment
 Hide the reaction preview on comments	Скрывать предварительный просмотр реакций в комментариях
 # context: summary of that switch; "reactions" are Facebook's Like, Love, Haha and other reactions
@@ -2396,7 +2408,11 @@ Moves a feed video's seek bar closer to the bottom edge, along with Facebook's s
 Seek bar on the bottom edge	Полоса перемотки по нижнему краю
 Puts a feed video's seek bar right on its bottom edge, so it's out of the way while you scroll. Facebook's speaker and tagged people buttons move up to sit above it. Wins over Lower the seek bar and speaker. Needs Seek bar on feed videos on.	Ставит полосу перемотки видео в Ленте прямо на нижний край, чтобы она не мешала при прокрутке. Кнопки звука и отмеченных людей Facebook поднимаются над ней. Имеет приоритет над «Опустить полосу перемотки и кнопку звука». Нужна включённая «Полоса перемотки для видео в Ленте».
 Thin line seek bar	Тонкая полоса перемотки
-Shows a feed video's seek bar as a thin line right on its bottom edge, like Instagram's, with no dot or times until you drag it. Live videos get it too while they can be rewound. Let go at the far right end to go back to live. Facebook's speaker and tagged people buttons move up to sit above it. Needs Seek bar on feed videos on.	Показывает полосу перемотки видео в Ленте тонкой линией прямо на нижнем краю, как в Instagram, без точки и времени, пока вы её не потянете. Прямые эфиры тоже её получают, пока их можно перемотать назад. Отпустите на правом конце, чтобы вернуться к эфиру. Кнопки звука и отмеченных людей Facebook поднимаются над ней. Нужна включённая «Полоса перемотки для видео в Ленте».
+# context: switch title on the Video and audio page, under Thin line seek bar; while the thin seek bar of a feed video is dragged it stays on the video's bottom edge
+Drag along the bottom edge	Перемотка по нижнему краю
+# context: description of that switch; Thin line seek bar is the switch title above it, keep it as translated there
+While you drag the thin line, it stays on the video's bottom edge like Instagram's, with the time in the middle, instead of rising into the full bar with a time bubble. Needs Thin line seek bar on.	Пока вы тянете тонкую линию, она остаётся на нижнем краю видео, как в Instagram, а время показывается посередине, вместо того чтобы подниматься полной полосой с пузырьком времени. Нужна включённая «Тонкая полоса перемотки».
+Shows a feed video's seek bar as a thin line right on its bottom edge, like Instagram's, with no dot until you drag it. Live videos get it too while they can be rewound. Let go at the far right end to go back to live. Facebook's speaker and tagged people buttons move up to sit above it. Needs Seek bar on feed videos on.	Показывает полосу перемотки видео в Ленте тонкой линией прямо на нижнем краю, как в Instagram, без точки, пока вы её не потянете. Прямые эфиры тоже её получают, пока их можно перемотать назад. Отпустите на правом конце, чтобы вернуться к эфиру. Кнопки звука и отмеченных людей Facebook поднимаются над ней. Нужна включённая «Полоса перемотки для видео в Ленте».
 Feed video position	Позиция видео в Ленте
 # context: title of the row that holds a color code for the count badges on the tabs
 Badge color	Цвет значков
@@ -2454,6 +2470,7 @@ Holding a post's photo opens its reactions, as holding Like does. It comes befor
 Holding a post's video opens its reactions too. It comes before Long press opens comments. With Hold a feed video for 2x on, that one wins and the video plays fast.	Удержание видео публикации тоже открывает её реакции. Это срабатывает раньше, чем «Долгое нажатие открывает комментарии». Если включено «Удерживать видео в Ленте для скорости 2x», срабатывает оно, и видео играет быстрее.
 Reaction	Реакция
 Pick one each time	Выбирать каждый раз
+Slide to pick one	Выбирать проведением
 Like	Нравится
 Love	Супер
 Care	Мы вместе
@@ -2461,9 +2478,11 @@ Haha	Ха-ха
 Wow	Ух ты
 Sad	Сочувствую
 Angry	Возмутительно
-Pick one each time. The reactions open over the post, so slide to one and let go, or let go and tap one.	Выбирать каждый раз. Реакции открываются поверх публикации: проведите к нужной и отпустите или отпустите и нажмите на неё.
+Pick one each time. The reactions open by your finger, so slide to one and let go, or let go and tap one. A tap anywhere else closes them.	Выбирать каждый раз. Реакции открываются у пальца: проведите к нужной и отпустите или отпустите и нажмите на неё. Нажатие в любом другом месте закрывает их.
+Slide to pick one. The reactions open by your finger, so slide to one and let go. Letting go anywhere else closes them.	Выбирать проведением. Реакции открываются у пальца: проведите к нужной и отпустите. Если отпустить в другом месте, они закроются.
 %1$s. Holding a post gives it straight away.	%1$s. Удержание публикации сразу ставит эту реакцию.
 Holding a post to react will open the reactions to pick from.	Удержание публикации для реакции откроет реакции для выбора.
+Holding a post to react will open the reactions to slide to one.	Удержание публикации для реакции откроет реакции, к которым нужно провести пальцем.
 Holding a post to react will give %1$s.	Удержание публикации для реакции поставит «%1$s».
 Select text	Выбрать текст
 Done	Готово
@@ -2820,6 +2839,16 @@ Takes the song and effect credits off the line under the poster's name on a stor
 Takes the row of suggested replies off the bottom of a story. The reply box stays. Applies from the next story you open.	Убирает ряд предложенных ответов внизу Истории. Поле ответа остаётся. Действует со следующей открытой Истории.
 Hide the Subscribe button	Скрыть кнопку «Подписаться»
 Takes the Subscribe button off the top of a story. Applies from the next story you open.	Убирает кнопку «Подписаться» вверху Истории. Действует со следующей открытой Истории.
+# context: switch title on the Stories page; the Follow button sits at the top of a story from someone you don't follow
+Hide the Follow button	Скрыть кнопку подписки на автора
+Takes the Follow button off the top of a story from someone you don't follow. Applies from the next story you open.	Убирает кнопку подписки вверху Истории человека, на которого вы не подписаны. Действует со следующей открытой Истории.
+# context: switch title on the Stories page; the reply bar is the row under someone else's story with the repost button, the Send message box and the quick reactions
+Hide the reply bar	Скрыть панель ответа
+# context: description of that switch; Send message is the text box Facebook shows in that row
+Takes the bar off the bottom of other people's stories, with the repost button, the Send message box and the quick reactions. Applies from the next story you open.	Убирает панель внизу чужих Историй вместе с кнопкой репоста, полем «Отправить сообщение» и быстрыми реакциями. Действует со следующей открытой Истории.
+# context: switch title on the Stories page; Up next is the card Facebook shows over the next stories while it counts down before they play
+Hide the Up next card	Скрыть карточку «Далее»
+Starts the next stories right away, without the Up next card that counts down over the first one. Applies the next time you open stories.	Сразу запускает следующие Истории без карточки «Далее», которая ведёт обратный отсчёт поверх первой. Действует при следующем открытии Историй.
 Hide create story cards	Скрыть карточки создания Истории
 Takes out the cards between stories that ask you to make one, including the full screen card that asks you to continue the story with photos from your gallery. Applies the next time you open stories.	Убирает карточки между Историями, которые предлагают создать свою, в том числе полноэкранную карточку, которая предлагает продолжить Историю с фото из вашей галереи. Действует при следующем открытии Историй.
 Progress bar at the bottom	Полоса прогресса внизу
@@ -2909,10 +2938,18 @@ Hide the tab bar on the Reels tab	Скрывать панель вкладок �
 The tab bar goes away while the Reels tab is open, and the reel gets the whole screen. The other tabs keep the bar. Restart Facebook to see the change.	Панель вкладок исчезает, пока открыта вкладка Reels, и рилс занимает весь экран. На остальных вкладках панель остаётся. Перезапустите Facebook, чтобы увидеть изменения.
 Hide the line along the tab bar	Скрывать линию у панели вкладок
 The thin line Facebook draws along the edge of the tab bar goes away on every tab. Tap a tab to see the change.	Тонкая линия, которую Facebook рисует по краю панели вкладок, исчезает на всех вкладках. Нажмите на любую вкладку, чтобы увидеть изменения.
+# context: switch title on the tab bar settings page; a group is a Facebook group's page; the tab bar is the row of Home, Reels, Groups... tabs
+Keep the tab bar in groups	Оставлять панель вкладок в группах
+# context: summary of that switch; "along the bottom" means at the bottom edge of the screen
+A group you open keeps the tab bar along the bottom, so a tap takes you straight to another tab. Works while the tab bar is at the bottom. Open a group to see the change.	В открытой группе панель вкладок остаётся внизу, так что одно нажатие сразу переводит на другую вкладку. Работает, пока панель вкладок внизу. Откройте группу, чтобы увидеть изменение.
 Playback speed in the post menu	Скорость воспроизведения в меню публикации
 A feed or Watch video's 3-dot menu gets Playback speed, from 0.5x to 3x, live videos too. Off by default, since it hasn't been tried on a real account yet.	В меню с тремя точками у видео в Ленте или Watch появляется пункт «Скорость воспроизведения» от 0,5x до 3x, в том числе для прямых эфиров. По умолчанию выключено, поскольку функция еще не проверялась на реальном аккаунте.
 Double tap to skip on feed videos	Перемотка двойным нажатием для видео в Ленте
 Double tap the right side of a playing feed video to jump ahead 10 seconds, or the left side to go back 10. Keep tapping to go further. Live videos work too when they can be rewound. One tap on a side still opens the video, a moment later than usual. With Tap to play on, it needs Inline feed video controls on too.	Дважды нажмите на правую часть воспроизводимого видео в Ленте, чтобы перемотать на 10 секунд вперед, или на левую, чтобы вернуться на 10 секунд назад. Продолжайте нажимать, чтобы перемотать дальше. Прямые эфиры тоже поддерживаются, если их можно перематывать назад. Одно нажатие на край по-прежнему открывает видео, но чуть позже обычного. Если включено воспроизведение по нажатию, необходимо также включить встроенные элементы управления видео в Ленте.
+# context: switch title under Video playback; a tap on a video in the news feed brings up a pause button in the middle of the video instead of opening it
+Tap shows a pause button on feed videos	Нажатие показывает кнопку паузы на видео в Ленте
+# context: description of that switch; Reels is Facebook's full-screen video viewer, keep the name; the quoted switch names match their own rows
+Tapping a feed video shows a pause button in its middle and the video keeps playing, so a tap doesn't open it in Reels. Tap the button to pause or play. Tap the video again while the button shows to open it. Ads keep their own controls. With Tap to play on, it needs Inline feed video controls on too.	При нажатии на видео в Ленте в его центре появляется кнопка паузы, а видео продолжает воспроизводиться, поэтому нажатие не открывает его в Reels. Нажмите на кнопку, чтобы поставить видео на паузу или продолжить. Нажмите на видео еще раз, пока видна кнопка, чтобы открыть его. Для рекламы сохраняются собственные элементы управления. Если включено воспроизведение по нажатию, необходимо также включить встроенные элементы управления видео в Ленте.
 Show only comments that match	Показывать только подходящие комментарии
 While the search box holds words, comments without them are hidden. Clearing the box brings them back.	Пока в поле поиска есть слова, комментарии без них скрыты. Если очистить поле, они вернутся.
 Queue reel saves	Очередь сохранения Reels
@@ -2955,7 +2992,7 @@ Interested	Интересно
 # context: a kind of row in a post's 3-dot menu, offered in the list of rows to hide: Facebook's row asking for fewer posts like this one
 Not interested	Неинтересно
 # context: a kind of row in a post's 3-dot menu, offered in the list of rows to hide: Facebook's row that opens its feed preferences
-Manage your Feed	Управление Лентой
+Manage your Feed / Your algorithm	Управление Лентой / Ваш алгоритм
 # context: a kind of row in a post's 3-dot menu, offered in the list of rows to hide: Facebook's row that reports the post
 Report	Пожаловаться
 # context: a kind of row in a post's 3-dot menu, offered in the list of rows to hide: Facebook's row that plays the video on a TV
@@ -3149,3 +3186,6 @@ Show full names	Показывать имена полностью
 A long name at the top of a post wraps onto the next line instead of ending in "...". A name that fits still takes one line.	Длинное имя вверху публикации переносится на следующую строку, а не обрывается на «...». Имя, которое помещается, по-прежнему занимает одну строку.
 Dark box behind feed video names	Темная подложка под именами на видео в ленте
 When a video in your feed has the poster's name on top of the video, that name sits on the same dark box. A change shows on the posts drawn after it.	Когда видео в ленте показывает имя автора поверх видео, это имя лежит на той же темной подложке. Изменение видно на публикациях, загруженных после него.
+Quality settings	Настройки качества
+Request community note	Запросить заметку сообщества
+Something went wrong	Что-то пошло не так

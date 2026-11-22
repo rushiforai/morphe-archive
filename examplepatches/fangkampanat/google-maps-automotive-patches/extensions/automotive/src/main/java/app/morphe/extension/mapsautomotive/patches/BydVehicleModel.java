@@ -15,7 +15,8 @@ import org.json.JSONObject;
  * <p>
  * Learning changes from the phone: Automatic starts from the car's recent average when it
  * is within 25% of the total; the first windows form a running mean; regeneration while driving stays
- * in the window instead of restarting it.
+ * in the window instead of restarting it. A window moves the value at most 5%, or 25% when it and the window accepted
+ * before it are both more than 15% to the same side.
  */
 final class BydVehicleModel {
     private static final String TAG = "MorpheBydModel";
@@ -30,6 +31,9 @@ final class BydVehicleModel {
     private static final long MIN_DISTANCE_M = 10000, MIN_ENERGY_WH = 1000;
     // Later windows move 20% of the way; the first ones count as a running mean (1, 1/2, 1/3, 1/4).
     private static final double MIN_GAIN = 0.20;
+    // A window moves the value at most 5%; 25% when it and the window accepted before it are both more than 15% to the
+    // same side (a car far from its seed: one measured 26 against a 12.3 seed).
+    private static final double STEP = 0.05, CONSISTENT_STEP = 0.25, CONSISTENT_GAP = 0.15;
     // The recent average may cover one short trip; further than this from the total, the total is used.
     private static final double MAX_RECENT_DEVIATION = 0.25;
     // Regeneration raises the BMS energy (100 Wh steps) while driving; a larger rise per poll is not regeneration.
@@ -259,6 +263,7 @@ final class BydVehicleModel {
         boolean speedConsistent = !speedCovered || Math.abs(speedMetres - metres) <= Math.max(300, metres * 0.20);
         boolean sdkCorroborates = !finite(latestTotal) || (measured >= latestTotal * 0.5 && measured <= latestTotal * 2.0);
         boolean accepted = consumptionValid(measured) && speedConsistent && sdkCorroborates;
+        double previousAccepted = lastWindowAccepted ? lastWindowConsumption : Double.NaN;
         lastWindowConsumption = measured; lastWindowMetres = metres; lastWindowAccepted = accepted;
         if (!accepted) {
             ReportLog.i(TAG, "learning_window_rejected;metres=" + metres + ";wh=" + wh + ";regen_wh=" + regenWh
@@ -270,8 +275,9 @@ final class BydVehicleModel {
         // This is consumption-adaptive normalization, not an independent speed/efficiency fit.
         double gain = Math.max(MIN_GAIN, 1.0 / (acceptedWindows + 1));
         double next = before + gain * (measured - before);
+        double step = consistent(before, measured, previousAccepted) ? CONSISTENT_STEP : STEP;
         learnedConsumption = Math.max(MIN_CONSUMPTION, Math.min(MAX_CONSUMPTION,
-                Math.max(before * 0.95, Math.min(before * 1.05, next))));
+                Math.max(before * (1 - step), Math.min(before * (1 + step), next))));
         acceptedWindows++; seedSource = null;
         if (Math.abs(learnedConsumption - active.consumption) >= 0.10 || pending != null)
             pending = new Model(++revision, configured, learnedConsumption, "sdk_bms_odometer_mean");
@@ -279,7 +285,7 @@ final class BydVehicleModel {
         persist();
         ReportLog.i(TAG, "learning_window_accepted;windows=" + acceptedWindows + ";metres=" + metres
                 + ";wh=" + wh + ";regen_wh=" + regenWh + ";measured_kwh_100km=" + measured + ";before=" + before
-                + ";gain=" + gain + ";pending_target=" + learnedConsumption + ";speed_coverage=" + (speedCoveredMs / duration)
+                + ";gain=" + gain + ";step=" + step + ";pending_target=" + learnedConsumption + ";speed_coverage=" + (speedCoveredMs / duration)
                 + ";speed_metres=" + speedMetres + ";speed_shape_calibrated=false;"
                 + (pending == null ? "effective_unchanged" : pending.describe()));
         startWindow(point);
@@ -309,6 +315,13 @@ final class BydVehicleModel {
      * Until one trip segment is learned, Automatic starts from the car's own average instead of the
      * fixed measured-trip value. The revision activates at the next published sample.
      */
+    // Both windows (this one and the one accepted before it) more than CONSISTENT_GAP from the value, to the same side.
+    static boolean consistent(double before, double measured, double previous) {
+        if (!finite(previous) || !(before > 0)) return false;
+        double a = measured / before - 1, b = previous / before - 1;
+        return a > CONSISTENT_GAP && b > CONSISTENT_GAP || a < -CONSISTENT_GAP && b < -CONSISTENT_GAP;
+    }
+
     private static void seedFromCarAverage() {
         String source = carAverageSource();
         if (seedChecked || acceptedWindows > 0 || source == null) return;

@@ -162,6 +162,7 @@ import app.hushgram.extension.instagram.reels.BurnInMode;
 import app.hushgram.extension.instagram.reels.BurnInWait;
 import app.hushgram.extension.instagram.reels.CaptionLanguage;
 import app.hushgram.extension.instagram.reels.CaptionWordReels;
+import app.hushgram.extension.instagram.reels.CaptionWordStats;
 import app.hushgram.extension.instagram.reels.HiddenBars;
 import app.hushgram.extension.instagram.reels.HiddenSounds;
 import app.hushgram.extension.instagram.reels.ReelTapChoice;
@@ -826,6 +827,7 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
                 }
                 if (Settings.SETTINGS_BLACK_LOOK.key.equals(key)) aliases.append(" amoled oled dark theme layout");
                 if (Settings.SETTINGS_LIGHT_LOOK.key.equals(key)) aliases.append(" white bright day theme layout");
+                if (Settings.SETTINGS_INSTAGRAM_LOOK.key.equals(key)) aliases.append(" native stock official plain flat theme layout");
                 if (NotificationsCategory.movedFromProfiles(key)) aliases.append(' ').append(L10n.t("Profiles"));
                 if (Settings.HIDE_REELS_TAB.key.equals(key) || Settings.SHOW_REELS_TAB.key.equals(key)) {
                     aliases.append(' ').append(L10n.t("Reels"));
@@ -873,7 +875,8 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
                     belongs |= family == PatchFamily.FEED_SEEK_BAR && (Settings.FEED_SEEK_BAR_LOOK.key.equals(key)
                             || Settings.SEEK_BAR_SHAPE.key.equals(key)
                             || Settings.FEED_SEEK_SHAPE.key.equals(key)
-                            || Settings.FEED_DOUBLE_TAP_SKIP_SECONDS.key.equals(key));
+                            || Settings.FEED_DOUBLE_TAP_SKIP_SECONDS.key.equals(key)
+                            || Settings.FEED_SEEK_TIME.key.equals(key) || Settings.FEED_SEEK_TIME_LEFT.key.equals(key));
                     belongs |= family == PatchFamily.REEL_DOUBLE_TAP_SKIP
                             && Settings.DOUBLE_TAP_SKIP_REELS_SECONDS.key.equals(key);
                     belongs |= family == PatchFamily.FEED_AUTO_SCROLL && Settings.FEED_AUTO_SCROLL_SECONDS.key.equals(key);
@@ -881,7 +884,8 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
                     belongs |= family == PatchFamily.MEDIA_CACHE && (Settings.MEDIA_CACHE_LIMIT_MB.key.equals(key)
                             || CLEAR_MEDIA_CACHE_NOW.equals(key));
                     belongs |= family == PatchFamily.STORY_SEEK_BAR && (Settings.STORY_SEEK_BAR_LOOK.key.equals(key)
-                            || Settings.STORY_SEEK_BAR_POSITION.key.equals(key));
+                            || Settings.STORY_SEEK_BAR_POSITION.key.equals(key)
+                            || Settings.STORY_SEEK_TIME.key.equals(key) || Settings.STORY_SEEK_TIME_LEFT.key.equals(key));
                     belongs |= family == PatchFamily.REEL_POST_TIME && (Settings.REEL_POST_TIME_SECONDS.key.equals(key)
                             || Settings.REEL_POST_TIME_AGO.key.equals(key));
                     belongs |= family == PatchFamily.FRIENDSHIP_STATUS && Settings.FOLLOW_LABEL_PLACE.key.equals(key);
@@ -940,6 +944,7 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
                     belongs |= family == PatchFamily.LIKE_ANIMATION && Settings.LIKE_ANIMATION.key.equals(key);
                     belongs |= family == PatchFamily.CAPTION_WORD_REELS && (Settings.REELS_BLOCKED_WORDS.key.equals(key)
                             || Settings.HIDE_CAPTION_WORD_HOME.key.equals(key)
+                            || Settings.HIDE_CAPTION_WORD_COMMENTS.key.equals(key)
                             || Settings.REELS_KEPT_LANGUAGES.key.equals(key) || Settings.HIDE_OTHER_LANGUAGE_HOME.key.equals(key));
                     belongs |= family == PatchFamily.LOW_VIEW_REELS
                             && (Settings.MIN_REEL_VIEWS.key.equals(key) || Settings.MIN_REEL_LIKES.key.equals(key)
@@ -1856,8 +1861,9 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         PreferenceCategory under = pages ? shownPage() : null;
         PreferenceCategory page = listing ? under : null;
         boolean own = listing && ownPages();
-        // Either look puts HushGram's name at the top (#455, #762).
-        boolean named = Settings.SETTINGS_BLACK_LOOK.savedValue() || Settings.SETTINGS_LIGHT_LOOK.savedValue();
+        // Each look puts HushGram's name at the top (#455, #762, #797).
+        boolean named = Settings.SETTINGS_BLACK_LOOK.savedValue() || Settings.SETTINGS_LIGHT_LOOK.savedValue()
+                || Settings.SETTINGS_INSTAGRAM_LOOK.savedValue();
         for (Preference top : new Preference[]{header, statusCard, beforeSignIn, viewToggle, gridToggle, search}) {
             if (top == null) continue;
             // A tap hid the notice for good and took it off the screen. It stays off.
@@ -8351,7 +8357,7 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         row.setTitle(L10n.t("Blocked words"));
         row.setDialogTitle(L10n.t("Blocked words"));
         row.setDialogMessage(L10n.t("Words or phrases, with a comma or a new line between them. Capital letters don't "
-                + "matter, and a hashtag works too."));
+                + "matter, a hashtag works too, and an @name hides that account's posts."));
         row.setPositiveButtonText(L10n.t("Save"));
         row.setNegativeButtonText(L10n.t("Cancel"));
         EditText field = row.getEditText();
@@ -8387,11 +8393,16 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         return row;
     }
 
-    /** What the blocked words row says under its title: how many words it holds, or that it has none. */
+    /**
+     * What the blocked words row says under its title: how many words it holds, or that it has none,
+     * and on a line of its own how much they've hidden once they've hidden anything (#807).
+     */
     static String blockedWordsSummary(String stored) {
         int count = CaptionWordReels.words(stored).size();
-        return count == 0 ? L10n.t("No words yet")
+        String words = count == 0 ? L10n.t("No words yet")
                 : L10n.quantity(count, "%1$d word", "%1$d words", count);
+        String hidden = CaptionWordStats.summary();
+        return hidden == null ? words : words + "\n" + hidden;
     }
 
     /**

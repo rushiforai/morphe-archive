@@ -277,7 +277,8 @@ final class ReportBuilder {
             provider.put("version_name", orNull(info.versionName))
                     .put("version_code", info.getLongVersionCode())
                     .put("signer_sha256_16", orNull(CrashLogPatch.getSignatureHash(info.signatures)))
-                    .put("battery_optimization_exempt", ReportDiagnostics.batteryOptimizationExempt(context, PROVIDER_PACKAGE));
+                    .put("battery_optimization_exempt", ReportDiagnostics.batteryOptimizationExempt(context, PROVIDER_PACKAGE))
+                    .put("whitelist_from_car", CarAdb.report(context));
         }
         return provider;
     }
@@ -423,7 +424,9 @@ final class ReportBuilder {
     }
 
     private static JSONObject ui(Context context, Screen screen) throws JSONException {
-        int width = WindowRefreshPatch.decorWidth, height = WindowRefreshPatch.decorHeight, measured = ApiCompat.lastWindowBoundsWidth;
+        int width = WindowRefreshPatch.decorWidth, height = WindowRefreshPatch.decorHeight;
+        Display mapsDisplay = WindowRefreshPatch.windowDisplay();
+        int measured = mapsDisplay != null ? ApiCompat.lastWindowBoundsWidth(mapsDisplay.getDisplayId()) : ApiCompat.lastWindowBoundsWidth;
         Boolean multiWindow = screen.multiWindow != null ? screen.multiWindow : WindowRefreshPatch.multiWindow;
         JSONObject window = new JSONObject()
                 .put("decor_width_px", width > 0 ? width : JSONObject.NULL)
@@ -441,6 +444,10 @@ final class ReportBuilder {
                 .put("color_scheme", ColorScheme.report(context))
                 .put("buildings_3d", SafeMode.included(SafeMode.BUILDINGS_3D) ? Buildings3d.report() : JSONObject.NULL)
                 .put("cluster_satellite", ClusterSatellite.report())
+                .put("home_work", SafeMode.included(SafeMode.HOME_WORK) ? HomeWorkShortcuts.report() : JSONObject.NULL)
+                .put("navigation_speech", SafeMode.included(SafeMode.NAVIGATION_SPEECH) ? NavigationSpeech.report() : JSONObject.NULL)
+                .put("floating_maps", SafeMode.included(SafeMode.FLOATING_MAPS) ? FloatingMaps.report(context) : JSONObject.NULL)
+                .put("gps_interval", SafeMode.included(SafeMode.GPS_INTERVAL) ? GpsInterval.report() : JSONObject.NULL)
                 .put("window", window);
     }
 

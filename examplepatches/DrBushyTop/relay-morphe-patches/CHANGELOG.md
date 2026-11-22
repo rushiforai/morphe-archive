@@ -1,3 +1,9 @@
+## [1.7.0](https://github.com/DrBushyTop/relay-morphe-patches/compare/v1.6.3...v1.7.0) (2026-11-21)
+
+### ✨ New Features
+
+* Restore the Random and RandomNSFW subreddit menu items ([6e094f5](https://github.com/DrBushyTop/relay-morphe-patches/commit/6e094f5ce044ba7c8b329c41af5297e475f4710b))
+
 ## [1.6.3](https://github.com/DrBushyTop/relay-morphe-patches/compare/v1.6.2...v1.6.3) (2026-11-20)
 
 ### 🐛 Bug Fixes

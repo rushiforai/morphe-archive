@@ -196,6 +196,8 @@ final class BydForecast {
         int firstArrivalWh = NO_ENERGY, firstDistanceM, firstTimeS, firstStops, firstQuality;
         // The last non-empty forecast: what was left then, and the battery and odometer then.
         int lastArrivalWh = NO_ENERGY, lastDistanceM, lastTimeS, lastStops;
+        /** The whole percent Maps showed for the first and the last arrival (BydDisplayCurve.shown); -1 if unknown. */
+        int firstShownPercent = -1, lastShownPercent = -1;
         long lastForecastWall;
         int lastForecastBatteryWh = -1;
         double lastForecastSoc = Double.NaN;
@@ -241,6 +243,7 @@ final class BydForecast {
                     .append(";start_soc=").append(socText(startSoc))
                     .append(";capacity_wh=").append(whText(capacityWh))
                     .append(";first_arrival_wh=").append(energyText(firstArrivalWh))
+                    .append(";first_shown=").append(percentText(firstShownPercent))
                     .append(";first_km=").append(kmText(firstDistanceM))
                     .append(";first_min=").append(Math.round(firstTimeS / 60.0))
                     .append(";stops=").append(firstStops)
@@ -249,6 +252,7 @@ final class BydForecast {
                     .append(";min_arrival_wh=").append(energyText(minArrivalWh))
                     .append(";max_arrival_wh=").append(energyText(maxArrivalWh))
                     .append(";last_arrival_wh=").append(energyText(lastArrivalWh))
+                    .append(";last_shown=").append(percentText(lastShownPercent))
                     .append(";last_km=").append(kmText(lastDistanceM))
                     .append(";last_min=").append(Math.round(lastTimeS / 60.0))
                     .append(";last_wh=").append(whText(lastForecastBatteryWh));
@@ -271,6 +275,7 @@ final class BydForecast {
             c.firstArrivalWh = firstArrivalWh; c.firstDistanceM = firstDistanceM; c.firstTimeS = firstTimeS;
             c.firstStops = firstStops; c.firstQuality = firstQuality;
             c.lastArrivalWh = lastArrivalWh; c.lastDistanceM = lastDistanceM; c.lastTimeS = lastTimeS; c.lastStops = lastStops;
+            c.firstShownPercent = firstShownPercent; c.lastShownPercent = lastShownPercent;
             c.lastForecastWall = lastForecastWall; c.lastForecastBatteryWh = lastForecastBatteryWh;
             c.lastForecastSoc = lastForecastSoc; c.lastForecastMileage01km = lastForecastMileage01km;
             c.updates = updates; c.minArrivalWh = minArrivalWh; c.maxArrivalWh = maxArrivalWh;
@@ -321,8 +326,9 @@ final class BydForecast {
      * last stop has no arrival energy, other stops having one, is ignored.
      */
     static final class Tracker {
-        private static final String HEADER = "morphe guided drives v1";
-        private static final int FIELDS = 26, MAX_NOTES = 20;
+        // v2 adds the percentages Maps showed (two fields after the end reason); v1 drives load with them unknown.
+        private static final String HEADER = "morphe guided drives v2", HEADER_V1 = "morphe guided drives v1";
+        private static final int FIELDS = 28, FIELDS_V1 = 26, MAX_NOTES = 20;
         private static final long FILL_MS = 60000, NO_FORECAST_MS = 30 * 60000;
         private static final int CHANGE_M = 5000, ARRIVED_M = 1000, ARRIVED_S = 120;
         private static final double CHANGE_RATIO = 0.20;
@@ -339,7 +345,9 @@ final class BydForecast {
         private long sampleElapsed;
         private int sampleMileage = -1;
 
-        synchronized void onForecast(long wall, long elapsed, Forecast f, int batteryWh, double soc, int capacityWh) {
+        /** shownPercent: the whole percent Maps shows for this forecast's final arrival, -1 if unknown. */
+        synchronized void onForecast(long wall, long elapsed, Forecast f, int batteryWh, double soc, int capacityWh,
+                int shownPercent) {
             if (f == null) return;
             resync(wall, elapsed);
             timeout(elapsed);
@@ -351,8 +359,8 @@ final class BydForecast {
             }
             if (f.finalArrivalWh() == NO_ENERGY) return;
             if (open != null && destinationChanged(open, f, elapsed)) close(CHANGED, wall, elapsed, batteryWh, soc, capacityWh);
-            if (open == null) start(wall, elapsed, f, batteryWh, soc, capacityWh);
-            else update(open, wall, elapsed, f, batteryWh, soc, capacityWh);
+            if (open == null) start(wall, elapsed, f, batteryWh, soc, capacityWh, shownPercent);
+            else update(open, wall, elapsed, f, batteryWh, soc, capacityWh, shownPercent);
         }
 
         /** Each 10 s reading; the odometer in 0.1 km, -1 if unknown. */
@@ -404,12 +412,14 @@ final class BydForecast {
             if (text == null) return tracker;
             try {
                 String[] lines = text.split("\n");
-                if (lines.length == 0 || !HEADER.equals(lines[0].trim())) return new Tracker();
+                if (lines.length == 0) return new Tracker();
+                boolean v1 = HEADER_V1.equals(lines[0].trim());
+                if (!v1 && !HEADER.equals(lines[0].trim())) return new Tracker();
                 synchronized (tracker) {
                     for (int i = 1; i < lines.length; i++) {
                         String line = lines[i].trim();
                         if (line.isEmpty()) continue;
-                        Guided g = parseLine(line);
+                        Guided g = parseLine(line, v1);
                         if (OPEN.equals(g.endReason)) {
                             // Only the first drive can be open.
                             if (tracker.open != null || !tracker.closed.isEmpty()) return new Tracker();
@@ -439,7 +449,7 @@ final class BydForecast {
             }
         }
 
-        private void start(long wall, long elapsed, Forecast f, int batteryWh, double soc, int capacityWh) {
+        private void start(long wall, long elapsed, Forecast f, int batteryWh, double soc, int capacityWh, int shownPercent) {
             Guided g = new Guided();
             g.startWall = wall;
             if (capacityWh > 0) g.capacityWh = capacityWh;
@@ -451,14 +461,17 @@ final class BydForecast {
             g.firstTimeS = f.totalTimeS();
             g.firstStops = f.stops.size();
             g.firstQuality = f.quality;
+            g.firstShownPercent = shownPercent;
             open = g;
-            update(g, wall, elapsed, f, batteryWh, soc, capacityWh);
+            update(g, wall, elapsed, f, batteryWh, soc, capacityWh, shownPercent);
             note("guided_opened;" + g.describe());
         }
 
-        private void update(Guided g, long wall, long elapsed, Forecast f, int batteryWh, double soc, int capacityWh) {
+        private void update(Guided g, long wall, long elapsed, Forecast f, int batteryWh, double soc, int capacityWh,
+                int shownPercent) {
             int arrival = f.finalArrivalWh();
             g.lastArrivalWh = arrival;
+            g.lastShownPercent = shownPercent;
             g.lastDistanceM = f.totalDistanceM();
             g.lastTimeS = f.totalTimeS();
             g.lastStops = f.stops.size();
@@ -611,12 +624,13 @@ final class BydForecast {
                     .append(',').append(g.lastForecastMileage01km)
                     .append(',').append(g.updates).append(',').append(g.minArrivalWh).append(',').append(g.maxArrivalWh)
                     .append(',').append(g.endWall).append(',').append(g.endBatteryWh).append(',').append(g.endSoc)
-                    .append(',').append(g.endMileage01km).append(',').append(g.endReason).append('\n');
+                    .append(',').append(g.endMileage01km).append(',').append(g.endReason)
+                    .append(',').append(g.firstShownPercent).append(',').append(g.lastShownPercent).append('\n');
         }
 
-        private static Guided parseLine(String line) {
+        private static Guided parseLine(String line, boolean v1) {
             String[] v = line.split(",", -1);
-            if (v.length != FIELDS + 1 || !"G".equals(v[0])) throw new IllegalArgumentException("guided drive line");
+            if (v.length != (v1 ? FIELDS_V1 : FIELDS) + 1 || !"G".equals(v[0])) throw new IllegalArgumentException("guided drive line");
             Guided g = new Guided();
             int i = 1;
             g.startWall = Long.parseLong(v[i++]); g.startBatteryWh = Integer.parseInt(v[i++]);
@@ -633,13 +647,23 @@ final class BydForecast {
             g.maxArrivalWh = Integer.parseInt(v[i++]);
             g.endWall = Long.parseLong(v[i++]); g.endBatteryWh = Integer.parseInt(v[i++]);
             g.endSoc = Double.parseDouble(v[i++]); g.endMileage01km = Integer.parseInt(v[i++]);
-            String reason = v[i];
+            String reason = v[i++];
+            if (!v1) {
+                g.firstShownPercent = shownPercent(v[i++]);
+                g.lastShownPercent = shownPercent(v[i]);
+            }
             if (!OPEN.equals(reason) && !ARRIVED.equals(reason) && !ENDED.equals(reason) && !CHANGED.equals(reason)
                     && !NO_FORECAST.equals(reason) && !RESTARTED.equals(reason)) throw new IllegalArgumentException("guided drive reason");
             g.endReason = reason;
             if (g.updates < 1) throw new IllegalArgumentException("guided drive updates");
             g.announced = true;
             return g;
+        }
+
+        // A saved percentage outside 0–100 is unknown, not a reason to drop the saved drives.
+        private static int shownPercent(String text) {
+            int value = Integer.parseInt(text);
+            return value >= 0 && value <= 100 ? value : -1;
         }
     }
 
@@ -651,6 +675,10 @@ final class BydForecast {
 
     private static String whText(int wh) {
         return wh < 0 ? "none" : Integer.toString(wh);
+    }
+
+    private static String percentText(int percent) {
+        return percent < 0 ? "none" : Integer.toString(percent);
     }
 
     private static String socText(double soc) {

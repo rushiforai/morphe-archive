@@ -4,32 +4,26 @@
 
 This bundle contains many small, independently-toggleable patches. Options for each patch are under **Settings → rif patches** in the patched app.
 
-This is a port of my rif patches for ReVanced, which are available [here](https://github.com/MojiRS/revanced-rif-patches).
+This is a port of my rif patches for ReVanced, which are available [here](https://github.com/MojiRS/revanced-rif-patches). Many features from the ReVanced version are included in [Patcheddit](https://github.com/wchill/patcheddit) and are therefore dropped from this bundle on Morphe.
 
 ## Patches
 
 | Patch                             | Description                                                                                                                                    |
 | --------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Inline comment images**         | Shows images, GIFs and videos linked in comments and text posts inline.                                                                        |
-| **Fix comment video links**       | Makes videos posted in comments play in rif's video player instead of failing to load.                                                         |
-| **Fix YouTube videos**            | Fixes the built-in YouTube player.                                                                                                             |
-| **YouTube player controls**       | Double-tap to seek, hold for 2x speed, and speed and captions controls in the YouTube player.                                                  |
+| **Inline comment images**         | Shows tables in comments and text posts inline. Patcheddit covers other types of inline media.                                                 |
 | **Fix share links**               | Opens Reddit share links (reddit.com/r/…/s/…) directly in rif instead of bouncing through the browser, and fixes reddit.com/media image links. |
 | **Repair broken gallery images**  | Shows galleries that still fail to load because some of their images can’t be found (e.g. deleted), by leaving those images out.               |
 | **Keep reply box above keyboard** | Keeps the reply box unobscured above the keyboard.                                                                                             |
-| **Fix broken markdown links**     | Shows links like `[name](u/name)` as links instead of raw text.                                                                                |
 | **Hide blocked mod comments**     | Adds a setting to hide mod comments from blocked users. Off by default.                                                                        |
 | **Reddit image hosting**          | Allows uploading media in posts and comments directly to Reddit for hosting. Replaces rif's broken imgur hosting.                              |
-| **Fix history import**            | Makes "Import settings" restore the history from backups made with "Export settings and history".                                              |
-| **Post to profile**               | Adds ways to post to your profile: a My Profile button on the submit page and Submit in your profile's menu.                                   |
-| **Explain Reddit blocks**         | Shows "Reddit is temporarily blocking requests" instead of "Error: forbidden" when Reddit blocks a feed.                                       |
-| **Fix random subreddit**          | Makes Random open a random subreddit again, picked by the redditrand.com API.                                                                  |
+| **Fix random subreddit**          | Makes Random and r/randnsfw open random subreddits again, sourced from redditrand.com.                                                         |
+| **Explain processing videos**     | Says when a Reddit video is still processing instead of showing an error.                                                                      |
 
 For details on how each patch works and its settings, see [PATCHES.md](https://github.com/MojiRS/morphe-rif-patches/blob/main/PATCHES.md).
 
 ## Use with Morphe Manager
 
-1. Add **Patcheddit** as a patch source in Morphe Manager by clicking [this link](https://morphe.software/add-source?github=wchill/patcheddit). Patcheddit is required alongside these patches to restore rif's basic functionality.
+1. Add **Patcheddit** as a patch source in Morphe Manager by clicking [this link](https://morphe.software/add-source?github=wchill/patcheddit). Patcheddit (2.5.0 or newer) is required alongside these patches to restore rif's basic functionality.
 
 2. Add **rif patches** as a patch source by clicking [this link](https://morphe.software/add-source?github=MojiRS/morphe-rif-patches). Alternatively, go to **Sources → (+)** and add the following Source URL:
 

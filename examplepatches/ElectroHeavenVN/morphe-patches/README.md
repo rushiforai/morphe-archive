@@ -23,26 +23,11 @@ Click the button below, or manually add this repo url to Morphe Manager: https:/
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.1.0-dev.9](https://github.com/ElectroHeavenVN/morphe-patches/releases/tag/v1.1.0-dev.9)**&nbsp;&nbsp;•&nbsp;&nbsp;`dev`&nbsp;&nbsp;•&nbsp;&nbsp;2 patches total
-<details open>
-<summary>📦 Zalo&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
-<br>
+> **[v1.1.0](https://github.com/ElectroHeavenVN/morphe-patches/releases/tag/v1.1.0)**&nbsp;&nbsp;&middot;&nbsp;&nbsp;`main`&nbsp;&nbsp;&middot;&nbsp;&nbsp;**2 patches** across **1 apps**&nbsp;&nbsp;&middot;&nbsp;&nbsp;[Full details](PATCHES.md)
 
-**Package name:** `com.zing.zalo`
-
-**🎯 Supported versions:**
-
-| 26.09.01 | 26.10.01 | 26.10.02 | 26.11.01 | 26.11.02 |
-| :---: | :---: | :---: | :---: | :---: |
-|  |  |  |  | armeabi-v7a must use the experimental LSPatch framework instead of NPatch |
-
-| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
-|----------|----------------|-----------|
-| [Clone app](#clone-app) | Change Zalo package name and update the app name to allow multiple installations. | • Clone number |
-| [Integrate ZaloXposed](#integrate-zaloxposed) | Integrates ZaloXposed using a rootless Xposed framework (NPatch or LSPatch). Must be enabled for other Zalo patches from EHVN patches to work. | • Xposed framework<br>• Inject file provider<br>• Allow cleartext traffic |
-
-</details>
-
+| # | App | Patches | Version | Package |
+|---|---|---|---|---|
+| 1 | [**Zalo**](PATCHES.md#zalo-comzingzalo) | 2 | `26.09.01`, `26.10.01`, `26.10.02`, `26.11.01`, `26.11.02` | [`com.zing.zalo`](https://play.google.com/store/apps/details?id=com.zing.zalo) |
 <!-- PATCHES_END -->
 
 ### 🛠️ Building locally

@@ -58,7 +58,7 @@ public final class ThreadWatchNative {
     public static void beginPacked(Object[] args){begin(args!=null&&args.length>1?args[1]:null);}
     public static void begin(Object info){
         Frame frame=new Frame(null,"",null,-1);Context c=Haiagaru.applicationContextForExtension();
-        if(c==null||!NotificationNg.enabled(c)&&ThreadWatch.prefs(c).getAll().isEmpty()){CURRENT.get().push(frame);return;}
+        if(c==null){CURRENT.get().push(frame);return;}
         try{
             String version=c.getPackageManager().getPackageInfo(c.getPackageName(),0).versionName;boolean old=version.contains("191"),middle=version.contains("226");
             String server=(String)NativeFields.find(info.getClass(),old?"i":middle?"g":"f").get(info);
@@ -68,12 +68,17 @@ public final class ThreadWatchNative {
                 String token=new JSONObject(ThreadWatch.prefs(c).getString(t.url,"{}")).optString("token");
                 String name=RefreshTargets.nativeBoard(info,version).toString();
                 if(!name.contains("/")&&!name.contains("\\")&&!name.contains("..")){
+                    File dat=new File(new File(HaiagaruSyncSnapshot.externalRoot(c),"dat"),name+"_"+t.id+".dat");
+                    if(!NotificationNg.enabled(c)&&token.isEmpty()&&!dat.isFile()){
+                        CURRENT.get().push(frame);
+                        return;
+                    }
                     int before=-1;File database=c.getDatabasePath("roidon.sqlite");
                     try(SQLiteDatabase db=SQLiteDatabase.openDatabase(database.getPath(),null,SQLiteDatabase.OPEN_READONLY);
                         Cursor rows=db.rawQuery("SELECT res_count FROM bookmarks WHERE name=? AND created=?",new String[]{name,t.id})){
                         if(rows.moveToFirst())before=rows.getInt(0);
                     }
-                    frame=new Frame(t,token,new File(new File(HaiagaruSyncSnapshot.externalRoot(c),"dat"),name+"_"+t.id+".dat"),before);
+                    frame=new Frame(t,token,dat,before);
                 }
             }
         }catch(Exception ignored){}
@@ -86,9 +91,10 @@ public final class ThreadWatchNative {
         JSONObject item=new JSONObject(ThreadWatch.prefs(c).getString(frame.target.url,"{}"));JSONArray saved=item.optJSONArray("own");if(saved!=null)for(int i=0;i<saved.length();i++)if(saved.optInt(i)>0)own.add(saved.optInt(i));
         if(own.isEmpty())return null;
         boolean suppress=NotificationNg.enabled(c);
+        if(frame.before<0&&!suppress&&frame.token.isEmpty())return null;
         boolean chain=suppress&&NotificationNg.chainedRepliesEnabled(c);
         boolean script=suppress&&ProgrammableNgController.programmableBodyRulesEnabled();
-        String charset=frame.target.shitaraba?"EUC-JP":frame.target.url.contains("eddibb.cc/")?"UTF-8":"MS932";
+        String charset=frame.target.shitaraba?"EUC-JP":frame.target.url.contains("eddibb.cc/")||frame.target.url.contains("eddibb.net/")?"UTF-8":"MS932";
         if(frame.dat.length()>32L*1024*1024)throw new IOException("Notification DAT too large");
         Map<Integer,String> visible=new TreeMap<>();
         List<NotificationNg.Row> rows=new ArrayList<>();
@@ -111,7 +117,7 @@ public final class ThreadWatchNative {
         if(visible.isEmpty())return null;
         if(suppress)NotificationNg.removeBlocked(c,frame.target,rows,visible,chain,script);
         Set<Integer> result=new TreeSet<>(visible.keySet());
-        if(suppress&&!result.isEmpty()){
+        if(!result.isEmpty()){
             List<String> lines=new ArrayList<>();
             for(int number:result){String text=ProgrammableNgController.plain(visible.get(number));
                 lines.add(">>"+number+" "+text.substring(0,Math.min(text.length(),300)));

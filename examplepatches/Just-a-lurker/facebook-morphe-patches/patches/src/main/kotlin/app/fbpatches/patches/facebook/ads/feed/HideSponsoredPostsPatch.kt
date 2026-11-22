@@ -7,7 +7,9 @@ package app.fbpatches.patches.facebook.ads.feed
 
 import app.fbpatches.patches.facebook.shared.EXTENSION_PACKAGE
 import app.fbpatches.patches.facebook.shared.extensionPatch
+import app.fbpatches.patches.facebook.shared.freeLocalsAt
 import app.fbpatches.patches.facebook.shared.holdsString
+import app.fbpatches.patches.facebook.shared.mutableMethodOf
 import app.fbpatches.patches.facebook.shared.parameterRegister
 import app.fbpatches.patches.facebook.shared.patchLog
 import app.fbpatches.patches.facebook.shared.requireLocals
@@ -53,6 +55,13 @@ private const val HIDES_EDGE = "$FEED_UNIT_EDGE->$HIDES_EDGE_HELPER($FEED_UNIT_E
 
 /** The log line only the edge swap runnable holds. */
 private const val EDGE_SWAP_DROPPED = "Edge swap dropped"
+
+/** The log lines only the two replace runnables hold, one each. */
+private const val REPLACE_AND_DISPLACE = "Replace-and-displace UI commit failed"
+private const val REPLACE_AND_TRUNCATE = "Replace-and-truncate UI commit failed"
+
+/** The kept name Kotlin gives the replace-and-displace runnable's captured new edge. */
+private const val NEW_EDGE_FIELD = "\$newEdge"
 
 /**
  * The private method of the feed collection manager that adds one edge to the feed list builder.
@@ -132,7 +141,77 @@ val hideSponsoredPostsPatch = bytecodePatch(
 
         // Ads swapped in over another edge never pass the funnel.
         guardEdgeSwap()?.let { patchLog.warning("Hide sponsored posts: $it. Swapped-in ads may still show.") }
+
+        // 585's client-side feed loader (MainFeedCSRDataLoaderImpl, feed_supply_hotswap_render)
+        // also commits two kinds of replacement, each in a runnable of its own that puts the new
+        // edge in without the funnel or the swap above: replace-and-displace and
+        // replace-and-truncate. The supply it ranks takes ads from the feed's separate ads channel.
+        guardEdgeReplace(REPLACE_AND_DISPLACE) { code ->
+            // Two edges are cast here, the new one and the displaced one: take the new one by its
+            // captured field's kept name.
+            val read = code.indexOfFirst {
+                it.opcode == Opcode.IGET_OBJECT &&
+                    ((it as ReferenceInstruction).reference as? FieldReference)?.name == NEW_EDGE_FIELD
+            }
+            if (read < 0) null else (read + 1 until minOf(code.size, read + 6)).firstOrNull { isEdgeCast(code[it]) }
+        }?.let { patchLog.warning("Hide sponsored posts: $it. An ad the feed swaps in by replace-and-displace may still show.") }
+        guardEdgeReplace(REPLACE_AND_TRUNCATE) { code ->
+            // Only the new edge is an edge here; the old one goes by its key.
+            code.indices.filter { isEdgeCast(code[it]) }.singleOrNull()
+        }?.let { patchLog.warning("Hide sponsored posts: $it. An ad the feed swaps in by replace-and-truncate may still show.") }
     }
+}
+
+private fun isEdgeCast(instruction: Instruction): Boolean =
+    instruction.opcode == Opcode.CHECK_CAST && (instruction as ReferenceInstruction).reference.toString() == FEED_UNIT_EDGE
+
+/**
+ * Puts the guard in the runnable holding [marker], one of the two that commit a replacement the
+ * feed's client-side loader worked out, right after [newEdgeCast] casts the new edge: an ad makes
+ * the runnable answer Unit before it changes anything, so the old edge stays where it was. That's
+ * the way out Facebook takes itself when the commit's preconditions fail. Null when done, or why not.
+ */
+private fun BytecodePatchContext.guardEdgeReplace(marker: String, newEdgeCast: (List<Instruction>) -> Int?): String? {
+    val candidates = classDefByStrings(marker, StringComparisonType.EQUALS).flatMap { owner ->
+        owner.methods.filter {
+            it.name == "invoke" && it.returnType == "Ljava/lang/Object;" && it.parameterTypes.isEmpty() &&
+                holdsString(it, marker)
+        }
+    }
+    val found = candidates.singleOrNull() ?: return "found ${candidates.size} runnables holding \"$marker\", expected 1"
+    val run = mutableMethodOf(found)
+    val code = run.instructions.toList()
+
+    val cast = newEdgeCast(code) ?: return "the runnable holding \"$marker\" casts no new GraphQLFeedUnitEdge"
+    val edge = (code[cast] as OneRegisterInstruction).registerA
+
+    // Kotlin's Unit, as the runnable loads it right before it returns.
+    val unit = code.indices.firstNotNullOfOrNull { index ->
+        val field = (code[index] as? ReferenceInstruction)?.reference as? FieldReference
+        field?.takeIf {
+            code[index].opcode == Opcode.SGET_OBJECT && it.type == it.definingClass &&
+                code.getOrNull(index + 1)?.opcode == Opcode.RETURN_OBJECT
+        }
+    } ?: return "the runnable holding \"$marker\" doesn't return Unit"
+
+    val scratch = try {
+        run.freeLocalsAt("Hide sponsored posts", cast + 1, 1).single()
+    } catch (busy: PatchException) {
+        return busy.message ?: "no free register in the runnable holding \"$marker\""
+    }
+
+    run.addInstructionsWithLabels(
+        cast + 1,
+        """
+            invoke-static/range { v$edge .. v$edge }, $HIDES_EDGE
+            move-result v$scratch
+            if-eqz v$scratch, :replace
+            sget-object v$scratch, ${unit.definingClass}->${unit.name}:${unit.type}
+            return-object v$scratch
+        """,
+        ExternalLabel("replace", run.getInstruction(cast + 1)),
+    )
+    return null
 }
 
 /** The registers an instruction reads (best effort, enough to tell a free register apart). */

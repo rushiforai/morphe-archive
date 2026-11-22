@@ -14,36 +14,16 @@
         return !!shelf && shelf.tvhtml5ShelfRendererType === "TVHTML5_SHELF_RENDERER_TYPE_SHORTS";
     }
 
-    function removeShorts(node, depth) {
-        if (!node || typeof node !== "object" || depth > 30) return 0;
-        var removed = 0;
-        if (Array.isArray(node)) {
-            for (var i = node.length - 1; i >= 0; i--) {
-                if (isShorts(node[i])) {
-                    node.splice(i, 1);
-                    removed++;
-                } else {
-                    removed += removeShorts(node[i], depth + 1);
-                }
-            }
-            return removed;
-        }
-        for (var key in node) {
-            if (Object.prototype.hasOwnProperty.call(node, key)) removed += removeShorts(node[key], depth + 1);
-        }
-        return removed;
-    }
-
     youtv.feature({
         id: "shorts",
         nameKey: "feature.shorts.name",
         summaryKey: "feature.shorts.summary",
         defaultEnabled: true,
         restart: true,
-        onResponse: function (response, settings, text) {
-            if (!youtv.mentions(text, ["reelWatchEndpoint", "TVHTML5_SHELF_RENDERER_TYPE_SHORTS"])) return;
-            var removed = removeShorts(response, 0);
-            if (removed) youtv.report("shorts: removed " + removed + " item(s)");
+        treeFilter: {
+            markers: ["reelWatchEndpoint", "TVHTML5_SHELF_RENDERER_TYPE_SHORTS"],
+            item: isShorts,
+            report: function (removed) { youtv.report("shorts: removed " + removed + " item(s)"); }
         }
     });
 })();

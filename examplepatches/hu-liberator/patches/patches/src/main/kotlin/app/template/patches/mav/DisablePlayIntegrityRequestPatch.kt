@@ -11,24 +11,30 @@ import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 
 /**
- * Verified against hu.mav.emmapp_merged.apk (JADX/smali: W5/b.java, method
- * a(g)). This is Play Core's own IntegrityManager request implementation
+ * Verified against hu.mav.emmapp 2.7.6-prod (smali: LU5/b;->a(LU5/g;)LT5/r;,
+ * located purely by the log string below). This is Play Core's own
+ * IntegrityManager request implementation
  * (statically linked into the app's dex), the actual entry point that
  * initiates a Play Integrity token request -- everything downstream
  * (the failure callback, the verdict decode) only runs once this succeeds
  * or fails.
  *
- * W5.b and its method name "a" have stayed stable across the one app update
- * observed so far (2.4.15-prod -> 2.4.19-prod), unlike this app's own
- * obfuscated code, so definingClass/name are kept here as a primary anchor
- * -- but NOT the return type: it changed from `LV5/q;` to `LV5/r;` in that
- * same update (the Task-like class itself got renamed), which is exactly why
- * this patch no longer hardcodes it, or the exception-wrapping utility class
- * it used to call by name either (`LP2/x0;->U(...)` became
- * `Lsd/d;->v0(...)`, i.e. class, method name, AND return type all changed).
- * `parameters` is kept as a secondary anchor to disambiguate from an
- * unrelated method in a sibling class that logs the same string with a
- * different (zero-parameter) shape.
+ * This is Play Core library code, and R8 re-obfuscates it on every app
+ * update, so NOTHING obfuscated is hardcoded here any more. Across the
+ * versions observed, the class went `LW5/b;` -> `LU5/b;`, its single
+ * parameter `LW5/g;` -> `LU5/g;`, and the Task-like return type
+ * `LV5/q;` -> `LV5/r;` -> `LT5/r;`; the exception-wrapping factory it calls
+ * has likewise been `LP2/x0;->U`, `Lsd/d;->v0`, and now
+ * `Lcom/bumptech/glide/c;->f0`. (An earlier version of this fingerprint
+ * pinned definingClass/name/parameter-type and broke on 2.7.6 when all three
+ * were re-obfuscated at once.)
+ *
+ * The only stable anchor is the log string "requestIntegrityToken(%s)" plus
+ * the method's shape: public final, exactly one object parameter, object
+ * (non-void) return. `parameters`/`returnType` are given as the single char
+ * "L", which morphe matches as "starts with L" (any object type), while the
+ * parameter COUNT (1) rules out the sibling class that logs the same string
+ * from a zero-parameter, void method (`LU5/c;->b()V`).
  *
  * Rather than keep patching downstream callbacks -- the verdict-decode
  * method in particular is a fragile, control-flow-flattened, packed-switch-
@@ -64,10 +70,13 @@ import com.android.tools.smali.dexlib2.iface.reference.MethodReference
  * exact MethodReference (whatever it currently is) is reused verbatim.
  */
 object PlayIntegrityRequestFingerprint : Fingerprint(
-    definingClass = "LW5/b;",
-    name = "a",
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
-    parameters = listOf("LW5/g;"),
+    // "L" alone is matched by morphe as STARTS_WITH, i.e. "any object type",
+    // never hardcoding the obfuscated names (see KDoc). returnType "L" also
+    // excludes the void sibling; the one-element parameters list pins the
+    // method to exactly one (object) argument.
+    returnType = "L",
+    parameters = listOf("L"),
     strings = listOf("requestIntegrityToken(%s)"),
 )
 

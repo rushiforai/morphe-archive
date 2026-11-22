@@ -1,0 +1,11 @@
+.gradle/
+.kotlin/
+**/build/
+*.apk
+*.apks
+*.apkm
+*.mpp
+*.key
+*.p12
+*.jks
+*.password

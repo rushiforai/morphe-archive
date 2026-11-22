@@ -21,13 +21,13 @@ Click the button below, or manually add this repo URL in Morphe Manager: https:/
 - Bloomberg is not distributed outside Google Play. This repo does not ship the APK. Start from a legitimate Play Store install on your device.
 - Keep **Clone Bloomberg** enabled. The patched app installs as `com.bloomberg.android.plus.morphe` next to the Play Store version.
 - First patch: in Morphe Manager, tap the APK picker (top right), open the installed app list, and select Bloomberg.
-- After the first patch, Morphe may stop listing the Play Store Bloomberg in that picker, even though it is still installed. For later patches, extract the Play Store install with [AntiSplit-M](https://github.com/AbdurazaaqMohammed/AntiSplit-M), then select the extracted APK file in Morphe (hoping it matches the required app version lol).
+- Morphe may stop listing the Play Store Bloomberg in that picker, even though it is still installed. If that happens, extract the Play Store install with [AntiSplit-M](https://github.com/AbdurazaaqMohammed/AntiSplit-M), then select the extracted APK file in Morphe (hoping it matches the required app version lol).
 - AntiSplit-M is a third-party GitHub app. I do not control it and cannot promise that any third-party install is safe. Use it at your own risk, and prefer downloading it only from the linked repository.
 
 ## Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.4.0](https://github.com/mirbyte/morphe-patches/releases/tag/v1.4.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;23 patches total
+> **[v1.5.0](https://github.com/mirbyte/morphe-patches/releases/tag/v1.5.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;23 patches total
 <details open>
 <summary>📦 Bloomberg&nbsp;&nbsp;•&nbsp;&nbsp;8 patches</summary>
 <br>
@@ -36,8 +36,8 @@ Click the button below, or manually add this repo URL in Morphe Manager: https:/
 
 **🎯 Supported versions:**
 
-| 6.66.0.5604504.069af9ffeb | 6.70.0.5693432.0411be1ed |
-| :---: | :---: |
+| 6.66.0.5604504.069af9ffeb | 6.70.0.5693432.0411be1ed | 6.71.0.5706597.b05d0421 |
+| :---: | :---: | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|

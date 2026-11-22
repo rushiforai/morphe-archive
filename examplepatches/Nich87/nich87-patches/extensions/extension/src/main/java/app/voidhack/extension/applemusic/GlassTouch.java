@@ -23,7 +23,7 @@ final class GlassTouch implements View.OnTouchListener {
         slop = ViewConfiguration.get(controller.navigation.getContext()).getScaledTouchSlop();
     }
 
-    boolean active() { return heldItem != null; }
+    boolean active() { return heldItem != null && !cancelled; }
 
     void cancel() {
         if (heldItem != null) {

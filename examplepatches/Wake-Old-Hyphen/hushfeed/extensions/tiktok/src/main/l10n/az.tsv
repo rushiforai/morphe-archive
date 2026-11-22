@@ -1531,6 +1531,17 @@ An exception names one creator, so a pattern can't be one: %1$s	İstisna bir yar
 An exception takes a handle or id, not a display name: %1$s	İstisna istifadəçi adı və ya ID qəbul edir, görünən ad yox: %1$s
 Also on a block list, so still hidden: %1$s	Həm də bloklama siyahısındadır, ona görə yenə gizlədilir: %1$s
 Find the sound on YouTube Music	Səsi YouTube Music-də tapın
+Identify the song with Shazam	Mahnını Shazam ilə tanıyın
+This video has no sound to identify	Bu videoda tanınacaq səs yoxdur
+Still looking up the song	Mahnı hələ axtarılır
+Looking up the song	Mahnı axtarılır
+Shazam didn't recognize this song	Shazam bu mahnını tanımadı
+This sound is too quiet to identify	Bu səs tanınmaq üçün çox zəifdir
+Shazam is busy. Try again later.	Shazam məşğuldur. Sonra yenidən cəhd edin.
+The song couldn't be looked up. Try again.	Mahnını axtarmaq mümkün olmadı. Yenidən cəhd edin.
+%1$s by %2$s	%1$s, ifaçı: %2$s
+Song copied	Mahnı kopyalandı
+YouTube Music	YouTube Music
 YouTube Music isn't installed	YouTube Music quraşdırılmayıb
 This video's sound has no title to look for	Bu videonun səsində axtarılacaq ad yoxdur
 YouTube Music didn't open. Open it yourself to search.	YouTube Music açılmadı. Özünüz açıb axtarın.
@@ -3115,3 +3126,10 @@ Hide the Add bio prompt TikTok shows on your own profile while it has no bio. Yo
 Show the picture before saving	Saxlamadan əvvəl şəkli göstər
 With the long press save on, holding a profile picture opens it full screen at full size, with a Save button under it.	Uzun basmaqla saxlama açıq olanda profil şəklini basıb saxlamaq onu tam ekranda, tam ölçüdə açır, altında Saxla düyməsi olur.
 The profile picture couldn't be loaded. Try again.	Profil şəkli yüklənə bilmədi. Yenidən cəhd edin.
+Share any comment	İstənilən şərhi paylaş
+Share a comment or send it in a chat even when TikTok says it can't be shared.	TikTok paylaşıla bilməz desə belə, şərhi paylaş və ya söhbətdə göndər.
+# context: Comment tools switches; Hide the expand button in comments is another switch's title
+Always show the expand button in comments	Şərhlərdə genişləndirmə düyməsini həmişə göstərin
+Puts the button that stretches the comments over the whole screen on every video. TikTok only gives it to some accounts. Hide the expand button in comments wins if both are on.	Şərhləri bütün ekrana yayan düyməni hər videoya qoyur. TikTok onu yalnız bəzi hesablara verir. Hər ikisi yanılıdırsa, Şərhlərdə genişləndirmə düyməsini gizlədin üstün gəlir.
+Keep the video full size under comments	Şərhlərin altında videonu tam ölçüdə saxlayın
+The video keeps its size when you open the comments, and the comments cover its lower part instead of pushing it up into a smaller box.	Şərhləri açanda video öz ölçüsünü saxlayır, şərhlər isə onu yuxarı, daha kiçik bir qutuya itələmək əvəzinə aşağı hissəsini örtür.

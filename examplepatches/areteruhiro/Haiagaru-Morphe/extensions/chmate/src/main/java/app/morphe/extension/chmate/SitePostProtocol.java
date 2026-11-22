@@ -10,14 +10,20 @@ import org.jsoup.nodes.*;
 /** Plans a text reply from the site's own current form. Never fabricates browser proof or consent. */
 final class SitePostProtocol {
     static final class Image {
-        final byte[] bytes;final String name,type;
-        Image(byte[] bytes)throws IOException{
+        final byte[] bytes;final String name,type,displayName;
+        Image(byte[] bytes)throws IOException{this(bytes,null);}
+        Image(byte[] bytes,String displayName)throws IOException{
             if(bytes==null||bytes.length<12||bytes.length>8*1024*1024)throw new IOException("画像は8MiB以内で指定してください");
             if((bytes[0]&255)==255&&(bytes[1]&255)==216&&(bytes[2]&255)==255){type="image/jpeg";name="image.jpg";}
             else if(bytes[0]==(byte)137&&bytes[1]==80&&bytes[2]==78&&bytes[3]==71&&bytes[4]==13&&bytes[5]==10&&bytes[6]==26&&bytes[7]==10){type="image/png";name="image.png";}
             else if(new String(bytes,0,6,java.nio.charset.StandardCharsets.US_ASCII).matches("GIF8[79]a")){type="image/gif";name="image.gif";}
             else throw new IOException("JPEG・PNG・GIFの画像を指定してください");
-            this.bytes=bytes.clone();
+            this.bytes=bytes.clone();this.displayName=safeDisplayName(displayName,name);
+        }
+        private static String safeDisplayName(String value,String fallback){
+            if(value==null||value.trim().isEmpty())return fallback;
+            String name=value.replace('\\','/');name=name.substring(name.lastIndexOf('/')+1).replaceAll("[\\r\\n\\u0000-\\u001f\\u007f]","").trim();
+            return name.isEmpty()?fallback:name.length()>120?name.substring(name.length()-120):name;
         }
     }
     static final class Plan {
@@ -154,14 +160,12 @@ final class SitePostProtocol {
         if(board.kind.equals("animanch"))try{return status==200&&AnimanchProtocol.postedReply(body,thread)>0;}catch(IOException failed){return false;}
         if(status==302||status==303){String target=SiteBoardProtocol.resolve(board.threadUrl(thread),location);return thread.equals(SiteBoardProtocol.threadIn(board,target));}
         if(status!=200)return false;
-        Document doc=Jsoup.parse(body);if(doc.selectFirst(".thre,#threadBody,#res0_whole")!=null)return false;
-        if(board.kind.equals("futaba")&&doc.selectFirst("form,blockquote") == null){
-            for(Element meta:doc.select("meta[http-equiv]"))if(meta.attr("http-equiv").equalsIgnoreCase("refresh")){
-                java.util.regex.Matcher redirect=java.util.regex.Pattern.compile("(?i)^[0-9]+;\\s*URL=(.+)$").matcher(meta.attr("content").trim());
-                if(redirect.matches()&&thread.equals(SiteBoardProtocol.threadIn(board,SiteBoardProtocol.resolve(board.url,redirect.group(1))))
-                        &&doc.body().text().matches("スレッド\\s*"+java.util.regex.Pattern.quote(thread)+"\\s*に切り替えます.*"))return true;
-            }
-        }
+        Document doc=Jsoup.parse(body);
+        // Futaba's successful reply response is the regenerated board index with
+        // its normal forms/posts, followed by a meta refresh to futaba.htm. Check
+        // that explicit success marker before treating those forms as an error.
+        if(board.kind.equals("futaba")&&futabaSuccess(board,thread,doc))return true;
+        if(doc.selectFirst(".thre,#threadBody,#res0_whole")!=null)return false;
         String title=doc.title().trim();
         return title.equals("書きこみました。")||title.equals("書き込みました。")||title.equals("投稿完了")||title.equals("レス投稿完了");
     }
@@ -172,7 +176,37 @@ final class SitePostProtocol {
         String text=doc.body().text().trim();
         if(text.equals("cookieを有効にしてもう一度送信してください"))return "ふたばの投稿用Cookieを受け取りました。数秒待ってから、もう一度送信してください。今回の本文は投稿されていません。";
         if(text.matches("操作が早すぎます あと[0-9]{1,3}秒で再送できます"))return text+"。今回の本文は投稿されていません。";
+        // The common Futaba script returns an HTTP 200 error document with the
+        // rejection inside a red font, not an HTTP error status or title.
+        for(Element candidate:doc.select("font"))if(candidate.attr("color").matches("(?i)(?:red|#f00|#ff0000)")){
+            Element message=candidate.selectFirst("b");if(message==null)message=candidate;
+            message.select("a").remove();
+            String detail=message.text().replaceAll("\\s+"," ").trim();
+            detail=detail.replaceAll("(?i)\\bリロード\\b"," ").replaceAll("\\s+"," ").trim();
+            if(!detail.isEmpty()){
+                if(detail.length()>240)detail=detail.substring(0,240);
+                return "ふたばの板が投稿を拒否しました: "+detail+"。今回は投稿されていません。";
+            }
+        }
         return "";
+    }
+    private static boolean futabaSuccess(SiteBoardProtocol.Board board,String thread,Document doc){
+        if(!board.kind.equals("futaba"))return false;
+        for(Element meta:doc.select("meta[http-equiv]"))if(meta.attr("http-equiv").equalsIgnoreCase("refresh")){
+            java.util.regex.Matcher redirect=java.util.regex.Pattern.compile("(?i)^[0-9]+;\\s*URL=(.+)$").matcher(meta.attr("content").trim());
+            if(!redirect.matches())continue;
+            String target=SiteBoardProtocol.resolve(board.url,redirect.group(1).trim());if(target==null)continue;
+            String body=doc.body()==null?"":doc.body().text();
+            if(thread.equals(SiteBoardProtocol.threadIn(board,target))
+                    &&body.matches("スレッド\\s*"+java.util.regex.Pattern.quote(thread)+"\\s*に切り替えます.*"))return true;
+            try{
+                URI destination=URI.create(target);String expected="/"+board.path+"/futaba.htm";
+                if(board.host.equalsIgnoreCase(destination.getHost())&&destination.getPort()==-1
+                        &&destination.getRawQuery()==null&&destination.getPath().equals(expected)
+                        &&body.contains("画面を切り替えます"))return true;
+            }catch(RuntimeException ignored){}
+        }
+        return false;
     }
     private SitePostProtocol(){}
 }

@@ -81,8 +81,11 @@ the subreddit's posts, or the account's posts and comments, in every feed.
 | Hide Popular, News, Latest, Discover communities, Start a community, and Custom feeds | Sidebar | A switch for each sidebar row |
 | Hide Recently Visited shelf | Sidebar | Only when Morphe Patches' own switch of that name is absent |
 | Hide sidebar button badge | Sidebar | Hides the orange dot on the sidebar (menu) button; Morphe offers a restart when you leave its settings |
+| Create post (no switch) | A subreddit's three-dot menu | While Morphe Patches' Hide Create button is on, the menu of the subreddit open gains Create post, which opens the post editor with that subreddit chosen |
 
 A section Morphe Patches leaves out (its patch not selected) is added with the same title.
+
+Search settings, the first row of Settings > Morphe, searches every row of Morphe Patches' and this bundle's settings by title, summary, and page, ignoring accents; a tap on a result opens its page with the row marked.
 
 ## Other patches
 

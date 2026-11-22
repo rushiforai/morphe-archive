@@ -13,6 +13,7 @@ import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 
 private const val COMSCORE_INITIALIZER = "Lcom/bloomberg/comscore/ComScoreInitializer;"
+private const val COMSCORE_INITIALIZER_6_71 = "Lcom/bloomberg/comscore/a;"
 private const val COMSCORE_MODULE = "Lcom/bloomberg/comscore/ComscoreModule;"
 private const val STREAMSENSE_MODULE = "Lcom/bloomberg/comscore/StreamSenseModule;"
 private const val APPSFLYER_MODULE = "Lcom/appsflyer/reactnative/RNAppsFlyerModule;"
@@ -40,14 +41,20 @@ val disableAppsFlyerComscorePatch = bytecodePatch(
         fun method(descriptor: String, name: String) =
             mutableClassDefBy(descriptor).methods.first { it.name == name }
 
-        method(COMSCORE_INITIALIZER, "initialize").let { initialize ->
-            val index = initialize.indexOfInstruction {
-                it.opcode == Opcode.SGET_BOOLEAN && it.isSgetOf("isInitialized")
+        if (packageMetadata.versionName == "6.71.0.5706597.b05d0421") {
+            method(COMSCORE_INITIALIZER_6_71, "a").returnEarly()
+            method(COMSCORE_INITIALIZER_6_71, "b").returnEarly()
+            method(COMSCORE_INITIALIZER_6_71, "c").returnEarly()
+        } else {
+            method(COMSCORE_INITIALIZER, "initialize").let { initialize ->
+                val index = initialize.indexOfInstruction {
+                    it.opcode == Opcode.SGET_BOOLEAN && it.isSgetOf("isInitialized")
+                }
+                initialize.replaceInstruction(index, "const/4 v0, 0x1")
             }
-            initialize.replaceInstruction(index, "const/4 v0, 0x1")
+            method(COMSCORE_INITIALIZER, "notifyEnterForeground").returnEarly()
+            method(COMSCORE_INITIALIZER, "notifyExitForeground").returnEarly()
         }
-        method(COMSCORE_INITIALIZER, "notifyEnterForeground").returnEarly()
-        method(COMSCORE_INITIALIZER, "notifyExitForeground").returnEarly()
 
         method(COMSCORE_MODULE, "logComScoreViewEvent").let { logView ->
             val index = logView.indexOfInstruction { it.isCallTo("checkNotNullParameter") }

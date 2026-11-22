@@ -13,9 +13,9 @@ import struct
 import zipfile
 
 ROOT = Path(__file__).resolve().parents[1]
-VERSION = "0.4.4"
+VERSION = next(line.split("=", 1)[1].strip() for line in (ROOT / "gradle.properties").read_text(encoding="utf-8").splitlines() if line.strip().startswith("version ="))
 OWNER = "rikunode"
-REPOSITORY = "hatena-bookmark-hide-pr-patches"
+REPOSITORY = "hoshiori"
 EXPECTED_NAMES = {
     "Hide native PR entries from article feeds",
     "Clone Hatena Bookmark for safe side-by-side testing",

@@ -140,26 +140,33 @@ public final class XPostPreview {
         return ids;
     }
     static final class Data {
-        final String id, author, handle, text, date, excerpt;
-        final boolean truncated,possiblyTruncated;
-        final int visibleBytes;
-        Data(String id, String author, String handle, String text, String date) {
-            this(id,author,handle,text,date,false,false);
-        }
-        Data(String id, String author, String handle, String text, String date,boolean truncated,boolean possiblyTruncated) {
-            this(id,author,handle,text,date,truncated,possiblyTruncated,XPostLength.visibleBytes(text,null));
-        }
-        Data(String id, String author, String handle, String text, String date,boolean truncated,boolean possiblyTruncated,int visibleBytes) {
+        final String id, author, handle, text, date;
+        final boolean truncated, quote;
+        final int visibleBytes, detailedPoints, bodyStart;
+        final boolean incompleteNote, recovered, trailingEllipsis;
+
+        Data(String id, String author, String handle, String text, String date,
+             boolean truncated, int visibleBytes, int detailedPoints, int bodyStart,
+             boolean quote, boolean incompleteNote, boolean recovered, boolean trailingEllipsis) {
             this.id = id; this.author = author; this.handle = handle; this.text = text; this.date = date;
-            this.truncated=truncated;this.possiblyTruncated=possiblyTruncated;
-            this.visibleBytes=visibleBytes;
-            excerpt = text.codePointCount(0, text.length()) > 140
-                    ? text.substring(0, text.offsetByCodePoints(0, 140)) + "…" : text;
+            this.truncated = truncated; this.quote = quote;
+            this.visibleBytes = visibleBytes; this.detailedPoints = detailedPoints; this.bodyStart = bodyStart;
+            this.incompleteNote = incompleteNote; this.recovered = recovered; this.trailingEllipsis = trailingEllipsis;
         }
-        String notice(boolean full){
-            if(!full&&text.codePointCount(0,text.length())>140)return "［表示を140文字で省略しています］";
-            if(truncated)return "［以下省略］";
-            return possiblyTruncated?"［省略の可能性］":"";
+
+        boolean possiblyTruncated(boolean detailed) {
+            return truncated || incompleteNote || !recovered && (trailingEllipsis || (detailed
+                    ? detailedPoints > XPostLength.POSSIBLE_TRUNCATION_POINTS
+                    : visibleBytes > XPostLength.POSSIBLE_TRUNCATION_BYTES));
+        }
+
+        String body(boolean full, boolean detailed) {
+            return full ? text : XPostLength.excerpt(text, bodyStart, detailed);
+        }
+
+        String notice(boolean full, boolean detailed, String body) {
+            if (!full && (truncated || body.length() < text.length())) return "［以下省略］";
+            return possiblyTruncated(detailed) ? "［省略の可能性］" : "";
         }
     }
 
@@ -184,8 +191,12 @@ public final class XPostPreview {
             noteComplete=!noteText.isEmpty();
             if (noteText.length() > full.length()) full = noteText;
         }
-        boolean fullProvided=!full.isEmpty()&&full.length()>=text.length()
-                &&(!post.optBoolean("truncated",false)||full.length()>text.length()||noteComplete);
+        boolean explicitlyTruncated = post.optBoolean("truncated", false)
+                || legacy != null && legacy.optBoolean("truncated", false);
+        // Some endpoints repeat the short body in full_text. Only a longer body
+        // or an actual Note body proves that a reported truncation was recovered.
+        boolean expandedText = full.length() > text.length() && !text.isEmpty();
+        boolean recovered = noteComplete || expandedText;
         if (full.length() > text.length()) text = full;
         if (user == null || text.isEmpty() || text.length() > 50_000) return null;
         String handle = user.optString("screen_name", "");
@@ -193,16 +204,23 @@ public final class XPostPreview {
         int warningStart = XPostLength.replyMentionPrefixEnd(text, post);
         int visibleBytes = XPostLength.visibleBytes(text, post, warningStart);
         int detailedPoints = XPostLength.detailedPoints(text, post, warningStart);
-        boolean thresholdReached = Haiagaru.xPostWarningThresholdMode() == 0
-                ? detailedPoints > XPostLength.POSSIBLE_TRUNCATION_POINTS
-                : visibleBytes > XPostLength.POSSIBLE_TRUNCATION_BYTES;
         String previewText = XPostLength.withoutAttachmentUrls(text, post);
-        Data data = new Data(expectedId, user.optString("name", "").substring(0,
+        boolean truncated = explicitlyTruncated && !recovered;
+        return new Data(expectedId, user.optString("name", "").substring(0,
                 Math.min(200, user.optString("name", "").length())), handle, previewText,
-                post.optString("created_at", ""),post.optBoolean("truncated",false)&&!fullProvided,
-                !noteComplete&&post.optBoolean("is_note_tweet",false)
-                        ||!fullProvided&&(thresholdReached||text.endsWith("…")||text.endsWith("...")));
-        return new Data(data.id,data.author,data.handle,data.text,data.date,data.truncated,data.possiblyTruncated,visibleBytes);
+                post.optString("created_at", ""), truncated, visibleBytes, detailedPoints,
+                XPostLength.replyMentionPrefixEnd(previewText, post), quote(post) || quote(legacy),
+                !noteComplete && (post.optBoolean("is_note_tweet", false) || note != null),
+                recovered, previewText.endsWith("…") || previewText.endsWith("..."));
+    }
+
+    private static boolean quote(JSONObject post) {
+        if (post == null) return false;
+        return post.optBoolean("is_quote_status", false)
+                || post.optJSONObject("quoted_tweet") != null || post.optJSONObject("quoted_status") != null
+                || post.optJSONObject("quoted_status_result") != null
+                || post.optString("quoted_status_id_str", "").matches("[1-9][0-9]{0,23}")
+                || post.optString("quoted_tweet_id", "").matches("[1-9][0-9]{0,23}");
     }
 
     static void apply(TextView view) {
@@ -373,9 +391,12 @@ public final class XPostPreview {
             if (card) result.append(data.author).append("  · X\n@").append(data.handle).append("\n\n");
             else result.append(data.author).append("  @").append(data.handle).append("  · X\n");
             result.setSpan(new StyleSpan(Typeface.BOLD), author, result.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-            String body = Haiagaru.xPostPreviewFullText() ? data.text : data.excerpt;
+            if (data.quote) result.append("［引用ポスト］\n");
+            boolean full = Haiagaru.xPostPreviewFullText();
+            boolean detailed = Haiagaru.xPostWarningThresholdMode() == 0;
+            String body = data.body(full, detailed);
             appendBody(result, body);
-            String notice=data.notice(Haiagaru.xPostPreviewFullText());
+            String notice = data.notice(full, detailed, body);
             if(!notice.isEmpty())result.append("\n").append(notice);
             if (!data.date.isEmpty()) result.append(card ? "\n\n" : "\n").append(XPostTime.japan(data.date));
             result.append(card ? "\n\n投稿を開く" : "\n投稿を開く");

@@ -1,3 +1,14 @@
+## [1.5.0](https://github.com/rikunode/pupil-morphe-patches/compare/v1.4.0...v1.5.0) (2026-11-22)
+
+### 🐛 Bug Fixes
+
+* align settings fingerprint guard with original dex ([3e25c04](https://github.com/rikunode/pupil-morphe-patches/commit/3e25c04c397aaf491fe40df6c6157ea84285586c))
+* fail soft when settings preference reflection fails ([03b9202](https://github.com/rikunode/pupil-morphe-patches/commit/03b920299cfb1c892a6fa2d2d61dcf8054386516))
+
+### ✨ New Features
+
+* choose favorites random button side in app settings ([6f68e77](https://github.com/rikunode/pupil-morphe-patches/commit/6f68e772ed5ba0da3510a7b63061f145086fb56c))
+
 ## [1.4.0](https://github.com/rikunode/pupil-swipe-disable-patches/compare/v1.3.0...v1.4.0) (2026-11-20)
 
 ### ✨ New Features

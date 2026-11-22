@@ -1,3 +1,9 @@
+## [1.10.1](https://github.com/FoxxoOwO/foxxo-patches/compare/v1.10.0...v1.10.1) (2026-11-21)
+
+### 🐛 Bug Fixes
+
+* **ascent:** patch the correct s81 variant in premium mapper ([4b9e62c](https://github.com/FoxxoOwO/foxxo-patches/commit/4b9e62c0b67636c2947b68cc91f1b4f6831d683d))
+
 ## [1.10.0](https://github.com/FoxxoOwO/foxxo-patches/compare/v1.9.0...v1.10.0) (2026-11-18)
 
 ### 🐛 Bug Fixes

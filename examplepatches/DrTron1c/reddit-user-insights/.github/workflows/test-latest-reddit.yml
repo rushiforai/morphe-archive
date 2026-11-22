@@ -1,0 +1,121 @@
+name: Test with latest Reddit
+
+# Checks that the patches still apply to the newest Reddit, together with the official Morphe patches.
+# - Works: the new version is added to the supported versions and a release is made.
+# - Fails: an issue is opened with the log.
+# The Reddit app and the patched app are never uploaded or published.
+
+on:
+  schedule:
+    - cron: "17 6 * * *"
+  workflow_dispatch:
+  workflow_run:
+    workflows: [ Release ]
+    types: [ completed ]
+    branches: [ main ]
+
+permissions:
+  contents: write
+  issues: write
+  actions: write
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Download Reddit
+        id: reddit
+        run: bash .github/scripts/download-reddit.sh
+
+      - name: Download patches and Morphe CLI
+        run: |
+          gh release download -R "$GITHUB_REPOSITORY" --pattern 'patches-*.mpp' -D work --clobber
+          gh release download -R MorpheApp/morphe-cli --pattern '*-all.jar' -D work --clobber
+          ls -la work
+
+      - name: Patch
+        id: patch
+        run: |
+          set -o pipefail
+          cli=$(ls work/*-all.jar | head -1)
+          mpp=$(ls work/patches-*.mpp | head -1)
+          java -jar "$cli" patch \
+            -p "$mpp" \
+            -p https://github.com/MorpheApp/morphe-patches \
+            -o work/out.apk --temporary-files-path work/tmp --force \
+            "${{ steps.reddit.outputs.file }}" 2>&1 | tee work/patch.log || true
+          rm -f work/out.apk
+          rm -rf work/tmp
+          if grep -E "User insights" work/patch.log | grep -qiE "fail|error"; then
+            echo "result=failed" >> "$GITHUB_OUTPUT"
+          elif grep -qiE "pills stay floating|User insights settings entry( needs|:)" work/patch.log; then
+            echo "result=partial" >> "$GITHUB_OUTPUT"
+          else
+            echo "result=ok" >> "$GITHUB_OUTPUT"
+          fi
+          echo "--- Our patches:"
+          grep -iE "user insights|UserInsights" work/patch.log || true
+
+      - name: Support the new version
+        if: steps.patch.outputs.result == 'ok'
+        run: |
+          version="${{ steps.reddit.outputs.version }}"
+          file=patches/src/main/kotlin/app/userinsights/patches/reddit/Constants.kt
+          if [ -z "$version" ] || grep -q "\"$version\"" "$file"; then
+            echo "Reddit $version is already supported."
+            exit 0
+          fi
+          python3 - "$file" "$version" <<'PY'
+          import sys, re
+          path, version = sys.argv[1], sys.argv[2]
+          text = open(path).read()
+          marker = "            AppTarget(\n                version = null\n            ),\n"
+          entry = '            AppTarget(\n                version = "%s",\n                minSdk = 29\n            ),\n' % version
+          if marker not in text:
+              sys.exit("marker not found")
+          text = text.replace(marker, marker + entry, 1)
+          open(path, "w").write(text)
+          PY
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -am "fix: Support Reddit $version"
+          git push
+          gh workflow run release.yml --ref main
+
+      - name: Close fixed problem reports
+        if: steps.patch.outputs.result == 'ok'
+        run: |
+          version="${{ steps.reddit.outputs.version }}"
+          for number in $(gh issue list --state open --search "Patches need an update for Reddit $version in:title" --json number --jq '.[].number'); do
+            gh issue close "$number" --comment "Fixed: the patches now apply to Reddit $version."
+          done
+
+      - name: Report a problem
+        if: steps.patch.outputs.result != 'ok'
+        run: |
+          version="${{ steps.reddit.outputs.version }}"
+          title="Patches need an update for Reddit $version"
+          if gh issue list --state open --search "$title in:title" --json number --jq '.[0].number' | grep -q .; then
+            echo "Issue already open."
+            exit 0
+          fi
+          {
+            echo "The newest Reddit ($version) did not patch cleanly (result: ${{ steps.patch.outputs.result }})."
+            echo
+            echo '```'
+            grep -iE "user insights|UserInsights|SEVERE|failed|not found" work/patch.log | head -60
+            echo '```'
+          } > work/issue.md
+          gh issue create --title "$title" --body-file work/issue.md

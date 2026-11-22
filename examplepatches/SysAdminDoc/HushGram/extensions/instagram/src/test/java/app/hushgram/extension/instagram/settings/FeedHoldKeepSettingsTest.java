@@ -50,6 +50,8 @@ public class FeedHoldKeepSettingsTest {
         PatchFamily.inBuildForTests = null;
         Settings.HOLD_FEED_VIDEO_FAST.resetToDefault();
         Settings.HOLD_FEED_VIDEO_KEEP.resetToDefault();
+        Settings.HOLD_FEED_VIDEO_KEEP_LONG.resetToDefault();
+        Settings.HOLD_FEED_VIDEO_KEEP_NAME.resetToDefault();
         BaseSettings.PAUSED.save(false);
         PauseForTests.resume();
         Settings.SIGN_IN_NOTICE_HIDDEN.resetToDefault();
@@ -84,6 +86,51 @@ public class FeedHoldKeepSettingsTest {
         assertNotNull(row);
         assertTrue(row.isEnabled());
     }
+    /** #552: Only after a long hold sits right under Keep 2x after you let go, off, and rests until that one is on. */
+    @Test public void theLongHoldSwitchSitsUnderTheKeepSwitch() throws Exception {
+        Settings.HOLD_FEED_VIDEO_FAST.save(true);
+        open(EnumSet.of(PatchFamily.FEED_HOLD_FAST));
+        Preference row = page.getPreferenceScreen().findPreference(Settings.HOLD_FEED_VIDEO_KEEP_LONG.key);
+        assertNotNull(row);
+        assertEquals("Only after a long hold", row.getTitle().toString());
+        assertEquals("Keeps 2x only when you hold the video for about 3 seconds. Let go sooner and it goes back to "
+                + "normal speed.", row.getSummary().toString());
+        assertFalse(((SwitchPreference) row).isChecked());
+        assertFalse("greyed out with Keep 2x after you let go off", row.isEnabled());
+        PreferenceGroup feed = row.getParent();
+        String[] keys = new String[feed.getPreferenceCount()];
+        for (int i = 0; i < keys.length; i++) keys[i] = feed.getPreference(i).getKey();
+        int at = Arrays.asList(keys).indexOf(Settings.HOLD_FEED_VIDEO_KEEP_LONG.key);
+        assertEquals(Arrays.toString(keys), Settings.HOLD_FEED_VIDEO_KEEP.key, keys[at - 1]);
+        assertTrue(ConfigurationBackup.eligible().containsKey(Settings.HOLD_FEED_VIDEO_KEEP_LONG.key));
+        assertEquals(Arrays.asList(Settings.HOLD_FEED_VIDEO_FAST, Settings.HOLD_FEED_VIDEO_KEEP, Settings.HOLD_FEED_VIDEO_KEEP_LONG,
+                Settings.HOLD_FEED_VIDEO_KEEP_NAME), PatchFamily.FEED_HOLD_FAST.switches);
+    }
+
+    /** #552: Keep the name while you hold comes after the Keep 2x switches, off, and rests until Hold for 2x on feed videos is on. */
+    @Test public void theKeepTheNameSwitchFollowsTheKeepSwitches() throws Exception {
+        open(EnumSet.of(PatchFamily.FEED_HOLD_FAST));
+        Preference row = page.getPreferenceScreen().findPreference(Settings.HOLD_FEED_VIDEO_KEEP_NAME.key);
+        assertNotNull(row);
+        assertEquals("Keep the name while you hold", row.getTitle().toString());
+        assertEquals("The name over a feed video stays while you hold it for 2x. Instagram's 2x and time labels don't show then.",
+                row.getSummary().toString());
+        assertFalse(((SwitchPreference) row).isChecked());
+        assertFalse("greyed out with Hold for 2x on feed videos off", row.isEnabled());
+        PreferenceGroup feed = row.getParent();
+        String[] keys = new String[feed.getPreferenceCount()];
+        for (int i = 0; i < keys.length; i++) keys[i] = feed.getPreference(i).getKey();
+        int at = Arrays.asList(keys).indexOf(Settings.HOLD_FEED_VIDEO_KEEP_NAME.key);
+        assertEquals(Arrays.toString(keys), Settings.HOLD_FEED_VIDEO_KEEP_LONG.key, keys[at - 1]);
+        assertTrue(ConfigurationBackup.eligible().containsKey(Settings.HOLD_FEED_VIDEO_KEEP_NAME.key));
+        controller.close();
+        controller = null;
+        Settings.HOLD_FEED_VIDEO_FAST.save(true);
+        open(EnumSet.of(PatchFamily.FEED_HOLD_FAST));
+        Preference on = page.getPreferenceScreen().findPreference(Settings.HOLD_FEED_VIDEO_KEEP_NAME.key);
+        assertTrue("on with Hold for 2x on feed videos on, Keep 2x after you let go off", on.isEnabled());
+    }
+
     @Test public void missingPatchHasNoKeepSwitch() throws Exception {
         open(EnumSet.of(PatchFamily.FEED_TAP_PAUSE));
         assertNull(page.getPreferenceScreen().findPreference(Settings.HOLD_FEED_VIDEO_KEEP.key));

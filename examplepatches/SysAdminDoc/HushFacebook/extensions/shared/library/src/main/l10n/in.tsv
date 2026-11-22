@@ -515,6 +515,10 @@ The comment box loses its GIF and sticker buttons. Typing, photos and posting wo
 # context: switch title under Comments: hides the Add a comment field at the bottom of the full-screen video viewer
 Hide the video comment box	Sembunyikan kotak komentar video
 The Add a comment box under a full-screen video goes away. Comment boxes on posts stay.	Kotak komentar di bawah video layar penuh hilang. Kotak komentar di postingan tetap ada.
+# context: switch title under Comments; the bar along the bottom of a live video holds its comment box and the reactions you tap to send
+Hide the live video comment bar	Sembunyikan bilah komentar video siaran langsung
+# context: description of that switch; the reactions are the Like, Love, Haha and other faces a tap sends to the live video
+The comment box and the row of reactions along the bottom of a live video go away, so a stray tap can't send one. The live comments stay.	Kotak komentar dan baris reaksi di bagian bawah video siaran langsung hilang, jadi ketukan tak sengaja tidak mengirim reaksi. Komentar siaran langsung tetap ada.
 # context: switch title under Comments; a reply thread is the replies under a comment, which Facebook folds behind View replies
 Open every reply thread	Buka semua utas balasan
 # context: summary of that switch; View replies is the link Facebook shows under a comment that has replies
@@ -588,6 +592,10 @@ Hide Share under posts	Sembunyikan Bagikan di bawah postingan
 Hide Send under posts	Sembunyikan Kirim di bawah postingan
 # context: summary shared by those five switches
 Takes this button out of the row under posts in the feed. The other buttons stay, and a post with all of its buttons hidden shows no row.	Menghapus tombol ini dari baris di bawah postingan di feed. Tombol lainnya tetap ada, dan postingan yang semua tombolnya disembunyikan tidak menampilkan baris.
+# context: switch title under News feed; the buttons are Like, Comment, Share and the others in the row under a post
+Ignore taps beside the buttons	Abaikan ketukan di samping tombol
+# context: description of that switch; the reaction icons are the small stacked emoji at the end of that row, and who reacted is the list of people who reacted
+A tap on the empty part of the row under a post, between the buttons and the reaction icons, does nothing instead of opening the comments or who reacted. The buttons work as before.	Ketukan di bagian kosong baris di bawah postingan, di antara tombol dan ikon reaksi, tidak melakukan apa pun alih-alih membuka komentar atau siapa yang bereaksi. Tombolnya tetap berfungsi seperti biasa.
 # context: what stays in while Hushfacebook is paused, followed by the patch name in brackets; the row in Facebook's own Menu that opens Hushfacebook settings
 # context: a short message when the Hushfacebook row in Facebook's Menu couldn't open the settings
 Hushfacebook settings can't open here. Long-press the Facebook logo instead.	Pengaturan Hushfacebook tidak bisa dibuka di sini. Tekan lama logo Facebook sebagai gantinya.
@@ -1962,6 +1970,10 @@ Puts the speaker button in the side column of reels, right above the three dots.
 Hide the reaction preview on posts	Sembunyikan pratinjau reaksi di postingan
 # context: summary of that switch; "reactions" are Facebook's Like, Love, Haha and other reactions
 Hides the stacked reaction icons and the reactions count under posts. The space stays, so a tap where they were still opens the list of reactions. To take the number off the Like button too, turn on Hide counts on posts.	Menyembunyikan ikon reaksi yang bertumpuk dan jumlah reaksi di bawah postingan. Ruangnya tetap ada, jadi mengetuk di tempat semula tetap membuka daftar reaksi. Untuk menghapus juga angka di tombol Suka, aktifkan Sembunyikan angka di postingan.
+# context: switch title under News feed; the reactions are the small stacked reaction icons (Like, Love, Haha) a post shows next to its count; the Like button is the button under a post, use Facebook's name for it
+Show reactions on the Like button	Tampilkan reaksi di tombol Suka
+# context: summary of that switch; the faces are those reaction icons; "Hide the reaction preview on posts" is another switch, match its own row
+Moves a post's reaction faces from the end of its button row onto the Like button, right before the count. The Like button likes and reacts as before. A video showing its views there gets one Like face, or your own reaction once you react. Hide the reaction preview on posts overrules it. A change shows on the posts drawn after it.	Memindahkan ikon reaksi postingan dari ujung baris tombolnya ke tombol Suka, tepat sebelum angkanya. Tombol Suka tetap menyukai dan memberi reaksi seperti biasa. Video yang menampilkan jumlah tontonannya di sana mendapat satu ikon Suka, atau reaksimu sendiri setelah kamu bereaksi. Sembunyikan pratinjau reaksi di postingan lebih diutamakan. Perubahan terlihat pada postingan yang ditampilkan setelahnya.
 # context: switch title under Comments; the reaction preview is the stack of reaction icons in the corner of a comment
 Hide the reaction preview on comments	Sembunyikan pratinjau reaksi di komentar
 # context: summary of that switch; "reactions" are Facebook's Like, Love, Haha and other reactions
@@ -2350,7 +2362,11 @@ Moves a feed video's seek bar closer to the bottom edge, along with Facebook's s
 Seek bar on the bottom edge	Bilah geser di tepi bawah
 Puts a feed video's seek bar right on its bottom edge, so it's out of the way while you scroll. Facebook's speaker and tagged people buttons move up to sit above it. Wins over Lower the seek bar and speaker. Needs Seek bar on feed videos on.	Menaruh bilah geser video feed tepat di tepi bawahnya, agar tidak mengganggu saat Anda menggulir. Tombol speaker dan orang yang ditandai milik Facebook naik ke atasnya. Lebih diutamakan daripada “Turunkan bilah geser dan speaker”. Perlu “Bilah geser di video feed” aktif.
 Thin line seek bar	Bilah geser garis tipis
-Shows a feed video's seek bar as a thin line right on its bottom edge, like Instagram's, with no dot or times until you drag it. Live videos get it too while they can be rewound. Let go at the far right end to go back to live. Facebook's speaker and tagged people buttons move up to sit above it. Needs Seek bar on feed videos on.	Menampilkan bilah geser video feed sebagai garis tipis tepat di tepi bawahnya, seperti di Instagram, tanpa titik atau waktu sampai Anda menyeretnya. Video live juga mendapatkannya selama bisa dimundurkan. Lepaskan di ujung kanan untuk kembali ke siaran langsung. Tombol speaker dan orang yang ditandai milik Facebook naik ke atasnya. Perlu “Bilah geser di video feed” aktif.
+# context: switch title on the Video and audio page, under Thin line seek bar; while the thin seek bar of a feed video is dragged it stays on the video's bottom edge
+Drag along the bottom edge	Geser di sepanjang tepi bawah
+# context: description of that switch; Thin line seek bar is the switch title above it, keep it as translated there
+While you drag the thin line, it stays on the video's bottom edge like Instagram's, with the time in the middle, instead of rising into the full bar with a time bubble. Needs Thin line seek bar on.	Saat Anda menyeret garis tipis, garis itu tetap di tepi bawah video seperti di Instagram, dengan waktu di tengah, alih-alih naik menjadi bilah penuh dengan gelembung waktu. Perlu “Bilah geser garis tipis” aktif.
+Shows a feed video's seek bar as a thin line right on its bottom edge, like Instagram's, with no dot until you drag it. Live videos get it too while they can be rewound. Let go at the far right end to go back to live. Facebook's speaker and tagged people buttons move up to sit above it. Needs Seek bar on feed videos on.	Menampilkan bilah geser video feed sebagai garis tipis tepat di tepi bawahnya, seperti di Instagram, tanpa titik sampai Anda menyeretnya. Video live juga mendapatkannya selama bisa dimundurkan. Lepaskan di ujung kanan untuk kembali ke siaran langsung. Tombol speaker dan orang yang ditandai milik Facebook naik ke atasnya. Perlu “Bilah geser di video feed” aktif.
 Feed video position	Posisi video feed
 # context: title of the row that holds a color code for the count badges on the tabs
 Badge color	Warna lencana
@@ -2408,6 +2424,7 @@ Holding a post's photo opens its reactions, as holding Like does. It comes befor
 Holding a post's video opens its reactions too. It comes before Long press opens comments. With Hold a feed video for 2x on, that one wins and the video plays fast.	Menahan video postingan juga membuka reaksinya. Ini didahulukan sebelum Tekan lama membuka komentar. Jika Tahan video feed untuk 2x aktif, sakelar itu yang didahulukan dan video diputar cepat.
 Reaction	Reaksi
 Pick one each time	Pilih setiap kali
+Slide to pick one	Geser untuk memilih
 Like	Suka
 Love	Super
 Care	Peduli
@@ -2415,9 +2432,11 @@ Haha	Haha
 Wow	Wow
 Sad	Sedih
 Angry	Marah
-Pick one each time. The reactions open over the post, so slide to one and let go, or let go and tap one.	Pilih setiap kali. Reaksi terbuka di atas postingan, jadi geser ke salah satunya lalu lepaskan, atau lepaskan lalu ketuk salah satunya.
+Pick one each time. The reactions open by your finger, so slide to one and let go, or let go and tap one. A tap anywhere else closes them.	Pilih setiap kali. Reaksi terbuka di dekat jarimu, jadi geser ke salah satunya lalu lepaskan, atau lepaskan lalu ketuk salah satunya. Ketukan di tempat lain akan menutupnya.
+Slide to pick one. The reactions open by your finger, so slide to one and let go. Letting go anywhere else closes them.	Geser untuk memilih. Reaksi terbuka di dekat jarimu, jadi geser ke salah satunya lalu lepaskan. Melepaskan di tempat lain akan menutupnya.
 %1$s. Holding a post gives it straight away.	%1$s. Menahan postingan langsung memberikannya.
 Holding a post to react will open the reactions to pick from.	Menahan postingan untuk bereaksi akan membuka reaksi untuk dipilih.
+Holding a post to react will open the reactions to slide to one.	Menahan postingan untuk bereaksi akan membuka reaksi untuk digeser ke salah satunya.
 Holding a post to react will give %1$s.	Menahan postingan untuk bereaksi akan memberikan %1$s.
 Select text	Pilih teks
 Done	Selesai
@@ -2764,6 +2783,16 @@ Takes the song and effect credits off the line under the poster's name on a stor
 Takes the row of suggested replies off the bottom of a story. The reply box stays. Applies from the next story you open.	Menghapus baris saran balasan di bagian bawah cerita. Kotak balasan tetap ada. Berlaku mulai cerita berikutnya yang kamu buka.
 Hide the Subscribe button	Sembunyikan tombol Berlangganan
 Takes the Subscribe button off the top of a story. Applies from the next story you open.	Menghapus tombol Berlangganan di bagian atas cerita. Berlaku mulai cerita berikutnya yang kamu buka.
+# context: switch title on the Stories page; the Follow button sits at the top of a story from someone you don't follow
+Hide the Follow button	Sembunyikan tombol Ikuti
+Takes the Follow button off the top of a story from someone you don't follow. Applies from the next story you open.	Menghapus tombol Ikuti di bagian atas cerita dari orang yang tidak kamu ikuti. Berlaku mulai cerita berikutnya yang kamu buka.
+# context: switch title on the Stories page; the reply bar is the row under someone else's story with the repost button, the Send message box and the quick reactions
+Hide the reply bar	Sembunyikan bilah balasan
+# context: description of that switch; Send message is the text box Facebook shows in that row
+Takes the bar off the bottom of other people's stories, with the repost button, the Send message box and the quick reactions. Applies from the next story you open.	Menghapus bilah di bagian bawah cerita orang lain, beserta tombol bagikan ulang, kotak Kirim pesan, dan reaksi cepat. Berlaku mulai cerita berikutnya yang kamu buka.
+# context: switch title on the Stories page; Up next is the card Facebook shows over the next stories while it counts down before they play
+Hide the Up next card	Sembunyikan kartu Berikutnya
+Starts the next stories right away, without the Up next card that counts down over the first one. Applies the next time you open stories.	Langsung memulai cerita berikutnya, tanpa kartu Berikutnya yang menghitung mundur di atas cerita pertama. Berlaku saat berikutnya kamu membuka cerita.
 Hide create story cards	Sembunyikan kartu buat cerita
 Takes out the cards between stories that ask you to make one, including the full screen card that asks you to continue the story with photos from your gallery. Applies the next time you open stories.	Menghapus kartu di antara cerita yang mengajakmu membuat cerita, termasuk kartu layar penuh yang mengajakmu melanjutkan cerita dengan foto dari galerimu. Berlaku saat berikutnya kamu membuka cerita.
 Progress bar at the bottom	Bilah progres di bawah
@@ -2853,10 +2882,18 @@ Hide the tab bar on the Reels tab	Sembunyikan bilah tab di tab Reels
 The tab bar goes away while the Reels tab is open, and the reel gets the whole screen. The other tabs keep the bar. Restart Facebook to see the change.	Bilah tab hilang selama tab Reels terbuka, dan reel memenuhi seluruh layar. Tab lainnya tetap menampilkan bilah. Mulai ulang Facebook untuk melihat perubahannya.
 Hide the line along the tab bar	Sembunyikan garis di bilah tab
 The thin line Facebook draws along the edge of the tab bar goes away on every tab. Tap a tab to see the change.	Garis tipis yang digambar Facebook di tepi bilah tab hilang di semua tab. Ketuk sebuah tab untuk melihat perubahannya.
+# context: switch title on the tab bar settings page; a group is a Facebook group's page; the tab bar is the row of Home, Reels, Groups... tabs
+Keep the tab bar in groups	Pertahankan bilah tab di grup
+# context: summary of that switch; "along the bottom" means at the bottom edge of the screen
+A group you open keeps the tab bar along the bottom, so a tap takes you straight to another tab. Works while the tab bar is at the bottom. Open a group to see the change.	Grup yang kamu buka tetap menampilkan bilah tab di bawah, jadi satu ketukan langsung membawamu ke tab lain. Berfungsi selama bilah tab ada di bawah. Buka sebuah grup untuk melihat perubahannya.
 Playback speed in the post menu	Kecepatan putar di menu postingan
 A feed or Watch video's 3-dot menu gets Playback speed, from 0.5x to 3x, live videos too. Off by default, since it hasn't been tried on a real account yet.	Menu titik tiga video feed atau Watch mendapat Kecepatan putar, dari 0,5x sampai 3x, juga untuk video siaran langsung. Mati secara bawaan, karena belum dicoba di akun sungguhan.
 Double tap to skip on feed videos	Ketuk dua kali untuk melompat di video feed
 Double tap the right side of a playing feed video to jump ahead 10 seconds, or the left side to go back 10. Keep tapping to go further. Live videos work too when they can be rewound. One tap on a side still opens the video, a moment later than usual. With Tap to play on, it needs Inline feed video controls on too.	Ketuk dua kali sisi kanan video feed yang sedang diputar untuk maju 10 detik, atau sisi kiri untuk mundur 10 detik. Terus ketuk untuk melompat lebih jauh. Video live juga bisa jika dapat diputar mundur. Satu ketukan di sisi tetap membuka video, hanya sedikit lebih lambat dari biasanya. Jika “Ketuk untuk memutar” aktif, “Kontrol video di beranda” juga harus aktif.
+# context: switch title under Video playback; a tap on a video in the news feed brings up a pause button in the middle of the video instead of opening it
+Tap shows a pause button on feed videos	Ketuk menampilkan tombol jeda di video feed
+# context: description of that switch; Reels is Facebook's full-screen video viewer, keep the name; the quoted switch names match their own rows
+Tapping a feed video shows a pause button in its middle and the video keeps playing, so a tap doesn't open it in Reels. Tap the button to pause or play. Tap the video again while the button shows to open it. Ads keep their own controls. With Tap to play on, it needs Inline feed video controls on too.	Mengetuk video feed menampilkan tombol jeda di tengahnya dan video tetap diputar, jadi ketukan tidak membukanya di Reels. Ketuk tombol untuk menjeda atau memutar. Ketuk video lagi saat tombol terlihat untuk membukanya. Iklan tetap memakai kontrolnya sendiri. Jika “Ketuk untuk memutar” aktif, “Kontrol video di beranda” juga harus aktif.
 Show only comments that match	Tampilkan hanya komentar yang cocok
 While the search box holds words, comments without them are hidden. Clearing the box brings them back.	Selama kotak pencarian berisi kata, komentar tanpa kata itu disembunyikan. Mengosongkan kotak akan menampilkannya lagi.
 Queue reel saves	Antrekan penyimpanan reel
@@ -2899,7 +2936,7 @@ Interested	Tertarik
 # context: a kind of row in a post's 3-dot menu, offered in the list of rows to hide: Facebook's row asking for fewer posts like this one
 Not interested	Tidak tertarik
 # context: a kind of row in a post's 3-dot menu, offered in the list of rows to hide: Facebook's row that opens its feed preferences
-Manage your Feed	Kelola Feed
+Manage your Feed / Your algorithm	Kelola Feed / Algoritma Anda
 # context: a kind of row in a post's 3-dot menu, offered in the list of rows to hide: Facebook's row that reports the post
 Report	Laporkan
 # context: a kind of row in a post's 3-dot menu, offered in the list of rows to hide: Facebook's row that plays the video on a TV
@@ -3091,3 +3128,6 @@ Show full names	Tampilkan nama lengkap
 A long name at the top of a post wraps onto the next line instead of ending in "...". A name that fits still takes one line.	Nama panjang di bagian atas postingan berlanjut ke baris berikutnya, bukan terpotong dengan "...". Nama yang muat tetap satu baris.
 Dark box behind feed video names	Kotak gelap di belakang nama pada video Kabar Beranda
 When a video in your feed has the poster's name on top of the video, that name sits on the same dark box. A change shows on the posts drawn after it.	Saat video di Kabar Beranda menampilkan nama pemosting di atas video, nama itu tampil di atas kotak gelap yang sama. Perubahan terlihat pada postingan yang dimuat setelahnya.
+Quality settings	Pengaturan kualitas
+Request community note	Minta catatan komunitas
+Something went wrong	Terjadi kesalahan

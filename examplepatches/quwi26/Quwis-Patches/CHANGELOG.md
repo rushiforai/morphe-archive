@@ -1,3 +1,29 @@
+# [1.13.0](https://github.com/quwi26/Quwis-Patches/compare/v1.12.3...v1.13.0) (2026-11-21)
+
+### New Features
+
+* **App logs:** the app's own recent logs are kept on the phone in a small rotating file and can be read, copied or shared from Quwi's Patches under Help. Android hands an app only its own entries, so nothing else on the phone is captured, and nothing leaves the phone unless you copy or share it. The switch needs a restart like the other startup features
+
+### Bug Fixes
+
+* **Stockfish analysis:** the message about the "Stockfish 19 archive" option now says where the option is in both modes: Settings > Patch options in Simple mode, the patch's own options in Expert mode
+
+# [1.12.3](https://github.com/quwi26/Quwis-Patches/compare/v1.12.2...v1.12.3) (2026-11-21)
+
+### Breaking Changes
+
+* **Morphe:** the bundle is built for Morphe Patcher 2.5.0 and needs Morphe Manager 2.7.0 or newer. An older manager asks to update before patching
+
+### Performance Improvements
+
+* **Patching:** only the resources a patch needs are decoded, so patching takes less time and memory
+
+# [1.12.2](https://github.com/quwi26/Quwis-Patches/compare/v1.12.1...v1.12.2) (2026-11-21)
+
+### Bug Fixes
+
+* **Stockfish analysis:** the 80 MB engine download no longer fails on a phone whose own DNS can't find github.com. GitHub mirrors are tried when github.com or its download server doesn't answer, a new "Stockfish 19 archive" option takes an archive downloaded in a browser instead (both are checked against Stockfish's published SHA-256), and the error says what to check: Private DNS, an ad blocker's DNS or a VPN. A source that stalls is dropped after 30 seconds and the download continues from another one
+
 # [1.12.1](https://github.com/quwi26/Quwis-Patches/compare/v1.12.0...v1.12.1) (2026-11-21)
 
 ### Bug Fixes

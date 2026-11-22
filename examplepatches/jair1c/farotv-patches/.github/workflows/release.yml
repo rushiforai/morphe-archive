@@ -2,10 +2,17 @@ name: Release
 
 on:
   workflow_dispatch:
+    inputs:
+      recover_release:
+        description: 'Etiqueta dev existente cuyo paquete no llegó a publicarse (vacío para el flujo normal)'
+        required: false
+        type: string
+        default: ''
   push:
 
 jobs:
   release:
+    if: ${{ !inputs.recover_release }}
     name: Release
     permissions:
       contents: write
@@ -35,7 +42,7 @@ jobs:
         run: npm install
 
       - name: Verify translations
-        run: node --test tools/tests/i18n.test.cjs tools/tests/site-locales.test.cjs
+        run: node --test tools/tests/i18n.test.cjs tools/tests/site-locales.test.cjs tools/tests/premium.test.cjs tools/tests/tree-filters.test.cjs
 
       # Semantic release runs its own Gradle build command.
       # Only dev and main branch will generate a release as specified by .releaserc
@@ -60,3 +67,52 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: ./gradlew :patches:buildAndroid clean --no-daemon
+
+  recover:
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.recover_release != '' }}
+    name: Recuperar publicación dev
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: read
+      id-token: write
+      attestations: write
+    env:
+      RECOVERY_TAG: ${{ inputs.recover_release }}
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - name: Validar etiqueta de desarrollo
+        shell: bash
+        run: '[[ "$RECOVERY_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+-dev\.[0-9]+$ ]]'
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.recover_release }}
+          fetch-depth: 0
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 'lts/*'
+      - name: Verificar versión y traducciones
+        shell: bash
+        run: |
+          test "$(node -p "require('./patches-bundle.json').version")" = "${RECOVERY_TAG#v}"
+          test "$(git rev-parse HEAD)" = "$(git rev-parse "$RECOVERY_TAG^{commit}")"
+          node --test tools/tests/i18n.test.cjs tools/tests/site-locales.test.cjs tools/tests/premium.test.cjs tools/tests/tree-filters.test.cjs
+      - name: Compilar con la clave habitual del proyecto
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          MORPHE_SIGNING_KEY: ${{ secrets.MORPHE_SIGNING_KEY }}
+        run: ./gradlew :patches:buildAndroid --no-daemon
+      - name: Publicar el paquete de la etiqueta existente
+        shell: bash
+        run: |
+          node -e "require('fs').writeFileSync('recovery-notes.md', require('./patches-bundle.json').description)"
+          gh release create "$RECOVERY_TAG" "patches/build/libs/patches-${RECOVERY_TAG#v}.mpp" --verify-tag --prerelease --title "$RECOVERY_TAG" --notes-file recovery-notes.md
+      - name: Atestar paquete recuperado
+        uses: actions/attest-build-provenance@v4
+        with:
+          subject-name: 'Morphe Patches ${{ inputs.recover_release }}'
+          subject-path: patches/build/libs/patches-*.mpp

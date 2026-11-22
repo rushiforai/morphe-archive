@@ -20,9 +20,13 @@ final class AnimanchProtocol {
             .addAttributes("a","href").addProtocols("a","href","http","https");
     static final class Reply {
         final int number;final String name,date,html;final List<String> images;
-        Reply(int number,String name,String date,String html,List<String> images){
+        final boolean heart, own;
+        final int heartCount;
+        Reply(int number,String name,String date,String html,List<String> images,boolean heart,boolean own,int heartCount){
             this.number=number;this.name=name;this.date=date;this.html=html;
             this.images=Collections.unmodifiableList(new ArrayList<>(images));
+            this.heart=heart;this.own=own;
+            this.heartCount=heartCount;
         }
     }
     static final class Page {
@@ -103,12 +107,41 @@ final class AnimanchProtocol {
                 }
             }
             String body=Jsoup.clean(clean.html(),address,BODY,new Document.OutputSettings().prettyPrint(false));
-            rows.add(new Reply(n,text(item,".resname"),text(item,".resposted"),body,images));
+            rows.add(new Reply(n,text(item,".resname"),text(item,".resposted"),body,images,
+                    !actionToken(item,expected,n,false).isEmpty(),!actionToken(item,expected,n,true).isEmpty(),
+                    displayedHeartCount(item)));
         }
         if(rows.isEmpty())throw new IOException("本文のレスがありません");
         String title=doc.title().replaceFirst("[｜|]あにまん掲示板$","").trim();
         if(title.isEmpty())throw new IOException("スレタイトルがありません");
         return new Page(expected,title,rows);
+    }
+    private static int displayedHeartCount(Element item) {
+        Element count = item.selectFirst(".resheader .vote.good .vcount");
+        if (count == null) return -1;
+        return count.text().isEmpty() ? 0 : heartCount(count.text());
+    }
+
+    static int heartCount(String value) {
+        if (!value.matches("[0-9]{1,10}|[0-9]{1,3}(?:,[0-9]{3}){1,3}")) return -1;
+        try { return Integer.parseInt(value.replace(",", "")); }
+        catch (NumberFormatException invalid) { return -1; }
+    }
+
+    static int confirmedHeartCount(String body) {
+        try {
+            JSONObject receipt = new JSONObject(body);
+            return heartCount(receipt.optString("good", "").trim());
+        } catch (Exception invalid) { return -1; }
+    }
+    /** Only site-rendered controls for the exact response can supply an action. */
+    static String actionToken(Element item, String thread, int number, boolean delete) {
+        if(item==null || !item.id().equals("res"+number) || delete && number==1) return "";
+        Element control=item.selectFirst(delete?".resheader .delete[data]":".resheader .vote.good[data]");
+        if(control==null || control.hasAttr("disabled") || control.hasClass("disabled")) return "";
+        String token=control.attr("data");
+        return (delete ? token.matches("[A-Za-z0-9:_-]{1,180}")
+                : token.equals("responce-"+thread+"-"+number+"-1")) ? token : "";
     }
     static List<Topic> catalogue(String html)throws IOException{
         Document doc=Jsoup.parse(html,ORIGIN+"/");LinkedHashMap<String,Topic> rows=new LinkedHashMap<>();
@@ -146,11 +179,16 @@ final class AnimanchProtocol {
     static String postingError(String body){
         if(body==null||body.length()>32768)return "";
         Document doc=Jsoup.parse(body);doc.select("script,style,form,input,textarea").remove();
-        if(doc.title().equals("Just a moment...")&&body.contains("challenges.cloudflare.com"))return "\nCloudflareの認証が必要です。書き込み画面の「あにまんの認証」を開き、通常の認証後に「認証情報を利用」を押してください。本文はまだ送信していません。";
+        if(cloudflareChallenge(body))return "\nCloudflareの認証が必要です。書き込み画面の「あにまんの認証」を開き、通常の認証後に「認証情報を利用」を押してください。本文はまだ送信していません。";
         String text=doc.select(".alert,.bg-danger").text();
         if(text.isEmpty())try{Object error=new JSONObject(body).opt("error");if(error instanceof String)text=(String)error;}catch(Exception notJson){}
         text=text.replaceAll("[\\p{Cntrl}&&[^\\n\\t]]","").trim();
         return text.isEmpty()?"":"\n"+(text.length()>400?text.substring(0,400):text);
+    }
+    static boolean cloudflareChallenge(String body){
+        if(body==null||body.length()>32768)return false;
+        Document doc=Jsoup.parse(body);
+        return doc.title().equals("Just a moment...")&&body.contains("challenges.cloudflare.com");
     }
     private static String encode(String s)throws IOException{return URLEncoder.encode(s,"UTF-8");}
     private static String text(Element parent,String selector){Element child=parent.selectFirst(selector);return child==null?"":child.text();}

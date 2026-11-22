@@ -42,9 +42,10 @@ jobs:
         run: |
           python3 -m unittest discover -s tests -v
           python3 scripts/validate_morphe_release.py
-          test -s patches/build/libs/patches-0.4.4.mpp
-          sha256sum patches/build/libs/patches-0.4.4.mpp
+          VERSION="$(sed -nE 's/^version[[:space:]]*=[[:space:]]*([^[:space:]]+).*/\1/p' gradle.properties)"
+          test -s "patches/build/libs/patches-${VERSION}.mpp"
+          sha256sum "patches/build/libs/patches-${VERSION}.mpp"
       - uses: actions/upload-artifact@v4
         with:
-          name: hatena-morphe-patches-0.4.4
-          path: patches/build/libs/patches-0.4.4.mpp
+          name: hatena-morphe-patches-0.4.5
+          path: patches/build/libs/patches-0.4.5.mpp

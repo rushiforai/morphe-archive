@@ -6,17 +6,17 @@ import com.bedrockstreaming.component.layout.domain.core.model.*;
 import java.lang.ref.WeakReference;
 import java.util.WeakHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
-import w4.A1;
-import w4.A1$c;
+import y4.A1;
+import y4.A1$c;
 
 /** Transient UI subscriptions only; the current row always owns its decision. */
 final class Rows {
-    private static final WeakHashMap<Pk.t, Observer> observers = new WeakHashMap<>();
+    private static final WeakHashMap<al.s, Observer> observers = new WeakHashMap<>();
     private Rows() {}
 
-    static int count(Pk.t row) {
-        if (!(row.Q instanceof d8.a)) return 1;
-        d8.a model = (d8.a) row.Q;
+    static int count(al.s row) {
+        if (!(row.Q instanceof f8.a)) return 1;
+        f8.a model = (f8.a) row.Q;
         if (!Availability.collection(model.N)) return 1;
         A1 list = model.O;
         if (list == null) {
@@ -40,10 +40,10 @@ final class Rows {
         return source.exhausted && !source.awaitingPublication ? 0 : 1;
     }
 
-    static boolean changed(Mk.a$b observer) {
-        Mk.a parent = observer.b;
+    static boolean changed(Xk.a$b observer) {
+        Xk.a parent = observer.b;
         if (parent == null || parent.R < 0 || parent.S == null || observer.a < 0 || observer.a >= parent.S.length) return false;
-        Mk.a$a section = parent.S[observer.a];
+        Xk.a$a section = parent.S[observer.a];
         if (section == null || section.a == null || !containsCollection(section.a, 0)) return false;
         int end = parent.R;
         for (int next = observer.a + 1; next < parent.S.length; next++) {
@@ -59,23 +59,23 @@ final class Rows {
 
     private static boolean containsCollection(androidx.recyclerview.widget.RecyclerView$a adapter, int depth) {
         if (depth > 16) return false;
-        if (adapter instanceof Pk.t) {
-            Object model = ((Pk.t) adapter).Q;
-            return model instanceof d8.a && Availability.collection(((d8.a) model).N);
+        if (adapter instanceof al.s) {
+            Object model = ((al.s) adapter).Q;
+            return model instanceof f8.a && Availability.collection(((f8.a) model).N);
         }
-        if (adapter instanceof Mk.a) {
-            Mk.a$a[] children = ((Mk.a) adapter).S;
-            if (children != null) for (Mk.a$a child : children)
+        if (adapter instanceof Xk.a) {
+            Xk.a$a[] children = ((Xk.a) adapter).S;
+            if (children != null) for (Xk.a$a child : children)
                 if (child != null && containsCollection(child.a, depth + 1)) return true;
         }
         return false;
     }
 
     private static final class Observer extends A1$c implements Runnable {
-        final WeakReference<Pk.t> row;
+        final WeakReference<al.s> row;
         final WeakReference<A1> list;
         final AtomicBoolean queued = new AtomicBoolean();
-        Observer(Pk.t row, A1 list) {
+        Observer(al.s row, A1 list) {
             this.row = new WeakReference<>(row);
             this.list = new WeakReference<>(list);
         }
@@ -87,7 +87,7 @@ final class Rows {
             new Handler(Looper.getMainLooper()).post(new Runnable() {
                 @Override public void run() {
                     queued.set(false);
-                    Pk.t current = row.get();
+                    al.s current = row.get();
                     if (current != null) current.f();
                 }
             });

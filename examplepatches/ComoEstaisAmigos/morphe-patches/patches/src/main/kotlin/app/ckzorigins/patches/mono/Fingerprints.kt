@@ -58,6 +58,34 @@ internal object ChartBoostGluInitFingerprint : Fingerprint(
     parameters = listOf("Ljava/lang/String;", "Ljava/lang/String;"),
 )
 
+internal object FacebookGluInitFingerprint : Fingerprint(
+    definingClass = "Lcom/glu/plugins/FacebookGlu;",
+    name = "Init",
+    returnType = "V",
+    parameters = listOf("Ljava/lang/String;", "Ljava/lang/String;"),
+)
+
+internal object GluGoogleAnalyticsStartSessionFingerprint : Fingerprint(
+    definingClass = "Lcom/glu/plugins/GluGoogleAnalytics;",
+    name = "StartSession",
+    returnType = "V",
+    parameters = listOf("Ljava/lang/String;"),
+)
+
+internal object KontagentGluStartSessionFingerprint : Fingerprint(
+    definingClass = "Lcom/glu/plugins/KontagentGlu;",
+    name = "StartSession",
+    returnType = "V",
+    parameters = listOf("Ljava/lang/String;"),
+)
+
+internal object AmazonGluInitFingerprint : Fingerprint(
+    definingClass = "Lcom/glu/plugins/AmazonGlu;",
+    name = "Init",
+    returnType = "V",
+    parameters = listOf("Ljava/lang/String;", "Ljava/lang/String;"),
+)
+
 internal object GWalletInitialiseFingerprint : Fingerprint(
     definingClass = "Lcom/glu/platform/gwallet/GWallet;",
     name = "onInitialise",
@@ -81,23 +109,6 @@ internal object GWalletOutOfGameFingerprint : Fingerprint(
         "Ljava/lang/String;",
         "Lcom/glu/platform/gwallet/outofgame/GWNotificationHandler;",
     ),
-)
-
-internal const val DOWNLOADER_ACTIVITY =
-    "Lcom/google/android/vending/expansion/downloader_impl/DownloaderActivity;"
-
-internal object ExpansionCheckPropertiesFingerprint : Fingerprint(
-    definingClass = DOWNLOADER_ACTIVITY,
-    name = "checkProperties",
-    returnType = "V",
-    parameters = listOf(),
-)
-
-internal object ExpansionCheckUpgradeFingerprint : Fingerprint(
-    definingClass = DOWNLOADER_ACTIVITY,
-    name = "checkUpgrade",
-    returnType = "V",
-    parameters = listOf(),
 )
 
 internal const val NOTIFICATION_RECEIVER = "Lcom/glu/plugins/NotificationReceiver;"

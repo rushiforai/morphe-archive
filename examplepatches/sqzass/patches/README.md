@@ -30,7 +30,7 @@ Note: anything you put in `apks/` gets processed and deleted once it's done. Not
 ## 🩹 Patches list
 
 <!-- PATCHES_START -->
-> **[v1.24.0](https://github.com/sqzass/lustx-patches/releases/tag/v1.24.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;31 patches total
+> **[v1.26.0](https://github.com/sqzass/lustx-patches/releases/tag/v1.26.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;33 patches total
 <details>
 <summary>📦 PortDroid - Network Analysis&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
@@ -74,27 +74,27 @@ Note: anything you put in `apks/` gets processed and deleted once it's done. Not
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
-| [Remove clip bumper](#remove-clip-bumper) | Removes the Postparty logo bumper from all exports. |  |
+| [Remove clip bumper](#remove-clip-bumper) | Removes the Postparty logo bumper from all exports. NOTE: I SUCK AT CODING, USE *MODIFIED* CLIPS. TRIM A SECOND OR ADD A STICKER! |  |
 
 </details>
 
 <details>
-<summary>📦 Radio Garden&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<summary>📦 MEGA&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
 
 **🎯 Supported versions:**
 
-| 4.0.2 |
+| 16.15.2(263201951)(c9da563417) |
 | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
-| [Unlock subscription](#unlock-subscription) | Unlocks Radio Garden premium features (equalizer, sleep timer, removes ads). |  |
+| [Unlock Pro](#unlock-pro) | Unlocks all MEGA Pro features and removes ads. | • Pro tier |
 
 </details>
 
 <details>
-<summary>🌐 Universal&nbsp;&nbsp;•&nbsp;&nbsp;25 patches</summary>
+<summary>🌐 Universal&nbsp;&nbsp;•&nbsp;&nbsp;27 patches</summary>
 <br>
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
@@ -103,6 +103,8 @@ Note: anything you put in `apks/` gets processed and deleted once it's done. Not
 | [Allow screenshots](#allow-screenshots) | Clears FLAG_SECURE from window flags so the app can be captured in screenshots. |  |
 | [Allow text selection](#allow-text-selection) | Makes it so text can be selected and copied on apps that normally block it. |  |
 | [Bypass root / emulator detection](#bypass-root-emulator-detection) | Bypasses root/emulator detection methods. |  |
+| [Bypass screen recording detection](#bypass-screen-recording-detection) | Blinds display/recording callbacks and recorder-package checks. |  |
+| [Bypass screenshot detection](#bypass-screenshot-detection) | Blinds MediaStore ContentObservers and screenshot FileObservers. | • Block MediaStore observers<br>• Block file observers |
 | [Change package name](#change-package-name) | Renames the app package. | • Package name<br>• Update permissions<br>• Update provider authorities |
 | [Change version name / code](#change-version-name-code) | Changes the manifest and BuildConfig version values. Current keeps the current one, duh, or just disable this patch. | • Version name<br>• Version code |
 | [Custom font](#custom-font) | Overrides the app's typeface with a built-in font. | • Font family |
@@ -112,7 +114,7 @@ Note: anything you put in `apks/` gets processed and deleted once it's done. Not
 | [Force refresh rate](#force-refresh-rate) | Rewrites Surface.setFrameRate() to the selected refresh rate. | • Target refresh rate<br>• Patch Surface.setFrameRate() |
 | [Forced-update bypass](#forced-update-bypass) | Neuters in-app forced-update gates. |  |
 | [Hide app icon](#hide-app-icon) | Hides the app from the launcher. |  |
-| [Remove PairIP](#remove-pairip) | Removes the PairIP Play licensing gate. |  |
+| [Remove PairIP](#remove-pairip) | Removes PairIP licensing and signature gates. Note: VM-based variants may still enforce checks natively. |  |
 | [Remove rate-us / review prompts](#remove-rate-us-review-prompts) | Suppresses in-app rating/review prompts. | • Block Play Core review dialog |
 | [Rename app label](#rename-app-label) | Sets a literal launcher name. | • App label |
 | [Skip splash](#skip-splash) | Skips splash/intro screens. | • Convert splash delays to immediate |

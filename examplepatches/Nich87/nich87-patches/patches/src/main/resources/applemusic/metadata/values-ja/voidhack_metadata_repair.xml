@@ -38,6 +38,9 @@
     <string name="voidhack_metadata_result_title">曲情報の修復結果</string>
     <string name="voidhack_metadata_repair_result">クラウドで確認できた修復: %1$d曲\n確認できなかった曲: %2$d曲\n未処理: %3$d曲\n\n各端末のライブラリが同期すると、修復した曲情報が反映されます。</string>
     <string name="voidhack_metadata_rescan">もう一度確認</string>
+    <string name="voidhack_metadata_save_log">ログを保存</string>
+    <string name="voidhack_metadata_log_saved">診断ログを保存しました。</string>
+    <string name="voidhack_metadata_log_save_failed">診断ログを保存できませんでした。</string>
     <string name="voidhack_metadata_local_refresh_pending">クラウドには保存済みですが、この端末で%1$d曲の再読込が完了しませんでした。ライブラリの同期後にApple Musicを開き直してください。</string>
     <string name="voidhack_metadata_account_changed">検索時とアカウントが変わりました。現在のアカウントで候補を探し直してください。</string>
     <string name="voidhack_metadata_conflict">ライブラリの曲情報が変わりました。最新の変更内容を確認するため、候補を探し直してください。</string>

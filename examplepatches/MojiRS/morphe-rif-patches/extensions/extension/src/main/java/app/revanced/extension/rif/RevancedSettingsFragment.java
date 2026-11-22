@@ -5,7 +5,7 @@ import android.content.Context;
 import com.andrewshu.android.reddit.settings.RifBaseSettingsFragment;
 
 /**
- * The "ReVanced" settings screen. It extends rif's own base settings fragment
+ * The "rif patches" settings screen. It extends rif's own base settings fragment
  * (whose class name R8 keeps), so it gets rif's native preference styling and
  * XML-loading for free. We only override the obfuscated abstract method that returns
  * the preference-XML resource id; we look ours up by name at runtime so the extension

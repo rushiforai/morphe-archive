@@ -73,7 +73,7 @@ val imageModerationPatch = resourcePatch(
             for (name in required) {
                 val entry = items.getValue(name).single()
                 check(entry.size in 1..(32L * 1024 * 1024)) { "画像検出用ZIPのサイズが不正です: $name" }
-                val bytes = zip.getInputStream(entry).use { it.readNBytes(entry.size.toInt() + 1) }
+                val bytes = zip.getInputStream(entry).use { it.readLimitedBytes(entry.size.toInt() + 1) }
                 check(bytes.size.toLong() == entry.size) { "画像検出用ZIPのサイズが不正です: $name" }
                 moderationHashes[name]?.let { expected ->
                     val hash = MessageDigest.getInstance("SHA-256").digest(bytes).joinToString("") { "%02x".format(it) }

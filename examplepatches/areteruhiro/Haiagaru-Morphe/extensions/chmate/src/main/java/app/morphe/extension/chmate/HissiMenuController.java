@@ -81,6 +81,8 @@ public final class HissiMenuController extends ToolScreenController {
     private String initialWacchoiQuery;
     private TextView wacchoiConditionView;
     private String lastArchiveErrorKey;
+    private LinearLayout viewerToolbar;
+    private Button paletteButton;
     private Button kyodemoAnalysisButton;
     private Button viewerAdjustButton;
     private String analysisRecoveryAttempt;
@@ -505,6 +507,8 @@ public final class HissiMenuController extends ToolScreenController {
             }
         });
         LinearLayout toolbar = createViewerToolbar(webView);
+        viewerToolbar = toolbar;
+        applyToolbarPalette(currentUsesKyodemo, Haiagaru.hissiViewerTheme());
         layout.addView(toolbar, new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 Math.round(Haiagaru.hissiViewerToolbarHeightDp() * getResources().getDisplayMetrics().density)
@@ -719,6 +723,16 @@ public final class HissiMenuController extends ToolScreenController {
             Toast.makeText(this, themeNames[next], Toast.LENGTH_SHORT).show();
         });
         toolbar.addView(theme, buttonParams());
+
+        paletteButton = toolbarButton("バー色");
+        paletteButton.setContentDescription("Kyodemoビューのツールバー配色");
+        paletteButton.setOnClickListener(view -> {
+            int choice = (CheckerBarOptions.palette(this) + 1) % CheckerBarOptions.PALETTE_NAMES.length;
+            CheckerBarOptions.savePalette(this, choice);
+            applyToolbarPalette(true, Haiagaru.hissiViewerTheme());
+            Toast.makeText(this, CheckerBarOptions.PALETTE_NAMES[choice], Toast.LENGTH_SHORT).show();
+        });
+        toolbar.addView(paletteButton, buttonParams());
 
         Button displaySettings = toolbarButton("調整");
         viewerAdjustButton = displaySettings;
@@ -1038,7 +1052,8 @@ public final class HissiMenuController extends ToolScreenController {
     private void configureHissiTabs(WebView webView,int attempt) {
         if (hissiTabs == null) return;
         final String configuringUrl=webView.getUrl();
-        if (Haiagaru.kyodemoEnhancedViewer()) {
+        final boolean enhanced = Haiagaru.kyodemoEnhancedViewer();
+        if (enhanced || isEdgeKyodemoResults(configuringUrl)) {
             webView.evaluateJavascript("(function(){"
                     + "if(!['www.kyodemo.net','kyodemo.net'].includes(location.hostname)||!location.pathname.startsWith('/sdemo/b/'))return false;"
                     + "var list=document.querySelector('#blist');if(!list)return false;"
@@ -1082,7 +1097,9 @@ public final class HissiMenuController extends ToolScreenController {
                 boolean available = "true".equals(result);
                 if (available) {
                     hissiTabs.setVisibility(View.VISIBLE);
-                    if(hissiTabButtons.length>3)hissiTabButtons[3].setVisibility(View.VISIBLE);
+                    hissiTabButtons[1].setVisibility(enhanced ? View.VISIBLE : View.GONE);
+                    hissiTabButtons[2].setVisibility(enhanced ? View.VISIBLE : View.GONE);
+                    hissiTabButtons[3].setVisibility(View.VISIBLE);
                     selectHissiTab(0);
                     return;
                 }
@@ -1098,7 +1115,11 @@ public final class HissiMenuController extends ToolScreenController {
     }
 
     private void configureClassicHissiTabs(WebView webView) {
-        if(hissiTabButtons!=null&&hissiTabButtons.length>3)hissiTabButtons[3].setVisibility(View.GONE);
+        if (hissiTabButtons != null) {
+            hissiTabButtons[1].setVisibility(View.VISIBLE);
+            hissiTabButtons[2].setVisibility(View.VISIBLE);
+            hissiTabButtons[3].setVisibility(View.GONE);
+        }
         webView.evaluateJavascript("(function(){"
                 + "if(!/(^|\\.)hissi\\.org$/.test(location.hostname))return false;"
                 + "var body=document.body,post=Array.from(body.querySelectorAll('dl'))"
@@ -1461,11 +1482,51 @@ public final class HissiMenuController extends ToolScreenController {
                 == android.content.res.Configuration.UI_MODE_NIGHT_YES;
     }
 
+    private static boolean isKyodemoPage(String address) {
+        if (address == null) return false;
+        Uri uri = Uri.parse(address);
+        return "https".equalsIgnoreCase(uri.getScheme())
+                && ("kyodemo.net".equalsIgnoreCase(uri.getHost())
+                || "www.kyodemo.net".equalsIgnoreCase(uri.getHost()));
+    }
+
+    static boolean isEdgeKyodemoResults(String address) {
+        if (!isKyodemoPage(address)) return false;
+        Uri uri = Uri.parse(address);
+        String path = uri.getPath();
+        if (!"/sdemo/b/e_e_liveedge".equals(path) && !"/sdemo/b/e_e_liveedge/".equals(path)) return false;
+        String query = uri.getQueryParameter("k");
+        return "hi".equals(uri.getQueryParameter("bs")) && query != null && !query.trim().isEmpty();
+    }
+
+    private void applyToolbarPalette(boolean kyodemo, int viewerTheme) {
+        if (viewerToolbar == null) return;
+        if (paletteButton != null) paletteButton.setVisibility(kyodemo ? View.VISIBLE : View.GONE);
+        int choice = kyodemo ? CheckerBarOptions.palette(this) : 0;
+        int theme = choice == 0 ? viewerTheme : choice;
+        boolean dark = isDarkTheme(theme);
+        int background = theme == 2 ? Color.BLACK : dark ? Color.rgb(30, 30, 32) : Color.WHITE;
+        int foreground = dark ? Color.rgb(235, 235, 240) : Color.rgb(30, 30, 30);
+        viewerToolbar.setBackgroundColor(kyodemo ? background : theme == 2 ? Color.BLACK : Color.TRANSPARENT);
+        viewerToolbar.setTag(CheckerBarOptions.PALETTE_TAG, kyodemo ? new int[]{background, foreground} : null);
+        int chipColor = theme == 2 ? Color.rgb(28, 28, 31)
+                : dark ? Color.rgb(55, 55, 60) : Color.rgb(242, 242, 247);
+        for (int i = 0; i < viewerToolbar.getChildCount(); i++) {
+            View child = viewerToolbar.getChildAt(i);
+            if (!(child instanceof Button)) continue;
+            ((Button) child).setTextColor(foreground);
+            if (child.getBackground() instanceof GradientDrawable)
+                ((GradientDrawable) child.getBackground()).setColor(chipColor);
+        }
+    }
+
     private void applyViewerTheme(LinearLayout layout, WebView webView, int theme) {
         boolean dark = isDarkTheme(theme);
         int background = theme == 2 ? Color.BLACK : dark ? Color.rgb(30, 30, 32) : Color.WHITE;
         int foreground = dark ? Color.rgb(235, 235, 240) : Color.rgb(30, 30, 30);
         if (layout != null) layout.setBackgroundColor(background);
+        applyToolbarPalette(webView == null || webView.getUrl() == null ? currentUsesKyodemo
+                : isKyodemoPage(webView.getUrl()), theme);
         if (webView != null) {
             configureWebViewColorScheme(webView.getSettings());
             webView.setBackgroundColor(background);

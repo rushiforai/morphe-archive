@@ -222,15 +222,15 @@ install the new patched build over your current one.
 ## Patches
 
 <!-- PATCHES_START EXPANDED -->
-> **[v3.0.1](https://github.com/mvaishak/letterboxd-morphe-patches/releases/tag/v3.0.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;15 patches total
+> **[v3.1.0](https://github.com/mvaishak/letterboxd-morphe-patches/releases/tag/v3.1.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;17 patches total
 <details open>
-<summary>Letterboxd&nbsp;&nbsp;•&nbsp;&nbsp;15 patches</summary>
+<summary>Letterboxd&nbsp;&nbsp;•&nbsp;&nbsp;17 patches</summary>
 <br>
 
 **Supported versions:**
 
-| 3.6.7 |
-| :---: |
+| 3.6.7 | 3.6.9 |
+| :---: | :---: |
 
 | Patch | Description | Options |
 |----------|----------------|-----------|
@@ -241,6 +241,7 @@ install the new patched build over your current one.
 | [Copy lists](#copy-lists) | Use Clone in a list's More menu to save an independent copy with the films in order. |  |
 | [Custom artwork](#custom-artwork) | Choose local posters and backdrops from TMDB or an image URL, independently of your Letterboxd subscription. |  |
 | [Denser poster grid](#denser-poster-grid) | Tightens the spacing around posters in grids so they render larger and closer together. Does not change the number of columns. | • Grid density |
+| [Film release alerts](#film-release-alerts) | Adds an Alert action to the film page for local notifications on selected release dates. |  |
 | [Hide ads](#hide-ads) | Stops the Google AdMob banners shown to free accounts from loading anywhere in the app. On by default. |  |
 | [Hide sponsored content](#hide-sponsored-content) | Hides Letterboxd's sponsored Spotlight / featured-trailer card on the Films home tab, including its space. Toggle it in Mod settings. On by default. |  |
 | [IMDb trivia (personal)](#imdb-trivia-personal) | Shows categorized IMDb trivia for the current film. Enable only for authorized personal use. |  |
@@ -249,6 +250,7 @@ install the new patched build over your current one.
 | [Profile badge](#profile-badge) | Preview a Pro, Patron, or custom badge on your own profile on this device. |  |
 | [Rating slider haptics](#rating-slider-haptics) | Feel a light tick at each half-star step as you drag the rating slider. |  |
 | [Smooth film credits tabs](#smooth-film-credits-tabs) | Shows already-loaded cast and crew credits immediately when switching film detail tabs. |  |
+| [Where to Watch](#where-to-watch) | Shows JustWatch offers for streaming services you select in the film’s Availability page. |  |
 
 </details>
 

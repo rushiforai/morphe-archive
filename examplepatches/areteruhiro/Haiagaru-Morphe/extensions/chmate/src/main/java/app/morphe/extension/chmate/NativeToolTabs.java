@@ -599,6 +599,7 @@ public final class NativeToolTabs {
             scroll=new ScrollView(activity);scroll.setFillViewport(true);body=new LinearLayout(activity);body.setOrientation(1);scroll.addView(body);root.addView(scroll,new LinearLayout.LayoutParams(-1,0,1));
             categoryHost=new FrameLayout(activity);root.addView(categoryHost,new LinearLayout.LayoutParams(-1,0,1));
             show(restored==null?args.getString(Intent.EXTRA_TEXT):restored.getString(SELECTED,args.getString(Intent.EXTRA_TEXT)));
+            root.post(() -> { if (root.isAttachedToWindow()) CrashReportDelivery.firstSettings(activity); });
         }
         void show(String category){
             selected=null;for(String id:ids)if(id.equals(category))selected=id;

@@ -1,0 +1,58 @@
+name: Publish Morphe patch bundle
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Download verified build tools
+        shell: pwsh
+        run: ./scripts/setup-tools.ps1
+      - name: Compile JVM and Android patch bundle
+        shell: pwsh
+        run: ./build.ps1
+      - name: Test Cast protocol and main patch package
+        shell: pwsh
+        run: ./scripts/test-cast.ps1 -Streaming
+      - name: Verify Morphe metadata
+        shell: pwsh
+        run: |
+          ./scripts/generate-metadata.ps1
+          git diff --exit-code -- patches-list.json patches-bundle.json
+          if ($LASTEXITCODE -ne 0) { throw 'Los metadatos publicados no coinciden con el paquete.' }
+          $version = (Get-Content patches-bundle.json -Raw | ConvertFrom-Json).version
+          java -jar tools/morphe-desktop.jar list-patches --patches "dist/lunar-edge-patches-$version.mpp" -p -v
+          if ($LASTEXITCODE -ne 0) { throw 'Morphe no puede cargar los parches.' }
+      - name: Publish release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $version = (Get-Content patches-bundle.json -Raw | ConvertFrom-Json).version
+          $tag = "v$version"
+          if ($env:GITHUB_REF_TYPE -eq 'tag' -and $env:GITHUB_REF_NAME -ne $tag) {
+            throw 'La etiqueta no coincide con la versión del paquete.'
+          }
+          $bundle = "dist/lunar-edge-patches-$version.mpp"
+          $hash = (Get-FileHash $bundle -Algorithm SHA256).Hash.ToLowerInvariant()
+          "$hash  lunar-edge-patches-$version.mpp" | Set-Content dist/SHA256SUMS.txt
+          gh release view $tag --repo $env:GITHUB_REPOSITORY *> $null
+          if ($LASTEXITCODE -eq 0) {
+            throw 'La release ya existe. Crea una versión nueva para no reemplazar paquetes publicados.'
+          }
+          [string[]]$releaseFlags = if ($version.Contains('-')) { @('--prerelease', '--latest=false') } else { @('--latest') }
+          gh release create $tag $bundle patches-bundle.json patches-list.json dist/SHA256SUMS.txt --repo $env:GITHUB_REPOSITORY --target $env:GITHUB_SHA --title "Lunar Edge patches $version" --notes-file RELEASE_NOTES.md @releaseFlags
+          if ($LASTEXITCODE -ne 0) { throw 'No se pudo publicar la release.' }

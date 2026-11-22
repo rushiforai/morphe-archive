@@ -3,13 +3,14 @@ package app.template.patches.macrodroid.pro
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.template.patches.shared.Constants.MACRODROID_COMPATIBILITY
-import app.template.patches.shared.installer.spoofInstallSourcePatch
 import app.template.patches.shared.signature.spoofSignatureVerificationPatch
+import app.template.patches.shared.installer.spoofInstallSourcePatch
+import app.template.patches.shared.gms.gmsCorePatch
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 
 // MacroDroid Pro Unlock (com.arlosoft.macrodroid v5.65.9)
-//
+//-
 // Pro state resolver: ycc.j()Ltcc;
 //   Checks in order:
 //     1. Settings.c3()   → "vcp_count" int  (device-cap pro)   ← patch target
@@ -38,6 +39,7 @@ val macroDroidProPatch = bytecodePatch(
     dependsOn(
         spoofSignatureVerificationPatch,
         spoofInstallSourcePatch,
+        gmsCorePatch,
     )
 
     execute {

@@ -13,8 +13,7 @@ private const val AKAMAI = "Lcom/sbs/ondemand/model/playback/PlaybackStreamProvi
 @Suppress("unused")
 val preferDirectVodPatch = bytecodePatch(
     name = "Prefer direct VOD stream",
-    description = "Prefers an available Akamai VOD stream over Google DAI. " +
-        "Keeps original selection for live or missing alternatives. Ad removal is not guaranteed.",
+    description = "Removes pre-roll and mid-roll video ads by selecting SBS's direct VOD stream when available.",
     default = true
 ) {
     compatibleWith(
@@ -23,7 +22,7 @@ val preferDirectVodPatch = bytecodePatch(
             packageName = "com.sbs.ondemand.tv",
             apkFileType = ApkFileType.APKM,
             appIconColor = 0xDCBD1D,
-            targets = listOf(AppTarget(version = "6.3.1"))
+            targets = listOf(AppTarget(version = "6.4.0"), AppTarget(version = "6.3.1"))
         )
     )
     dependsOn(playbackCompatibilityPatch)
@@ -31,7 +30,7 @@ val preferDirectVodPatch = bytecodePatch(
     execute {
         val method = ProviderSelectionFingerprint.method
         val fallback = FallbackProviderFingerprint.method
-        // Verified against versionCode 16435's disassembly: five locals, three
+        // Verified against versionCodes 16470 and 16690: five locals, three
         // parameter registers. Fail on a different layout instead of overwriting p0.
         check(method.implementation?.registerCount == 8) {
             "Unexpected SBS provider-selection register layout"

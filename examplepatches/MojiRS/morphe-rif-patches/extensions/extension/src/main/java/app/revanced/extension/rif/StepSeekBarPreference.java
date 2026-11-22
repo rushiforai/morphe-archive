@@ -10,7 +10,7 @@ import androidx.preference.SeekBarPreference;
  * A SeekBarPreference whose dragged value snaps to its seekBarIncrement. Stock androidx
  * applies the increment only to arrow keys, so a drag moves in steps of 1.
  *
- * Used by name from the ReVanced preference XML. The snapping itself is a hook in
+ * Used by name from our preference XML. The snapping itself is a hook in
  * SeekBarPreference's SeekBar listener that calls {@link #snap} with the listener's
  * preference; it only acts on this class, so any other slider behaves as stock.
  */

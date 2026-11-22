@@ -72,6 +72,16 @@ public final class CloudFrontPlayInfoClient implements PlayInfoLookup {
         this.gatewayHeaders = new GatewayHeaders(ClientInfo.forInstalledApp(), buildTag);
     }
 
+    public CloudFrontPlayInfoClient(BuildTag buildTag, int playbackVersion) {
+        try {
+            String clientInfo = new JSONObject(ClientInfo.forInstalledApp()).put("version_code", playbackVersion)
+                .toString();
+            this.gatewayHeaders = new GatewayHeaders(clientInfo, buildTag);
+        } catch (JSONException ex) {
+            throw new IllegalStateException(ex);
+        }
+    }
+
     @Override
     public String fetchPlayInfo(String pathAndQuery, PlayInfoAcceptance acceptance) {
         if (SigningKey.VALUE == null) {
@@ -213,7 +223,7 @@ public final class CloudFrontPlayInfoClient implements PlayInfoLookup {
 
     private static String readSuccessful(HttpURLConnection connection, String host) throws IOException {
         int code = connection.getResponseCode();
-        if (code < 200 || code >= 300) {
+        if (code < HttpURLConnection.HTTP_OK || code >= HttpURLConnection.HTTP_MULT_CHOICE) {
             throw new IOException("HTTP " + code + " from " + host);
         }
         try (InputStream in = connection.getInputStream()) {

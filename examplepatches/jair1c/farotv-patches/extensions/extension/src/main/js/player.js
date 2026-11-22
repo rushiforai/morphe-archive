@@ -57,13 +57,16 @@
     // placeholders, so it is hidden with CSS instead. The page's Content Security Policy blocks
     // <style> elements without a nonce, so a constructed stylesheet (CSSOM) is used.
     var sheet = null;
+    var relatedHidden = null;
     function setRelatedHidden(hidden) {
         try {
             if (!sheet) {
                 sheet = new CSSStyleSheet();
                 document.adoptedStyleSheets = document.adoptedStyleSheets.concat([sheet]);
             }
+            if (relatedHidden === hidden) return;
             sheet.replaceSync(hidden ? "ytlr-pivot { display: none !important; }" : "");
+            relatedHidden = hidden;
         } catch (e) {
             youtv.report("player: stylesheet failed: " + e);
         }

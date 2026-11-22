@@ -39,8 +39,10 @@ import java.util.concurrent.RejectedExecutionException;
  * anyone but the viewer (66 user keys and no country on @tiktok, 2026-11-14). So the account's
  * newest videos from {@code /aweme/v1/aweme/post/} come next, and the country most of them were
  * posted from is the answer, worded as where the videos were posted from rather than where the
- * account is based. A private account's videos stay hidden, so it gets no country. The request
- * goes out through TikTok's own
+ * account is based. A private account's videos stay hidden, so it gets no country. TikTok's
+ * sign-in region lookup ({@code /passport/app/region/}) is no route: asked by user id it gives
+ * {@code country_code} "-" and the asking phone's data center for every id, a made-up one
+ * included (Login2, 47.9.3, 2026-11-21). The request goes out through TikTok's own
  * client the way its block action's does: {@code ServiceManager} hands out the
  * {@code IRetrofitService}, whose {@code createNewRetrofit} builds a client for the API host in
  * {@code Api}, and TTNet's {@code INetworkApi} on that client fetches the raw reply, so it is

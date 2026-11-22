@@ -34,20 +34,20 @@ public final class LinimalTextTest {
     @Test
     public void translatesForTheCurrentLocale() {
         LinimalText.setLocaleForTesting(Locale.JAPAN);
-        assertEquals("テーマ", LinimalText.t("テーマ"));
+        assertEquals("外観", LinimalText.t("外観"));
         LinimalText.setLocaleForTesting(Locale.US);
-        assertEquals("Theme", LinimalText.t("テーマ"));
+        assertEquals("Appearance", LinimalText.t("外観"));
         LinimalText.setLocaleForTesting(Locale.TAIWAN);
-        assertEquals("主題", LinimalText.t("テーマ"));
+        assertEquals("外觀", LinimalText.t("外観"));
         LinimalText.setLocaleForTesting(new Locale("th", "TH"));
-        assertEquals("ธีม", LinimalText.t("テーマ"));
+        assertEquals("ลักษณะที่ปรากฏ", LinimalText.t("外観"));
         LinimalText.setLocaleForTesting(new Locale("in", "ID"));
-        assertEquals("Tema", LinimalText.t("テーマ"));
+        assertEquals("Tampilan", LinimalText.t("外観"));
     }
 
     @Test
     public void fallsBackToEnglishThenToTheOriginal() {
-        assertEquals("Theme", LinimalText.translate("テーマ", LinimalText.Language.ENGLISH));
+        assertEquals("Appearance", LinimalText.translate("外観", LinimalText.Language.ENGLISH));
         assertEquals("表にない文言", LinimalText.translate("表にない文言", LinimalText.Language.THAI));
         assertEquals("NetworkError", LinimalText.translate("NetworkError", LinimalText.Language.ENGLISH));
         assertEquals(null, LinimalText.t(null));

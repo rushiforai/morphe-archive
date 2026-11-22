@@ -77,10 +77,10 @@ Six patches, all for chess.com:
 
 The patches for other apps (Block Blast, Gboard, Geocaching) are **not** in this bundle.
 
-Everything else is Noam's work, unchanged:
+The rest of the patches are Noam's work, kept here and brought up to chess.com 4.10.28 and 4.10.27
+by this fork:
 
-- chess.com 4.10.28 and 4.10.27
-- arrows in games and in reviews
+- arrows in games
 - board and accent colours, AMOLED black
 - the website's Arcade animations
 - custom Home and bottom bar
@@ -187,11 +187,12 @@ phone talks to your computer on that network only.
 
 ## Credits
 
-All patches are [Noam's](https://github.com/ImNoammm/Noams-Morphe-Patches) (GPL-3.0), which itself builds on
-PrathxmOp's work; the computer reviewer was added in this fork. Without Noam's Morphe Patches this project
-would not exist: the whole patch tree and extension are his work, and this fork only adds the Game Review
-features on top. The chess.com 4.10.27 support follows
-[hyzor's port](https://github.com/hyzor/hyzor-morphe-patches) (GPL-3.0) of the same patches. The crash screen
+Most patches are [Noam's](https://github.com/ImNoammm/Noams-Morphe-Patches) (GPL-3.0), which itself builds on
+PrathxmOp's work. Without Noam's Morphe Patches this project would not exist: the patch tree and extension
+started as his work, and this fork adds the features listed above, including the computer reviewer, Arrows
+in reviews, Discord Rich Presence and the chess.com 4.10.28 and 4.10.27 updates. The chess.com 4.10.27
+support follows [hyzor's port](https://github.com/hyzor/hyzor-morphe-patches) (GPL-3.0) of the same patches.
+The crash screen
 is [PrathxmOp's crash handler](https://github.com/PrathxmOp/Prathxm-Patches) (GPL-3.0), renamed so Morphe sees
 it as the same patch when both bundles are added. Discord Rich Presence follows the OAuth2 and gateway recipe of
 [ArchiveTune](https://github.com/rukamori/ArchiveTune) (GPL-3.0), rewritten for this extension. If you want the

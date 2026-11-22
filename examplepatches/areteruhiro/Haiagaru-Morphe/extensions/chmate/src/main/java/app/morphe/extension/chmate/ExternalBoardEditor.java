@@ -48,7 +48,10 @@ public final class ExternalBoardEditor {
         Field f=o.getClass().getDeclaredField(name);f.setAccessible(true);f.set(o,value);
     }
     public static void rewriteBoard(Object o) { rewrite(o,boardFields(),true); }
-    public static void rewriteInfo(Object o) { rewrite(o,infoFields(),false); }
+    public static void rewriteInfo(Object o) {
+        SiteNativeBoards.rewriteInfo(o);
+        rewrite(o,infoFields(),false);
+    }
     public static String rewriteInfoUrl(Object info,String value) {
         value=SiteNativeBoards.rewriteInfoUrl(info,value);
         if(routes.isEmpty() || value==null) return value;

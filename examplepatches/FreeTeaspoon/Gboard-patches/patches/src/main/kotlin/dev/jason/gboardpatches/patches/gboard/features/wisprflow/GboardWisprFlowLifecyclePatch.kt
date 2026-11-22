@@ -27,8 +27,14 @@ internal val gboardWisprFlowLifecyclePatch = bytecodePatch(
         val targets = GboardEditingAccessPointsTargets
         targets.validate(this)
         targets.resetMethods.filterNot { it == targets.startView }.forEach { target ->
+            val callback = when (target.name) {
+                "onStartInput", "onFinishInput" -> RuntimeCallId.WISPR_FLOW_EDITOR_CHANGED
+                "onFinishInputView", "onWindowHidden" -> RuntimeCallId.WISPR_FLOW_INPUT_VIEW_ENDED
+                "onDestroy" -> RuntimeCallId.WISPR_FLOW_SERVICE_DESTROYED
+                else -> error("Unexpected Wispr Flow lifecycle callback: ${target.reference}")
+            }
             findMutableMethodOrThrow(target).addInstructions(
-                0, RuntimeCallEmitter.invoke(RuntimeCallId.WISPR_FLOW_INPUT_VIEW_ENDED, ""),
+                0, RuntimeCallEmitter.invoke(callback, ""),
             )
         }
         findMutableMethodOrThrow(targets.startView).applyVoidExitLifecycleDelegate(

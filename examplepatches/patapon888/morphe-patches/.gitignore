@@ -1,0 +1,6 @@
+build/
+*.apk
+*.apkm
+*.xapk
+*.keystore
+*.jks

@@ -23,7 +23,7 @@
 
 // Modified for Heval's Morphe Patches (2026-10-11): derived from
 // app.morphe.patches.all.misc.gms.gmsCorePackageQueriesPatch (morphe-patches-library dev), which
-// is not in the morphe-patches-library 1.0.4 this bundle uses. A plain function called by the
+// is not exposed by this bundle's library dependency. A plain function called by the
 // "GmsCore support" resource patch instead of a separate patch; skips packages already listed.
 
 package app.template.patches.shared.misc.gms
@@ -35,7 +35,7 @@ import org.w3c.dom.Element
  * Package names that can hold a MicroG install. Android 11+ hides other packages from the app
  * unless they are listed in `<queries>`, so the extension could not see MicroG RE otherwise.
  */
-internal val GMS_CORE_QUERY_PACKAGES = listOf(
+internal val GMS_CORE_QUERY_PACKAGES = linkedSetOf(
     "$GMS_CORE_VENDOR_GROUP_ID.android.gms",
     "com.mgoogle.android.gms",
     "org.microg.gms",

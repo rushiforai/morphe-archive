@@ -3,14 +3,15 @@
     "main",
     {
       "name": "dev",
-      "prerelease": true
+      "prerelease": "dev"
     }
   ],
   "plugins": [
     [
         "@semantic-release/commit-analyzer", {
+        "preset": "conventionalcommits",
         "releaseRules": [
-            { "type": "release", "scope": "v3", "release": "major" },
+            { "breaking": true, "release": "major" },
             { "type": "fix", "release": "patch" },
             { "type": "feat", "release": "minor" },
             { "type": "bump", "release": "patch" },

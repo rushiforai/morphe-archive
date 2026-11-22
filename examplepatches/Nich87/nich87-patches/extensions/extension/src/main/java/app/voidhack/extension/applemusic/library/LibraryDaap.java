@@ -30,6 +30,11 @@ final class LibraryDaap {
     private final AtomicBoolean cancelled;
     private final Identity identity;
     private Session session;
+    private volatile int lastRawTrackCount = -1;
+    private volatile int lastLibraryTrackCount = -1;
+
+    int lastRawTrackCount() { return lastRawTrackCount; }
+    int lastLibraryTrackCount() { return lastLibraryTrackCount; }
 
     LibraryDaap(AtomicBoolean cancelled) throws IOException {
         this.cancelled = cancelled;
@@ -42,38 +47,48 @@ final class LibraryDaap {
         Set<Long> seen = new LinkedHashSet<>();
         long total = -1;
         do {
-            DaapCodec.Node response = daap("GET", itemsUrl() + "&index=" + result.size() + "-"
+            DaapCodec.Node response = daap("items", "GET", itemsUrl() + "&index=" + result.size() + "-"
                     + (result.size() + PAGE_SIZE - 1), new byte[0], "adbs", true);
             long count = response.required("mtco").unsigned32();
-            if (count > MAX_TRACKS || (total >= 0 && count != total)) throw new Failure(Kind.LIBRARY_CHANGED);
+            if (count > MAX_TRACKS || (total >= 0 && count != total)) {
+                throw new Failure(Kind.LIBRARY_CHANGED, "items:count=" + count + ",prev=" + total);
+            }
             total = count;
             List<Track> page = parseTracks(response);
-            if (page.size() > total - result.size()) throw new Failure(Kind.PROTOCOL);
-            if (page.isEmpty() && result.size() != total) throw new Failure(Kind.PROTOCOL);
+            if (page.size() > total - result.size()) {
+                throw new Failure(Kind.PROTOCOL, "items:overflow=" + page.size() + ",rem=" + (total - result.size()));
+            }
+            if (page.isEmpty() && result.size() != total) {
+                throw new Failure(Kind.PROTOCOL, "items:empty=" + result.size() + "/" + total);
+            }
             for (Track track : page) {
-                if (!seen.add(track.cloudId)) throw new Failure(Kind.LIBRARY_CHANGED);
+                if (!seen.add(track.cloudId)) {
+                    throw new Failure(Kind.LIBRARY_CHANGED, "items:duplicate_id=" + result.size() + "/" + total);
+                }
                 result.add(track);
             }
         } while (result.size() < total);
+        lastRawTrackCount = result.size();
         result.removeIf(track -> !track.inLibrary);
+        lastLibraryTrackCount = result.size();
         return Collections.unmodifiableList(result);
     }
 
     synchronized Track track(long cloudId) throws IOException { return track(cloudId, true); }
 
     private Track track(long cloudId, boolean honourCancellation) throws IOException {
-        if (cloudId <= 0 || cloudId > 0xffffffffL) throw new Failure(Kind.IDENTITY);
+        if (cloudId <= 0 || cloudId > 0xffffffffL) throw new Failure(Kind.IDENTITY, "item:invalid_id");
         String query = URLEncoder.encode("'dmap.itemid:" + cloudId + "'", StandardCharsets.UTF_8.name());
-        DaapCodec.Node response = daap("GET", itemsUrl() + "&query=" + query, new byte[0], "adbs", honourCancellation);
+        DaapCodec.Node response = daap("item", "GET", itemsUrl() + "&query=" + query, new byte[0], "adbs", honourCancellation);
         List<Track> found = parseTracks(response);
         if (response.required("mtco").unsigned32() != 1 || found.size() != 1 || found.get(0).cloudId != cloudId) {
-            throw new Failure(Kind.IDENTITY);
+            throw new Failure(Kind.IDENTITY, "item:count=" + found.size());
         }
         return found.get(0);
     }
 
     synchronized void repair(Track baseline, Map<String, String> replacements) throws IOException {
-        if (!identity.matches(baseline.identity) || baseline.catalogId.isEmpty()) throw new Failure(Kind.IDENTITY);
+        if (!identity.matches(baseline.identity) || baseline.catalogId.isEmpty()) throw new Failure(Kind.IDENTITY, "repair:baseline");
         if (replacements.isEmpty()) return;
         Map<String, byte[]> fields = new LinkedHashMap<>();
         for (Map.Entry<String, String> field : replacements.entrySet()) {
@@ -82,15 +97,15 @@ final class LibraryDaap {
         Session current = connect();
         if (!identity.matches(current.identity)) throw new Failure(Kind.ACCOUNT_CHANGED);
         session = current;
-        DaapCodec.Node revision = daap("GET", BASE + "/update?session-id=" + session.id + "&revision-number=0",
+        DaapCodec.Node revision = daap("update", "GET", BASE + "/update?session-id=" + session.id + "&revision-number=0",
                 new byte[0], "mupd", true);
         Track before = track(baseline.cloudId, true);
-        if (!before.inLibrary || !before.catalogId.equals(baseline.catalogId)) throw new Failure(Kind.IDENTITY);
+        if (!before.inLibrary || !before.catalogId.equals(baseline.catalogId)) throw new Failure(Kind.IDENTITY, "repair:before");
         boolean changed = false;
         for (Map.Entry<String, String> field : replacements.entrySet()) {
             String actual = before.values.get(field.getKey());
             if (Objects.equals(actual, field.getValue())) continue;
-            if (!Objects.equals(actual, baseline.values.get(field.getKey()))) throw new Failure(Kind.CONFLICT);
+            if (!Objects.equals(actual, baseline.values.get(field.getKey()))) throw new Failure(Kind.CONFLICT, "repair:" + field.getKey());
             changed = true;
         }
         if (!changed) return;
@@ -99,24 +114,28 @@ final class LibraryDaap {
         checkCancelled();
         IOException writeFailure = null;
         try {
-            daap("POST", BASE + "/databases/" + identity.databaseId + "/items/edit?session-id=" + session.id,
+            daap("edit", "POST", BASE + "/databases/" + identity.databaseId + "/items/edit?session-id=" + session.id,
                     body, "mebp", false);
         } catch (IOException exception) { writeFailure = exception; }
         try {
             Track after = track(baseline.cloudId, false);
-            if (!after.inLibrary || !after.catalogId.equals(baseline.catalogId)) throw new Failure(Kind.VERIFICATION);
+            if (!after.inLibrary || !after.catalogId.equals(baseline.catalogId)) throw new Failure(Kind.VERIFICATION, "repair:after_identity");
             for (Map.Entry<String, String> field : replacements.entrySet()) {
-                if (!Objects.equals(after.values.get(field.getKey()), field.getValue())) throw new Failure(Kind.VERIFICATION);
+                if (!Objects.equals(after.values.get(field.getKey()), field.getValue())) {
+                    throw new Failure(Kind.VERIFICATION, "repair:mismatch=" + field.getKey());
+                }
             }
         } catch (IOException exception) {
-            Failure failure = new Failure(Kind.VERIFICATION);
+            Failure failure = new Failure(Kind.VERIFICATION, "repair:verify");
             failure.addSuppressed(exception);
             if (writeFailure != null) failure.addSuppressed(writeFailure);
             throw failure;
         }
     }
 
-    byte[] requestGet(String absoluteUrl) throws IOException { return request("GET", absoluteUrl, new byte[0], true); }
+    byte[] requestGet(String absoluteUrl) throws IOException {
+        return request("lookup_jp", "GET", absoluteUrl, new byte[0], true);
+    }
 
     synchronized void verifyAccountForLocalRefresh() throws IOException {
         Session current = connect(false);
@@ -129,35 +148,43 @@ final class LibraryDaap {
     private Session connect() throws IOException { return connect(true); }
 
     private Session connect(boolean honourCancellation) throws IOException {
-        DaapCodec.Node login = daap("GET", BASE + "/login", new byte[0], "mlog", honourCancellation);
+        DaapCodec.Node login = daap("login", "GET", BASE + "/login", new byte[0], "mlog", honourCancellation);
         long sessionId = login.required("mlid").unsigned32();
-        if (sessionId == 0) throw new Failure(Kind.IDENTITY);
-        DaapCodec.Node databases = daap("GET", BASE + "/databases?session-id=" + sessionId + "&delta=0",
+        if (sessionId == 0) throw new Failure(Kind.IDENTITY, "login:session_zero");
+        DaapCodec.Node databases = daap("databases", "GET", BASE + "/databases?session-id=" + sessionId + "&delta=0",
                 new byte[0], "avdb", honourCancellation);
-        List<DaapCodec.Node> records = databases.required("mlcl").children;
-        if (records.size() != 1 || !records.get(0).code.equals("mlit")) throw new Failure(Kind.IDENTITY);
+        List<DaapCodec.Node> records = databases.required("mlcl").children();
+        if (records.size() != 1 || !records.get(0).code.equals("mlit")) {
+            throw new Failure(Kind.IDENTITY, "databases:records=" + records.size());
+        }
         DaapCodec.Node database = records.get(0);
         long databaseId = database.required("miid").unsigned32();
         byte[] persistentId = database.required("mper").bytes();
-        if (databaseId == 0 || persistentId.length != 8) throw new Failure(Kind.IDENTITY);
+        if (databaseId == 0 || persistentId.length != 8) {
+            throw new Failure(Kind.IDENTITY, "databases:invalid_id");
+        }
         return new Session(sessionId, new Identity(databaseId, persistentId));
     }
 
     private List<Track> parseTracks(DaapCodec.Node response) throws IOException {
-        List<DaapCodec.Node> nodes = response.required("mlcl").children;
-        if (response.required("mrco").unsigned32() != nodes.size()) throw new Failure(Kind.PROTOCOL);
+        List<DaapCodec.Node> nodes = response.required("mlcl").children();
+        long returned = response.required("mrco").unsigned32();
+        if (returned != nodes.size()) {
+            throw new Failure(Kind.PROTOCOL, "items:mrco=" + returned + ",nodes=" + nodes.size());
+        }
         List<Track> tracks = new ArrayList<>(nodes.size());
-        for (DaapCodec.Node node : nodes) {
-            if (!node.code.equals("mlit")) throw new Failure(Kind.PROTOCOL);
+        for (DaapCodec.Node record : nodes) {
+            if (!record.code.equals("mlit")) throw new Failure(Kind.PROTOCOL, "items:unexpected_node");
+            DaapCodec.Node node = record.readTrackFields();
             long cloudId = node.required("miid").unsigned32();
-            if (cloudId == 0) throw new Failure(Kind.IDENTITY);
+            if (cloudId == 0) throw new Failure(Kind.IDENTITY, "items:cloud_id_zero");
             DaapCodec.Node catalog = node.child("ajsa");
             long catalogId = catalog == null ? 0 : catalog.number();
             if (catalogId == 0) {
                 catalog = node.child("ajra");
                 catalogId = catalog == null ? 0 : catalog.number();
             }
-            if (catalogId < 0) throw new Failure(Kind.IDENTITY);
+            if (catalogId < 0) throw new Failure(Kind.IDENTITY, "items:negative_catalog_id");
             Map<String, String> values = new LinkedHashMap<>();
             for (MetadataField field : MetadataField.values()) {
                 DaapCodec.Node value = node.child(field.tag);
@@ -170,14 +197,22 @@ final class LibraryDaap {
         return tracks;
     }
 
-    private DaapCodec.Node daap(String method, String url, byte[] body, String type, boolean honourCancellation) throws IOException {
-        DaapCodec.Node root = DaapCodec.root(request(method, url, body, honourCancellation), type);
+    private DaapCodec.Node daap(String operation, String method, String url, byte[] body, String type, boolean honourCancellation) throws IOException {
+        byte[] payload = request(operation, method, url, body, honourCancellation);
+        DaapCodec.Node root;
+        try {
+            root = DaapCodec.root(payload, type);
+        } catch (DaapCodec.FormatException exception) {
+            Failure failure = new Failure(Kind.PROTOCOL, operation + ":" + exception.getMessage());
+            failure.initCause(exception);
+            throw failure;
+        }
         long status = root.required("mstt").unsigned32();
-        if (status != 200) throw new Failure(Kind.SERVER, (int) status);
+        if (status != 200) throw new Failure(Kind.SERVER, (int) status, operation);
         return root;
     }
 
-    private byte[] request(String method, String url, byte[] body, boolean honourCancellation) throws IOException {
+    private byte[] request(String operation, String method, String url, byte[] body, boolean honourCancellation) throws IOException {
         validateUrl(url);
         for (int attempt = 0; ; attempt++) {
             if (honourCancellation) checkCancelled();
@@ -193,19 +228,25 @@ final class LibraryDaap {
                     pause(honourCancellation);
                     continue;
                 }
-                if (status != 200) throw new Failure(Kind.HTTP, status);
+                if (status != 200) throw new Failure(Kind.HTTP, status, operation);
                 try (MusicReflection.Handle responseBody = new MusicReflection.Handle(call(response.value, "getBodyResponse"))) {
                     Object content = responseBody.get();
-                    if (content == null) throw new Failure(Kind.PROTOCOL);
+                    if (content == null) throw new Failure(Kind.PROTOCOL, operation + ":null_body");
                     long size = (Long) call(content, "getLength");
-                    if (size <= 0 || size > DaapCodec.MAX_BODY) throw new Failure(Kind.PROTOCOL);
+                    if (size <= 0 || size > DaapCodec.MAX_BODY) {
+                        throw new Failure(Kind.PROTOCOL, operation + ":body_size=" + size);
+                    }
                     byte[] bytes = (byte[]) call(content, "toBytes");
-                    if (bytes == null || bytes.length != size) throw new Failure(Kind.PROTOCOL);
+                    if (bytes == null || bytes.length != size) {
+                        throw new Failure(Kind.PROTOCOL, operation + ":read=" + (bytes == null ? -1 : bytes.length) + "/" + size);
+                    }
                     if (honourCancellation) checkCancelled();
                     return bytes;
                 }
             } catch (ReflectiveOperationException exception) {
-                throw new IOException("Apple Music request adapter failed", exception);
+                Failure failure = new Failure(Kind.PROTOCOL, operation + ":reflect=" + LibraryMetadata.causeName(exception));
+                failure.initCause(exception);
+                throw failure;
             }
         }
     }
@@ -254,11 +295,17 @@ final class LibraryDaap {
     static final class Failure extends IOException {
         final Kind kind;
         final int status;
-        Failure(Kind kind) { this(kind, 0); }
-        Failure(Kind kind, int status) {
-            super("Apple Music metadata request failed: " + kind + (status == 0 ? "" : " (" + status + ")"));
+        final String detail;
+        Failure(Kind kind) { this(kind, 0, ""); }
+        Failure(Kind kind, int status) { this(kind, status, ""); }
+        Failure(Kind kind, String detail) { this(kind, 0, detail); }
+        Failure(Kind kind, int status, String detail) {
+            super("Apple Music metadata request failed: " + kind
+                    + (status == 0 ? "" : " (" + status + ")")
+                    + (detail == null || detail.isEmpty() ? "" : " [" + detail + "]"));
             this.kind = kind;
             this.status = status;
+            this.detail = detail == null ? "" : detail;
         }
     }
 

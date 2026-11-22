@@ -1,0 +1,126 @@
+name: Release
+
+# Releases from main once a week, on Monday at 08:00 UTC, when something new was merged. An urgent
+# fix can be released right away by running this workflow by hand.
+#
+# Before releasing, the bundle has to pass the emulator test (emulator.yml: every patch applies and
+# the patched app and the clone start on Android 12L to 17). When it doesn't, nothing is released and the
+# issue "Weekly release stopped" says why; the next release that goes through closes it.
+on:
+  schedule:
+    - cron: '0 8 * * 1'
+  workflow_dispatch:
+
+jobs:
+  emulator:
+    name: Emulator test
+    if: github.ref == 'refs/heads/main'
+    permissions:
+      contents: read
+      packages: read
+    uses: ./.github/workflows/emulator.yml
+    secrets: inherit
+
+  release:
+    name: Release
+    needs: [emulator]
+    if: ${{ !cancelled() && needs.emulator.result == 'success' }}
+    permissions:
+      contents: write
+      packages: write
+      id-token: write
+      attestations: write
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Setup Java
+        uses: actions/setup-java@v6
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 'lts/*'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm install
+
+      # patches-bundle.json lists morphe-signing.pub, so Morphe Manager expects a signed bundle.
+      - name: Check for the signing key
+        env:
+          KEY: ${{ secrets.MORPHE_SIGNING_KEY }}
+        run: |
+          if [ -z "$KEY" ]; then
+            echo "::error::MORPHE_SIGNING_KEY isn't set, so the bundle can't be signed."
+            exit 1
+          fi
+
+      # Semantic release runs its own Gradle build command. The Morphe Gradle plugin signs the
+      # bundle with MORPHE_SIGNING_KEY and checks it against morphe-signing.pub.
+      - name: Release
+        uses: cycjimmy/semantic-release-action@v8
+        id: release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          MORPHE_SIGNING_KEY: ${{ secrets.MORPHE_SIGNING_KEY }}
+
+      - name: Attest
+        if: steps.release.outputs.new_release_published == 'true'
+        uses: actions/attest-build-provenance@v4
+        with:
+          subject-name: 'Morphe Patches ${{ steps.release.outputs.new_release_git_tag }}'
+          subject-path: patches/build/libs/patches-*.mpp
+
+      # Always verify compilation when semantic-release did not publish a release.
+      - name: Verify project compiles
+        if: steps.release.outputs.new_release_published != 'true'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: ./gradlew :patches:buildAndroid clean --no-daemon
+
+  # Says on GitHub when a release didn't go out, so a red run on a Monday morning isn't missed.
+  report:
+    name: Open or close the issue
+    needs: [emulator, release]
+    if: ${{ !cancelled() && github.ref == 'refs/heads/main' }}
+    permissions:
+      issues: write
+    runs-on: ubuntu-latest
+    steps:
+      - name: Open or close the issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          EMULATOR: ${{ needs.emulator.result }}
+          RELEASE: ${{ needs.release.result }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          title="Weekly release stopped"
+          existing=$(gh issue list --state open --search "\"$title\" in:title" --json number,title --jq ".[] | select(.title == \"$title\") | .number" | head -1)
+          if [ "$RELEASE" = "success" ]; then
+            if [ -n "$existing" ]; then
+              gh issue close "$existing" --comment "The release workflow went through again ([run]($RUN_URL))."
+            fi
+            exit 0
+          fi
+          if [ "$EMULATOR" != "success" ]; then
+            why="The emulator test didn't pass ($EMULATOR): a patch doesn't apply, or the patched app doesn't start."
+          else
+            why="The release step itself failed ($RELEASE)."
+          fi
+          body=$(printf '%s\n\n%s\n\n%s\n' \
+            "Nothing was released in this run." \
+            "$why" \
+            "[Workflow run]($RUN_URL). After fixing it, run the Release workflow by hand; a run that goes through closes this issue.")
+          if [ -n "$existing" ]; then
+            gh issue comment "$existing" --body "$body"
+          else
+            gh issue create --title "$title" --label bug --body "$body"
+          fi

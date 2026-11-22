@@ -27,6 +27,7 @@ object Constants {
         packageName = "com.llamalab.automate",
         targets = listOf(
             AppTarget(version = null, isExperimental = true),
+            AppTarget(version = "1.54.0-play"),
             AppTarget(version = "1.51.1"),
         ),
     )
@@ -44,9 +45,17 @@ object Constants {
         packageName = "com.proto.circuitsimulator",
         targets = listOf(
             AppTarget(version = null, isExperimental = true),
-            AppTarget(version = "1.48.0"),
-            AppTarget(version = "1.49.0"),
             AppTarget(version = "1.53.0"),
+            AppTarget(version = "1.49.0"),
+            AppTarget(version = "1.48.0"),
+        ),
+    )
+
+    val COMPATIBILITY_MT_MANAGER = Compatibility(
+        name = "MT Manager",
+        packageName = "bin.mt.plus",
+        targets = listOf(
+            AppTarget(version = "2.26.11", minSdk = 28),
         ),
     )
 
@@ -54,8 +63,8 @@ object Constants {
         name = "Sky Tonight",
         packageName = "com.vitotechnology.sky.tonight.map.star.walk",
         targets = listOf(
+            AppTarget(version = "2.6.0"),
             AppTarget(version = "2.5.3"),
-            AppTarget(version = "2.5.0"),
         ),
     )
 
@@ -64,7 +73,22 @@ object Constants {
         packageName = "com.vitotechnology.StarWalk2Free",
         targets = listOf(
             AppTarget(version = "2.22.0"),
-            AppTarget(version = "2.20.3"),
+        ),
+    )
+
+    val COMPATIBILITY_COSMIC_WATCH = Compatibility(
+        name = "Cosmic Watch",
+        packageName = "com.cosmic_watch.cosmicwatch",
+        targets = listOf(
+            AppTarget(version = "3.0.1"),
+        ),
+    )
+
+    val COMPATIBILITY_SOLAR_WALK_2 = Compatibility(
+        name = "Solar Walk 2",
+        packageName = "com.vitotechnology.SolarWalk2Free",
+        targets = listOf(
+            AppTarget(version = "1.6.9"),
         ),
     )
 
@@ -83,9 +107,9 @@ object Constants {
         packageName = "com.nis.app",
         targets = listOf(
             AppTarget(version = null, isExperimental = true),
-            AppTarget(version = "6.12.15"),
-            AppTarget(version = "6.12.18"),
             AppTarget(version = "6.13.04"),
+            AppTarget(version = "6.12.18"),
+            AppTarget(version = "6.12.15"),
         ),
     )
 
@@ -102,11 +126,9 @@ object Constants {
         packageName = "com.noctuasoftware.stellarium_free",
         targets = listOf(
             AppTarget(version = null, isExperimental = true),
-            AppTarget(version = "1.16.2"),
-            AppTarget(version = "1.16.3"),
-            AppTarget(version = "1.16.8"),
-            AppTarget(version = "1.16.9"),
             AppTarget(version = "1.16.10"),
+            AppTarget(version = "1.16.9"),
+            AppTarget(version = "1.16.8"),
         ),
     )
 
@@ -115,8 +137,8 @@ object Constants {
         packageName = "com.ufovpn.connect.velnet",
         targets = listOf(
             AppTarget(version = null, isExperimental = true),
-            AppTarget(version = "2.5.5"),
             AppTarget(version = "2.5.8"),
+            AppTarget(version = "2.5.5"),
         ),
     )
 
@@ -133,8 +155,7 @@ object Constants {
         packageName = "pl.solidexplorer2",
         targets = listOf(
             AppTarget(version = null, isExperimental = true),
-            AppTarget(version = "3.4.10"),
-            AppTarget(version = "3.5.7b"),
+            AppTarget(version = "3.6.5"),
             AppTarget(version = "3.6.4"),
         ),
     )

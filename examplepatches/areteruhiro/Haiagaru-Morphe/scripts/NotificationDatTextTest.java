@@ -8,11 +8,23 @@ public class NotificationDatTextTest {
    String legacy="返信 >>27 日本語 したらば";
    byte[] bytes=legacy.getBytes(Charset.forName(fallback));
    if(!legacy.equals(NotificationDatText.decode(bytes,fallback)))throw new AssertionError(fallback);
+   if(!legacy.equals(NotificationDatText.decode(bytes,"UTF-8")))throw new AssertionError("incorrect UTF-8 hint "+fallback);
    Path file=Files.createTempFile("notification-dat-", ".dat");
    try { for(byte[] data:new byte[][]{text.getBytes(StandardCharsets.UTF_8),bytes}) {
     Files.write(file,data);StringBuilder out=new StringBuilder();try(var reader=NotificationDatText.reader(file.toFile(),fallback)){char[] b=new char[7];int n;while((n=reader.read(b))!=-1)out.append(b,0,n);}
     if(!out.toString().equals(data==bytes?legacy:text))throw new AssertionError("file "+fallback);
-   }}finally{Files.delete(file);}
+   }
+   Files.write(file,bytes);
+   try(var reader=new java.io.BufferedReader(NotificationDatText.reader(file.toFile(),"UTF-8"))){
+    if(!legacy.equals(reader.readLine()))throw new AssertionError("legacy saved DAT with UTF-8 hint "+fallback);
+   }
+   String first="日本語"+"a".repeat(65525)+"😀";
+   String boundary=first+"\n"+text;
+   Files.write(file,boundary.getBytes(StandardCharsets.UTF_8));
+   try(var reader=new java.io.BufferedReader(NotificationDatText.reader(file.toFile(),"MS932"))){
+    if(!first.equals(reader.readLine()))throw new AssertionError("UTF8 cut at sample boundary");
+   }
+   }finally{Files.delete(file);}
   }
   System.out.println("PASS UTF8/EUC-JP/MS932 notification decode and streaming file reads");
  }

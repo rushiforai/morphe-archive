@@ -9,6 +9,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 import app.hushgram.extension.instagram.download.InstagramMedia;
@@ -29,9 +30,12 @@ import app.hushgram.extension.shared.diagnostics.HookStatus;
  *
  * <p>The list is the words and phrases typed under the switch, split at commas and new lines, as
  * Hushfeed's Blocked caption words are, so a list from there pastes in as it is. A reel goes when
- * its caption, the post's own words with their hashtags, holds one of them, whatever the case. A
- * reel with no caption stays. With Also on Home on, Home's posts are matched against the same list
- * ({@link app.hushgram.extension.instagram.feed.FeedSuggestions#homeItem}).
+ * its caption, the post's own words with their hashtags, holds one of them, whatever the case. An
+ * {@code @name} in the list also takes out that account's own reels, the author read through the
+ * post's user and its username (#807). A reel with no caption from an account not named stays.
+ * With Also on Home on, Home's posts are matched against the same list
+ * ({@link app.hushgram.extension.instagram.feed.FeedSuggestions#homeItem}), and with Also in comments
+ * on, so is each comment in a post's comments as its row is built ({@link #dropsComment}).
  *
  * <p>A page where every reel would go keeps every item, so the viewer always has a reel to show,
  * and the report counts it. Off, paused, with an empty list, before the settings are read, or when
@@ -40,6 +44,9 @@ import app.hushgram.extension.shared.diagnostics.HookStatus;
 public final class CaptionWordReels {
     /** The diagnostic counter route: the pages seen, and the items taken out of them. */
     static final String ROUTE = "Caption word reels";
+
+    /** The diagnostic counter route for comments left out of a post's comments (#807). */
+    static final String COMMENT_ROUTE = "Caption word comments";
 
     /** The reason, and kind, of an item whose caption holds a blocked word. */
     static final String BLOCKED = "blocked word";
@@ -57,6 +64,11 @@ public final class CaptionWordReels {
 
         /** The post's caption text, or null when it has none. */
         String caption(Object media);
+
+        /** The username of whoever posted it, or null when it can't be read (#807). */
+        default String author(Object media) {
+            return null;
+        }
     }
 
     private static final Reader PATCHED = new Reader() {
@@ -69,6 +81,12 @@ public final class CaptionWordReels {
         public String caption(Object media) {
             Object caption = InstagramMedia.caption(media);
             return caption == null ? null : InstagramMedia.captionText(caption);
+        }
+
+        @Override
+        public String author(Object media) {
+            Object owner = InstagramMedia.owner(media);
+            return owner == null ? null : InstagramMedia.username(owner);
         }
     };
 
@@ -115,8 +133,11 @@ public final class CaptionWordReels {
             List<String> blocked = words.get();
             CaptionLanguage.Rule other = language.get();
             if (blocked.isEmpty() && other == null) return items;
+            boolean accounts = namesAccounts(blocked);
 
             boolean[] goes = new boolean[size];
+            Object[] blockedMedia = new Object[size];
+            String[] blockedCaption = new String[size];
             int matched = 0;
             int foreign = 0;
             int reels = 0;
@@ -126,10 +147,13 @@ public final class CaptionWordReels {
                 Object media = item == null ? null : reader.media(item);
                 if (media != null) reels++;
                 String caption = media == null ? null : reader.caption(media);
-                boolean hit = holdsAny(caption, blocked);
+                boolean hit = holdsAny(caption, blocked)
+                        || accounts && media != null && postedByAny(reader.author(media), blocked);
                 boolean foreignHit = !hit && other != null && other.isOther(caption);
                 if (hit) {
                     matched++;
+                    blockedMedia[at] = media;
+                    blockedCaption[at] = caption;
                     FeedFilterCounters.sawKind(ROUTE, BLOCKED);
                 } else if (foreignHit) {
                     matched++;
@@ -152,6 +176,11 @@ public final class CaptionWordReels {
             for (Object item : items) {
                 if (!goes[at++]) kept.add(item);
             }
+            for (int i = 0; i < size; i++) {
+                if (blockedMedia[i] != null) {
+                    CaptionWordStats.hidden(accounts ? reader.author(blockedMedia[i]) : null, blockedCaption[i]);
+                }
+            }
             if (matched - foreign > 0) FeedFilterCounters.removed(ROUTE, matched - foreign, BLOCKED);
             if (foreign > 0) FeedFilterCounters.removed(ROUTE, foreign, OTHER_LANGUAGE);
             int left = kept.size();
@@ -172,6 +201,29 @@ public final class CaptionWordReels {
         String text = caption.toLowerCase(Locale.ROOT);
         for (String word : words) {
             if (text.contains(word)) return true;
+        }
+        return false;
+    }
+
+    /** Whether [words], already lower case, name an account: an @ and at least one more character (#807). */
+    public static boolean namesAccounts(List<String> words) {
+        for (String word : words) {
+            if (word.length() > 1 && word.charAt(0) == '@') return true;
+        }
+        return false;
+    }
+
+    /**
+     * Whether [author], a username, is one of the accounts [words] name as {@code @name}, whatever the
+     * case and with or without its own @ (#807). An unknown author is nobody's.
+     */
+    public static boolean postedByAny(String author, List<String> words) {
+        if (author == null) return false;
+        String name = author.trim().toLowerCase(Locale.ROOT);
+        if (name.startsWith("@")) name = name.substring(1);
+        if (name.isEmpty()) return false;
+        for (String word : words) {
+            if (word.length() == name.length() + 1 && word.charAt(0) == '@' && word.endsWith(name)) return true;
         }
         return false;
     }
@@ -212,6 +264,57 @@ public final class CaptionWordReels {
     public static List<String> homeWordsWhenOn() {
         if (!Utils.settingsReady() || !Settings.HIDE_CAPTION_WORD_HOME.get()) return Collections.emptyList();
         return wordsWhenOn();
+    }
+
+    /**
+     * The blocked words a post's comments are matched against (#807): the list while the switch and
+     * its Also in comments are both on, and none while either is off, while paused or before the
+     * settings are read.
+     */
+    static List<String> commentWordsWhenOn() {
+        if (!Utils.settingsReady() || !Settings.HIDE_CAPTION_WORD_COMMENTS.get()) return Collections.emptyList();
+        return wordsWhenOn();
+    }
+
+    /**
+     * Asked first thing as each comment's row is built (#807): whether the comment's words and
+     * author are read at all. Never throws.
+     */
+    public static boolean commentsOn() {
+        try {
+            return !commentWordsWhenOn().isEmpty();
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.CAPTION_WORD_REELS, "comment rows", failure);
+            return false;
+        }
+    }
+
+    /**
+     * Whether a comment gets no row in a post's comments (#807): [text], its words, hold one from the
+     * list, or the list names [user], who wrote it, with an @name. A reply is a row of its own, and a
+     * hidden comment's replies go with it. No while Also in comments is off and on any failure. Never
+     * throws.
+     */
+    public static boolean dropsComment(String text, Object user) {
+        return dropsComment(text, user, InstagramMedia::username, CaptionWordReels::commentWordsWhenOn);
+    }
+
+    static boolean dropsComment(String text, Object user, Function<Object, String> username,
+                                Supplier<List<String>> words) {
+        try {
+            List<String> blocked = words.get();
+            if (blocked.isEmpty()) return false;
+            boolean hit = holdsAny(text, blocked)
+                    || user != null && namesAccounts(blocked) && postedByAny(username.apply(user), blocked);
+            if (!hit) return false;
+            CaptionWordStats.hidden(user != null && namesAccounts(blocked) ? username.apply(user) : null, text);
+            FeedFilterCounters.removed(COMMENT_ROUTE, 1, BLOCKED);
+            Logger.printDebug(() -> "Caption word comments: left a comment out of a post's comments");
+            return true;
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.CAPTION_WORD_REELS, "comment row", failure);
+            return false;
+        }
     }
 
     /**

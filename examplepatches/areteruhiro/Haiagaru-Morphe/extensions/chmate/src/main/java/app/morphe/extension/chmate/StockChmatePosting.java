@@ -45,16 +45,57 @@ public final class StockChmatePosting {
         return StockChmatePostingRules.target(NativeThreadContext.url(NativeThreadContext.board(fragment,version),version,0));
     }
     public static boolean normalClick(Object fragment,int action){
-        if(action!=2||!FeatureSwitches.enabled(ALWAYS,false))return false;
+        if(action!=2)return false;
         Activity activity=Haiagaru.toolbarActivity(fragment);if(activity==null)return false;
+        if(FutabaPostingPopup.toolbar(fragment,activity))return true;
+        if(!FeatureSwitches.enabled(ALWAYS,false))return false;
         try{String target=toolbarTarget(fragment,activity);if(target==null)return false;openEditor(activity,target);return true;}
         catch(Exception unavailable){return false;}
     }
     public static boolean longClick(Object fragment,android.view.View button){
-        if(button==null||button.getId()!=2||!FeatureSwitches.enabled(LONG_PRESS,false))return false;
+        if(button==null||button.getId()!=2)return false;
         Activity activity=Haiagaru.toolbarActivity(fragment);if(activity==null)return false;
+        if(!FeatureSwitches.enabled(LONG_PRESS,false)){
+            try{
+                String version=activity.getPackageManager().getPackageInfo(activity.getPackageName(),0).versionName;
+                String current=NativeThreadContext.url(NativeThreadContext.board(fragment,version),version,0);
+                String publicUrl=SiteNativeBoards.copiedText(current);
+                if(!java.util.Objects.equals(current,publicUrl)&&publicUrl!=null){openExternalThread(activity,publicUrl);return true;}
+            }catch(Exception unavailable){return false;}
+            return false;
+        }
         try{String target=toolbarTarget(fragment,activity);if(target==null)return false;openEditor(activity,target);return true;}
         catch(Exception unavailable){return false;}
+    }
+    private static void openExternalThread(Activity activity,String address){
+        try{
+            Uri uri=Uri.parse(address);
+            if(uri.getHost()==null||uri.getHost().equals("127.0.0.1")
+                    ||!("http".equals(uri.getScheme())||"https".equals(uri.getScheme())))return;
+            Intent probe=new Intent(Intent.ACTION_VIEW,uri).addCategory(Intent.CATEGORY_BROWSABLE);
+            java.util.ArrayList<Intent> browsers=new java.util.ArrayList<>();
+            for(android.content.pm.ResolveInfo info:activity.getPackageManager().queryIntentActivities(probe,0)){
+                if(info.activityInfo==null)continue;
+                String packageName=info.activityInfo.packageName;
+                if(packageName.equals(PACKAGE)||packageName.startsWith(PACKAGE+"."))continue;
+                browsers.add(new Intent(probe).setComponent(new android.content.ComponentName(packageName,info.activityInfo.name)));
+            }
+            if(browsers.isEmpty()){
+                Toast.makeText(activity,"通常ブラウザが見つかりません。公開URLをコピーしました。",Toast.LENGTH_LONG).show();
+                copyPublicThreadUrl(activity,address);
+                return;
+            }
+            Intent chooser=Intent.createChooser(browsers.remove(0),"Webで開く");
+            if(!browsers.isEmpty())chooser.putExtra(Intent.EXTRA_INITIAL_INTENTS,browsers.toArray(new Intent[0]));
+            activity.startActivity(chooser);
+        }catch(RuntimeException unavailable){
+            Toast.makeText(activity,"Webで開けませんでした。公開URLをコピーしました。",Toast.LENGTH_LONG).show();
+            copyPublicThreadUrl(activity,address);
+        }
+    }
+    private static void copyPublicThreadUrl(Activity activity,String address){
+        ((android.content.ClipboardManager)activity.getSystemService(Activity.CLIPBOARD_SERVICE))
+                .setPrimaryClip(android.content.ClipData.newPlainText("スレURL",address));
     }
     static void openFromToolbar(Object fragment){
         Activity activity=Haiagaru.toolbarActivity(fragment);if(activity==null)return;

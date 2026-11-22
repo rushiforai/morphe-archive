@@ -6,7 +6,8 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLa
 import app.morphe.patcher.extensions.InstructionExtensions.instructions
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
-import app.morphe.patcher.patch.resourcePatch
+import app.morphe.patcher.patch.document
+import app.morphe.patcher.patch.patch
 import app.noam.patches.chesscom.misc.settings.settingsPatch
 import app.noam.patches.chesscom.shared.Constants
 import app.noam.patches.chesscom.shared.markFeaturePatched
@@ -66,7 +67,7 @@ internal fun Document.addString(name: String, value: String) {
     )
 }
 
-private val arrowsResourcePatch = resourcePatch(
+private val arrowsResourcePatch = patch(
     description = "Adds the Arrows and Clear buttons to the game control bars.",
 ) {
     execute {

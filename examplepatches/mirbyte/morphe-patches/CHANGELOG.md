@@ -1,3 +1,22 @@
+## [1.5.0](https://github.com/mirbyte/morphe-patches/compare/v1.4.0...v1.5.0) (2026-11-21)
+
+### ✨ New Features
+
+* Add Bloomberg 6.71 patch support ([4eff2f6](https://github.com/mirbyte/morphe-patches/commit/4eff2f61d9d7ce4d6b6b85cf538889da9122dd41))
+* Add Bloomberg 6.71 video ad and analytics patches ([31462b6](https://github.com/mirbyte/morphe-patches/commit/31462b66a90cbfc8ac412d683eb4570e12ac7db1))
+
+## [1.5.0-dev.2](https://github.com/mirbyte/morphe-patches/compare/v1.5.0-dev.1...v1.5.0-dev.2) (2026-11-21)
+
+### ✨ New Features
+
+* Add Bloomberg 6.71 video ad and analytics patches ([31462b6](https://github.com/mirbyte/morphe-patches/commit/31462b66a90cbfc8ac412d683eb4570e12ac7db1))
+
+## [1.5.0-dev.1](https://github.com/mirbyte/morphe-patches/compare/v1.4.0...v1.5.0-dev.1) (2026-11-21)
+
+### ✨ New Features
+
+* Add Bloomberg 6.71 patch support ([4eff2f6](https://github.com/mirbyte/morphe-patches/commit/4eff2f61d9d7ce4d6b6b85cf538889da9122dd41))
+
 ## [1.4.0](https://github.com/mirbyte/morphe-patches/compare/v1.3.0...v1.4.0) (2026-11-12)
 
 ### ✨ New Features

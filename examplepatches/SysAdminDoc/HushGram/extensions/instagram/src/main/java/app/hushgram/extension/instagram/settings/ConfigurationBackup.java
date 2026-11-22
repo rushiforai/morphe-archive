@@ -171,6 +171,7 @@ public final class ConfigurationBackup {
         if (PatchFamily.CAPTION_WORD_REELS.inBuild()) {
             settings.put(Settings.REELS_BLOCKED_WORDS.key, Settings.REELS_BLOCKED_WORDS);
             settings.put(Settings.REELS_KEPT_LANGUAGES.key, Settings.REELS_KEPT_LANGUAGES);
+            settings.put(Settings.HIDE_CAPTION_WORD_COMMENTS.key, Settings.HIDE_CAPTION_WORD_COMMENTS);
             // Also on Home, both of them: their rows show only with Home's reads in the build.
             if (PatchFamily.feedTypesInBuild()) {
                 settings.put(Settings.HIDE_CAPTION_WORD_HOME.key, Settings.HIDE_CAPTION_WORD_HOME);
@@ -260,6 +261,8 @@ public final class ConfigurationBackup {
             settings.put(Settings.SEEK_BAR_SHAPE.key, Settings.SEEK_BAR_SHAPE);
             settings.put(Settings.FEED_SEEK_SHAPE.key, Settings.FEED_SEEK_SHAPE);
             settings.put(Settings.FEED_DOUBLE_TAP_SKIP_SECONDS.key, Settings.FEED_DOUBLE_TAP_SKIP_SECONDS);
+            settings.put(Settings.FEED_SEEK_TIME.key, Settings.FEED_SEEK_TIME);
+            settings.put(Settings.FEED_SEEK_TIME_LEFT.key, Settings.FEED_SEEK_TIME_LEFT);
         }
         if (PatchFamily.REEL_DOUBLE_TAP_SKIP.inBuild()) {
             settings.put(Settings.DOUBLE_TAP_SKIP_REELS_SECONDS.key, Settings.DOUBLE_TAP_SKIP_REELS_SECONDS);
@@ -270,6 +273,8 @@ public final class ConfigurationBackup {
         if (PatchFamily.STORY_SEEK_BAR.inBuild()) {
             settings.put(Settings.STORY_SEEK_BAR_LOOK.key, Settings.STORY_SEEK_BAR_LOOK);
             settings.put(Settings.STORY_SEEK_BAR_POSITION.key, Settings.STORY_SEEK_BAR_POSITION);
+            settings.put(Settings.STORY_SEEK_TIME.key, Settings.STORY_SEEK_TIME);
+            settings.put(Settings.STORY_SEEK_TIME_LEFT.key, Settings.STORY_SEEK_TIME_LEFT);
         }
         if (PatchFamily.FRIENDSHIP_STATUS.inBuild()) settings.put(Settings.FOLLOW_LABEL_PLACE.key, Settings.FOLLOW_LABEL_PLACE);
         if (PatchFamily.FULL_SCREEN_BARS.inBuild()) settings.put(Settings.FULL_SCREEN_HIDES.key, Settings.FULL_SCREEN_HIDES);
@@ -384,6 +389,7 @@ public final class ConfigurationBackup {
         settings.put(Settings.DESCRIPTIONS_BEHIND_INFO.key, Settings.DESCRIPTIONS_BEHIND_INFO);
         settings.put(Settings.SETTINGS_BLACK_LOOK.key, Settings.SETTINGS_BLACK_LOOK);
         settings.put(Settings.SETTINGS_LIGHT_LOOK.key, Settings.SETTINGS_LIGHT_LOOK);
+        settings.put(Settings.SETTINGS_INSTAGRAM_LOOK.key, Settings.SETTINGS_INSTAGRAM_LOOK);
         settings.put(Settings.DATE_SETTINGS_EXPORT.key, Settings.DATE_SETTINGS_EXPORT);
         return settings;
     }

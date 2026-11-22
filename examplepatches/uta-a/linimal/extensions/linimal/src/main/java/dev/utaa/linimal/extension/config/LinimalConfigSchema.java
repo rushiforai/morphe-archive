@@ -33,6 +33,8 @@ final class LinimalConfigSchema {
     static final String PREVIEW_SCROLL_ENABLED_KEY = "linimal.preview.scroll";
     static final String PREVIEW_DISABLE_ENABLED_KEY = "linimal.preview.disable";
     static final String AMOLED_THEME_ENABLED_KEY = "linimal.appearance.amoled";
+    static final String OFFICIAL_FONTS_ENABLED_KEY = "linimal.appearance.official_fonts";
+    static final String CUSTOM_FONT_ENABLED_KEY = "linimal.appearance.custom_font";
     static final String NEWS_ENABLED_KEY = "linimal.feature.news";
     static final String WALLET_ENABLED_KEY = "linimal.feature.wallet";
     static final String HOME_RECOMMENDATIONS_ENABLED_KEY = "linimal.ui.home.recommendations";
@@ -110,6 +112,10 @@ final class LinimalConfigSchema {
                 return PREVIEW_DISABLE_ENABLED_KEY;
             case AMOLED_THEME:
                 return AMOLED_THEME_ENABLED_KEY;
+            case OFFICIAL_FONTS:
+                return OFFICIAL_FONTS_ENABLED_KEY;
+            case CUSTOM_FONT:
+                return CUSTOM_FONT_ENABLED_KEY;
             case NEWS:
                 return NEWS_ENABLED_KEY;
             case WALLET:

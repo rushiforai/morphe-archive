@@ -1,0 +1,67 @@
+name: Check Google Play for MyGate updates
+
+on:
+  schedule:
+    - cron: '0 6 * * *'
+  workflow_dispatch:
+
+jobs:
+  check-and-bump:
+    name: Check & Bump MyGate Version
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      actions: write
+    steps:
+      - name: Checkout dev branch
+        uses: actions/checkout@v7
+        with:
+          ref: dev
+          fetch-depth: 0
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Check for new MyGate version
+        id: check_version
+        run: python3 .github/scripts/bump-version.py
+
+      - name: Commit and push changes to dev
+        if: steps.check_version.outputs.new_version_found == 'true'
+        env:
+          NEW_VERSION: ${{ steps.check_version.outputs.latest_version }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add patches/src/main/kotlin/app/morphe/patches/mygate/shared/Constants.kt README.md
+          git commit -m "feat(mygate): add support for version $NEW_VERSION"
+          git push origin dev
+
+      - name: Create or update PR to main
+        if: steps.check_version.outputs.new_version_found == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NEW_VERSION: ${{ steps.check_version.outputs.latest_version }}
+        run: |
+          PR_TITLE="chore(release): promote MyGate $NEW_VERSION to stable"
+          PR_BODY="Automated version bump: MyGate $NEW_VERSION is supported on dev. Merge this pull request when tested to promote to stable."
+
+          EXISTING_PR=$(gh pr list --base main --head dev --json number --jq '.[0].number')
+          if [ -n "$EXISTING_PR" ]; then
+            echo "Updating existing PR #$EXISTING_PR title to $PR_TITLE"
+            gh pr edit "$EXISTING_PR" --title "$PR_TITLE" --body "$PR_BODY"
+          else
+            echo "Creating PR from dev to main"
+            gh pr create --base main --head dev --title "$PR_TITLE" --body "$PR_BODY"
+          fi
+
+      - name: Trigger pre-release workflow on dev
+        if: steps.check_version.outputs.new_version_found == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "Triggering release.yml for dev pre-release"
+          gh workflow run release.yml --ref dev || true

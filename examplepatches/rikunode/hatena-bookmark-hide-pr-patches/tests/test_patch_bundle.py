@@ -11,7 +11,8 @@ import unittest
 import zipfile
 
 ROOT = Path(__file__).resolve().parents[1]
-MPP = ROOT / "patches/build/libs/patches-0.4.4.mpp"
+from scripts.validate_morphe_release import VERSION
+MPP = ROOT / "patches/build/libs" / f"patches-{VERSION}.mpp"
 
 class MppTests(unittest.TestCase):
     def test_android_bundle(self):
@@ -29,7 +30,7 @@ class MppTests(unittest.TestCase):
 
     def test_metadata(self):
         meta = json.loads((ROOT/"patches-list.json").read_text(encoding="utf-8"))
-        self.assertEqual(meta["version"], "0.4.4")
+        self.assertEqual(meta["version"], VERSION)
         self.assertEqual(len(meta["patches"]), 5)
         self.assertEqual({p["name"] for p in meta["patches"]}, {"Hide native PR entries from article feeds", "Clone Hatena Bookmark for safe side-by-side testing", "Hide weekly bookmark ranking announcement", "Block ads in in-app article browser", "Preserve article WebView cookies and storage"})
         patch = next(p for p in meta["patches"] if p["name"] == "Hide native PR entries from article feeds")

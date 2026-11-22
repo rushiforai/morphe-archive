@@ -157,109 +157,6 @@ fun assertReturnsEarlyVoid(method: Method, label: String, diagnostics: String = 
     )
 }
 
-/** The unobfuscated MobileAds static voids that throw (or start the SDK) without initialize(). */
-val GMA_THROWING_STATICS = listOf("initialize", "setAppVolume", "setAppMuted", "openDebugMenu", "setPlugin")
-
-/**
- * AGENTS.md rule 9: every concrete static void on Google Mobile Ads' MobileAds returns at once
- * (each of [required] must be one of them) and putPublisherFirstPartyIdEnabled, when present,
- * answers false.
- */
-fun assertMobileAdsStaticsNeutralised(mobileAds: ClassDef, required: List<String> = GMA_THROWING_STATICS) {
-    val staticVoids = mobileAds.methods.filter {
-        AccessFlags.STATIC.isSet(it.accessFlags) && it.returnType == "V" &&
-            it.implementation != null && it.name != "<clinit>"
-    }
-    for (name in required) {
-        assertTrue(staticVoids.any { it.name == name }, "${mobileAds.type} has no concrete static void $name")
-    }
-    assertTrue(staticVoids.isNotEmpty(), "${mobileAds.type} has no concrete static void")
-    staticVoids.forEach {
-        assertReturnsEarlyVoid(it, label = "MobileAds.${it.name}(${it.parameterTypes.joinToString()})")
-    }
-    mobileAds.methods.filter {
-        it.name == "putPublisherFirstPartyIdEnabled" && it.returnType == "Z" && it.implementation != null
-    }.forEach { assertForcedBoolean(it, expected = false, label = "MobileAds.putPublisherFirstPartyIdEnabled(Z)") }
-}
-
-/**
- * Asserts every concrete void method called one of [names] on [type] returns at once, and that
- * each name has at least one (an SDK hook that matched nothing must fail the test).
- */
-fun assertAllReturnEarly(classes: List<ClassDef>, type: String, vararg names: String) {
-    val owner = classes.firstOrNull { it.type == type } ?: error("$type not found in emitted dexes")
-    for (name in names) {
-        val targets = owner.methods.filter { it.name == name && it.returnType == "V" && it.implementation != null }
-        assertTrue(targets.isNotEmpty(), "$type has no concrete void $name")
-        targets.forEach { assertReturnsEarlyVoid(it, label = "$type->$name(${it.parameterTypes.joinToString()})") }
-    }
-}
-
-/**
- * AppLovin MAX banner views stay GONE (shared/misc/ads/MaxGmaAdHooks.kt hideMaxAdView):
- * setVisibility(I) first loads GONE into its argument, and every constructor return-void is
- * preceded by `const 0x8` + `invoke-virtual setVisibility(I)V`.
- */
-fun assertMaxAdViewHidden(classes: List<ClassDef>) {
-    val type = "Lcom/applovin/mediation/ads/MaxAdView;"
-    val view = classes.firstOrNull { it.type == type } ?: error("$type not found in emitted dexes")
-
-    val setVisibility = view.method("setVisibility", listOf("I"))
-    val first = setVisibility.instructions().firstOrNull()
-    val p1 = setVisibility.implementation!!.registerCount - 1
-    assertTrue(
-        first is NarrowLiteralInstruction && first.narrowLiteral == 8 &&
-            (first as OneRegisterInstruction).registerA == p1,
-        "MaxAdView.setVisibility does not force GONE; first instruction is ${first?.opcode}"
-    )
-
-    val constructors = view.methods.filter { it.name == "<init>" && it.implementation != null }
-    assertTrue(constructors.isNotEmpty(), "MaxAdView has no constructor")
-    for (constructor in constructors) {
-        val insns = constructor.instructions()
-        val returns = insns.withIndex().filter { it.value.opcode == Opcode.RETURN_VOID }.map { it.index }
-        assertTrue(returns.isNotEmpty(), "MaxAdView constructor has no return-void")
-        for (index in returns) {
-            val call = (insns.getOrNull(index - 1) as? ReferenceInstruction)?.reference as? MethodReference
-            val gone = insns.getOrNull(index - 2)
-            assertTrue(
-                call?.definingClass == type && call.name == "setVisibility" &&
-                    gone is NarrowLiteralInstruction && gone.narrowLiteral == 8,
-                "MaxAdView.<init>(${constructor.parameterTypes.joinToString()}) returns at $index without hiding the view"
-            )
-        }
-    }
-}
-
-/** Asserts the method was replaced by `return FlowKt.flowOf(Boolean.TRUE)`. */
-fun assertReturnsTrueFlow(method: Method, label: String, diagnostics: String = "") {
-    val insns = method.instructions()
-    val first = insns.getOrNull(0) as? ReferenceInstruction
-    val field = first?.reference as? FieldReference
-    assertTrue(
-        first?.opcode == Opcode.SGET_OBJECT &&
-            field?.definingClass == "Ljava/lang/Boolean;" &&
-            field.name == "TRUE",
-        "$label does not start with Boolean.TRUE; first instruction is ${first?.opcode} ${field}\n$diagnostics"
-    )
-    val second = insns.getOrNull(1) as? ReferenceInstruction
-    val call = second?.reference as? MethodReference
-    assertTrue(
-        second?.opcode == Opcode.INVOKE_STATIC &&
-            call?.definingClass == "Lkotlinx/coroutines/flow/FlowKt;" &&
-            call.name == "flowOf",
-        "$label does not call FlowKt.flowOf; second instruction is ${second?.opcode} ${call}\n$diagnostics"
-    )
-    assertTrue(
-        insns.getOrNull(2)?.opcode == Opcode.MOVE_RESULT_OBJECT,
-        "$label does not move the flow result; third instruction is ${insns.getOrNull(2)?.opcode}\n$diagnostics"
-    )
-    assertTrue(
-        insns.getOrNull(3)?.opcode == Opcode.RETURN_OBJECT,
-        "$label does not return the flow; fourth instruction is ${insns.getOrNull(3)?.opcode}\n$diagnostics"
-    )
-}
-
 /** Drops a trailing parenthetical note ("1.1.15 (versionCode 75)" -> "1.1.15") and surrounding space. */
 private fun normaliseVersionName(name: String): String = name.replace(Regex("""\s*\(.*\)\s*$"""), "").trim()
 
@@ -338,7 +235,7 @@ fun applyPatches(
     // Patcher.invoke() only executes the patches. Patcher.get() finalizes the bytecode context
     // and emits the patched dex files - without it you just re-read the unpatched input dex.
     //
-    // Since morphe-patcher 2.0.0 (default BytecodeMode.STRIP_FAST), PatcherResult.dexFiles is NOT
+    // In the default BytecodeMode.STRIP_FAST, PatcherResult.dexFiles is NOT
     // the app's class set: it holds only the original dex files a patch stripped classes from plus
     // new dex files (numbered after the originals) with the modified classes; original dex files
     // without a modified class are left out (PatcherResult.dexFilesComplete = false), and
@@ -410,47 +307,5 @@ fun patchedApkClasses(apk: File): List<ClassDef> {
     return classes
 }
 
-/**
- * Picker icons of a Heval Controls list setting (2026-11-03): [init] hands [provider]'s INSTANCE to
- * HevalSettings.setOptionIconProvider, [provider] implements HevalSettings.OptionIconProvider (or,
- * with [images], OptionImageProvider, which extends it), and the core (OptionIcons,
- * HevalSettings.optionIcon / optionImageUrl), the picker that draws the icons and, with [images],
- * the image loader were merged.
- */
-fun assertOptionIconsWired(byType: Map<String, ClassDef>, init: Method, provider: String, images: Boolean = false) {
-    val settings = "Lapp/template/extension/hevalcontrols/HevalSettings;"
-    val iconInterface = "Lapp/template/extension/hevalcontrols/HevalSettings\$OptionIconProvider;"
-    val imageInterface = "Lapp/template/extension/hevalcontrols/HevalSettings\$OptionImageProvider;"
-    val providerInterface = if (images) imageInterface else iconInterface
-    val icons = byType[provider] ?: error("$provider not found in the emitted dexes")
-    assertTrue(providerInterface in icons.interfaces, "$provider does not implement $providerInterface")
-    if (images) {
-        val image = byType[imageInterface] ?: error("$imageInterface not found in the emitted dexes")
-        assertTrue(iconInterface in image.interfaces, "$imageInterface does not extend $iconInterface")
-        assertTrue(icons.methods.any { it.name == "imageUrlFor" && it.implementation != null },
-            "$provider has no imageUrlFor")
-    }
-    assertTrue(byType.containsKey("Lapp/template/extension/hevalcontrols/OptionIcons;"), "OptionIcons was not merged")
-    fun Instruction.call() = ((this as? ReferenceInstruction)?.reference as? MethodReference)
-    val insns = init.instructions()
-    val register = insns.indexOfFirst {
-        it.call()?.let { r -> r.definingClass == settings && r.name == "setOptionIconProvider" } == true
-    }
-    assertTrue(register > 0, "${init.definingClass}->${init.name} does not call HevalSettings.setOptionIconProvider")
-    assertTrue(insns.subList(0, register).any {
-        it.opcode == Opcode.SGET_OBJECT && ((it as ReferenceInstruction).reference as FieldReference).definingClass == provider
-    }, "${init.definingClass}->${init.name} does not pass $provider's instance")
-    val picker = byType.filterKeys { it.startsWith("Lapp/template/extension/hevalcontrols/ui/ListPicker") }.values
-    val pickerCalls = picker.flatMap { it.methods }.flatMap { it.instructions() }.mapNotNull { it.call() }
-    assertTrue(pickerCalls.any { it.definingClass == settings && it.name == "optionIcon" },
-        "ListPicker does not ask HevalSettings.optionIcon")
-    if (images) {
-        assertTrue(pickerCalls.any { it.definingClass == settings && it.name == "optionImageUrl" },
-            "ListPicker does not ask HevalSettings.optionImageUrl")
-        val loader = "Lapp/template/extension/hevalcontrols/ui/OptionImageLoader;"
-        assertTrue(byType.containsKey(loader), "$loader was not merged")
-        assertTrue(pickerCalls.any { it.definingClass == loader && it.name == "bind" },
-            "ListPicker does not hand the image URL to OptionImageLoader.bind")
-    }
-}
+
 

@@ -244,3 +244,21 @@ file first, then ask for a fresh debug log ([DEBUG_LOG.md](DEBUG_LOG.md)).
 - To verify: open a multi-photo post, go back, open it again; the photos stay. `FEED HIDDEN by rule` lines must no longer list nodes=7/12
   icon-only rows. Feed ads must still be hidden (look for `HIDDEN by rule` with a header that has a name).
 
+
+## 13. Saved multi-photo post opens with only comments (log 2026-11-21, build 536.0.0.11.107)
+
+- Report: a post with 2+ photos opened from Saved shows only its comments; Back returns to Saved. Single-photo posts are fine.
+- Cause: a post opened on its own is **one** child of container 30001 (group 58, 59 nodes, whole post inside) and, for multi-photo
+  posts, that child is tappable with references. The group rule of `SponsoredPosts` took it for a sponsored header and hid it:
+  `FEED HIDDEN by rule, but no label found group=58 ... nodes=59`, then `PAGER [0] ... treeHidden=true treeHeight=0`, leaving item
+  `[1]` (comments, `nodes=119`). Real ad headers are 14 to 17 nodes.
+- Fix: `SponsoredPosts.isPermalink` skips the child whose component holds the string `fb_permalink`. In the log the field is
+  `0hd.A1R="fb_permalink"` on the root of that child only. The field is found **by value**: `resolve()` collects every instance
+  `String` field of the component class (`X.0hd`) and `isPermalink` compares values, so a renamed field in a new build does not break it.
+  `AdTrace.matchesFeedRule` uses the same check, so `feedRule=` in the log agrees with the real rule.
+- How to find it again in a new build: turn on Debug logging, open a multi-photo post from Saved, search the log for `fb_permalink`
+  (unobfuscated, stable) and note which `0hd.<field>` holds it. Check `FEED HIDDEN by rule` for a `nodes=` far above 17. The component
+  classes `X.0hd`, `X.0hg`, `X.0hc` and fields `A0w`, `A2Z`, `A2m`, `A0M` are the same obfuscated names listed in this file's earlier
+  sections; they come from the `DEEP` dumps (`<class>.<field>=value`) and have to be re-read from a new build's dump.
+- To verify: open a multi-photo post from Saved; the photos and text show. The log has `KEEP permalink post` (up to 5 lines) and no
+  `HIDDEN by rule` for a 59-node item. Feed ads must still be hidden.

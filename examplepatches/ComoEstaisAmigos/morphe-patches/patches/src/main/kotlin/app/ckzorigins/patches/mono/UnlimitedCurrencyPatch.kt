@@ -11,7 +11,7 @@ val unlimitedCurrencyPatch = patch(
         "If you install the patched app as an update, your current balance stays as it is.",
 ) {
     compatibleWith(COMPATIBILITY)
-    dependsOn(gluBackupPatch)
+    dependsOn(gluBackupPatch, disableAmmoRefillPopupPatch)
 
     execute {
         applyByteEdits(DllEdits.PATH, DllEdits.CURRENCY_BODIES + DllEdits.CURRENCY_RVA)

@@ -1,13 +1,15 @@
 package app.noam.patches.chesscom.misc.settings
 
 import app.morphe.patcher.patch.PatchException
-import app.morphe.patcher.patch.resourcePatch
+import app.morphe.patcher.patch.document
+import app.morphe.patcher.patch.patch
+import app.morphe.patcher.patch.resourceFile
 import app.noam.patches.chesscom.shared.Constants
 import org.w3c.dom.Element
 
 private const val ANDROID_NAMESPACE = "http://schemas.android.com/apk/res/android"
 
-internal val settingsResourcePatch = resourcePatch(
+internal val settingsResourcePatch = patch(
     description = "Adds the Quwi's Patches screen, its title and its More tab icon to the app.",
 ) {
     execute {
@@ -28,7 +30,9 @@ internal val settingsResourcePatch = resourcePatch(
         }
 
         // The More tab icon: a sparkle with a soft green glow.
-        get("res/drawable/morphe_patches_icon.xml").writeText(PATCHES_ICON)
+        resourceFile("res/drawable/morphe_patches_icon.xml", false).apply {
+            parentFile.mkdirs()
+        }.writeText(PATCHES_ICON)
 
         document("AndroidManifest.xml").use { document ->
             val application = document.getElementsByTagName("application").item(0) as? Element

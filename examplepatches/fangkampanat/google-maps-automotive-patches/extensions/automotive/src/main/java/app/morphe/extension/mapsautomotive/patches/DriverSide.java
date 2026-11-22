@@ -1,7 +1,6 @@
 package app.morphe.extension.mapsautomotive.patches;
 
 import android.app.Activity;
-import android.app.AlertDialog;
 import android.content.Context;
 import android.view.View;
 
@@ -286,17 +285,18 @@ public final class DriverSide {
 
     /** Injection point: the row title. */
     public static String getSettingsTitle(Context context) {
-        return UiDensityPatch.isThai(context) ? "ฝั่งพวงมาลัย (Driver side)" : "Driver side";
+        return UiDensityPatch.isThai(context) ? "ฝั่งพวงมาลัย" : "Driver side";
     }
 
     /** Injection point: the row subtitle, the current choice. */
     public static String getSettingsSummary(Context context) {
         boolean thai = UiDensityPatch.isThai(context);
         if (!SafeMode.on(context, SafeMode.DRIVER_SIDE)) {
-            return (thai ? "ใช้ฝั่งของ Maps ชั่วคราว · สวิตช์ใน " : "Maps' side for now · switch in ")
-                    + ReportPatch.reportPlace(context, thai);
+            return (thai ? "ใช้ฝั่งของ Maps ชั่วคราว (เปิดคืนใน " : "Maps' side for now (back on in ")
+                    + ReportPatch.reportPlace(context, thai) + ")";
         }
-        return describedLabel(context, stored(context));
+        // The row names the side; where the cards go is in the dialog's choices.
+        return choiceLabel(context, stored(context));
     }
 
     /**
@@ -323,7 +323,7 @@ public final class DriverSide {
             labels[index] = describedLabel(host, CHOICES[index]);
             if (CHOICES[index].equals(current)) checked = index;
         }
-        new AlertDialog.Builder(host)
+        new M3.Builder(host)
                 .setTitle(getSettingsTitle(host))
                 .setSingleChoiceItems(labels, checked, (dialog, which) -> {
                     dialog.dismiss();
@@ -345,7 +345,7 @@ public final class DriverSide {
         boolean thai = UiDensityPatch.isThai(activity);
         // Plain "Auto": what it detects is known only once the switch is on.
         String label = AUTO.equals(side) ? (thai ? "แบบอัตโนมัติ" : "Auto") : choiceLabel(activity, side);
-        new AlertDialog.Builder(activity)
+        new M3.Builder(activity)
                 .setTitle(getSettingsTitle(activity))
                 .setMessage(thai
                         ? "บันทึกแล้ว จะใช้" + label + " เมื่อเปิด Driver side อีกครั้งใน " + ReportPatch.reportPlace(activity, true)
@@ -359,7 +359,7 @@ public final class DriverSide {
     private static void confirmRestart(Activity activity, String side) {
         boolean thai = UiDensityPatch.isThai(activity);
         String label = choiceLabel(activity, side);
-        new AlertDialog.Builder(activity)
+        new M3.Builder(activity)
                 .setTitle(getSettingsTitle(activity))
                 .setMessage(thai
                         ? "Maps จะเริ่มใหม่เพื่อใช้ " + label + " การนำทางที่กำลังทำงานจะหยุด"

@@ -13,6 +13,6 @@ internal object Constants {
         signatures = setOf(
             "2c7a15c43fc79ec9fe3e621825f37de6e75e6f2427dc21e83e089515804a7426",
         ),
-        targets = listOf(AppTarget(version = "2.5.0")),
+        targets = listOf(AppTarget(version = "2.5.1")),
     )
 }

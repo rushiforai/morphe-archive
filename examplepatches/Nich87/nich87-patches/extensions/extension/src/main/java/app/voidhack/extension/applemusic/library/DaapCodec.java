@@ -21,30 +21,47 @@ final class DaapCodec {
 
     private DaapCodec() {}
 
+    static final class FormatException extends IOException {
+        FormatException(String message) { super(message); }
+        FormatException(String message, Throwable cause) { super(message, cause); }
+    }
+
     static Node root(byte[] body, String expected) throws IOException {
-        if (body.length > MAX_BODY) throw new IOException("DAAP response is too large");
-        List<Node> nodes = parse(body, 0, body.length, 0, new int[]{0});
+        if (body.length > MAX_BODY) throw new FormatException("DAAP response is too large (bytes=" + body.length + ")");
+        List<Node> nodes = parse(body, 0, body.length, 0, new int[]{0}, "adbs".equals(expected));
         if (nodes.size() != 1 || !nodes.get(0).code.equals(expected)) {
-            throw new IOException("Unexpected DAAP response type");
+            throw new FormatException("Unexpected DAAP response type (expected=" + expected + ", count=" + nodes.size() + ")");
         }
         return nodes.get(0);
     }
 
-    private static List<Node> parse(byte[] body, int start, int end, int depth, int[] count) throws IOException {
-        if (depth > MAX_DEPTH) throw new IOException("DAAP nesting is too deep");
+    private static List<Node> parse(byte[] body, int start, int end, int depth, int[] count,
+                                    boolean trackListPath) throws IOException {
+        if (depth > MAX_DEPTH) throw new FormatException("DAAP nesting is too deep");
         List<Node> nodes = new ArrayList<>();
         for (int offset = start; offset < end;) {
-            if (end - offset < 8) throw new IOException("Truncated DAAP header");
-            if (++count[0] > MAX_NODES) throw new IOException("Too many DAAP fields");
+            if (end - offset < 8) throw new FormatException("Truncated DAAP header (remaining=" + (end - offset) + ", bytes=" + body.length + ")");
+            if (++count[0] > MAX_NODES) throw new FormatException("Too many DAAP fields (limit=" + MAX_NODES + ", bytes=" + body.length + ")");
             for (int i = 0; i < 4; i++) {
-                if (body[offset + i] < 32 || body[offset + i] > 126) throw new IOException("Invalid DAAP field code");
+                if (body[offset + i] < 32 || body[offset + i] > 126) {
+                    throw new FormatException("Invalid DAAP field code (offset=" + offset + ", bytes=" + body.length + ")");
+                }
             }
             String code = new String(body, offset, 4, StandardCharsets.US_ASCII);
             int length = ByteBuffer.wrap(body, offset + 4, 4).getInt();
-            if (length < 0 || length > end - offset - 8) throw new IOException("Invalid DAAP field length");
+            if (length < 0 || length > end - offset - 8) {
+                throw new FormatException("Invalid DAAP field length (offset=" + offset + ", length=" + length
+                        + ", remaining=" + (end - offset - 8) + ")");
+            }
             int next = offset + 8 + length;
-            List<Node> children = CONTAINERS.contains(code)
-                    ? parse(body, offset + 8, next, depth + 1, count) : Collections.emptyList();
+            List<Node> children = Collections.emptyList();
+            if (trackListPath && depth == 2 && "mlit".equals(code)) {
+                // Decode each track's fields separately so a large library does not keep all fields in memory.
+                children = null;
+            } else if (CONTAINERS.contains(code)) {
+                boolean trackContainer = (depth == 0 && "adbs".equals(code)) || (depth == 1 && "mlcl".equals(code));
+                children = parse(body, offset + 8, next, depth + 1, count, trackListPath && trackContainer);
+            }
             nodes.add(new Node(code, body, offset + 8, length, children));
             offset = next;
         }
@@ -92,7 +109,7 @@ final class DaapCodec {
 
     static final class Node {
         final String code;
-        final List<Node> children;
+        private final List<Node> children;
         private final byte[] body;
         private final int offset, length;
 
@@ -104,10 +121,17 @@ final class DaapCodec {
             this.children = children;
         }
 
+        Node readTrackFields() throws IOException {
+            if (children != null) return this;
+            return new Node(code, body, offset, length, parse(body, offset, offset + length, 3, new int[]{0}, false));
+        }
+
+        List<Node> children() throws IOException { return readTrackFields().children; }
+
         Node child(String name) throws IOException {
             Node result = null;
-            for (Node node : children) if (node.code.equals(name)) {
-                if (result != null) throw new IOException("Duplicate DAAP field");
+            for (Node node : children()) if (node.code.equals(name)) {
+                if (result != null) throw new FormatException("Duplicate DAAP field (code=" + name + ")");
                 result = node;
             }
             return result;
@@ -115,19 +139,21 @@ final class DaapCodec {
 
         Node required(String name) throws IOException {
             Node result = child(name);
-            if (result == null) throw new IOException("Missing DAAP field");
+            if (result == null) throw new FormatException("Missing DAAP field (code=" + name + ", parent=" + code + ")");
             return result;
         }
 
         long number() throws IOException {
-            if (length != 1 && length != 2 && length != 4 && length != 8) throw new IOException("Invalid DAAP integer width");
+            if (length != 1 && length != 2 && length != 4 && length != 8) {
+                throw new FormatException("Invalid DAAP integer width (code=" + code + ", length=" + length + ")");
+            }
             long value = 0;
             for (int i = offset; i < offset + length; i++) value = value << 8 | (body[i] & 255);
             return value;
         }
 
         long unsigned32() throws IOException {
-            if (length != 4) throw new IOException("Invalid DAAP identifier width");
+            if (length != 4) throw new FormatException("Invalid DAAP identifier width (code=" + code + ", length=" + length + ")");
             return number();
         }
 
@@ -135,7 +161,9 @@ final class DaapCodec {
             try {
                 return StandardCharsets.UTF_8.newDecoder().onMalformedInput(CodingErrorAction.REPORT)
                         .onUnmappableCharacter(CodingErrorAction.REPORT).decode(ByteBuffer.wrap(body, offset, length)).toString();
-            } catch (CharacterCodingException exception) { throw new IOException("Invalid DAAP text", exception); }
+            } catch (CharacterCodingException exception) {
+                throw new FormatException("Invalid DAAP text (code=" + code + ", length=" + length + ")", exception);
+            }
         }
 
         byte[] bytes() { return Arrays.copyOfRange(body, offset, offset + length); }

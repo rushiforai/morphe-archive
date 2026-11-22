@@ -1,0 +1,67 @@
+name: Hide a card or prompt
+description: Show us a card, banner or pop-up you'd like gone, such as the AI coach, Labs or a Premium offer.
+title: "hide: "
+labels: ["enhancement", "hide-card"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Some cards only show up with a watch or tracker paired, or with Premium, so we can't see them on our
+        test account. With your screenshot and a quick test of the patched app, we can still hide them.
+        Crop or blur your name, email and health numbers before you upload.
+  - type: textarea
+    id: screenshot
+    attributes:
+      label: Screenshot
+      description: The whole screen with the card on it. Drag the image in here.
+    validations:
+      required: true
+  - type: input
+    id: where
+    attributes:
+      label: Where it shows up
+      description: The screen or tab, and how you get there.
+      placeholder: Today tab, after scrolling down
+    validations:
+      required: true
+  - type: input
+    id: text
+    attributes:
+      label: Text on the card
+      description: The card's title and button text, word for word. The app language must be English.
+      placeholder: "Meet your personal health coach / Try it"
+    validations:
+      required: true
+  - type: dropdown
+    id: device
+    attributes:
+      label: Device
+      options:
+        - Fitbit watch or tracker
+        - Pixel Watch
+        - No device, phone only
+    validations:
+      required: true
+  - type: dropdown
+    id: premium
+    attributes:
+      label: Premium
+      options:
+        - No Premium
+        - Premium trial
+        - Premium
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Google Health version
+      description: Settings > Apps > Health > App details, or the version you patched.
+    validations:
+      required: true
+  - type: checkboxes
+    id: test
+    attributes:
+      label: Testing
+      options:
+        - label: I can install a test build and tell you whether the card is gone.

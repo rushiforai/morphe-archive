@@ -212,7 +212,7 @@ public final class ExtraQuickFilters {
     private static final class PinnedPanel implements View.OnAttachStateChangeListener,android.view.ViewTreeObserver.OnGlobalLayoutListener,android.view.ViewTreeObserver.OnPreDrawListener{
         final Activity activity;final View root;final FrameLayout host;final WeakReference<Object> fragment;
         final android.os.Handler handler=new android.os.Handler(android.os.Looper.getMainLooper());
-        final Runnable render=this::layout;BottomControls panel;View list;int originalPadding,appliedPadding=-1;
+        final Runnable render=this::layout,settledRender=this::schedule;BottomControls panel;View list;int originalPadding,appliedPadding=-1;
         int originalMargin,appliedMargin=-1;boolean closed,queued,reservationChanged;
         final Map<View,int[]> popupPaddings=new WeakHashMap<>();
         PinnedPanel(Activity activity,Object fragment,View root){
@@ -347,7 +347,7 @@ public final class ExtraQuickFilters {
             return !changed; // Never expose a frame whose native viewport is still full height.
         }
         public void onViewAttachedToWindow(View view){root.getViewTreeObserver().removeOnGlobalLayoutListener(this);root.getViewTreeObserver().addOnGlobalLayoutListener(this);root.getViewTreeObserver().removeOnPreDrawListener(this);root.getViewTreeObserver().addOnPreDrawListener(this);prime();schedule();}
-        public void onViewDetachedFromWindow(View view){handler.removeCallbacks(render);queued=false;if(root.getViewTreeObserver().isAlive()){root.getViewTreeObserver().removeOnGlobalLayoutListener(this);root.getViewTreeObserver().removeOnPreDrawListener(this);}detachPanel();}
+        public void onViewDetachedFromWindow(View view){handler.removeCallbacks(render);handler.removeCallbacks(settledRender);queued=false;if(root.getViewTreeObserver().isAlive()){root.getViewTreeObserver().removeOnGlobalLayoutListener(this);root.getViewTreeObserver().removeOnPreDrawListener(this);}detachPanel();}
         void close(){if(closed)return;closed=true;handler.removeCallbacksAndMessages(null);root.removeOnAttachStateChangeListener(this);if(root.getViewTreeObserver().isAlive()){root.getViewTreeObserver().removeOnGlobalLayoutListener(this);root.getViewTreeObserver().removeOnPreDrawListener(this);}detachPanel();PINNED.remove(root);}
     }
     private static final class Threshold {
@@ -396,8 +396,14 @@ public final class ExtraQuickFilters {
             catch(Exception error){Log.w("Haiagaru","Refresh popularity settings",error);}
         }
     }
+    private static final android.os.Handler MAIN = new android.os.Handler(android.os.Looper.getMainLooper());
+    private static final java.util.concurrent.atomic.AtomicBoolean NATIVE_ROWS_QUEUED =
+            new java.util.concurrent.atomic.AtomicBoolean();
     static void nativeRowsReady(){
-        new android.os.Handler(android.os.Looper.getMainLooper()).post(()->{
+        if (!NATIVE_ROWS_QUEUED.compareAndSet(false, true)) return;
+        MAIN.post(() -> {
+            NATIVE_ROWS_QUEUED.set(false);
+            OWNERS.removeIf(ref -> ref.get() == null);
             for(WeakReference<Object> ref:new ArrayList<>(OWNERS)){
                 Object f=ref.get();if(f==null)continue;
                 try{
@@ -406,7 +412,11 @@ public final class ExtraQuickFilters {
                     boolean retry=s.failure!=null&&"Direct popularity layout unavailable".equals(s.failure.getMessage());
                     List<?> source=PopularReplies.fullList(field(a,legacy(a)?"K":middle(a)?"J":"o"));
                     PopularNativeRows.Snapshot snapshot=PopularNativeRows.find(source);
-                    if(snapshot==null||(s.counts[0]>=0&&!retry&&s.popularSnapshot==snapshot))continue;
+                    if(snapshot==null)continue;
+                    if(!retry&&s.popularSnapshot==snapshot){
+                        if(!s.mediaCountsReady&&countsVisible(a))scheduleCounts(a);
+                        continue;
+                    }
                     collect(a,source,false);
                     scheduleCounts(a);
                     if(retry||(!PopularReplies.enabledFor(context(a))&&PopularReplies.directFor(context(a))&&nativeSelected(a)[0]))rebuild(a);
@@ -953,8 +963,8 @@ public final class ExtraQuickFilters {
         }catch(Exception e){Log.w("Haiagaru","Extended filter row",e);}
     }
     private static void refresh(Object a) {
-        for(WeakReference<PinnedPanel> ref:new ArrayList<>(PINNED.values())){PinnedPanel panel=ref.get();if(panel!=null&&panel.panel!=null&&panel.panel.adapter==a){panel.schedule();panel.handler.postDelayed(panel.render,150);}}
-        for(WeakReference<Bar> ref:new ArrayList<>(BARS.values())) {Bar bar=ref.get();if(bar!=null&&bar.adapter.get()==a)bar.post(bar::update);}
+        for(WeakReference<PinnedPanel> ref:new ArrayList<>(PINNED.values())){PinnedPanel panel=ref.get();if(panel!=null&&panel.panel!=null&&panel.panel.adapter==a){panel.schedule();panel.handler.removeCallbacks(panel.settledRender);panel.handler.postDelayed(panel.settledRender,150);}}
+        for(WeakReference<Bar> ref:new ArrayList<>(BARS.values())) {Bar bar=ref.get();if(bar!=null&&bar.adapter.get()==a)bar.scheduleUpdate();}
         State s=state(a);HaiagaruDialog d=s.dialog.get();
         if(d!=null&&d.isShowing())new android.os.Handler(android.os.Looper.getMainLooper()).post(()->{
             if(!d.isShowing())return;
@@ -994,6 +1004,22 @@ public final class ExtraQuickFilters {
                 b.setTextSize(14);b.setPadding((int)(14*getResources().getDisplayMetrics().density),0,(int)(14*getResources().getDisplayMetrics().density),0);
                 LinearLayout.LayoutParams params=new LinearLayout.LayoutParams(-2,buttonHeight);int verticalMargin=(int)(1*getResources().getDisplayMetrics().density);params.setMargins(2,verticalMargin,2,verticalMargin);choices.addView(b,params);}
             scroll.addView(choices);addView(scroll,new LinearLayout.LayoutParams(-1,-2));
+        }
+        private final Runnable updateWhenAttached = () -> {
+            if (isAttachedToWindow()) update();
+        };
+        void scheduleUpdate() {
+            if (!isAttachedToWindow()) return;
+            MAIN.removeCallbacks(updateWhenAttached);
+            MAIN.post(updateWhenAttached);
+        }
+        @Override protected void onAttachedToWindow() {
+            super.onAttachedToWindow();
+            scheduleUpdate();
+        }
+        @Override protected void onDetachedFromWindow() {
+            MAIN.removeCallbacks(updateWhenAttached);
+            super.onDetachedFromWindow();
         }
         void bind(Object a){adapter=new WeakReference<>(a);update();}
         void update(){Object a=adapter.get();if(a==null)return;try{boolean[] on=selected(a);String[] names=labels(a);

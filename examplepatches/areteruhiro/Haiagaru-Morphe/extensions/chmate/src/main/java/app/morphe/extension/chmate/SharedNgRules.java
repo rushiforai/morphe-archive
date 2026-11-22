@@ -26,6 +26,10 @@ final class SharedNgRules {
             if(!Character.isLetter(cp)||Character.UnicodeScript.of(cp)!=Character.UnicodeScript.LATIN){onlyLatin=false;break;}}
         return !onlyLatin;
     }
+    static boolean shareableCondition(String kind,String value,boolean regex){
+        return (!"keyword".equals(kind)||shareableKeyword(value))
+                && (!regex||!NgRuleSafety.containsPrivateUseRange(value));
+    }
     static String text(String value){return WHITESPACE.matcher(Normalizer.normalize(value==null?"":value,Normalizer.Form.NFKC)).replaceAll(" ").trim();}
     static String board(String value){
         try{URI u=URI.create(value);String host=u.getHost(),path=u.getPath();
@@ -122,7 +126,8 @@ final class SharedNgRules {
             if(regex&&kind.equals("reporter"))throw new IllegalArgumentException("記者IDは完全一致で指定してください");
             this.regex=regex;this.expression=regex?Pattern.compile(value):null;
             this.locallyEdited=locallyEdited;
-            this.overbroadKeyword=!locallyEdited&&regex&&kind.equals("keyword")&&NgRegexSafety.overbroadKeyword(value);
+            this.overbroadKeyword=!locallyEdited&&regex&&(NgRuleSafety.containsPrivateUseRange(value)
+                    ||kind.equals("keyword")&&NgRegexSafety.overbroadKeyword(value));
             this.requiredLiteral=regex?NgRegexLiteralGuard.required(value):"";
             Set<String> unique=new LinkedHashSet<>(contributors);
             if(unique.size()!=contributors.size()||unique.size()>10000||(!unique.isEmpty()&&unique.size()!=votes))throw new IllegalArgumentException("報告者情報が不正です");

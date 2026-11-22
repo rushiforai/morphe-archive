@@ -1703,6 +1703,7 @@ private val haiagaruBytecodePatch = bytecodePatch {
         patchHiddenNgMenu(packageMetadata.versionName)
         patchNativeUploadHistory(packageMetadata.versionName)
         patchPostingOverflowMenu(packageMetadata.versionName, "MediaUploadHosts", "upload_hosts")
+        patchGigaFilePosting(packageMetadata.versionName)
         patchNativeReaderUi(packageMetadata.versionName)
         patchResponseArchive(packageMetadata.versionName)
         patchArchiveOrigins(packageMetadata.versionName)
@@ -3853,6 +3854,18 @@ private fun app.morphe.patcher.patch.BytecodePatchContext.patchHissiExternalInte
                 val reference = (instruction as? ReferenceInstruction)?.reference
                     as? MethodReference ?: return@mapIndexedNotNull null
                 val parameters = reference.parameterTypes.map(CharSequence::toString)
+                val chooser = reference.definingClass == "Landroid/content/Intent;"
+                    && reference.name == "createChooser"
+                    && reference.returnType == "Landroid/content/Intent;"
+                    && parameters.take(2) == listOf("Landroid/content/Intent;", "Ljava/lang/CharSequence;")
+                if (chooser) {
+                    val register = when (instruction) {
+                        is FiveRegisterInstruction -> instruction.registerC
+                        is RegisterRangeInstruction -> instruction.startRegister
+                        else -> return@mapIndexedNotNull null
+                    }
+                    return@mapIndexedNotNull Triple(index, register, true)
+                }
                 val launch = reference.name == "startActivity" && parameters == listOf("Landroid/content/Intent;")
                 val launchForResult = reference.name == "startActivityForResult"
                     && parameters == listOf("Landroid/content/Intent;", "I")
@@ -3871,8 +3884,8 @@ private fun app.morphe.patcher.patch.BytecodePatchContext.patchHissiExternalInte
                     }
                     else -> return@mapIndexedNotNull null
                 }
-                index to register
-            }.asReversed().forEach { (index, register) ->
+                Triple(index, register, false)
+            }.asReversed().forEach { (index, register, chooser) ->
                 val launchName = ((instructions[index] as ReferenceInstruction).reference as MethodReference).name
                 val checkerHook = if (launchName == "startActivity")
                     "invoke-static/range {v$register .. v$register}, " +
@@ -3890,6 +3903,14 @@ private fun app.morphe.patcher.patch.BytecodePatchContext.patchHissiExternalInte
                     is RegisterRangeInstruction -> "${instruction.opcode.name} {v${instruction.startRegister} .. " +
                         "v${instruction.startRegister + instruction.registerCount - 1}}, $reference"
                     else -> error("Unexpected launch instruction")
+                }
+                if (chooser) {
+                    mutable.replaceInstruction(index,
+                        "invoke-static/range {v$register .. v$register}, " +
+                        "Lapp/morphe/extension/chmate/SiteNativeBoards;->prepareBrowserChooser(Landroid/content/Intent;)V")
+                    mutable.addInstruction(index + 1, originalLaunch)
+                    patched++
+                    return@forEach
                 }
                 // Replace the instruction itself so incoming branches/try-entry labels
                 // cannot jump past the hook (191's video helper does exactly that).
@@ -5304,6 +5325,7 @@ val haiagaruPatch = resourcePatch(
             "haiagaru_stock_posting" to "標準アプリで書き込むを開く",
             "haiagaru_response_select" to "選択（レス複数選択）",
             "haiagaru_response_notes" to "メモ",
+            "haiagaru_gigafile_upload" to "GigaFile（ギガファイル）便でファイルをアップロード",
             "haiagaru_refresh_open_tabs" to "開いているスレ・板を一括更新",
         )) {
             for (values in listOf("values", "values-en")) {
@@ -5319,6 +5341,7 @@ val haiagaruPatch = resourcePatch(
                 it.createPublicId("drawable", name)
             }
             val iconPath = when (name) {
+                "haiagaru_gigafile_upload" -> "M6,2h8l5,5v15H6zM8,4v16h9V9h-5V4zM14,5v2h2zM9,12h7v2H9zM9,16h7v2H9z"
                 "haiagaru_response_notes" -> "M4,3h12l4,4v14H4zM6,5v14h12V8h-4V5zM8,10h8v2H8zM8,14h8v2H8z"
                 "haiagaru_response_select" ->
                     "M19,3H5a2,2 0,0 0,-2 2v14a2,2 0,0 0,2 2h14a2,2 0,0 0,2 -2V5a2,2 0,0 0,-2 -2zM10,17l-5,-5 1.41,-1.41L10,14.17l7.59,-7.58L19,8z"
@@ -5980,29 +6003,6 @@ private fun app.morphe.patcher.patch.BytecodePatchContext.patchPreIoSettingsCons
     // The value is the synthetic default-argument mask for the coroutine launch;
     // it is not app state. Keep the ordinary two-null-default mask directly.
     constructor.replaceInstruction(defaultMaskDivideIndex, "const/4 v$defaultMaskRegister, 0x3")
-}
-
-@Suppress("unused")
-val saveChMateCrashLogsPatch = bytecodePatch(
-    name = "Save ChMate crash logs",
-    description = "Save uncaught ChMate crash logs to Download/Haiagaru.",
-    default = true,
-) {
-    compatibleWith(chMateCompatibility)
-    dependsOn(haiagaruBytecodePatch)
-
-    execute {
-        val profile = profileFor(packageMetadata.versionName)
-        mutableClassDefBy(profile.providerClass).methods.single { method ->
-            method.name == "onCreate"
-                && method.returnType == "Z"
-                && method.parameters.isEmpty()
-        }.addInstruction(
-            0,
-            "invoke-static/range { p0 .. p0 }, " +
-                "$EXTENSION->installCrashLogger(Landroid/content/ContentProvider;)V",
-        )
-    }
 }
 
 private fun app.morphe.patcher.patch.BytecodePatchContext.patchLegacyPlusFeatureActivation(
@@ -7317,6 +7317,37 @@ private fun app.morphe.patcher.patch.BytecodePatchContext.patchLegacyImageUpload
 /** Posting overflow only: preserve the native editor layout and all native menu actions. */
 internal fun BytecodePatchContext.patchImgurPostingMenu(version: String) {
     patchPostingOverflowMenu(version,"ImgurWebUpload","imgur")
+}
+
+private fun BytecodePatchContext.patchGigaFilePosting(version: String) {
+    val (toolbar, method, state) = when (version) {
+        "0.8.10.191 dev" -> Triple("Lo/r8lambdaAcLFFW49T1Yql_ZgYak67s2Jmds;", "setButtons", "Lo/r8lambdaElkXfNt4VbdvffL9Z700R6oMDo;")
+        "0.8.10.226 dev" -> Triple("Lo/setAdInteractionListener;", "setToolbarState", "Lo/PAGBannerAdWrapperListener;")
+        "0.8.10.242 dev" -> Triple("Lo/zzcB;", "setToolbarState", "Lo/zzcF;")
+        else -> return
+    }
+    val hook = "Lapp/morphe/extension/chmate/GigaFilePosting;"
+    mutableClassDefBy(toolbar).methods.single {
+        it.name == method && it.parameterTypes == listOf(state) && it.returnType == "V"
+    }.addInstructionsWithLabels(0, """
+        invoke-static/range {p0 .. p1}, $hook->dialogToolbar(Landroid/view/View;Ljava/lang/Object;)Ljava/lang/Object;
+        move-result-object p1
+        check-cast p1, $state
+    """.trimIndent())
+    val legacy = version == "0.8.10.191 dev"
+    val fragment = if (legacy) "Lo/p9ExternalSyntheticLambda6;"
+        else "Ljp/syoboi/a2chMate/feature/resedit/ResEditFragment;"
+    val commandName = if (legacy) "d" else if (version == "0.8.10.226 dev") "e" else "b"
+    val command = mutableClassDefBy(fragment).methods.single {
+        it.name == commandName && it.parameterTypes == listOf("I", "Ljava/lang/Object;") && it.returnType == "Z"
+    }
+    command.addInstructionsWithLabels(0, """
+        invoke-static/range {p0 .. p1}, $hook->handleDialogAction(Ljava/lang/Object;I)Z
+        move-result v0
+        if-eqz v0, :native_posting_action
+        return v0
+    """.trimIndent(), ExternalLabel("native_posting_action", command.implementation!!.instructions.first()))
+    patchPostingOverflowMenu(version, "GigaFilePosting", "gigafile")
 }
 
 internal fun BytecodePatchContext.patchPostingOverflowMenu(version: String, extension: String, label: String) {

@@ -1,0 +1,39 @@
+/* Hallmark · pre-emit critique: P4 H5 E4 S5 R5 V4
+ * macrostructure: Map / Diagram (static poster) · tone: utilitarian · anchor hue: mint
+ * theme: existing Linimal brand, dark · nav: none · footer: annotation only
+ * audience: first-time viewers · use: understand who has read a group message
+ * Fixed 1920×1080 artwork; not an interactive or responsive web page.
+ */
+:root {
+  --color-paper: oklch(18% 0.006 165);
+  --color-surface: oklch(22% 0.006 165);
+  --color-ink: oklch(96% 0.006 165);
+  --color-muted: oklch(73% 0.012 165);
+  --color-rule: oklch(37% 0.012 165);
+  --color-accent: oklch(79% 0.13 167);
+  --color-bubble: oklch(86% 0.15 136);
+  --color-bubble-ink: oklch(22% 0.025 136);
+  --color-sheet: oklch(97% 0.008 165);
+  --color-sheet-ink: oklch(24% 0.015 165);
+  --color-sheet-muted: oklch(46% 0.016 165);
+  --color-sheet-rule: oklch(84% 0.012 165);
+  --color-avatar: oklch(87% 0.026 165);
+  --color-avatar-ink: oklch(33% 0.025 165);
+  --color-avatar-unread: oklch(88% 0.006 165);
+  --font-display: 'Hiragino Sans', sans-serif;
+  --font-body: 'Hiragino Sans', sans-serif;
+  --font-outlier: 'Menlo', monospace;
+  --space-xs: 8px;
+  --space-sm: 12px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 40px;
+  --space-2xl: 64px;
+  --space-3xl: 80px;
+  --text-note: 18px;
+  --text-body: 24px;
+  --text-message: 36px;
+  --text-display: 76px;
+  --radius-sheet: 16px;
+  --radius-bubble: 24px;
+}

@@ -9,6 +9,8 @@ concurrency:
 
 permissions:
   contents: write
+  # The cloned Piko build resolves crimera:morphe-bytecode from GitHub Packages.
+  packages: read
 
 jobs:
   build:

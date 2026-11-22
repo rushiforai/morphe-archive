@@ -76,6 +76,11 @@ public final class ReadReceiptReadersHooks {
             }
             ReceivedTimestampDecorator.apply(timestamp, chatId, serverMessageId, senderMid, count, icons,
                     config.isReadReceiptReadersTapEnabled());
+            try {
+                ChatOpenSync.onReceivedRowBound(timestamp, chatId, config.isReadReceiptReadersServerSyncEnabled());
+            } catch (Throwable ignored) {
+                // 同期できなくても、端末内の記録による表示は続けます。
+            }
         } catch (Throwable throwable) {
             try {
                 ReceivedTimestampDecorator.clear(timestamp);

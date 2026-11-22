@@ -4,6 +4,8 @@ import org.junit.Test;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
+import java.util.List;
 import java.util.Map;
 
 import static org.junit.Assert.assertArrayEquals;
@@ -19,6 +21,37 @@ public class DaapCodecTest {
 
         assertEquals(42, track.required("miid").unsigned32());
         assertEquals("TEST", track.required("minm").text());
+    }
+
+    @Test public void readsEveryTrackFromLargeCloudLibraryResponse() throws Exception {
+        int trackCount = 3200;
+        int extraFields = 92;
+        int trackLength = (1 + extraFields) * 12;
+        int listLength = trackCount * (8 + trackLength);
+        ByteBuffer response = ByteBuffer.allocate(16 + listLength);
+        header(response, "adbs", 8 + listLength);
+        header(response, "mlcl", listLength);
+        for (int id = 1; id <= trackCount; id++) {
+            header(response, "mlit", trackLength);
+            header(response, "miid", 4).putInt(id);
+            for (int field = 0; field < extraFields; field++) {
+                response.putInt(0x7a7a6161 + (field / 26 << 8) + field % 26).putInt(4).putInt(0);
+            }
+        }
+
+        List<DaapCodec.Node> tracks = DaapCodec.root(response.array(), "adbs").required("mlcl").children();
+
+        assertEquals(trackCount, tracks.size());
+        for (int i = 0; i < tracks.size(); i++) {
+            assertEquals(i + 1, tracks.get(i).readTrackFields().required("miid").unsigned32());
+        }
+    }
+
+    @Test public void rejectsTruncatedMetadataWhenReadingACloudLibraryTrack() {
+        byte[] response = hex("61646273000000186d6c636c000000106d6c6974000000086d69696400000004");
+
+        assertThrows(IOException.class,
+                () -> DaapCodec.root(response, "adbs").required("mlcl").required("mlit").required("miid"));
     }
 
     @Test public void metadataUpdateUsesUtf8ByteLengthsAndNetworkByteOrder() throws Exception {
@@ -66,6 +99,10 @@ public class DaapCodecTest {
         for (long id : new long[]{-1, 0x100000000L}) {
             assertThrows(IOException.class, () -> DaapCodec.edit(id, 7, 9, Map.of("minm", new byte[]{65})));
         }
+    }
+
+    private static ByteBuffer header(ByteBuffer buffer, String code, int length) {
+        return buffer.put(code.getBytes(StandardCharsets.US_ASCII)).putInt(length);
     }
 
     private static byte[] hex(String value) {

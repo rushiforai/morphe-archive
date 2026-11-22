@@ -50,7 +50,7 @@ LINE 26.16.0 の APK を JADX と dexdump で読んだ結果をまとめる。�
 ### プレビューの Premium の案内を表示しない（`premiumPreviewPromotionPatch`）
 
 - `c0.e` の入口で、バナーと誘導行の引数を hook に通す。設定 ON のとき、`chipDestination != NONE` のバナーと誘導行を null に差し替える。どちらの引数も元から nullable である。
-- タップ先のない「画面をスクロールできます」の案内は残す。スクロール可否・課金・通信は変更しない。
+- タップ先のない「画面をスクロールできます」の案内は残す。スクロール可否・通信は変更しない。
 
 ### プレビューをスクロール可能にする（`previewScrollPatch`）
 
@@ -59,7 +59,7 @@ LINE 26.16.0 の APK を JADX と dexdump で読んだ結果をまとめる。�
 - `nx1/h1.d` の読み取り先は `rx1/d0(Context, RecyclerView, Z, ...)` で、同じ scrollEnabled field が `onScroll` と `onFling` の両方を制御する。これがプレビューの nested gesture を制御する UI 境界である。
 - `openFullChat()V` と `countVerticalScroll()V` の文字列で候補を特定し、Activity callback 型を含む model のコンストラクタ、判定の型・register、途中の上書き、分岐先・例外 handler を検査する。一意に安全確認できた場合だけ `move-result v9` の直後へ `PreviewScrollHooks.allowScroll(Z)Z` を挿入する。
 - hook は元の結果または設定 ON なら true を返す。設定 OFF・未初期化・適用不可・設定エラー・例外では元の結果を維持する。元から true の結果を false にはしない。
-- プレビュー画面の提供条件、LINE ラボ、課金・購読 API、通信、既読の経路は変更しない。この設定だけで Premium の案内は消えない。
+- プレビュー画面の提供条件、LINE ラボ、通信、既読の経路は変更しない。この設定だけで Premium の案内は消えない。
 
 ### トークのプレビューを無効にする（`previewDisablePatch`）
 

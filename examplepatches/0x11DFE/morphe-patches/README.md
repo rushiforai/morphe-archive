@@ -23,7 +23,7 @@ are responsible for what you do with it.
 ## Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.12.5](https://github.com/0x11DFE/morphe-patches/releases/tag/v1.12.5)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;10 patches total
+> **[v1.12.9](https://github.com/0x11DFE/morphe-patches/releases/tag/v1.12.9)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;10 patches total
 <details open>
 <summary>📦 Scene&nbsp;&nbsp;•&nbsp;&nbsp;4 patches</summary>
 <br>
@@ -32,8 +32,8 @@ are responsible for what you do with it.
 
 **🎯 Supported versions:**
 
-| N1 2026.10 Alpha13 | N1 2026.11 PreRelease 1 | N1 2026.11 PreRelease 2 |
-| :---: | :---: | :---: |
+| N1 2026.10 Alpha13 | N1 2026.11 PreRelease 1 | N1 2026.11 PreRelease 2 | N1 2026.11 PreRelease 5 |
+| :---: | :---: | :---: | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|

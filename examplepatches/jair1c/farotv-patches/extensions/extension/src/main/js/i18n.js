@@ -43,6 +43,7 @@
     window.farotvI18n = {
         t: t,
         locale: locale,
+        direction: function () { return locale() === "ar" ? "rtl" : "ltr"; },
         onChange: function (callback) { listener = callback; lastLanguage = null; locale(); }
     };
 })();

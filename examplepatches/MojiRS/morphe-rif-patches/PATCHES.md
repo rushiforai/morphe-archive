@@ -6,7 +6,14 @@ All patches target **rif is fun 5.6.22**. rif is R8-obfuscated, and the free (`c
 
 ## Inline comment images
 
-Shows images, GIFs and videos linked in comments and text posts inline.
+Shows images, GIFs, videos and tables in comments and text posts inline.
+
+With Patcheddit's *Inline media* patched in too, this patch shows tables only and leaves images and videos to Patcheddit; its settings then have only *Inline tables*. This is decided when patching: switching Patcheddit's Inline media off in its settings doesn't bring this patch's images back.
+
+**Tables**
+
+- A markdown table is drawn in place of rif's "[View formatted table]" link and its plain-text cells: thin borders, bold header row, left/center/right alignment, links in cells (tap one to open it like any link). Columns share the comment's width and long text wraps. Tap the table anywhere else to open rif's zoomable popup.
+- Works with "Inline images" off. Setting: *Inline tables*.
 
 **Images**
 
@@ -23,36 +30,9 @@ Shows images, GIFs and videos linked in comments and text posts inline.
 - Tap a video for controls like rif's own player's, built from rif's own icons and colors: back to start, play/pause, repeat (on by default), sound, seek, and full screen. Full screen opens rif's player at the same position, repeat and sound settings.
 - The video is drawn by a `TextureView` laid over the space the text reserves for it, in the frame rif wraps comment and post bodies in. Players are released while scrolled away or while rif is hidden (e.g. the phone is locked), and restored where they were.
 
-Settings: *Inline images*, *Scale inline images to fit*, *Limit inline media width* and *Limit inline media height* (off by default), each with a *Max width (% of screen)* / *Max height (% of screen)* slider, *Inline album navigation* (off: no arrows, tapping an album opens it), *Inline videos*, *Autoplay inline videos*, *Long press image to select comment* with a *Long press delay* slider.
+Settings: *Inline images*, *Scale inline images to fit*, *Limit inline media width* and *Limit inline media height* (off by default), each with a *Max width (% of screen)* / *Max height (% of screen)* slider, *Inline album navigation* (off: no arrows, tapping an album opens it), *Inline videos*, *Autoplay inline videos*, *Inline tables*, *Long press image to select comment* with a *Long press delay* slider.
 
 How it works: images are fetched and embedded on rif's background thread, when it renders a comment or post body (before it's shown). A hook after each body `setText` then starts GIFs and adds video overlays on the main thread.
-
-## Fix comment video links
-
-Makes videos posted in comments play in rif's video player instead of failing with "error retrieving Reddit video metadata".
-
-rif resolves a `reddit.com/link/{id}/video/{mediaId}/player` link by looking `{id}` up as a post. For a video posted in a comment, `{id}` is the comment, and Reddit's API exposes no media for comments, so the lookup always fails. The streams themselves are public at `v.redd.it/link/{id}/asset/{mediaId}/`; when rif's lookup comes back empty, this patch builds rif's video object pointing at them, and rif plays it like any other Reddit video.
-
-## Fix YouTube videos
-
-Fixes the built-in YouTube player.
-
-Without it, YouTube links opened in rif show a black player and "There was an error initializing the YouTubePlayer (Error code: 0)". rif's YouTube player library tells YouTube the embed comes from `https://www.youtube.com`. YouTube now rejects embeds unless that origin is `https://` plus the app's package name. This patch sends the app's own origin instead, the same fix as newer versions of the library.
-
-## YouTube player controls
-
-Double-tap to seek, hold for 2x speed, and speed and captions controls in the YouTube player.
-
-rif's YouTube player has no controls of its own beyond a play button, seek bar and full screen. This patch adds:
-
-- **Double-tap** the left or right half of the video to skip back or forward 10 seconds, with a rewind or fast-forward icon and the time skipped. Keep tapping to skip more. A single tap still shows or hides the controls.
-- **Hold** the video to play at 2x speed until you let go.
-- A **settings button** (top right, with the controls) opening a popup like rif's own video player's: playback speed and captions on or off.
-- Captions are the same size in portrait and landscape, and sit above the bottom controls when the video leaves room for it (the picture is never resized; no lift in landscape). The settings decide for every video; a choice in the popup lasts for that video only. The screen stays on while a video plays, a tap on a finished video replays it, and the controls keep clear of rounded screen corners and cutouts.
-
-Settings (YouTube category, all off by default): *Captions on by default: landscape*, *vertical* and *Shorts*. A `youtube.com/shorts` link uses the Shorts setting, a video known to be vertical the vertical one, anything else the landscape one.
-
-How it works: rif puts the YouTube player library's control overlay over the embedded player. A hook where the overlay is attached adds the gestures, the feedback icons and the settings button, and drives the embedded player through its JavaScript API. A hook on the player's state callbacks keeps the screen on and swaps the play button for a replay tap at the end. A second hook adds the `cc_lang_pref` captions playerVar to the player options when one of the three captions settings is on; the state hook also applies the setting at the start of each video (YouTube remembers the viewer's last caption choice) and sets the caption size from the player's size. To lift captions it shrinks the iframe element from the player page by the spare room around the video; the video's shape comes from YouTube's "original aspect ratio" thumbnails (unknown means no lift). Video quality can't be chosen: YouTube's embed ignores it.
 
 ## Fix share links
 
@@ -67,18 +47,6 @@ Reddit's "Share" button now produces links like `reddit.com/r/sub/s/AbC123`. rif
 No settings.
 
 How it works: a hook at the top of rif's link router resolves `/r|u|user/{sub}/s/{code}` links on a background thread (HEAD request, redirects followed by hand, tracking parameters removed) and calls the router again on the main thread with the result. A second hook at the start of `MainActivity`'s VIEW-intent handling does the same for `/r/` links from other apps, then starts a fresh `MainActivity` on the post and finishes the blank one.
-
-## Fix history import
-
-Makes **Settings → Backup → Import settings** restore the history from a backup made with **Export settings and history**, and renames the entry **Import settings and history** ("WARNING: Will overwrite ALL settings. Importing history optional."). Imported history is added to the current history; nothing is removed.
-
-rif's export puts the history (`browserhistory.db`) in the backup, but its import skips it, so the history was silently lost. The history decides which posts show as read (dimmed titles), so after moving to a new phone every post you had opened looked unread. With this patch those posts show as read again. Posts that are already in the current history are left as they are; the rest are added, with their last-opened time. A backup made with plain **Export settings** has no history, and importing it works as before. If the history in a backup can't be read, the rest of the import still goes through.
-
-Contributed by Arnaumes.
-
-No settings.
-
-How it works: the entry's title and summary are rif's own strings, replaced in English (other languages keep rif's text). A hook in rif's import task, right after it reads each zip entry's name, calls the extension. For `browserhistory.db` the extension copies the entry to a temporary file in the cache folder (at most 512 MB, and it must start with the SQLite header), opens it read-only through its own connection, and adds every URI that rif's history doesn't have yet, in one transaction through rif's own database helper (so it never fights rif for the lock). It then tells rif's screens the history changed and deletes the copy. Any failure is logged and ignored, and rif's own import carries on. The extension is based on Arnaumes' patch ([github.com/Arnaumes/revanced-rif-import-history](https://github.com/Arnaumes/revanced-rif-import-history), GPL-3.0).
 
 ## Repair broken gallery images
 
@@ -99,16 +67,6 @@ rif's reply box is a floating dialog as tall as its text. The box doesn't learn 
 No settings.
 
 How it works: a hook right after rif's dialog base class sets the dialog window's soft input mode (in `onStart`) calls the extension, which, for a dialog containing both the `scrollview_frame` and `quote_parent` views (only the comment reply box has both; the modmail dialogs share `scrollview_frame`), sets the window's height to `MATCH_PARENT` (keeping its width) and, on every layout pass, sets the bottom padding of the dialog's content view to the height the keyboard covers (from `getWindowVisibleDisplayFrame`). rif's own layout (the box centred in a full-size root, its contents in a `ScrollView`) then caps and scrolls the box above the keyboard.
-
-## Fix broken markdown links
-
-Shows links like `[name](u/name)` as links instead of raw text.
-
-Reddit's markdown renderer rejects a link whose target has no scheme and no leading slash, such as `[Spez](u/spez)` or `[the sub](r/AskReddit)`. It sends the source as plain text with only the `u/…` and `r/…` pieces underlined, so rif shows the brackets and parentheses. (New Reddit shows these as links, so authors don't notice.) This patch turns each such link into its label, as one link to the user or subreddit, which opens like rif's other username and subreddit links and appears once in the links list. Only `u/name` and `r/name` targets (with or without a slash in front or behind) are repaired; other targets, such as `[x](example.com)`, and text in code are left alone. Works in comments, text posts and messages.
-
-No settings.
-
-How it works: a hook in rif's body renderer, after the body's HTML becomes styled text and before rif turns its link spans into tappable links, calls the extension. It finds `[label](target)` where the target is `u/name` or `r/name` and Reddit has underlined the target (which also excludes code), replaces the whole text with the label, drops the underlines inside it and puts one link on the label. Any failure leaves the body as it was.
 
 ## Hide blocked mod comments
 
@@ -134,26 +92,22 @@ No settings.
 
 How it works: the picker and preview decoder get small hooks, then four more. The picker's intent also accepts `video/*`; the preview decoder returns a frame for a video (and rotation is skipped for videos). The body of rif's imgur uploader task is replaced by a call into the extension, which asks Reddit for an upload lease (`/api/media/asset.json`, with rif's own sign-in token), posts the file to it and returns the asset URL for rif's URL field. The 10 MB checks (the confirm branch, the dialog's warning, the size state and the resize target) become 20 MB, and for GIFs and videos "needs resize" is always false. A video is streamed from the device as it is; its bucket comes from the lease. `SubmitTask`'s form parameters turn a link post to one of our asset URLs into `kind=image`, or `kind=video` with `video_poster_url` for a video; an asset that was already posted once (a retry after an error) is uploaded again (video and poster), because a reused asset makes a broken post. Reddit answers an image or video post with no post in it, so the reply is read, the user's newest posts are polled for the `i.redd.it` / `v.redd.it` id (up to 30 s, videos 60 s; for a video also the same title posted since) and rif gets a normal reply with the new post's address.
 
-## Post to profile
+## Fix random subreddit
 
-Adds a **MY PROFILE** button to the Submit screen, on the same line as PICK SUBREDDIT, under the "choose a subreddit" field.
+Makes rif's Random button (the sidebar's subreddit picker) open a random subreddit again. Reddit removed `/r/random` and `/r/randnsfw`, so rif showed "Banned subreddit". The patch asks the redditrand.com API (`api.redditrand.com`, an unofficial third-party service) for a random subreddit and opens that; rif then titles the feed and loads the subreddit as it did when Reddit still redirected.
 
-Reddit profile posts are posts to the hidden subreddit `u_<name>`, which rif accepts when typed in but never mentions. The button fills `u_<your name>` into the field, exactly as picking a subreddit does, so the rules and flair refresh as for any subreddit. It uses the account that is active when you tap, and is hidden when you are logged out. It is on all three tabs (link, text, media), which share the field.
-
-It also adds **Submit** to the 3-dot menu of your own profile, just above Inbox (as on the front page). It opens the Submit screen with `u_<your name>` already in the "choose a subreddit" field, as if MY PROFILE had been tapped. It is hidden on other users' profiles and when you are logged out.
+Each tap sends one plain request to redditrand (your IP address, like any web request; no Reddit token, account or cookies). If redditrand is down or its reply can't be read, nothing is replaced and rif shows its usual "Banned subreddit" error. There is no retry. Links to `/r/randnsfw` use redditrand's NSFW pick; there is no NSFW row in the picker.
 
 No settings.
 
-How it works (profile menu): a resource patch adds a hidden `Submit` item (rif's own `submit_link` string) before `menu_inbox` in `res/menu/profile.xml`. Two hooks in the profile menu provider (`user.c$c`): in the prepare method, rif's own `username.equalsIgnoreCase(q0())` result is remembered and, at the method's end, decides whether the item is shown; the start of the item handler takes the tap, reading the account name then, and starts `SubmitActivity` with the `subreddit` extra set to `u_<name>`, which is what rif's own Submit entry does with the current subreddit.
+How it works: rif's request base class runs every Reddit request's background step on a worker thread and reads the request URI from one field. A hook at the top of that step lets the extension look at the URI; if it is a listing of `r/random` or `r/randnsfw` (any sort), it makes a blocking request to redditrand (10 s timeout), reads the name from `{"url":"/r/<name>/"}`, and rewrites the URI to `r/<name>` before rif builds its request. The field's `final` flag is removed so it can be replaced. rif's own random mode handles the rest, so refreshing Random picks another subreddit, as it used to.
 
-How it works (submit page): the patch moves PICK SUBREDDIT into a row (in both `submit_fragment` layouts) with a copy of itself that says "my profile", hidden at first, so the two look identical. A hook at the end of the Submit fragment's `onCreateView` wires the button, and a hook at the start of the method that writes the "posting as" line (called from `onCreateView` and when the account changes) shows or hides it. The name comes from rif's settings (`q0()`), and the fill goes through the fragment method the subreddit picker's result uses, made public for the extension's stub to call.
+## Explain processing videos
 
-## Explain Reddit blocks
+Shows "Video still processing. Try again in a minute." when you tap a Reddit video (`v.redd.it`) that can't play yet, instead of rif's "Error retrieving reddit video metadata." or "Error determining video format." Nothing is retried; tap again later. A video posted from rif with Reddit image hosting is in this state for its first minute or so, and can stay there for a few minutes.
 
-Shows "Reddit is temporarily blocking requests. Try again in a few minutes." when Reddit's edge refuses rif's requests with its "You've been blocked by network security" page, instead of rif's "Error: forbidden" with no reason.
-
-Applies to feed listings only (front page, subreddits, multis, search). Comments, inbox and profile errors are unchanged, and so are Reddit's JSON errors that say why (private, quarantined, banned, gated). It can't unblock anything; the block is Reddit's and usually clears by itself in a few minutes.
+It covers two cases. A video Reddit hasn't produced yet (the post has no video data; a video that never processes stays like this for good), and a video whose streams Reddit still refuses (HTTP 403) while the data is complete. Any other failure keeps rif's own message, and videos that play are unchanged.
 
 No settings.
 
-How it works: rif's listing loader reads the body of a 403 as JSON, to learn the reason. A hook there lets the extension read the body first (up to 1 MB), check for the block page's text and, if it matches, remember the loader; rif then gets an identical copy of the body and carries on exactly as before. A second hook at the top of the feed fragment's load-error method asks the extension whether this loader was flagged and, if so, shows the clearer toast and skips rif's.
+How it works: rif's video metadata loader parses the post JSON and returns null when the post has no video yet. A hook there keeps the first 256 KB of the response (rif gets an identical copy), and a second hook replaces the error toast in the loader's null branch: if that body is a post with `is_video` true and no `media`, it shows the message above, otherwise rif's toast. For the second case, a hook at the start of the player's error callback notes, per player, whether the DASH and HLS playlists of the v.redd.it video were answered with 403 (other failures are noted too), and a hook on the toast that ends rif's format-metadata fetch shows the message only when both were refused and nothing else failed. rif's mp4 fallback isn't used for playback (rif builds it as DASH and fails), so a refused video stays unplayable until Reddit serves it.

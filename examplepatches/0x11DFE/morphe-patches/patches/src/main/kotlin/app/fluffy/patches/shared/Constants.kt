@@ -17,6 +17,7 @@ object Constants {
             AppTarget(version = "N1 2026.10 Alpha13"),
             AppTarget(version = "N1 2026.11 PreRelease 1"),
             AppTarget(version = "N1 2026.11 PreRelease 2"),
+            AppTarget(version = "N1 2026.11 PreRelease 5"),
         ),
     )
 

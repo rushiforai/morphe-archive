@@ -101,6 +101,10 @@ final class MetadataRepairPage {
     }
 
     void message(String message, String actionLabel, Runnable action) {
+        message(message, actionLabel, action, null, null);
+    }
+
+    void message(String message, String actionLabel, Runnable action, String secondaryLabel, Runnable secondaryAction) {
         ScrollView scroll = new ScrollView(activity);
         TextView body = text(message, 17, false, primary);
         body.setTextIsSelectable(true);
@@ -108,7 +112,7 @@ final class MetadataRepairPage {
         body.setLineSpacing(dp(4), 1);
         scroll.addView(body);
         body(scroll);
-        footer(actionLabel, true, action);
+        footer(actionLabel, true, action, secondaryLabel, secondaryAction);
     }
 
     void progress(String message, Runnable stop) {
@@ -369,9 +373,23 @@ final class MetadataRepairPage {
 
     private void body(View body) { root.addView(body, new LinearLayout.LayoutParams(-1, 0, 1)); }
     private TextView footer(String label, boolean enabled, Runnable callback) {
+        return footer(label, enabled, callback, null, null);
+    }
+
+    private TextView footer(String label, boolean enabled, Runnable callback, String secondaryLabel, Runnable secondaryCallback) {
         LinearLayout footer = new LinearLayout(activity);
         footer.setOrientation(LinearLayout.VERTICAL);
         footer.addView(line(), new LinearLayout.LayoutParams(-1, 1));
+        if (secondaryLabel != null && secondaryCallback != null) {
+            TextView secondary = action(secondaryLabel, false);
+            secondary.setOnClickListener(view -> {
+                ((InputMethodManager) activity.getSystemService(Context.INPUT_METHOD_SERVICE)).hideSoftInputFromWindow(root.getWindowToken(), 0);
+                secondaryCallback.run();
+            });
+            LinearLayout.LayoutParams secondaryParams = new LinearLayout.LayoutParams(-1, dp(44));
+            secondaryParams.setMargins(dp(20), dp(8), dp(20), 0);
+            footer.addView(secondary, secondaryParams);
+        }
         TextView button = action(label, true);
         button.setEnabled(enabled);
         button.setAlpha(enabled ? 1 : 0.45f);
@@ -380,7 +398,7 @@ final class MetadataRepairPage {
             callback.run();
         });
         LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(-1, dp(50));
-        params.setMargins(dp(20), dp(12), dp(20), dp(12));
+        params.setMargins(dp(20), secondaryLabel != null ? dp(8) : dp(12), dp(20), dp(12));
         footer.addView(button, params);
         root.addView(footer, new LinearLayout.LayoutParams(-1, -2));
         return button;

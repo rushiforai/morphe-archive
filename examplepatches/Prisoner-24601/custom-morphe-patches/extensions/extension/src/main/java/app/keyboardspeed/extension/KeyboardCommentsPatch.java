@@ -74,7 +74,13 @@ public final class KeyboardCommentsPatch {
             closeButton.performClick();
             return;
         }
+        openComments(activity);
+    }
 
+    /**
+     * Shows the comments panel of the opened video.
+     */
+    static void openComments(Activity activity) {
         if (!showPanel(COMMENTS_PANEL_IDS.get(0))) {
             Toast.makeText(activity, "Comments shortcut needs Morphe Patches 2.2 or newer", Toast.LENGTH_SHORT).show();
             return;
@@ -98,7 +104,7 @@ public final class KeyboardCommentsPatch {
      * @return The close button of the panel shown on screen, or null if no panel is shown.
      */
     @SuppressLint("DiscouragedApi")
-    private static View findShownPanelCloseButton(Activity activity) {
+    static View findShownPanelCloseButton(Activity activity) {
         final int headerId = activity.getResources().getIdentifier("panel_header", "id", activity.getPackageName());
         final int closeId = activity.getResources().getIdentifier("close_button", "id", activity.getPackageName());
         if (headerId == 0 || closeId == 0) {
