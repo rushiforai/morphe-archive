@@ -202,6 +202,7 @@ dh6k/morphe-patches
 dhrubonai/morphe-patches
 dieroboter/morphe-patches
 DigitalPals/johns-morphe-patches
+diminDDL/ytm-ru-skippper
 DiogoGra/morphe-patches
 docbt/patched-up
 dongmin8350/fmkorea-splash-patches
@@ -220,7 +221,9 @@ dumb-software/T2C-App-Patch-Morphe
 dumketo/multi-app-patches
 dunecache/oyasumi-patches
 durgesh0505/chiggi_morphe_patches
+dusk-beep/morphe-patch
 DutchPharaoh/De-Waze-Patches
+Dyno0311/dyno-patches
 Dyskal/morphe-yt-music-discord-rpc
 dzungtvd/morphe-androidtv-patches
 EagerGoose32/jaybyte-morphe-patches
@@ -246,6 +249,7 @@ eZ4RK0/morphe-patches
 fangkampanat/gmaps-patches
 fangkampanat/google-maps-automotive-patches
 farbener/shuffle-plus-spotify
+FarhanZafarr-9/myzong-patches
 feixiangdao/letterboxd-stremio-nuvio-morphe-patch
 ffejhog/ffejhog_morphe_patches
 Finn013/graff-patches
@@ -262,6 +266,7 @@ Fuku856/smartlife-patches
 furkngld/tiktok-lite-patches-for-morphe
 fynnaly/morphe-patches
 fynnaly/test-morphe-patch
+Gagan-Pratap-S/GT-morphe-patches
 GahahaWang/TWRailway-patch
 Gamer92000/pixelcamera-patches
 gggg-unit/projectivy-morphe-patch
@@ -291,6 +296,7 @@ gitlab.com/rokuOP/personal-niagara-weather
 gitlab.com/rudrakshrajpurohit417/rj-patches
 gitlab.com/solo-patches/solo-patches
 gitmyasm/httpinjectorpatches
+gitmyasm/Patches-
 Globberry/morphe-patches
 GoldRift/morphe-patches
 gomjirak0803/line-notification-patches
@@ -302,6 +308,7 @@ hackingguy/morphe-patches
 HagiaHaya/morphe-patches
 hajs110208/morphe-patches
 hammadhassan94/ary-live
+HaoDH/vbook-patche
 Hari-sys786/telegram-patches
 hashtagbasit/aimal-patches
 haukist/morphe-patches-smartnews
@@ -392,6 +399,7 @@ Jo-Patches/jo-patches
 JoanComasFdz/baconreader-morphe-patches
 joelmzj/cyberjoe
 JoFSlash/google-health-patches
+JoFSlash/morphe-patches
 JoFSlash/quora-patches
 Johannes7k75/gemini-work-profile-patches
 johninnl/nl-morphe-patches
@@ -536,6 +544,7 @@ Nai64/Nai64ExtraPatches
 Nai64/Nai64Patches
 needfish/channel-blocker-patches
 NekoGryphou/gryphous-morphe-patches
+neoKushan/smortthings
 Nerahikada/asken-patches
 newuser7171/telegram-morphe-patches-
 NextStepTeam/DnevnikNextPatch
@@ -544,6 +553,7 @@ Nich87/nich87-patches
 nickcomua/airofit-pro2-morphe-patches
 NicolasBonduel/roborock-local-patches
 nikhilbadyal/nik-morphe-patches
+ninocss/MaterialTidal
 Nizarberyan/Avito-Patches
 nm-nvan/Neil-Morphe-Patches
 nobianh78/tada-patches
@@ -559,6 +569,7 @@ o0b/morphe-patches
 ocel07/kmaps-nav-patches
 Okazakee/iptv-morphe-patches
 oliver-leung/transit-patches
+OmarBrbutovic/merak-patches
 OrangeTree-Dev/Morphe-Patches
 osirisad/teamsnap-patches
 osirisad/ts-patches
@@ -586,6 +597,7 @@ pilahito/atresplayer-patches
 Pilotkosinus/morphe-waze-patches
 Pilotkosinus/Muellpatch
 Piracola/Pixiv-Patched
+Pirrotto/aare-patches
 PixelPusher247/morphe-patches
 pixincreate/morpheus
 pixkk/pixkk-patches
@@ -605,6 +617,7 @@ quwi26/Quwis-Patches
 R2bEEaton/walmart-morphe
 Ra1nify/F4T
 RabehX/rabehx-patches
+Rafaello0/RealmeLink-Plus
 rafag00/morphe-patches
 rahaaatul/morphe-patches
 rahul9999xda/morphe-patches
@@ -624,6 +637,7 @@ ReemX/morphe-me-patches
 rhubarbshoelaces/morphe-patches
 Rico957/timetree-ads-patch
 RikoDEV/morphed-pl
+rikunode/chmate-ua-spoof-patches
 rikunode/fairemail-morphe-patches
 rikunode/hatena-bookmark-hide-pr-patches
 rikunode/hoshiori
@@ -647,6 +661,7 @@ rubenaaroncalahorra/gospel-library-patches
 rufusin/revanced-patches
 rushiranpise/Ri-Vanced-Universal-Morphe-Patches
 ryuya0124/gemini-microg-patches
+ryuya0124/morphe-x-video-60fps
 ryykitty/twitch-patched
 saadbinyousaf1/sby-patches
 sabbirdj/viper-patches
@@ -655,6 +670,7 @@ sabopura/sabopura-morphe-patches
 Sabrina-Moonlight/gracie-patches
 sahilwasgood/patches
 saieshshirodkar/saiesh-morphe-patches
+saigauthamr/tao-patches
 SailHighSea/sailhighsea-patches
 salihefee/moonreader-regional-patches
 salmanbappi/Quwis-Patches
@@ -696,6 +712,7 @@ sk1nnnny/morphe-patche
 skulldogged/cobalt-morphe
 SledgeSune/morphe-patches
 Smart123s/morphe-patches
+smartworldarafath/Gboard_Pro
 snowyegret23/morphe-patches
 Solvo37/vk-video-morphe-patches
 Solvo37/VKlean
@@ -710,12 +727,14 @@ srinath1848/nobrokerhood-patches
 ssch71/wear-patches
 Starkist124/stars-morphe-patch
 steeepaaaan/pdalife-morphe-patches
+stivencop414-bot/Morphe-Vix-Patches
 suakamargas121/bookish-guacamole
 suakamargas121/shiny-train
 subenoeva/roadsync-patches
 Sudashiii/at-tv-patches
 Sudashiii/servus-patches
 sudeepcapri/morphe_patch
+sujaan13/spotify-scroll-lock-patches
 Supperelias2/sbs-morphe-patches
 Supperelias2/sbs-tv-morphe-patches
 sushruth/imgur-patches
@@ -791,6 +810,7 @@ vitorhubdev/vanta-surf-morphe-patches
 vladon/morphe-patches-navi
 VoltoxderEchte/waze-gearslip-morphe-patch
 vomw/morphe-patches
+vortexnode/GboardSamsung
 voznyiarsen/bakalari-morphe
 WaggBR/Wagg13Patch_Morphe
 Wake-Old-Hyphen/hushfeed
