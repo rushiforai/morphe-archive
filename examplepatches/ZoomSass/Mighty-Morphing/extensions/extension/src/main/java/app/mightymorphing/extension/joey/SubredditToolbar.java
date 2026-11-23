@@ -112,11 +112,6 @@ public final class SubredditToolbar {
                 if (!rankById.containsKey(itemId)) continue;
 
                 boolean isVisible = !hiddenIds.contains(itemId);
-                if (ModernUi.isModernUiEnabled(activity)) {
-                    int layoutId = activity.getResources().getIdentifier(
-                            "menu_post_layout", "id", pkg);
-                    if (layoutId != 0 && itemId == layoutId) isVisible = false;
-                }
                 item.setVisible(isVisible);
 
                 if (isVisible) {
@@ -153,7 +148,7 @@ public final class SubredditToolbar {
         }
         theme.setOnMenuItemClickListener(item -> {
             activity.closeOptionsMenu();
-            ModernUi.showAccentPicker(activity);
+            ThemeStudio.show(activity, null);
             return true;
         });
     }
@@ -211,9 +206,6 @@ public final class SubredditToolbar {
     }
 
     static void show(Activity activity) {
-        LinearLayout page = MorpheDialog.page(activity, "Subreddit bar",
-                "Drag the handle to change the order. Pin an item to put it in the overflow menu.");
-
         Set<String> hidden = new HashSet<>(getHidden(activity));
         Set<String> pinned = new HashSet<>();
         Set<String> storedPins = getPinned(activity);
@@ -225,117 +217,105 @@ public final class SubredditToolbar {
         } else {
             pinned.addAll(storedPins);
         }
+        boolean modern = ModernUi.isModernUiEnabled(activity);
+        // Entries Modern does not offer keep their place in the stored order.
+        List<String> skipped = new ArrayList<>();
+        List<List<String>> zones = ZoneEditor.lists(3);
+        for (String id : order) {
+            if (findDef(id) == null) continue;
+            String[] def = findDef(id);
+            if (hidden.contains(id)) zones.get(2).add(id);
+            else if (def[2] != null && pinned.contains(id)) zones.get(0).add(id);
+            else zones.get(1).add(id);
+        }
 
         FrameLayout stage = new FrameLayout(activity);
         stage.setClipChildren(true);
         int[] width = new int[]{BarPreview.widthIndex(activity)};
+        List<String> shownOrder = new ArrayList<>();
+        Set<String> shownHidden = new HashSet<>();
+        Set<String> shownPinned = new HashSet<>();
         Runnable paint = () -> {
+            shownOrder.clear();
+            shownOrder.addAll(zones.get(0));
+            shownOrder.addAll(zones.get(1));
+            shownOrder.addAll(zones.get(2));
+            shownHidden.clear();
+            shownHidden.addAll(zones.get(2));
+            shownPinned.clear();
+            shownPinned.addAll(zones.get(0));
             LinearLayout host = new LinearLayout(activity);
             host.setOrientation(LinearLayout.VERTICAL);
-            drawBar(activity, host, BarPreview.slots(activity, width[0]), order, hidden, pinned);
+            drawBar(activity, host, BarPreview.slots(activity, width[0]), shownOrder, shownHidden, shownPinned);
             BarPreview.show(activity, stage, host);
         };
-        page.addView(BarPreview.widthRow(activity, width, paint));
-        page.addView(stage);
+        LinearLayout top = new LinearLayout(activity);
+        top.setOrientation(LinearLayout.VERTICAL);
+        top.addView(BarPreview.widthRow(activity, width, paint));
+        top.addView(stage);
 
-        LinearLayout rowsContainer = new LinearLayout(activity);
-        rowsContainer.setOrientation(LinearLayout.VERTICAL);
-        int accent = MorpheDialog.accent(activity);
-        int text = MorpheDialog.text(activity);
-        int sub = MorpheDialog.sub(activity);
+        ZoneEditor editor = new ZoneEditor(activity,
+                new String[]{"On the bar", "In the \u22ee menu", "Hidden"},
+                new String[]{"Drag a bar item here", "Drag an item here", "Drag an item here to hide it"},
+                zones,
+                (id, zone) -> zone != 0 || (findDef(id) != null && findDef(id)[2] != null),
+                new ZoneEditor.Look() {
+                    @Override
+                    public String label(String id) {
+                        String[] def = findDef(id);
+                        return def == null ? id : def[1];
+                    }
 
-        Runnable[] rebuildRef = new Runnable[1];
-        rebuildRef[0] = () -> {
-            rowsContainer.removeAllViews();
-            List<String> visible = new ArrayList<>();
-            for (String idName : order) {
-                if ("menu_post_layout".equals(idName) && ModernUi.isModernUiEnabled(activity)) continue;
-                if (findDef(idName) != null) visible.add(idName);
-            }
-            Set<String> onBar = new HashSet<>();
-            for (String idName : visible) {
-                String[] def = findDef(idName);
-                if (def != null && def[2] != null && pinned.contains(idName) && !hidden.contains(idName)) {
-                    onBar.add(idName);
-                }
-            }
-            for (String idName : visible) {
-                String[] def = findDef(idName);
-                boolean iconItem = def[2] != null;
-                boolean bar = onBar.contains(idName);
-                LinearLayout line = new LinearLayout(activity);
-                line.setOrientation(LinearLayout.HORIZONTAL);
-                line.setGravity(Gravity.CENTER_VERTICAL);
-                line.setTag(idName);
-                line.setMinimumHeight(Math.round(48 * activity.getResources().getDisplayMetrics().density));
-                TextView label = new TextView(activity);
-                label.setText(def[1]);
-                label.setTextColor(text);
-                label.setTextSize(15);
-                line.addView(label, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
-                if (iconItem) {
-                    TextView overflow = MorpheDialog.action(activity, "Overflow", MorpheDialog.TEXT);
-                    MorpheDialog.setFilled(activity, overflow, !bar);
-                    overflow.setOnClickListener(v -> {
-                        boolean nextBar = !onBar.contains(idName);
-                        hidden.remove(idName);
-                        if (nextBar) {
-                            pinned.add(idName);
-                            onBar.add(idName);
-                        } else {
-                            pinned.remove(idName);
-                            onBar.remove(idName);
-                        }
-                        saveHidden(activity, hidden);
-                        savePinned(activity, pinned);
-                        saveOrder(activity, order);
-                        rebuildRef[0].run();
-                        refreshHomeMenu();
-                    });
-                    LinearLayout.LayoutParams gap = new LinearLayout.LayoutParams(
-                            ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-                    gap.leftMargin = Math.round(12 * activity.getResources().getDisplayMetrics().density);
-                    line.addView(overflow, gap);
-                }
-                line.addView(DragOrder.handle(activity, rowsContainer, (from, to) -> {
-                    if (from < 0 || to < 0 || from >= rowsContainer.getChildCount() || to >= rowsContainer.getChildCount()) return false;
-                    int ia = order.indexOf(String.valueOf(rowsContainer.getChildAt(from).getTag()));
-                    int ib = order.indexOf(String.valueOf(rowsContainer.getChildAt(to).getTag()));
-                    if (ia < 0 || ib < 0) return false;
-                    Collections.swap(order, ia, ib);
-                    saveOrder(activity, order);
+                    @Override
+                    public String icon(String id) {
+                        String[] def = findDef(id);
+                        return def == null ? null : def[2];
+                    }
+                },
+                () -> {
                     paint.run();
-                    return true;
-                }));
-                rowsContainer.addView(line);
-            }
-            paint.run();
-        };
-        rebuildRef[0].run();
+                    List<String> all = new ArrayList<>();
+                    for (List<String> zone : zones) all.addAll(zone);
+                    all.addAll(skipped);
+                    Set<String> nowHidden = new HashSet<>(zones.get(2));
+                    Set<String> nowPinned = new HashSet<>(zones.get(0));
+                    saveHidden(activity, nowHidden);
+                    savePinned(activity, nowPinned);
+                    saveOrder(activity, all);
+                    refreshHomeMenu();
+                });
+        paint.run();
 
-        page.addView(BarPreview.options(activity, rowsContainer));
         TextView reset = MorpheDialog.action(activity, "Reset", MorpheDialog.SUB);
         TextView done = MorpheDialog.action(activity, "Done", MorpheDialog.SUB);
         TextView apply = MorpheDialog.action(activity, "Apply and restart", MorpheDialog.GOLD);
-        page.addView(MorpheDialog.actions(activity, reset, done, apply));
-
-        AlertDialog dialog = MorpheDialog.show(activity, page, 960);
+        LinearLayout page = ZoneEditor.screen(activity, "Subreddit bar",
+                "Drag the handle to move an item between the bar, the menu and hidden, or to change the order. Only items with an icon can sit on the bar.",
+                top, editor, reset, done, apply);
+        android.app.Dialog dialog = MorpheDialog.showFull(activity, page, 640, null);
+        // The preview is measured once the dialog has a width.
+        page.post(paint);
         reset.setOnClickListener(v -> {
-            hidden.clear();
-            pinned.clear();
-            order.clear();
+            for (List<String> zone : zones) zone.clear();
             for (String[] def : ITEMS) {
-                order.add(def[0]);
-                if (def[2] != null) pinned.add(def[0]);
+                zones.get(def[2] != null ? 0 : 1).add(def[0]);
             }
-            saveHidden(activity, hidden);
-            savePinned(activity, pinned);
-            saveOrder(activity, order);
-            rebuildRef[0].run();
-            refreshHomeMenu();
+            editorChanged(editor, zones, skipped, activity);
+            editor.rebuild();
+            paint.run();
         });
         done.setOnClickListener(v -> dialog.dismiss());
         apply.setOnClickListener(v -> restart(activity));
+    }
+
+    private static void editorChanged(ZoneEditor editor, List<List<String>> zones, List<String> skipped, Activity activity) {
+        List<String> all = new ArrayList<>();
+        for (List<String> zone : zones) all.addAll(zone);
+        all.addAll(skipped);
+        saveHidden(activity, new HashSet<>(zones.get(2)));
+        savePinned(activity, new HashSet<>(zones.get(0)));
+        saveOrder(activity, all);
+        refreshHomeMenu();
     }
 
     private static void restart(Activity activity) {
@@ -444,7 +424,6 @@ public final class SubredditToolbar {
         for (String id : order) {
             String[] def = findDef(id);
             if (def == null || hidden.contains(id)) continue;
-            if ("menu_post_layout".equals(id) && ModernUi.isModernUiEnabled(activity)) continue;
             boolean onBar = def[2] != null && pinned.contains(id);
             boolean caret = "menu_image_style".equals(id) || "menu_theme".equals(id);
             if (!onBar) lines.add(new String[]{def[1], "", caret ? "caret" : ""});

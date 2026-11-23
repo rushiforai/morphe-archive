@@ -32,6 +32,9 @@ val preferPlaybackDownload = bytecodePatch(
         ))
         check(method.implementation!!.registerCount - method.parameterTypes.size >= 3)
         method.addInstructions(0, """
+            invoke-static {}, Lapp/tiktoklitepatches/extension/ModSettings;->cleanDownloads()Z
+            move-result v0
+            if-eqz v0, :original_source
             move-object/from16 v0, p0
             if-eqz v0, :original_source
             iget-object v0, v0, Lcom/ss/android/ugc/aweme/feed/model/Aweme;->video:Lcom/ss/android/ugc/aweme/feed/model/Video;

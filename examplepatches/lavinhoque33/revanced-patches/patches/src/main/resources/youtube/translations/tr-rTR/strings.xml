@@ -293,8 +293,10 @@ Bunu düzeltmek için 'Video akışlarını taklit et' seçeneğini aç ve 'Vars
     <string name="morphe_playback_in_feeds_entry_off">Kapalı</string>
     <string name="morphe_playback_in_feeds_entry_wifi_only">Yalnızca Wi-Fi üzerinde</string>
     <string name="morphe_playback_in_feeds_title">Akışlarda oynatma</string>
-    <string name="morphe_player_control_buttons_background_opacity_summary">Oynatıcı kontrol düğmelerinin ve zaman çubuğunun arkasındaki arka planın opaklığını ayarlayın (0 görünmez, 100 opaktır)</string>
-    <string name="morphe_player_control_buttons_background_opacity_title">Düğme arka plan opaklığı</string>
+    <string name="morphe_player_transport_background_opacity_summary">Oynat, Duraklat, Yeniden oynat, Sonraki ve Önceki düğmelerinin arka plan opaklığını ayarlayın</string>
+    <string name="morphe_player_transport_background_opacity_title">Oynatma düğmelerinin arka plan opaklığı</string>
+    <string name="morphe_player_other_overlay_background_opacity_summary">Diğer oynatıcı düğmelerinin ve zaman göstergesinin arka plan opaklığını ayarlayın</string>
+    <string name="morphe_player_other_overlay_background_opacity_title">Diğer yer paylaşımı öğelerinin arka plan opaklığı</string>
     <string name="morphe_playlist_hide_removal_snackbar_summary">Oynatma listesinden bir video kaldırıldığında onay gösterilmez</string>
     <string name="morphe_playlist_hide_removal_snackbar_title">Oynatma listesi kaldırma bildirimini gizle</string>
     <string name="morphe_playlist_long_press_drag_summary">Oynatma listenizin bir videosunu yeni bir yere sürüklemek için dokunun ve basılı tutun</string>

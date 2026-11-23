@@ -285,7 +285,10 @@ private fun autoPlaySetter(type: String) = Fingerprint(
     parameters = listOf("Z"),
 )
 
-/** The bind method of a Nonton home carousel card: it starts the muted preview video, which is the only caller of setLowQualityTrailer. */
+/**
+ * The bind method of a Nonton home carousel card: it starts the muted preview video, which is the only caller of setLowQualityTrailer.
+ * R8 makes it an instance method or a static helper that takes the card binding first, so the parameter count varies.
+ */
 private object PreviewVideoBindFingerprint : Fingerprint(
     returnType = "V",
     filters = listOf(
@@ -296,7 +299,6 @@ private object PreviewVideoBindFingerprint : Fingerprint(
             returnType = "V",
         )
     ),
-    custom = { method, _ -> method.parameterTypes.size == 2 },
 )
 
 @Suppress("unused")

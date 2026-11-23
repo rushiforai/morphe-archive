@@ -20,7 +20,7 @@ Click the button below, or manually add this repository URL to Morphe Manager: `
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.6.3](https://github.com/rimixyz/morphe-patches/releases/tag/v1.6.3)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;31 patches total
+> **[v1.6.4](https://github.com/rimixyz/morphe-patches/releases/tag/v1.6.4)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;31 patches total
 <details open>
 <summary>📦 New Star Soccer&nbsp;&nbsp;•&nbsp;&nbsp;16 patches</summary>
 <br>

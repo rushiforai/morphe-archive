@@ -1,0 +1,7 @@
+[
+{
+  "directory": "/Users/jneerdael/Scripts/nl-morphe-patches/extensions/waze/.cxx/RelWithDebInfo/112ug251/arm64-v8a",
+  "command": "/Users/jneerdael/Library/Android/sdk/ndk/27.2.12479018/toolchains/llvm/prebuilt/darwin-x86_64/bin/clang++ --target=aarch64-none-linux-android32 --sysroot=/Users/jneerdael/Library/Android/sdk/ndk/27.2.12479018/toolchains/llvm/prebuilt/darwin-x86_64/sysroot -Dwaze_tile_cameras_EXPORTS -isystem /Users/jneerdael/Scripts/nl-morphe-patches/extensions/waze/build/generated/shadowhook/prefab/modules/shadowhook/include -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security   -O2 -g -DNDEBUG -fPIC -Wall -Wextra -Werror -fvisibility=hidden -o CMakeFiles/waze_tile_cameras.dir/native_tile_cameras.cpp.o -c /Users/jneerdael/Scripts/nl-morphe-patches/extensions/waze/src/main/cpp/native_tile_cameras.cpp",
+  "file": "/Users/jneerdael/Scripts/nl-morphe-patches/extensions/waze/src/main/cpp/native_tile_cameras.cpp"
+}
+]

@@ -1,5 +1,7 @@
 package app.hoitruyenchu.patches.itruyenchu.audio.mediacontrols
 
+import app.hoitruyenchu.patches.itruyenchu.misc.settings.enablePatchFlag
+import app.hoitruyenchu.patches.itruyenchu.misc.settings.settingsPatch
 import app.hoitruyenchu.patches.itruyenchu.audio.tts.ttsReliabilityPatch
 import app.hoitruyenchu.patches.itruyenchu.shared.Constants.COMPATIBILITY_ITRUYENCHU
 import app.hoitruyenchu.patches.itruyenchu.shared.Constants.EXTENSION_TTS_MEDIA_SESSION
@@ -29,9 +31,11 @@ val ttsMediaControlsPatch = patch(
     compatibleWith(COMPATIBILITY_ITRUYENCHU)
 
     // The reading state lives in TtsController.
-    dependsOn(ttsReliabilityPatch)
+    dependsOn(ttsReliabilityPatch, settingsPatch)
 
     execute {
+        enablePatchFlag("mediaControls")
+
         // 1. The MediaSession is built with a player that shows the TTS reading.
         SetActivePlayerInternalFingerprint.method.apply {
             val instructions = implementation!!.instructions.toList()

@@ -1,0 +1,473 @@
+{
+  "day": "2000-01-01",
+  "storefront": "us",
+  "policyVersion": "v7",
+  "rows": [
+    {
+      "key": "recently_played",
+      "kind": "playlists",
+      "provenance": "library",
+      "items": [
+        {
+          "playlistId": "own-playlist-1",
+          "name": "Playlist 1",
+          "description": null,
+          "artworkUrl": "https://example.invalid/own/own-playlist-1.jpg",
+          "isFavorites": false,
+          "kind": null,
+          "trackCount": 39
+        },
+        {
+          "playlistId": "own-playlist-2",
+          "name": "Playlist 2",
+          "description": null,
+          "artworkUrl": "https://example.invalid/own/own-playlist-2.jpg",
+          "isFavorites": false,
+          "kind": null,
+          "trackCount": 57
+        }
+      ],
+      "title": "Recently Played"
+    },
+    {
+      "key": "ai_dj",
+      "kind": "native",
+      "title": "Umbra"
+    },
+    {
+      "key": "made_for_you",
+      "kind": "native",
+      "art": {
+        "discover": "https://example.invalid/img/home/discover.jpg?v=0000000000",
+        "top_songs": "https://example.invalid/img/home/top-songs.jpg?v=0000000000",
+        "for_you": "https://example.invalid/img/home/for-you.jpg?v=0000000000",
+        "replay": "https://example.invalid/img/home/replay.jpg?v=0000000000"
+      },
+      "title": "Made For You"
+    },
+    {
+      "key": "daily_mixes",
+      "kind": "mixes",
+      "provenance": "taste",
+      "items": [
+        {
+          "name": "Daily Mix 1",
+          "mixId": "mix-1",
+          "artists": [
+            "Artist One",
+            "Artist Two",
+            "Artist Three"
+          ],
+          "artworkUrl": "https://example.invalid/image/thumb/a01/400x400bb.jpg",
+          "decisionId": "0000000000000001",
+          "tracks": [
+            {
+              "title": "Track 01",
+              "artist": "Artist One",
+              "album": "Album 01",
+              "isrc": "ZZXXX0000001",
+              "appleMusicTrackId": "9000000001",
+              "artworkUrl": "https://example.invalid/image/thumb/a01/400x400bb.jpg",
+              "durationS": 181,
+              "genre": "Genre A",
+              "explicit": null,
+              "decisionId": "0000000000000001",
+              "position": 0
+            },
+            {
+              "title": "Track 02",
+              "artist": "Artist Two",
+              "album": "Album 02",
+              "isrc": "ZZXXX0000002",
+              "appleMusicTrackId": "9000000002",
+              "artworkUrl": "https://example.invalid/image/thumb/a02/400x400bb.jpg",
+              "durationS": 182,
+              "genre": "Genre A",
+              "explicit": null,
+              "decisionId": "0000000000000001",
+              "position": 1
+            },
+            {
+              "title": "Track 03",
+              "artist": "Artist Three",
+              "album": "Album 03",
+              "isrc": "ZZXXX0000003",
+              "appleMusicTrackId": "9000000003",
+              "artworkUrl": "https://example.invalid/image/thumb/a03/400x400bb.jpg",
+              "durationS": 183,
+              "genre": "Genre A",
+              "explicit": null,
+              "decisionId": "0000000000000001",
+              "position": 2
+            }
+          ]
+        },
+        {
+          "name": "Daily Mix 2",
+          "mixId": "mix-2",
+          "artists": [
+            "Artist Four",
+            "Artist Five",
+            "Artist Six"
+          ],
+          "artworkUrl": "https://example.invalid/image/thumb/a04/400x400bb.jpg",
+          "decisionId": "0000000000000001",
+          "tracks": [
+            {
+              "title": "Track 04",
+              "artist": "Artist Four",
+              "album": "Album 04",
+              "isrc": "ZZXXX0000004",
+              "appleMusicTrackId": "9000000004",
+              "artworkUrl": "https://example.invalid/image/thumb/a04/400x400bb.jpg",
+              "durationS": 184,
+              "genre": "Genre B",
+              "explicit": null,
+              "decisionId": "0000000000000001",
+              "position": 0
+            },
+            {
+              "title": "Track 05",
+              "artist": "Artist Five",
+              "album": "Album 05",
+              "isrc": "ZZXXX0000005",
+              "appleMusicTrackId": "9000000005",
+              "artworkUrl": "https://example.invalid/image/thumb/a05/400x400bb.jpg",
+              "durationS": 185,
+              "genre": "Genre B",
+              "explicit": null,
+              "decisionId": "0000000000000001",
+              "position": 1
+            },
+            {
+              "title": "Track 06",
+              "artist": "Artist Six",
+              "album": "Album 06",
+              "isrc": "ZZXXX0000006",
+              "appleMusicTrackId": "9000000006",
+              "artworkUrl": "https://example.invalid/image/thumb/a06/400x400bb.jpg",
+              "durationS": 186,
+              "genre": "Genre B",
+              "explicit": null,
+              "decisionId": "0000000000000001",
+              "position": 2
+            }
+          ]
+        }
+      ],
+      "title": "Daily Mixes"
+    },
+    {
+      "key": "ytmusic_mixes",
+      "kind": "playlists",
+      "provenance": "linked",
+      "source": "ytmusic",
+      "title": "YouTube Music mixes",
+      "updatedAt": "2000-01-01T00:00:00Z",
+      "stale": false,
+      "items": [
+        {
+          "id": "ytmusic-0123456789abcdef0123",
+          "name": "Linked Mix A",
+          "type": "playlist",
+          "missing": 0,
+          "subtitle": "Artist One, Artist Two, Artist Three",
+          "artworkUrl": "https://example.invalid/image/mixart",
+          "trackCount": 100
+        },
+        {
+          "id": "ytmusic-fedcba9876543210fedc",
+          "name": "Linked Mix B",
+          "type": "playlist",
+          "missing": 0,
+          "subtitle": "Artist Four, Artist Five, Artist Six",
+          "artworkUrl": "https://example.invalid/image/mixart",
+          "trackCount": 100
+        }
+      ]
+    },
+    {
+      "key": "new_for_you",
+      "kind": "tracks",
+      "provenance": "taste",
+      "decisionId": "0000000000000002",
+      "items": [
+        {
+          "title": "Track 11",
+          "artist": "Artist Seven",
+          "album": "Album 11",
+          "isrc": "ZZXXX0000011",
+          "appleMusicTrackId": "9000000011",
+          "artworkUrl": "https://example.invalid/image/thumb/a11/400x400bb.jpg",
+          "durationS": 191,
+          "genre": "Genre A",
+          "explicit": null,
+          "decisionId": "0000000000000002",
+          "position": 0
+        },
+        {
+          "title": "Track 12",
+          "artist": "Artist Seven",
+          "album": "Album 12",
+          "isrc": "ZZXXX0000012",
+          "appleMusicTrackId": "9000000012",
+          "artworkUrl": "https://example.invalid/image/thumb/a12/400x400bb.jpg",
+          "durationS": 192,
+          "genre": "Genre A",
+          "explicit": null,
+          "decisionId": "0000000000000002",
+          "position": 1
+        },
+        {
+          "title": "Track 13",
+          "artist": "Artist Eight",
+          "album": "Album 13",
+          "isrc": "ZZXXX0000013",
+          "appleMusicTrackId": "9000000013",
+          "artworkUrl": "https://example.invalid/image/thumb/a13/400x400bb.jpg",
+          "durationS": 193,
+          "genre": "Genre C",
+          "explicit": null,
+          "decisionId": "0000000000000002",
+          "position": 2
+        }
+      ],
+      "title": "New For You"
+    },
+    {
+      "key": "eclipse_stations",
+      "kind": "stations",
+      "provenance": "stations",
+      "items": [
+        {
+          "id": "st_hits",
+          "name": "Station A",
+          "description": "Description of station A",
+          "listeners": 0,
+          "nowPlaying": {
+            "title": "Track 41",
+            "artist": "Artist Nine",
+            "coverUrl": "https://example.invalid/image/thumb/a41/400x400bb.jpg"
+          }
+        },
+        {
+          "id": "st_chill",
+          "name": "Station B",
+          "description": "Description of station B",
+          "listeners": 0,
+          "nowPlaying": {
+            "title": "Track 42",
+            "artist": "Artist Ten",
+            "coverUrl": "https://example.invalid/image/thumb/a42/400x400bb.jpg"
+          }
+        }
+      ],
+      "title": "Eclipse Stations"
+    },
+    {
+      "key": "top_songs",
+      "kind": "tracks",
+      "provenance": "taste",
+      "decisionId": "0000000000000003",
+      "items": [
+        {
+          "title": "Track 21",
+          "artist": "Artist Eleven",
+          "album": "Album 21",
+          "isrc": "ZZXXX0000021",
+          "appleMusicTrackId": "9000000021",
+          "artworkUrl": "https://example.invalid/image/thumb/a21/400x400bb.jpg",
+          "durationS": 221,
+          "playCount": 0,
+          "playTimeMs": 0,
+          "decisionId": "0000000000000003",
+          "position": 0
+        },
+        {
+          "title": "Track 22",
+          "artist": "Artist Twelve",
+          "album": "Album 22",
+          "isrc": "ZZXXX0000022",
+          "appleMusicTrackId": "9000000022",
+          "artworkUrl": "https://example.invalid/image/thumb/a22/400x400bb.jpg",
+          "durationS": 222,
+          "playCount": 0,
+          "playTimeMs": 0,
+          "decisionId": "0000000000000003",
+          "position": 1
+        },
+        {
+          "title": "Track 23",
+          "artist": "Artist Thirteen",
+          "album": "Album 23",
+          "isrc": null,
+          "appleMusicTrackId": null,
+          "artworkUrl": "https://example.invalid/image/thumb/a23/400x400bb.jpg",
+          "durationS": 223,
+          "playCount": 0,
+          "playTimeMs": 0,
+          "decisionId": "0000000000000003",
+          "position": 2
+        }
+      ],
+      "title": "Your Top Songs"
+    },
+    {
+      "key": "featured_artist",
+      "kind": "artists",
+      "provenance": "chart:us",
+      "decisionId": "0000000000000004",
+      "items": [
+        {
+          "appleMusicArtistId": "1000000001",
+          "name": "Featured Artist One",
+          "imageUrl": "https://example.invalid/image/thumb/f01/400x400ac.jpg",
+          "genre": "Genre A",
+          "decisionId": "0000000000000004",
+          "position": 0
+        }
+      ],
+      "title": "Featured Artist"
+    },
+    {
+      "key": "fresh_drops",
+      "kind": "albums",
+      "provenance": "chart:us",
+      "decisionId": "0000000000000005",
+      "items": [
+        {
+          "appleMusicAlbumId": "2000000001",
+          "title": "Album A",
+          "artist": "Artist Fourteen",
+          "artworkUrl": "https://example.invalid/image/thumb/a51/400x400bb.jpg",
+          "releaseDate": "2000-01-01",
+          "trackCount": 27,
+          "genre": "Genre D",
+          "explicit": true,
+          "decisionId": "0000000000000005",
+          "position": 0
+        },
+        {
+          "appleMusicAlbumId": "2000000002",
+          "title": "Album B",
+          "artist": "Various Artists",
+          "artworkUrl": "https://example.invalid/image/thumb/a52/400x400bb.jpg",
+          "releaseDate": "2000-01-01",
+          "trackCount": 34,
+          "genre": "Genre E",
+          "explicit": true,
+          "decisionId": "0000000000000005",
+          "position": 1
+        }
+      ],
+      "title": "Fresh Drops"
+    },
+    {
+      "key": "mood_mixes",
+      "kind": "playlists",
+      "provenance": "editorial",
+      "decisionId": "0000000000000006",
+      "items": [
+        {
+          "appleMusicPlaylistId": "pl.00000000000000000000000000000001",
+          "name": "Mood Playlist A",
+          "curator": "Curator A",
+          "artworkUrl": "https://example.invalid/image/thumb/m01/400x400SC.DN02.jpg?l=en-US",
+          "description": "Description of mood playlist A.",
+          "decisionId": "0000000000000006",
+          "position": 0
+        },
+        {
+          "appleMusicPlaylistId": "pl.00000000000000000000000000000002",
+          "name": "Mood Playlist B",
+          "curator": "Curator B",
+          "artworkUrl": "https://example.invalid/image/thumb/m02/400x400cc.jpg",
+          "description": null,
+          "decisionId": "0000000000000006",
+          "position": 1
+        }
+      ],
+      "title": "Mood Mixes"
+    },
+    {
+      "key": "popular_artists",
+      "kind": "artists",
+      "provenance": "chart:us",
+      "decisionId": "0000000000000007",
+      "items": [
+        {
+          "appleMusicArtistId": "1000000002",
+          "name": "Artist Fifteen",
+          "imageUrl": "https://example.invalid/image/thumb/p01/400x400bb.jpg",
+          "genre": "Genre F",
+          "decisionId": "0000000000000007",
+          "position": 0
+        },
+        {
+          "appleMusicArtistId": "1000000003",
+          "name": "Artist Sixteen",
+          "imageUrl": "https://example.invalid/image/thumb/p02/400x400bb.jpg",
+          "genre": "Genre F",
+          "decisionId": "0000000000000007",
+          "position": 1
+        }
+      ],
+      "title": "Popular Artists"
+    },
+    {
+      "key": "your_playlists",
+      "kind": "playlists",
+      "provenance": "library",
+      "items": [
+        {
+          "playlistId": "own-playlist-3",
+          "name": "Playlist 3",
+          "description": null,
+          "artworkUrl": "https://example.invalid/own/own-playlist-3.jpg",
+          "isFavorites": true,
+          "kind": null,
+          "trackCount": 39
+        },
+        {
+          "playlistId": "own-playlist-4",
+          "name": "Playlist 4",
+          "description": null,
+          "artworkUrl": "https://example.invalid/own/own-playlist-4.jpg",
+          "isFavorites": false,
+          "kind": null,
+          "trackCount": 57
+        },
+        {
+          "playlistId": "own-playlist-5",
+          "name": "Playlist 5",
+          "description": null,
+          "artworkUrl": "https://example.invalid/own/own-playlist-5.jpg",
+          "isFavorites": false,
+          "kind": null,
+          "trackCount": 27
+        }
+      ],
+      "title": "Your Playlists"
+    },
+    {
+      "key": "your_shows",
+      "kind": "native",
+      "title": "Your Shows"
+    },
+    {
+      "key": "mystery_row",
+      "kind": "tracks",
+      "title": "Unknown Key Row",
+      "provenance": "taste",
+      "items": [
+        {
+          "title": "Mystery Song",
+          "artist": "Mystery Artist",
+          "album": "Mystery",
+          "artworkUrl": "https://example.invalid/mystery.jpg",
+          "durationS": 100
+        }
+      ]
+    }
+  ]
+}

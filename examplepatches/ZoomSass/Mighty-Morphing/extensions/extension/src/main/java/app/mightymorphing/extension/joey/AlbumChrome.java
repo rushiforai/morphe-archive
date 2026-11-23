@@ -59,6 +59,7 @@ public final class AlbumChrome {
     private static final class State {
         final Activity activity;
         View pager;
+        View toolbar;
         Method current;
         Method jump;
         FrameLayout root;
@@ -135,8 +136,15 @@ public final class AlbumChrome {
         return tag instanceof State ? (State) tag : null;
     }
 
+    private static final java.util.Map<String, Integer> IDS = new java.util.HashMap<>();
+
+    /** Asked on every frame while an album is open, so each name is looked up once. */
     private static int id(Context context, String name) {
-        return context.getResources().getIdentifier(name, "id", context.getPackageName());
+        Integer cached = IDS.get(name);
+        if (cached != null) return cached;
+        int found = context.getResources().getIdentifier(name, "id", context.getPackageName());
+        IDS.put(name, found);
+        return found;
     }
 
     private static View find(View root, String name) {
@@ -569,7 +577,11 @@ public final class AlbumChrome {
 
     /** The layer shows and hides with Joey's toolbar, so one tap moves everything together. */
     private static void follow(State s) {
-        View toolbar = find(s.activity.getWindow().getDecorView(), "toolbar");
+        View toolbar = s.toolbar;
+        if (toolbar == null || !toolbar.isAttachedToWindow()) {
+            toolbar = find(s.activity.getWindow().getDecorView(), "toolbar");
+            s.toolbar = toolbar;
+        }
         // Joey can apply its remembered hidden state again while the album is still loading.
         // For the first moments the album stays open with everything showing.
         if (android.os.SystemClock.uptimeMillis() - s.openedAt < 1200 && toolbar != null

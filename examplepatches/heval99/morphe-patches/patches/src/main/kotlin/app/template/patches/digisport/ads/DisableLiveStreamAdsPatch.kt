@@ -20,11 +20,10 @@ val disableLiveStreamAdsPatch = bytecodePatch(
 
     execute {
         // 1. DAI is never enabled: GetLiveStream skips the DAI balancer request and
-        // createPlayerInput builds the stream from UiLiveStream.getMUrl() (getStream) instead of
-        // the DAI item (getDAI).
-        UiLiveDaiGetEnableFingerprint.method.returnEarly(false)
+        // createPlayerInput builds the stream from UiLiveStream's url instead of the DAI item.
+        uiLiveDaiEnableFingerprint.method.returnEarly(false)
 
         // 2. The player never rebuilds a DAI ads loader / media source for the current item.
-        UpdateAdViewForDaiFingerprint.method.returnEarly()
+        updateAdViewForDaiFingerprint.method.returnEarly()
     }
 }

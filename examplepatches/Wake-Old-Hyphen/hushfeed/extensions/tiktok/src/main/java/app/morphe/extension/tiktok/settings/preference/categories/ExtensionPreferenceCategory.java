@@ -52,6 +52,8 @@ public class ExtensionPreferenceCategory extends ConditionalPreferenceCategory {
         return SettingsStatus.foldableSplitViewEnabled
                 || SettingsStatus.amoledDarkModeEnabled
                 || SettingsStatus.systemFontEnabled
+                || SettingsStatus.smallerTextSizesEnabled
+                || SettingsStatus.uiScaleEnabled
                 || SettingsStatus.turnOffHapticsEnabled
                 || SettingsStatus.screenTransitionsEnabled
                 || hasAppIconPicker()
@@ -114,6 +116,7 @@ public class ExtensionPreferenceCategory extends ConditionalPreferenceCategory {
                     Settings.FOLDABLE_SPLIT_VIEW_MIN_WIDTH_DP, "%1$s dp", "%1$s dp"));
         }
         if (SettingsStatus.amoledDarkModeEnabled || SettingsStatus.systemFontEnabled
+                || SettingsStatus.smallerTextSizesEnabled || SettingsStatus.uiScaleEnabled
                 || SettingsStatus.turnOffHapticsEnabled || SettingsStatus.screenTransitionsEnabled
                 || hasAppIconPicker()) {
             addPreference(new SectionHeadingPreference(context, "Appearance"));
@@ -127,6 +130,24 @@ public class ExtensionPreferenceCategory extends ConditionalPreferenceCategory {
                             + "doesn't change. Restart TikTok to see the change.",
                     Settings.AMOLED_DARK_MODE
             ));
+        }
+        if (SettingsStatus.smallerTextSizesEnabled) {
+            // #476: the stops are on TikTok's own page, so this row only says where they are.
+            addPreference(new TogglePreference(
+                    context,
+                    "Smaller text sizes",
+                    "Adds three stops below the smallest size on TikTok's own Text size slider, in "
+                            + "Settings and privacy > Accessibility. Pick one there, then restart "
+                            + "TikTok.",
+                    Settings.SMALLER_TEXT_SIZES
+            ));
+        }
+        if (SettingsStatus.uiScaleEnabled) {
+            addPreference(new app.morphe.extension.tiktok.settings.preference.NumberInputPreference(context,
+                    "UI size",
+                    "Makes TikTok's whole interface smaller, text and buttons alike, so more fits "
+                            + "on screen. 100 leaves it as it is. Restart TikTok to see the change.",
+                    Settings.UI_SCALE_PERCENT, "%1$s%%"));
         }
         if (SettingsStatus.systemFontEnabled) {
             addPreference(new TogglePreference(
@@ -310,9 +331,9 @@ public class ExtensionPreferenceCategory extends ConditionalPreferenceCategory {
                     context,
                     "Account facts on profiles",
                     "A profile's share sheet gets an Account facts button. It shows what TikTok already "
-                            + "sent about the account: when it joined, its region and language, when its "
-                            + "username and display name last changed, whether it's private and whether "
-                            + "its liked videos are public. Nothing extra is fetched.",
+                            + "sent about the account: when it joined, its region and language, its gifter "
+                            + "level and SecUID, when its username and display name last changed, whether "
+                            + "it's private and whether its liked videos are public. Nothing extra is fetched.",
                     Settings.ACCOUNT_FACTS
             ));
             addPreference(new TogglePreference(

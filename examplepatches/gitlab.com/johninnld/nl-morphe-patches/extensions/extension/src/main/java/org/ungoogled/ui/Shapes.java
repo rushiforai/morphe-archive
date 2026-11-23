@@ -117,6 +117,22 @@ public final class Shapes {
     public static volatile boolean HIDE_TABS = hideTabsPatched();
     public static volatile boolean HIDE_DIRECTORY = hideDirectoryPatched();
     public static volatile boolean HIDE_AI = hideAiPatched();
+    public static volatile boolean CAR_SATELLITE, SATELLITE_STARTUP, NAVATAR_KEEP;
+
+    /** Patched true when the Android Auto options patch is applied; the rows stay hidden otherwise. */
+    public static boolean carOptionsPatched() { return false; }
+    public static boolean carSatelliteEnabled(Context c) { return prefs(c).getBoolean(KEY_CAR_SATELLITE, false); }
+    public static boolean satelliteOnStartupEnabled(Context c) { return prefs(c).getBoolean(KEY_SATELLITE_STARTUP, false); }
+    public static boolean navatarKeepEnabled(Context c) { return prefs(c).getBoolean(KEY_NAVATAR_KEEP, false); }
+    public static void setCarSatellite(Context c, boolean on) {
+        prefs(c).edit().putBoolean(KEY_CAR_SATELLITE, on).commit(); CAR_SATELLITE = on;
+    }
+    public static void setSatelliteOnStartup(Context c, boolean on) {
+        prefs(c).edit().putBoolean(KEY_SATELLITE_STARTUP, on).commit(); SATELLITE_STARTUP = on;
+    }
+    public static void setNavatarKeep(Context c, boolean on) {
+        prefs(c).edit().putBoolean(KEY_NAVATAR_KEEP, on).commit(); NAVATAR_KEEP = on;
+    }
     /** Off by default, unlike the others: it costs battery. */
     public static volatile boolean HIGH_REFRESH = false;
     public static volatile boolean BETTER_OFFLINE = betterOfflinePatched();
@@ -250,6 +266,15 @@ public final class Shapes {
     // is bound, so a change needs no restart.
 
     public static final String KEY_HIDE_AI = "hide_ai";
+
+    /**
+     * Android Auto switches. These are read at runtime by code the "Android Auto options" patch injects,
+     * exactly like HIDE_ADS: Maps' own settings are only the fallback, so a value the user set in Maps
+     * still wins.
+     */
+    public static final String KEY_CAR_SATELLITE = "car_satellite";
+    public static final String KEY_SATELLITE_STARTUP = "satellite_on_startup";
+    public static final String KEY_NAVATAR_KEEP = "navatar_keep";
 
     public static boolean hideAiEnabled(Context c) {
         return hideAiPatched() && prefs(c).getBoolean(KEY_HIDE_AI, true);
@@ -698,6 +723,9 @@ public final class Shapes {
             HIDE_TABS = hideTabsEnabled(base);
             HIDE_DIRECTORY = hideDirectoryEnabled(base);
             HIDE_AI = hideAiEnabled(base);
+            CAR_SATELLITE = carOptionsPatched() && carSatelliteEnabled(base);
+            SATELLITE_STARTUP = carOptionsPatched() && satelliteOnStartupEnabled(base);
+            NAVATAR_KEEP = carOptionsPatched() && navatarKeepEnabled(base);
             SPEEDING_CHIME = speedingChime(base);
             if (speedCamerasPatched()) SpeedCameras.refresh(base);
             if (wazeAlertsPatched()) WazeAlerts.refresh(base);

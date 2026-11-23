@@ -309,6 +309,13 @@ once-call Lapp/hushgram/extension/instagram/feed/HomeLeftSwipe;->touch(Landroid/
 # all grid's row binder and the Saved home row's adapter, each loading id/saved_collection_thumbnail)
 # hand their tile over once, just before its thumbnail lookup and ahead of the binder's
 # accessibility setup (which keeps the long click flag it finds), on every declared build.
+# A locked collection's posts leaving Saved's All, Posts, Reels and search (LockedCollectionItems
+# read, leaveOut, leaveOutReels, leaveOutFound and leftNothing, #678) have no rule for the same reason:
+# the patch leaves them out with a warning when a build's collection reader, Saved grid, Reels screen
+# or search has moved. LockedCollectionGridHookTest proves the reader hands over each collection it
+# returns, the grid asks before each row, the Reels screen's listener arm hands each batch over, and
+# the search hands what it found over before its screen keeps it, then takes its Empty state when the
+# lock left nothing, on every declared build.
 # View live anonymously asks LiveSeen.hold(broadcast id) first where the live heartbeat manager's
 # tick asks for a viewer's or guest's heartbeat (IgLiveHeartbeatManager.A00 calling 036w.A00 on 450,
 # the request adding live_with_eligibility), and the tick returns its plain result while the switch
@@ -2605,6 +2612,28 @@ once-call Lapp/hushgram/extension/instagram/misc/AccentTheme;->tabIcons(Ljava/la
 # SecondaryButtonsTest checks every build.
 shared-call Lapp/hushgram/extension/instagram/misc/AccentTheme;->secondaryButtonFill(Landroid/content/Context;I)I in static (Landroid/content/Context;LX/*;)I holding const:0x7f06038b
 shared-call Lapp/hushgram/extension/instagram/misc/AccentTheme;->secondaryButtonFill(Landroid/content/Context;I)I in instance (Landroid/content/Context;LX/*;)I holding const:0x7f060389
+# An opened chat paints the view behind its messages (id/thread_background_view_container) in one
+# method (04v3.A0D on 456's 386214574), which stacks its own layers over the chat theme's color and
+# hands the LayerDrawable to a static call taking a drawable, a view and an int. Accent color hands the
+# layers to AccentTheme.chatBackground right before that call. The id is 0x7f0b4205 on two of 456's
+# builds and 0x7f0b4206 on the other two, so the rule names the method's layer and hand-off calls.
+# Left out, a chat stays black under Classic colors' navy page (#528). ChatBackgroundTest checks every build.
+once-call Lapp/hushgram/extension/instagram/misc/AccentTheme;->chatBackground(Landroid/graphics/drawable/Drawable;)V in instance (Landroid/view/View;IZ)V holding Landroid/graphics/drawable/LayerDrawable;->setLayerInset(IIIII)V LX/*;->*(Landroid/graphics/drawable/Drawable;Landroid/view/View;I)V
+# The chat's header row takes the header color of the chat's theme in one method (06Eo.A09 on 386214574),
+# through a static call that traces it under the key 0x14d400c4 and sets the color. Accent color hands
+# the header to AccentTheme.chatHeader right after that call. Left out, the header stays black over the
+# chat's navy page under Classic colors (#528). ChatBackgroundTest checks every build.
+once-call Lapp/hushgram/extension/instagram/misc/AccentTheme;->chatHeader(Landroid/view/View;)V in instance (LX/*;)V holding const:0x14d400c4
+# A chat pads its message list at the bottom each time the message bar changes height, through Instagram's
+# helper setting a view's bottom padding (07tl.A0j on 386214534, the one of the two such helpers with the
+# null check first), then scrolls the list by the difference to keep the newest message in view. Glass in
+# chats hands that padding to GlassTopBar.bottomPadding right before the helper's setPadding, which adds
+# the room the glass gives the messages under the bar, and the chat's read of the list's padding to
+# GlassTopBar.ownBottomPadding (05LM.A0d), which takes it off again. Left out, the padding undid the
+# glass's and the messages jumped by the room and back, or stayed behind the bar (#528, #757).
+# ChatListPaddingTest checks every build.
+once-call Lapp/hushgram/extension/instagram/feed/GlassTopBar;->bottomPadding(Landroid/view/View;I)I in static (Landroid/view/View;I)V holding Landroid/view/View;->getPaddingLeft()I Landroid/view/View;->getPaddingTop()I Landroid/view/View;->getPaddingRight()I Landroid/view/View;->setPadding(IIII)V LX/*;->*(Ljava/lang/Object;I)V
+once-call Lapp/hushgram/extension/instagram/feed/GlassTopBar;->ownBottomPadding(Landroid/view/View;I)I in instance (IIZ)V holding LX/*;->*:Lcom/instagram/ui/recyclerview/CustomFadingEdgeRecyclerView; Landroid/view/View;->getPaddingBottom()I Ljava/lang/Math;->max(II)I
 # The unread dot on the Messages folder chips (Primary, Requests) is Compose, a background whose color
 # the chip content (0F24.invoke on 386014758, 0YXX.invoke on 386014704) reads from a static palette
 # object, so no theme style reaches it. Accent color hands that one color to AccentTheme.composeBadge
@@ -2981,6 +3010,20 @@ once-call Lapp/hushgram/extension/instagram/reels/AiLabeledReels;->page(Ljava/ut
 # the three 452 builds. HidePaidPartnershipReelsHookTest checks the three filters meet at the join.
 once-call Lapp/hushgram/extension/instagram/reels/CaptionWordReels;->page(Ljava/util/List;Ljava/lang/String;)Ljava/util/List; in instance (L*;)V holding clips_delivery_prefetch
 
+# Its Also in search hands two pages' section lists to CaptionWordSearch.sections, once each, right
+# before the parser hands the page back (#807): the topical Explore page's, in the parser Hide the
+# Explore grid asks too, and the search results grid's, the one parser loading sections,
+# has_more_reels and rank_token (0P4J.unsafeParseFromJson on 456's 386214574). Both fill their
+# sections through the same section reader. CaptionWordSearchHookTest checks every site on every build.
+once-call Lapp/hushgram/extension/instagram/reels/CaptionWordSearch;->sections(Ljava/util/List;)V in instance (LX/*;)Ljava/lang/Object; holding sectional_items session_paging_token
+once-call Lapp/hushgram/extension/instagram/reels/CaptionWordSearch;->sections(Ljava/util/List;)V in instance (LX/*;)Ljava/lang/Object; holding sections has_more_reels rank_token
+# A keyword search's For you grid comes over GraphQL and skips that parser, and its row builder
+# makes one block at a time, so the hook sits first thing in the one static (List)V loading
+# end_of_serp_recommendation, which the first page, the next ones and the cached one hand their
+# whole list of blocks to (0D16.A01 on 386214574).
+start-call Lapp/hushgram/extension/instagram/reels/CaptionWordSearch;->sections(Ljava/util/List;)V in static (Ljava/util/List;)V holding end_of_serp_recommendation
+once-call Lapp/hushgram/extension/instagram/reels/CaptionWordSearch;->sections(Ljava/util/List;)V in static (Ljava/util/List;)V holding end_of_serp_recommendation
+
 # Hide reels by sound hands the same pages, at the same join, to HiddenSounds.page, once (#191). Its
 # stub reads the item's post, and the sound comes from the clips_metadata bridges, which
 # DownloadReelHookTest checks on every build.
@@ -3268,10 +3311,13 @@ once-call Lapp/hushgram/extension/instagram/reels/ReelOrigin;->postsTileBound(Lj
 # post's media to ReelOrigin.openingFromFeed right after each header tap reads it from the tap's
 # event. 456 has two taps loading the entry point below: the main feed's (07p6.Fhr on 386214574),
 # which pushes the profile onto its tab, and the other feeds' (08NA.Fhr), which open it in an
-# activity; each is told by that call. Left out, a feed reel is never held; twice or elsewhere, it
-# isn't the hook the patch wrote. FeedReelHeaderHookTest checks on every 456 build where each lands.
+# activity; each is told by that call. The activity launch takes (Activity, Bundle, X, Class, String)
+# on 386214574 and 386214562 but only (Activity, Bundle, X) on 386214575 (023W.A0W, called from
+# 0HPI.Fi6), so its rule leaves the parameters after the third open. Left out, a feed reel is never
+# held; twice or elsewhere, it isn't the hook the patch wrote. FeedReelHeaderHookTest checks on every
+# 456 build where each lands.
 once-call Lapp/hushgram/extension/instagram/reels/ReelOrigin;->openingFromFeed(Ljava/lang/Object;)V in instance (Ljava/lang/Object;)V calling static LX/*;->*(Landroidx/fragment/app/Fragment;Lcom/instagram/common/session/UserSession;LX/*;Ljava/lang/String;Ljava/lang/String;)V pooled holding media_username
-once-call Lapp/hushgram/extension/instagram/reels/ReelOrigin;->openingFromFeed(Ljava/lang/Object;)V in instance (Ljava/lang/Object;)V calling static LX/*;->*(Landroid/app/Activity;Landroid/os/Bundle;LX/*;Ljava/lang/Class;Ljava/lang/String;)LX/*; pooled holding media_username
+once-call Lapp/hushgram/extension/instagram/reels/ReelOrigin;->openingFromFeed(Ljava/lang/Object;)V in instance (Ljava/lang/Object;)V calling static LX/*;->*(Landroid/app/Activity;Landroid/os/Bundle;LX/*;*)LX/*; pooled holding media_username
 # A tap on the post's name reaches neither: it goes through Instagram's labelled feed header profile
 # open (00QE.A06 on 386214574, and its static twin 00QE.A04), so each of the two hands its Media
 # parameter to openingFromFeed first. Left out, a name tap on a feed reel holds nothing.
@@ -3614,6 +3660,13 @@ once-call Lapp/hushgram/extension/instagram/misc/Heartbeat;->skipBackgroundFetch
 # shape with its class's other (bar)V methods. SavedHomeHookTest finds all four through the tab key
 # the menu's maker loads, on every declared build and the other builds of 456, and checks each call
 # and branch target and that nothing else in those classes changed.
+# The same patch (#810) hands SavedHome.tabs the tabbed Saved's list of its tabs right before it
+# hands it back (0HwF.A00 on 456's 386214574, the one instance ()ArrayList loading its tabs' names),
+# and asks SavedHome.hideExploreSaved in ExploreActionBar's one method loading the Saved stub's id,
+# right before it reads the field holding the bookmark, skipping the make-and-keep when it answers
+# yes. Left out, Saved keeps its Reels tab or the Search tab keeps its Saved with the switch on.
+once-call Lapp/hushgram/extension/instagram/misc/SavedHome;->tabs(Ljava/util/List;)V in instance ()Ljava/util/ArrayList; sites returns pooled holding REELS COLLECTIONS ALL
+once-call Lapp/hushgram/extension/instagram/misc/SavedHome;->hideExploreSaved()I in instance (Landroidx/fragment/app/Fragment;Landroidx/fragment/app/FragmentActivity;Lcom/instagram/common/session/UserSession;LX/*;LX/*;LX/*;Z)V holding const:0x7f0b1680
 # Hide New message button and suggestions (#762) hands NewMessageButton.bind each button either inbox
 # top bar binds and what it's bound to: first thing in IgdsActionBar's binder, ahead of the ghost
 # call, and in the older bar's binder (01tS.A0e on 456's 386214574, the one instance (View, built

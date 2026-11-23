@@ -1,0 +1,7 @@
+{
+  "created_at": "2026-11-23T02:20:05",
+  "description": "## [0.3.1](https://github.com/stivencop414-bot/PatchLab/compare/v0.3.0...v0.3.1) (2026-11-23)\n\n### 🐛 Bug Fixes\n\n* **meitu:** stop the Meitu patches from breaking startup and the editor ([88085ed](https://github.com/stivencop414-bot/PatchLab/commit/88085ed808040c4c2ee8a882335c8dce28eb3869))",
+  "download_url": "https://github.com/stivencop414-bot/PatchLab/releases/download/v0.3.1/patches-0.3.1.mpp",
+  "signature_download_url": "",
+  "version": "0.3.1"
+}

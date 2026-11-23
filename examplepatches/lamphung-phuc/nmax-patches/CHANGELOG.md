@@ -1,3 +1,9 @@
+## 1.7.0 (2026-11-23)
+
+### ✨ New Features
+
+* **dash:** stopNavigation for NmaxConnect's End that trip ([3ddda3d](https://github.com/lamphung-phuc/nmax-patches/commit/3ddda3d826390af4abae58b2e9fbacb07a9a1ee4))
+
 ## 1.6.0 (2026-11-20)
 
 ### ✨ New Features

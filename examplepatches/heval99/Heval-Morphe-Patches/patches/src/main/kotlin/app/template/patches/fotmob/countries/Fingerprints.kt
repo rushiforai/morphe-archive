@@ -19,7 +19,8 @@ internal object LiveMatchesAndLeagueRankInitFingerprint : Fingerprint(
     definingClass = LIVE_MATCHES_AND_LEAGUE_RANK,
     name = "<init>",
     returnType = "V",
-    parameters = listOf(LIVE_MATCHES, "Ljava/util/List;"),
+    // 242 added a SystemMessage third parameter (241: LiveMatches, List).
+    parameters = listOf(LIVE_MATCHES, "Ljava/util/List;", "Lcom/fotmob/models/SystemMessage;"),
     filters = listOf(
         fieldAccess(definingClass = LIVE_MATCHES_AND_LEAGUE_RANK, type = LIVE_MATCHES, opcode = Opcode.IPUT_OBJECT),
     ),

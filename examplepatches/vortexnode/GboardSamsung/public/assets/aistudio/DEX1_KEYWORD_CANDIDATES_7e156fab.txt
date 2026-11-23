@@ -1,0 +1,4179 @@
+Keyword-matching strings from classes.dex; search leads only, not proof of implementation.
+
+[000601] 
+                                mTouchSlop = 
+[000605] 
+                  Language = 
+[000610] 
+            <head>
+                <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0, minimum-scale=1.0">
+                <style>
+                    * {
+                        box-sizing: border-box;
+                    }
+                    html {
+                        overflow: scroll;
+                        margin: 0;
+                        padding: 0;
+                    }
+                    body {
+                        display: inline-block;
+                        margin: 0;
+                        padding: 18.0px 18.0px 50px 18.0px;
+                        word-break: keep-all;
+                        white-space: normal;
+                    }
+                    .content {
+                        display: table;
+                        max-width: 100vw;
+                    }
+                    .content-row {
+                        display: table-row;
+                    }
+                    
+        table {
+            border-collapse: collapse;
+        }
+        
+                    th, td {
+                        border: 1.0px solid black;
+                        padding: 8.0px;
+                        text-align: left;
+                    }
+                </style>
+            </head>
+        
+[000619] 
+            |[InputLanguages Download History End]
+            
+[000620] 
+            |[InputLanguages Toggle History End]
+            |[InputLanguages Download History Start]
+            |
+[000621] 
+            |[InputLanguages Toggle History Start]
+            |
+[000633] 
+ call GlideException#logRootCauses(String) for more detail
+[000637] 
+ setupWizard language info    : 
+[000653] 
+IsGestureMode : 
+[000655] 
+IsPhysicalKeyboardConnected : 
+[000660] 
+IsUniversalSwitchOn : 
+[000678] 
+[Language Sync History Start]
+
+[000687] 
+[Space Typo Pair Start]
+[000695] 
+defaultInputMethod: 
+[000698] 
+enabledInputMethods: 
+[000708] 
+isEnableCtrlSpace : 
+[000711] 
+isKeyboardButtonOnNavigationBarOn: 
+[000712] 
+isNavBarGestureBackOnKeyboard : 
+[000715] 
+isSemEasyModeSwitchOn: 
+[000717] 
+isShowButtonToHideKeyboardOn: 
+[000723] 
+mKeyboardType           
+[000898]  , galaxyLocaleCode : 
+[000915]  - mInitialTouchX = 
+[000936]  / language : 
+[000973]  Error in converting language keypad statistics json into map
+[000974]  Error in converting language keypad statistics map into json
+[000975]  Error in creating language statistics JSON object
+[000976]  Error in creating language statistics object from JSON object
+[001046]  as neither fragment has set a Transition. In order to run a SharedElementTransition, you must also set either an enter or exit transition on a fragment involved in the transaction. The sharedElementTransition will run after the back gesture has been committed.
+[001061]  auto replace languages       : 
+[001062]  auto space languages         : 
+[001063]  auto spell check languages   : 
+[001073]  bilingual languages          : 
+[001074]  bilingual languages (cover)  : 
+[001079]  boardConfig.keyboardBodyVisibility:
+[001218]  editorFieldType:
+[001310]  honeyKeyboardInputType = 
+[001327]  in onInterceptTouchEvent
+[001329]  in onTouchEvent
+[001340]  is Omron supported language
+[001341]  is SwiftKey supported language
+[001342]  is XT9 supported language
+[001352]  is downloaded language
+[001391]  is not supported language
+[001399]  is preloaded language
+[001406]  isCursorPosWrong: 
+[001424]  language.compare.json  : 
+[001425]  language.json          : 
+[001427]  lastTouchPoint: 
+[001440]  mAvailableLanguageIdList : 
+[001446]  mCursorPosY=
+[001449]  mDownloadedLanguageIdList : 
+[001461]  mPreLoadedLanguageIdList : 
+[001466]  mSessionBackSpaceKeyCount 
+[001471]  mSupportedLanguageList : 
+[001486]  moaSwipeCustomAngleConverted : 
+[001529]  not found. Did any MotionEvents get skipped?
+[001568]  prediction languages         : 
+[001569]  prediction languages (cover) : 
+[001639]  selectionEnd: 
+[001678]  swipeDir=
+[001679]  switches
+[001743]  touch Edittext
+[001896] $EnumSwitchMapping$0
+[001897] $EnumSwitchMapping$1
+[001898] $EnumSwitchMapping$2
+[001899] $SwitchMap$android$graphics$Bitmap$Config
+[001900] $SwitchMap$com$arcsoft$libobjectcapture$ArcObjectCaptureJNI$VER_CODE
+[001901] $SwitchMap$com$google$android$material$carousel$CarouselStrategy$StrategyType
+[001902] $SwitchMap$com$google$android$material$color$utilities$QuantizerWu$Direction
+[001903] $SwitchMap$com$google$android$material$slider$BaseSlider$FullCornerDirection
+[001904] $SwitchMap$com$google$android$setupcompat$internal$SetupCompatServiceProvider$State
+[001905] $SwitchMap$com$google$android$setupdesign$util$ItemStyler$FocusIndicatorShape
+[001906] $SwitchMap$com$google$api$client$json$JsonToken
+[001907] $SwitchMap$com$google$api$pathtemplate$PathTemplate$SegmentKind
+[001908] $SwitchMap$com$google$gson$stream$JsonToken
+[001956] $onTouchListener
+[002058] &language=
+[002165] ()Landroid/view/GestureDetector;
+[002342] (?:(?:(?:[a-zA-Z0-9[ -퟿豈-﷏ﷰ-￯������-������������-������������-������������-������������-������������-������������-������������-������������-������������-������������-������������-������������-������������-������&&[^ [ - ]   　]]](?:[a-zA-Z0-9[ -퟿豈-﷏ﷰ-￯������-������������-������������-������������-������������-������������-������������-������������-������������-������������-������������-������������-������������-������������-������&&[^ [ - ]   　]]_\-]{0,61}[a-zA-Z0-9[ -퟿豈-﷏ﷰ-￯������-������������-������������-������������-������������-������������-������������-������������-������������-������������-������������-������������-������������-������������-������&&[^ [ - ]   　]]]){0,1}\.)+(?:(?:(?:aaa|aarp|abb|abbott|abbvie|abc|able|abogado|abudhabi|academy|accenture|accountant|accountants|aco|actor|ads|adult|aeg|aero|aetna|afl|africa|agakhan|agency|aig|airbus|airforce|airtel|akdn|alibaba|alipay|allfinanz|allstate|ally|alsace|alstom|amazon|americanexpress|americanfamily|amex|amfam|amica|amsterdam|analytics|android|anquan|anz|aol|apartments|app|apple|aquarelle|arab|aramco|archi|army|arpa|art|arte|asda|asia|associates|athleta|attorney|auction|audi|audible|audio|auspost|author|auto|autos|avianca|aws|axa|azure|a[cdefgilmoqrstuwxz])|(?:baby|baidu|banamex|bananarepublic|band|bank|bar|barcelona|barclaycard|barclays|barefoot|bargains|baseball|basketball|bauhaus|bayern|bbc|bbt|bbva|bcg|bcn|beats|beauty|beer|bentley|berlin|best|bestbuy|bet|bharti|bible|bid|bike|bing|bingo|bio|biz|black|blackfriday|blockbuster|blog|bloomberg|blue|bms|bmw|bnpparibas|boats|boehringer|bofa|bom|bond|boo|book|booking|bosch|bostik|boston|bot|boutique|box|bradesco|bridgestone|broadway|broker|brother|brussels|build|builders|business|buy|buzz|bzh|b[abdefghijmnorstvwyz])|(?:cab|cafe|cal|call|calvinklein|cam|camera|camp|canon|capetown|capital|capitalone|car|caravan|cards|care|career|careers|cars|casa|case|cash|casino|cat|catering|catholic|cba|cbn|cbre|cbs|center|ceo|cern|cfa|cfd|chanel|channel|charity|chase|chat|cheap|chintai|christmas|chrome|church|cipriani|circle|cisco|citadel|citi|citic|city|cityeats|claims|cleaning|click|clinic|clinique|clothing|cloud|club|clubmed|coach|codes|coffee|college|cologne|com|comcast|commbank|community|company|compare|computer|comsec|condos|construction|consulting|contact|contractors|cooking|cool|coop|corsica|country|coupon|coupons|courses|cpa|credit|creditcard|creditunion|cricket|crown|crs|cruise|cruises|cuisinella|cymru|cyou|c[acdfghiklmnoruvwxyz])|(?:dabur|dad|dance|data|date|dating|datsun|day|dclk|dds|deal|dealer|deals|degree|delivery|dell|deloitte|delta|democrat|dental|dentist|desi|design|dev|dhl|diamonds|diet|digital|direct|directory|discount|discover|dish|diy|dnp|docs|doctor|dog|domains|dot|download|drive|dtv|dubai|dunlop|dupont|durban|dvag|dvr|d[ejkmoz])|(?:earth|eat|eco|edeka|edu|education|email|emerck|energy|engineer|engineering|enterprises|epson|equipment|ericsson|erni|esq|estate|etisalat|eurovision|eus|events|exchange|expert|exposed|express|extraspace|e[cegrstu])|(?:fage|fail|fairwinds|faith|family|fan|fans|farm|farmers|fashion|fast|fedex|feedback|ferrari|ferrero|fidelity|fido|film|final|finance|financial|fire|firestone|firmdale|fish|fishing|fit|fitness|flickr|flights|flir|florist|flowers|fly|foo|food|football|ford|forex|forsale|forum|foundation|fox|free|fresenius|frl|frogans|frontdoor|frontier|ftr|fujitsu|fun|fund|furniture|futbol|fyi|f[ijkmor])|(?:gal|gallery|gallo|gallup|game|games|gap|garden|gay|gbiz|gdn|gea|gent|genting|george|ggee|gift|gifts|gives|giving|glass|gle|global|globo|gmail|gmbh|gmo|gmx|godaddy|gold|goldpoint|golf|goo|goodyear|goog|google|gop|got|gov|grainger|graphics|gratis|green|gripe|grocery|group|guardian|gucci|guge|guide|guitars|guru|g[abdefghilmnpqrstuwy])|(?:hair|hamburg|hangout|haus|hbo|hdfc|hdfcbank|health|healthcare|help|helsinki|here|hermes|hiphop|hisamitsu|hitachi|hiv|hkt|hockey|holdings|holiday|homedepot|homegoods|homes|homesense|honda|horse|hospital|host|hosting|hot|hotels|hotmail|house|how|hsbc|hughes|hyatt|hyundai|h[kmnrtu])|(?:ibm|icbc|ice|icu|ieee|ifm|ikano|imamat|imdb|immo|immobilien|inc|industries|infiniti|info|ing|ink|institute|insurance|insure|int|international|intuit|investments|ipiranga|irish|ismaili|ist|istanbul|itau|itv|i[delmnoqrst])|(?:jaguar|java|jcb|jeep|jetzt|jewelry|jio|jll|jmp|jnj|jobs|joburg|jot|joy|jpmorgan|jprs|juegos|juniper|j[emop])|(?:kaufen|kddi|kerryhotels|kerrylogistics|kerryproperties|kfh|kia|kids|kim|kinder|kindle|kitchen|kiwi|koeln|komatsu|kosher|kpmg|kpn|krd|kred|kuokgroup|kyoto|k[eghimnprwyz])|(?:lacaixa|lamborghini|lamer|lancaster|land|landrover|lanxess|lasalle|lat|latino|latrobe|law|lawyer|lds|lease|leclerc|lefrak|legal|lego|lexus|lgbt|lidl|life|lifeinsurance|lifestyle|lighting|like|lilly|limited|limo|lincoln|link|lipsy|live|living|llc|llp|loan|loans|locker|locus|lol|london|lotte|lotto|love|lpl|lplfinancial|ltd|ltda|lundbeck|luxe|luxury|l[abcikrstuvy])|(?:madrid|maif|maison|makeup|man|management|mango|map|market|marketing|markets|marriott|marshalls|mattel|mba|mckinsey|med|media|meet|melbourne|meme|memorial|men|menu|merckmsd|miami|microsoft|mil|mini|mint|mit|mitsubishi|mlb|mls|mma|mobi|mobile|moda|moe|moi|mom|monash|money|monster|mormon|mortgage|moscow|moto|motorcycles|mov|movie|msd|mtn|mtr|museum|music|m[acdeghklmnopqrstuvwxyz])|(?:nab|nagoya|name|natura|navy|nba|nec|net|netbank|netflix|network|neustar|new|news|next|nextdirect|nexus|nfl|ngo|nhk|nico|nike|nikon|ninja|nissan|nissay|nokia|norton|now|nowruz|nowtv|nra|nrw|ntt|nyc|n[acefgilopruz])|(?:obi|observer|office|okinawa|olayan|olayangroup|oldnavy|ollo|omega|one|ong|onl|online|ooo|open|oracle|orange|org|organic|origins|osaka|otsuka|ott|ovh|om)|(?:page|panasonic|paris|pars|partners|parts|party|pay|pccw|pet|pfizer|pharmacy|phd|philips|phone|photo|photography|photos|physio|pics|pictet|pictures|pid|pin|ping|pink|pioneer|pizza|place|play|playstation|plumbing|plus|pnc|pohl|poker|politie|porn|post|pramerica|praxi|press|prime|pro|prod|productions|prof|progressive|promo|properties|property|protection|pru|prudential|pub|pwc|p[aefghklmnrstwy])|(?:qpon|quebec|quest|qa)|(?:racing|radio|read|realestate|realtor|realty|recipes|red|redstone|redumbrella|rehab|reise|reisen|reit|reliance|ren|rent|rentals|repair|report|republican|rest|restaurant|review|reviews|rexroth|rich|richardli|ricoh|ril|rio|rip|rocher|rocks|rodeo|rogers|room|rsvp|rugby|ruhr|run|rwe|ryukyu|r[eosuw])|(?:saarland|safe|safety|sakura|sale|salon|samsclub|samsung|sandvik|sandvikcoromant|sanofi|sap|sarl|sas|save|saxo|sbi|sbs|sca|scb|schaeffler|schmidt|scholarships|school|schule|schwarz|science|scot|search|seat|secure|security|seek|select|sener|services|seven|sew|sex|sexy|sfr|shangrila|sharp|shaw|shell|shia|shiksha|shoes|shop|shopping|shouji|show|showtime|silk|sina|singles|site|ski|skin|sky|skype|sling|smart|smile|sncf|soccer|social|softbank|software|sohu|solar|solutions|song|sony|soy|spa|space|sport|spot|srl|stada|staples|star|statebank|statefarm|stc|stcgroup|stockholm|storage|store|stream|studio|study|style|sucks|supplies|supply|support|surf|surgery|suzuki|swatch|swiss|sydney|systems|s[abcdeghijklmnorstuvxyz])|(?:tab|taipei|talk|taobao|target|tatamotors|tatar|tattoo|tax|taxi|tci|tdk|team|tech|technology|tel|temasek|tennis|teva|thd|theater|theatre|tiaa|tickets|tienda|tips|tires|tirol|tjmaxx|tjx|tkmaxx|tmall|today|tokyo|tools|top|toray|toshiba|total|tours|town|toyota|toys|trade|trading|training|travel|travelers|travelersinsurance|trust|trv|tube|tui|tunes|tushu|tvs|t[cdfghjklmnortvwz])|(?:ubank|ubs|unicom|university|uno|uol|ups|u[agksyz])|(?:vacations|vana|vanguard|vegas|ventures|verisign|versicherung|vet|viajes|video|vig|viking|villas|vin|vip|virgin|visa|vision|viva|vivo|vlaanderen|vodka|volkswagen|volvo|vote|voting|voto|voyage|v[aceginu])|(?:wales|walmart|walter|wang|wanggou|watch|watches|weather|weatherchannel|webcam|weber|website|wed|wedding|weibo|weir|whoswho|wien|wiki|williamhill|win|windows|wine|winners|wme|wolterskluwer|woodside|work|works|world|wow|wtc|wtf|w[fs])|(?:ελ|ευ|бг|бел|дети|ею|католик|ком|мкд|мон|москва|онлайн|орг|рус|рф|сайт|срб|укр|қаз|հայ|ישראל|קום|ابوظبي|اتصالات|ارامكو|الاردن|البحرين|الجزائر|السعودية|العليان|المغرب|امارات|ایران|بارت|بازار|بيتك|بھارت|تونس|سودان|سورية|شبكة|عراق|عرب|عمان|فلسطين|قطر|كاثوليك|كوم|مصر|مليسيا|موريتانيا|موقع|همراه|پاکستان|ڀارت|कॉम|नेट|भारत|भारतम्|भारोत|संगठन|বাংলা|ভারত|ভাৰত|ਭਾਰਤ|ભારત|ଭାରତ|இந்தியா|இலங்கை|சிங்கப்பூர்|భారత్|ಭಾರತ|ഭാരതം|ලංකා|คอม|ไทย|ລາວ|გე|みんな|アマゾン|クラウド|グーグル|コム|ストア|セール|ファッション|ポイント|世界|中信|中国|中國|中文网|亚马逊|企业|佛山|信息|健康|八卦|公司|公益|台湾|台灣|商城|商店|商标|嘉里|嘉里大酒店|在线|大拿|天主教|娱乐|家電|广东|微博|慈善|我爱你|手机|招聘|政务|政府|新加坡|新闻|时尚|書籍|机构|淡马锡|游戏|澳門|点看|移动|组织机构|网址|网店|网站|网络|联通|谷歌|购物|通販|集团|電訊盈科|飞利浦|食品|餐厅|香格里拉|香港|닷넷|닷컴|삼성|한국|xbox|xerox|xfinity|xihuan|xin|xn\-\-11b4c3d|xn\-\-1ck2e1b|xn\-\-1qqw23a|xn\-\-2scrj9c|xn\-\-30rr7y|xn\-\-3bst00m|xn\-\-3ds443g|xn\-\-3e0b707e|xn\-\-3hcrj9c|xn\-\-3pxu8k|xn\-\-42c2d9a|xn\-\-45br5cyl|xn\-\-45brj9c|xn\-\-45q11c|xn\-\-4dbrk0ce|xn\-\-4gbrim|xn\-\-54b7fta0cc|xn\-\-55qw42g|xn\-\-55qx5d|xn\-\-5su34j936bgsg|xn\-\-5tzm5g|xn\-\-6frz82g|xn\-\-6qq986b3xl|xn\-\-80adxhks|xn\-\-80ao21a|xn\-\-80aqecdr1a|xn\-\-80asehdb|xn\-\-80aswg|xn\-\-8y0a063a|xn\-\-90a3ac|xn\-\-90ae|xn\-\-90ais|xn\-\-9dbq2a|xn\-\-9et52u|xn\-\-9krt00a|xn\-\-b4w605ferd|xn\-\-bck1b9a5dre4c|xn\-\-c1avg|xn\-\-c2br7g|xn\-\-cck2b3b|xn\-\-cckwcxetd|xn\-\-cg4bki|xn\-\-clchc0ea0b2g2a9gcd|xn\-\-czr694b|xn\-\-czrs0t|xn\-\-czru2d|xn\-\-d1acj3b|xn\-\-d1alf|xn\-\-e1a4c|xn\-\-eckvdtc9d|xn\-\-efvy88h|xn\-\-fct429k|xn\-\-fhbei|xn\-\-fiq228c5hs|xn\-\-fiq64b|xn\-\-fiqs8s|xn\-\-fiqz9s|xn\-\-fjq720a|xn\-\-flw351e|xn\-\-fpcrj9c3d|xn\-\-fzc2c9e2c|xn\-\-fzys8d69uvgm|xn\-\-g2xx48c|xn\-\-gckr3f0f|xn\-\-gecrj9c|xn\-\-gk3at1e|xn\-\-h2breg3eve|xn\-\-h2brj9c|xn\-\-h2brj9c8c|xn\-\-hxt814e|xn\-\-i1b6b1a6a2e|xn\-\-imr513n|xn\-\-io0a7i|xn\-\-j1aef|xn\-\-j1amh|xn\-\-j6w193g|xn\-\-jlq480n2rg|xn\-\-jvr189m|xn\-\-kcrx77d1x4a|xn\-\-kprw13d|xn\-\-kpry57d|xn\-\-kput3i|xn\-\-l1acc|xn\-\-lgbbat1ad8j|xn\-\-mgb9awbf|xn\-\-mgba3a3ejt|xn\-\-mgba3a4f16a|xn\-\-mgba7c0bbn0a|xn\-\-mgbaakc7dvf|xn\-\-mgbaam7a8h|xn\-\-mgbab2bd|xn\-\-mgbah1a3hjkrd|xn\-\-mgbai9azgqp6j|xn\-\-mgbayh7gpa|xn\-\-mgbbh1a|xn\-\-mgbbh1a71e|xn\-\-mgbc0a9azcg|xn\-\-mgbca7dzdo|xn\-\-mgbcpq6gpa1a|xn\-\-mgberp4a5d4ar|xn\-\-mgbgu82a|xn\-\-mgbi4ecexp|xn\-\-mgbpl2fh|xn\-\-mgbt3dhd|xn\-\-mgbtx2b|xn\-\-mgbx4cd0ab|xn\-\-mix891f|xn\-\-mk1bu44c|xn\-\-mxtq1m|xn\-\-ngbc5azd|xn\-\-ngbe9e0a|xn\-\-ngbrx|xn\-\-node|xn\-\-nqv7f|xn\-\-nqv7fs00ema|xn\-\-nyqy26a|xn\-\-o3cw4h|xn\-\-ogbpf8fl|xn\-\-otu796d|xn\-\-p1acf|xn\-\-p1ai|xn\-\-pgbs0dh|xn\-\-pssy2u|xn\-\-q7ce6a|xn\-\-q9jyb4c|xn\-\-qcka1pmc|xn\-\-qxa6a|xn\-\-qxam|xn\-\-rhqv96g|xn\-\-rovu88b|xn\-\-rvc1e0am3e|xn\-\-s9brj9c|xn\-\-ses554g|xn\-\-t60b56a|xn\-\-tckwe|xn\-\-tiq49xqyj|xn\-\-unup4y|xn\-\-vermgensberater\-ctb|xn\-\-vermgensberatung\-pwb|xn\-\-vhquv|xn\-\-vuq861b|xn\-\-w4r85el8fhu5dnra|xn\-\-w4rs40l|xn\-\-wgbh1c|xn\-\-wgbl6a|xn\-\-xhq521b|xn\-\-xkc2al3hye2a|xn\-\-xkc2dl3a5ee0h|xn\-\-y9a3aq|xn\-\-yfro4i67o|xn\-\-ygbi2ammx|xn\-\-zfr164b|xxx|xyz)|(?:yachts|yahoo|yamaxun|yandex|yodobashi|yoga|yokohama|you|youtube|yun|y[et])|(?:zappos|zara|zero|zip|zone|zuerich|z[amw]))|xn\-\-[\w\-]{0,58}\w))|
+[002346] (?i).*com.samsung.accessibility.universalswitch.UniversalSwitchService.*
+[002347] (?i).*com.samsung.accessibility/com.samsung.accessibility.universalswitch.UniversalSwitchService.*
+[002446] (IZLjava/lang/String;Ljava/lang/String;[Ljava/lang/String;I)Lcom/samsung/android/honeyboard/base/languagepack/selectedlanguage/SelectedLanguage;
+[002452] (JJJI)Lcom/samsung/android/honeyboard/base/inputlogger/SwipeEventRecorder$SegmentData;
+[002522] (Landroid/graphics/drawable/Drawable;)Landroidx/picker/model/AppData$ListSwitchAppDataBuilder;
+[002531] (Landroid/view/KeyEvent;)Z
+[002532] (Landroid/view/MotionEvent;)I
+[002533] (Landroid/view/MotionEvent;)V
+[002534] (Landroid/view/MotionEvent;)Z
+[002535] (Landroid/view/MotionEvent;Landroid/graphics/Rect;)V
+[002536] (Landroid/view/MotionEvent;Lv1/f;)Z
+[002561] (Landroid/view/View;Landroid/view/MotionEvent;)V
+[002562] (Landroid/view/View;Landroid/view/MotionEvent;)Z
+[002563] (Landroid/view/View;Landroid/view/View$OnTouchListener;Landroid/view/View$OnClickListener;Lv1/a;)V
+[002586] (Landroid/view/ViewGroup;Landroid/view/MotionEvent;)Ljava/lang/Boolean;
+[002721] (Lcom/samsung/android/app/sdk/deepsky/contract/suggestion/view/widget/SwipeDismissFrameLayout;)V
+[002739] (Lcom/samsung/android/honeyboard/base/languagepack/language/Language;)V
+[002783] (Ljava/lang/String;)Landroidx/picker/model/AppData$ListSwitchAppDataBuilder;
+[002793] (Ljava/lang/String;Lcom/samsung/android/honeyboard/backupandrestore/settings/agent/lo/model/LoDeviceInfo;Lcom/samsung/android/honeyboard/backupandrestore/settings/agent/lo/model/LoBackupData;)Lcom/samsung/android/honeyboard/backupandrestore/settings/agent/lo/model/LoKeyboardBackupData;
+[002799] (Ljava/lang/String;Ljava/lang/String;FF)Lcom/samsung/android/honeyboard/base/inputlogger/TouchEventHistoryLogger$PresenterTouchInfo;
+[002806] (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Lcom/samsung/android/honeyboard/backupandrestore/settings/agent/lo/model/LoLocaleJSItem;
+[002818] (Ljava/lang/String;Z)Landroidx/picker/model/AppData$ListSwitchAppDataBuilder;
+[002828] (Ljava/util/List;)Lcom/samsung/android/honeyboard/backupandrestore/settings/agent/lo/model/LoLocaleJSItems;
+[002946] (Z)Landroidx/picker/model/AppData$ListSwitchAppDataBuilder;
+[003057] ) keyboardShow (
+[003203] ,  retLanguage : 
+[003226] , Lo langAndLocale Code : 
+[003264] , aiCustomEditor = 
+[003276] , appleKeyboards=
+[003277] , appleLanguages=
+[003292] , backspaceCount=
+[003299] , bilingualLanguages=
+[003351] , charCountOnKeyboardDown=
+[003370] , composerFormat=
+[003371] , composerLength=
+[003372] , composerToneType=
+[003403] , currentLanguageOrder=
+[003444] , dictationLanguagesEnabled=
+[003447] , disableBackspaceKey = 
+[003456] , disablePhysicalKeyboardToolbar = 
+[003458] , disableSpaceKey = 
+[003470] , downloadedLanguageList=
+[003479] , editorOpt
+[003486] , enableSwipeDismiss=
+[003487] , enableSwipeToType=
+[003488] , enableWritingComposer = 
+[003557] , framePointer=
+[003566] , galaxyLanguage : 
+[003567] , galaxyLanguage engName : 
+[003568] , galaxyLocale=
+[003569] , galaxyLocaleCode: 
+[003571] , gestureEnabled=
+[003572] , gesturesEnabled=
+[003616] , identifiedLanguages=
+[003676] , isKeyboardNotShown: 
+[003677] , isKeyboardTypedMouse=
+[003732] , keyboardAllowPaddle=
+[003733] , keyboardAudio=
+[003734] , keyboardAutoCorrection=
+[003735] , keyboardAutocapitalization=
+[003736] , keyboardBias=
+[003737] , keyboardCapsLock=
+[003738] , keyboardCheckSpelling=
+[003739] , keyboardContinuousPathDeleteWholeWord=
+[003740] , keyboardContinuousPathEnabled=
+[003741] , keyboardHeight = 
+[003742] , keyboardHideCount=
+[003743] , keyboardPeriodShortcut=
+[003744] , keyboardPrediction=
+[003745] , keyboardType=
+[003746] , keyboardUnDock=
+[003753] , langAndLocaleCode=
+[003756] , language=
+[003757] , languageCode : 
+[003758] , languageCode=
+[003759] , languageDisplayName=
+[003760] , languageFromContent : 
+[003761] , languageTranslateFrom=
+[003789] , loLocaleCountryCode=
+[003791] , locale=
+[003792] , localeCode=
+[003871] , moaSwipeCustomAngle : 
+[003872] , moaSwipeLength : 
+[003873] , modeSwitchCount=
+[003999] , receivedLanguages=
+[004010] , rejectionByBackspace=
+[004066] , selectedLanguageId=
+[004067] , selectedLanguageList=
+[004109] , sourceLanguage=
+[004145] , swipeEdge=
+[004146] , swipeInputCount=
+[004170] , textLocale=
+[004206] , touchY=
+[004313] ,langLocaleCode code : 
+[004347] --- Reset inputmethod subtype because it's not defined.
+[004348] --- Save default inputmethod settings. :
+[004349] --- Save disabled system inputmethod settings. :
+[004350] --- Save enabled inputmethod settings. :
+[004416] . Consider setting Downsampler#ALLOW_HARDWARE_CONFIG to false in your RequestOptions and/or in GlideBuilder.setDefaultRequestOptions
+[004432] . Please switch to AndroidX Transition 1.5.0 or higher to enable seeking.
+[004523] /DumpKeyboardSizeData.json
+[004530] /HBD/BackspaceDeleteSpeed
+[004535] /HBD/CHN/UseInsertWordWithSpaceKeyForGlobal
+[004540] /HBD/ChatAssist/KeyboardSuggestedReplies
+[004542] /HBD/CoverLanguage
+[004546] /HBD/EndlessBnR/CoverLanguageFlipGen2
+[004547] /HBD/EndlessBnR/CoverLanguageFoldGen2
+[004548] /HBD/EndlessBnR/KeyboardSizeFold
+[004549] /HBD/EndlessBnR/KeyboardSizeFoldH
+[004550] /HBD/EndlessBnR/KeyboardSizePhone
+[004551] /HBD/EndlessBnR/KeyboardSizeTablet
+[004552] /HBD/EndlessBnR/LanguageFlipGen2
+[004553] /HBD/EndlessBnR/LanguageFoldGen2
+[004557] /HBD/FloatingKeyboardFirstUse
+[004561] /HBD/HoneyVoice/OfflineLanguagePack
+[004566] /HBD/Hwr/Switch
+[004578] /HBD/KeyboardDexDesktopSize
+[004579] /HBD/KeyboardFontSize
+[004580] /HBD/KeyboardSize
+[004581] /HBD/KeyboardSwipe
+[004582] /HBD/KeyboardSwipeNone
+[004583] /HBD/KeyboardTransparency
+[004584] /HBD/Language
+[004588] /HBD/SpeakKeyboardInputAloud
+[004591] /HBD/Theme/CoverKeyboardTheme
+[004592] /HBD/Theme/KeyboardTheme
+[004596] /HBD/TouchAndHoldDelay
+[004597] /HBD/TouchAndHoldSpaceBar
+[004598] /HBD/Translation/OnDeviceSelectedSourceLanguage
+[004599] /HBD/Translation/ServerSelectedSourceLanguage
+[004602] /HBD/UseArrowKeyForJapaneseKeyboard
+[004605] /HBD/UseCMKeyForGeneralKeyboard
+[004608] /HBD/UseCursorControl
+[004609] /HBD/UseDomainKeyForEmailKeyboard
+[004610] /HBD/UseDotKeyForEmailKeyboard
+[004611] /HBD/UseJapaneseAutoCursorMovement
+[004614] /HBD/UseLanguageSwitchingUsingKey
+[004615] /HBD/UseLanguageSwitchingUsingSpaceBar
+[004619] /HBD/UsePeriodKeyForGeneralKeyboard
+[004625] /HBD/UsePunctuationForJapaneseKeyboard
+[004628] /HBD/UseSwipeToType
+[004646] /clipboard_backup_keyboard.zip
+[004647] /clipboard_backup_keyboard_temp.zip
+[004648] /com.sec.android.inputmethod.setting.backup_preferences.xml
+[004663] /language.json
+[005057] 3X4 keyboard
+[005291] > getDownloadedLanguageList - onFailure : 
+[005292] > getTranslationSupportLanguageList - onFailure : 
+[005464] ACTION_CLEAR_SELECTION
+[005526] ACTION_SET_SELECTION
+[005540] ACTION_SUPPORT_DO_NOT_ADJUST_CHANGE_ABC_CONCEPT_ABOUT_SPACE_KEY
+[005545] ACTION_SUPPORT_PARENTHESIS_CURSOR
+[005640] ANIM_SELECTION_VIEW_ALPHA_HIDE_DURATION
+[005641] ANIM_SELECTION_VIEW_ALPHA_SHOW_DURATION
+[005662] APPLE_KEYBOARDS
+[005663] APPLE_LANGUAGES
+[005664] APPLE_LOCALE
+[005726] AUTO_CORRECTION_REJECTION_BACKSPACE
+[005853] ActiveSelection
+[005907] AiPromptSelectionError
+[005927] AllAppsSwitch
+[005930] AllSwitch
+[006037] AppBarLayout_android_keyboardNavigationCluster
+[006039] AppBarLayout_android_touchscreenBlocksFocus
+[006109] AppCompatTextView_textLocale
+[006184] AppCompatTheme_colorSwitchThumbNormal
+[006241] AppCompatTheme_seslSwitchBarStyle
+[006245] AppCompatTheme_switchDividerColor
+[006246] AppCompatTheme_switchStyle
+[006257] AppCompatTheme_themeSwitchStyle
+[006279] AppLocalesStorageHelper
+[006286] AppleKeyboards
+[006287] AppleLanguages
+[006288] AppleLocale
+[006314] ArchTypeJoinGesture
+[006374] Autofill Keyboard Input
+[006392] BACKSPACE
+[006540] Back key down: suppress next editor tool type keyboard show
+[006546] BackEventCompat{touchX=
+[006551] Backspace
+[006552] Backspace count
+[006558] Backup: TouchData
+[006713] Base_TextAppearance_AppCompat_Widget_SeslSwitchBar
+[006714] Base_TextAppearance_AppCompat_Widget_Switch
+[006741] Base_ThemeOverlay_Material3_TextInputEditText
+[006850] Base_V29_Widget_AppCompat_CompoundButton_Switch
+[006859] Base_V29_Widget_AppCompat_Light_CompoundButton_Switch
+[006915] Base_Widget_AppCompat_CompoundButton_Switch
+[006944] Base_Widget_AppCompat_Light_CompoundButton_Switch
+[006955] Base_Widget_AppCompat_Light_SeslSwitchBar
+[006989] Base_Widget_AppCompat_SeslSwitchBar
+[007008] Base_Widget_Material3_CompoundButton_Switch
+[007037] Base_Widget_MaterialComponents_TextInputEditText
+[007038] Base_Widget_MaterialComponents_TextInputLayout
+[007040] Base_Widget_Theme_AppCompat_CompoundButton_Switch
+[007041] Base_Widget_Theme_AppCompat_Light_CompoundButton_Switch
+[007156] BottomSheetBehavior_Layout_gestureInsetBottomIgnored
+[007178] BuiltInPhysicalKeyboard(deviceHasBuiltIn12Key=
+[007229] CACHEDIC cursorLocation : 
+[007236] CACHEDIC onUpdateSelection isFinishComposing: 
+[007237] CACHEDIC onUpdateSelection selectionStart: 
+[007271] CANDIDATE_SUPPORT_SHOW_TOOLBAR_WHEN_CHANGE_LANGUAGE
+[007385] COLLAPSED_TITLE_GRAVITY_AVAILABLE_SPACE
+[007386] COLLAPSED_TITLE_GRAVITY_ENTIRE_SPACE
+[007417] COMMAND_TYPE_LANGUAGE_LIST
+[007426] COMPOSER
+[007487] CONFIG_FOOTER_BUTTON_MIDDLE_SPACE
+[007493] CONFIG_FOOTER_BUTTON_STACK_MIDDLE_SPACE
+[007635] COVER_DISPLAY_SETTINGS_KEYBOARD_THEMES_P_OS_INDEX
+[007657] CSC_SUPPORT_RELOAD_CUSTOMER_LANGUAGES
+[007666] CURRENT_KEYBOARD_THEME_STYLE_VALUE
+[007675] CUSTOM_EDITOR_FOCUS_CHANGED
+[007722] CameraSettingsIFDPointer
+[007753] Can't start DW, can not skip showKeyboard
+[007755] Can't start DW, keyboard bar popup is shown on Dex
+[007756] Can't start DW, need to show keyboard
+[007782] Cannot add twice the same OnSwitchChangeListener
+[007825] Cannot find localeCode  : 
+[007827] Cannot find matched language : 
+[007958] Carousel_carousel_touchUpMode
+[007959] Carousel_carousel_touchUp_dampeningFactor
+[007960] Carousel_carousel_touchUp_velocityThreshold
+[007965] Caught showInputMethod Exception
+[007980] ChangeToStandardKeyboard
+[007989] CharMatcher.whitespace()
+[008010] Checking for metadata for AppLocalesMetadataHolderService : Service not found
+[008026] ChipGroup_selectionRequired
+[008028] ChipGroup_singleSelection
+[008029] ChipTouchHelper
+[008050] Chip_chipMinTouchTargetSize
+[008062] Chip_ensureMinTouchTargetSize
+[008063] Chip_hideMotionSpec
+[008069] Chip_showMotionSpec
+[008097] ClickBackspace
+[008099] ClickSpace
+[008121] CodedOutputStream was writing to a flat byte array and ran out of space.
+[008122] CodedOutputStream was writing to a flat byte array and ran out of space.: 
+[008173] ColorSpace
+[008198] Composer
+[008335] ConstraintLayout_Layout_layout_editor_absoluteX
+[008336] ConstraintLayout_Layout_layout_editor_absoluteY
+[008440] ConstraintOverride_layout_editor_absoluteX
+[008441] ConstraintOverride_layout_editor_absoluteY
+[008451] ConstraintOverride_motionProgress
+[008452] ConstraintOverride_motionStagger
+[008453] ConstraintOverride_motionTarget
+[008454] ConstraintOverride_pathMotionArc
+[008457] ConstraintOverride_quantizeMotionInterpolator
+[008458] ConstraintOverride_quantizeMotionPhase
+[008459] ConstraintOverride_quantizeMotionSteps
+[008568] ConstraintSet_layout_editor_absoluteX
+[008569] ConstraintSet_layout_editor_absoluteY
+[008579] ConstraintSet_motionProgress
+[008580] ConstraintSet_motionStagger
+[008581] ConstraintSet_pathMotionArc
+[008584] ConstraintSet_quantizeMotionSteps
+[008688] Constraint_layout_editor_absoluteX
+[008689] Constraint_layout_editor_absoluteY
+[008699] Constraint_motionProgress
+[008700] Constraint_motionStagger
+[008701] Constraint_pathMotionArc
+[008704] Constraint_quantizeMotionInterpolator
+[008705] Constraint_quantizeMotionPhase
+[008706] Constraint_quantizeMotionSteps
+[008743] ContextInfoSessionData(keyboardShowCount=
+[008827] CrossProfile setLanguages 
+[008828] CrossProfile setLanguages(local) 
+[008850] CurrentLanguageChanged
+[008853] Cursor is Empty
+[008955] DEBUG_TOUCH
+[009142] DICTATION_LANGUAGES_ENABLED
+[009162] DISMISS_EVENT_SWIPE
+[009188] DONT_INCLUDE_WHITESPACE
+[009199] DO_NOT_CHANGE_MODE_AFTER_INPUT_APOSTROPHE_BY_SELECTED_LANGUAGE
+[009203] DRAG_TOUCH_SLOP_SQUARE
+[009238] DW : ToolbarTouchableWindow
+[009341] DefaultLocale
+[009362] DevSeRawData(language=
+[009372] Dex keyboard size cannot doRestore from skbd
+[009379] DictationLanguagesEnabled
+[009397] Discovered AppGlideModule from annotation: com.samsung.android.honeyboard.base.glide.HoneyBoardGlideModule
+[009441] DownloadableTranslationLanguageData(isDownloadableLanguageExist=
+[009496] EDGE_SWIPE_THRESHOLD
+[009605] ENGINE_SUPPORT_JPN_DOWNLOADABLE_LANGUAGE_LIST
+[009606] ENGINE_SUPPORT_LANGUAGEMODEL_FROM_ASSET
+[009607] ENGINE_SUPPORT_LANGUAGEMODEL_ONLY_CURRENT_LANGUAGE
+[009625] ENGINE_SUPPORT_XT9_ALL_LANGUAGE_TO_SWIFTKEY
+[009765] EditText added is not a TextInputEditText. Please switch to using that class instead.
+[009768] EditorActionListener
+[009769] EditorRectChanged
+[009831] EraseInsertedSpace
+[009841] Error galaxyLocaleCode null or blank
+[009868] Error processing scroll; pointer index for id 
+[009931] ExifIFDPointer
+[010007] ExtendedFloatingActionButton_extendMotionSpec
+[010009] ExtendedFloatingActionButton_hideMotionSpec
+[010010] ExtendedFloatingActionButton_showMotionSpec
+[010011] ExtendedFloatingActionButton_shrinkMotionSpec
+[010279] Fail to find SamsungKeyboard pkg : 
+[010280] Fail to find language.  LangCode : 
+[010281] Fail to get Lo locale js items
+[010296] Fail_Not supported language
+[010325] Failed to call mCallback.onSwiped()!, call seslOnSwipeFailed, flag = 0x
+[010352] Failed to find GeneratedAppGlideModule. You should include an annotationProcessor compile dependency on com.github.bumptech.glide:compiler in your application and a @GlideModule annotated AppGlideModule implementation or LibraryGlideModules will be silently ignored
+[010361] Failed to find languageData from supportLanguageList : 
+[010416] Failed to parse glide modules
+[010507] Finished loading Glide modules
+[010550] Floating keyboard
+[010557] Floating split keyboard
+[010568] FloatingActionButton_ensureMinTouchTargetSize
+[010571] FloatingActionButton_hideMotionSpec
+[010578] FloatingActionButton_showMotionSpec
+[010716] Found matched galaxy language : 
+[010751] Full handwriting keyboard
+[010786] GESTURES_ENABLED
+[010846] GPSInfoIFDPointer
+[010888] GalaxyLocale
+[010894] GeneratedAppGlideModuleImpl is implemented incorrectly. If you've manually implemented this class, remove your implementation. The Annotation processor will generate a correct implementation.
+[010899] Gesture is not supported
+[010900] GestureMode : 
+[010901] GesturesEnabled
+[010916] Glide
+[010917] Glide has been called recursively, this is probably an internal library error!
+[010918] Glide registry
+[010919] Glide request origin trace
+[010920] Glide treats LayoutParams.WRAP_CONTENT as a request for an image the size of this device's screen dimensions. If you want to load the original image and are ok with the corresponding memory cost and OOMs (depending on the input size), use .override(Target.SIZE_ORIGINAL). Otherwise, use LayoutParams.MATCH_PARENT, set layout_width and layout_height to fixed dimension, or use .override() with fixed dimensions.
+[010921] Glide treats LayoutParams.WRAP_CONTENT as a request for an image the size of this device's screen dimensions. If you want to load the original image and are ok with the corresponding memory cost and OOMs (depending on the input size), use override(Target.SIZE_ORIGINAL). Otherwise, use LayoutParams.MATCH_PARENT, set layout_width and layout_height to fixed dimension, or use .override() with fixed dimensions.
+[010922] GlideExecutor
+[010923] GlideModule
+[010924] GlideRequest
+[010995] HANDWRITING_SUPPORT_ALL_AVAILABLE_LANGUAGE
+[011005] HARDWARE_KEYBOARD_SUPPORT_JAPANESE_KEY_MAP_JAPAN
+[011006] HARDWARE_KEYBOARD_SUPPORT_RIGHT_ALT_KEY_FOR_LANG_KEY
+[011111] Half handwriting keyboard
+[011144] High contrast keyboard
+[011156] HoneyBoard language list is null
+[011167] HoneyVoice is supported Locale:
+[011168] HoneyVoice locale: 
+[011170] HoneyVoiceLocale(languageId=
+[011171] HoneyVoiceLocaleInfo(locale=
+[011172] HoneyVoiceLocaleReceiver
+[011368] INCLUDE_WHITESPACE
+[011416] INPUTMODULE_SUPPORT_AUTO_CURSOR_MOVEMENT
+[011417] INPUTMODULE_SUPPORT_AUTO_SPACE
+[011425] INPUTMODULE_SUPPORT_FULLWIDTH_SPACE_INPUT
+[011429] INPUTMODULE_SUPPORT_INPUT_BACKSPACE_IN_MULTITAP_FOLDER
+[011444] INPUTMODULE_SUPPORT_STOP_TIMER_USING_CURSOR
+[011459] INPUTMOUDLE_SUPPORT_SWIFTKEY_LANGUAGE_LIST_BETA
+[011464] INPUTRANGE_SUPPORT_SECONDARY_LANGUAGE
+[011467] INPUTTYPE_HANDWRITING_SET_ON_EACH_LANGUAGE
+[011501] INPUT_MODE_KEYBOARD
+[011518] INS_LANG_SPECIFIC_SPACE
+[011520] INS_SPACE
+[011554] INVALID_POINTER
+[011555] INVALID_POINTER_ID
+[011560] INVALID_TOUCH_POINT
+[011602] IS_KEYBOARD_FOCUS_ENHANCEMENT_ENABLED_METHOD
+[011632] ITypeDeleteGesture
+[011633] ITypeJoinOrSplitGesture
+[011712] ImageProcessingIFDPointer
+[011788] InputLanguagesHistory
+[011789] InputMethodSubtype is found as local:
+[011790] InputMethodSubtype is not defined for local:
+[011791] InputMethodSubtype is not found as local:
+[011792] InputMethodSubtype is set as local:
+[011807] Insert_Remove_Space_VL
+[011808] Insert_Space_A
+[011809] Insert_Space_V
+[011843] InteroperabilityIFDPointer
+[011888] Invalid enabledLanguagesList count
+[011918] Invalid motion easing type: 
+[011919] Invalid motion path type: 
+[011926] Invalid pointer index: ignoring.
+[011927] Invalid pointerId=
+[011951] InvalidGesture
+[011963] IsGestureMode
+[011966] IsNavBarBackGestureOnKeyboard newValue :
+[011967] IsPhysicalKeyboardConnected
+[011973] IsUniversalSwitchOn
+[011991] ItemTouchHelper
+[012113] KBDVIEW_SUPPORT_FLOATING_GESTURE_ON_LANDSCAPE
+[012114] KBDVIEW_SUPPORT_FLOATING_PHONEPAD_TABLET_USE_PHONE_KEYBOARD
+[012115] KBDVIEW_SUPPORT_FLOATING_TO_NORMAL_GESTURE_ON_LANDSCAPE
+[012117] KBDVIEW_SUPPORT_GESTURE_UNDO_REDO
+[012124] KBDVIEW_SUPPORT_KEYBOARD_SIZE_SMART_TIP
+[012126] KBDVIEW_SUPPORT_LANGUAGE_CHANGE_KEY_ICON_CHINESE_NAMED
+[012127] KBDVIEW_SUPPORT_LANGUAGE_CHANGE_KEY_ICON_KOREAN_NAMED
+[012128] KBDVIEW_SUPPORT_LANGUAGE_KEY_ON_JAPANESE_TO_GLOBAL_POSITION
+[012135] KBDVIEW_SUPPORT_LEFT_LANGUAGE_KEY_ON_CHINESE
+[012136] KBDVIEW_SUPPORT_LEGACY_SYMBOL_KEYBOARD_USE_INTEGRATION
+[012140] KBDVIEW_SUPPORT_PHONENUMBER_KEYBOARD_CHINA
+[012141] KBDVIEW_SUPPORT_PHONENUMBER_KEYBOARD_HKTW
+[012145] KBDVIEW_SUPPORT_SECONDARY_SYMBOL_KEYBOARD_INTEGRATION
+[012147] KBDVIEW_SUPPORT_SPACE_KEY_BOTH_KEY_LABEL_AND_ICON_SHOWN_IN_QWERTY
+[012148] KBDVIEW_SUPPORT_SPACE_KEY_ICON_HIDE
+[012149] KBDVIEW_SUPPORT_SPACE_SHORT_LANGUAGE_NAME
+[012150] KBDVIEW_SUPPORT_SYMBOL_KEYBOARD_CHN
+[012151] KBDVIEW_SUPPORT_SYMBOL_KEYBOARD_HKTW
+[012152] KBDVIEW_SUPPORT_SYMBOL_KEYBOARD_IND
+[012153] KBDVIEW_SUPPORT_SYMBOL_KEYBOARD_INTEGRATION
+[012154] KBDVIEW_SUPPORT_SYMBOL_KEYBOARD_KOREA
+[012155] KBDVIEW_SUPPORT_SYMBOL_KEYBOARD_USA
+[012170] KEYBOARD
+[012171] KEYBOARD_ALLOW_PADDLE
+[012172] KEYBOARD_AUDIO
+[012173] KEYBOARD_AUTO_CAPS
+[012174] KEYBOARD_AUTO_CORRRECT
+[012175] KEYBOARD_BIAS
+[012176] KEYBOARD_CAPS_LOCK
+[012177] KEYBOARD_CHECK_SPELLING
+[012178] KEYBOARD_CONTINUOUS_PATH_DELETE_WHOLE_WORD
+[012179] KEYBOARD_CONTINUOUS_PATH_ENABLED
+[012180] KEYBOARD_PERIOD_SHORTCUT
+[012181] KEYBOARD_POSITION
+[012182] KEYBOARD_PREDICTION
+[012183] KEYBOARD_SIZE
+[012184] KEYBOARD_THEME
+[012185] KEYBOARD_UNDOCK
+[012190] KEYSCAFE_SUPPORT_CUSTOM_TOUCH_MANAGER
+[012265] KEY_FOOTER_BUTTON_MIDDLE_SPACE
+[012271] KEY_FOOTER_BUTTON_STACK_MIDDLE_SPACE
+[012383] KEY_SPACE_SMART_TIPS_FUNCTION_EXECUTE_COMPLETE
+[012394] KEY_TOOLBAR_KEYBOARD_SIZE_SMART_TIPS_FIRST_LAUNCH_TIME
+[012395] KEY_TOOLBAR_KEYBOARD_SIZE_SMART_TIPS_KEYBOARD_SIZE_CHANGED
+[012396] KEY_TOOLBAR_KEYBOARD_SIZE_SMART_TIPS_KEYBOARD_VIEW_TYPE_CHANGED
+[012397] KEY_TOOLBAR_KEYBOARD_SIZE_SMART_TIPS_SHOWN_COUNT
+[012444] KeyAttribute_motionProgress
+[012445] KeyAttribute_motionTarget
+[012464] KeyCycle_motionProgress
+[012465] KeyCycle_motionTarget
+[012474] KeyEvent may not be null
+[012486] KeyPosition_motionTarget
+[012487] KeyPosition_pathMotionArc
+[012511] KeyTimeCycle_motionProgress
+[012512] KeyTimeCycle_motionTarget
+[012522] KeyTrigger_motionTarget
+[012523] KeyTrigger_motion_postLayoutCollision
+[012524] KeyTrigger_motion_triggerOnCollision
+[012534] Keyboard
+[012535] Keyboard panel change
+[012536] KeyboardAllowPaddle
+[012537] KeyboardAudio
+[012538] KeyboardAutocapitalization
+[012539] KeyboardAutocorrection
+[012540] KeyboardBasicsLogger
+[012541] KeyboardBias
+[012542] KeyboardBuilder: 
+[012543] KeyboardCapsLock
+[012544] KeyboardCheckSpelling
+[012545] KeyboardContinuousPathDeleteWholeWord
+[012546] KeyboardContinuousPathEnabled
+[012547] KeyboardEnvironmentData(isPortrait=
+[012548] KeyboardFloating
+[012549] KeyboardInputStatisticsSessionData(envData=
+[012550] KeyboardLayoutPlacer
+[012551] KeyboardMinimizedChanged
+[012552] KeyboardPeriodShortcut
+[012553] KeyboardPrediction
+[012554] KeyboardSplit
+[012555] KeyboardThemeContext{
+[012556] KeyboardUndock
+[012557] KeyboardVisibilityChanged
+[012616] LANGUAGE_BULGARIAN_QWERTY
+[012617] LANGUAGE_CHINESE_PHONEPAD
+[012618] LANGUAGE_CHINESE_QWERTY
+[012619] LANGUAGE_INPUT_8FLICK
+[012620] LANGUAGE_INPUT_ALBANIAN
+[012621] LANGUAGE_INPUT_AMHARIC_QWERTY
+[012622] LANGUAGE_INPUT_AMHARIC_SMART_QWERTY
+[012623] LANGUAGE_INPUT_APOSTROPHE_QWERTY
+[012624] LANGUAGE_INPUT_ARABIC2_QWERTY
+[012625] LANGUAGE_INPUT_ARABIC2_WESTERN_QWERTY
+[012626] LANGUAGE_INPUT_ARABIC_URDU_QWERTY
+[012627] LANGUAGE_INPUT_AZERBAIJANI
+[012628] LANGUAGE_INPUT_AZERTY
+[012629] LANGUAGE_INPUT_AZERTY_ACCENT
+[012630] LANGUAGE_INPUT_AZERTY_APOSTROPHE
+[012631] LANGUAGE_INPUT_CANGJIE
+[012632] LANGUAGE_INPUT_CANTONESE_QWERTY
+[012633] LANGUAGE_INPUT_CATALAN
+[012634] LANGUAGE_INPUT_CHCHEN_QWERTY
+[012635] LANGUAGE_INPUT_CHUNJIIN_PLUS
+[012636] LANGUAGE_INPUT_COPTIC_QWERTY
+[012637] LANGUAGE_INPUT_DANISH
+[012638] LANGUAGE_INPUT_DHIVEHI_QWERTY
+[012639] LANGUAGE_INPUT_DUNGAN_QWERTY
+[012640] LANGUAGE_INPUT_ESTONIAN
+[012641] LANGUAGE_INPUT_FAROESE
+[012642] LANGUAGE_INPUT_FARSI_EXPANDED
+[012643] LANGUAGE_INPUT_FINNISH
+[012644] LANGUAGE_INPUT_FLICK
+[012645] LANGUAGE_INPUT_FRENCH_QWERTY_APOSTROPHE
+[012646] LANGUAGE_INPUT_FULL_HANDWRITING
+[012647] LANGUAGE_INPUT_FULL_KEYBOARD
+[012648] LANGUAGE_INPUT_GEORGIAN_WIN_QWERTY
+[012649] LANGUAGE_INPUT_GERMAN_QWERTZ
+[012650] LANGUAGE_INPUT_GILAKI_QWERTY
+[012651] LANGUAGE_INPUT_HALF_HANDWRITING
+[012652] LANGUAGE_INPUT_HAWAIIAN_QWERTY
+[012653] LANGUAGE_INPUT_HOKKIEN_QWERTY
+[012654] LANGUAGE_INPUT_ICELANDIC
+[012655] LANGUAGE_INPUT_INDIAN_HORIZONTAL
+[012656] LANGUAGE_INPUT_INDIAN_VERTICAL
+[012657] LANGUAGE_INPUT_JAWI_QWERTY
+[012658] LANGUAGE_INPUT_KABARDIAN_QWERTY
+[012659] LANGUAGE_INPUT_KHOISAN_QWERTY
+[012660] LANGUAGE_INPUT_LATVIAN
+[012661] LANGUAGE_INPUT_LISU_QWERTY
+[012662] LANGUAGE_INPUT_LITUANIAN
+[012663] LANGUAGE_INPUT_LONTARA_QWERTY
+[012664] LANGUAGE_INPUT_MOAKEY
+[012665] LANGUAGE_INPUT_MOAKEY_TWOHAND
+[012666] LANGUAGE_INPUT_MONGOLIAN_TRADITIONAL_QWERTY
+[012667] LANGUAGE_INPUT_NARATGUL
+[012668] LANGUAGE_INPUT_NARATGUL_CENTER
+[012669] LANGUAGE_INPUT_NKO_QWERTY
+[012670] LANGUAGE_INPUT_NORWEGIAN
+[012671] LANGUAGE_INPUT_NUBIAN_QWERTY
+[012672] LANGUAGE_INPUT_OSSETIAN_QWERTY
+[012673] LANGUAGE_INPUT_PASHTO_QWERTY
+[012674] LANGUAGE_INPUT_PHONEPAD
+[012675] LANGUAGE_INPUT_PHONEPAD_ZHUYIN
+[012676] LANGUAGE_INPUT_PHONETIC
+[012677] LANGUAGE_INPUT_QWERTY
+[012678] LANGUAGE_INPUT_QWERTY_ACCENT
+[012679] LANGUAGE_INPUT_QWERTY_ARABIC_NEW_TYPE_A
+[012680] LANGUAGE_INPUT_QWERTY_ARABIC_NEW_TYPE_B
+[012681] LANGUAGE_INPUT_QWERTY_NORTHERN_SAMI_TYPE_A
+[012682] LANGUAGE_INPUT_QWERTY_NORTHERN_SAMI_TYPE_B
+[012683] LANGUAGE_INPUT_QWERTY_THAI_NEW_TYPE_A
+[012684] LANGUAGE_INPUT_QWERTY_THAI_NEW_TYPE_B
+[012685] LANGUAGE_INPUT_QWERTY_ZHUYIN
+[012686] LANGUAGE_INPUT_QWERTZ
+[012687] LANGUAGE_INPUT_QWERTZ_ACCENT
+[012688] LANGUAGE_INPUT_QWERTZ_APOSTROPHE
+[012689] LANGUAGE_INPUT_RAPA_NUI
+[012690] LANGUAGE_INPUT_RUSSIAN_COMPACT_QWERTY
+[012691] LANGUAGE_INPUT_RUSYN_QWERTY
+[012692] LANGUAGE_INPUT_SERBIAN_QWERTY
+[012693] LANGUAGE_INPUT_SGAW_KAREN_QWERTY
+[012694] LANGUAGE_INPUT_SHAN_QWERTY
+[012695] LANGUAGE_INPUT_SHUANGPIN
+[012696] LANGUAGE_INPUT_SHUGHNANI_QWERTY
+[012697] LANGUAGE_INPUT_SINDHI_QWERTY
+[012698] LANGUAGE_INPUT_SINGLE_VOWEL
+[012699] LANGUAGE_INPUT_SLOVENIAN_QWERTZ
+[012700] LANGUAGE_INPUT_SORANI_QWERTY
+[012701] LANGUAGE_INPUT_SPANISH_QWERTY
+[012702] LANGUAGE_INPUT_STROKE
+[012703] LANGUAGE_INPUT_SWEDISH
+[012704] LANGUAGE_INPUT_SYRIAC_QWERTY
+[012705] LANGUAGE_INPUT_TAI_NUA_QWERTY
+[012706] LANGUAGE_INPUT_TATAR_QWERTY
+[012707] LANGUAGE_INPUT_TIBETAN_SMART_QWERTY
+[012708] LANGUAGE_INPUT_TIFINAGH_QWERTY
+[012709] LANGUAGE_INPUT_TURKISH_QWERTY
+[012710] LANGUAGE_INPUT_TURKISH_QWERTY_F
+[012711] LANGUAGE_INPUT_TURKMEN_QWERTY
+[012712] LANGUAGE_INPUT_TWI_QWERTY
+[012713] LANGUAGE_INPUT_VEGA
+[012714] LANGUAGE_INPUT_VEGA_CENTER
+[012715] LANGUAGE_INPUT_VENETIAN_QWERTY
+[012716] LANGUAGE_INPUT_VIETNAMESE_EASE
+[012717] LANGUAGE_INPUT_VIETNAMESE_TELEX
+[012718] LANGUAGE_INPUT_VIETNAMESE_VNI
+[012719] LANGUAGE_INPUT_VORO_QWERTY
+[012720] LANGUAGE_INPUT_WAKHI_QWERTY
+[012721] LANGUAGE_INPUT_WUBI
+[012722] LANGUAGE_INPUT_YAKUT_QWERTY
+[012723] LANGUAGE_INPUT_YIDDISH_QWERTY
+[012724] LANGUAGE_KOREAN
+[012725] LANGUAGE_KOREAN_PHONEPAD
+[012726] LANGUAGE_NO_FLICK_PHONEPAD
+[012727] LANGUAGE_SUPPORT_CHANGE_ENGLISH_ANY_TO_ENGLISH_IN
+[012728] LANGUAGE_SUPPORT_LAST_USED_LANGUAGE_IN_URL_FIELD
+[012729] LANGUAGE_SUPPORT_TO_RESTORE_COVER_LANGUAGE
+[012730] LANGUAGE_SUPPORT_TO_RESTORE_COVER_LANGUAGE_TO_MAIN_LANGUAGE
+[012731] LANGUAGE_VALUE_SWITCH_USING_KEY
+[012732] LANGUAGE_VALUE_SWITCH_USING_SPACE_BAR
+[013123] LOCALE
+[013124] LOCALE_FACTORY
+[013451] Landroid/app/LocaleManager;
+[013506] Landroid/content/SharedPreferences$Editor;
+[013539] Landroid/database/Cursor;
+[013543] Landroid/database/MatrixCursor;
+[013547] Landroid/database/sqlite/SQLiteCursor;
+[013548] Landroid/database/sqlite/SQLiteCursorDriver;
+[013549] Landroid/database/sqlite/SQLiteDatabase$CursorFactory;
+[013556] Landroid/gesture/Gesture;
+[013557] Landroid/gesture/GestureLibrary;
+[013558] Landroid/gesture/GesturePoint;
+[013559] Landroid/gesture/GestureStroke;
+[013560] Landroid/gesture/Prediction;
+[013577] Landroid/graphics/ColorSpace$Named;
+[013578] Landroid/graphics/ColorSpace;
+[013687] Landroid/inputmethodservice/ExtractEditText;
+[013688] Landroid/inputmethodservice/InputMethodService;
+[013704] Landroid/media/MediaMetadataEditor;
+[013712] Landroid/media/RemoteControlClient$MetadataEditor;
+[013762] Landroid/os/LocaleList;
+[014004] Landroid/text/Selection;
+[014051] Landroid/transition/ArcMotion;
+[014053] Landroid/transition/PathMotion;
+[014054] Landroid/transition/PatternPathMotion;
+[014109] Landroid/view/GestureDetector$OnGestureListener;
+[014110] Landroid/view/GestureDetector$SimpleOnGestureListener;
+[014111] Landroid/view/GestureDetector;
+[014115] Landroid/view/InputDevice$MotionRange;
+[014120] Landroid/view/KeyEvent$Callback;
+[014121] Landroid/view/KeyEvent$DispatcherState;
+[014122] Landroid/view/KeyEvent;
+[014123] Landroid/view/KeyboardShortcutGroup;
+[014132] Landroid/view/MotionEvent;
+[014133] Landroid/view/PointerIcon;
+[014145] Landroid/view/TouchDelegate;
+[014162] Landroid/view/View$OnTouchListener;
+[014203] Landroid/view/accessibility/AccessibilityManager$TouchExplorationStateChangeListener;
+[014209] Landroid/view/accessibility/AccessibilityNodeInfo$TouchDelegateInfo;
+[014230] Landroid/view/inputmethod/BaseInputConnection;
+[014231] Landroid/view/inputmethod/CompletionInfo;
+[014232] Landroid/view/inputmethod/CorrectionInfo;
+[014233] Landroid/view/inputmethod/CursorAnchorInfo;
+[014234] Landroid/view/inputmethod/DeleteGesture$Builder;
+[014235] Landroid/view/inputmethod/DeleteGesture;
+[014236] Landroid/view/inputmethod/EditorBoundsInfo;
+[014237] Landroid/view/inputmethod/EditorInfo;
+[014238] Landroid/view/inputmethod/ExtractedText;
+[014239] Landroid/view/inputmethod/ExtractedTextRequest;
+[014240] Landroid/view/inputmethod/HandwritingGesture;
+[014241] Landroid/view/inputmethod/InlineSuggestionsResponse;
+[014242] Landroid/view/inputmethod/InputBinding;
+[014243] Landroid/view/inputmethod/InputConnection;
+[014244] Landroid/view/inputmethod/InputConnectionWrapper;
+[014245] Landroid/view/inputmethod/InputContentInfo;
+[014246] Landroid/view/inputmethod/InputMethodInfo;
+[014247] Landroid/view/inputmethod/InputMethodManager;
+[014248] Landroid/view/inputmethod/InputMethodSubtype;
+[014249] Landroid/view/inputmethod/InsertGesture$Builder;
+[014250] Landroid/view/inputmethod/InsertGesture;
+[014251] Landroid/view/inputmethod/JoinOrSplitGesture$Builder;
+[014252] Landroid/view/inputmethod/JoinOrSplitGesture;
+[014253] Landroid/view/inputmethod/RemoveSpaceGesture$Builder;
+[014254] Landroid/view/inputmethod/RemoveSpaceGesture;
+[014255] Landroid/view/inputmethod/SelectGesture$Builder;
+[014256] Landroid/view/inputmethod/SelectGesture;
+[014257] Landroid/view/inputmethod/SurroundingText;
+[014264] Landroid/widget/AbsListView$SelectionBoundsAdjuster;
+[014289] Landroid/widget/CursorAdapter;
+[014336] Landroid/widget/SimpleCursorAdapter;
+[014337] Landroid/widget/Space;
+[014340] Landroid/widget/Switch;
+[014346] Landroid/widget/TextView$OnEditorActionListener;
+[014407] Landroidx/appcompat/app/AppLocalesMetadataHolderService;
+[014478] Landroidx/appcompat/widget/SeslSwitchBar$SavedState;
+[014479] Landroidx/appcompat/widget/SeslSwitchBar;
+[014480] Landroidx/appcompat/widget/SeslToggleSwitch;
+[014481] Landroidx/appcompat/widget/SwitchCompat;
+[015024] Landroidx/databinding/adapters/SeekBarBindingAdapter$OnStartTrackingTouch;
+[015025] Landroidx/databinding/adapters/SeekBarBindingAdapter$OnStopTrackingTouch;
+[015028] Landroidx/databinding/adapters/SwitchBindingAdapter;
+[015029] Landroidx/databinding/adapters/SwitchCompatBindingAdapter;
+[015316] Landroidx/picker/features/composable/widget/ComposableAllAppSwitchViewHolder;
+[015318] Landroidx/picker/features/composable/widget/ComposableSwitchViewHolder;
+[015347] Landroidx/picker/model/AppData$ListSwitchAppDataBuilder;
+[015483] Landroidx/preference/SeslSwitchPreferenceScreen;
+[015484] Landroidx/preference/SwitchPreference;
+[015485] Landroidx/preference/SwitchPreferenceCompat;
+[015787] Language
+[015788] Language dependent
+[015789] Language detect input length(%d) exceed MAX_VAL(%d), so cut to %d
+[015790] Language setting for handwriting recognition failed : 
+[015791] Language setting for handwriting recognition succeeded
+[015792] Language with Auto replace
+[015793] Language with Auto spacing
+[015794] Language with Auto spell check
+[015795] Language with Predictive text
+[015796] Language without Auto replace
+[015797] Language without Auto spacing
+[015798] Language without Auto spell check
+[015799] Language without Predictive text
+[015800] LanguageBnR
+[015801] LanguageCode
+[015802] LanguageDetector.detect(). ContentResolver result is null!!
+[015803] LanguageInfo
+[015804] LanguageKeypadStatistics array.length have some problem, 
+[015805] LanguageList does not contain : 
+[015806] LanguageLoader
+[015807] LanguageSet
+[015844] LastUsedStatus(translateLanguage=
+[015932] Layout_layout_editor_absoluteX
+[015933] Layout_layout_editor_absoluteY
+[016285] Lcom/bumptech/glide/GeneratedAppGlideModule;
+[016286] Lcom/bumptech/glide/GeneratedAppGlideModuleImpl;
+[016287] Lcom/bumptech/glide/a;
+[016288] Lcom/bumptech/glide/b;
+[016289] Lcom/bumptech/glide/c;
+[016290] Lcom/bumptech/glide/d;
+[016291] Lcom/bumptech/glide/e;
+[016292] Lcom/bumptech/glide/f;
+[016293] Lcom/bumptech/glide/g;
+[016294] Lcom/bumptech/glide/h;
+[016295] Lcom/bumptech/glide/i;
+[016296] Lcom/bumptech/glide/j;
+[016297] Lcom/bumptech/glide/k;
+[016298] Lcom/bumptech/glide/l;
+[016299] Lcom/bumptech/glide/load/ImageHeaderParser$ImageType;
+[016300] Lcom/bumptech/glide/load/data/ParcelFileDescriptorRewinder$InternalRewinder;
+[016301] Lcom/bumptech/glide/load/data/a;
+[016302] Lcom/bumptech/glide/load/data/b;
+[016303] Lcom/bumptech/glide/load/data/c;
+[016304] Lcom/bumptech/glide/load/data/d;
+[016305] Lcom/bumptech/glide/load/data/e;
+[016306] Lcom/bumptech/glide/load/data/f;
+[016307] Lcom/bumptech/glide/load/data/g;
+[016308] Lcom/bumptech/glide/load/data/h;
+[016309] Lcom/bumptech/glide/load/data/i;
+[016310] Lcom/bumptech/glide/load/data/j;
+[016311] Lcom/bumptech/glide/load/data/k;
+[016312] Lcom/bumptech/glide/load/data/l;
+[016313] Lcom/bumptech/glide/load/data/m;
+[016314] Lcom/bumptech/glide/m;
+[016315] Lcom/bumptech/glide/manager/LifecycleLifecycle;
+[016316] Lcom/bumptech/glide/manager/RequestManagerFragment;
+[016317] Lcom/bumptech/glide/manager/SupportRequestManagerFragment;
+[016318] Lcom/bumptech/glide/manager/a;
+[016319] Lcom/bumptech/glide/manager/b;
+[016320] Lcom/bumptech/glide/manager/c;
+[016321] Lcom/bumptech/glide/manager/d;
+[016322] Lcom/bumptech/glide/manager/e;
+[016323] Lcom/bumptech/glide/manager/f;
+[016324] Lcom/bumptech/glide/manager/g;
+[016325] Lcom/bumptech/glide/manager/h;
+[016326] Lcom/bumptech/glide/manager/i;
+[016327] Lcom/bumptech/glide/manager/j;
+[016328] Lcom/bumptech/glide/manager/k;
+[016329] Lcom/bumptech/glide/manager/l;
+[016330] Lcom/bumptech/glide/manager/m;
+[016331] Lcom/bumptech/glide/manager/n;
+[016332] Lcom/bumptech/glide/manager/o;
+[016333] Lcom/bumptech/glide/manager/p;
+[016334] Lcom/bumptech/glide/n;
+[016335] Lcom/bumptech/glide/o;
+[016336] Lcom/bumptech/glide/p;
+[016512] Lcom/google/android/material/animation/MotionSpec;
+[016513] Lcom/google/android/material/animation/MotionTiming;
+[016635] Lcom/google/android/material/behavior/SwipeDismissBehavior$1;
+[016636] Lcom/google/android/material/behavior/SwipeDismissBehavior$2;
+[016637] Lcom/google/android/material/behavior/SwipeDismissBehavior$OnDismissListener;
+[016638] Lcom/google/android/material/behavior/SwipeDismissBehavior$SettleRunnable;
+[016639] Lcom/google/android/material/behavior/SwipeDismissBehavior;
+[016640] Lcom/google/android/material/behavior/SwipeDismissBehavior<
+[016767] Lcom/google/android/material/chip/Chip$ChipTouchHelper;
+[016975] Lcom/google/android/material/datepicker/MaterialTextInputPicker$1;
+[016976] Lcom/google/android/material/datepicker/MaterialTextInputPicker;
+[016977] Lcom/google/android/material/datepicker/MaterialTextInputPicker<
+[016984] Lcom/google/android/material/datepicker/OnSelectionChangedListener;
+[016985] Lcom/google/android/material/datepicker/OnSelectionChangedListener<
+[017005] Lcom/google/android/material/dialog/InsetDialogOnTouchListener;
+[017023] Lcom/google/android/material/floatingactionbutton/BaseMotionStrategy$1;
+[017024] Lcom/google/android/material/floatingactionbutton/BaseMotionStrategy;
+[017061] Lcom/google/android/material/floatingactionbutton/MotionStrategy;
+[017146] Lcom/google/android/material/internal/TouchObserverFrameLayout;
+[017176] Lcom/google/android/material/materialswitch/MaterialSwitch;
+[017178] Lcom/google/android/material/motion/MaterialBackAnimationHelper;
+[017179] Lcom/google/android/material/motion/MaterialBackAnimationHelper<
+[017180] Lcom/google/android/material/motion/MaterialBackHandler;
+[017181] Lcom/google/android/material/motion/MaterialBackOrchestrator$1;
+[017182] Lcom/google/android/material/motion/MaterialBackOrchestrator$Api33BackCallbackDelegate;
+[017183] Lcom/google/android/material/motion/MaterialBackOrchestrator$Api34BackCallbackDelegate$1;
+[017184] Lcom/google/android/material/motion/MaterialBackOrchestrator$Api34BackCallbackDelegate;
+[017185] Lcom/google/android/material/motion/MaterialBackOrchestrator$BackCallbackDelegate;
+[017186] Lcom/google/android/material/motion/MaterialBackOrchestrator;
+[017187] Lcom/google/android/material/motion/MaterialBottomContainerBackHelper$1;
+[017188] Lcom/google/android/material/motion/MaterialBottomContainerBackHelper;
+[017189] Lcom/google/android/material/motion/MaterialMainContainerBackHelper$1;
+[017190] Lcom/google/android/material/motion/MaterialMainContainerBackHelper;
+[017191] Lcom/google/android/material/motion/MaterialSideContainerBackHelper$1;
+[017192] Lcom/google/android/material/motion/MaterialSideContainerBackHelper;
+[017193] Lcom/google/android/material/motion/MotionUtils;
+[017194] Lcom/google/android/material/motion/a;
+[017256] Lcom/google/android/material/oneui/animation/FloatingBottomViHelper$switchView$1$2;
+[017454] Lcom/google/android/material/oneui/floatingdock/FloatingPaneView$minimizeGestureDetector$1;
+[017473] Lcom/google/android/material/oneui/floatingdock/controller/DragHandlerController$gestureDetector$2$1;
+[017721] Lcom/google/android/material/slider/BaseOnSliderTouchListener;
+[017722] Lcom/google/android/material/slider/BaseOnSliderTouchListener<
+[017737] Lcom/google/android/material/slider/RangeSlider$OnSliderTouchListener;
+[017742] Lcom/google/android/material/slider/Slider$OnSliderTouchListener;
+[017804] Lcom/google/android/material/switchmaterial/SwitchMaterial;
+[017864] Lcom/google/android/material/textfield/TextInputEditText;
+[017865] Lcom/google/android/material/textfield/TextInputLayout$1;
+[017866] Lcom/google/android/material/textfield/TextInputLayout$2;
+[017867] Lcom/google/android/material/textfield/TextInputLayout$3;
+[017868] Lcom/google/android/material/textfield/TextInputLayout$4;
+[017869] Lcom/google/android/material/textfield/TextInputLayout$AccessibilityDelegate;
+[017870] Lcom/google/android/material/textfield/TextInputLayout$BoxBackgroundMode;
+[017871] Lcom/google/android/material/textfield/TextInputLayout$EndIconMode;
+[017872] Lcom/google/android/material/textfield/TextInputLayout$LengthCounter;
+[017873] Lcom/google/android/material/textfield/TextInputLayout$OnEditTextAttachedListener;
+[017874] Lcom/google/android/material/textfield/TextInputLayout$OnEndIconChangedListener;
+[017875] Lcom/google/android/material/textfield/TextInputLayout$SavedState$1;
+[017876] Lcom/google/android/material/textfield/TextInputLayout$SavedState;
+[017877] Lcom/google/android/material/textfield/TextInputLayout;
+[017889] Lcom/google/android/material/timepicker/ChipTextInputComboView$1;
+[017890] Lcom/google/android/material/timepicker/ChipTextInputComboView$TextFormatter;
+[017891] Lcom/google/android/material/timepicker/ChipTextInputComboView;
+[017913] Lcom/google/android/material/timepicker/TimePickerControls$ActiveSelection;
+[017917] Lcom/google/android/material/timepicker/TimePickerTextInputKeyController;
+[017918] Lcom/google/android/material/timepicker/TimePickerTextInputPresenter$1;
+[017919] Lcom/google/android/material/timepicker/TimePickerTextInputPresenter$2;
+[017920] Lcom/google/android/material/timepicker/TimePickerTextInputPresenter$3;
+[017921] Lcom/google/android/material/timepicker/TimePickerTextInputPresenter$4;
+[017922] Lcom/google/android/material/timepicker/TimePickerTextInputPresenter$5;
+[017923] Lcom/google/android/material/timepicker/TimePickerTextInputPresenter$6;
+[017924] Lcom/google/android/material/timepicker/TimePickerTextInputPresenter;
+[017930] Lcom/google/android/material/timepicker/TimePickerView$OnSelectionChange;
+[017972] Lcom/google/android/material/transition/MaterialArcMotion;
+[018023] Lcom/google/android/material/transition/platform/MaterialArcMotion;
+[018233] Lcom/google/android/setupcompat/util/KeyboardHelper;
+[018327] Lcom/google/android/setupdesign/gesture/ConsecutiveTapsGestureDetector$OnConsecutiveTapsListener;
+[018328] Lcom/google/android/setupdesign/gesture/ConsecutiveTapsGestureDetector;
+[018340] Lcom/google/android/setupdesign/items/ExpandableSwitchItem$1;
+[018341] Lcom/google/android/setupdesign/items/ExpandableSwitchItem;
+[018374] Lcom/google/android/setupdesign/items/SwitchItem$OnCheckedChangeListener;
+[018375] Lcom/google/android/setupdesign/items/SwitchItem$OnItemClickInterceptor;
+[018376] Lcom/google/android/setupdesign/items/SwitchItem;
+[018502] Lcom/google/android/setupdesign/view/TouchableMovementMethod$TouchableLinkMovementMethod;
+[018503] Lcom/google/android/setupdesign/view/TouchableMovementMethod;
+[019219] Lcom/microsoft/fluency/TouchHistory$ShiftState;
+[019220] Lcom/microsoft/fluency/TouchHistory;
+[019313] Lcom/samsung/android/app/sdk/deepsky/contract/suggestion/view/widget/SwipeDismissFrameLayout$Callback;
+[019314] Lcom/samsung/android/app/sdk/deepsky/contract/suggestion/view/widget/SwipeDismissFrameLayout$Companion;
+[019315] Lcom/samsung/android/app/sdk/deepsky/contract/suggestion/view/widget/SwipeDismissFrameLayout$MyOnDismissedListener;
+[019316] Lcom/samsung/android/app/sdk/deepsky/contract/suggestion/view/widget/SwipeDismissFrameLayout$MyOnPreSwipeListener;
+[019317] Lcom/samsung/android/app/sdk/deepsky/contract/suggestion/view/widget/SwipeDismissFrameLayout$MyOnSwipeProgressChangedListener;
+[019318] Lcom/samsung/android/app/sdk/deepsky/contract/suggestion/view/widget/SwipeDismissFrameLayout;
+[019319] Lcom/samsung/android/app/sdk/deepsky/contract/suggestion/view/widget/SwipeDismissLayout$Companion;
+[019320] Lcom/samsung/android/app/sdk/deepsky/contract/suggestion/view/widget/SwipeDismissLayout$OnDismissedListener;
+[019321] Lcom/samsung/android/app/sdk/deepsky/contract/suggestion/view/widget/SwipeDismissLayout$OnPreSwipeListener;
+[019322] Lcom/samsung/android/app/sdk/deepsky/contract/suggestion/view/widget/SwipeDismissLayout$OnSwipeProgressChangedListener;
+[019323] Lcom/samsung/android/app/sdk/deepsky/contract/suggestion/view/widget/SwipeDismissLayout;
+[019361] Lcom/samsung/android/app/sdk/deepsky/objectcapture/controller/PhotoEditorServiceManager$ClientIncomingHandler;
+[019362] Lcom/samsung/android/app/sdk/deepsky/objectcapture/controller/PhotoEditorServiceManager$Companion;
+[019363] Lcom/samsung/android/app/sdk/deepsky/objectcapture/controller/PhotoEditorServiceManager$connection$1;
+[019364] Lcom/samsung/android/app/sdk/deepsky/objectcapture/controller/PhotoEditorServiceManager;
+[019540] Lcom/samsung/android/honeyboard/backupandrestore/settings/agent/lo/model/LoKeyboardBackupData;
+[019541] Lcom/samsung/android/honeyboard/backupandrestore/settings/agent/lo/model/LoLangLocaleCode;
+[019542] Lcom/samsung/android/honeyboard/backupandrestore/settings/agent/lo/model/LoLocaleJSItem;
+[019543] Lcom/samsung/android/honeyboard/backupandrestore/settings/agent/lo/model/LoLocaleJSItems;
+[019548] Lcom/samsung/android/honeyboard/backupandrestore/smartswitch/ClipboardSmartSwitchReceiver;
+[019549] Lcom/samsung/android/honeyboard/backupandrestore/smartswitch/SmartSwitchReceiver;
+[019568] Lcom/samsung/android/honeyboard/base/broadcastreceiver/broadcastreceiverlist/DeviceLocaleChangeReceiver;
+[019575] Lcom/samsung/android/honeyboard/base/broadcastreceiver/broadcastreceiverlist/ImeSwitcherEventReceiver;
+[019579] Lcom/samsung/android/honeyboard/base/broadcastreceiver/broadcastreceiverlist/KnoxMcCustomizeKeyboardReceiver;
+[019582] Lcom/samsung/android/honeyboard/base/broadcastreceiver/broadcastreceiverlist/PogoKeyboardCoverReceiver;
+[019591] Lcom/samsung/android/honeyboard/base/common/keyboardtype/inputtype/LanguageInputType;
+[019604] Lcom/samsung/android/honeyboard/base/glide/HoneyBoardGlideModule;
+[019605] Lcom/samsung/android/honeyboard/base/inputlogger/SwipeEventRecorder$SegmentData;
+[019606] Lcom/samsung/android/honeyboard/base/inputlogger/TouchEventHistoryLogger$PresenterTouchInfo;
+[019616] Lcom/samsung/android/honeyboard/base/languagedownload/lmdownload/LanguageDownloadManager;
+[019617] Lcom/samsung/android/honeyboard/base/languagepack/language/Language;
+[019618] Lcom/samsung/android/honeyboard/base/languagepack/selectedlanguage/SelectedLanguage;
+[019619] Lcom/samsung/android/honeyboard/base/languagepack/selectedlanguage/SelectedLanguageInfo;
+[019651] Lcom/samsung/android/honeyboard/base/voice/HoneyVoiceLocale;
+[019688] Lcom/samsung/android/honeyboard/beehive/view/BackspaceFloatingButton;
+[019766] Lcom/samsung/android/honeyboard/common/aiwriter/data/WritingComposerPromptParam;
+[019785] Lcom/samsung/android/honeyboard/directwriting/toolbar/view/ToolbarBackspaceButton;
+[019802] Lcom/samsung/android/honeyboard/forms/model/type/KeyboardType;
+[019808] Lcom/samsung/android/honeyboard/hwrwidget/view/layout/HandwritingLanguageDownloadView;
+[019876] Lcom/samsung/android/honeyboard/keyboard/view/ExpressionFrameLayout;
+[019877] Lcom/samsung/android/honeyboard/keyboard/view/HeaderDragFrameLayout;
+[019878] Lcom/samsung/android/honeyboard/keyboard/view/HoneyBoardLayout;
+[019879] Lcom/samsung/android/honeyboard/keyboard/viewmodel/AbstractOneHandViewModel;
+[019880] Lcom/samsung/android/honeyboard/keyboard/viewmodel/ExpressionFrameLayoutViewModel;
+[019881] Lcom/samsung/android/honeyboard/keyboard/viewmodel/LayoutBodyViewModel;
+[019882] Lcom/samsung/android/honeyboard/keyboard/viewmodel/LayoutViewModel;
+[019906] Lcom/samsung/android/honeyboard/plugins/keyscafe/honeytea/touch/HoneyTeaTouchInfo;
+[019914] Lcom/samsung/android/honeyboard/predictionengine/core/aiwriter/scs/LanguageConfig$DomainEntity$SupportedLanguage;
+[019915] Lcom/samsung/android/honeyboard/predictionengine/core/aiwriter/scs/LanguageConfig$DomainEntity;
+[019916] Lcom/samsung/android/honeyboard/predictionengine/core/aiwriter/scs/LanguageConfig;
+[019941] Lcom/samsung/android/honeyboard/resize/view/KeyboardResizeMoveButton;
+[019945] Lcom/samsung/android/honeyboard/settings/aboutsamsungkeyboard/AboutHoneyBoardFragment;
+[019946] Lcom/samsung/android/honeyboard/settings/aboutsamsungkeyboard/AboutHoneyBoardSplitFragment;
+[019947] Lcom/samsung/android/honeyboard/settings/aboutsamsungkeyboard/CommonAboutHoneyBoardFragment;
+[019948] Lcom/samsung/android/honeyboard/settings/aboutsamsungkeyboard/OpenSourceLicensesActivity;
+[019979] Lcom/samsung/android/honeyboard/settings/databinding/EditInputLanguagesBinding;
+[019980] Lcom/samsung/android/honeyboard/settings/databinding/LanguageListReorderBinding;
+[019981] Lcom/samsung/android/honeyboard/settings/databinding/ManageInputLanguagesBinding;
+[019984] Lcom/samsung/android/honeyboard/settings/developeroptions/KeyboardDeveloperOptions;
+[019985] Lcom/samsung/android/honeyboard/settings/developeroptions/KeyboardDeveloperOptionsFragment;
+[019994] Lcom/samsung/android/honeyboard/settings/languagesandtypes/editinput/ui/EditInputLanguagesFragment;
+[019995] Lcom/samsung/android/honeyboard/settings/languagesandtypes/manageinputlanguages/search/view/SearchView;
+[019996] Lcom/samsung/android/honeyboard/settings/languagesandtypes/manageinputlanguages/ui/ManageInputLanguagesFragment;
+[019997] Lcom/samsung/android/honeyboard/settings/languagesandtypes/manageinputlanguages/ui/ManageInputLanguagesRecyclerView;
+[019998] Lcom/samsung/android/honeyboard/settings/languagesandtypes/selectinputtype/ui/AddBilingualLanguageActivity;
+[019999] Lcom/samsung/android/honeyboard/settings/languagesandtypes/selectinputtype/ui/SelectInputTypeFragment;
+[020000] Lcom/samsung/android/honeyboard/settings/languagesandtypes/ui/LanguagePreference;
+[020001] Lcom/samsung/android/honeyboard/settings/languagesandtypes/ui/LanguagesAndTypesFragment;
+[020002] Lcom/samsung/android/honeyboard/settings/languagesandtypes/ui/PhonepadInLandscapePreference;
+[020004] Lcom/samsung/android/honeyboard/settings/moakeyoptions/MoakeySwipeAngleCustomFragment;
+[020014] Lcom/samsung/android/honeyboard/settings/smarttyping/inputtest/InputTestEditorPreference;
+[020024] Lcom/samsung/android/honeyboard/settings/styleandlayout/keyboardfontsize/KeyboardFontSizeFragment;
+[020026] Lcom/samsung/android/honeyboard/settings/styleandlayout/layout/KeyboardLayoutFragment;
+[020027] Lcom/samsung/android/honeyboard/settings/styleandlayout/sizeandtransparency/KeyboardSizeAndTransparencySettingsFragment;
+[020028] Lcom/samsung/android/honeyboard/settings/swipetouchandfeedback/speakkeyboardinputaloud/SpeakKeyboardInputAloudSettingsFragment;
+[020029] Lcom/samsung/android/honeyboard/settings/swipetouchandfeedback/swipe/KeyboardSwipeSettingsFragment;
+[020030] Lcom/samsung/android/honeyboard/settings/swipetouchandfeedback/touchandhold/delay/TouchAndHoldDelayCustomSettingsFragment;
+[020031] Lcom/samsung/android/honeyboard/settings/swipetouchandfeedback/touchandhold/delay/TouchAndHoldDelayCustomView;
+[020033] Lcom/samsung/android/honeyboard/settings/touchtest/TouchEventRecordFragment;
+[020034] Lcom/samsung/android/honeyboard/settings/touchtest/TouchTypoTestActivity;
+[020065] Lcom/samsung/android/honeyboard/textboard/keyboard/container/b;
+[020066] Lcom/samsung/android/honeyboard/textboard/keyboard/container/f;
+[020067] Lcom/samsung/android/honeyboard/textboard/keyboard/view/SpaceCursorControlLayout;
+[020091] Lcom/samsung/android/moneta/basedatamodels/externalmodel/KeyboardTextData;
+[020093] Lcom/samsung/android/scs/ai/sdkcommon/asr/BTCLocaleInfo;
+[020104] Lcom/samsung/android/sdk/handwriting/HwrLanguageID$1;
+[020105] Lcom/samsung/android/sdk/handwriting/resources/HwrLanguageManager$OnUpdateListener;
+[020106] Lcom/samsung/android/sdk/handwriting/resources/HwrLanguageManager;
+[020107] Lcom/samsung/android/sdk/handwriting/resources/HwrLanguagePack$OnDownloadListener;
+[020108] Lcom/samsung/android/sdk/handwriting/resources/HwrLanguagePack;
+[020134] Lcom/samsung/android/sdk/scs/ai/language/service/LanguageServiceExecutor;
+[020135] Lcom/samsung/android/sdk/scs/ai/language/service/LlmServiceRunnable;
+[020164] Lcom/samsung/android/sivs/ai/sdkcommon/asr/BTCLocaleInfo;
+[020168] Lcom/samsung/android/sivs/ai/sdkcommon/translation/LanguageDirection;
+[020179] Lcom/samsung/android/spen/pen/engine/SpenTouchListener;
+[020189] Lcom/samsung/android/spen/pen/setting/host/HostSwitchOverlay;
+[020190] Lcom/samsung/android/spen/pen/setting/host/HostSwitchRowView;
+[020297] Lcom/samsung/android/writingtoolkit/composer/view/WritingComposerInputEditText;
+[020298] Lcom/samsung/android/writingtoolkit/composer/view/WritingComposerResultEditText;
+[020299] Lcom/samsung/android/writingtoolkit/composer/view/WritingComposerResultView;
+[020300] Lcom/samsung/android/writingtoolkit/composer/viewmodel/a;
+[020301] Lcom/samsung/android/writingtoolkit/composer/viewmodel/b;
+[020302] Lcom/samsung/android/writingtoolkit/composer/viewmodel/d;
+[020303] Lcom/samsung/android/writingtoolkit/composer/viewmodel/f;
+[020304] Lcom/samsung/android/writingtoolkit/composer/viewmodel/g;
+[020305] Lcom/samsung/android/writingtoolkit/databinding/WritingComposerInputLayoutBinding;
+[020306] Lcom/samsung/android/writingtoolkit/databinding/WritingComposerLayoutBinding;
+[020309] Lcom/samsung/android/writingtoolkit/writingassist/activity/WritingAssistComposerFragment;
+[020314] Lcom/samsung/android/writingtoolkit/writingassist/switcher/b;
+[020315] Lcom/samsung/android/writingtoolkit/writingassist/switcher/c;
+[020316] Lcom/samsung/android/writingtoolkit/writingassist/switcher/e;
+[020317] Lcom/samsung/android/writingtoolkit/writingassist/switcher/f;
+[021817] Ljava/lang/NullPointerException;
+[022040] Ljava/util/Locale$Category;
+[022041] Ljava/util/Locale;
+[022830] LlmLanguage(order=
+[023279] LoBackupData(appleLocale=
+[023283] LoKeyboardBackupData(backupVersion=
+[023284] LoLangLocaleCode(locale=
+[023285] LoLocale
+[023286] LoLocaleJSItem(loLocale=
+[023287] LoLocaleJSItems(items=
+[023293] Loaded language keypad statistics from json
+[023299] Loading Glide modules
+[023336] Locale 
+[023337] LocaleChangedReceiver: failed to handle locale change
+[023338] LocaleChangedReceiver: handled successfully, pendingCleared
+[023339] LocaleChangedReceiver: received, pendingSaved = 
+[025575] MENU_LAYOUT_USE_DEFAULT_KEYBOARD_IN_URL
+[025595] MERR_NO_DISKSPACE
+[025616] METADATA_KEY_COMPOSER
+[025720] MONOSPACE
+[025725] MOTION_EVENT_ACTION_PEN_DOWN
+[025726] MOTION_EVENT_ACTION_PEN_MOVE
+[025727] MOTION_EVENT_ACTION_PEN_UP
+[025771] MSG_RESPONSE_VIEW_MOTION_EVENT
+[025839] MaterialAlertDialogTheme_materialAlertDialogButtonSpacerVisibility
+[025893] MaterialButtonToggleGroup_selectionRequired
+[025896] MaterialButtonToggleGroup_singleSelection
+[025994] MaterialSwitch
+[025995] MaterialSwitch_thumbIcon
+[025996] MaterialSwitch_thumbIconSize
+[025997] MaterialSwitch_thumbIconTint
+[025998] MaterialSwitch_thumbIconTintMode
+[025999] MaterialSwitch_trackDecoration
+[026000] MaterialSwitch_trackDecorationTint
+[026001] MaterialSwitch_trackDecorationTintMode
+[026015] MaterialTimePicker_keyboardIcon
+[026191] Motion
+[026192] Motion easing control point value must be between 0 and 1; instead got: 
+[026193] Motion easing theme attribute must be an @interpolator resource for ?attr/motionEasing*Interpolator attributes or a string for ?attr/motionEasing* attributes.
+[026194] Motion easing theme attribute must have 4 control points if using bezier curve format; instead got: 
+[026195] Motion path theme attribute must either be an enum value or path data string
+[026196] MotionEffect
+[026197] MotionEffect_motionEffect_alpha
+[026198] MotionEffect_motionEffect_end
+[026199] MotionEffect_motionEffect_move
+[026200] MotionEffect_motionEffect_start
+[026201] MotionEffect_motionEffect_strict
+[026202] MotionEffect_motionEffect_translationX
+[026203] MotionEffect_motionEffect_translationY
+[026204] MotionEffect_motionEffect_viewTransition
+[026205] MotionEvent.ACTION_CANCEL
+[026206] MotionHelper
+[026207] MotionHelper_onHide
+[026208] MotionHelper_onShow
+[026209] MotionLabel
+[026210] MotionLabel_android_autoSizeTextType
+[026211] MotionLabel_android_fontFamily
+[026212] MotionLabel_android_gravity
+[026213] MotionLabel_android_shadowRadius
+[026214] MotionLabel_android_text
+[026215] MotionLabel_android_textColor
+[026216] MotionLabel_android_textSize
+[026217] MotionLabel_android_textStyle
+[026218] MotionLabel_android_typeface
+[026219] MotionLabel_borderRound
+[026220] MotionLabel_borderRoundPercent
+[026221] MotionLabel_scaleFromTextSize
+[026222] MotionLabel_textBackground
+[026223] MotionLabel_textBackgroundPanX
+[026224] MotionLabel_textBackgroundPanY
+[026225] MotionLabel_textBackgroundRotate
+[026226] MotionLabel_textBackgroundZoom
+[026227] MotionLabel_textOutlineColor
+[026228] MotionLabel_textOutlineThickness
+[026229] MotionLabel_textPanX
+[026230] MotionLabel_textPanY
+[026231] MotionLabel_textureBlurFactor
+[026232] MotionLabel_textureEffect
+[026233] MotionLabel_textureHeight
+[026234] MotionLabel_textureWidth
+[026235] MotionLayout
+[026236] MotionLayout_applyMotionScene
+[026237] MotionLayout_currentState
+[026238] MotionLayout_layoutDescription
+[026239] MotionLayout_motionDebug
+[026240] MotionLayout_motionProgress
+[026241] MotionLayout_showPaths
+[026242] MotionScene
+[026243] MotionScene_defaultDuration
+[026244] MotionScene_layoutDuringTransition
+[026245] MotionSpec
+[026246] MotionTelltales
+[026247] MotionTelltales_telltales_tailColor
+[026248] MotionTelltales_telltales_tailScale
+[026249] MotionTelltales_telltales_velocityMode
+[026250] Motion_Material3_Spring_Standard_Default_Effects
+[026251] Motion_Material3_Spring_Standard_Default_Spatial
+[026252] Motion_Material3_Spring_Standard_Fast_Effects
+[026253] Motion_Material3_Spring_Standard_Fast_Spatial
+[026254] Motion_Material3_Spring_Standard_Slow_Effects
+[026255] Motion_Material3_Spring_Standard_Slow_Spatial
+[026256] Motion_animateCircleAngleTo
+[026257] Motion_animateRelativeTo
+[026258] Motion_drawPath
+[026259] Motion_motionPathRotate
+[026260] Motion_motionStagger
+[026261] Motion_pathMotionArc
+[026262] Motion_quantizeMotionInterpolator
+[026263] Motion_quantizeMotionPhase
+[026264] Motion_quantizeMotionSteps
+[026265] Motion_transitionEasing
+[026275] Multi touch down - clear oc view
+[026292] Multilanguage combo
+[026314] MyOnPreSwipeListener
+[026315] MyOnSwipeProgressChangedListener
+[026333] NAMESPACE_ANDROID
+[026334] NAMESPACE_APP
+[026354] NEED_TO_DOWNLOAD_SELECTED_LANGUAGES
+[026355] NEED_TO_DOWNLOAD_SELECTED_LANGUAGES_FIRST_USE
+[026446] NUDGE_AUTOFILL_KEYBOARD_INPUT
+[026494] NavBar Gesture Back On Keyboard changed : 
+[026609] Need to replace editorInfo for local preview
+[026610] Need to set Default with LoLanguages
+[026622] NeuralTranslator -- getLanguageDirectionStateMap() executed
+[026623] NeuralTranslator -- getTargetLanguageList() executed
+[026626] New keyboard setting value
+[026633] Next language is 
+[026665] No language found for Index 
+[026666] No languages to restore
+[026667] No layout manager attached; skipping gototop & multiselection
+[026771] NullPointerException
+[026827] ONSCREEN_KEYBOARD_SWITCH :
+[026844] ON_SCREEN_KEYBOARD_PREF_CHANGED
+[026855] OPEN_WRITING_COMPOSER
+[026989] OnPreSwipeListener
+[027000] OnSelectionChange
+[027001] OnSliderTouchListener
+[027004] OnStartTrackingTouch
+[027005] OnStopTrackingTouch
+[027008] OnSwipe
+[027009] OnSwipeProgressChangedListener
+[027010] OnSwipe_autoCompleteMode
+[027011] OnSwipe_dragDirection
+[027012] OnSwipe_dragScale
+[027013] OnSwipe_dragThreshold
+[027014] OnSwipe_limitBoundsTo
+[027015] OnSwipe_maxAcceleration
+[027016] OnSwipe_maxVelocity
+[027017] OnSwipe_moveWhenScrollAtTop
+[027018] OnSwipe_nestedScrollFlags
+[027019] OnSwipe_onTouchUp
+[027020] OnSwipe_rotationCenterId
+[027021] OnSwipe_springBoundary
+[027022] OnSwipe_springDamping
+[027023] OnSwipe_springMass
+[027024] OnSwipe_springStiffness
+[027025] OnSwipe_springStopThreshold
+[027026] OnSwipe_touchAnchorId
+[027027] OnSwipe_touchAnchorSide
+[027028] OnSwipe_touchRegionId
+[027038] One-handed keyboard_Left
+[027039] One-handed keyboard_Right
+[027048] Only combinations of spaces and tabs are allowed in indent.
+[027261] PREDICTION_OFF_SPACE_PROTECTION_ONLY
+[027262] PREDICTION_SUPPORT_CHECK_PREDICTION_ON_STATUS_BY_LANGUAGE
+[027264] PREDICTION_SUPPORT_PREDICTION_STATUS_UPDATE_EDITOR_TYPE_FOR_URL
+[027275] PREF_AI_WRITER_WRITING_COMPOSER_MAX_LENGTH
+[027277] PREF_AI_WRITING_TOOLKIT_TRANSLATE_LATEST_TARGET_LANGUAGES
+[027280] PREF_SETTINGS_SWITCHING_KEY
+[027325] PTT cursor = null
+[027359] Parsed: keyboardAudio  : 
+[027360] Parsed: keyboardBias : 
+[027361] Parsed: keyboardUnDockMode : 
+[027407] PhotoEditor service binding is unbound.
+[027408] PhotoEditor service is connected.
+[027409] PhotoEditor service is disconnected.
+[027414] Physical keyboard connection :
+[027466] PogoKeyboardCoverReceiver: onReceive isConnection=
+[027524] Predictive back not available using Framework Transitions. Please switch to AndroidX Transition 1.5.0 or higher to enable seeking.
+[027540] PresenterTouchInfo(composingText=
+[027541] PresenterTouchInfoSnapshot(composingText=
+[027627] PropertySet_motionProgress
+[027756] Qwerty keyboard
+[027961] Reading app Locales : Unable to parse through file :androidx.appcompat.app.AppCompatDelegate.application_locales_record_file
+[027989] Recursive Registry initialization! In your AppGlideModule and LibraryGlideModules, Make sure you're using the provided Registry rather calling glide.getRegistry()!
+[028056] RemoveDuplicatedLanguageResult, raw Lo LangAndLayouts : 
+[028058] Remove_Space_Arch
+[028059] Remove_Words_Backspace
+[028074] Request showKeyboard from toolbar
+[028077] RequestConvertParam(galaxyLocaleCountryCode=
+[028143] Restore require LO languages: 
+[028146] Restore: TouchData
+[028200] RubTypeDeleteGesture
+[028282] SCREEN_ABOUT_SAMSUNG_KEYBOARD
+[028289] SCREEN_BACKSPACE_SPEED
+[028292] SCREEN_CHINESE_3X4_KEYBOARD
+[028295] SCREEN_CHINESE_KEYBOARD_TYPE
+[028296] SCREEN_CHINESE_QWERTY_KEYBOARD
+[028313] SCREEN_DEX_ON_TABLET_IN_…_ALONE_MODE_KEYBOARD_MODE
+[028328] SCREEN_HIGH_CONTRAST_KEYBOARDS
+[028336] SCREEN_INTELLIGENCE_COMPOSER
+[028337] SCREEN_INTELLIGENCE_COMPOSER_RESULT
+[028338] SCREEN_INTELLIGENCE_COMPOSER_SETTINGS
+[028348] SCREEN_JAPANESE_3X4_8FLICK_KEYBOARD
+[028351] SCREEN_JAPANESE_QWERTY_KEYBOARD
+[028354] SCREEN_KEYBOARD
+[028355] SCREEN_KEYBOARD_CURSOR_CONTROL
+[028356] SCREEN_KEYBOARD_FONT_SIZE
+[028357] SCREEN_KEYBOARD_FRONT
+[028358] SCREEN_KEYBOARD_LAYOUT
+[028359] SCREEN_KEYBOARD_LAYOUT_FRONT
+[028360] SCREEN_KEYBOARD_MODES
+[028361] SCREEN_KEYBOARD_MODES_FRONT
+[028362] SCREEN_KEYBOARD_MODES_MAIN
+[028363] SCREEN_KEYBOARD_PREDICTIVE_TEXT_FOLD_COVER
+[028364] SCREEN_KEYBOARD_SELECTED_LANGUAGE_FOLD_COVER
+[028365] SCREEN_KEYBOARD_SETTINGS
+[028366] SCREEN_KEYBOARD_SIZE
+[028367] SCREEN_KEYBOARD_SIZE_AND_TRANSPARENCY
+[028368] SCREEN_KEYBOARD_SIZE_AND_TRANSPARENCY_FRONT
+[028369] SCREEN_KEYBOARD_SIZE_FLT_WIN_COVER
+[028370] SCREEN_KEYBOARD_SIZE_SPL_TAB
+[028371] SCREEN_KEYBOARD_SIZE_SPL_WIN
+[028372] SCREEN_KEYBOARD_SIZE_SPL_WIN_COVER
+[028373] SCREEN_KEYBOARD_SWIPE_CONTROLS
+[028374] SCREEN_KEYBOARD_THEMES
+[028375] SCREEN_KEYBOARD_THEMES_FRONT
+[028376] SCREEN_KEYBOARD_TRANSLATION_SOGOU
+[028377] SCREEN_KEYBOARD_URL
+[028382] SCREEN_LANGUAGES_AND_TYPES
+[028385] SCREEN_MANAGE_INPUT_LANGUAGE
+[028388] SCREEN_MULTILANGUAGE_INPUT_SETTINGS
+[028389] SCREEN_MULTILANGUAGE_INPUT_SETTINGS_FOLD_COVER
+[028399] SCREEN_PINYIN_KEYBOARD_EDIT_PINYIN
+[028408] SCREEN_SELECT_KEYBOARD_MODE
+[028409] SCREEN_SELECT_LANGUAGES_DELETE
+[028410] SCREEN_SELECT_LANGUAGES_REORDER
+[028415] SCREEN_SETTING_VOICE_INPUT_OFFLINE_LANGUAGE_PACK
+[028416] SCREEN_SHUANGPIN_KEYBOARD
+[028417] SCREEN_SPEAK_KEYBOARD_INPUT_ALOUD
+[028418] SCREEN_STANDARD_KEYBOARD_LANDSCAPE_CTRL_PRESSED
+[028419] SCREEN_STANDARD_KEYBOARD_PORTRAIT
+[028428] SCREEN_SWIPE_TOUCH_AND_FEEDBACK
+[028436] SCREEN_TOUCH_AND_HOLD_DELAY
+[028437] SCREEN_TOUCH_AND_HOLD_DELAY_CUSTOM
+[028438] SCREEN_TOUCH_AND_HOLD_SPACE_BAR
+[028439] SCREEN_TOUCH_FEEDBACK
+[028443] SCREEN_WA_KEYBOARD
+[028445] SCREEN_WIN_LANGUAGES_AND_TYPES_FRONT
+[028446] SCREEN_WIN_LANGUAGES_AND_TYPES_MAIN
+[028447] SCREEN_WRITING_ASSIST_COMPOSER
+[028448] SCREEN_WRITING_ASSIST_COMPOSER_RESULT
+[028456] SCREEN_WRITING_TOOLKIT_COMPOSER
+[028457] SCREEN_WRITING_TOOLKIT_COMPOSER_RESULT
+[028466] SCREEN_WRITING_TOOLKIT_S…_TARGET_LANGUAGE_DROPDOWN
+[028498] SEARCH_SUPPORTED_LOCALE
+[028530] SEC_FLOATING_FEATURE_GENAI_SUPPORT_OFFLINE_LANGUAGEMODEL
+[028538] SEC_FLOATING_FEATURE_SIP_SUPPORT_CURSOR_CONTROL
+[028616] SETTINGS_CHAT_ASSIST_KEYBOARD_SUGGESTED_REPLIES
+[028623] SETTINGS_DEFAULT_HWR_SCH_TO_TCH_SWITCH
+[028626] SETTINGS_DEFAULT_NEXT_WORD_WITH_SPACE
+[028633] SETTINGS_DEFAULT_SPACE_LANGUAGE_CHANGE
+[028653] SETTINGS_HIGH_CONTRAST_KEYBOARD
+[028654] SETTINGS_HIGH_CONTRAST_KEYBOARD_THEME
+[028655] SETTINGS_KEYBOARD_FONT_SIZE
+[028656] SETTINGS_KEYBOARD_THEMES_P_OS_INDEX
+[028657] SETTINGS_KEYBOARD_TOOLBAR
+[028661] SETTINGS_PHYSICAL_KEYBOARD_TOOLBAR
+[028675] SETTINGS_SUPPORT_AUTO_CURSOR_MOVEMENT
+[028683] SETTINGS_SUPPORT_CHANGE_KEYBOARD_LAYOUT_SUMMARY_FOR_CHINA
+[028684] SETTINGS_SUPPORT_CHANGE_KEYBOARD_SWIPE_SUMMARY_FOR_CHINA
+[028692] SETTINGS_SUPPORT_COVER_KEYBOARD_THEME_INDEX
+[028693] SETTINGS_SUPPORT_COVER_LANGUAGE
+[028697] SETTINGS_SUPPORT_CURSOR_CONTROL
+[028700] SETTINGS_SUPPORT_DEFAULT_KEYBOARD_FONT_SIZE_MEDIUM
+[028703] SETTINGS_SUPPORT_DEFAULT_TOUCH_AND_HOLD_SPACE_BAR_VOICE_INPUT
+[028706] SETTINGS_SUPPORT_DISABLE_CUSTOM_SYMBOL_URDU_LANGUAGE
+[028717] SETTINGS_SUPPORT_GALAXY_KEYBOARD
+[028722] SETTINGS_SUPPORT_INSERT_WORD_WITH_SPACE_KEY
+[028729] SETTINGS_SUPPORT_KEYBOARD_LAYOUT_DESCRIPTIONS_FOR_FOLD
+[028730] SETTINGS_SUPPORT_KEYBOARD_SIZE_CLAMSHELL
+[028731] SETTINGS_SUPPORT_KEYBOARD_SIZE_FOLDBOOK
+[028732] SETTINGS_SUPPORT_KEYBOARD_SIZE_FOLDBOOK_GEN_2
+[028733] SETTINGS_SUPPORT_KEYBOARD_SIZE_PHONE
+[028734] SETTINGS_SUPPORT_KEYBOARD_SIZE_TABLET
+[028735] SETTINGS_SUPPORT_KEYBOARD_THEMES_REQUIRED_SETUPWIZARD_SUMMARY_FOR_PHONE_DEVICE
+[028737] SETTINGS_SUPPORT_LANGUAGE_AUTO_LM_UPDATE
+[028738] SETTINGS_SUPPORT_LANGUAGE_FORCED_CONVERSION_IN_KOREAN_INPUT_FIELD
+[028767] SETTINGS_SUPPORT_SPACEBAR_ROW_STYLE
+[028768] SETTINGS_SUPPORT_SPACEBAR_ROW_STYLE_JPN_MODEL
+[028769] SETTINGS_SUPPORT_SPEAK_KEYBOARD_INPUT_ALOUD
+[028781] SETTINGS_VALUE_LANGUAGE_AUTO_LM_UPDATE_INTERVAL_IN_DAYS
+[028843] SHIFTSTATE_SUPPORT_POLICY_NO_SHIFT_STATE_WITH_LANGUAGE
+[028875] SHOW_TRANSLATE_KEYBOARD_START_DELAY_MS
+[028957] SMAP
+AppData.kt
+Kotlin
+*S Kotlin
+*F
++ 1 AppData.kt
+androidx/picker/model/AppData$ListSwitchAppDataBuilder
++ 2 fake.kt
+kotlin/jvm/internal/FakeKt
+*L
+1#1,471:1
+1#2:472
+*E
+
+[028961] SMAP
+BackspaceFloatingButton.kt
+Kotlin
+*S Kotlin
+*F
++ 1 BackspaceFloatingButton.kt
+com/samsung/android/honeyboard/beehive/view/BackspaceFloatingButton
++ 2 KoinComponent.kt
+org/koin/core/KoinComponentKt
++ 3 Koin.kt
+org/koin/core/Koin
++ 4 Scope.kt
+org/koin/core/scope/Scope
+*L
+1#1,143:1
+52#2,4:144
+52#2,4:150
+52#2,4:156
+52#2,4:162
+52#2,4:168
+52#2,4:174
+52#2,4:180
+52#2,4:186
+52#2,4:192
+52#2,4:198
+52#3:148
+52#3:154
+52#3:160
+52#3:166
+52#3:172
+52#3:178
+52#3:184
+52#3:190
+52#3:196
+52#3:202
+55#4:149
+55#4:155
+55#4:161
+55#4:167
+55#4:173
+55#4:179
+55#4:185
+55#4:191
+55#4:197
+55#4:203
+*S KotlinDebug
+*F
++ 1 BackspaceFloatingButton.kt
+com/samsung/android/honeyboard/beehive/view/BackspaceFloatingButton
+*L
+32#1:144,4
+33#1:150,4
+34#1:156,4
+35#1:162,4
+33#1:168,4
+34#1:174,4
+35#1:180,4
+33#1:186,4
+34#1:192,4
+35#1:198,4
+32#1:148
+33#1:154
+34#1:160
+35#1:166
+33#1:172
+34#1:178
+35#1:184
+33#1:190
+34#1:196
+35#1:202
+32#1:149
+33#1:155
+34#1:161
+35#1:167
+33#1:173
+34#1:179
+35#1:185
+33#1:191
+34#1:197
+35#1:203
+*E
+
+[028973] SMAP
+ClipboardSmartSwitchReceiver.kt
+Kotlin
+*S Kotlin
+*F
++ 1 ClipboardSmartSwitchReceiver.kt
+com/samsung/android/honeyboard/backupandrestore/smartswitch/ClipboardSmartSwitchReceiver
++ 2 _Collections.kt
+kotlin/collections/CollectionsKt___CollectionsKt
+*L
+1#1,124:1
+1563#2:125
+1634#2,3:126
+*S KotlinDebug
+*F
++ 1 ClipboardSmartSwitchReceiver.kt
+com/samsung/android/honeyboard/backupandrestore/smartswitch/ClipboardSmartSwitchReceiver
+*L
+122#1:125
+122#1:126,3
+*E
+
+[029041] SMAP
+PhotoEditorServiceManager.kt
+Kotlin
+*S Kotlin
+*F
++ 1 PhotoEditorServiceManager.kt
+com/samsung/android/app/sdk/deepsky/objectcapture/controller/PhotoEditorServiceManager$ClientIncomingHandler
++ 2 fake.kt
+kotlin/jvm/internal/FakeKt
+*L
+1#1,207:1
+1#2:208
+*E
+
+[029043] SMAP
+PogoKeyboardCoverReceiver.kt
+Kotlin
+*S Kotlin
+*F
++ 1 PogoKeyboardCoverReceiver.kt
+com/samsung/android/honeyboard/base/broadcastreceiver/broadcastreceiverlist/PogoKeyboardCoverReceiver
++ 2 KoinComponent.kt
+org/koin/core/KoinComponentKt
++ 3 Koin.kt
+org/koin/core/Koin
++ 4 Scope.kt
+org/koin/core/scope/Scope
+*L
+1#1,31:1
+41#2,4:32
+78#3:36
+83#4:37
+*S KotlinDebug
+*F
++ 1 PogoKeyboardCoverReceiver.kt
+com/samsung/android/honeyboard/base/broadcastreceiver/broadcastreceiverlist/PogoKeyboardCoverReceiver
+*L
+23#1:32,4
+23#1:36
+23#1:37
+*E
+
+[029063] SMAP
+SelectedLanguage.kt
+Kotlin
+*S Kotlin
+*F
++ 1 SelectedLanguage.kt
+com/samsung/android/honeyboard/base/languagepack/selectedlanguage/SelectedLanguage
++ 2 fake.kt
+kotlin/jvm/internal/FakeKt
+*L
+1#1,40:1
+1#2:41
+*E
+
+[029107] SMAP
+SwipeDismissFrameLayout.kt
+Kotlin
+*S Kotlin
+*F
++ 1 SwipeDismissFrameLayout.kt
+com/samsung/android/app/sdk/deepsky/contract/suggestion/view/widget/SwipeDismissFrameLayout
++ 2 fake.kt
+kotlin/jvm/internal/FakeKt
+*L
+1#1,273:1
+1#2:274
+*E
+
+[029109] SMAP
+ToolbarBackspaceButton.kt
+Kotlin
+*S Kotlin
+*F
++ 1 ToolbarBackspaceButton.kt
+com/samsung/android/honeyboard/directwriting/toolbar/view/ToolbarBackspaceButton
++ 2 KoinComponent.kt
+org/koin/core/KoinComponentKt
++ 3 Koin.kt
+org/koin/core/Koin
++ 4 Scope.kt
+org/koin/core/scope/Scope
+*L
+1#1,89:1
+52#2,4:90
+52#3:94
+55#4:95
+*S KotlinDebug
+*F
++ 1 ToolbarBackspaceButton.kt
+com/samsung/android/honeyboard/directwriting/toolbar/view/ToolbarBackspaceButton
+*L
+31#1:90,4
+31#1:94
+31#1:95
+*E
+
+[029172] SPACE_AROUND
+[029173] SPACE_BETWEEN
+[029174] SPACE_EVENLY
+[029175] SPACE_PROTECTION_AREA_OFF
+[029176] SPACE_PROTECTION_AREA_ON
+[029184] SPELL_EDITOR_VISIBILITY_CHANGED
+[029215] SSS:SwipeDismissFrameLayout
+[029216] SSS:SwipeDismissLayout
+[029331] STRAIGHT_PATH_MOTION
+[029385] SUPPORT_TOUCH_FEEDBACK
+[029405] SWIPE_DIRECTION_ANY
+[029406] SWIPE_DIRECTION_END_TO_START
+[029407] SWIPE_DIRECTION_START_TO_END
+[029408] SWITCH_ACCESS_ACTIVITY_NAME
+[029409] SWITCH_PREFERENCE_LAYOUT
+[029410] SWITCH_PREFERENCE_LAYOUT_LARGE
+[029411] SWITCH_TO_SOURCE_SERVICE
+[029425] Samsung Keyboard Lab. has been activated
+[029426] Samsung Keyboard is self-killed: HomeTheme is reapplied
+[029433] Saved language and keypad statistics into preferences
+[029482] ScsApi@LanguageDetector
+[029486] Search suggestions cursor at row 
+[029487] Search suggestions cursor threw exception.
+[029525] SearchView_autoShowKeyboard
+[029576] SelectedLanguage(id=
+[029577] SelectedLanguageChanged
+[029578] SelectedLanguageInfo(languageVersion=
+[029689] SeslSwitchBar
+[029690] SeslSwitchBar.SavedState{
+[029691] SeslSwitchBar_seslSwitchBarBackgroundActivatedColor
+[029692] SeslSwitchBar_seslSwitchBarBackgroundColor
+[029693] SeslSwitchBar_seslSwitchBarTextActivatedColor
+[029694] SeslSwitchBar_seslSwitchBarTextColor
+[029698] SeslTouchTargetDelegate
+[029699] SeslTouchTargetDelegate does not support accessibility because it cannot support multi-touch delegation with AOSP View
+[029736] SettingsSessionData(languageInfoHidden=
+[029772] SetupWizard keyboard focus enhancement status unknown; return as false.
+[029800] ShapeAppearanceOverlay_MaterialComponents_TextInputLayout_FilledBox
+[029837] ShapeAppearance_M3_Comp_Switch_Handle_Shape
+[029838] ShapeAppearance_M3_Comp_Switch_StateLayer_Shape
+[029839] ShapeAppearance_M3_Comp_Switch_Track_Shape
+[029972] Skip showKeyboard while back hide is pending
+[029978] Skip to set editor options because of search mode
+[030001] Slider_minTouchTargetSize
+[030063] Soft keyboard dismissed by Physical/BT Keyboard typing owner.
+[030064] Soft keyboard dismissed by actual Back button/gesture instantly
+[030078] Space
+[030081] Speak Keyboard Input GetValue not supported
+[030163] Standard keyboard
+[030164] Standard split keyboard
+[030171] Start drag has been called with a view holder which is not a child of the RecyclerView which is controlled by this ItemTouchHelper.
+[030175] StartAnimationGesture
+[030177] StartCommitGesture
+[030252] SubIFDPointer
+[030371] SudCardView_sudCardViewSkipClickSelection
+[030420] SudExpandableSwitchItem
+[030421] SudExpandableSwitchItem_sudCollapsedSummary
+[030422] SudExpandableSwitchItem_sudExpandedSummary
+[030429] SudExpressiveSwitchBarStyle
+[030627] SudSwitchBarStyle
+[030628] SudSwitchItem
+[030629] SudSwitchItem_android_checked
+[030630] SudSwitchStyle
+[030631] SudSwitchStyle_Divided
+[030730] SupportLanguageData(supportOnDevice=
+[030739] Switch
+[030740] SwitchAccess
+[030741] SwitchCompat
+[030742] SwitchCompat_android_textOff
+[030743] SwitchCompat_android_textOn
+[030744] SwitchCompat_android_thumb
+[030745] SwitchCompat_showText
+[030746] SwitchCompat_splitTrack
+[030747] SwitchCompat_switchMinWidth
+[030748] SwitchCompat_switchOffStrokeColor
+[030749] SwitchCompat_switchPadding
+[030750] SwitchCompat_switchTextAppearance
+[030751] SwitchCompat_thumbTextPadding
+[030752] SwitchCompat_thumbTint
+[030753] SwitchCompat_thumbTintMode
+[030754] SwitchCompat_track
+[030755] SwitchCompat_trackTint
+[030756] SwitchCompat_trackTintMode
+[030757] SwitchMaterial
+[030758] SwitchMaterial_useMaterialThemeColors
+[030759] SwitchPreferenceScreen
+[030760] SwitchPreferenceScreen should getfragment property. Fragment property does not exsit in SwitchPreferenceScreen
+[030838] TEST_SUPPORT_RECORDING_TOUCH_EVENT
+[030839] TEST_SUPPORT_TOUCH_POINT_VISUALIZATION
+[030886] TIME_CONSTRAINT_SELECTION_SUGGESTION
+[030975] TOUCHABLE_INSETS_REGION
+[030976] TOUCH_CONCEPT_SUPPORT_INPUT_WHEN_MULTI_TOUCH_DOWN
+[030977] TOUCH_EPICENTER_SIZE_DP
+[030978] TOUCH_MODE_DOWN
+[030979] TOUCH_MODE_DRAGGING
+[030980] TOUCH_MODE_IDLE
+[030981] TOUCH_OUTSIDE_ID
+[030982] TOUCH_SLOP_DEFAULT
+[030983] TOUCH_SLOP_PAGING
+[030984] TOUCH_SLOP_RATIO
+[031209] TYPEFACE_MONOSPACE
+[031239] TYPE_ON_TOUCH
+[031267] TYPE_TOUCH
+[031276] TYPO_PAIR_ADJOIN_INSTEAD_OF_SPACE : 
+[031277] TYPO_PAIR_SPACE_INSTEAD_OF_ADJOIN : 
+[031423] TextAppearance_AppCompat_Widget_SeslSwitchBar
+[031424] TextAppearance_AppCompat_Widget_Switch
+[031592] TextAppearance_textLocale
+[031610] TextInputEditText
+[031611] TextInputEditText_textInputLayoutFocusedRectEnabled
+[031612] TextInputLayout
+[031613] TextInputLayout.SavedState{
+[031614] TextInputLayout_android_enabled
+[031615] TextInputLayout_android_hint
+[031616] TextInputLayout_android_maxEms
+[031617] TextInputLayout_android_maxWidth
+[031618] TextInputLayout_android_minEms
+[031619] TextInputLayout_android_minWidth
+[031620] TextInputLayout_android_textColorHint
+[031621] TextInputLayout_boxBackgroundColor
+[031622] TextInputLayout_boxBackgroundMode
+[031623] TextInputLayout_boxCollapsedPaddingTop
+[031624] TextInputLayout_boxCornerRadiusBottomEnd
+[031625] TextInputLayout_boxCornerRadiusBottomStart
+[031626] TextInputLayout_boxCornerRadiusTopEnd
+[031627] TextInputLayout_boxCornerRadiusTopStart
+[031628] TextInputLayout_boxStrokeColor
+[031629] TextInputLayout_boxStrokeErrorColor
+[031630] TextInputLayout_boxStrokeWidth
+[031631] TextInputLayout_boxStrokeWidthFocused
+[031632] TextInputLayout_counterEnabled
+[031633] TextInputLayout_counterMaxLength
+[031634] TextInputLayout_counterOverflowTextAppearance
+[031635] TextInputLayout_counterOverflowTextColor
+[031636] TextInputLayout_counterTextAppearance
+[031637] TextInputLayout_counterTextColor
+[031638] TextInputLayout_cursorColor
+[031639] TextInputLayout_cursorErrorColor
+[031640] TextInputLayout_endIconCheckable
+[031641] TextInputLayout_endIconContentDescription
+[031642] TextInputLayout_endIconDrawable
+[031643] TextInputLayout_endIconMinSize
+[031644] TextInputLayout_endIconMode
+[031645] TextInputLayout_endIconScaleType
+[031646] TextInputLayout_endIconTint
+[031647] TextInputLayout_endIconTintMode
+[031648] TextInputLayout_errorAccessibilityLiveRegion
+[031649] TextInputLayout_errorContentDescription
+[031650] TextInputLayout_errorEnabled
+[031651] TextInputLayout_errorIconDrawable
+[031652] TextInputLayout_errorIconTint
+[031653] TextInputLayout_errorIconTintMode
+[031654] TextInputLayout_errorTextAppearance
+[031655] TextInputLayout_errorTextColor
+[031656] TextInputLayout_expandedHintEnabled
+[031657] TextInputLayout_helperText
+[031658] TextInputLayout_helperTextEnabled
+[031659] TextInputLayout_helperTextTextAppearance
+[031660] TextInputLayout_helperTextTextColor
+[031661] TextInputLayout_hintAnimationEnabled
+[031662] TextInputLayout_hintEnabled
+[031663] TextInputLayout_hintMaxLines
+[031664] TextInputLayout_hintTextAppearance
+[031665] TextInputLayout_hintTextColor
+[031666] TextInputLayout_passwordToggleContentDescription
+[031667] TextInputLayout_passwordToggleDrawable
+[031668] TextInputLayout_passwordToggleEnabled
+[031669] TextInputLayout_passwordToggleTint
+[031670] TextInputLayout_passwordToggleTintMode
+[031671] TextInputLayout_placeholderText
+[031672] TextInputLayout_placeholderTextAppearance
+[031673] TextInputLayout_placeholderTextColor
+[031674] TextInputLayout_prefixText
+[031675] TextInputLayout_prefixTextAppearance
+[031676] TextInputLayout_prefixTextColor
+[031677] TextInputLayout_shapeAppearance
+[031678] TextInputLayout_shapeAppearanceOverlay
+[031679] TextInputLayout_startIconCheckable
+[031680] TextInputLayout_startIconContentDescription
+[031681] TextInputLayout_startIconDrawable
+[031682] TextInputLayout_startIconMinSize
+[031683] TextInputLayout_startIconScaleType
+[031684] TextInputLayout_startIconTint
+[031685] TextInputLayout_startIconTintMode
+[031686] TextInputLayout_suffixText
+[031687] TextInputLayout_suffixTextAppearance
+[031688] TextInputLayout_suffixTextColor
+[031690] TextKeyboardParam(leftShift=
+[031817] ThemeOverlay_Design_TextInputEditText
+[031871] ThemeOverlay_Material3_MaterialTimePicker_Display_TextInputEditText
+[031881] ThemeOverlay_Material3_TextInputEditText
+[031882] ThemeOverlay_Material3_TextInputEditText_FilledBox
+[031883] ThemeOverlay_Material3_TextInputEditText_FilledBox_Dense
+[031884] ThemeOverlay_Material3_TextInputEditText_OutlinedBox
+[031885] ThemeOverlay_Material3_TextInputEditText_OutlinedBox_Dense
+[031918] ThemeOverlay_MaterialComponents_TextInputEditText
+[031919] ThemeOverlay_MaterialComponents_TextInputEditText_FilledBox
+[031920] ThemeOverlay_MaterialComponents_TextInputEditText_FilledBox_Dense
+[031921] ThemeOverlay_MaterialComponents_TextInputEditText_OutlinedBox
+[031922] ThemeOverlay_MaterialComponents_TextInputEditText_OutlinedBox_Dense
+[031925] ThemeOverlay_MaterialComponents_TimePicker_Display_TextInputEditText
+[032180] TouchEvent
+[032181] TouchTargetDelegate's delegateView must be child of anchorView
+[032182] TouchableLinkMovementMethod
+[032229] Transition_motionInterpolator
+[032230] Transition_pathMotionArc
+[032235] Translate support initialized. Locale: 
+[032239] TranslationSupportLanguage
+[032367] UPPER_CAMEL_CASE_WITH_SPACES
+[032374] URI_ESCAPED_SPACE
+[032405] UTypeJoinGesture
+[032418] Unable to apply gesture inset because layout params are not MarginLayoutParams
+[032508] Unexpected exception thrown by non-Glide code
+[032535] Universal SwitchOn : 
+[032627] Update currentLanguage: 
+[032629] Update selected language list 
+[032644] UsabilitySessionData(languagesUsedCount=
+[033386] VTypeInsertGesture
+[033506] ViewTransition_motionInterpolator
+[033507] ViewTransition_motionTarget
+[033509] ViewTransition_pathMotionArc
+[033610] WRITING_COMPOSER
+[033634] WedgeTypeInsertGesture
+[033670] Widget_AppCompat_CompoundButton_Switch
+[033704] Widget_AppCompat_Light_CompoundButton_Switch
+[033728] Widget_AppCompat_Light_SeslSwitchBar
+[033767] Widget_AppCompat_SeslSwitchBar
+[033832] Widget_Design_TextInputEditText
+[033833] Widget_Design_TextInputLayout
+[033899] Widget_Material3_CompoundButton_MaterialSwitch
+[033901] Widget_Material3_CompoundButton_Switch
+[033963] Widget_Material3_MaterialCalendar_HeaderSelection
+[033964] Widget_Material3_MaterialCalendar_HeaderSelection_Fullscreen
+[033983] Widget_Material3_MaterialTimePicker_Display_TextInputEditText
+[033984] Widget_Material3_MaterialTimePicker_Display_TextInputLayout
+[034019] Widget_Material3_TextInputEditText_FilledBox
+[034020] Widget_Material3_TextInputEditText_FilledBox_Dense
+[034021] Widget_Material3_TextInputEditText_OutlinedBox
+[034022] Widget_Material3_TextInputEditText_OutlinedBox_Dense
+[034023] Widget_Material3_TextInputLayout_FilledBox
+[034024] Widget_Material3_TextInputLayout_FilledBox_Dense
+[034025] Widget_Material3_TextInputLayout_FilledBox_Dense_ExposedDropdownMenu
+[034026] Widget_Material3_TextInputLayout_FilledBox_ExposedDropdownMenu
+[034027] Widget_Material3_TextInputLayout_OutlinedBox
+[034028] Widget_Material3_TextInputLayout_OutlinedBox_Dense
+[034029] Widget_Material3_TextInputLayout_OutlinedBox_Dense_ExposedDropdownMenu
+[034030] Widget_Material3_TextInputLayout_OutlinedBox_ExposedDropdownMenu
+[034082] Widget_MaterialComponents_CompoundButton_Switch
+[034102] Widget_MaterialComponents_MaterialCalendar_HeaderSelection
+[034103] Widget_MaterialComponents_MaterialCalendar_HeaderSelection_Fullscreen
+[034134] Widget_MaterialComponents_TextInputEditText_FilledBox
+[034135] Widget_MaterialComponents_TextInputEditText_FilledBox_Dense
+[034136] Widget_MaterialComponents_TextInputEditText_OutlinedBox
+[034137] Widget_MaterialComponents_TextInputEditText_OutlinedBox_Dense
+[034138] Widget_MaterialComponents_TextInputLayout_FilledBox
+[034139] Widget_MaterialComponents_TextInputLayout_FilledBox_Dense
+[034140] Widget_MaterialComponents_TextInputLayout_FilledBox_Dense_ExposedDropdownMenu
+[034141] Widget_MaterialComponents_TextInputLayout_FilledBox_ExposedDropdownMenu
+[034142] Widget_MaterialComponents_TextInputLayout_OutlinedBox
+[034143] Widget_MaterialComponents_TextInputLayout_OutlinedBox_Dense
+[034144] Widget_MaterialComponents_TextInputLayout_OutlinedBox_Dense_ExposedDropdownMenu
+[034145] Widget_MaterialComponents_TextInputLayout_OutlinedBox_ExposedDropdownMenu
+[034153] Widget_MaterialComponents_TimePicker_Display_TextInputEditText
+[034154] Widget_MaterialComponents_TimePicker_Display_TextInputLayout
+[034165] Widget_Theme_AppCompat_CompoundButton_Switch
+[034166] Widget_Theme_AppCompat_Light_CompoundButton_Switch
+[034202] WritingComposerPromptParam(characteristics=
+[034313] You must not call setTag() on a view Glide is targeting
+[034505] [CACHEDIC] updateEditorText selStart: 
+[034509] [Convert_Result] localeCode : 
+[034522] [DirectWriting] DwLanguageManager
+[034525] [DirectWriting] GestureEventLogger
+[034527] [DirectWriting] HwrLanguageDownloadManager
+[034538] [DirectWriting] ToolbarBackspaceButton
+[034552] [EditorInputType]
+[034553] [EditorInputType]Add to PrivateImeOptionsMap put(
+[034554] [EditorInputType]PrivateImeOptionsMap is empty
+[034555] [EditorInputType]setPrivateImeOptionsToTable privateImeOptions (
+[034556] [EditorInputType]skipped to add to Map : key(
+[034565] [HBIC] requestCursorUpdates 
+[034566] [HBIC] sendKeyEvent, 
+[034567] [HBIC] setSelection, , 
+[034585] [KeyboardBasicsLogger End]
+[034586] [KeyboardBasicsLogger Start]
+[034587] [KeyboardStatSessionRepository]
+[034589] [LM Download] [TDM] setLanguageList - ConcurrentModificationException!!
+[034590] [LM removeLanguagePack] cannot find ldb file tag from map
+[034591] [LM removeLanguagePack] removeXt9LDB file delete failed : 
+[034647] [Landroid/view/inputmethod/CompletionInfo;
+[034648] [Landroid/view/inputmethod/InputConnection;
+[034662] [Landroidx/appcompat/widget/SeslSwitchBar$SavedState;
+[034719] [Language Sync History End]
+
+[034720] [LanguagePack Status End]
+[034721] [LanguagePack Status Start]
+ selected languages           : 
+[034739] [Lcom/bumptech/glide/h;
+[034740] [Lcom/bumptech/glide/load/ImageHeaderParser$ImageType;
+[034807] [Lcom/google/android/material/textfield/TextInputLayout$SavedState;
+[034867] [Lcom/microsoft/fluency/TouchHistory$ShiftState;
+[034893] [Lcom/samsung/android/honeyboard/base/languagepack/language/Language;
+[034902] [Lcom/samsung/android/sivs/ai/sdkcommon/translation/LanguageDirection;
+[034972] [Ljava/util/Locale;
+[035073] [Restore] Add missed Language : 
+[035094] [Space Typo Pair End]
+
+[035166] [after] galaxyLocaleCode: 
+[035168] [before] loLocaleCountryCode: 
+[035210] [sendBackspaceEvent] skip send event, 
+[035211] [sendBackspaceRatio] send event, 
+[035212] [sendBackspaceRatio] skip send event, 
+[035225] [setCurrentLanguage] language is null
+[035232] [switchApplicationContext] Display ID:
+[035315] ] language download is completed
+[035316] ] language is not contained in selectedLanguageList
+[035317] ] language: 
+[035318] ] mCursorPosX=
+[035321] ] mInitialTouchY[
+[035322] ] mLastTouchX[
+[035323] ] mLastTouchY[
+[035324] ] mPagingTouchSlop[
+[035327] ] mTouchSlop[
+[035376] ^#PresenterTouchInfo\(composingText=(.*?), keyLabel=(.*?), x=(-?\d+(?:\.\d+)?), y=(-?\d+(?:\.\d+)?)\) >> PresenterTouchInfo\(composingText=(.*?), keyLabel=(.*?), x=(-?\d+(?:\.\d+)?), y=(-?\d+(?:\.\d+)?)\)$
+[035392] ^adb shell input swipe (-?\d+) (-?\d+) (-?\d+) (-?\d+) (-?\d+) #(-?\d+)$
+[035404] _STORED_KEYBOARD_SIZE
+[035405] _STORED_KEYBOARD_SIZE_ATTR
+[035448] _keyboardType
+[035550] abc_menu_space_shortcut_label
+[035777] access$getMCompleteDismissGestureInterpolator$p
+[035797] access$getPhotoEditorServiceManager$p
+[035826] access$getTouchableRegion$p
+[035859] access$sendEnterKeyEvent
+[035866] access$setContentAreaAsTouchableSurface
+[035885] access$setSelectionStarted$p
+[035899] access$updateHwrLanguageManager
+[035901] access$updateSourceLanguage
+[035987] actionComposer
+[036087] activePointerId
+[036248] addLanguageIdInHWROnList 
+[036249] addLanguageIdInHWROnList after
+[036289] addOnItemTouchListener
+[036308] addOnSelectionChangedListener
+[036311] addOnSliderTouchListener
+[036367] addSpace
+[036394] addTestLanguage 
+[036401] addTouchExplorationStateChangeListener
+[036402] addTouchExplorationStateChangeListenerIfNeeded
+[036403] addTouchables
+[036411] addUntouchableAreaInset
+[036459] adjustListItemSelectionBounds
+[036512] aiCustomEditor
+[036581] alphaEndSwipeDistance
+[036585] alphaStartSwipeDistance
+[036675] android.intent.action.LOCALE_CHANGED
+[036726] android.media.metadata.COMPOSER
+[036782] android.speech.extra.LANGUAGE
+[036783] android.speech.extra.LANGUAGE_MODEL
+[036839] android.view.PointerIcon
+[036856] android.widget.Switch
+[036903] android:editorExtras
+[036916] android:inputMethod
+[036963] android:onEditorAction
+[036966] android:onGenericMotion
+[036995] android:onStartTrackingTouch
+[036996] android:onStopTrackingTouch
+[037003] android:onTouch
+[037024] android:query-arg-sql-selection
+[037039] android:selection
+[037048] android:splitMotionEvents
+[037055] android:switchTextAppearance
+[037099] androidx.appcompat.app.AppCompatDelegate.application_locales_record_file
+[037100] androidx.appcompat.app.AppLocalesMetadataHolderService
+[037153] androidx/picker/model/AppData$ListSwitchAppDataBuilder
+[037217] animatingOnTouchUp
+[037365] appleKeyboards
+[037366] appleLanguages
+[037367] appleLocale
+[037368] appleLocale : 
+[037382] application_locales
+[037385] appliedBottomMarginGestureInset
+[037468] applyMotionScene
+[037717] authorityForEditor
+[037742] autoCursorMoveValue
+[037754] autoShowKeyboard
+[037761] autoStoreLocales
+[037765] auto_cursor_movement
+[037784] availableSpace
+[037844] backSpaceDeleteSpeed
+[037884] backspace level on main display
+[037885] backspace level on sub display
+[037886] backspace ratio data on main display
+[037887] backspace ratio data on sub display
+[037888] backspaceCount
+[037889] backspace_key_sound_path
+[038046] beeKeyboardBarNumberView
+[038085] beehiveExtraContainerEndSpace
+[038086] beehiveExtraContainerStartSpace
+[038167] big_data_sa_languages_keypad_stats_json_v_1
+[038172] bilingualLanguages
+[038180] bind photoEditorServiceManager.
+[038203] bindPhotoEditor
+[038226] bindableIsFallbackFontLanguage
+[038274] block to sync language list from work profile.
+[038325] board_language_code
+[038385] bottomMarginGestureInsetRunnable
+[038416] bottomSpaceHeight
+[038546] builtInPhysicalKeyboard
+[038682] calcTransformedTouchPoint
+[038697] calculateChipTouchBounds
+[038699] calculateCloseIconTouchBounds
+[038725] calculateExtraLayoutSpace
+[038752] calculateMotionTiming
+[038762] calculatePointerOffset
+[038874] can't setDistanceOfTouchFromCenter. objectInitRect is null
+[038877] canApplyMovementDetection: keyboardState=
+[038893] canOutSideTouch
+[038911] canSkipShowKeyboard
+[038912] canSwipeDismissView
+[038961] canceledOnTouchOutside
+[038962] canceledOnTouchOutsideSet
+[039051] cardItemSpacer
+[039080] carousel_touchUpMode
+[039081] carousel_touchUp_dampeningFactor
+[039082] carousel_touchUp_velocityThreshold
+[039158] changedDuringTouch
+[039164] charCountOnKeyboardDown
+[039201] checkBilingualLanguage
+[039233] checkLanguage
+[039246] checkNoiseTouch 
+[039341] chipMinTouchTargetSize
+[039370] chnHwrSwitch
+[039436] clear BaseLanguageRepo
+[039470] clearFocusAndHideKeyboard
+[039476] clearKeyboardFocusForVirtualView
+[039481] clearListSelection
+[039483] clearMembersToHandleTouch
+[039513] clearOnSelectionChangedListeners
+[039514] clearOnSliderTouchListeners
+[039528] clearSelection
+[039550] cleared enabledLanguageAndInputTypeList
+[039590] clipboard_backup_keyboard.zip
+[039591] clipboard_backup_keyboard_temp.zip
+[039854] colorSwitchThumbNormal
+[039887] com.bumptech.glide.load.model.stream.HttpGlideUrlLoader.Timeout
+[039888] com.bumptech.glide.load.resource.bitmap.BitmapEncoder.CompressionFormat
+[039889] com.bumptech.glide.load.resource.bitmap.BitmapEncoder.CompressionQuality
+[039890] com.bumptech.glide.load.resource.bitmap.CenterCrop
+[039891] com.bumptech.glide.load.resource.bitmap.CenterInside
+[039892] com.bumptech.glide.load.resource.bitmap.Downsampler.AllowHardwareDecode
+[039893] com.bumptech.glide.load.resource.bitmap.Downsampler.DecodeFormat
+[039894] com.bumptech.glide.load.resource.bitmap.Downsampler.DownsampleStrategy
+[039895] com.bumptech.glide.load.resource.bitmap.Downsampler.FixBitmapSize
+[039896] com.bumptech.glide.load.resource.bitmap.Downsampler.PreferredColorSpace
+[039897] com.bumptech.glide.load.resource.bitmap.Downsampler.Theme
+[039898] com.bumptech.glide.load.resource.bitmap.FitCenter
+[039899] com.bumptech.glide.load.resource.bitmap.RoundedCorners
+[039900] com.bumptech.glide.load.resource.bitmap.VideoBitmapDecode.FrameOption
+[039901] com.bumptech.glide.load.resource.bitmap.VideoBitmapDecode.TargetFrame
+[039902] com.bumptech.glide.load.resource.gif.GifOptions.DecodeFormat
+[039903] com.bumptech.glide.load.resource.gif.GifOptions.DisableAnimation
+[039906] com.google.android.apps.docs.editors.docs
+[039956] com.hancom.office.editor.sec
+[039957] com.hancom.office.hcell.editor.hcell_apk
+[039958] com.hancom.office.hshow.editor.hshow_apk
+[039959] com.hancom.office.hword.editor.hword_apk
+[040010] com.samsung.android.directwriting.action.DIRECT_WRITING_CHANGE_CURRENT_LANGUAGE
+[040013] com.samsung.android.directwriting.action.DIRECT_WRITING_SHOW_FLOATING_KEYBOARD
+[040017] com.samsung.android.directwriting.action.FORCE_SHOW_KEYBOARD
+[040019] com.samsung.android.email.composer
+[040025] com.samsung.android.hardware.display.category.HIDDEN_SPACE_DISPLAY
+[040036] com.samsung.android.honeyboard.permission.KEYBOARD_SETTING
+[040042] com.samsung.android.honeyboard.provider.VoiceLanguageListProvider
+[040056] com.samsung.android.input.POGO_KEYBOARD_CHANGED
+[040061] com.samsung.android.intent.action.ONSCREENKEYBOARD_SWITCH
+[040081] com.samsung.android.offline.languagemodel
+[040082] com.samsung.android.offline.languagemodel.chn
+[040095] com.samsung.android.scpm.policy.UPDATE.honey-voice-locale-df8f
+[040096] com.samsung.android.scpm.policy.UPDATE.keyboard-basics-improvement-config-ff10
+[040105] com.samsung.android.settings.action.LANGUAGE_PACK_SETTINGS
+[040106] com.samsung.android.sivs.ai.sdkcommon.language.IConfigurationService
+[040107] com.samsung.android.sivs.ai.sdkcommon.language.ICorrectionService
+[040108] com.samsung.android.sivs.ai.sdkcommon.language.IEmojiAugmentationService
+[040109] com.samsung.android.sivs.ai.sdkcommon.language.IFormatConversionService
+[040110] com.samsung.android.sivs.ai.sdkcommon.language.INotesOrganizationService
+[040111] com.samsung.android.sivs.ai.sdkcommon.language.IOnDeviceService
+[040112] com.samsung.android.sivs.ai.sdkcommon.language.ISummarizationService
+[040113] com.samsung.android.sivs.ai.sdkcommon.language.IToneConvertService
+[040114] com.samsung.android.sivs.ai.sdkcommon.language.ITranslationService
+[040115] com.samsung.android.sivs.ai.sdkcommon.language.IWritingComposerService
+[040165] com.sec.android.inputmethod
+[040166] com.sec.android.inputmethod.Subtype
+[040167] com.sec.android.inputmethod.beta
+[040168] com.sec.android.inputmethod.previous_inputmethod_dex
+[040169] com.sec.android.mimage.photoretouching
+[040170] com.sec.android.mimage.photoretouching.SPEActivity
+[040171] com.sec.android.mimage.photoretouching.my_stickers
+[040172] com.sec.android.mimage.photoretouching.service.MyStickerService
+[040182] com/google/android/material/oneui/animation/FloatingBottomViHelper$switchView$1$2
+[040214] com/google/android/material/oneui/floatingdock/FloatingPaneView$minimizeGestureDetector$1
+[040218] com/google/android/material/oneui/floatingdock/controller/DragHandlerController$gestureDetector$2$1
+[040230] com/samsung/android/app/sdk/deepsky/objectcapture/controller/PhotoEditorServiceManager$connection$1
+[040257] com/samsung/android/honeyboard/base/inputlogger/SwipeEventRecorder$SegmentData
+[040258] com/samsung/android/honeyboard/base/inputlogger/TouchEventHistoryLogger$PresenterTouchInfo
+[040387] composerFormat
+[040388] composerLength
+[040389] composerToneType
+[040390] composerVisibility
+[040391] composer_format
+[040392] composer_style
+[040481] consecutiveTapTouchSlopSquare
+[040536] consumeAllTouchListener
+[040598] content://com.samsung.android.honeyboard.provider.KeyboardSettingsProvider/current_language
+[040599] content://com.samsung.android.honeyboard.provider.KeyboardSettingsProvider/handwriting_mode
+[040600] content://com.samsung.android.honeyboard.provider.KeyboardSettingsProvider/highcontrast
+[040601] content://com.samsung.android.honeyboard.provider.KeyboardSettingsProvider/keyboard_current_input_type
+[040602] content://com.samsung.android.honeyboard.provider.KeyboardSettingsProvider/selected_language_list
+[040752] convertLocale
+[040753] convertLocaleInfoToLanguageName 
+[040754] convertLocaleInfoToLanguageName convertedName 
+[040760] convertSelectionToString
+[040775] convertedLanguages is Empty!
+[040860] couldn't move cursor to position 
+[040887] cover : addCSCLanguageList : 
+[040888] cover : addDefaultLanguage : 
+[040889] cover : addEnglishLanguage : 
+[040890] cover : addLanguage : 
+[040891] cover : addLocaleLanguage : 
+[040892] cover : addTestLanguage 
+[040894] coverKeyboardThemeIndex
+[040895] coverLanguageModel
+[040901] cover_display_select_language_list_
+[040902] cover_display_select_language_list_sub_
+[041119] createNewSpeechRecognizer() locale 
+[041302] ctx_keyboard
+[041303] ctx_keyboard_size
+[041362] currentCursorPos
+[041390] currentLanguage
+[041391] currentLanguage of HBD is EN, can't change language of HBD
+[041392] currentLanguageOrder
+[041453] current_keyboard_size_version
+[041454] current_language_code
+[041458] cursor
+[041459] cursor is not first position
+[041460] cursorAnchorInfo
+[041461] cursorColor
+[041462] cursorErrorColor
+[041463] cursor_control
+[041464] cursor_control_move
+[041520] customUntouchableAreaInset
+[041530] custom_theme_keyboard_background_color
+[041658] dateSelector should not be null. Use MaterialTextInputPicker#newInstance() to create this fragment with a DateSelector, and call this method after the fragment has been created.
+[041755] defaultInputMethod
+[041756] defaultInputMethod : 
+[041766] defaultMotionSpec
+[041836] delete all cover languages
+[041837] delete all main languages
+[041840] delete icon visibility is gone in this selection mode: 
+[041854] deleteLanguage
+[041855] deleteLanguage : 
+[041958] design_fab_hide_motion_spec
+[041963] design_fab_show_motion_spec
+[042018] design_textinput_caption_translate_y
+[042047] detectLanguage
+[042051] detectedLanguageText
+[042055] determineTranslateLanguage
+[042079] dex_desktop_keyboard_size
+[042097] dictationLanguagesEnabled
+[042145] disableBackspaceKey
+[042158] disableExpressionKeyboardButton
+[042162] disableGifKeyboard
+[042163] disableGifKeyboard=true
+[042167] disableIfTouchExplorationEnabled
+[042173] disableLanguageChangeKey
+[042181] disableOnTouchExploration
+[042184] disablePhysicalKeyboardToolbar
+[042192] disableSpaceKey
+[042193] disableSpaceKeyInput
+[042194] disableSpaceKeyInput=true
+[042288] dispatchGenericMotionEvent
+[042291] dispatchKeyEvent
+[042292] dispatchKeyEventFromInputMethod
+[042293] dispatchKeyEventPreIme
+[042323] dispatchTouchEvent
+[042371] distanceOfTouchFromCenterX
+[042372] distanceOfTouchFromCenterY
+[042449] doRestore mainInputType or subInputType is null for language : 
+[042505] downloadLanguage
+[042509] downloadedLanguageList
+[042529] dragHandlerController onInterceptTouchEvent=
+[042544] dragTouchSlopSquare
+[042771] easy_mode_switch
+[042790] editInputLanguagesViewModel
+[042805] editorInfo
+[042806] editorInfo pkgName : 
+[042807] editorInfo$delegate
+[042808] editorOptions
+[042809] editorOptions : 
+
+[042810] editorOptions null - updateForEditorClass
+[042811] editorOptions null - updateForLanguageForceOn
+[042812] editorOptions null - updateForURL
+[042813] editorOptionsController
+[042814] editorOptionsController$delegate
+[042815] editorRect
+[042816] editorToken
+[042817] editor_content_type
+[042818] editor_option_ime_options
+[042819] editor_option_input_type
+[042820] editor_option_mime_types
+[042821] editor_option_private_ime_options
+[042822] editor_package_name
+[042823] editor_token
+[042904] enable HwrLanguageKeys is Empty
+[042922] enableHwrLanguageKeys result : 
+[042923] enableHwrModeLanguage
+[042938] enableSwipeDismiss
+[042939] enableSwipeToType
+[042945] enableWritingComposer
+[042958] enable_language_change_combination_key
+[042961] enabled Language : 
+[042967] enabledInputMethods
+[042968] enabledLanguageAndInputTypes
+[042969] enabledLanguagesAndInputTypes
+[043074] endTouchDrag
+[043113] ensureAccessibleTouchTarget
+[043135] ensureMinTouchTargetSize
+[043163] entireSpace
+[043197] error changing cursor and caching columns
+[043290] exceptionalLanguagesModel
+[043318] executeKeyEvent
+[043443] expected cursor 
+[043483] expressibleSwitchCallback
+[043490] expressionBarKeyboardBtn
+[043544] extendMotionSpec
+[043577] extraBottomMarginGestureInset
+[043591] extraSpace
+[043592] extraSpaceBetweenPlaceholderAndHint
+[043610] extra_space
+[043611] extra_space_for_shadow
+[043695] fail to parse keyboard backup data. Invalid param
+[043700] fail to setUntouchableAreaInset, FloatingMode is not exist(
+[043727] failed to find locale language
+[043812] fieldLanguage
+[043966] findPointerIndex
+[043976] findTargetPackage : editorInfo is null, can't setPackage
+[043978] findTextInputLayoutAncestor
+[044181] floating_keyboard_height
+[044182] floating_keyboard_height_landscape
+[044183] floating_keyboard_height_level
+[044184] floating_keyboard_height_level_landscape
+[044185] floating_keyboard_width
+[044186] floating_keyboard_width_landscape
+[044187] floating_keyboard_width_level
+[044188] floating_keyboard_width_level_landscape
+[044298] forLanguageTag
+[044299] forLanguageTags
+[044361] foundSelectedLanguageIds
+[044459] full_keyboard
+[044496] galaxyLocale
+[044497] galaxyLocaleCode
+[044498] galaxyLocaleCode is null or blank
+[044499] galaxyLocaleCode: 
+[044562] gesture
+[044563] gestureDetector
+[044564] gestureDetector$delegate
+[044565] gestureDetector_delegate$lambda$0
+[044566] gestureEnabled
+[044567] gestureInsetBottom
+[044568] gestureInsetBottomIgnored
+[044569] gestureListener
+[044570] gesture_name
+[044571] gesturesEnabled
+[044573] get BaseLanguageRepo
+[044577] get locale language only matched with language code : 
+[044769] getAppleKeyboards
+[044770] getAppleLanguages
+[044771] getAppleLocale
+[044779] getApplicationLocales
+[044840] getAutoCursorMoveValue()Ljava/lang/String;
+[044860] getBackSpaceDeleteSpeed()I
+[044879] getBackspaceButtonDescription
+[044880] getBackspaceCount
+[044881] getBackspaceRepeatInterval
+[044882] getBackspaceRepeatInterval : 
+[044894] getBadgeNumberLocale
+[044929] getBeeKeyboardBarNumberView
+[044949] getBilingualLanguages
+[045166] getCardItemSpacer
+[045185] getCharCountOnKeyboardDown
+[045270] getChipTouchBounds
+[045274] getChnHwrSwitch()Ljava/lang/String;
+[045326] getCloseIconTouchBounds
+[045327] getCloseIconTouchBoundsInt
+[045377] getColorSpace
+[045407] getComposerFormat
+[045408] getComposerLength
+[045409] getComposerLength()I
+[045410] getComposerToneType
+[045565] getCoverKeyboardThemeIndex()I
+[045574] getCurrInputType()Lcom/samsung/android/honeyboard/base/common/keyboardtype/inputtype/KeyboardInputType;
+[045575] getCurrNumberSymbolInputType()Lcom/samsung/android/honeyboard/base/common/keyboardtype/inputtype/KeyboardInputType;
+[045577] getCurrViewType()Lcom/samsung/android/honeyboard/base/common/keyboardtype/viewtype/KeyboardViewType;
+[045600] getCurrentInputEditorInfo
+[045601] getCurrentInputMethodInfo: imm is null
+[045602] getCurrentInputMethodInfo: inputMethodInfoList is null
+[045607] getCurrentLang()Lcom/samsung/android/honeyboard/base/languagepack/language/Language;
+[045608] getCurrentLanguage(...)
+[045609] getCurrentLanguageOrder
+[045616] getCurrentMotionSpec
+[045647] getCurrentVoiceLanguage 
+[045653] getCursor
+[045654] getCursorCapsMode
+[045655] getCursorColor
+[045656] getCursorErrorColor
+[045668] getCustomSelectionActionModeCallback
+[045672] getCustomUntouchableAreaInset
+[045776] getDefaultInputMethod()Ljava/lang/String;
+[045787] getDefaultMotionSpecResource
+[045798] getDefaultTextInputFormat
+[045799] getDefaultTextInputHint
+[045846] getDictationLanguagesEnabled
+[045867] getDisplayLanguage
+[045868] getDisplayLanguage(...)
+[045920] getDownloadedLanguageList
+[045921] getDownloadedLanguageList 
+[045981] getEditorBounds
+[045982] getEditorBoundsInfo
+[045983] getEditorInfo
+[045984] getEditorInfo(...)
+[045985] getEditorInputType(...)
+[045986] getEditorOptions
+[045987] getEditorOptions(...)
+[045988] getEditorOptionsController
+[046008] getEnableHwrModeLanguage
+[046012] getEnableSwipeDismiss
+[046013] getEnableSwipeToType
+[046020] getEnabledInputMethodList
+[046021] getEnabledInputMethods()Ljava/lang/String;
+[046022] getEnabledLanguageAndInputTypes
+[046061] getEngineSupportedLanguageList
+[046064] getEnsureMinTouchTargetSize
+[046150] getExpressibleSwitchCallback
+[046163] getExtendMotionSpec
+[046177] getExtraLayoutSpace
+[046370] getGalaxyLocale
+[046378] getGestureDetector
+[046379] getGestureEnabled
+[046380] getGesturesEnabled
+[046457] getHideMotionSpec
+[046487] getHoneyQwertyKeyboardType 
+[046488] getHoneyQwertyKeyboardType for 
+[046527] getHwrLanguagePack 
+[046540] getISO3Language
+[046565] getIdentifiedLanguages
+[046661] getInputMethodManager
+[046662] getInputMethodMode
+[046666] getInputRangeType()Lcom/samsung/android/honeyboard/base/common/keyboardtype/inputrange/KeyboardInputRange;
+[046731] getIsOffline: Locale:
+[046733] getIsoLanguageCode: 
+[046785] getItemSelectionStatesByChecked
+[046866] getKeyboardAllowPaddle
+[046867] getKeyboardAlpha()F
+[046868] getKeyboardAudio
+[046869] getKeyboardAutoCorrection
+[046870] getKeyboardAutocapitalization
+[046871] getKeyboardBackgroundColor()I
+[046872] getKeyboardBarNumber
+[046873] getKeyboardBarNumberVisibility
+[046874] getKeyboardBias
+[046875] getKeyboardBodyVisibility()Z
+[046876] getKeyboardButtonDescription
+[046877] getKeyboardButtonOnNavigationBarOn()I
+[046878] getKeyboardButtonPosition()I
+[046879] getKeyboardCapsLock
+[046880] getKeyboardCheckSpelling
+[046881] getKeyboardContinuousPathDeleteWholeWord
+[046882] getKeyboardContinuousPathEnabled
+[046883] getKeyboardFocusedVirtualViewId
+[046884] getKeyboardFontSize()I
+[046885] getKeyboardHideCount
+[046886] getKeyboardInputType
+[046887] getKeyboardInputType(...)
+[046888] getKeyboardLayoutManager
+[046889] getKeyboardOpenButtonVisibility
+[046890] getKeyboardPeriodShortcut
+[046891] getKeyboardPositionData 
+[046892] getKeyboardPrediction
+[046893] getKeyboardShowCount
+[046894] getKeyboardSizeData
+[046895] getKeyboardSizeData prefArray is null or empty
+[046896] getKeyboardSizeData prefKey = 
+[046897] getKeyboardSwipeType()Ljava/lang/String;
+[046898] getKeyboardThemeIndex()I
+[046899] getKeyboardType
+[046900] getKeyboardUnDock
+[046943] getLanguage
+[046944] getLanguage(...)
+[046945] getLanguageChangeButtonDescription
+[046946] getLanguageChangeButtonVisibility
+[046947] getLanguageCode
+[046948] getLanguageDownloadButtonDescription
+[046949] getLanguageFromSupportedLanguage(...)
+[046950] getLanguageId
+[046951] getLanguageInfoHidden
+[046952] getLanguageInputTypeName
+[046953] getLanguageInputTypeName(...)
+[046954] getLanguageSwitchingUsingKey()Z
+[046955] getLanguageSwitchingUsingSpaceBar()Z
+[046956] getLanguageTranslateFrom
+[046957] getLanguageVersion
+[046958] getLanguagesUsedCount
+[046975] getLastInterceptTouchEventEvent
+[046992] getLastTouchEvent
+[046993] getLastTouchEventEvent
+[046994] getLastTouchPoint
+[047021] getLayoutDirectionFromLocale
+[047100] getListSelection
+[047107] getLoLocale
+[047116] getLocale
+[047117] getLocaleCode(...)
+[047118] getLocales
+[047119] getLocales(...)
+[047148] getLongPressMultiSelectionListener
+[047178] getMandatorySystemGestureInsets
+[047344] getMoakeySwipeAngle()I
+[047345] getMoakeySwipeLength()I
+[047348] getModeSwitchCount
+[047365] getMostLikelyLanguage
+[047367] getMotionPathPoint
+[047368] getMotionRange
+[047369] getMotionSpec
+[047388] getNavBarBackGestureOnKeyboard()I
+[047395] getNavigationGesture()I
+[047405] getNeedBackspace
+[047461] getNumberLocale
+[047500] getOnBackspaceFabPressed
+[047550] getOneHandSwitchButtonBg
+[047551] getOneHandSwitchContentDescription
+[047552] getOneHandSwitchMargin
+[047730] getPathMotion
+[047751] getPerLanguage
+[047761] getPhysicalKeyboardToolBarOnTouchListener
+[047803] getPointerCount
+[047804] getPointerId
+[047858] getPreloadedLanguageList
+[047872] getPreviewInputMethodDex()Ljava/lang/String;
+[047999] getReceivedLanguages
+[048179] getScaledPagingTouchSlop
+[048181] getScaledTouchSlop
+[048184] getScaledWindowTouchSlop
+[048281] getSelectedLanguageId
+[048282] getSelectedLanguageList
+[048283] getSelectedLanguageList(...)
+[048284] getSelectedLanguages()Ljava/util/List;
+[048294] getSelection
+[048295] getSelectionContentDescription
+[048296] getSelectionDisplayString
+[048297] getSelectionEnd
+[048298] getSelectionMode
+[048299] getSelectionModeForAccessibility
+[048300] getSelectionStart
+[048304] getSemEasyModeSwitchOn()I
+[048388] getShowButtonToHideKeyboard()I
+[048393] getShowMotionSpec
+[048397] getShrinkMotionSpec
+[048470] getSourceLanguage
+[048471] getSourceLanguageList(...)
+[048474] getSpace
+[048475] getSpaceButtonDescription
+[048476] getSpaceButtonVisibility
+[048477] getSpaceInferences
+[048478] getSpaceSmartTipExecute()Z
+[048479] getSpacebarRowStyle()I
+[048490] getSpeakKeyboardInputAloudCapitalMode()I
+[048491] getSpeakKeyboardInputAloudMode()I
+[048646] getSuggestSelection
+[048692] getSupportedLanguage()Ljava/util/Map;
+[048693] getSupportedLanguages
+[048694] getSupportedLanguages(...)
+[048723] getSwipeEdge
+[048724] getSwipeInputCount
+[048725] getSwitch
+[048726] getSwitchMinWidth
+[048727] getSwitchPadding
+[048776] getTargetLanguage
+[048777] getTargetLanguageList(...)
+[048798] getTermLanguageWeights
+[048810] getTextAfterCursor
+[048817] getTextBeforeCursor
+[048825] getTextCursorDrawable
+[048835] getTextInput
+[048836] getTextInputLayout
+[048839] getTextLocale
+[048840] getTextLocales
+[049009] getTouchAndHoldDelayValue()I
+[049010] getTouchAndHoldSpaceBarType()Ljava/lang/String;
+[049011] getTouchBounds
+[049012] getTouchDataLists: an input is not a json object.
+[049013] getTouchDelegateInfo
+[049014] getTouchExplorationStateChangeListener
+[049015] getTouchPosX
+[049016] getTouchPosY
+[049017] getTouchProcessing
+[049018] getTouchTargetPadding
+[049019] getTouchTargetRect
+[049020] getTouchX
+[049021] getTouchY
+[049022] getTouchableRegion
+[049073] getTranslateLanguage
+[049081] getTranslationSupportLanguageList
+[049141] getUpdatableLanguageList
+[049142] getUpdatableLanguagesObservable
+[049161] getUseArrowOnJapaneseSpaceBarRowStyle()Z
+[049166] getUseChnInsertWordSpaceKey()Z
+[049170] getUseCommaOnCommonSpaceBarRowStyle()Z
+[049179] getUseDomainOnEmailSpaceBarRowStyle()Z
+[049180] getUseDomainOnUrlSpaceBarRowStyle()Z
+[049181] getUseDotOnCommonSpaceBarRowStyle()Z
+[049182] getUseDotOnEmailSpaceBarRowStyle()Z
+[049183] getUseDotOnUrlSpaceBarRowStyle()Z
+[049203] getUseNoneKeyboardSwipe()Z
+[049214] getUsePhysicalKeyboardToolbar()Z
+[049219] getUsePunctuationOnJapaneseSpaceBarRowStyle()Z
+[049226] getUseSpeakKeyboardInputAloud()Z
+[049263] getValueOfTouchPosition
+[049264] getValueOfTouchPositionAbsolute
+[049368] getVoiceLanguageId
+[049369] getVoiceLanguageModeId
+[049427] getWordSeparatorForLanguage
+[049438] getWritingAssistLatestTranslateLanguage()Ljava/lang/String;
+[049501] glide-
+[049502] glide-active-resources
+[049503] glide-disk-lru-cache-thread
+[049660] handleKeyEvent
+[049664] handleMotionEvent error : 
+[049678] handleTouchEvent
+[049679] handleTouchEvent ACTION_DOWN x: 
+[049680] handleTouchEvent ACTION_UP. selectionStarted: 
+[049681] handleTouchEvent$lambda$5
+[049682] handleTouchInput
+[049685] handleUpdateSelection : 
+[049699] hardKeyboardHidden
+[049757] hasHardwareKeyboard
+[049827] hasTouchListener
+[049881] headerSelectionText
+[049942] hidden_semIsTextSelectionProgressing
+[049952] hidden_setTouchSlop
+[049971] hideFloatingSelectionView
+[049972] hideFloatingSelectionView$default
+[049973] hideFloatingSelectionView$lambda$0
+[049979] hideKeyboard
+[049981] hideMotionSpec
+[050015] high_contrast_keyboard
+[050064] honey-voice-locale-df8f
+[050086] honey_voice_locale.json
+[050087] honey_voice_locale.json data file delete
+[050135] hourTextInput
+[050249] ic_keyboard_black_24dp
+[050307] identifiedLanguages
+[050438] imeSwitcherHidden
+[050439] imeSwitcherShown
+[050473] inPreferredColorSpace
+[050644] initMinTouchTarget
+[050646] initObjectSelection
+[050653] initPhotoEditor
+[050681] initTouchVariables
+[050705] initialTouchY
+[050722] initializeAvailableLanguage
+[050728] initializeInputMethodInfo: mInputMethodInfo
+[050735] initializeTouchDrag
+[050764] inputLanguagesDownloadHistory.log
+[050765] inputLanguagesToggleHistory.log
+[050820] inset_category_above_languages
+[050927] invalid keyboards data
+[051015] io.dtails.Slyder.SliderKeyboard
+[051043] isAccessoryKeyboard
+[051044] isAccessoryKeyboardState
+[051104] isAutoShowKeyboard
+[051107] isAvailableLanguage
+[051108] isAvailableLanguage : [D = 
+[051235] isDateInputKeyboardMissingSeparatorCharacters
+[051240] isDebugTouch
+[051284] isDisabledOnTouchExploration
+[051285] isDiscardTouch
+[051301] isDownloadedLanguage
+[051309] isDrawerTouchDown
+[051319] isEditorInputTypeDisabled
+[051336] isEnableShiftSpace : 
+[051414] isFocusableInTouchMode
+[051443] isGestureInsetBottomIgnored
+[051444] isGestureMode
+[051445] isGestureMode()Z
+[051470] isHighContrastKeyboardOn = 
+[051513] isInTouchMode
+[051527] isInputMethodShown
+[051554] isKeyboardButtonOnNavigationBarOn
+[051555] isKeyboardButtonOnNavigationBarOn()Z
+[051556] isKeyboardFocusEnhancementEnabled
+[051575] isLastTouchEventHandled
+[051660] isNavBarGestureBackOnKeyboard
+[051661] isNavBarGestureBackOnKeyboard()Z
+[051719] isOutsideTouchEnabled
+[051753] isPhysicalKeyboard() isKeyboardTypedMouse true: name=
+[051754] isPhysicalKeyboard() isPhysicalKeyboard false: deviceId=
+[051755] isPhysicalKeyboard() isPhysicalKeyboard true: deviceId=
+[051756] isPhysicalKeyboardConnected
+[051757] isPhysicalKeyboardConnected()Z
+[051770] isPossibleToRestoreSize keyboardSizeType=
+[051773] isPotentialSwipe
+[051782] isPredictionOnByLanguage :
+[051787] isPreloadedOrDownloadedLanguage
+[051891] isSelectionComplete
+[051892] isSelectionMode
+[051893] isSelectionRequired
+[051894] isSemEasyModeSwitchOn
+[051895] isSemEasyModeSwitchOn()Z
+[051928] isShowButtonToHideKeyboardOn
+[051929] isShowButtonToHideKeyboardOn()Z
+[051955] isSingleSelection
+[051969] isSpaceInferred
+[052013] isSupportedLocale performance time 
+[052014] isSupportedLocale, timeout=1000
+[052028] isSwipeDismissable
+[052029] isSwipeMostlyHorizontal
+[052030] isSwipeSignificant
+[052031] isSwipeable
+[052032] isSwitchAccessEnabled
+[052033] isSwitchItem
+[052038] isSystemLocaleSupported: exception!!
+[052055] isTextInputLayoutFocusedRectEnabled
+[052084] isTouchExplorationEnabled
+[052085] isTouchInBottomGestureArea
+[052086] isTouchingDragHandle
+[052087] isTouchingScrollingChild
+[052101] isUniversalSwitchOn
+[052102] isUniversalSwitchOn()Z
+[052167] isWhitespace
+[052184] is_cover_language
+[052185] is_honeyvoice_locale_supported
+[052291] item_touch_helper_max_drag_scroll_per_frame
+[052292] item_touch_helper_previous_elevation
+[052293] item_touch_helper_swipe_escape_max_velocity
+[052294] item_touch_helper_swipe_escape_velocity
+[052495] key_action_backspace
+[052496] key_action_backspace_down
+[052497] key_action_backspace_repeat
+[052498] key_action_backspace_up
+[052499] key_action_divide_text_backspace
+[052507] key_language_and_input
+[052510] key_samsung_keyboard
+[052514] key_writing_toolkit_translate_latest_language
+[052516] keyboard
+[052517] keyboard button on navigation bar : 
+[052518] keyboard cover themeId changed : 
+[052519] keyboard main themeId changed : 
+[052520] keyboard show in CarLife
+[052521] keyboard-basics-improvement-config-ff10
+[052522] keyboardAllowPaddle
+[052523] keyboardAlpha
+[052524] keyboardAudio
+[052525] keyboardAutoCorrection
+[052526] keyboardAutocapitalization
+[052527] keyboardBackgroundColor
+[052528] keyboardBarIndex
+[052529] keyboardBarNumber
+[052530] keyboardBarNumberVisibility
+[052531] keyboardBias
+[052532] keyboardBodyVisibility
+[052533] keyboardBodyVisibility : 
+[052534] keyboardButtonOnNavigationBarOn
+[052535] keyboardButtonPosition
+[052536] keyboardButtonPressed
+[052537] keyboardCapsLock
+[052538] keyboardCheckSpelling
+[052539] keyboardContext
+[052540] keyboardContextMetaData
+[052541] keyboardContinuousPathDeleteWholeWord
+[052542] keyboardContinuousPathEnabled
+[052543] keyboardFocusEnhancementBundle
+[052544] keyboardFontSize
+[052545] keyboardHidden
+[052546] keyboardHideCount
+[052547] keyboardIcon
+[052548] keyboardInputType
+[052549] keyboardLayoutManager
+[052550] keyboardLayoutManager$delegate
+[052551] keyboardLayoutPlacer
+[052552] keyboardOpenButtonVisibility
+[052553] keyboardPeriodShortcut
+[052554] keyboardPrediction
+[052555] keyboardShowCount
+[052556] keyboardSizeAndTransparency
+[052557] keyboardSizeProvider
+[052558] keyboardSwipeType
+[052559] keyboardThemeIndex
+[052560] keyboardThemesViewmodel
+[052561] keyboardType
+[052562] keyboardUnDock
+[052563] keyboardViewType
+[052564] keyboard_basics_improvement_config.json
+[052565] keyboard_bg_transparency
+[052566] keyboard_bottom_level
+[052567] keyboard_bottom_level_landscape
+[052568] keyboard_dex
+[052569] keyboard_height
+[052570] keyboard_height_level
+[052571] keyboard_height_level_landscape
+[052572] keyboard_position
+[052573] keyboard_position_level
+[052574] keyboard_position_level_landscape
+[052575] keyboard_suggested_replies_test
+[052576] keyboard_theme
+[052577] keyboard_transparency_alpha
+[052578] keyboard_width_level
+[052579] keyboard_width_level_landscape
+[052738] lambda$clearFocusAndHideKeyboard$9
+[052755] lambda$disableIfTouchExplorationEnabled$0
+[052798] lambda$isPreloadedOrDownloadedLanguage$0
+[052799] lambda$isPreloadedOrDownloadedLanguage$1
+[052911] lambda$requestFocusAndShowKeyboard$0
+[052912] lambda$requestFocusAndShowKeyboard$8
+[052970] lambda$setUpContentOnTouchListener$3
+[052975] lambda$setUpStatusBarSpacerInsetListener$5
+[052983] lambda$showKeyboardWithAutoHideBehavior$0
+[052984] lambda$showKeyboardWithAutoHideBehavior$1
+[053045] langAndLocaleCode
+[053049] language
+[053050] language active options for 
+[053051] language list to be updated 
+[053052] language.xml
+[053053] languageChangeButtonVisibility
+[053054] languageCode
+[053055] languageCode = 
+[053056] languageCode has wrong format : 
+[053057] languageCodeFromJsonObject is 
+[053058] languageCodeFromLocale is 
+[053059] languageDisplayName
+[053060] languageId
+[053061] languageId = 
+[053062] languageInfoHidden
+[053063] languageInputTypeName
+[053064] languageKey
+[053065] languageName
+[053066] languagePack
+[053067] languagePackHelper
+[053068] languageSwitchingMethodPreference
+[053069] languageSwitchingUsingKey
+[053070] languageSwitchingUsingSpaceBar
+[053071] languageTranslateFrom
+[053072] languageVersion
+[053073] language_dependent
+[053074] language_en_US
+[053075] language_id
+[053076] languages
+[053077] languagesUsedCount
+[053116] lastMotionY
+[053136] lastTouchDownX
+[053137] lastTouchDownY
+[053138] lastTouchPoint
+[053139] lastTouchRawX
+[053140] lastTouchRawY
+[053141] lastTouchX
+[053142] lastTouchY
+[053149] lastUsedTranslateLanguage : 
+[053160] latest_setupWizard_language_info
+[053327] layout_editor_absoluteX
+[053328] layout_editor_absoluteY
+[053550] liveLanguageModels
+[053561] loKeyboardsInputTypes
+[053562] loKeyboardsInputTypes data = 
+[053565] loLocale
+[053566] loLocaleCountryCode
+[053572] load BaseLanguageRepo
+[053575] load base language error
+[053584] load selected language info error
+[053616] loadKeyboardSessionStatsJsonToMap, 
+[053618] loadLanguageXmlToPreference
+[053648] loadedLanguageList isNullOrEmpty
+[053684] locale
+[053685] localeCode
+[053686] localeInfo
+[053687] locales
+[053696] lockScreenLanguageModel
+[053741] longPressBackspaceKey
+[053976] m3_comp_button_group_connected_small_between_space
+[053977] m3_comp_button_group_standard_small_between_space
+[053978] m3_comp_button_large_icon_label_space
+[053980] m3_comp_button_large_leading_space
+[053982] m3_comp_button_large_trailing_space
+[053983] m3_comp_button_medium_icon_label_space
+[053985] m3_comp_button_medium_leading_space
+[053987] m3_comp_button_medium_trailing_space
+[053991] m3_comp_button_small_icon_label_space
+[053993] m3_comp_button_small_leading_space
+[053995] m3_comp_button_small_trailing_space
+[054000] m3_comp_button_xlarge_icon_label_space
+[054002] m3_comp_button_xlarge_leading_space
+[054004] m3_comp_button_xlarge_trailing_space
+[054005] m3_comp_button_xsmall_icon_label_space
+[054007] m3_comp_button_xsmall_leading_space
+[054009] m3_comp_button_xsmall_trailing_space
+[054013] m3_comp_date_picker_modal_range_selection_header_container_height
+[054018] m3_comp_extended_fab_large_icon_label_space
+[054020] m3_comp_extended_fab_large_leading_space
+[054021] m3_comp_extended_fab_large_trailing_space
+[054023] m3_comp_extended_fab_medium_icon_label_space
+[054025] m3_comp_extended_fab_medium_leading_space
+[054026] m3_comp_extended_fab_medium_trailing_space
+[054035] m3_comp_extended_fab_small_icon_label_space
+[054037] m3_comp_extended_fab_small_leading_space
+[054038] m3_comp_extended_fab_small_trailing_space
+[054067] m3_comp_icon_button_large_default_leading_space
+[054068] m3_comp_icon_button_large_default_trailing_space
+[054070] m3_comp_icon_button_large_narrow_leading_space
+[054071] m3_comp_icon_button_large_narrow_trailing_space
+[054073] m3_comp_icon_button_large_wide_leading_space
+[054074] m3_comp_icon_button_large_wide_trailing_space
+[054075] m3_comp_icon_button_medium_default_leading_space
+[054076] m3_comp_icon_button_medium_default_trailing_space
+[054078] m3_comp_icon_button_medium_narrow_leading_space
+[054079] m3_comp_icon_button_medium_narrow_trailing_space
+[054081] m3_comp_icon_button_medium_wide_leading_space
+[054082] m3_comp_icon_button_medium_wide_trailing_space
+[054083] m3_comp_icon_button_small_default_leading_space
+[054084] m3_comp_icon_button_small_default_trailing_space
+[054086] m3_comp_icon_button_small_narrow_leading_space
+[054087] m3_comp_icon_button_small_narrow_trailing_space
+[054089] m3_comp_icon_button_small_wide_leading_space
+[054090] m3_comp_icon_button_small_wide_trailing_space
+[054091] m3_comp_icon_button_xlarge_default_leading_space
+[054092] m3_comp_icon_button_xlarge_default_trailing_space
+[054094] m3_comp_icon_button_xlarge_narrow_leading_space
+[054095] m3_comp_icon_button_xlarge_narrow_trailing_space
+[054097] m3_comp_icon_button_xlarge_wide_leading_space
+[054098] m3_comp_icon_button_xlarge_wide_trailing_space
+[054099] m3_comp_icon_button_xsmall_default_leading_space
+[054100] m3_comp_icon_button_xsmall_default_trailing_space
+[054102] m3_comp_icon_button_xsmall_narrow_leading_space
+[054103] m3_comp_icon_button_xsmall_narrow_trailing_space
+[054105] m3_comp_icon_button_xsmall_wide_leading_space
+[054106] m3_comp_icon_button_xsmall_wide_trailing_space
+[054117] m3_comp_nav_bar_item_active_indicator_icon_label_space
+[054122] m3_comp_nav_bar_item_vertical_container_between_space
+[054125] m3_comp_nav_rail_collapsed_item_vertical_space
+[054127] m3_comp_nav_rail_collapsed_top_space
+[054134] m3_comp_nav_rail_item_container_vertical_space
+[054135] m3_comp_nav_rail_item_header_space_minimum
+[054137] m3_comp_nav_rail_item_horizontal_full_width_leading_space
+[054138] m3_comp_nav_rail_item_horizontal_full_width_trailing_space
+[054139] m3_comp_nav_rail_item_horizontal_icon_label_space
+[054144] m3_comp_nav_rail_item_vertical_icon_label_space
+[054145] m3_comp_nav_rail_item_vertical_leading_space
+[054146] m3_comp_nav_rail_item_vertical_trailing_space
+[054175] m3_comp_progress_indicator_circular_track_active_indicator_space
+[054182] m3_comp_progress_indicator_linear_track_active_indicator_space
+[054213] m3_comp_slider_active_handle_leading_space
+[054233] m3_comp_slider_value_indicator_active_bottom_space
+[054242] m3_comp_split_button_large_leading_button_leading_space
+[054243] m3_comp_split_button_large_leading_button_trailing_space
+[054245] m3_comp_split_button_large_trailing_button_leading_space
+[054246] m3_comp_split_button_large_trailing_button_trailing_space
+[054247] m3_comp_split_button_medium_leading_button_leading_space
+[054248] m3_comp_split_button_medium_leading_button_trailing_space
+[054250] m3_comp_split_button_medium_trailing_button_leading_space
+[054251] m3_comp_split_button_medium_trailing_button_trailing_space
+[054252] m3_comp_split_button_small_leading_button_leading_space
+[054253] m3_comp_split_button_small_leading_button_trailing_space
+[054255] m3_comp_split_button_small_trailing_button_leading_space
+[054256] m3_comp_split_button_small_trailing_button_trailing_space
+[054257] m3_comp_split_button_xlarge_leading_button_leading_space
+[054258] m3_comp_split_button_xlarge_leading_button_trailing_space
+[054260] m3_comp_split_button_xlarge_trailing_button_leading_space
+[054261] m3_comp_split_button_xlarge_trailing_button_trailing_space
+[054262] m3_comp_split_button_xsmall_leading_button_leading_space
+[054263] m3_comp_split_button_xsmall_leading_button_trailing_space
+[054265] m3_comp_split_button_xsmall_trailing_button_leading_space
+[054266] m3_comp_split_button_xsmall_trailing_button_trailing_space
+[054272] m3_comp_switch_disabled_selected_handle_opacity
+[054273] m3_comp_switch_disabled_selected_icon_opacity
+[054274] m3_comp_switch_disabled_track_opacity
+[054275] m3_comp_switch_disabled_unselected_handle_opacity
+[054276] m3_comp_switch_disabled_unselected_icon_opacity
+[054277] m3_comp_switch_selected_focus_state_layer_opacity
+[054278] m3_comp_switch_selected_hover_state_layer_opacity
+[054279] m3_comp_switch_selected_pressed_state_layer_opacity
+[054280] m3_comp_switch_track_height
+[054281] m3_comp_switch_track_width
+[054282] m3_comp_switch_unselected_focus_state_layer_opacity
+[054283] m3_comp_switch_unselected_hover_state_layer_opacity
+[054284] m3_comp_switch_unselected_pressed_state_layer_opacity
+[054295] m3_comp_toolbar_docked_container_leading_space
+[054296] m3_comp_toolbar_docked_container_trailing_space
+[054298] m3_comp_toolbar_floating_container_leading_space
+[054299] m3_comp_toolbar_floating_container_trailing_space
+[054330] m3_extended_fab_change_size_collapse_motion_spec
+[054331] m3_extended_fab_change_size_expand_motion_spec
+[054335] m3_extended_fab_hide_motion_spec
+[054338] m3_extended_fab_show_motion_spec
+[054372] m3_motion_fade_enter
+[054373] m3_motion_fade_exit
+[054374] m3_multiline_hint_filled_text_extra_space
+[054389] m3_navigation_item_leading_trailing_space
+[054405] m3_navigation_rail_expanded_leading_trailing_space
+[054782] m3_selection_control_ripple
+[054783] m3_selection_control_ripple_color_selector
+[054822] m3_switch_thumb_tint
+[054823] m3_switch_track_tint
+[054990] m3_sys_motion_duration_extra_long1
+[054991] m3_sys_motion_duration_extra_long2
+[054992] m3_sys_motion_duration_extra_long3
+[054993] m3_sys_motion_duration_extra_long4
+[054994] m3_sys_motion_duration_long1
+[054995] m3_sys_motion_duration_long2
+[054996] m3_sys_motion_duration_long3
+[054997] m3_sys_motion_duration_long4
+[054998] m3_sys_motion_duration_medium1
+[054999] m3_sys_motion_duration_medium2
+[055000] m3_sys_motion_duration_medium3
+[055001] m3_sys_motion_duration_medium4
+[055002] m3_sys_motion_duration_short1
+[055003] m3_sys_motion_duration_short2
+[055004] m3_sys_motion_duration_short3
+[055005] m3_sys_motion_duration_short4
+[055006] m3_sys_motion_easing_emphasized
+[055007] m3_sys_motion_easing_emphasized_accelerate
+[055008] m3_sys_motion_easing_emphasized_accelerate_control_x1
+[055009] m3_sys_motion_easing_emphasized_accelerate_control_x2
+[055010] m3_sys_motion_easing_emphasized_accelerate_control_y1
+[055011] m3_sys_motion_easing_emphasized_accelerate_control_y2
+[055012] m3_sys_motion_easing_emphasized_decelerate
+[055013] m3_sys_motion_easing_emphasized_decelerate_control_x1
+[055014] m3_sys_motion_easing_emphasized_decelerate_control_x2
+[055015] m3_sys_motion_easing_emphasized_decelerate_control_y1
+[055016] m3_sys_motion_easing_emphasized_decelerate_control_y2
+[055017] m3_sys_motion_easing_emphasized_path_data
+[055018] m3_sys_motion_easing_legacy
+[055019] m3_sys_motion_easing_legacy_accelerate
+[055020] m3_sys_motion_easing_legacy_accelerate_control_x1
+[055021] m3_sys_motion_easing_legacy_accelerate_control_x2
+[055022] m3_sys_motion_easing_legacy_accelerate_control_y1
+[055023] m3_sys_motion_easing_legacy_accelerate_control_y2
+[055024] m3_sys_motion_easing_legacy_control_x1
+[055025] m3_sys_motion_easing_legacy_control_x2
+[055026] m3_sys_motion_easing_legacy_control_y1
+[055027] m3_sys_motion_easing_legacy_control_y2
+[055028] m3_sys_motion_easing_legacy_decelerate
+[055029] m3_sys_motion_easing_legacy_decelerate_control_x1
+[055030] m3_sys_motion_easing_legacy_decelerate_control_x2
+[055031] m3_sys_motion_easing_legacy_decelerate_control_y1
+[055032] m3_sys_motion_easing_legacy_decelerate_control_y2
+[055033] m3_sys_motion_easing_linear
+[055034] m3_sys_motion_easing_linear_control_x1
+[055035] m3_sys_motion_easing_linear_control_x2
+[055036] m3_sys_motion_easing_linear_control_y1
+[055037] m3_sys_motion_easing_linear_control_y2
+[055038] m3_sys_motion_easing_standard
+[055039] m3_sys_motion_easing_standard_accelerate
+[055040] m3_sys_motion_easing_standard_accelerate_control_x1
+[055041] m3_sys_motion_easing_standard_accelerate_control_x2
+[055042] m3_sys_motion_easing_standard_accelerate_control_y1
+[055043] m3_sys_motion_easing_standard_accelerate_control_y2
+[055044] m3_sys_motion_easing_standard_control_x1
+[055045] m3_sys_motion_easing_standard_control_x2
+[055046] m3_sys_motion_easing_standard_control_y1
+[055047] m3_sys_motion_easing_standard_control_y2
+[055048] m3_sys_motion_easing_standard_decelerate
+[055049] m3_sys_motion_easing_standard_decelerate_control_x1
+[055050] m3_sys_motion_easing_standard_decelerate_control_x2
+[055051] m3_sys_motion_easing_standard_decelerate_control_y1
+[055052] m3_sys_motion_easing_standard_decelerate_control_y2
+[055053] m3_sys_motion_path
+[055054] m3_sys_motion_standard_spring_default_effects_damping
+[055055] m3_sys_motion_standard_spring_default_effects_stiffness
+[055056] m3_sys_motion_standard_spring_default_spatial_damping
+[055057] m3_sys_motion_standard_spring_default_spatial_stiffness
+[055058] m3_sys_motion_standard_spring_fast_effects_damping
+[055059] m3_sys_motion_standard_spring_fast_effects_stiffness
+[055060] m3_sys_motion_standard_spring_fast_spatial_damping
+[055061] m3_sys_motion_standard_spring_fast_spatial_stiffness
+[055062] m3_sys_motion_standard_spring_slow_effects_damping
+[055063] m3_sys_motion_standard_spring_slow_effects_stiffness
+[055064] m3_sys_motion_standard_spring_slow_spatial_damping
+[055065] m3_sys_motion_standard_spring_slow_spatial_stiffness
+[055152] mActivePointerId
+[055153] mActiveTouchId
+[055163] mAllowEatingTouch
+[055232] mBehaviorTouchView
+[055272] mCanStartSwipe
+[055315] mCompleteDismissGestureInterpolator
+[055356] mCurrentTouchSlop
+[055381] mDefaultTouchSlop
+[055384] mDeleteLanguageSubject
+[055397] mDiffY_Touch
+[055398] mDifferentialMotionFlingController
+[055399] mDifferentialMotionFlingTarget
+[055400] mDirectTouchAppbar
+[055438] mDownloadedLanguageList
+[055453] mEatingTouch
+[055462] mEnableAutoCollapsingKeyEvent
+[055468] mEnforceSwitchWidth
+[055507] mFirstPointerPosition
+[055544] mGestureThresholdPx
+[055622] mIgnoreMotionEventTillDown
+[055643] mInitialTouchX
+[055644] mInitialTouchY
+[055650] mInterceptingOnItemTouchListener
+[055677] mIsCtrlMultiSelection
+[055688] mIsFirstMultiSelectionMove
+[055700] mIsLongPressMultiSelection
+[055704] mIsNeedPenSelection
+[055711] mIsPenSelectPointerSetted
+[055712] mIsPenSelectionEnabled
+[055735] mIsTouchInBottomGestureArea
+[055763] mKeyboardFocusedVirtualViewId
+[055764] mKeyboardInputType
+[055769] mLanguageInputTypeName
+[055779] mLastInterceptTouchEvent
+[055789] mLastMotionY
+[055790] mLastMotionY_Touch
+[055792] mLastPointerTouched
+[055797] mLastTouchEvent
+[055798] mLastTouchX
+[055799] mLastTouchY
+[055844] mLongPressMultiSelectionListener
+[055845] mLongPressMultiSelectionPointerId
+[055846] mLongPressMultiSelectionScrollEnabled
+[055853] mMainTabTouchBackground
+[055866] mMaxTouchSlop
+[055902] mMotionEventUpPendingFlag
+[055977] mOnItemTouchListeners
+[055989] mOnPreSwipeListener
+[055993] mOnSwipeProgressListener
+[056028] mPagingTouchSlop
+[056036] mPathMotion
+[056073] mPointerIconRotation
+[056210] mScrollPointerId
+[056220] mSecondPointerAngle
+[056221] mSecondPointerPosition
+[056273] mShouldConsumeNoneTouchNestedPreScroll
+[056348] mSwitchBottom
+[056349] mSwitchHeight
+[056350] mSwitchLeft
+[056351] mSwitchMinWidth
+[056352] mSwitchPadding
+[056353] mSwitchRight
+[056354] mSwitchTop
+[056355] mSwitchTransformationMethod
+[056356] mSwitchWidth
+[056359] mTabMinSideSpace
+[056429] mToolbarViewModelOnClickBackspaceButtonKotlinJvmFunctionsFunction0
+[056431] mToolbarViewModelOnClickKeyboardOpenButtonKotlinJvmFunctionsFunction0
+[056432] mToolbarViewModelOnClickLanguageChangeButtonKotlinJvmFunctionsFunction0
+[056433] mToolbarViewModelOnClickSpaceButtonKotlinJvmFunctionsFunction0
+[056442] mTouchMode
+[056443] mTouchSlop
+[056444] mTouchSlop2
+[056445] mTouchX
+[056446] mTouchY
+[056470] mUsePagingTouchSlopForStylus
+[056508] mVmOnSwitchButtonClickedAndroidViewViewOnClickListener
+[056577] main_tab_touch_background
+[056617] mandatorySystemGestures
+[056691] materialAlertDialogButtonSpacerVisibility
+[056712] materialCalendarHeaderSelection
+[056748] materialSwitchStyle
+[056788] material_cursor_color
+[056789] material_cursor_drawable
+[056790] material_cursor_inset
+[056791] material_cursor_width
+[056894] material_hour_selection
+[056901] material_ic_keyboard_arrow_left_black_24dp
+[056902] material_ic_keyboard_arrow_next_black_24dp
+[056903] material_ic_keyboard_arrow_previous_black_24dp
+[056904] material_ic_keyboard_arrow_right_black_24dp
+[056910] material_minute_selection
+[056914] material_motion_duration_long_1
+[056915] material_motion_duration_long_2
+[056916] material_motion_duration_medium_1
+[056917] material_motion_duration_medium_2
+[056918] material_motion_duration_short_1
+[056919] material_motion_duration_short_2
+[056920] material_motion_easing_accelerated
+[056921] material_motion_easing_decelerated
+[056922] material_motion_easing_emphasized
+[056923] material_motion_easing_linear
+[056924] material_motion_easing_standard
+[056925] material_motion_path
+[056999] material_textinput_default_width
+[057000] material_textinput_max_width
+[057001] material_textinput_min_width
+[057002] material_textinput_min_width_with_label
+[057003] material_textinput_timepicker
+[057026] material_timepicker_textinput_display
+[057325] minTouchTargetSize
+[057337] minimizeGestureDetector
+[057367] minuteTextInput
+[057371] mismatch keyboard size type attrSizeType = 
+[057398] moaSwipeAngle : 
+[057399] moaSwipeCustomAngle
+[057402] moakeySwipeAngle
+[057403] moakeySwipeLength
+[057435] modeSwitchCount
+[057484] motionDebug
+[057485] motionDurationExtraLong1
+[057486] motionDurationExtraLong2
+[057487] motionDurationExtraLong3
+[057488] motionDurationExtraLong4
+[057489] motionDurationLong1
+[057490] motionDurationLong2
+[057491] motionDurationLong3
+[057492] motionDurationLong4
+[057493] motionDurationMedium1
+[057494] motionDurationMedium2
+[057495] motionDurationMedium3
+[057496] motionDurationMedium4
+[057497] motionDurationShort1
+[057498] motionDurationShort2
+[057499] motionDurationShort3
+[057500] motionDurationShort4
+[057501] motionEasingAccelerated
+[057502] motionEasingDecelerated
+[057503] motionEasingEmphasized
+[057504] motionEasingEmphasizedAccelerateInterpolator
+[057505] motionEasingEmphasizedDecelerateInterpolator
+[057506] motionEasingEmphasizedInterpolator
+[057507] motionEasingLinear
+[057508] motionEasingLinearInterpolator
+[057509] motionEasingStandard
+[057510] motionEasingStandardAccelerateInterpolator
+[057511] motionEasingStandardDecelerateInterpolator
+[057512] motionEasingStandardInterpolator
+[057513] motionEffect_alpha
+[057514] motionEffect_end
+[057515] motionEffect_move
+[057516] motionEffect_start
+[057517] motionEffect_strict
+[057518] motionEffect_translationX
+[057519] motionEffect_translationY
+[057520] motionEffect_viewTransition
+[057521] motionEvent
+[057522] motionEventFlow
+[057523] motionInterpolator
+[057524] motionPath
+[057525] motionPathLength
+[057526] motionPathMeasure
+[057527] motionPathPosition
+[057528] motionPathRotate
+[057529] motionProgress
+[057530] motionSpec
+[057531] motionSpringDefaultEffects
+[057532] motionSpringDefaultSpatial
+[057533] motionSpringFastEffects
+[057534] motionSpringFastSpatial
+[057535] motionSpringSlowEffects
+[057536] motionSpringSlowSpatial
+[057537] motionStagger
+[057538] motionTarget
+[057539] motion_base
+[057540] motion_postLayoutCollision
+[057541] motion_triggerOnCollision
+[057588] moveSelection
+[057726] mtrl_calendar_header_selection_line_height
+[057745] mtrl_calendar_selection_baseline_to_top_fullscreen
+[057746] mtrl_calendar_selection_frame
+[057747] mtrl_calendar_selection_text_baseline_to_bottom
+[057748] mtrl_calendar_selection_text_baseline_to_bottom_fullscreen
+[057749] mtrl_calendar_selection_text_baseline_to_top
+[057750] mtrl_calendar_selection_text_lines
+[057820] mtrl_extended_fab_change_size_collapse_motion_spec
+[057821] mtrl_extended_fab_change_size_expand_motion_spec
+[057827] mtrl_extended_fab_hide_motion_spec
+[057832] mtrl_extended_fab_show_motion_spec
+[057842] mtrl_fab_hide_motion_spec
+[057844] mtrl_fab_min_touch_target
+[057846] mtrl_fab_show_motion_spec
+[057878] mtrl_min_touch_target_size
+[057879] mtrl_motion_snapshot_view
+[057913] mtrl_picker_announce_current_range_selection
+[057914] mtrl_picker_announce_current_selection
+[057915] mtrl_picker_announce_current_selection_none
+[057928] mtrl_picker_header_selection_text
+[057929] mtrl_picker_header_title_and_selection
+[057959] mtrl_picker_toggle_to_day_selection
+[057961] mtrl_picker_toggle_to_year_selection
+[057962] mtrl_picker_toggled_to_day_selection
+[057963] mtrl_picker_toggled_to_year_selection
+[058004] mtrl_switch_text_padding
+[058005] mtrl_switch_thumb
+[058006] mtrl_switch_thumb_checked
+[058007] mtrl_switch_thumb_checked_pressed
+[058008] mtrl_switch_thumb_checked_unchecked
+[058009] mtrl_switch_thumb_elevation
+[058010] mtrl_switch_thumb_group_name
+[058011] mtrl_switch_thumb_icon_size
+[058012] mtrl_switch_thumb_icon_tint
+[058013] mtrl_switch_thumb_motion_duration
+[058014] mtrl_switch_thumb_path_checked
+[058015] mtrl_switch_thumb_path_morphing
+[058016] mtrl_switch_thumb_path_name
+[058017] mtrl_switch_thumb_path_pressed
+[058018] mtrl_switch_thumb_path_unchecked
+[058019] mtrl_switch_thumb_post_morphing_duration
+[058020] mtrl_switch_thumb_pre_morphing_duration
+[058021] mtrl_switch_thumb_pressed
+[058022] mtrl_switch_thumb_pressed_checked
+[058023] mtrl_switch_thumb_pressed_duration
+[058024] mtrl_switch_thumb_pressed_unchecked
+[058025] mtrl_switch_thumb_size
+[058026] mtrl_switch_thumb_tint
+[058027] mtrl_switch_thumb_unchecked
+[058028] mtrl_switch_thumb_unchecked_checked
+[058029] mtrl_switch_thumb_unchecked_pressed
+[058030] mtrl_switch_thumb_viewport_center_coordinate
+[058031] mtrl_switch_thumb_viewport_size
+[058032] mtrl_switch_track
+[058033] mtrl_switch_track_decoration
+[058034] mtrl_switch_track_decoration_path
+[058035] mtrl_switch_track_decoration_tint
+[058036] mtrl_switch_track_height
+[058037] mtrl_switch_track_path
+[058038] mtrl_switch_track_tint
+[058039] mtrl_switch_track_viewport_height
+[058040] mtrl_switch_track_viewport_width
+[058041] mtrl_switch_track_width
+[058044] mtrl_textinput_box_corner_radius_medium
+[058045] mtrl_textinput_box_corner_radius_small
+[058046] mtrl_textinput_box_label_cutout_padding
+[058047] mtrl_textinput_box_stroke_width_default
+[058048] mtrl_textinput_box_stroke_width_focused
+[058049] mtrl_textinput_counter_margin_start
+[058050] mtrl_textinput_default_box_stroke_color
+[058051] mtrl_textinput_disabled_color
+[058052] mtrl_textinput_end_icon_margin_start
+[058053] mtrl_textinput_focused_box_stroke_color
+[058054] mtrl_textinput_hovered_box_stroke_color
+[058055] mtrl_textinput_outline_box_expanded_padding
+[058056] mtrl_textinput_start_icon_margin_end
+[058087] multiSelection, mPenTrackedChild is NULL
+[058224] navBarBackGestureOnKeyboard
+[058236] navigationGesture
+[058244] navigation_bar_back_gesture_on_keyboard
+[058245] navigation_bar_button_to_hide_keyboard
+[058246] navigation_bar_gesture_while_hidden
+[058276] needBackspace
+[058291] needToDownloadLanguages : 
+[058382] newCursor
+[058498] nextNonWhitespace
+[058569] nonTouchAreaWidth
+[058577] normal : addCSCLanguageList : 
+[058578] normal : addDefaultLanguage : 
+[058579] normal : addEnglishLanguage : 
+[058580] normal : addLanguage : 
+[058581] normal : addLocaleLanguage : 
+[058582] normal : updateLanguage : 
+[058585] normalLanguageModel
+[058595] normal_keyboard_bias_left
+[058596] normal_keyboard_bias_left_landscape
+[058597] normal_keyboard_guideline_bottom
+[058598] normal_keyboard_guideline_bottom_landscape
+[058599] normal_keyboard_guideline_left
+[058600] normal_keyboard_guideline_left_landscape
+[058601] normal_keyboard_guideline_right
+[058602] normal_keyboard_guideline_right_landscape
+[058603] normal_keyboard_height
+[058604] normal_keyboard_height_landscape
+[058605] normal_keyboard_inner_height
+[058606] normal_keyboard_inner_height_landscape
+[058607] normal_keyboard_inner_width
+[058608] normal_keyboard_inner_width_landscape
+[058801] null cannot be cast to non-null type android.view.inputmethod.InputMethodManager
+[058837] null cannot be cast to non-null type com.samsung.android.honeyboard.base.languagepack.language.Language
+[058838] null cannot be cast to non-null type com.samsung.android.honeyboard.base.languagepack.selectedlanguage.SelectedLanguage
+[058849] null cannot be cast to non-null type com.samsung.android.honeyboard.settings.languagesandtypes.editinput.ui.EditLanguageListAdapter
+[058874] null cannot be cast to non-null type kotlin.collections.MutableList<com.samsung.android.honeyboard.base.languagepack.language.Language>
+[058885] null!! detectedLanguage: 
+[058900] numberLocale
+[059124] on PerformGesture : request 
+[059228] onBackspaceFabPressed
+[059278] onChangeBeeHiveViewModelKeyboardBarNumberVisibility
+[059284] onChangeBeeItemKeyboardBarNumber
+[059309] onChangeToolbarViewModelKeyboardOpenButtonVisibility
+[059310] onChangeToolbarViewModelLanguageChangeButtonVisibility
+[059312] onChangeToolbarViewModelSpaceButtonVisibility
+[059321] onCheckIsTextEditor
+[059343] onClickBackspaceButton
+[059350] onClickKeyboardOpenButton
+[059351] onClickLanguageChangeButton
+[059352] onClickLanguageChangeButton failed
+[059353] onClickLanguageDownloadButton
+[059359] onClickSpaceButton
+[059419] onCreateMotionSpec
+[059427] onCreateTextInputView
+[059436] onCurationSelected failed, switch callback is null
+[059509] onEdgeTouched
+[059515] onEditorAction
+[059517] onEmojiCompatInitializedForSwitchText
+[059566] onFinishKeyboardPositionChange
+[059605] onGenericMotionEvent
+[059636] onIncompleteSelectionChanged
+[059649] onInputDeviceAdded :: currentPhysicalKeyboardStatus : 
+[059655] onIntercept DOWN mTouchSlop[
+[059657] onIntercept POINTER_DOWN mLastTouchX[
+[059662] onInterceptTouchEvent
+[059663] onInterceptTouchEvent$lambda$1
+[059664] onInterceptTouchEvent: #1 set mInitialTouchX = 
+[059665] onInterceptTouchEvent: #2 mInitialTouchX = 
+[059666] onInterceptTouchEvent: #2 set mInitialTouchX = 
+[059667] onInterceptTouchEventInternal result=
+[059668] onInterceptTouchTrigger
+[059724] onLocaleChanged
+[059725] onLocaleChanged reset language in setupWizard
+[059726] onLocaleChanged skip. changedLocales: 
+[059727] onLocalesChanged
+[059808] onPackSelected failed, switch callback is null
+[059857] onPointerCaptureChanged
+[059883] onPreSwipe
+[059884] onPreSwipeStart
+[059918] onProvideKeyboardShortcuts
+[059929] onReceive ClipboardSmartSwitchReceiver
+[059930] onReceive SmartSwitchReceiver
+[059972] onResolvePointerIcon
+[060026] onSecondaryPointerUp
+[060031] onSelectionChangeListener
+[060032] onSelectionChanged
+[060033] onSelectionChangedListeners
+[060091] onStartKeyboardPositionChange
+[060102] onStartTrackingTouch
+[060126] onStopTrackingTouch
+[060127] onStylusHandwritingMotionEvent
+[060147] onSwipeCanceled
+[060148] onSwipeCanceled$lambda$0
+[060149] onSwipeCanceled() run swipe cancel animation
+[060150] onSwipeProgressChanged
+[060151] onSwipeProgressChanged() - 
+[060152] onSwipeStarted
+[060153] onSwitchButtonClicked
+[060154] onSwitchToSearchBoard
+[060180] onTextInputBoxStateUpdated
+[060190] onTouch
+[060191] onTouch DOWN mInitialTouchX[
+[060192] onTouchDown
+[060193] onTouchEvent
+[060194] onTouchEvent Drag Start
+[060195] onTouchEvent is consumed in ResultView(STATE_IDLE)
+[060196] onTouchEvent onInterceptTouchEvent 
+[060197] onTouchEvent$lambda$3
+[060198] onTouchEventInternal value=
+[060199] onTouchEventTrigger
+[060200] onTouchExplorationHoverEvent
+[060201] onTouchExplorationStateChanged
+[060202] onTouchListener
+[060203] onTouchListeners
+[060204] onTouchMinimizeThreshold
+[060205] onTouchOnWindow
+[060206] onTouchUp
+[060207] onTouchUp() velocity : 
+[060223] onUpdateCursorAnchorInfo
+[060224] onUpdateEditorToolType
+[060226] onUpdateSelection
+[060255] onVirtualViewKeyboardFocusChanged
+[060292] ondevice, type : SPELLING AND GRAMMAR, language : 
+[060308] oneHandSwitchButtonBg
+[060309] oneHandSwitchContentDescription
+[060310] oneHandSwitchMargin
+[060319] onehand_keyboard_height
+[060320] onehand_keyboard_height_landscape
+[060321] onehand_keyboard_inner_height
+[060322] onehand_keyboard_inner_height_landscape
+[060323] onehand_keyboard_inner_width
+[060324] onehand_keyboard_inner_width_landscape
+[060325] onehand_keyboard_width
+[060326] onehand_keyboard_width_landscape
+[060390] open_search_view_status_bar_spacer
+[060499] outColorSpace
+[060511] outShadowTouchPoint
+[060610] packed-switch
+[060611] packed-switch-payload
+[060740] parseKeyboardLayout
+[060776] particleSpace
+[060777] particle_extra_space_for_shadow
+[060813] pathMotionArc
+[060814] pathMotionCustom
+[060855] peekHeightGestureInsetBuffer
+[060894] pending_locale_changed_broadcast
+[060906] performBackspaceAction
+[060907] performBackspaceAction : 
+[060920] performEditorAction
+[060921] performEditorAction : 
+[060926] performHandwritingGesture
+[060935] performMotion
+[060969] persist.keyboard.enable_write_lagLog
+[060991] photoEditorCallbackListener
+[060992] photoEditorServiceManager
+[060994] physicalKeyboardToolBar
+[060995] physicalKeyboardToolBarBeeExecutor
+[060996] physicalKeyboardToolBarLayoutManager
+[060997] physicalKeyboardToolBarOnTouchListener
+[060998] physicalKeyboardToolBarOnTouchListener$delegate
+[060999] physicalKeyboardToolBarPolicy
+[061000] physicalKeyboardToolBarStatusProvider
+[061054] playTouchFeedback
+[061055] playTouchFeedback : 
+[061070] plusForSpace
+[061071] plusForSpace cannot be specified when space is a 'safe' character
+[061084] pointerId
+[061104] popover_extra_space_for_shadow
+[061209] postDispatchSwipe$run: mCallback.onSwiped anim.mViewHolder = 
+[061210] postDispatchSwipe$run: mRecyclerView = 
+[061290] pref_keyboard_front_view_type
+[061291] pref_keyboard_front_view_type_land
+[061295] pref_prev_keyboard_front_view_type
+[061296] pref_prev_keyboard_front_view_type_land
+[061350] pressBackspaceKey
+[061369] prevLanguage
+[061370] prevMotionX
+[061371] prevMotionY
+[061377] prevTouchX
+[061378] prevTouchY
+[061384] previewInputMethodDex
+[061395] previous_keyboard_size_version
+[061479] processReplaceEditorInfo
+[061589] provideAltCharacterMap()Lcom/samsung/android/honeyboard/data/keyboard/model/keymap/alt/AltCharacterMap;
+[061593] provideNumberKeyMap()Lcom/samsung/android/honeyboard/data/keyboard/model/keymap/number/NumberKeyMap;
+[061600] provideUmlautCharacterMap()Lcom/samsung/android/honeyboard/data/keyboard/model/keymap/umlaut/UmlautCharacterMap;
+[061602] provideUpperCharacterMap()Lcom/samsung/android/honeyboard/data/keyboard/model/keymap/upper/UpperCharacterMap;
+[061626] punctuateIntForLanguage
+[061716] quantizeMotionInterpolator
+[061717] quantizeMotionPhase
+[061718] quantizeMotionSteps
+[061944] receivedLanguages
+[061953] recognized gesture : 
+[062007] reduced motion
+[062008] reduced-motion
+[062009] reduced_motion
+[062010] reducedmotion
+[062145] registerSwitchIndeterminateModeCallback
+[062187] reloadCustomerSettings keyboardSwipeType = 
+[062189] reloadCustomerSettings useNoneKeyboardSwipe = 
+[062193] reloadLanguageData, reload : 
+[062304] removeLanguageIDInHWROnList 
+[062305] removeLanguageIDInHWROnList after 
+[062306] removeLanguagePackByThread : 
+[062339] removeOnItemTouchListener
+[062357] removeOnSelectionChangedListener
+[062360] removeOnSliderTouchListener
+[062412] removeTouchExplorationStateChangeListener
+[062413] removeTouchExplorationStateChangeListenerIfNeeded
+[062452] replaceEditorInfoForLocal : preview Index : 
+[062486] request language change to HBD: 
+[062512] requestCursorUpdates
+[062514] requestDisallowInterceptTouchEvent
+[062525] requestFocusAndShowKeyboard
+[062526] requestFocusAndShowKeyboardIfNeeded
+[062536] requestKeyboardFocusForVirtualView
+[062567] requestSwitchToDefaultBoard
+[062596] requestingDisallowInterceptTouchEvent
+[062665] resetMotionDetector: reason=
+[062712] resizeTouchSize
+[062732] resolveMinimumAccessibleTouchTarget
+[062886] return by dragHandlerController onTouchEvent=
+[063042] runTranslate: sourceLanguage=
+[063133] sa_logging_selection_info
+[063150] samsungKeyboard.perform.setEmojiSuggestions
+[063151] samsungKeyboard.perform.setSaveScreenshotsToClipboard
+[063152] samsungKeyboard.perform.setSpenToText
+[063153] samsungKeyboard.perform.setSpenToTextToolbar
+[063154] samsungKeyboard.perform.setSuggestResponses
+[063155] samsungKeyboard.perform.setTranslationMode
+[063172] save - need to download languages : 
+[063194] saveFinalKeyboardConfigFiles failed: 
+[063195] saveFinalKeyboardConfigFiles: 
+[063198] saveInputMethodSubtypeList: 
+[063199] saveInputMethodSubtypeList: skipped due to currentInputMethodId=
+[063200] saveInputMethodSubtypeList: skipped due to writing toolkit process.
+[063201] saveKeyboardConfigFiles: 
+[063277] scaledTouchSlop
+[063512] select$onAnimationEnd: postDispatchSwipe #4
+[063513] select$onAnimationEnd: swipeDir <= 0 #5 do nothing
+[063514] select$onAnimationEnd: swipeDir = 
+[063530] select_language_list_
+[063531] select_language_list_auto_replacement_
+[063532] select_language_list_auto_replacement_0x
+[063533] select_language_list_auto_spacing_
+[063534] select_language_list_auto_spacing_0x
+[063535] select_language_list_prediction_0x
+[063536] select_language_list_spell_checker_
+[063537] select_language_list_spell_checker_0x
+[063538] select_language_list_sub_
+[063539] select_language_list_writing_assistant_0x
+[063556] selectedLanguageId
+[063557] selectedLanguageList
+[063558] selectedLanguages
+[063559] selectedLanguages : 
+[063560] selectedLanguagesCode
+[063574] selected_languages_code
+[063575] selection
+[063576] selectionEnd
+[063577] selectionListener
+[063578] selectionRequired
+[063579] selectionStart
+[063580] selectionStarted
+[063581] selectionText
+[063582] selection_type
+[063599] semEasyModeSwitchOn
+[063617] semIsAccessoryKeyboard
+[063618] semIsInputMethodShown
+[063651] send Backspace event 
+[063666] sendDispatchKeyEvent
+[063681] sendKeyEvent
+[063697] sendSALogging - resetPreferences of key BIG_DATA_SA_LANGUAGE_KEYPAD_STATS_JSON
+[063699] sendSALogging incrementSelectedLanguageKeypadStatistics
+[063800] seslEnableAutoCollapsingKeyEvent
+[063888] seslIsLongPressMultiSelectionScrollEnabled
+[063890] seslIsPagingTouchSlopForStylusEnabled
+[063898] seslLargeTouchAnimator
+[063904] seslMediumTouchAnimator
+[063921] seslRemoveListenerForTouchDelegate
+[063951] seslSetEatingTouch
+[063952] seslSetEatingTouchOnly
+[063989] seslSetLongPressMultiSelectionListener
+[063990] seslSetLongPressMultiSelectionScrollEnabled
+[063999] seslSetPagingTouchSlopForStylus
+[064000] seslSetPenSelectionEnabled
+[064001] seslSetPointerIconRotation
+[064028] seslSetSviEnabled: not supported system locale
+[064037] seslSetTouchDelegateForBottomBar
+[064038] seslSetTouchDelegateForSnackBar
+[064054] seslSmallTouchAnimator
+[064059] seslStartLongPressMultiSelection
+[064071] seslSwitchBarBackgroundActivatedColor
+[064072] seslSwitchBarBackgroundColor
+[064073] seslSwitchBarStyle
+[064074] seslSwitchBarTextActivatedColor
+[064075] seslSwitchBarTextColor
+[064166] sesl_action_menu_touch_delegate_left
+[064198] sesl_appbar_extended_title_extra_line_space
+[064452] sesl_config_closeDialogWhenTouchOutside
+[064456] sesl_config_showMenuShortcutsWhenKeyboardPresent
+[064694] sesl_fast_scroll_additional_touch_area
+[064702] sesl_fast_scroller_touch_target_min_size
+[064831] sesl_floating_pane_untouchable_area_padding
+[064861] sesl_focus_stroke_switch_dark
+[064862] sesl_focus_stroke_switch_light
+[065092] sesl_list_switch_sreen_start_padding
+[065140] sesl_menu_popup_max_height_mobile_keyboard
+[065142] sesl_menu_popup_max_item_count_mobile_keyboard
+[065231] sesl_navigation_up_touch_delegate_right
+[065238] sesl_pen_block_selection
+[065273] sesl_preference_switch_padding_vertical
+[065394] sesl_resize_touch_area_size
+[065648] sesl_switch_background
+[065649] sesl_switch_divider_color_dark
+[065650] sesl_switch_divider_color_light
+[065651] sesl_switch_divider_height
+[065652] sesl_switch_off
+[065653] sesl_switch_on
+[065654] sesl_switch_recoil_background_dark
+[065655] sesl_switch_recoil_background_light
+[065656] sesl_switch_thumb_dark_disabled_off
+[065657] sesl_switch_thumb_dark_disabled_on
+[065658] sesl_switch_thumb_disabled_off
+[065659] sesl_switch_thumb_disabled_on
+[065660] sesl_switch_thumb_off
+[065661] sesl_switch_thumb_off_color
+[065662] sesl_switch_thumb_off_disabled_color
+[065663] sesl_switch_thumb_off_disabled_color_dark
+[065664] sesl_switch_thumb_off_disabled_stroke_color
+[065665] sesl_switch_thumb_off_disabled_stroke_color_dark
+[065666] sesl_switch_thumb_off_stroke_color
+[065667] sesl_switch_thumb_off_stroke_color_dark
+[065668] sesl_switch_thumb_on
+[065669] sesl_switch_thumb_on_color
+[065670] sesl_switch_thumb_on_disabled_color
+[065671] sesl_switch_thumb_on_disabled_color_dark
+[065672] sesl_switch_thumb_on_disabled_stroke_color
+[065673] sesl_switch_thumb_on_disabled_stroke_color_dark
+[065674] sesl_switch_thumb_on_stroke_color_light
+[065675] sesl_switch_thumb_selector_dark
+[065676] sesl_switch_thumb_selector_dark_for_theme
+[065677] sesl_switch_thumb_selector_light
+[065678] sesl_switch_thumb_selector_light_for_theme
+[065679] sesl_switch_track_dark_disabled_off
+[065680] sesl_switch_track_dark_off
+[065681] sesl_switch_track_disabled_off
+[065682] sesl_switch_track_disabled_on
+[065683] sesl_switch_track_off
+[065684] sesl_switch_track_off_color
+[065685] sesl_switch_track_off_color_dark
+[065686] sesl_switch_track_off_disabled_color
+[065687] sesl_switch_track_off_disabled_color_dark
+[065688] sesl_switch_track_on
+[065689] sesl_switch_track_on_color_light
+[065690] sesl_switch_track_on_disabled_color
+[065691] sesl_switch_track_selector
+[065692] sesl_switch_track_selector_dark
+[065693] sesl_switch_width
+[065694] sesl_switchbar
+[065695] sesl_switchbar_background
+[065696] sesl_switchbar_container
+[065697] sesl_switchbar_height
+[065698] sesl_switchbar_margin_end
+[065699] sesl_switchbar_margin_start
+[065700] sesl_switchbar_off_background_color_dark
+[065701] sesl_switchbar_off_background_color_light
+[065702] sesl_switchbar_off_text
+[065703] sesl_switchbar_off_text_color_dark
+[065704] sesl_switchbar_off_text_color_light
+[065705] sesl_switchbar_on_background_color_dark
+[065706] sesl_switchbar_on_background_color_light
+[065707] sesl_switchbar_on_text
+[065708] sesl_switchbar_on_text_color_light
+[065709] sesl_switchbar_progress
+[065710] sesl_switchbar_progress_margin_right
+[065711] sesl_switchbar_ripple_color
+[065712] sesl_switchbar_switch
+[065713] sesl_switchbar_text
+[065714] sesl_switchthumb
+[065715] sesl_switchthumb_dark_off_dim
+[065716] sesl_switchthumb_dark_on_dim
+[065717] sesl_switchthumb_fillparentlink_scaley_4
+[065718] sesl_switchthumb_fillparentlink_scaley_4_reverse
+[065719] sesl_switchthumb_off
+[065720] sesl_switchthumb_off_dim
+[065721] sesl_switchthumb_off_pressed
+[065722] sesl_switchthumb_off_transition
+[065723] sesl_switchthumb_off_transition_reverse
+[065724] sesl_switchthumb_on_dim
+[065725] sesl_switchthumb_parent_scaley_8
+[065726] sesl_switchthumb_parent_scaley_8_reverse
+[065727] sesl_switchthumb_pressed
+[065728] sesl_switchthumb_stroke_ellipsepath1custom1_fill1_s3pg1p2_pressed
+[065729] sesl_switchthumb_stroke_ellipsepath1custom1_fill1_s3pg1p2_unpressed
+[065730] sesl_switchthumb_strokeparentlink_scaley_0
+[065731] sesl_switchthumb_strokeparentlink_scaley_0_reverse
+[065732] sesl_switchthumb_transition
+[065733] sesl_switchthumb_transition_reverse
+[065743] sesl_tab_min_side_space
+[065801] sesl_tablayout_maintab_touch_background_dark
+[065802] sesl_tablayout_maintab_touch_background_light
+[065838] sesl_tablayout_subtab_side_space
+[065900] sesl_text_cursor
+[065901] sesl_text_cursor_inset
+[065902] sesl_text_cursor_width
+[065995] sesl_tooltip_y_offset_non_touch
+[065996] sesl_tooltip_y_offset_touch
+[066117] setActiveSelection
+[066163] setAnimateOnTouchUp
+[066193] setAppleKeyboards
+[066194] setAppleLanguages
+[066195] setAppleLocale
+[066196] setApplicationLocales
+[066222] setAutoShowKeyboard
+[066261] setBackspaceFabVisibility
+[066272] setBadgeNumberLocale
+[066419] setCanceledOnTouchOutside
+[066619] setComposerFormat
+[066620] setComposerLength
+[066621] setComposerToneType
+[066647] setContentAreaAsTouchableSurface
+[066729] setCurrentLanguage
+[066730] setCurrentLanguageOrder
+[066745] setCursor
+[066746] setCursorColor
+[066747] setCursorErrorColor
+[066748] setCursorVisible
+[066762] setCustomSelectionActionModeCallback
+[066770] setCustomUntouchableAreaInset
+[066833] setDictationLanguagesEnabled
+[066840] setDiscardTouch
+[066845] setDispatchTouchEventListener
+[066853] setDistanceOfTouchFromCenter
+[066854] setDistanceOfTouchFromCenter distanceOfTouchFromCenterX: 
+[066855] setDistanceOfTouchFromCenter lastTouchPoint: 
+[066912] setDrawerTouchDown
+[066941] setEditorOptions
+[066942] setEditorOptions 
+[066943] setEditorOptions reset
+[066961] setEnableSwipeToType
+[066973] setEndAlphaSwipeDistance
+[066996] setEnforceSwitchWidth
+[067001] setEnsureMinTouchTargetSize
+[067096] setExpressibleSwitchCallback
+[067100] setExtendMotionSpec
+[067101] setExtendMotionSpecResource
+[067106] setExtractedEditTextCursorVisible
+[067188] setFloatingCapsuleSlotProvider switching from legacy projectionView to dynamic capsule slot engine, this=
+[067203] setFocusableInTouchMode
+[067237] setGestureEnabled
+[067238] setGestureInsetBottomIgnored
+[067239] setGesturesEnabled
+[067311] setHideMotionSpec
+[067312] setHideMotionSpecResource
+[067317] setHighContrastKeyboard: isOn=
+[067428] setImeHintLocales
+[067464] setInitialSelection
+[067472] setInputMethod
+[067473] setInputMethodMode
+[067474] setInputMethodServiceInkWindowMode
+[067557] setItemOnTouchListener
+[067586] setKeyboardAllowPaddle
+[067587] setKeyboardAudio
+[067588] setKeyboardAutoCorrection
+[067589] setKeyboardAutocapitalization
+[067590] setKeyboardBias
+[067591] setKeyboardCapsLock
+[067592] setKeyboardCheckSpelling
+[067593] setKeyboardContinuousPathDeleteWholeWord
+[067594] setKeyboardContinuousPathEnabled
+[067595] setKeyboardNavigationCluster
+[067596] setKeyboardOpenButtonVisibility
+[067597] setKeyboardPeriodShortcut
+[067598] setKeyboardPositionData 
+[067599] setKeyboardPrediction
+[067600] setKeyboardSizeData Fail to de-serialize data
+[067601] setKeyboardSizeData data = 
+[067602] setKeyboardSizeData scene value null or empty or prefArray is null
+[067603] setKeyboardUnDock
+[067617] setLanguage
+[067618] setLanguage failed due to textRecognizer is not initialized
+[067619] setLanguageAndMode languageName : 
+[067620] setLanguageChangeButtonVisibility
+[067621] setLanguageId
+[067622] setLanguageVersion
+[067623] setLanguages is completed : 
+[067624] setLanguages is not available
+[067625] setLanguages start. 
+[067641] setLastTouchPoint
+[067721] setListSelection
+[067722] setListSelectionHidden
+[067726] setLivingLanguage
+[067728] setLocale
+[067729] setLocalePreferredLineHeightForMinimumUsed
+[067730] setLocales
+[067753] setMandatorySystemGestureInsets
+[067852] setMinTouchTargetSize
+[067885] setMotionEventSplittingEnabled
+[067886] setMotionSpec
+[067907] setNeedBackspace
+[067944] setNumberLocale
+[067967] setOnBackspaceFabPressed
+[067996] setOnEditorActionListener
+[068008] setOnGenericMotionListener
+[068039] setOnPreSwipeListener
+[068060] setOnSelectionChangeListener
+[068072] setOnSwipeProgressChangedListener
+[068079] setOnTouchListener
+[068116] setOutsideTouchEnabled
+[068117] setOutsideTouchEnabled enabled=
+[068118] setOutsideTouchable
+[068184] setPathMotion
+[068203] setPhotoEditorCallbackListener
+[068261] setPreviousTextMinMaxSize supportedLanguages is empty
+[068471] setScrollingTouchSlop
+[068472] setScrollingTouchSlop(): bad argument constant 
+[068473] setScrollingTouchSlop(): slopConstant[
+[068502] setSelectedJsonData. LanguageRestoreState: 
+[068503] setSelectedLanguageId
+[068504] setSelectedLanguageList
+[068513] setSelection
+[068514] setSelectionFromTop
+[068515] setSelectionRequired
+[068593] setShowMotionSpec
+[068594] setShowMotionSpecResource
+[068607] setShrinkMotionSpec
+[068608] setShrinkMotionSpecResource
+[068621] setSingleSelection
+[068656] setSourceLanguage$HoneyBoard_textBoard_globalRelease$default
+[068657] setSpaceButtonVisibility
+[068682] setStartAlphaSwipeDistance
+[068730] setStatusBarSpacerEnabled
+[068731] setStatusBarSpacerEnabledInternal
+[068810] setSwipeDirection
+[068811] setSwipeable
+[068812] setSwitchBarBackgroundColor
+[068813] setSwitchMinWidth
+[068814] setSwitchPadding
+[068815] setSwitchTextAppearance
+[068816] setSwitchTypeface
+[068821] setSystemGestureExclusionRects
+[068822] setSystemGestureInsets
+[068845] setTargetColorSpace
+[068848] setTargetLanguage$HoneyBoard_textBoard_globalRelease$default
+[068881] setTextInputAccessibilityDelegate
+[068882] setTextInputFormat
+[068883] setTextInputLayoutFocusedRectEnabled
+[068884] setTextLocale
+[068885] setTextLocales
+[069019] setToolbarTouchscreenBlocksFocus
+[069033] setTouchDelegate
+[069034] setTouchInterceptor
+[069035] setTouchModal
+[069036] setTouchProcessing
+[069037] setTouchableInsets
+[069038] setTouchableRegion
+[069039] setTouchableSurfaceInsetsComputer
+[069040] setTouchscreenBlocksFocus
+[069084] setTranslateLanguage
+[069117] setUntouchableAreaInset inset=(
+[069123] setUpContentOnTouchListener
+[069137] setUpStatusBarSpacer
+[069138] setUpStatusBarSpacerInsetListener
+[069298] setZeroTouchableSurface
+[069331] settings_backspace_delete_speed
+[069333] settings_keyboard_swipe
+[069334] settings_keyboard_swipe_continuous_input
+[069335] settings_keyboard_swipe_none
+[069343] settings_spacebar_row_style
+[069344] settings_spacebar_row_style_common_comma
+[069345] settings_spacebar_row_style_common_dot
+[069346] settings_spacebar_row_style_email_domain_v2
+[069347] settings_spacebar_row_style_email_dot_v2
+[069348] settings_spacebar_row_style_japanese_arrow
+[069349] settings_spacebar_row_style_japanese_punctuation
+[069350] settings_spacebar_row_style_url_domain_v2
+[069351] settings_spacebar_row_style_url_dot_v2
+[069352] settings_speak_keyboard_input_aloud_capital_mode
+[069353] settings_speak_keyboard_input_aloud_mode
+[069354] settings_speak_keyboard_input_aloud_on
+[069355] settings_speak_keyboard_input_aloud_phonetic_alphabet
+[069356] settings_speak_keyboard_input_aloud_read_deleted_character
+[069357] settings_touch_and_hold_delay
+[069358] settings_touch_and_hold_space_bar
+[069398] setup_compat_footer_button_middle_space
+[069404] setup_compat_footer_button_stack_middle_space
+[069536] shadowSpace
+[069702] shouldEnsureMinTouchTargetSize
+[069713] shouldIntercept onInterceptTouchEvent 
+[069714] shouldInterceptTouch
+[069715] shouldInterceptTouchEvent
+[069736] shouldShowMenuShortcutsWhenKeyboardPresent
+[069747] shouldUpdateGestureInset
+[069753] shouldUseTextInputLayoutFocusedRect
+[069754] shouldWindowCloseOnTouchOutside
+[069758] show button to hide keyboard : 
+[069759] show keyboard
+[069778] showButtonToHideKeyboard
+[069792] showFloatingSelectionView
+[069793] showFloatingSelectionView$default
+[069794] showFloatingSelectionView$lambda$1
+[069795] showFloatingSelectionView$lambda$2
+[069804] showKeyboard
+[069805] showKeyboardWithAutoHideBehavior
+[069812] showMotionSpec
+[069823] showPointerIcon
+[069855] show_ime_with_hard_keyboard
+[069856] show_keyboard_button
+[069857] show_keyboard_button_position
+[069879] shrinkMotionSpec
+[069935] singleSelection
+[069953] sip_keyboard_type_mouse_id_list
+[069978] skip - need to download languages : 
+[069982] skip replace editorInfo for local preview
+[069988] skip to synchronize. there is no endless language data
+[069989] skip to synchronize. there is no selected Language data
+[069990] skip to update inputType. languageId = 
+[069991] skip to update prediction property - cover language is only supported by Foldable
+[070001] skipClickSelection
+[070114] snapTouchPosition
+[070169] sourceLanguage
+[070170] sourceLanguageName
+[070179] space
+[070180] spaceAfterSeparators
+[070181] spaceBubbleCreator
+[070182] spaceButtonVisibility
+[070183] spaceFocusTracker
+[070184] spaceLanguageThresholdDefaultValue
+[070185] spaceSmartTipExecute
+[070186] space_around
+[070187] space_between
+[070188] space_evenly
+[070189] spacebarRowStyle
+[070190] spacer
+[070200] sparse-switch
+[070201] sparse-switch-payload
+[070203] speakKeyboardInputAloudCapitalMode
+[070204] speakKeyboardInputAloudMode
+[070267] split_normal_keyboard_position_level
+[070268] split_normal_keyboard_position_level_landscape
+[070269] split_normal_keyboard_width_level
+[070270] split_normal_keyboard_width_level_landscape
+[070351] standard_split_keyboard_bias_left
+[070352] standard_split_keyboard_bias_left_landscape
+[070353] standard_split_keyboard_guideline_center_right
+[070354] standard_split_keyboard_guideline_center_right_landscape
+[070355] standard_split_keyboard_guideline_right
+[070356] standard_split_keyboard_guideline_right_landscape
+[070357] standard_split_keyboard_inner_width
+[070358] standard_split_keyboard_inner_width_landscape
+[070364] start download language : 
+[070371] start update language : 
+[070427] startDownload(Lcom/samsung/android/honeyboard/base/languagepack/language/Language;)V
+[070578] startTabTouchAnimation
+[070599] startUpdate(Lcom/samsung/android/honeyboard/base/languagepack/language/Language;)V
+[070666] statusBarSpacer
+[070667] statusBarSpacerEnabledOverride
+[070808] stv_keyboard
+[070875] sub_screen_keyboard_bottom_level_portrait
+[070876] sub_screen_keyboard_height_level_portrait
+[070896] subscreen_floating_keyboard_height
+[070897] subscreen_floating_keyboard_height_landscape
+[070898] subscreen_floating_keyboard_width
+[070899] subscreen_floating_keyboard_width_landscape
+[070900] subscreen_keyboard_bias_left
+[070901] subscreen_keyboard_bias_left_landscape
+[070902] subscreen_keyboard_guideline_bottom
+[070903] subscreen_keyboard_guideline_left
+[070904] subscreen_keyboard_guideline_right
+[070905] subscreen_keyboard_height
+[070906] subscreen_keyboard_height_landscape
+[070907] subscreen_keyboard_inner_height
+[070908] subscreen_keyboard_inner_height_landscape
+[070909] subscreen_keyboard_inner_width
+[070910] subscreen_keyboard_inner_width_landscape
+[070911] subscreen_onehand_keyboard_height
+[070912] subscreen_onehand_keyboard_inner_height
+[070913] subscreen_onehand_keyboard_inner_width
+[070914] subscreen_onehand_keyboard_width
+[070915] subscreen_standard_split_keyboard_bias_left_landscape
+[070916] subscreen_standard_split_keyboard_inner_width_landscape
+[071055] sudCardViewSkipClickSelection
+[071202] sudSwitchBarThumbOffColor
+[071203] sudSwitchBarThumbOnColor
+[071204] sudSwitchBarTrackOffColor
+[071205] sudSwitchBarTrackOffOutlineColor
+[071206] sudSwitchBarTrackOnColor
+[071358] sud_dynamic_switch_thumb_off_dark
+[071359] sud_dynamic_switch_thumb_off_light
+[071360] sud_dynamic_switch_thumb_off_outline_dark
+[071361] sud_dynamic_switch_thumb_off_outline_light
+[071362] sud_dynamic_switch_thumb_on_dark
+[071363] sud_dynamic_switch_thumb_on_light
+[071364] sud_dynamic_switch_track_off_dark
+[071365] sud_dynamic_switch_track_off_light
+[071366] sud_dynamic_switch_track_on_dark
+[071367] sud_dynamic_switch_track_on_light
+[071380] sud_expressive_switch_padding_start
+[071550] sud_glif_expressive_setup_progress_bs_card_item_space
+[071554] sud_glif_expressive_setup_progress_bs_item_space
+[071699] sud_ic_switch_check_mark_expressive
+[071700] sud_ic_switch_selector_expressive
+[071701] sud_ic_switch_uncheck_mark_expressive
+[071751] sud_items_expandable_switch
+[071752] sud_items_expandable_switch_content
+[071753] sud_items_expandable_switch_expressive
+[071792] sud_items_switch
+[071793] sud_items_switch_divider
+[071794] sud_items_switch_expressive
+[071795] sud_items_switch_expressive_focusrings
+[071796] sud_items_switch_verbose
+[071950] sud_setup_progress_bottom_sheet_card_item_spacer
+[071986] sud_switch_content_padding_end
+[071987] sud_switch_divider_height
+[071988] sud_switch_divider_padding_top
+[071989] sud_switch_min_width
+[071990] sud_switch_padding_end
+[071991] sud_switch_padding_start
+[071992] sud_switch_padding_top
+[071993] sud_switch_thumb_margin
+[071994] sud_switch_thumb_off
+[071995] sud_switch_thumb_off_dark
+[071996] sud_switch_thumb_off_light
+[071997] sud_switch_thumb_on
+[071998] sud_switch_thumb_on_dark
+[071999] sud_switch_thumb_on_light
+[072000] sud_switch_thumb_selector
+[072001] sud_switch_thumb_size
+[072002] sud_switch_track_height
+[072003] sud_switch_track_off
+[072004] sud_switch_track_off_background
+[072005] sud_switch_track_off_dark
+[072006] sud_switch_track_off_light
+[072007] sud_switch_track_on
+[072008] sud_switch_track_on_background
+[072009] sud_switch_track_on_dark
+[072010] sud_switch_track_on_light
+[072011] sud_switch_track_outline_off_dark
+[072012] sud_switch_track_outline_off_light
+[072013] sud_switch_track_radius
+[072014] sud_switch_track_selector
+[072015] sud_switch_track_width
+[072226] superDispatchKeyEvent
+[072239] supportLanguageData
+[072247] supportSpaceLanguageChange
+[072255] supportedLanguage
+[072256] supportedLanguageList
+[072257] supportedLanguages
+[072258] supportedLanguagesSize : 
+[072259] supportedLanguages[
+[072316] swipeDirection
+[072317] swipeDismissLayout
+[072318] swipeInputCount
+[072319] switch
+[072320] switchAnimator
+[072321] switchDividerColor
+[072322] switchIndeterminateModeCallback
+[072323] switchInputMethod
+[072324] switchMinWidth
+[072325] switchOffStrokeColor
+[072326] switchOtherInputMethod
+[072327] switchPadding
+[072328] switchStyle
+[072329] switchTextAppearance
+[072330] switchToDefaultBoard
+[072331] switchToDefaultBoard : 
+[072332] switchToDefaultViewSize
+[072333] switchToDefaultViewSize : 
+[072334] switchToExpressionBoard : 
+[072335] switchToMyBoard
+[072336] switchToMyBoard : 
+[072337] switchToMyBoard : targetBoard.boardId = 
+[072338] switchToMyExpressionBoard
+[072339] switchToSearchBoard
+[072340] switchToSearchBoard : 
+[072341] switchView
+[072342] switchView$default
+[072343] switchView$lambda$1$lambda$0
+[072344] switch_checked
+[072345] switch_thumb_disabled_material_dark
+[072346] switch_thumb_disabled_material_light
+[072347] switch_thumb_material_dark
+[072348] switch_thumb_material_light
+[072349] switch_thumb_normal_material_dark
+[072350] switch_thumb_normal_material_light
+[072368] synchronize Language: 
+[072370] synchronizeSelectedJsonData. LanguageRestoreState: 
+[072385] systemGestures
+[072510] targetLanguageCode
+[072511] targetLanguageName
+[072708] textInputFilledDenseStyle
+[072709] textInputFilledExposedDropdownMenuStyle
+[072710] textInputFilledStyle
+[072711] textInputFormat
+[072712] textInputLayout
+[072713] textInputLayoutFocusedRectEnabled
+[072714] textInputOutlinedDenseStyle
+[072715] textInputOutlinedExposedDropdownMenuStyle
+[072716] textInputOutlinedStyle
+[072717] textInputStub
+[072718] textInputStyle
+[072719] textInputView
+[072724] textLocale
+[072744] textSpacerNoButtons
+[072745] textSpacerNoTitle
+[072776] textinput_counter
+[072777] textinput_error
+[072778] textinput_helper_text
+[072779] textinput_placeholder
+[072780] textinput_prefix_text
+[072781] textinput_suffix_text
+[072812] themeSwitchStyle
+[072818] there is no language to support Suggested Replies
+[072819] there is not updatable activeOptionLanguage. id:
+[072830] this selection is not exist: 
+[072831] this should only be called when the cursor is valid
+[072908] timePickerTextInputPresenter
+[073064] toLanguageTag
+[073065] toLanguageTag(...)
+[073066] toLanguageTags
+[073130] toggleLanguage : 
+[073175] toolbarBackspaceButton
+[073193] toolbarKeyboardOpenButton
+[073194] toolbarLanguageChangeButton
+[073195] toolbarLanguageDownloadButton
+[073196] toolbarLanguageDownloadHolder
+[073197] toolbarLanguageDownloadProgress
+[073210] toolbarSpaceButton
+[073214] toolbarTouchPoint
+[073219] toolbar_action_full_half_width_with_language
+[073222] toolkit_switcher
+[073272] touch
+[073273] touchAnchorId
+[073274] touchAnchorSide
+[073275] touchAndHoldDelayValue
+[073276] touchAndHoldSpaceBarType
+[073277] touchArea
+[073278] touchDownAxis1
+[073279] touchDownAxis2
+[073280] touchEvent
+[073281] touchExplorationListener
+[073282] touchExplorationStateChangeListener
+[073283] touchHelper
+[073284] touchHelperEnabled
+[073285] touchInterceptorHost
+[073286] touchJsonString
+[073287] touchListeners
+[073288] touchModel
+[073289] touchPoint
+[073290] touchPos
+[073291] touchPosition
+[073292] touchProcessing
+[073293] touchRegionId
+[073294] touchSlop
+[073295] touchX
+[073296] touchY
+[073297] touch_outside
+[073298] touchableRegion
+[073299] touchdata
+[073300] touchedPosition is NO_POSITION
+[073301] touchingScrollingChild
+[073302] touchpad_enabled
+[073303] touchscreen
+[073399] translateLanguage
+[073564] typo_pair_adjoin_instead_of_space
+[073565] typo_pair_space_instead_of_adjoin
+[073617] unbind photoEditorServiceManager.
+[073620] unbindPhotoEditor
+[073632] undefined EditorClass code  : 0x
+[073642] unexpected error retrieving valid column from cursor, did the remote process die?
+[073748] untouchableAreaPadding
+[073762] update - need to download languages : 
+[073766] update KeyboardTheme themeIndex : 0x
+[073772] update inputType. language = 
+[073776] update setting value, writing toolkit latest language 
+[073812] updateAppConfiguration attempting to recreate Activity [currentNightMode:%s, newNightMode:%s, currentLocales:%s, newLocales:%s, activityHandlingNightModeChanges:%s, activityHandlingLocalesChanges:%s, activityHandlingLayoutDirectionChanges:%s, baseContextAttached:%s, created:%s, canReturnDifferentContext:%s, host:%s], application configuration [%s]
+[073911] updateContactDBLanguage : 
+[073930] updateCursorColor
+[073931] updateCursorColor color 
+[073932] updateCursorPosition() HSV[
+[073989] updateForEditorClass isPredictionOn = 
+[073990] updateForEditorInputType
+[074007] updateHintLocales
+[074008] updateHoneyVoiceLocale
+[074009] updateHoneyVoiceLocaleFromDataFolder
+[074010] updateHwrLanguageManager
+[074011] updateHwrLanguageManager(I)V
+[074041] updateKeyboardBarNumber
+[074042] updateKeyboardBodyVisibility
+[074043] updateKeyboardOpenButtonVisibility
+[074050] updateLanguage completed
+[074051] updateLanguage started
+[074052] updateLanguageChangeButtonVisibility
+[074053] updateLanguageDownloadButtonVisibility
+[074054] updateLanguageToWork
+[074055] updateLanguageToWork for cover
+[074056] updateLanguageToWork is completed : 
+[074057] updateLanguages language list is empty!
+[074058] updateLanguages language size = 
+[074074] updateLongPressMultiSelection, mPenTrackedChild is NULL
+[074075] updateLongPressMultiSelection, touchedView is NULL
+[074107] updateOrAddLanguage
+[074108] updateOrAddLanguage(Lcom/samsung/android/honeyboard/settings/languagesandtypes/manageinputlanguages/dto/LanguageDownloadItem;)V
+[074118] updatePinnedByItemSelection
+[074119] updatePinnedByPinSelection
+[074160] updateSelectedLanguageCache is failed.
+[074161] updateSelectedLanguageCache is succeeded. 
+[074165] updateSelection
+[074166] updateSelectionMode
+[074183] updateSpaceButtonVisibility
+[074199] updateStatisticsWithCoroutine: cannot identify the touch data file - 
+[074223] updateTextInputBoxState
+[074286] updatingLanguageJson
+[074331] useArrowOnJapaneseSpaceBarRowStyle
+[074339] useChnInsertWordSpaceKey
+[074348] useCommaOnCommonSpaceBarRowStyle
+[074362] useDomainOnEmailSpaceBarRowStyle
+[074363] useDomainOnUrlSpaceBarRowStyle
+[074364] useDotOnCommonSpaceBarRowStyle
+[074365] useDotOnEmailSpaceBarRowStyle
+[074366] useDotOnUrlSpaceBarRowStyle
+[074406] useNoneKeyboardSwipe
+[074426] usePhysicalKeyboardToolbar
+[074432] usePunctuationOnJapaneseSpaceBarRowStyle
+[074443] useSpeakKeyboardInputAloud
+[074461] used selected language newId : 
+[074498] usesSpaceAfterSeparators
+[074571] val$dateTextInput
+[074582] val$endTextInput
+[074596] val$gestureDetector
+[074613] val$leftSwipeEdge
+[074663] val$shouldHandleGestureInsets
+[074670] val$startTextInput
+[074708] validate and reload keyboard size data
+[074725] validating keyboard size preferences
+[074907] virtual_keyboard_pref
+[074981] warnAboutFloatingPointError
+[075012] white-space: normal;
+ color: 
+[075128] withSpaceAfterSeparators
+[075256] writingAssistLatestTranslateLanguage
+[075258] writingComposerInputLayout
+[075259] writingComposerInputText
+[075260] writingComposerViewModel
+[075516] ¶multilanguage¶

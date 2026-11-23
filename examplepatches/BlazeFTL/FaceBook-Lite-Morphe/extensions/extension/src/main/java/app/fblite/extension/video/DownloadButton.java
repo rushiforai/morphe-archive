@@ -5,7 +5,6 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.graphics.Canvas;
-import android.graphics.Outline;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.Rect;
@@ -16,13 +15,16 @@ import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.ViewOutlineProvider;
 import android.view.animation.DecelerateInterpolator;
 import android.view.animation.OvershootInterpolator;
 import android.widget.FrameLayout;
 import android.widget.Toast;
 
 import java.lang.ref.WeakReference;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 import java.util.Locale;
 
 import app.fblite.extension.settings.MorpheLog;
@@ -45,6 +47,25 @@ final class DownloadButton {
     private static final float REEL_BUTTON_SIZE = 50f;
     /** A video this much taller than wide is a Reel (feed videos are at most 4:5). */
     private static final float REEL_ASPECT = 1.5f;
+    private static final float REEL_BUTTON_DP = 37.5f;
+    private static final float FALLBACK_LIKE_ABOVE_VIDEO_BOTTOM_DP = 256f;
+    private static final float FALLBACK_PITCH_DP = 72f;
+    private static final float FALLBACK_ICON_CENTER_DP = 24f;
+    /** One unit of the glyph grid; the glyph is 17 x 16 units, about 30 x 28 dp, like the app's own Like icon. */
+    private static final float GLYPH_UNIT_DP = 1.75f;
+    private static final float FALLBACK_CENTER_FROM_EDGE_DP = 26.3f;
+    private static final long LIKE_RETRY_MS = 400;
+    /** The column is looked up again this often even when the view found earlier still looks right (see {@link #likeOf}). */
+    private static final long LIKE_REFRESH_MS = 600;
+    private static final int LIKE_SCAN_NODES = 1500;
+    private static final int[] LIKE_LOC = new int[2];
+    private static WeakReference<View> likeVideo = new WeakReference<>(null);
+    private static WeakReference<View> likeView = new WeakReference<>(null);
+    private static long likeSearchedAt;
+    /** Size of the Like group and the distance from its top to the next group's top, at the last lookup. */
+    private static int likeW;
+    private static int likeH;
+    private static int likePitch;
 
     private static Icon button;
     private static boolean hiding;
@@ -114,7 +135,27 @@ final class DownloadButton {
         int size;
         int left;
         int top;
-        if (photoUrl != null || isReel(video)) {
+        if (photoUrl == null && isReel(video)) {
+            float density = context.getResources().getDisplayMetrics().density;
+            size = Math.max(dp(context, 30), Math.round(REEL_BUTTON_DP * density));
+            // The button takes the slot above Like: same center line, same step as Like to Comment.
+            View like = likeOf(video);
+            int centerLeft;
+            int centerTop;
+            if (like != null) {
+                like.getLocationInWindow(LIKE_LOC);
+                int pitch = likePitch > 0 ? likePitch : like.getHeight() + Math.round(8 * density);
+                centerLeft = LIKE_LOC[0] + like.getWidth() / 2;
+                centerTop = LIKE_LOC[1] - pitch + Math.round(iconCenter(like));
+            } else {
+                int fromEdge = Math.round(FALLBACK_CENTER_FROM_EDGE_DP * density);
+                centerLeft = rtl(context) ? LOCATION[0] + fromEdge : LOCATION[0] + width - fromEdge;
+                centerTop = LOCATION[1] + height - Math.round(FALLBACK_LIKE_ABOVE_VIDEO_BOTTOM_DP * density)
+                        - Math.round(FALLBACK_PITCH_DP * density) + Math.round(FALLBACK_ICON_CENTER_DP * density);
+            }
+            left = centerLeft - size / 2;
+            top = centerTop - size / 2;
+        } else if (photoUrl != null) {
             float unit = width / REFERENCE_WIDTH;
             size = Math.max(dp(context, 30), Math.round(REEL_BUTTON_SIZE * unit));
             int fromEdge = Math.round(COLUMN_CENTER_FROM_RIGHT * unit);
@@ -138,6 +179,167 @@ final class DownloadButton {
         button.setTranslationY(top);
         centerX = left + size / 2f;
         centerY = top + size / 2f;
+    }
+
+    private static final class Cand {
+        final View view;
+        final int l;
+        final int t;
+        final int w;
+        final int h;
+
+        Cand(View view, int l, int t, int w, int h) {
+            this.view = view;
+            this.l = l;
+            this.t = t;
+            this.w = w;
+            this.h = h;
+        }
+    }
+
+    /**
+     * The first group of the Like, Comment, Share column. The app builds its reels from a pool of views and gives them
+     * another job when it binds the next reel: the group that was Like can become a small button at the top of the
+     * video. A view that is only attached and shown is therefore not trusted. It must keep the size it had at the
+     * lookup and still look like a column group, and the column is looked up again every {@link #LIKE_REFRESH_MS}.
+     */
+    private static View likeOf(View video) {
+        View cached = likeView.get();
+        boolean sameVideo = likeVideo.get() == video;
+        long now = SystemClock.uptimeMillis();
+        boolean usable = sameVideo && cached != null && stillLike(video, cached);
+        if (usable && now - likeSearchedAt < LIKE_REFRESH_MS) return cached;
+        if (sameVideo && !usable && cached == null && now - likeSearchedAt < LIKE_RETRY_MS) return null;
+        likeSearchedAt = now;
+        likeVideo = new WeakReference<>(video);
+        View found = null;
+        try {
+            found = findLike(video);
+        } catch (Throwable t) {
+            VideoFeatures.log("Like column search failed", t);
+        }
+        if (found == null && usable) return cached;
+        if (found != cached && MorpheLog.enabled() && cached != null && sameVideo) {
+            MorpheLog.log("video", "Like column changed: " + describeLike(cached) + " -> " + (found == null ? "none" : describeLike(found)));
+        }
+        likeView = new WeakReference<>(found);
+        if (MorpheLog.enabled()) {
+            if (found != null) {
+                if (found != cached || !sameVideo) MorpheLog.log("video", "Like column found: " + describeLike(found) + " pitch=" + likePitch);
+            } else if (!sameVideo || cached != null) {
+                MorpheLog.log("video", "Like column not found, using the dp fallback");
+            }
+        }
+        return found;
+    }
+
+    private static String describeLike(View v) {
+        int[] at = new int[2];
+        v.getLocationInWindow(at);
+        return v.getClass().getName() + " " + v.getWidth() + "x" + v.getHeight() + "@" + at[0] + "," + at[1];
+    }
+
+    /** True when the view found earlier is still the same kind of view in the same place of the same video. */
+    private static boolean stillLike(View video, View v) {
+        if (!v.isAttachedToWindow() || !v.isShown() || v.getWidth() != likeW || v.getHeight() != likeH) return false;
+        Context context = video.getContext();
+        int[] at = new int[2];
+        video.getLocationInWindow(at);
+        return qualifies(v, at[0], at[1], video.getWidth(), at[1] + video.getHeight(), rtl(context),
+                context.getResources().getDisplayMetrics().density);
+    }
+
+    /** Vertical center of the icon inside a column group (the tallest child; the count label is the other one). */
+    private static float iconCenter(View like) {
+        if (like instanceof ViewGroup) {
+            ViewGroup group = (ViewGroup) like;
+            View icon = null;
+            for (int i = 0; i < group.getChildCount(); i++) {
+                View c = group.getChildAt(i);
+                if (c.getVisibility() == View.VISIBLE && c.getHeight() > 0 && (icon == null || c.getHeight() > icon.getHeight())) icon = c;
+            }
+            if (icon != null) return icon.getTop() + icon.getHeight() / 2f;
+        }
+        return like.getHeight() * (FALLBACK_ICON_CENTER_DP / (FALLBACK_PITCH_DP - 8f));
+    }
+
+    private static View findLike(View video) {
+        View pager = FeedItems.pagerOf(video);
+        View scope = pager != null ? FeedItems.childOf(pager, video) : null;
+        if (scope == null) scope = video.getRootView();
+        Context context = video.getContext();
+        float density = context.getResources().getDisplayMetrics().density;
+        int[] at = new int[2];
+        video.getLocationInWindow(at);
+        int vLeft = at[0];
+        int vTop = at[1];
+        int vWidth = video.getWidth();
+        int vBottom = vTop + video.getHeight();
+        List<Cand> cands = new ArrayList<>();
+        int[] budget = {LIKE_SCAN_NODES};
+        collectColumn(scope, vLeft, vTop, vWidth, vBottom, rtl(context), density, cands, budget);
+        Collections.sort(cands, new Comparator<Cand>() {
+            @Override
+            public int compare(Cand a, Cand b) {
+                return a.t != b.t ? Integer.compare(a.t, b.t) : Integer.compare(a.l, b.l);
+            }
+        });
+        int tol = Math.max(3, Math.round(2 * density));
+        int gap = Math.round(24 * density);
+        boolean[] used = new boolean[cands.size()];
+        List<Cand> best = null;
+        for (int i = 0; i < cands.size(); i++) {
+            if (used[i]) continue;
+            used[i] = true;
+            List<Cand> chain = new ArrayList<>();
+            Cand cur = cands.get(i);
+            chain.add(cur);
+            for (int j = i + 1; j < cands.size(); j++) {
+                if (used[j]) continue;
+                Cand next = cands.get(j);
+                if (Math.abs(next.l - cur.l) > tol || Math.abs(next.w - cur.w) > tol) continue;
+                int curBottom = cur.t + cur.h;
+                if (next.t < curBottom - tol || next.t - curBottom > gap) continue;
+                used[j] = true;
+                chain.add(next);
+                cur = next;
+            }
+            if (chain.size() >= 3 && (best == null || chain.size() > best.size())) best = chain;
+        }
+        if (best == null) return null;
+        likeW = best.get(0).w;
+        likeH = best.get(0).h;
+        likePitch = best.get(1).t - best.get(0).t;
+        return best.get(0).view;
+    }
+
+    /** A clickable view of the size of a column group (24 dp or wider, 28 to 110 dp tall) in the video's right quarter. */
+    private static boolean qualifies(View v, int vLeft, int vTop, int vWidth, int vBottom, boolean rtl, float density) {
+        if (!v.isClickable()) return false;
+        int[] at = new int[2];
+        v.getLocationInWindow(at);
+        int w = v.getWidth();
+        int h = v.getHeight();
+        float cx = at[0] + w / 2f;
+        boolean right = rtl ? cx <= vLeft + vWidth * 0.25f : cx >= vLeft + vWidth * 0.75f;
+        return right && w >= 24 * density && w <= vWidth * 0.25f && h >= 28 * density && h <= 110 * density
+                && at[1] >= vTop && at[1] < vBottom;
+    }
+
+    private static void collectColumn(View v, int vLeft, int vTop, int vWidth, int vBottom, boolean rtl, float density,
+                                      List<Cand> out, int[] budget) {
+        if (budget[0]-- <= 0 || v.getVisibility() != View.VISIBLE) return;
+        if (v.getClass().getName().startsWith("app.fblite.extension.")) return;
+        if (qualifies(v, vLeft, vTop, vWidth, vBottom, rtl, density)) {
+            int[] at = new int[2];
+            v.getLocationInWindow(at);
+            out.add(new Cand(v, at[0], at[1], v.getWidth(), v.getHeight()));
+        }
+        if (!(v instanceof ViewGroup)) return;
+        ViewGroup group = (ViewGroup) v;
+        for (int i = 0; i < group.getChildCount(); i++) {
+            collectColumn(group.getChildAt(i), vLeft, vTop, vWidth, vBottom, rtl, density, out, budget);
+        }
     }
 
     /**
@@ -485,13 +687,16 @@ final class DownloadButton {
         return Math.round(value * context.getResources().getDisplayMetrics().density);
     }
 
-    /** The button itself: a frosted white disc, a thin dark arrow into a tray, a blue ring while busy. */
+    /**
+     * The button itself, drawn like the app's own Like, Comment and Share icons: a white outline glyph (arrow into a tray)
+     * with rounded ends, no disc behind it and a soft dark shade so it reads on a bright video. While a joined HD download
+     * runs, the glyph dims and a blue ring turns round it.
+     */
     private static final class Icon extends View {
-        private final Paint surface = new Paint(Paint.ANTI_ALIAS_FLAG);
-        private final Paint edge = new Paint(Paint.ANTI_ALIAS_FLAG);
+        private final Paint shade = new Paint(Paint.ANTI_ALIAS_FLAG);
         private final Paint stroke = new Paint(Paint.ANTI_ALIAS_FLAG);
         private final Paint ring = new Paint(Paint.ANTI_ALIAS_FLAG);
-        private final Path arrow = new Path();
+        private final Path glyph = new Path();
         private final RectF arc = new RectF();
         private final float density;
         private boolean busy;
@@ -500,25 +705,17 @@ final class DownloadButton {
         Icon(Context context) {
             super(context);
             density = context.getResources().getDisplayMetrics().density;
-            surface.setStyle(Paint.Style.FILL);
-            surface.setColor(0xF2FFFFFF);
-            edge.setStyle(Paint.Style.STROKE);
-            edge.setStrokeWidth(density);
-            edge.setColor(0x14000000);
-            stroke.setStyle(Paint.Style.STROKE);
-            stroke.setStrokeCap(Paint.Cap.ROUND);
-            stroke.setStrokeJoin(Paint.Join.ROUND);
+            for (Paint p : new Paint[] {shade, stroke}) {
+                p.setStyle(Paint.Style.STROKE);
+                p.setStrokeCap(Paint.Cap.ROUND);
+                p.setStrokeJoin(Paint.Join.ROUND);
+            }
+            shade.setColor(0x38000000);
             ring.setStyle(Paint.Style.STROKE);
             ring.setStrokeCap(Paint.Cap.ROUND);
             ring.setColor(0xFF1877F2);
+            // Only for the drawing order above the app's views: no outline, so no shadow box.
             setElevation(5 * density);
-            setOutlineProvider(new ViewOutlineProvider() {
-                @Override
-                public void getOutline(View view, Outline outline) {
-                    outline.setOval(0, 0, view.getWidth(), view.getHeight());
-                    outline.setAlpha(0.9f);
-                }
-            });
             setClickable(true);
         }
 
@@ -529,32 +726,44 @@ final class DownloadButton {
             invalidate();
         }
 
+        /** Arrow and tray on a grid centered on (12, 11.5), (cx, cy) being that point, u px per unit. */
+        private void buildGlyph(float cx, float cy, float u) {
+            glyph.reset();
+            glyph.moveTo(cx, cy + (3.5f - 11.5f) * u);
+            glyph.lineTo(cx, cy + (14.5f - 11.5f) * u);
+            glyph.moveTo(cx + (7f - 12f) * u, cy + (10f - 11.5f) * u);
+            glyph.lineTo(cx, cy + (14.5f - 11.5f) * u);
+            glyph.lineTo(cx + (17f - 12f) * u, cy + (10f - 11.5f) * u);
+            glyph.moveTo(cx + (3.5f - 12f) * u, cy + (14.5f - 11.5f) * u);
+            glyph.lineTo(cx + (3.5f - 12f) * u, cy + (17f - 11.5f) * u);
+            glyph.quadTo(cx + (3.5f - 12f) * u, cy + (19.5f - 11.5f) * u, cx + (6f - 12f) * u, cy + (19.5f - 11.5f) * u);
+            glyph.lineTo(cx + (18f - 12f) * u, cy + (19.5f - 11.5f) * u);
+            glyph.quadTo(cx + (20.5f - 12f) * u, cy + (19.5f - 11.5f) * u, cx + (20.5f - 12f) * u, cy + (17f - 11.5f) * u);
+            glyph.lineTo(cx + (20.5f - 12f) * u, cy + (14.5f - 11.5f) * u);
+        }
+
         @Override
         protected void onDraw(Canvas canvas) {
             float cx = getWidth() / 2f;
             float cy = getHeight() / 2f;
-            float r = Math.min(getWidth(), getHeight()) / 2f;
-            float inset = density * 0.5f;
-            canvas.drawCircle(cx, cy, r - inset, surface);
-            canvas.drawCircle(cx, cy, r - inset, edge);
+            float u = Math.min(GLYPH_UNIT_DP * density, Math.min(getWidth(), getHeight()) / 18f);
+            float width = 1.4f * u;
+            buildGlyph(cx, cy, u);
 
-            // Drawn on a grid where the disc has radius 22.
-            float u = r / 22f;
-            stroke.setStrokeWidth(2f * u);
-            stroke.setColor(busy ? 0x801C1E21 : 0xFF1C1E21);
-            arrow.reset();
-            arrow.moveTo(cx, cy - 9f * u);
-            arrow.lineTo(cx, cy + 3.5f * u);
-            arrow.moveTo(cx - 6f * u, cy - 2.5f * u);
-            arrow.lineTo(cx, cy + 3.5f * u);
-            arrow.lineTo(cx + 6f * u, cy - 2.5f * u);
-            arrow.moveTo(cx - 8f * u, cy + 9f * u);
-            arrow.lineTo(cx + 8f * u, cy + 9f * u);
-            canvas.drawPath(arrow, stroke);
+            canvas.save();
+            canvas.translate(0f, 0.9f * density);
+            shade.setStrokeWidth(width + 1.2f * density);
+            canvas.drawPath(glyph, shade);
+            canvas.restore();
+
+            stroke.setStrokeWidth(width);
+            stroke.setColor(busy ? 0x99FFFFFF : 0xFFFFFFFF);
+            canvas.drawPath(glyph, stroke);
 
             if (busy) {
-                ring.setStrokeWidth(2.2f * u);
-                float pad = 2.6f * u;
+                float r = Math.min(getWidth(), getHeight()) / 2f;
+                ring.setStrokeWidth(2.2f * r / 22f);
+                float pad = 2.6f * r / 22f;
                 arc.set(pad, pad, getWidth() - pad, getHeight() - pad);
                 float angle = ((SystemClock.uptimeMillis() - busySince) % 900L) / 900f * 360f;
                 canvas.drawArc(arc, angle, 110f, false, ring);

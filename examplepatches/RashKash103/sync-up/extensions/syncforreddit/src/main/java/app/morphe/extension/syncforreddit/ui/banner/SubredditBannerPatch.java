@@ -119,7 +119,7 @@ public class SubredditBannerPatch extends PatchedditInterceptor {
                 return;
             }
 
-            String subreddit = SubredditBanners.showing();
+            String subreddit = SubredditBanners.showingIn(root.getContext());
             Logger.printDebug(() -> "banner: the feed's view was made, showing r/" + subreddit);
             if (subreddit == null) {
                 return;
@@ -169,18 +169,21 @@ public class SubredditBannerPatch extends PatchedditInterceptor {
      * <p>It is one unchanging object on purpose. What learns the banners keeps a single thing to
      * tell, so a second window registering its own would be the only one ever told again — which
      * is precisely what left a subreddit opened by a tap with no banner while the same subreddit
-     * opened in a new window had one. Which subreddit a feed is about is asked afresh here rather
-     * than remembered, since by now the screen may be showing another.
+     * opened in a new window had one.
+     *
+     * <p>Each feed is drawn with what its own window is showing, never with one subreddit for the
+     * app. Being on the screen is not enough to say a feed is the one the reader is looking at:
+     * a subreddit opened in a new window is a translucent activity over the old one, so the feed
+     * underneath goes on drawing, and drawn with the newly opened subreddit it kept that banner
+     * for the reader to find on the feed they went back to.
      */
     private static final Runnable LOOK_AGAIN = () -> MAIN.post(() -> {
-        String subreddit = SubredditBanners.showing();
-        if (subreddit == null) {
-            return;
-        }
         for (ViewGroup feed : new java.util.ArrayList<>(FEEDS.keySet())) {
-            // A feed that is not on the screen is left with what it had: it belongs to a window
-            // the reader has gone back from, which is about its own subreddit, not this one.
             if (feed == null || !feed.isShown()) {
+                continue;
+            }
+            String subreddit = SubredditBanners.showingIn(feed.getContext());
+            if (subreddit == null) {
                 continue;
             }
             try {

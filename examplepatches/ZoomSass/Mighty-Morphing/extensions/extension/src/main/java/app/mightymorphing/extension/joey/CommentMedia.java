@@ -159,17 +159,31 @@ public final class CommentMedia {
         if (html == null || !MorpheSettings.inlineComments()) return html;
         if (node == null) return html(html, null);
         try {
-            String lower = html.toLowerCase(java.util.Locale.ROOT);
             boolean metadata = nodeChild(node, "media_metadata") != null
                     || nodeChild(node, "media") != null
                     || nodeChild(node, "secure_media") != null
                     || nodeChild(node, "preview") != null;
-            if (!metadata && !mayHaveMedia(html, lower) && !lower.contains("v.redd.it")) return html;
+            if (!metadata && !hint(html)) return html;
             return html(html, ownJson(node));
         } catch (Throwable t) {
             Log.w(TAG, "comment node read failed", t);
             return html(html, null);
         }
+    }
+
+    /**
+     * Whether the text itself could hold media. Every bind asks, and scrolling back over a comment
+     * binds it again, so the answer is kept (it depends on the text alone).
+     */
+    private static final LruCache<String, Boolean> HINTS = new LruCache<>(768);
+
+    private static boolean hint(String html) {
+        Boolean known = HINTS.get(html);
+        if (known != null) return known;
+        String lower = html.toLowerCase(java.util.Locale.ROOT);
+        boolean may = mayHaveMedia(html, lower) || lower.contains("v.redd.it");
+        HINTS.put(html, may);
+        return may;
     }
 
     private static Method sNodeGet;
@@ -1541,7 +1555,7 @@ public final class CommentMedia {
             if (tv == null) return;
             int id = tv.getResources().getIdentifier(drawableName, "drawable", tv.getContext().getPackageName());
             if (id == 0) return;
-            android.graphics.drawable.Drawable icon = tv.getContext().getDrawable(id);
+            android.graphics.drawable.Drawable icon = tv.getContext().getDrawable(ModernIcons.swap(tv.getContext(), id));
             if (icon == null) return;
             float density = Resources.getSystem().getDisplayMetrics().density;
             int box = Math.round(22f * density);

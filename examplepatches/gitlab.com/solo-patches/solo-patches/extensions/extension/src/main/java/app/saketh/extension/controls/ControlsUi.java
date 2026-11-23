@@ -14,6 +14,7 @@ import android.widget.Switch;
 import android.widget.TextView;
 import app.saketh.extension.fonts.FontHooks;
 import app.saketh.extension.theme.ThemeHooks;
+import java.util.function.Consumer;
 
 final class ControlsUi {
     final Context context;
@@ -116,6 +117,25 @@ final class ControlsUi {
         row.setOnClickListener(view -> { if (control.isEnabled()) control.setChecked(!control.isChecked()); });
         card.addView(row);
         return control;
+    }
+
+    /** A tappable row with the setting's current value on the right. Clicks receive the value view. */
+    TextView valueRow(LinearLayout card, String title, String summary, Consumer<TextView> click) {
+        LinearLayout row = new LinearLayout(context);
+        row.setGravity(Gravity.CENTER_VERTICAL);
+        row.setMinimumHeight(dp(56));
+        row.setPadding(dp(16), dp(14), dp(16), dp(14));
+        LinearLayout copy = column();
+        copy.addView(text(title, 16, text, true));
+        TextView description = text(summary, 13, muted, false);
+        description.setPadding(0, dp(5), dp(10), 0);
+        copy.addView(description);
+        row.addView(copy, new LinearLayout.LayoutParams(0, -2, 1f));
+        TextView value = text("", 14, accent, true);
+        row.addView(value);
+        row.setOnClickListener(view -> click.accept(value));
+        card.addView(row);
+        return value;
     }
 
     GradientDrawable shape(int fill, int stroke, int radius) {

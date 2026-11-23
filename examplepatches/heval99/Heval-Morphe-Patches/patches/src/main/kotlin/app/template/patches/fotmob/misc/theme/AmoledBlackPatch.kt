@@ -23,7 +23,7 @@ internal val AMOLED_BLACK = HevalFeature(
     icon = "moon",
 )
 
-// FotMob 241 builds its dark theme as the night variant of Base.Theme.FotMob.DayNight: a list of
+// FotMob 241 and 242 build their dark theme as the night variant of Base.Theme.FotMob.DayNight: a list of
 // theme attributes that point at named grays. The page background (appBackground, window
 // background) is already `@color/black`; the cards and Material surfaces are `nero_black` (#1d1d1d),
 // the bottom bar `chinese_black` (#141414), the card headers and unselected chips `raisin_black`
@@ -81,7 +81,7 @@ private val amoledResourcePatch = amoledOverlayResourcePatch(
 val amoledBlackPatch = fotMobControls.featurePatch(
     AMOLED_BLACK,
     name = "AMOLED black",
-    description = "Makes the dark theme pure black on OLED screens. Can be turned off in Patch settings.",
+    description = "Makes the dark theme pure black on OLED screens, with a switch in Patch settings.",
     default = false,
     dependencies = setOf(amoledResourcePatch, fotMobActivityHooksPatch),
 ) {

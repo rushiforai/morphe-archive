@@ -69,7 +69,7 @@ private fun findSignerFailureOffset(bytes: ByteArray): Int {
 @Suppress("unused")
 val nativeSignaturePatch = rawResourcePatch(
     name = "Native signature fix",
-    description = "Allow Zalo 26.10.02 ARM64 to start after patching and re-signing. ARMv7 is not supported.",
+    description = "Allow Zalo 26.11.01 ARM64 to start after patching and re-signing. ARMv7 is not supported.",
     default = false,
 ) {
     compatibleWith(Compatibility(
@@ -77,7 +77,7 @@ val nativeSignaturePatch = rawResourcePatch(
         packageName = "com.zing.zalo",
         apkFileType = ApkFileType.APKM,
         appIconColor = 0x0068FF,
-        targets = listOf(AppTarget(version = "26.10.02")),
+        targets = listOf(AppTarget(version = "26.11.01")),
     ))
 
     execute {

@@ -416,12 +416,13 @@ public final class LiveRecordChip {
 
     /**
      * Hushfeed's own buttons over a LIVE room stack top to bottom in this order: the Record chip,
-     * Auto tap, the block button, then Ghost mode's eye.
+     * Auto tap, the block button, Ghost mode's eye, then the room ID and connection line.
      */
     public static final int STACK_RECORD = 1;
     public static final int STACK_AUTO_TAP = 2;
     public static final int STACK_BLOCK = 3;
     public static final int STACK_UNSEEN = 4;
+    public static final int STACK_ROOM_INFO = 5;
 
     /** A stacked button's place in the stack, the top it asks for and the gap it keeps, in pixels. */
     private static final class StackSlot {
@@ -674,6 +675,14 @@ public final class LiveRecordChip {
     private static void onChipTap() {
         try {
             if (saving || stopRecording()) return;
+            if (enabled() && (host.get() == null || page.get() == null)) {
+                // The small window's Record can outlast the room page it was for (#413).
+                boolean noActivity = host.get() == null;
+                Logger.printInfo(() -> "LIVE record: the button found no LIVE room "
+                        + (noActivity ? "activity" : "page") + " to record");
+                Utils.showToastShort(L10n.t("No stream found to record. Reopen the LIVE."));
+                return;
+            }
             start();
         } catch (Throwable failure) {
             Logger.printException(() -> "Could not use the LIVE record button", failure);

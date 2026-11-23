@@ -171,6 +171,29 @@ val protectCiviliansPatch = patch(
 }
 
 /**
+ * Stops the camera shaking on any `CSwerveGame::Blast`.
+ *
+ * `DGCamera::SetShake` is the only place the camera starts a shake. Five sites call it: the
+ * two `CSwerveGame::Blast` clones, `CDH_Weapon::MakeShot`, `CSwerveGame::OnShooterAttacked`,
+ * and the Lua `ShakeCamera` helper. Each blast clone's `bl` becomes `mov r0, r0`, so an
+ * explosion never starts a shake. The other three sites still call `SetShake`, so firing and
+ * taking a hit still kick the camera.
+ */
+@Suppress("unused")
+val disableExplosionShakePatch = patch(
+    name = "Disable explosion shake",
+    description = "Stops the player fov shaking when something explodes.",
+) {
+    compatibleWith(COMPATIBILITY_CK_ZOMBIES)
+
+    dependsOn(nativeLibraryCheckPatch, obbMessagePatch)
+
+    execute {
+        editLibraries(NativeEdits.EXPLOSION_SHAKE)
+    }
+}
+
+/**
  * Shows the two weapons Glu shipped hidden: AA-2012 (id 24) and Dual MP-643 (id 32).
  *
  * The shop consults `CItem::isHidden()`, which returns the item's hidden byte, and skips any
@@ -222,17 +245,91 @@ val hideDailyDealPatch = patch(
 /**
  * Removes the wait on the loading screen that only happens with a live connection.
  *
- * `AppInitGameDataGS::Load()` reports "not finished" for as long as the login flow runs, and
- * online it starts one login step: a version check against Glu's gServe, switched off years
- * ago, so the flow only ends on its own timeout. Returning from `App::StartGServerLight()`
- * without queueing anything leaves the flow not running, and the task completes on the next
- * frame, the same path an offline launch already takes. Nothing else calls the function.
+ * `AppInitGameDataGS::Load()` reports "not finished" while the game says the network is
+ * available and the login flow is running. Online it starts one login step: a version check
+ * against Glu's gServe, switched off years ago, so the flow only ends on its own timeout.
+ * Offline the availability check is false and the step falls straight through to
+ * `CSaveManager::PauseByGServe(false)` and `App::InitGameData()`, which is the launch everyone
+ * without a connection already gets.
+ *
+ * `CNetworkAvailability::IsAvailable()` is the only place the native code asks. It has two
+ * callers, both in that loading step, and its two-word body becomes `return false`, so the step
+ * finishes on its first frame and `App::StartGServerLight()` is never called. A bare `bx lr`
+ * would not do: r0 holds the CNetworkAvailability pointer the caller passed, which every caller
+ * reads as true, so the stub sets r0 first.
  */
 internal val serverCheckStallPatch = patch {
     dependsOn(nativeLibraryCheckPatch)
 
     execute {
-        editLibraries(NativeEdits.GSERVE_STALL)
+        editLibraries(NativeEdits.IS_AVAILABLE)
+    }
+}
+
+/**
+ * Shows the low-ammo HUD, and `0/capacity`, for as long as the weapon reloads.
+ *
+ * `CAmmoWin::Update()` reads the clip, prints it as `clip/capacity`, and calls the weapon low
+ * when it is under 34% of the capacity; `CGameplayWeaponInfoWindow::Update()` shows the red ammo
+ * icon and the `IDS_HUD_RELOAD` label from that flag. With unlimited ammo the clip is always
+ * full, so none of it ever appears.
+ *
+ * A 36-byte leaf cave replaces the single clip load: it returns 0 while `CDH_Weapon` reports
+ * reloading (the `+0x90` and `+0x88 == 3` fields `IsReloading()` reads) and the real clip
+ * otherwise. The HUD therefore prints `0/capacity` and its own 34% test turns the red icon and
+ * RELOAD label on for the length of the animation, then everything returns to full. The weapon's
+ * clip is never changed.
+ */
+internal val reloadHudPatch = patch {
+    dependsOn(nativeLibraryCheckPatch)
+
+    execute {
+        for (abi in ABIS) {
+            val plan = NativeEdits.HUD_RELOAD.getValue(abi)
+            val file = resourceFile(libraryPath(abi))
+            val elf = Elf32(file.readBytes())
+            try {
+                elf.mapExecutablePadding(abi)
+                elf.writeIntoZeros(plan.cave, plan.caveBytes.hexToBytes())
+                elf.apply(plan.edits)
+            } catch (e: IllegalStateException) {
+                throw PatchException("${libraryPath(abi)}: ${e.message}", e)
+            } catch (e: IllegalArgumentException) {
+                throw PatchException("${libraryPath(abi)}: ${e.message}", e)
+            }
+            file.writeBytes(elf.bytes())
+        }
+    }
+}
+
+/**
+ * Keeps the clip full. Every shot writes back the round count it read.
+ *
+ * `CDH_Weapon::MakeShot()` is the only function that lowers the clip at `+0x19c`: one
+ * `sub r3, r3, #1` on the common path, and a second one on the path for weapon types 8 and 9.
+ * Both become `mov r0, r0`, so the `str r3, [r4, #0x19c]` after each writes the loaded value
+ * back. The rest of the function, sound, animation and tracer included, still runs.
+ *
+ * Reloading is the tap on the ammo display: `CGameplayHUD::PointerPressed()` calls
+ * `CheckForReload(true)` only while the clip is below its capacity, and that `bge` becomes a
+ * no-op. The forced reload plays its animation and its last step sets the clip to the capacity,
+ * the value it already has, so the player can reload whenever they want. [reloadHudPatch] makes
+ * the HUD print `0/capacity` during that animation and keeps the red ammo icon and the RELOAD
+ * label on screen, the state the game otherwise only shows when the clip runs low.
+ *
+ * Grenades are counted by `CGrenadeManager`, not by a weapon's clip, and are left alone.
+ */
+@Suppress("unused")
+val unlimitedAmmoPatch = patch(
+    name = "Unlimited ammo",
+    description = "Ammo never decreases, and reloading still works.",
+) {
+    compatibleWith(COMPATIBILITY_CK_ZOMBIES)
+
+    dependsOn(nativeLibraryCheckPatch, obbMessagePatch, reloadHudPatch)
+
+    execute {
+        editLibraries(NativeEdits.UNLIMITED_AMMO)
     }
 }
 

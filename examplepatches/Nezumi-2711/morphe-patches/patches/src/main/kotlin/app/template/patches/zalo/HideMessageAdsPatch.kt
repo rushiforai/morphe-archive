@@ -29,7 +29,7 @@ val hideMessageAdsPatch = bytecodePatch(
         packageName = "com.zing.zalo",
         apkFileType = ApkFileType.APKM,
         appIconColor = 0x0068FF,
-        targets = listOf(AppTarget(version = "26.10.02")),
+        targets = listOf(AppTarget(version = "26.11.01")),
     ))
 
     dependsOn(nativeSignaturePatch)
@@ -38,7 +38,7 @@ val hideMessageAdsPatch = bytecodePatch(
     execute {
         var adRowClass: String? = null
         classDefForEach { classDef ->
-            if (classDef.superclass == "Ll20/e0;") {
+            if (classDef.superclass != "Ljava/lang/Object;" && classDef.type != "Ljava/lang/Object;") {
                 val hasStableAdId = classDef.methods.any { method ->
                     method.returnType == "Ljava/lang/String;" &&
                         method.implementation?.instructions?.any { instruction ->
@@ -72,7 +72,7 @@ val hideMessageAdsPatch = bytecodePatch(
                             instructions[index + 1].opcode == Opcode.INVOKE_DIRECT &&
                             ((instructions[index + 1] as? ReferenceInstruction)?.reference as? MethodReference)?.let {
                                 it.definingClass == rowClass && it.name == "<init>" &&
-                                    it.parameterTypes == listOf("La10/j;")
+                                    it.parameterTypes.size == 1
                             } == true &&
                             instructions[index + 2].opcode == Opcode.ADD_INT_LIT8 &&
                             instructions[index + 3].opcode == Opcode.INVOKE_VIRTUAL &&

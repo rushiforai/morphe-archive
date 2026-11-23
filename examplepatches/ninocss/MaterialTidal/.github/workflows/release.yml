@@ -1,0 +1,302 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version without leading v (defaults to gradle.properties version)'
+        required: false
+        type: string
+      prerelease:
+        description: 'Mark as pre-release (skips updating main patches-bundle.json)'
+        required: false
+        type: boolean
+        default: false
+      release_notes:
+        description: 'Optional custom release notes Markdown (defaults to CHANGELOG.md section or auto-generated GitHub notes)'
+        required: false
+        type: string
+
+permissions:
+  contents: write
+  packages: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: Build & Publish .mpp Release
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Resolve release metadata
+        id: meta
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          INPUT_VERSION: ${{ inputs.version }}
+          INPUT_PRERELEASE: ${{ inputs.prerelease }}
+        run: |
+          set -euo pipefail
+
+          if [ "${GITHUB_REF_TYPE}" = "tag" ]; then
+            TAG="${GITHUB_REF_NAME}"
+            VERSION="${TAG#v}"
+            if [[ "${VERSION}" == *-* ]]; then
+              IS_PRERELEASE="true"
+            else
+              IS_PRERELEASE="false"
+            fi
+          else
+            RAW_VERSION="${INPUT_VERSION:-}"
+            if [ -z "${RAW_VERSION}" ]; then
+              RAW_VERSION="$(grep -E '^version[[:space:]]*=' gradle.properties | head -n1 | cut -d'=' -f2 | tr -d '[:space:]')"
+            fi
+            VERSION="${RAW_VERSION#v}"
+            TAG="v${VERSION}"
+            if [ "${INPUT_PRERELEASE}" = "true" ] || [[ "${VERSION}" == *-* ]]; then
+              IS_PRERELEASE="true"
+            else
+              IS_PRERELEASE="false"
+            fi
+          fi
+
+          if ! [[ "${VERSION}" =~ ^[0-9]+\.[0-9]+\.[0-9]+([.-][0-9A-Za-z.-]+)?$ ]]; then
+            echo "::error::Invalid semantic version '${VERSION}'. Expected e.g. 0.2.0 or 0.3.0-beta.1."
+            exit 1
+          fi
+
+          if gh release view "${TAG}" >/dev/null 2>&1; then
+            echo "::error::Release '${TAG}' already exists; choose a new version instead of overwriting an existing release."
+            exit 1
+          fi
+
+          MPP_NAME="MaterialTidal-patches-${VERSION}.mpp"
+          {
+            echo "version=${VERSION}"
+            echo "tag=${TAG}"
+            echo "prerelease=${IS_PRERELEASE}"
+            echo "mpp_name=${MPP_NAME}"
+          } >> "${GITHUB_OUTPUT}"
+
+          echo "Resolved release: tag=${TAG}, version=${VERSION}, prerelease=${IS_PRERELEASE}, asset=${MPP_NAME}"
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          packages: 'platforms;android-36 build-tools;36.0.0'
+          log-accepted-android-sdk-licenses: false
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Build & verify .mpp bundle
+        env:
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          chmod +x gradlew
+          ./gradlew clean :patches:buildAndroid :patches:verifyLinnProtocol :patches:generatePatchesList copyMppToDist -Pversion="${{ steps.meta.outputs.version }}" --no-daemon --stacktrace
+
+          MPP_PATH="dist/${{ steps.meta.outputs.mpp_name }}"
+          if [ ! -s "${MPP_PATH}" ]; then
+            echo "::error::Built .mpp bundle '${MPP_PATH}' is missing or empty."
+            exit 1
+          fi
+          if [ ! -s "patches-list.json" ]; then
+            echo "::error::Generated patches-list.json is missing or empty."
+            exit 1
+          fi
+
+          cp patches-list.json "${RUNNER_TEMP}/patches-list.json"
+          git checkout -- patches-list.json 2>/dev/null || true
+
+          (cd dist && sha256sum "${{ steps.meta.outputs.mpp_name }}" > SHA256SUMS.txt)
+          cat dist/SHA256SUMS.txt
+
+      - name: Generate release notes
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CUSTOM_NOTES: ${{ inputs.release_notes }}
+          REL_VERSION: ${{ steps.meta.outputs.version }}
+          REL_TAG: ${{ steps.meta.outputs.tag }}
+          MPP_NAME: ${{ steps.meta.outputs.mpp_name }}
+        run: |
+          set -euo pipefail
+
+          python3 - <<'PY'
+          import os
+          import re
+          import subprocess
+          from pathlib import Path
+
+          version = os.environ["REL_VERSION"]
+          tag = os.environ["REL_TAG"]
+          repo = os.environ["GITHUB_REPOSITORY"]
+          sha = os.environ["GITHUB_SHA"]
+          mpp_name = os.environ["MPP_NAME"]
+          custom_notes = os.environ.get("CUSTOM_NOTES", "").strip()
+          runner_temp = Path(os.environ["RUNNER_TEMP"])
+
+          body = ""
+          if custom_notes:
+              body = custom_notes
+          elif Path("CHANGELOG.md").is_file():
+              changelog = Path("CHANGELOG.md").read_text(encoding="utf-8")
+              pattern = re.compile(
+                  rf"^##\s+\[?v?{re.escape(version)}(?:\]|\s|\(|$).*?\n(.*?)(?=^##\s+|\Z)",
+                  re.MULTILINE | re.DOTALL,
+              )
+              match = pattern.search(changelog)
+              if match:
+                  extracted = match.group(1).strip()
+                  if extracted:
+                      body = extracted
+
+          if not body:
+              cmd = [
+                  "gh",
+                  "api",
+                  f"repos/{repo}/releases/generate-notes",
+                  "-f",
+                  f"tag_name={tag}",
+                  "-f",
+                  f"target_commitish={sha}",
+                  "--jq",
+                  ".body",
+              ]
+              res = subprocess.run(cmd, capture_output=True, text=True, check=True)
+              body = res.stdout.strip()
+
+          if not body:
+              body = f"Release {tag} of MaterialTidal Patches for TIDAL `v2.220.1`."
+
+          sha_line = Path("dist/SHA256SUMS.txt").read_text(encoding="utf-8").strip()
+          sha_hash = sha_line.split()[0] if sha_line else ""
+
+          footer = (
+              "\n\n---\n\n"
+              "### Compatibility & Installation\n"
+              "- **Target App:** TIDAL `v2.220.1` (`com.aspiro.tidal`)\n"
+              "- **Minimum Android:** Android 12L (API 32)+\n"
+              f"- **Morphe Manager Auto-Update Source:** `https://github.com/{repo}` "
+              f"([One-Click Add to Morphe](https://morphe.software/add-source?github={repo}))\n"
+              f"- **Bundle Asset:** `{mpp_name}`\n"
+              f"- **SHA-256:** `{sha_hash}`\n"
+          )
+
+          (runner_temp / "bundle-notes.txt").write_text(body, encoding="utf-8")
+          (runner_temp / "release-notes.md").write_text(body + footer, encoding="utf-8")
+          PY
+
+          echo "=== Release Notes Preview ==="
+          cat "${RUNNER_TEMP}/release-notes.md"
+
+      - name: Publish GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          EXTRA_FLAGS=()
+          if [ "${{ steps.meta.outputs.prerelease }}" = "true" ]; then
+            EXTRA_FLAGS+=(--prerelease)
+          else
+            EXTRA_FLAGS+=(--latest)
+          fi
+
+          gh release create "${{ steps.meta.outputs.tag }}" \
+            "dist/${{ steps.meta.outputs.mpp_name }}" \
+            "dist/SHA256SUMS.txt" \
+            --title "MaterialTidal ${{ steps.meta.outputs.tag }}" \
+            --notes-file "${RUNNER_TEMP}/release-notes.md" \
+            --target "${GITHUB_SHA}" \
+            "${EXTRA_FLAGS[@]}"
+
+      - name: Update patches-bundle.json and patches-list.json on main
+        if: steps.meta.outputs.prerelease != 'true'
+        env:
+          REL_VERSION: ${{ steps.meta.outputs.version }}
+          REL_TAG: ${{ steps.meta.outputs.tag }}
+          MPP_NAME: ${{ steps.meta.outputs.mpp_name }}
+        run: |
+          set -euo pipefail
+
+          git fetch origin main
+          git checkout -B main origin/main
+          cp "${RUNNER_TEMP}/patches-list.json" patches-list.json
+
+          python3 - <<'PY'
+          import datetime
+          import json
+          import os
+          import re
+          from pathlib import Path
+
+          version = os.environ["REL_VERSION"]
+          tag = os.environ["REL_TAG"]
+          mpp_name = os.environ["MPP_NAME"]
+          repo = os.environ["GITHUB_REPOSITORY"]
+          runner_temp = Path(os.environ["RUNNER_TEMP"])
+          description = (runner_temp / "bundle-notes.txt").read_text(encoding="utf-8").strip()
+
+          bundle = {
+              "created_at": datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%S"),
+              "description": description,
+              "download_url": f"https://github.com/{repo}/releases/download/{tag}/{mpp_name}",
+              "signature_download_url": "",
+              "version": version,
+          }
+          Path("patches-bundle.json").write_text(
+              json.dumps(bundle, indent=2, ensure_ascii=False) + "\n",
+              encoding="utf-8",
+          )
+
+          props_path = Path("gradle.properties")
+          props = props_path.read_text(encoding="utf-8")
+          updated_props = re.sub(
+              r"(?m)^version\s*=.*$",
+              f"version = {version}",
+              props,
+              count=1,
+          )
+          if updated_props != props:
+              props_path.write_text(updated_props, encoding="utf-8")
+          PY
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add patches-bundle.json patches-list.json gradle.properties
+
+          if ! git diff --cached --quiet; then
+            git commit -m "chore: update patches-bundle.json and patches-list.json for ${{ steps.meta.outputs.tag }} [skip ci]"
+            git push origin main
+          else
+            echo "patches-bundle.json, patches-list.json, and gradle.properties already up to date."
+          fi
+
+      - name: Upload release assets artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: materialtidal-release-${{ steps.meta.outputs.tag }}
+          path: |
+            dist/${{ steps.meta.outputs.mpp_name }}
+            dist/SHA256SUMS.txt
+          if-no-files-found: error
+          retention-days: 30

@@ -1,0 +1,2423 @@
+# Gboard 18.5.4 — targeted DEX code_item instruction dump
+
+Source APK: Gboard-v18.5.4.993608717-release-arm64-v8a.apk
+APK SHA-256: f47f44d33ab21d28aabfaec8292009c1173964ea238441734327a0a15ba32813
+
+This file contains selected code_item instruction streams extracted from the original `classes.dex` and `classes2.dex` files. It is not Java source and not a JADX/Baksmali disassembly. Each method is identified by its full descriptor and absolute code_item file offset. Instruction positions (+0000, +0001, ...) are 16-bit code-unit offsets within that method. Each line preserves raw 16-bit code units and, where recognized, annotates string, method, field, and branch references.
+
+Opcode names are deliberately generic (op_XX). Treat raw code units as primary evidence. Validate instruction widths, payloads, and control flow independently before relying on any interpretation. Do not infer semantics from method names alone. This dump is a navigation aid to enable a bytecode-aware tool to reconstruct the exact instruction stream.
+
+DEX SHA-256:
+- classes.dex: b403bf2797f56b6bae2ac3f6a10fe10fba3012b201b7c26c120f7370139f606e
+- classes2.dex: 2529a75190010707d17b51f0a63cccb9a2b8dae5a6c9c598445edd7588a7959d
+- classes3.dex: 53e70ef05fe2515e4675d25d2b08708698095d95aa06dca4201d15c7f7cd8f92
+- classes4.dex: 0b5f0b0e2c28e06b9ac81b063f95848b04ea236f3a49df6bf2649c9fb90d7e17
+
+
+## Lcom/google/android/libraries/inputmethod/motioneventhandler/scrubmove/ScrubMotionEventHandler; (classes.dex)
+
+### direct Lcom/google/android/libraries/inputmethod/motioneventhandler/scrubmove/ScrubMotionEventHandler;-><init>(Landroid/content/Context;Lqit;Lqix;)V access=0x10001
+  code_item_off=0x1f103c registers=11 ins=4 outs=6 tries=0 insns_size=20
+    +0000: op_6e 106e 1f5e 0008 method@8030 Landroid/content/Context;->getResources()Landroid/content/res/Resources;
+    +0003: op_0c 000c
+    +0004: op_14 0114 00de 7f0c
+    +0007: op_6e 206e 2023 0010 method@8227 Landroid/content/res/Resources;->getInteger(I)I
+    +000a: op_0a 000a
+    +000b: op_81 0581
+    +000c: op_07 7107
+    +000d: op_07 8207
+    +000e: op_07 9307
+    +000f: op_07 a407
+    +0010: op_76 0676 3a9e 0001 method@15006 Lcom/google/android/libraries/inputmethod/motioneventhandler/scrubmove/ScrubMotionEventHandler;-><init>(Landroid/content/Context;Lqit;Lqix;J)V
+    +0013: op_0e 000e
+
+### direct Lcom/google/android/libraries/inputmethod/motioneventhandler/scrubmove/ScrubMotionEventHandler;-><init>(Landroid/content/Context;Lqit;Lqix;J)V access=0x10001
+  code_item_off=0x1f1074 registers=17 ins=6 outs=11 tries=0 insns_size=130
+    +0000: op_76 0376 3a72 000b method@14962 Lcom/google/android/libraries/inputmethod/motioneventhandler/AbstractMotionEventHandler;-><init>(Landroid/content/Context;Lqit;)V
+    +0003: op_22 0022 06e1
+    +0005: op_70 1070 217e 0000 method@8574 Landroid/graphics/Rect;-><init>()V
+    +0008: op_5b b05b 1bba field@7098 Lcom/google/android/libraries/inputmethod/motioneventhandler/scrubmove/ScrubMotionEventHandler;->h:Landroid/graphics/Rect;
+    +000a: op_22 0022 06e1
+    +000c: op_70 1070 217e 0000 method@8574 Landroid/graphics/Rect;-><init>()V
+    +000f: op_5b b05b 1bbb field@7099 Lcom/google/android/libraries/inputmethod/motioneventhandler/scrubmove/ScrubMotionEventHandler;->i:Landroid/graphics/Rect;
+    +0011: op_5b be5b 1bb9 field@7097 Lcom/google/android/libraries/inputmethod/motioneventhandler/scrubmove/ScrubMotionEventHandler;->g:Lqix;
+    +0013: op_6e 106e 1f5e 000c method@8030 Landroid/content/Context;->getResources()Landroid/content/res/Resources;
+    +0016: op_0c 0c0c
+    +0017: op_22 0022 2410
+    +0019: op_14 0114 00dd 7f0c
+    +001c: op_6e 206e 2023 001c method@8227 Landroid/content/res/Resources;->getInteger(I)I
+    +001f: op_0a 010a
+    +0020: op_81 1181
+    +0021: op_14 0314 0866 7f07
+    +0024: op_6e 206e 201e 003c method@8222 Landroid/content/res/Resources;->getDimensionPixelSize(I)I
+    +0027: op_0a 030a
+    +0028: op_82 3582
+    +0029: op_14 0314 0867 7f07
+    +002c: op_6e 206e 201e 003c method@8222 Landroid/content/res/Resources;->getDimensionPixelSize(I)I
+    +002f: op_0a 030a
+    +0030: op_82 3682
+    +0031: op_14 0314 0865 7f07
+    +0034: op_6e 206e 201e 003c method@8222 Landroid/content/res/Resources;->getDimensionPixelSize(I)I
+    +0037: op_0a 030a
+    +0038: op_82 3782
+    +0039: op_14 0314 00dc 7f0c
+    +003c: op_6e 206e 2023 003c method@8227 Landroid/content/res/Resources;->getInteger(I)I
+    +003f: op_0a 030a
+    +0040: op_81 3881
+    +0041: op_14 0314 0864 7f07
+    +0044: op_6e 206e 201e 003c method@8222 Landroid/content/res/Resources;->getDimensionPixelSize(I)I
+    +0047: op_0a 030a
+    +0048: op_82 3a82
+    +0049: op_04 f304
+    +004a: op_76 0b76 a312 0000 method@41746 Lqiw;-><init>(JJFFFJF)V
+    +004d: op_5b b05b 1bb5 field@7093 Lcom/google/android/libraries/inputmethod/motioneventhandler/scrubmove/ScrubMotionEventHandler;->c:Lqiw;
+    +004f: op_52 eb52 6127 field@24871 Lqix;->i:I
+    +0051: op_6e 206e 2031 00bc method@8241 Landroid/content/res/Resources;->obtainTypedArray(I)Landroid/content/res/TypedArray;
+    +0054: op_0c 0b0c
+    +0055: op_6e 106e 204a 000b method@8266 Landroid/content/res/TypedArray;->length()I
+    +0058: op_0a 0c0a
+    +0059: op_23 c023 33a7
+    +005b: op_12 0112
+    +005c: op_01 1201
+    +005d: op_35 c235 001f branch_target=+0x7c
+    +005f: op_6e 306e 2039 012b method@8249 Landroid/content/res/TypedArray;->getDimensionPixelOffset(II)I
+    +0062: op_0a 030a
+    +0063: op_82 3382
+    +0064: op_4b 034b 0200
+    +0066: op_3d 023d 0013 branch_target=+0x79
+    +0068: op_d8 04d8 ff02
+    +006a: op_44 0444 0400
+    +006c: op_2e 032e 0403
+    +006e: op_3c 033c 000b branch_target=+0x79
+    +0070: op_12 1c12
+    +0071: op_5c ec5c 6125 field@24869 Lqix;->g:Z
+    +0073: op_6e 106e 204c 000b method@8268 Landroid/content/res/TypedArray;->recycle()V
+    +0076: op_62 0062 4bdf field@19423 Lngw;->c:[F
+    +0078: op_28 0728 branch_target=+0x7f
+    +0079: op_d8 02d8 0102
+    +007b: op_28 e228 branch_target=+0x5d
+    +007c: op_6e 106e 204c 000b method@8268 Landroid/content/res/TypedArray;->recycle()V
+    +007f: op_5b e05b 6126 field@24870 Lqix;->h:[F
+    +0081: op_0e 000e
+
+### direct Lcom/google/android/libraries/inputmethod/motioneventhandler/scrubmove/ScrubMotionEventHandler;->q(Lqbc;J)V access=0x12
+  code_item_off=0x521a14 registers=6 ins=4 outs=2 tries=0 insns_size=32
+    +0000: op_71 0071 8825 0000 method@34853 Lohe;->b()Lohe;
+    +0003: op_0c 000c
+    +0004: op_6e 106e 3a80 0002 method@14976 Lcom/google/android/libraries/inputmethod/motioneventhandler/AbstractMotionEventHandler;->y()I
+    +0007: op_0a 010a
+    +0008: op_59 0159 50d4 field@20692 Lohe;->h:I
+    +000a: op_62 0162 5d28 field@23848 Lqae;->a:Lqae;
+    +000c: op_5b 015b 50cd field@20685 Lohe;->a:Lqae;
+    +000e: op_6e 206e 8832 0030 method@34866 Lohe;->o(Lqbc;)V
+    +0011: op_5a 045a 50d6 field@20694 Lohe;->j:J
+    +0013: op_12 6312
+    +0014: op_59 0359 50e3 field@20707 Lohe;->w:I
+    +0016: op_5b 205b 1bb4 field@7092 Lcom/google/android/libraries/inputmethod/motioneventhandler/scrubmove/ScrubMotionEventHandler;->b:Lohe;
+    +0018: op_54 2354 1bc2 field@7106 Lcom/google/android/libraries/inputmethod/motioneventhandler/scrubmove/ScrubMotionEventHandler;->p:Lqit;
+    +001a: op_54 2254 1bb4 field@7092 Lcom/google/android/libraries/inputmethod/motioneventhandler/scrubmove/ScrubMotionEventHandler;->b:Lohe;
+    +001c: op_72 2072 a30c 0023 method@41740 Lqit;->n(Lohe;)V
+    +001f: op_0e 000e
+
+### direct Lcom/google/android/libraries/inputmethod/motioneventhandler/scrubmove/ScrubMotionEventHandler;->r(Landroid/view/MotionEvent;Z)V access=0x12
+  code_item_off=0x52184c registers=13 ins=3 outs=5 tries=0 insns_size=219
+    +0000: op_54 a054 1bb7 field@7095 Lcom/google/android/libraries/inputmethod/motioneventhandler/scrubmove/ScrubMotionEventHandler;->e:Landroid/view/inputmethod/EditorInfo;
+    +0002: op_62 0162 4feb field@20459 Lobk;->a:Landroid/view/inputmethod/EditorInfo;
+    +0004: op_54 a154 1bc1 field@7105 Lcom/google/android/libraries/inputmethod/motioneventhandler/scrubmove/ScrubMotionEventHandler;->o:Landroid/content/Context;
+    +0006: op_6e 106e 1f5d 0001 method@8029 Landroid/content/Context;->getPackageName()Ljava/lang/String;
+    +0009: op_0c 020c
+    +000a: op_1a 031a a376 string@41846 'noScrubbing'
+    +000c: op_71 3071 871d 0032 method@34589 Lobk;->v(Ljava/lang/String;Ljava/lang/String;Landroid/view/inputmethod/EditorInfo;)Z
+    +000f: op_0a 000a
+    +0010: op_12 1212
+    +0011: op_12 0312
+    +0012: op_39 0039 00ab branch_target=+0xbd
+    +0014: op_52 a052 1bc0 field@7104 Lcom/google/android/libraries/inputmethod/motioneventhandler/scrubmove/ScrubMotionEventHandler;->n:I
+    +0016: op_14 0114 ffff 7fff
+    +0019: op_12 0412
+    +001a: op_12 f512
+    +001b: op_32 5032 008f branch_target=+0xaa
+    +001d: op_6e 206e 24e8 000b method@9448 Landroid/view/MotionEvent;->findPointerIndex(I)I
+    +0020: op_0a 000a
+    +0021: op_3a 003a 0089 branch_target=+0xaa
+    +0023: op_54 a654 1bba field@7098 Lcom/google/android/libraries/inputmethod/motioneventhandler/scrubmove/ScrubMotionEventHandler;->h:Landroid/graphics/Rect;
+    +0025: op_6e 206e 24fc 000b method@9468 Landroid/view/MotionEvent;->getX(I)F
+    +0028: op_0a 070a
+    +0029: op_87 7787
+    +002a: op_6e 206e 24fe 000b method@9470 Landroid/view/MotionEvent;->getY(I)F
+    +002d: op_0a 000a
+    +002e: op_87 0087
+    +002f: op_6e 306e 2183 0076 method@8579 Landroid/graphics/Rect;->contains(II)Z
+    +0032: op_0a 000a
+    +0033: op_38 0038 0077 branch_target=+0xaa
+    +0035: op_52 a052 1bc0 field@7104 Lcom/google/android/libraries/inputmethod/motioneventhandler/scrubmove/ScrubMotionEventHandler;->n:I
+    +0037: op_6e 206e 24e8 000b method@9448 Landroid/view/MotionEvent;->findPointerIndex(I)I
+    +003a: op_0a 000a
+    +003b: op_6e 206e 24fc 000b method@9468 Landroid/view/MotionEvent;->getX(I)F
+    +003e: op_0a 000a
+    +003f: op_52 a652 1bbd field@7101 Lcom/google/android/libraries/inputmethod/motioneventhandler/scrubmove/ScrubMotionEventHandler;->k:F
+    +0041: op_c7 60c7 0689
+    +0043: op_16 0816 0000
+    +0045: op_2f 062f 0806
+    +0047: op_38 0638 0030 branch_target=+0x77
+    +0049: op_54 a654 1bb9 field@7097 Lcom/google/android/libraries/inputmethod/motioneventhandler/scrubmove/ScrubMotionEventHandler;->g:Lqix;
+    +004b: op_54 6654 6126 field@24870 Lqix;->h:[F
+    +004d: op_38 0638 002a branch_target=+0x77
+    +004f: op_12 0312
+    +0050: op_2d 072d 0300
+    +0052: op_3d 073d 0004 branch_target=+0x56
+    +0054: op_01 2701
+    +0055: op_28 0228 branch_target=+0x57
+    +0056: op_01 5701
+    +0057: op_71 1071 615b 0000 method@24923 Ljava/lang/Math;->abs(F)F
+    +005a: op_0a 000a
+    +005b: op_21 6821
+    +005c: op_36 8236 0010 branch_target=+0x6c
+    +005e: op_d8 03d8 ff02
+    +0060: op_44 0844 0306
+    +0062: op_2e 092e 0800
+    +0064: op_3b 093b 0004 branch_target=+0x68
+    +0066: op_b2 73b2
+    +0067: op_28 1028 branch_target=+0x77
+    +0068: op_d8 02d8 0102
+    +006a: op_01 8301
+    +006b: op_28 f028 branch_target=+0x5b
+    +006c: op_b0 52b0
+    +006d: op_c7 30c7 a352
+    +006f: op_b3 1bb3
+    +0070: op_82 3382
+    +0071: op_82 2282
+    +0072: op_c9 30c9 02c6
+    +0074: op_87 2087
+    +0075: op_92 0392 0007
+    +0077: op_39 0c39 000c branch_target=+0x83
+    +0079: op_52 a052 1bc4 field@7108 Lcom/google/android/libraries/inputmethod/motioneventhandler/scrubmove/ScrubMotionEventHandler;->r:I
+    +007b: op_33 3033 0008 branch_target=+0x83
+    +007d: op_70 2070 3aae 00ba method@15022 Lcom/google/android/libraries/inputmethod/motioneventhandler/scrubmove/ScrubMotionEventHandler;->t(Landroid/view/MotionEvent;)Z
+    +0080: op_0a 000a
+    +0081: op_38 0038 0059 branch_target=+0xda
+    +0083: op_22 0022 2350
+    +0085: op_38 0c38 0007 branch_target=+0x8c
+    +0087: op_54 ac54 1bb9 field@7097 Lcom/google/android/libraries/inputmethod/motioneventhandler/scrubmove/ScrubMotionEventHandler;->g:Lqix;
+    +0089: op_52 cc52 6121 field@24865 Lqix;->c:I
+    +008b: op_28 0e28 branch_target=+0x99
+    +008c: op_70 2070 3aae 00ba method@15022 Lcom/google/android/libraries/inputmethod/motioneventhandler/scrubmove/ScrubMotionEventHandler;->t(Landroid/view/MotionEvent;)Z
+    +008f: op_0a 0c0a
+    +0090: op_54 a254 1bb9 field@7097 Lcom/google/android/libraries/inputmethod/motioneventhandler/scrubmove/ScrubMotionEventHandler;->g:Lqix;
+    +0092: op_38 0c38 0005 branch_target=+0x97
+    +0094: op_52 2c52 6123 field@24867 Lqix;->e:I
+    +0096: op_28 0328 branch_target=+0x99
+    +0097: op_52 2c52 6122 field@24866 Lqix;->d:I
+    +0099: op_71 1071 6143 0003 method@24899 Ljava/lang/Integer;->valueOf(I)Ljava/lang/Integer;
+    +009c: op_0c 020c
+    +009d: op_70 5170 9f79 24c0 method@40825 Lqbc;-><init>(ILqbb;Ljava/lang/Object;I)V
+    +00a0: op_6e 106e 24ee 000b method@9454 Landroid/view/MotionEvent;->getEventTime()J
+    +00a3: op_0b 0b0b
+    +00a4: op_70 4070 3aab cb0a method@15019 Lcom/google/android/libraries/inputmethod/motioneventhandler/scrubmove/ScrubMotionEventHandler;->q(Lqbc;J)V
+    +00a7: op_59 a359 1bc4 field@7108 Lcom/google/android/libraries/inputmethod/motioneventhandler/scrubmove/ScrubMotionEventHandler;->r:I
+    +00a9: op_0e 000e
+    +00aa: op_5c a35c 1bb8 field@7096 Lcom/google/android/libraries/inputmethod/motioneventhandler/scrubmove/ScrubMotionEventHandler;->f:Z
+    +00ac: op_54 ac54 1bb9 field@7097 Lcom/google/android/libraries/inputmethod/motioneventhandler/scrubmove/ScrubMotionEventHandler;->g:Lqix;
+    +00ae: op_22 0022 2350
+    +00b0: op_52 cc52 6124 field@24868 Lqix;->f:I
+    +00b2: op_70 5170 9f79 44c0 method@40825 Lqbc;-><init>(ILqbb;Ljava/lang/Object;I)V
+    +00b5: op_6e 106e 24ee 000b method@9454 Landroid/view/MotionEvent;->getEventTime()J
+    +00b8: op_0b 0b0b
+    +00b9: op_70 4070 3aab cb0a method@15019 Lcom/google/android/libraries/inputmethod/motioneventhandler/scrubmove/ScrubMotionEventHandler;->q(Lqbc;J)V
+    +00bc: op_0e 000e
+    +00bd: op_55 ac55 1bbc field@7100 Lcom/google/android/libraries/inputmethod/motioneventhandler/scrubmove/ScrubMotionEventHandler;->j:Z
+    +00bf: op_39 0c39 001b branch_target=+0xda
+    +00c1: op_53 a453 1bbe field@7102 Lcom/google/android/libraries/inputmethod/motioneventhandler/scrubmove/ScrubMotionEventHandler;->l:J
+    +00c3: op_54 ac54 1bb5 field@7093 Lcom/google/android/libraries/inputmethod/motioneventhandler/scrubmove/ScrubMotionEventHandler;->c:Lqiw;
+    +00c5: op_53 c653 611d field@24861 Lqiw;->f:J
+    +00c7: op_bb 64bb
+    +00c8: op_6e 106e 24ee 000b method@9454 Landroid/view/MotionEvent;->getEventTime()J
+    +00cb: op_0b 0b0b
+    +00cc: op_31 0b31 0b04
+    +00ce: op_3c 0b3c 000c branch_target=+0xda
+    +00d0: op_14 0b14 11aa 7f14
+    +00d3: op_23 3c23 3473
+    +00d5: op_71 4071 af49 cb31 method@44873 Lrxn;->j(Landroid/content/Context;II[Ljava/lang/Object;)V
+    +00d8: op_5c a25c 1bbc field@7100 Lcom/google/android/libraries/inputmethod/motioneventhandler/scrubmove/ScrubMotionEventHandler;->j:Z
+    +00da: op_0e 000e
+
+### direct Lcom/google/android/libraries/inputmethod/motioneventhandler/scrubmove/ScrubMotionEventHandler;->s(Z)V access=0x12
+  code_item_off=0x1f1244 registers=2 ins=2 outs=2 tries=0 insns_size=8
+    +0000: op_54 0054 1bbf field@7103 Lcom/google/android/libraries/inputmethod/motioneventhandler/scrubmove/ScrubMotionEventHandler;->m:Landroid/view/View;
+    +0002: op_38 0038 0005 branch_target=+0x7
+    +0004: op_6e 206e 25ae 0010 method@9646 Landroid/view/View;->setPressed(Z)V
+    +0007: op_0e 000e
+
+### direct Lcom/google/android/libraries/inputmethod/motioneventhandler/scrubmove/ScrubMotionEventHandler;->t(Landroid/view/MotionEvent;)Z access=0x12
+  code_item_off=0x52151c registers=6 ins=2 outs=2 tries=0 insns_size=29
+    +0000: op_6e 106e 24eb 0005 method@9451 Landroid/view/MotionEvent;->getActionMasked()I
+    +0003: op_0a 000a
+    +0004: op_52 4452 1bc0 field@7104 Lcom/google/android/libraries/inputmethod/motioneventhandler/scrubmove/ScrubMotionEventHandler;->n:I
+    +0006: op_6e 206e 24e8 0045 method@9448 Landroid/view/MotionEvent;->findPointerIndex(I)I
+    +0009: op_0a 040a
+    +000a: op_12 1112
+    +000b: op_32 1032 0011 branch_target=+0x1c
+    +000d: op_12 3212
+    +000e: op_32 2032 000e branch_target=+0x1c
+    +0010: op_12 6212
+    +0011: op_12 0312
+    +0012: op_33 2033 0009 branch_target=+0x1b
+    +0014: op_6e 106e 24ea 0005 method@9450 Landroid/view/MotionEvent;->getActionIndex()I
+    +0017: op_0a 050a
+    +0018: op_33 5433 0003 branch_target=+0x1b
+    +001a: op_0f 010f
+    +001b: op_0f 030f
+    +001c: op_0f 010f
+
+### virtual Lcom/google/android/libraries/inputmethod/motioneventhandler/scrubmove/ScrubMotionEventHandler;->b(Landroid/view/MotionEvent;)Z access=0x4
+  code_item_off=0x521568 registers=3 ins=2 outs=3 tries=0 insns_size=6
+    +0000: op_12 3012
+    +0001: op_6e 306e 3aaa 0021 method@15018 Lcom/google/android/libraries/inputmethod/motioneventhandler/scrubmove/ScrubMotionEventHandler;->p(Landroid/view/MotionEvent;I)Z
+    +0004: op_0a 010a
+    +0005: op_0f 010f
+
+### virtual Lcom/google/android/libraries/inputmethod/motioneventhandler/scrubmove/ScrubMotionEventHandler;->c()F access=0x14
+  code_item_off=0x521618 registers=1 ins=1 outs=0 tries=0 insns_size=5
+    +0000: op_54 0054 1bb5 field@7093 Lcom/google/android/libraries/inputmethod/motioneventhandler/scrubmove/ScrubMotionEventHandler;->c:Lqiw;
+    +0002: op_52 0052 611a field@24858 Lqiw;->c:F
+    +0004: op_0f 000f
+
+### virtual Lcom/google/android/libraries/inputmethod/motioneventhandler/scrubmove/ScrubMotionEventHandler;->close()V access=0x11
+  code_item_off=0x1f101c registers=2 ins=1 outs=1 tries=0 insns_size=7
+    +0000: op_6e 106e 3a7e 0001 method@14974 Lcom/google/android/libraries/inputmethod/motioneventhandler/AbstractMotionEventHandler;->l()V
+    +0003: op_12 0012
+    +0004: op_5b 105b 1bb6 field@7094 Lcom/google/android/libraries/inputmethod/motioneventhandler/scrubmove/ScrubMotionEventHandler;->d:Lcom/google/android/libraries/inputmethod/widgets/SoftKeyboardView;
+    +0006: op_0e 000e
+
+### virtual Lcom/google/android/libraries/inputmethod/motioneventhandler/scrubmove/ScrubMotionEventHandler;->d()V access=0x11
+  code_item_off=0x1f1188 registers=2 ins=1 outs=2 tries=0 insns_size=9
+    +0000: op_6e 106e 3a7e 0001 method@14974 Lcom/google/android/libraries/inputmethod/motioneventhandler/AbstractMotionEventHandler;->l()V
+    +0003: op_54 1054 1bc2 field@7106 Lcom/google/android/libraries/inputmethod/motioneventhandler/scrubmove/ScrubMotionEventHandler;->p:Lqit;
+    +0005: op_72 2072 a30a 0010 method@41738 Lqit;->l(Lohg;)V
+    +0008: op_0e 000e
+
+### virtual Lcom/google/android/libraries/inputmethod/motioneventhandler/scrubmove/ScrubMotionEventHandler;->f()V access=0x11
+  code_item_off=0x1f11ac registers=2 ins=1 outs=2 tries=0 insns_size=6
+    +0000: op_54 1054 1bc2 field@7106 Lcom/google/android/libraries/inputmethod/motioneventhandler/scrubmove/ScrubMotionEventHandler;->p:Lqit;
+    +0002: op_72 2072 a30d 0010 method@41741 Lqit;->o(Lohg;)V
+    +0005: op_0e 000e
+
+### virtual Lcom/google/android/libraries/inputmethod/motioneventhandler/scrubmove/ScrubMotionEventHandler;->g(Landroid/view/MotionEvent;)V access=0x11
+  code_item_off=0x521634 registers=13 ins=2 outs=3 tries=1 insns_size=254
+    +0000: op_1a 001a 69ac string@27052 'ScrubMotionEventHandler.handle'
+    +0002: op_71 1071 236b 0000 method@9067 Landroid/os/Trace;->beginSection(Ljava/lang/String;)V
+    +0005: op_54 b054 1bc2 field@7106 Lcom/google/android/libraries/inputmethod/motioneventhandler/scrubmove/ScrubMotionEventHandler;->p:Lqit;
+    +0007: op_72 1072 a303 0000 method@41731 Lqit;->dr()Lmpy;
+    +000a: op_0c 010c
+    +000b: op_72 1072 7ad5 0001 method@31445 Lmpy;->v()Z
+    +000e: op_0a 010a
+    +000f: op_38 0138 0006 branch_target=+0x15
+    +0011: op_55 b155 1bc3 field@7107 Lcom/google/android/libraries/inputmethod/motioneventhandler/scrubmove/ScrubMotionEventHandler;->q:Z
+    +0013: op_38 0138 00e2 branch_target=+0xf5
+    +0015: op_54 b154 1bb9 field@7097 Lcom/google/android/libraries/inputmethod/motioneventhandler/scrubmove/ScrubMotionEventHandler;->g:Lqix;
+    +0017: op_55 1255 6125 field@24869 Lqix;->g:Z
+    +0019: op_39 0239 00dc branch_target=+0xf5
+    +001b: op_55 b255 1bb8 field@7096 Lcom/google/android/libraries/inputmethod/motioneventhandler/scrubmove/ScrubMotionEventHandler;->f:Z
+    +001d: op_38 0238 00cf branch_target=+0xec
+    +001f: op_6e 106e 24eb 000c method@9451 Landroid/view/MotionEvent;->getActionMasked()I
+    +0022: op_0a 020a
+    +0023: op_12 1312
+    +0024: op_12 0412
+    +0025: op_39 0239 0095 branch_target=+0xba
+    +0027: op_6e 106e 24ee 000c method@9454 Landroid/view/MotionEvent;->getEventTime()J
+    +002a: op_0b 050b
+    +002b: op_72 1072 a301 0000 method@41729 Lqit;->c()J
+    +002e: op_0b 070b
+    +002f: op_54 b054 1bb5 field@7093 Lcom/google/android/libraries/inputmethod/motioneventhandler/scrubmove/ScrubMotionEventHandler;->c:Lqiw;
+    +0031: op_53 0953 6118 field@24856 Lqiw;->a:J
+    +0033: op_bb 97bb
+    +0034: op_31 0231 0705
+    +0036: op_3b 023b 0006 branch_target=+0x3c
+    +0038: op_5c b45c 1bb8 field@7096 Lcom/google/android/libraries/inputmethod/motioneventhandler/scrubmove/ScrubMotionEventHandler;->f:Z
+    +003a: op_29 0029 00b2 branch_target=+0xec
+    +003c: op_54 b254 1bb6 field@7094 Lcom/google/android/libraries/inputmethod/motioneventhandler/scrubmove/ScrubMotionEventHandler;->d:Lcom/google/android/libraries/inputmethod/widgets/SoftKeyboardView;
+    +003e: op_39 0239 0004 branch_target=+0x42
+    +0040: op_12 0212
+    +0041: op_28 0928 branch_target=+0x4a
+    +0042: op_6e 106e 24ea 000c method@9450 Landroid/view/MotionEvent;->getActionIndex()I
+    +0045: op_0a 050a
+    +0046: op_6e 306e 3c14 05c2 method@15380 Lcom/google/android/libraries/inputmethod/widgets/SoftKeyboardView;->A(Landroid/view/MotionEvent;I)Landroid/view/View;
+    +0049: op_0c 020c
+    +004a: op_38 0238 ffee branch_target=+0x38
+    +004c: op_20 2520 0c12
+    +004e: op_38 0538 ffea branch_target=+0x38
+    +0050: op_07 2507
+    +0051: op_1f 051f 0c12
+    +0053: op_62 0662 5d28 field@23848 Lqae;->a:Lqae;
+    +0055: op_6e 206e 3bbf 0065 method@15295 Lcom/google/android/libraries/inputmethod/widgets/SoftKeyView;->f(Lqae;)Lcom/google/android/libraries/inputmethod/metadata/ActionDef;
+    +0058: op_0c 060c
+    +0059: op_38 0638 ffdf branch_target=+0x38
+    +005b: op_62 0762 5d2c field@23852 Lqae;->e:Lqae;
+    +005d: op_6e 206e 3bbf 0075 method@15295 Lcom/google/android/libraries/inputmethod/widgets/SoftKeyView;->f(Lqae;)Lcom/google/android/libraries/inputmethod/metadata/ActionDef;
+    +0060: op_0c 050c
+    +0061: op_39 0539 ffd7 branch_target=+0x38
+    +0063: op_6e 106e 39a6 0006 method@14758 Lcom/google/android/libraries/inputmethod/metadata/ActionDef;->b()Lqbc;
+    +0066: op_0c 050c
+    +0067: op_52 5552 5d9b field@23963 Lqbc;->c:I
+    +0069: op_52 1652 611f field@24863 Lqix;->a:I
+    +006b: op_33 6533 ffcd branch_target=+0x38
+    +006d: op_54 b554 1bb6 field@7094 Lcom/google/android/libraries/inputmethod/motioneventhandler/scrubmove/ScrubMotionEventHandler;->d:Lcom/google/android/libraries/inputmethod/widgets/SoftKeyboardView;
+    +006f: op_38 0538 0024 branch_target=+0x93
+    +0071: op_54 b654 1bba field@7098 Lcom/google/android/libraries/inputmethod/motioneventhandler/scrubmove/ScrubMotionEventHandler;->h:Landroid/graphics/Rect;
+    +0073: op_71 3071 b923 0652 method@47395 Ltmk;->H(Landroid/view/View;Landroid/view/View;Landroid/graphics/Rect;)V
+    +0076: op_59 6459 0f63 field@3939 Landroid/graphics/Rect;->left:I
+    +0078: op_6e 106e 3c38 0005 method@15416 Lcom/google/android/libraries/inputmethod/widgets/SoftKeyboardView;->getWidth()I
+    +007b: op_0a 070a
+    +007c: op_59 6759 0f64 field@3940 Landroid/graphics/Rect;->right:I
+    +007e: op_52 6752 0f65 field@3941 Landroid/graphics/Rect;->top:I
+    +0080: op_82 7782
+    +0081: op_52 0852 611e field@24862 Lqiw;->g:F
+    +0083: op_c7 87c7 7787
+    +0085: op_59 6759 0f65 field@3941 Landroid/graphics/Rect;->top:I
+    +0087: op_52 6752 0f62 field@3938 Landroid/graphics/Rect;->bottom:I
+    +0089: op_82 7782
+    +008a: op_c6 87c6 7787
+    +008c: op_59 6759 0f62 field@3938 Landroid/graphics/Rect;->bottom:I
+    +008e: op_54 b654 1bbb field@7099 Lcom/google/android/libraries/inputmethod/motioneventhandler/scrubmove/ScrubMotionEventHandler;->i:Landroid/graphics/Rect;
+    +0090: op_71 3071 b923 0652 method@47395 Ltmk;->H(Landroid/view/View;Landroid/view/View;Landroid/graphics/Rect;)V
+    +0093: op_6e 106e 24ea 000c method@9450 Landroid/view/MotionEvent;->getActionIndex()I
+    +0096: op_0a 050a
+    +0097: op_6e 206e 24f5 005c method@9461 Landroid/view/MotionEvent;->getPointerId(I)I
+    +009a: op_0a 060a
+    +009b: op_59 b659 1bc0 field@7104 Lcom/google/android/libraries/inputmethod/motioneventhandler/scrubmove/ScrubMotionEventHandler;->n:I
+    +009d: op_6e 206e 24fc 005c method@9468 Landroid/view/MotionEvent;->getX(I)F
+    +00a0: op_0a 050a
+    +00a1: op_59 b559 1bbd field@7101 Lcom/google/android/libraries/inputmethod/motioneventhandler/scrubmove/ScrubMotionEventHandler;->k:F
+    +00a3: op_6e 106e 24ee 000c method@9454 Landroid/view/MotionEvent;->getEventTime()J
+    +00a6: op_0b 050b
+    +00a7: op_5a b55a 1bbe field@7102 Lcom/google/android/libraries/inputmethod/motioneventhandler/scrubmove/ScrubMotionEventHandler;->l:J
+    +00a9: op_5c b45c 1bbc field@7100 Lcom/google/android/libraries/inputmethod/motioneventhandler/scrubmove/ScrubMotionEventHandler;->j:Z
+    +00ab: op_52 1152 6128 field@24872 Lqix;->j:I
+    +00ad: op_33 3133 0005 branch_target=+0xb2
+    +00af: op_52 0052 611b field@24859 Lqiw;->d:F
+    +00b1: op_28 0328 branch_target=+0xb4
+    +00b2: op_52 0052 611c field@24860 Lqiw;->e:F
+    +00b4: op_87 0087
+    +00b5: op_59 b059 1bb3 field@7091 Lcom/google/android/libraries/inputmethod/motioneventhandler/scrubmove/ScrubMotionEventHandler;->a:I
+    +00b7: op_5b b25b 1bbf field@7103 Lcom/google/android/libraries/inputmethod/motioneventhandler/scrubmove/ScrubMotionEventHandler;->m:Landroid/view/View;
+    +00b9: op_28 3328 branch_target=+0xec
+    +00ba: op_52 b152 1bc0 field@7104 Lcom/google/android/libraries/inputmethod/motioneventhandler/scrubmove/ScrubMotionEventHandler;->n:I
+    +00bc: op_12 f212
+    +00bd: op_32 2132 002f branch_target=+0xec
+    +00bf: op_55 b155 1bc3 field@7107 Lcom/google/android/libraries/inputmethod/motioneventhandler/scrubmove/ScrubMotionEventHandler;->q:Z
+    +00c1: op_39 0139 0024 branch_target=+0xe5
+    +00c3: op_6e 206e 3a9f 00cb method@15007 Lcom/google/android/libraries/inputmethod/motioneventhandler/scrubmove/ScrubMotionEventHandler;->b(Landroid/view/MotionEvent;)Z
+    +00c6: op_0a 010a
+    +00c7: op_38 0138 001e branch_target=+0xe5
+    +00c9: op_62 0162 60c3 field@24771 Lqhz;->a:Lokc;
+    +00cb: op_72 1072 8a07 0001 method@35335 Lokc;->g()Ljava/lang/Object;
+    +00ce: op_0c 010c
+    +00cf: op_1f 011f 15fd
+    +00d1: op_6e 106e 6099 0001 method@24729 Ljava/lang/Boolean;->booleanValue()Z
+    +00d4: op_0a 010a
+    +00d5: op_38 0138 0010 branch_target=+0xe5
+    +00d7: op_5c b35c 1bc3 field@7107 Lcom/google/android/libraries/inputmethod/motioneventhandler/scrubmove/ScrubMotionEventHandler;->q:Z
+    +00d9: op_72 1072 a30b 0000 method@41739 Lqit;->m()V
+    +00dc: op_59 b459 1bc4 field@7108 Lcom/google/android/libraries/inputmethod/motioneventhandler/scrubmove/ScrubMotionEventHandler;->r:I
+    +00de: op_70 2070 3aad 003b method@15021 Lcom/google/android/libraries/inputmethod/motioneventhandler/scrubmove/ScrubMotionEventHandler;->s(Z)V
+    +00e1: op_70 3070 3aac 03cb method@15020 Lcom/google/android/libraries/inputmethod/motioneventhandler/scrubmove/ScrubMotionEventHandler;->r(Landroid/view/MotionEvent;Z)V
+    +00e4: op_28 0828 branch_target=+0xec
+    +00e5: op_55 b055 1bc3 field@7107 Lcom/google/android/libraries/inputmethod/motioneventhandler/scrubmove/ScrubMotionEventHandler;->q:Z
+    +00e7: op_38 0038 0005 branch_target=+0xec
+    +00e9: op_70 3070 3aac 04cb method@15020 Lcom/google/android/libraries/inputmethod/motioneventhandler/scrubmove/ScrubMotionEventHandler;->r(Landroid/view/MotionEvent;Z)V
+    +00ec: op_70 2070 3aae 00cb method@15022 Lcom/google/android/libraries/inputmethod/motioneventhandler/scrubmove/ScrubMotionEventHandler;->t(Landroid/view/MotionEvent;)Z
+    +00ef: op_0a 0c0a
+    +00f0: op_38 0c38 0005 branch_target=+0xf5
+    +00f2: op_6e 106e 3a7e 000b method@14974 Lcom/google/android/libraries/inputmethod/motioneventhandler/AbstractMotionEventHandler;->l()V
+    +00f5: op_71 0071 236c 0000 method@9068 Landroid/os/Trace;->endSection()V
+    +00f8: op_0e 000e
+    +00f9: op_0d 0b0d
+    +00fa: op_71 0071 236c 0000 method@9068 Landroid/os/Trace;->endSection()V
+    +00fd: op_27 0b27
+
+### virtual Lcom/google/android/libraries/inputmethod/motioneventhandler/scrubmove/ScrubMotionEventHandler;->gr(Landroid/view/inputmethod/EditorInfo;)V access=0x11
+  code_item_off=0x1f1208 registers=2 ins=2 outs=0 tries=0 insns_size=3
+    +0000: op_5b 015b 1bb7 field@7095 Lcom/google/android/libraries/inputmethod/motioneventhandler/scrubmove/ScrubMotionEventHandler;->e:Landroid/view/inputmethod/EditorInfo;
+    +0002: op_0e 000e
+
+### virtual Lcom/google/android/libraries/inputmethod/motioneventhandler/scrubmove/ScrubMotionEventHandler;->l()V access=0x11
+  code_item_off=0x1f11c8 registers=3 ins=1 outs=2 tries=0 insns_size=23
+    +0000: op_12 1012
+    +0001: op_5c 205c 1bb8 field@7096 Lcom/google/android/libraries/inputmethod/motioneventhandler/scrubmove/ScrubMotionEventHandler;->f:Z
+    +0003: op_12 0012
+    +0004: op_59 2059 1bb3 field@7091 Lcom/google/android/libraries/inputmethod/motioneventhandler/scrubmove/ScrubMotionEventHandler;->a:I
+    +0006: op_12 0112
+    +0007: op_59 2159 1bbd field@7101 Lcom/google/android/libraries/inputmethod/motioneventhandler/scrubmove/ScrubMotionEventHandler;->k:F
+    +0009: op_12 f112
+    +000a: op_59 2159 1bc0 field@7104 Lcom/google/android/libraries/inputmethod/motioneventhandler/scrubmove/ScrubMotionEventHandler;->n:I
+    +000c: op_5c 205c 1bc3 field@7107 Lcom/google/android/libraries/inputmethod/motioneventhandler/scrubmove/ScrubMotionEventHandler;->q:Z
+    +000e: op_59 2059 1bc4 field@7108 Lcom/google/android/libraries/inputmethod/motioneventhandler/scrubmove/ScrubMotionEventHandler;->r:I
+    +0010: op_70 2070 3aad 0002 method@15021 Lcom/google/android/libraries/inputmethod/motioneventhandler/scrubmove/ScrubMotionEventHandler;->s(Z)V
+    +0013: op_12 0012
+    +0014: op_5b 205b 1bbf field@7103 Lcom/google/android/libraries/inputmethod/motioneventhandler/scrubmove/ScrubMotionEventHandler;->m:Landroid/view/View;
+    +0016: op_0e 000e
+
+### virtual Lcom/google/android/libraries/inputmethod/motioneventhandler/scrubmove/ScrubMotionEventHandler;->m(Lohe;)Z access=0x11
+  code_item_off=0x1f1264 registers=3 ins=2 outs=3 tries=0 insns_size=32
+    +0000: op_6e 106e 882a 0002 method@34858 Lohe;->g()Lqbc;
+    +0003: op_0c 020c
+    +0004: op_38 0238 001a branch_target=+0x1e
+    +0006: op_52 2252 5d9b field@23963 Lqbc;->c:I
+    +0008: op_13 0013 d895
+    +000a: op_33 0233 0014 branch_target=+0x1e
+    +000c: op_60 0260 5c10 field@23568 Lpuj;->a:I
+    +000e: op_62 0262 5c12 field@23570 Lpul;->b:Ljava/util/concurrent/atomic/AtomicReference;
+    +0010: op_6e 106e 6622 0002 method@26146 Ljava/util/concurrent/atomic/AtomicReference;->get()Ljava/lang/Object;
+    +0013: op_0c 020c
+    +0014: op_1f 021f 22cb
+    +0016: op_54 1154 1bb6 field@7094 Lcom/google/android/libraries/inputmethod/motioneventhandler/scrubmove/ScrubMotionEventHandler;->d:Lcom/google/android/libraries/inputmethod/widgets/SoftKeyboardView;
+    +0018: op_12 3012
+    +0019: op_72 3072 9cb7 0012 method@40119 Lpul;->d(Landroid/view/View;I)V
+    +001c: op_12 1112
+    +001d: op_0f 010f
+    +001e: op_12 0112
+    +001f: op_0f 010f
+
+### virtual Lcom/google/android/libraries/inputmethod/motioneventhandler/scrubmove/ScrubMotionEventHandler;->n(Lcom/google/android/libraries/inputmethod/widgets/SoftKeyboardView;)V access=0x11
+  code_item_off=0x1f1220 registers=3 ins=2 outs=1 tries=0 insns_size=10
+    +0000: op_54 1054 1bb6 field@7094 Lcom/google/android/libraries/inputmethod/motioneventhandler/scrubmove/ScrubMotionEventHandler;->d:Lcom/google/android/libraries/inputmethod/widgets/SoftKeyboardView;
+    +0002: op_32 0232 0007 branch_target=+0x9
+    +0004: op_6e 106e 3a74 0001 method@14964 Lcom/google/android/libraries/inputmethod/motioneventhandler/AbstractMotionEventHandler;->close()V
+    +0007: op_5b 125b 1bb6 field@7094 Lcom/google/android/libraries/inputmethod/motioneventhandler/scrubmove/ScrubMotionEventHandler;->d:Lcom/google/android/libraries/inputmethod/widgets/SoftKeyboardView;
+    +0009: op_0e 000e
+
+### virtual Lcom/google/android/libraries/inputmethod/motioneventhandler/scrubmove/ScrubMotionEventHandler;->o(IFF)Z access=0x14
+  code_item_off=0x521488 registers=7 ins=4 outs=3 tries=0 insns_size=65
+    +0000: op_54 3054 1bb9 field@7097 Lcom/google/android/libraries/inputmethod/motioneventhandler/scrubmove/ScrubMotionEventHandler;->g:Lqix;
+    +0002: op_55 0055 6120 field@24864 Lqix;->b:Z
+    +0004: op_12 0112
+    +0005: op_38 0038 000d branch_target=+0x12
+    +0007: op_54 3054 1bbb field@7099 Lcom/google/android/libraries/inputmethod/motioneventhandler/scrubmove/ScrubMotionEventHandler;->i:Landroid/graphics/Rect;
+    +0009: op_87 5287
+    +000a: op_87 6687
+    +000b: op_6e 306e 2183 0620 method@8579 Landroid/graphics/Rect;->contains(II)Z
+    +000e: op_0a 060a
+    +000f: op_38 0638 0003 branch_target=+0x12
+    +0011: op_0f 010f
+    +0012: op_d8 04d8 ff04
+    +0014: op_12 1612
+    +0015: op_38 0438 001f branch_target=+0x34
+    +0017: op_52 3052 1bbd field@7101 Lcom/google/android/libraries/inputmethod/motioneventhandler/scrubmove/ScrubMotionEventHandler;->k:F
+    +0019: op_c7 05c7 6432
+    +001b: op_10 0010
+    +001c: op_71 1071 615b 0005 method@24923 Ljava/lang/Math;->abs(F)F
+    +001f: op_0a 040a
+    +0020: op_6e 106e 3aa0 0003 method@15008 Lcom/google/android/libraries/inputmethod/motioneventhandler/scrubmove/ScrubMotionEventHandler;->c()F
+    +0023: op_0a 030a
+    +0024: op_2d 032d 0304
+    +0026: op_3a 033a 0003 branch_target=+0x29
+    +0028: op_0f 060f
+    +0029: op_0f 010f
+    +002a: op_6e 106e 3aa0 0003 method@15008 Lcom/google/android/libraries/inputmethod/motioneventhandler/scrubmove/ScrubMotionEventHandler;->c()F
+    +002d: op_0a 030a
+    +002e: op_2d 032d 0305
+    +0030: op_3a 033a 0003 branch_target=+0x33
+    +0032: op_0f 060f
+    +0033: op_0f 010f
+    +0034: op_52 3452 1bbd field@7101 Lcom/google/android/libraries/inputmethod/motioneventhandler/scrubmove/ScrubMotionEventHandler;->k:F
+    +0036: op_c7 54c7 106e
+    +0038: op_a0 3aa0 0003
+    +003a: op_0a 030a
+    +003b: op_2d 032d 0304
+    +003d: op_3a 033a 0003 branch_target=+0x40
+    +003f: op_0f 060f
+    +0040: op_0f 010f
+
+### virtual Lcom/google/android/libraries/inputmethod/motioneventhandler/scrubmove/ScrubMotionEventHandler;->p(Landroid/view/MotionEvent;I)Z access=0x14
+  code_item_off=0x521584 registers=10 ins=3 outs=4 tries=0 insns_size=65
+    +0000: op_54 7054 1bb5 field@7093 Lcom/google/android/libraries/inputmethod/motioneventhandler/scrubmove/ScrubMotionEventHandler;->c:Lqiw;
+    +0002: op_6e 106e 24ee 0008 method@9454 Landroid/view/MotionEvent;->getEventTime()J
+    +0005: op_0b 010b
+    +0006: op_53 7353 1bbe field@7102 Lcom/google/android/libraries/inputmethod/motioneventhandler/scrubmove/ScrubMotionEventHandler;->l:J
+    +0008: op_53 0553 6119 field@24857 Lqiw;->b:J
+    +000a: op_bb 53bb
+    +000b: op_31 0031 0301
+    +000d: op_12 0112
+    +000e: op_3b 003b 0003 branch_target=+0x11
+    +0010: op_0f 010f
+    +0011: op_52 7052 1bc0 field@7104 Lcom/google/android/libraries/inputmethod/motioneventhandler/scrubmove/ScrubMotionEventHandler;->n:I
+    +0013: op_6e 206e 24e8 0008 method@9448 Landroid/view/MotionEvent;->findPointerIndex(I)I
+    +0016: op_0a 000a
+    +0017: op_12 f212
+    +0018: op_33 2033 0003 branch_target=+0x1b
+    +001a: op_0f 010f
+    +001b: op_6e 106e 24f3 0008 method@9459 Landroid/view/MotionEvent;->getHistorySize()I
+    +001e: op_0a 020a
+    +001f: op_35 2135 0015 branch_target=+0x34
+    +0021: op_6e 306e 24f1 0108 method@9457 Landroid/view/MotionEvent;->getHistoricalX(II)F
+    +0024: op_0a 030a
+    +0025: op_6e 306e 24f2 0108 method@9458 Landroid/view/MotionEvent;->getHistoricalY(II)F
+    +0028: op_0a 040a
+    +0029: op_6e 406e 3aa9 4397 method@15017 Lcom/google/android/libraries/inputmethod/motioneventhandler/scrubmove/ScrubMotionEventHandler;->o(IFF)Z
+    +002c: op_0a 030a
+    +002d: op_38 0338 0004 branch_target=+0x31
+    +002f: op_12 1712
+    +0030: op_0f 070f
+    +0031: op_d8 01d8 0101
+    +0033: op_28 ec28 branch_target=+0x1f
+    +0034: op_6e 206e 24fc 0008 method@9468 Landroid/view/MotionEvent;->getX(I)F
+    +0037: op_0a 010a
+    +0038: op_6e 206e 24fe 0008 method@9470 Landroid/view/MotionEvent;->getY(I)F
+    +003b: op_0a 080a
+    +003c: op_6e 406e 3aa9 8197 method@15017 Lcom/google/android/libraries/inputmethod/motioneventhandler/scrubmove/ScrubMotionEventHandler;->o(IFF)Z
+    +003f: op_0a 070a
+    +0040: op_0f 070f
+
+## Lcom/google/android/libraries/inputmethod/inlinesuggestion/InlineSuggestionScrubSpaceMotionEventHandler; (classes.dex)
+
+### direct Lcom/google/android/libraries/inputmethod/inlinesuggestion/InlineSuggestionScrubSpaceMotionEventHandler;-><init>(Landroid/content/Context;Lqit;)V access=0x10001
+  code_item_off=0x1eace0 registers=12 ins=3 outs=9 tries=0 insns_size=44
+    +0000: op_22 0022 2411
+    +0002: op_14 0714 3cae ffff
+    +0005: op_14 0814 00bb 7f03
+    +0008: op_13 0113 003e
+    +000a: op_12 0212
+    +000b: op_12 1312
+    +000c: op_14 0414 3caf ffff
+    +000f: op_14 0514 3cad ffff
+    +0012: op_14 0614 3cac ffff
+    +0015: op_76 0976 a313 0000 method@41747 Lqix;-><init>(IZIIIIII)V
+    +0018: op_6e 106e 1f5e 000a method@8030 Landroid/content/Context;->getResources()Landroid/content/res/Resources;
+    +001b: op_0c 010c
+    +001c: op_14 0214 0063 7f0c
+    +001f: op_6e 206e 2023 0021 method@8227 Landroid/content/res/Resources;->getInteger(I)I
+    +0022: op_0a 010a
+    +0023: op_81 1481
+    +0024: op_07 a107
+    +0025: op_07 b207
+    +0026: op_07 0307
+    +0027: op_07 9007
+    +0028: op_76 0676 3a9e 0000 method@15006 Lcom/google/android/libraries/inputmethod/motioneventhandler/scrubmove/ScrubMotionEventHandler;-><init>(Landroid/content/Context;Lqit;Lqix;J)V
+    +002b: op_0e 000e
+
+### virtual Lcom/google/android/libraries/inputmethod/inlinesuggestion/InlineSuggestionScrubSpaceMotionEventHandler;->b(Landroid/view/MotionEvent;)Z access=0x14
+  code_item_off=0x4fbc58 registers=5 ins=2 outs=3 tries=0 insns_size=32
+    +0000: op_62 0062 5585 field@21893 Lpaw;->a:Lqll;
+    +0002: op_71 1071 a3c9 0000 method@41929 Lqlp;->e(Lqll;)Z
+    +0005: op_0a 000a
+    +0006: op_38 0038 0018 branch_target=+0x1e
+    +0008: op_71 0071 9386 0000 method@37766 Lpem;->d()Lsfc;
+    +000b: op_0c 000c
+    +000c: op_12 1112
+    +000d: op_12 2212
+    +000e: op_38 0038 0009 branch_target=+0x17
+    +0010: op_6e 106e b1d6 0000 method@45526 Lsfc;->G()Z
+    +0013: op_0a 000a
+    +0014: op_38 0038 0003 branch_target=+0x17
+    +0016: op_01 1201
+    +0017: op_6e 306e 3aaa 0243 method@15018 Lcom/google/android/libraries/inputmethod/motioneventhandler/scrubmove/ScrubMotionEventHandler;->p(Landroid/view/MotionEvent;I)Z
+    +001a: op_0a 030a
+    +001b: op_38 0338 0003 branch_target=+0x1e
+    +001d: op_0f 010f
+    +001e: op_12 0312
+    +001f: op_0f 030f
+
+## Lcom/google/android/libraries/inputmethod/motioneventhandler/scrubmove/ScrubDeleteMotionEventHandler; (classes.dex)
+
+### direct Lcom/google/android/libraries/inputmethod/motioneventhandler/scrubmove/ScrubDeleteMotionEventHandler;-><init>(Landroid/content/Context;Lqit;)V access=0x10001
+  code_item_off=0x1f0fdc registers=12 ins=3 outs=9 tries=0 insns_size=24
+    +0000: op_22 0022 2411
+    +0002: op_13 0713 d8b1
+    +0004: op_14 0814 00ba 7f03
+    +0007: op_13 0113 0043
+    +0009: op_12 1212
+    +000a: op_12 2312
+    +000b: op_13 0413 d8be
+    +000d: op_13 0513 d8bd
+    +000f: op_13 0613 d8bc
+    +0011: op_76 0976 a313 0000 method@41747 Lqix;-><init>(IZIIIIII)V
+    +0014: op_70 4070 3a9d 0ba9 method@15005 Lcom/google/android/libraries/inputmethod/motioneventhandler/scrubmove/ScrubMotionEventHandler;-><init>(Landroid/content/Context;Lqit;Lqix;)V
+    +0017: op_0e 000e
+
+### virtual Lcom/google/android/libraries/inputmethod/motioneventhandler/scrubmove/ScrubDeleteMotionEventHandler;->b(Landroid/view/MotionEvent;)Z access=0x14
+  code_item_off=0x521458 registers=3 ins=2 outs=3 tries=0 insns_size=16
+    +0000: op_54 1054 1bb2 field@7090 Lcom/google/android/libraries/inputmethod/motioneventhandler/scrubmove/ScrubDeleteMotionEventHandler;->p:Lqit;
+    +0002: op_72 1072 a30f 0000 method@41743 Lqit;->q()Z
+    +0005: op_0a 000a
+    +0006: op_38 0038 0004 branch_target=+0xa
+    +0008: op_12 0112
+    +0009: op_0f 010f
+    +000a: op_12 3012
+    +000b: op_6e 306e 3aaa 0021 method@15018 Lcom/google/android/libraries/inputmethod/motioneventhandler/scrubmove/ScrubMotionEventHandler;->p(Landroid/view/MotionEvent;I)Z
+    +000e: op_0a 010a
+    +000f: op_0f 010f
+
+## Lcom/google/android/libraries/inputmethod/motioneventhandler/scrubmove/ScrubMoveMotionEventHandler; (classes.dex)
+
+### direct Lcom/google/android/libraries/inputmethod/motioneventhandler/scrubmove/ScrubMoveMotionEventHandler;-><init>(Landroid/content/Context;Lqit;)V access=0x10001
+  code_item_off=0x1f12b4 registers=12 ins=3 outs=9 tries=0 insns_size=24
+    +0000: op_22 0022 2411
+    +0002: op_13 0713 d8b2
+    +0004: op_14 0814 00bb 7f03
+    +0007: op_13 0113 003e
+    +0009: op_12 0212
+    +000a: op_12 1312
+    +000b: op_13 0413 d8b3
+    +000d: op_13 0513 d8bb
+    +000f: op_13 0613 d8ba
+    +0011: op_76 0976 a313 0000 method@41747 Lqix;-><init>(IZIIIIII)V
+    +0014: op_70 4070 3a9d 0ba9 method@15005 Lcom/google/android/libraries/inputmethod/motioneventhandler/scrubmove/ScrubMotionEventHandler;-><init>(Landroid/content/Context;Lqit;Lqix;)V
+    +0017: op_0e 000e
+
+
+## Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard; (classes2.dex)
+
+### direct Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;-><clinit>()V access=0x10008
+  code_item_off=0x59e700 registers=6 ins=0 outs=2 tries=0 insns_size=78
+    +0000: op_22 0022 32c7
+    +0002: op_70 1070 a116 0000 method@41238 Ljava/lang/Object;-><init>()V
+    +0005: op_69 0069 2635 field@9781 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->r:Lsly;
+    +0007: op_60 0060 0423 field@1059 Lackm;->b:I
+    +0009: op_13 0013 000a
+    +000b: op_62 0162 0426 field@1062 Lacko;->d:Lacko;
+    +000d: op_71 2071 07e1 0010 method@2017 Lacig;->aA(ILacko;)J
+    +0010: op_13 0013 00c8
+    +0012: op_62 0162 0425 field@1061 Lacko;->c:Lacko;
+    +0014: op_71 2071 07e1 0010 method@2017 Lacig;->aA(ILacko;)J
+    +0017: op_0b 000b
+    +0018: op_68 0068 2636 field@9782 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->s:J
+    +001a: op_62 0062 8d0a field@36106 Lqch;->a:Lwvx;
+    +001c: op_1a 001a aa22 string@43554 'text_editing'
+    +001e: op_71 1071 e2c8 0000 method@58056 Lqaz;->af(Ljava/lang/String;)Lqch;
+    +0021: op_0c 000c
+    +0022: op_69 0069 2624 field@9764 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->a:Lqch;
+    +0024: op_13 0013 0013
+    +0026: op_71 1071 a0ca 0000 method@41162 Ljava/lang/Integer;->valueOf(I)Ljava/lang/Integer;
+    +0029: op_0c 000c
+    +002a: op_13 0113 0014
+    +002c: op_71 1071 a0ca 0001 method@41162 Ljava/lang/Integer;->valueOf(I)Ljava/lang/Integer;
+    +002f: op_0c 010c
+    +0030: op_13 0213 0015
+    +0032: op_71 1071 a0ca 0002 method@41162 Ljava/lang/Integer;->valueOf(I)Ljava/lang/Integer;
+    +0035: op_0c 020c
+    +0036: op_13 0313 0016
+    +0038: op_71 1071 a0ca 0003 method@41162 Ljava/lang/Integer;->valueOf(I)Ljava/lang/Integer;
+    +003b: op_0c 030c
+    +003c: op_12 4412
+    +003d: op_23 4423 39e2
+    +003f: op_12 0512
+    +0040: op_4d 004d 0504
+    +0042: op_12 1012
+    +0043: op_4d 014d 0004
+    +0045: op_12 2012
+    +0046: op_4d 024d 0004
+    +0048: op_12 3012
+    +0049: op_4d 034d 0004
+    +004b: op_69 0469 2625 field@9765 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->b:[Ljava/lang/Integer;
+    +004d: op_0e 000e
+
+### direct Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;-><init>(Landroid/content/Context;Lpkz;Lcom/google/android/libraries/inputmethod/metadata/KeyboardDef;Lcom/google/android/libraries/inputmethod/metadata/ImeDef;Lqch;)V access=0x10001
+  code_item_off=0x59e7ac registers=23 ins=6 outs=6 tries=0 insns_size=204
+    +0000: op_08 0008 0011
+    +0002: op_08 0108 0012
+    +0004: op_08 0208 0013
+    +0006: op_08 0308 0014
+    +0008: op_08 0408 0015
+    +000a: op_08 0508 0016
+    +000c: op_1a 061a 8033 string@32819 'context'
+    +000e: op_71 2071 07c0 0061 method@1984 Lachu;->h(Ljava/lang/Object;Ljava/lang/String;)V
+    +0011: op_1a 071a 8207 string@33287 'delegate'
+    +0013: op_71 2071 07c0 0072 method@1984 Lachu;->h(Ljava/lang/Object;Ljava/lang/String;)V
+    +0016: op_1a 081a 9363 string@37731 'keyboardDef'
+    +0018: op_71 2071 07c0 0083 method@1984 Lachu;->h(Ljava/lang/Object;Ljava/lang/String;)V
+    +001b: op_1a 091a 909e string@37022 'imeDef'
+    +001d: op_71 2071 07c0 0094 method@1984 Lachu;->h(Ljava/lang/Object;Ljava/lang/String;)V
+    +0020: op_1a 0a1a 9374 string@37748 'keyboardType'
+    +0022: op_71 2071 07c0 00a5 method@1984 Lachu;->h(Ljava/lang/Object;Ljava/lang/String;)V
+    +0025: op_1c 0b1c 2b42 type@11074
+    +0027: op_71 2071 fec8 00b1 method@65224 Lzlp;->f(Landroid/content/Context;Ljava/lang/Class;)Ljava/lang/Object;
+    +002a: op_0c 0c0c
+    +002b: op_1f 0c1f 2b42
+    +002d: op_72 1072 d45a 000c method@54362 Lomo;->bl()Llnz;
+    +0030: op_0c 0c0c
+    +0031: op_71 2071 fec8 00b1 method@65224 Lzlp;->f(Landroid/content/Context;Ljava/lang/Class;)Ljava/lang/Object;
+    +0034: op_0c 0d0c
+    +0035: op_1f 0d1f 2b42
+    +0037: op_72 1072 d458 000d method@54360 Lomo;->aW()Lacfi;
+    +003a: op_0c 0d0c
+    +003b: op_71 2071 fec8 00b1 method@65224 Lzlp;->f(Landroid/content/Context;Ljava/lang/Class;)Ljava/lang/Object;
+    +003e: op_0c 0e0c
+    +003f: op_1f 0e1f 2b42
+    +0041: op_72 1072 d457 000e method@54359 Lomo;->aH()Lxqt;
+    +0044: op_0c 0e0c
+    +0045: op_71 0071 e111 0000 method@57617 Lpuj;->a()Lpul;
+    +0048: op_0c 0f0c
+    +0049: op_08 1008 000e
+    +004b: op_1a 0e1a 879a string@34714 'get(...)'
+    +004d: op_71 2071 07bf 00ef method@1983 Lachu;->g(Ljava/lang/Object;Ljava/lang/String;)V
+    +0050: op_1c 0e1c 3215 type@12821
+    +0052: op_71 2071 fec8 00e1 method@65224 Lzlp;->f(Landroid/content/Context;Ljava/lang/Class;)Ljava/lang/Object;
+    +0055: op_0c 0e0c
+    +0056: op_1f 0e1f 3215
+    +0058: op_72 1072 f098 000e method@61592 Lsat;->bd()Lsap;
+    +005b: op_0c 0e0c
+    +005c: op_71 2071 fec8 00b1 method@65224 Lzlp;->f(Landroid/content/Context;Ljava/lang/Class;)Ljava/lang/Object;
+    +005f: op_0c 0b0c
+    +0060: op_1f 0b1f 2b42
+    +0062: op_72 1072 d459 000b method@54361 Lomo;->ae()Lpex;
+    +0065: op_0c 0b0c
+    +0066: op_71 2071 07c0 0061 method@1984 Lachu;->h(Ljava/lang/Object;Ljava/lang/String;)V
+    +0069: op_71 2071 07c0 0072 method@1984 Lachu;->h(Ljava/lang/Object;Ljava/lang/String;)V
+    +006c: op_71 2071 07c0 0083 method@1984 Lachu;->h(Ljava/lang/Object;Ljava/lang/String;)V
+    +006f: op_71 2071 07c0 0094 method@1984 Lachu;->h(Ljava/lang/Object;Ljava/lang/String;)V
+    +0072: op_71 2071 07c0 00a5 method@1984 Lachu;->h(Ljava/lang/Object;Ljava/lang/String;)V
+    +0075: op_1a 061a 7a1f string@31263 'clock'
+    +0077: op_71 2071 07c0 006c method@1984 Lachu;->h(Ljava/lang/Object;Ljava/lang/String;)V
+    +007a: op_1a 061a 956e string@38254 'mainContext'
+    +007c: op_71 2071 07c0 006d method@1984 Lachu;->h(Ljava/lang/Object;Ljava/lang/String;)V
+    +007f: op_1a 061a 9f3d string@40765 'pressEffectPlayer'
+    +0081: op_71 2071 07c0 006f method@1984 Lachu;->h(Ljava/lang/Object;Ljava/lang/String;)V
+    +0084: op_76 0676 56f8 0011 method@22264 Lcom/google/android/libraries/inputmethod/keyboard/impl/Keyboard;-><init>(Landroid/content/Context;Lpkz;Lcom/google/android/libraries/inputmethod/metadata/KeyboardDef;Lcom/google/android/libraries/inputmethod/metadata/ImeDef;Lqch;)V
+    +0087: op_5b 0c5b 2634 field@9780 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->q:Llnz;
+    +0089: op_08 0308 0010
+    +008b: op_5b 035b 2626 field@9766 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->c:Ljava/util/concurrent/Executor;
+    +008d: op_5b 0f5b 2637 field@9783 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->t:Lpul;
+    +008f: op_5b 0e5b 2633 field@9779 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->p:Lsap;
+    +0091: op_5b 0b5b 2638 field@9784 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->u:Lpex;
+    +0093: op_71 1071 0866 000d method@2150 Laclx;->n(Lacfi;)Laclu;
+    +0096: op_0c 040c
+    +0097: op_5b 045b 2627 field@9767 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->d:Laclu;
+    +0099: op_22 0422 2b36
+    +009b: op_72 1072 dd37 0002 method@56631 Lpkz;->E()Lqtm;
+    +009e: op_0c 020c
+    +009f: op_1a 051a 8b8d string@35725 'getPopupViewManager(...)'
+    +00a1: op_71 2071 07bf 0052 method@1983 Lachu;->g(Ljava/lang/Object;Ljava/lang/String;)V
+    +00a4: op_70 4070 d415 3214 method@54293 Lomc;-><init>(Landroid/content/Context;Lqtm;Ljava/util/concurrent/Executor;)V
+    +00a7: op_5b 045b 2628 field@9768 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->e:Lomc;
+    +00a9: op_22 0122 2b44
+    +00ab: op_70 2070 d45e 0001 method@54366 Lomq;-><init>(Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;)V
+    +00ae: op_5b 015b 2629 field@9769 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->f:Lomp;
+    +00b0: op_62 0162 8231 field@33329 Lont;->a:Lont;
+    +00b2: op_5b 015b 262c field@9772 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->i:Lonv;
+    +00b4: op_22 0122 1a53
+    +00b6: op_12 5212
+    +00b7: op_70 3070 8deb 0201 method@36331 Lhma;-><init>(Ljava/lang/Object;I)V
+    +00ba: op_5b 015b 261f field@9759 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->T:Lqlu;
+    +00bc: op_22 0122 2b47
+    +00be: op_70 2070 d46d 0001 method@54381 Lomt;-><init>(Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;)V
+    +00c1: op_5b 015b 2620 field@9760 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->U:Lpdu;
+    +00c3: op_22 0122 28f0
+    +00c5: op_12 2212
+    +00c6: op_70 3070 cbc4 0201 method@52164 Lnip;-><init>(Ljava/lang/Object;I)V
+    +00c9: op_5b 015b 2623 field@9763 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->X:Lnxr;
+    +00cb: op_0e 000e
+
+### direct Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->G(Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;)V access=0x19
+  code_item_off=0x59f08c registers=2 ins=1 outs=3 tries=0 insns_size=22
+    +0000: op_54 1054 2630 field@9776 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->m:Lomr;
+    +0002: op_38 0038 0013 branch_target=+0x15
+    +0004: op_54 0054 81dc field@33244 Lomr;->d:Lomn;
+    +0006: op_38 0038 000f branch_target=+0x15
+    +0008: op_54 0054 81d6 field@33238 Lomn;->c:Laccy;
+    +000a: op_38 0038 000b branch_target=+0x15
+    +000c: op_54 1154 2631 field@9777 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->n:Lpcn;
+    +000e: op_38 0138 0007 branch_target=+0x15
+    +0010: op_52 0052 03cd field@973 Laccy;->a:I
+    +0012: op_72 3072 db0b 0001 method@56075 Lpcn;->F(II)V
+    +0015: op_0e 000e
+
+### direct Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->Q(I)V access=0x12
+  code_item_off=0x59f394 registers=3 ins=2 outs=3 tries=0 insns_size=12
+    +0000: op_62 0062 8d16 field@36118 Lqcl;->b:Lqcl;
+    +0002: op_6e 206e 5700 0001 method@22272 Lcom/google/android/libraries/inputmethod/keyboard/impl/Keyboard;->eN(Lqcl;)Landroid/view/View;
+    +0005: op_0c 000c
+    +0006: op_54 1154 2637 field@9783 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->t:Lpul;
+    +0008: op_72 3072 e115 0201 method@57621 Lpul;->e(Landroid/view/View;I)V
+    +000b: op_0e 000e
+
+### direct Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->R(Lonv;)V access=0x12
+  code_item_off=0x59e954 registers=11 ins=2 outs=5 tries=0 insns_size=278
+    +0000: op_54 9054 262c field@9772 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->i:Lonv;
+    +0002: op_5b 9a5b 262c field@9772 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->i:Lonv;
+    +0004: op_20 a120 2b5b
+    +0006: op_12 0212
+    +0007: op_12 1312
+    +0008: op_12 0412
+    +0009: op_38 0138 0087 branch_target=+0x90
+    +000b: op_20 0020 2b5b
+    +000d: op_39 0039 0007 branch_target=+0x14
+    +000f: op_13 0013 0010
+    +0011: op_70 2070 5604 0009 method@22020 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->Q(I)V
+    +0014: op_54 9054 263a field@9786 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->w:Landroid/widget/TextView;
+    +0016: op_38 0038 0069 branch_target=+0x7f
+    +0018: op_6e 206e 2612 0040 method@9746 Landroid/widget/TextView;->setVisibility(I)V
+    +001b: op_1f 0a1f 2b5b
+    +001d: op_53 a553 822f field@33327 Lonr;->a:J
+    +001f: op_71 2071 082c 0065 method@2092 Lackm;->e(J)J
+    +0022: op_0b 050b
+    +0023: op_84 5a84
+    +0024: op_54 9154 263b field@9787 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->z:Landroid/content/Context;
+    +0026: op_6e 106e 10be 0001 method@4286 Landroid/content/Context;->getResources()Landroid/content/res/Resources;
+    +0029: op_0c 050c
+    +002a: op_14 0614 0404 7f14
+    +002d: op_6e 206e 119e 0065 method@4510 Landroid/content/res/Resources;->getText(I)Ljava/lang/CharSequence;
+    +0030: op_0c 050c
+    +0031: op_1a 061a 8cca string@36042 'getText(...)'
+    +0033: op_71 2071 07bf 0065 method@1983 Lachu;->g(Ljava/lang/Object;Ljava/lang/String;)V
+    +0036: op_23 3623 39dd
+    +0038: op_71 1071 a171 000a method@41329 Ljava/lang/String;->valueOf(I)Ljava/lang/String;
+    +003b: op_0c 0a0c
+    +003c: op_4d 0a4d 0406
+    +003e: op_71 2071 1c99 0065 method@7321 Landroid/text/TextUtils;->expandTemplate(Ljava/lang/CharSequence;[Ljava/lang/CharSequence;)Ljava/lang/CharSequence;
+    +0041: op_0c 0a0c
+    +0042: op_22 0522 05fc
+    +0044: op_70 2070 1c3e 00a5 method@7230 Landroid/text/SpannableString;-><init>(Ljava/lang/CharSequence;)V
+    +0047: op_6e 106e 1c42 0005 method@7234 Landroid/text/SpannableString;->length()I
+    +004a: op_0a 0a0a
+    +004b: op_1c 061c 1e6e type@7790
+    +004d: op_6e 406e 1c41 6a45 method@7233 Landroid/text/SpannableString;->getSpans(IILjava/lang/Class;)[Ljava/lang/Object;
+    +0050: op_0c 0a0c
+    +0051: op_38 0a38 002b branch_target=+0x7c
+    +0053: op_21 a621
+    +0054: op_39 0639 0004 branch_target=+0x58
+    +0056: op_07 2a07
+    +0057: op_28 0328 branch_target=+0x5a
+    +0058: op_46 0a46 040a
+    +005a: op_38 0a38 0022 branch_target=+0x7c
+    +005c: op_22 0622 061d
+    +005e: op_71 1071 bce8 0001 method@48360 Llnz;->ci(Landroid/content/Context;)Lnhc;
+    +0061: op_0c 010c
+    +0062: op_1a 071a 0a98 string@2712 '.keyboard-free-cursor-label-variant'
+    +0064: op_15 0815 ff00
+    +0066: op_72 3072 cb82 0871 method@52098 Lnhc;->e(Ljava/lang/String;I)Landroid/content/res/ColorStateList;
+    +0069: op_0c 010c
+    +006a: op_6e 106e 1173 0001 method@4467 Landroid/content/res/ColorStateList;->getDefaultColor()I
+    +006d: op_0a 010a
+    +006e: op_70 2070 1cc5 0016 method@7365 Landroid/text/style/ForegroundColorSpan;-><init>(I)V
+    +0071: op_6e 206e 1c40 00a5 method@7232 Landroid/text/SpannableString;->getSpanStart(Ljava/lang/Object;)I
+    +0074: op_0a 010a
+    +0075: op_6e 206e 1c3f 00a5 method@7231 Landroid/text/SpannableString;->getSpanEnd(Ljava/lang/Object;)I
+    +0078: op_0a 0a0a
+    +0079: op_6e 546e 1c44 a165 method@7236 Landroid/text/SpannableString;->setSpan(Ljava/lang/Object;III)V
+    +007c: op_6e 206e 2603 0050 method@9731 Landroid/widget/TextView;->setText(Ljava/lang/CharSequence;)V
+    +007f: op_54 9954 2639 field@9785 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->v:Landroid/view/View;
+    +0081: op_38 0938 0005 branch_target=+0x86
+    +0083: op_6e 206e 1fbe 0039 method@8126 Landroid/view/View;->setPressed(Z)V
+    +0086: op_71 0071 e4d6 0000 method@58582 Lqlv;->b()Lqlv;
+    +0089: op_0c 090c
+    +008a: op_62 0a62 9185 field@37253 Lqxs;->s:Lqxs;
+    +008c: op_71 4071 e2c0 23a9 method@58048 Lqaz;->Q(Lqlv;Lqxs;ZLqcl;)V
+    +008f: op_0e 000e
+    +0090: op_62 0062 8230 field@33328 Lons;->a:Lons;
+    +0092: op_71 2071 07c3 000a method@1987 Lachu;->m(Ljava/lang/Object;Ljava/lang/Object;)Z
+    +0095: op_0a 000a
+    +0096: op_13 0113 0008
+    +0098: op_38 0038 0037 branch_target=+0xcf
+    +009a: op_54 9a54 263a field@9786 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->w:Landroid/widget/TextView;
+    +009c: op_38 0a38 0013 branch_target=+0xaf
+    +009e: op_6e 206e 2612 004a method@9746 Landroid/widget/TextView;->setVisibility(I)V
+    +00a1: op_6e 106e 2593 000a method@9619 Landroid/widget/TextView;->getContext()Landroid/content/Context;
+    +00a4: op_0c 000c
+    +00a5: op_14 0214 0405 7f14
+    +00a8: op_6e 206e 10c0 0020 method@4288 Landroid/content/Context;->getString(I)Ljava/lang/String;
+    +00ab: op_0c 000c
+    +00ac: op_6e 206e 2603 000a method@9731 Landroid/widget/TextView;->setText(Ljava/lang/CharSequence;)V
+    +00af: op_54 9a54 2639 field@9785 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->v:Landroid/view/View;
+    +00b1: op_38 0a38 0005 branch_target=+0xb6
+    +00b3: op_6e 206e 1fbe 003a method@8126 Landroid/view/View;->setPressed(Z)V
+    +00b6: op_54 9a54 2616 field@9750 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->K:Landroid/view/View;
+    +00b8: op_38 0a38 0005 branch_target=+0xbd
+    +00ba: op_6e 206e 1fd8 004a method@8152 Landroid/view/View;->setVisibility(I)V
+    +00bd: op_54 9a54 2618 field@9752 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->M:Landroid/view/View;
+    +00bf: op_38 0a38 0005 branch_target=+0xc4
+    +00c1: op_6e 206e 1fd8 001a method@8152 Landroid/view/View;->setVisibility(I)V
+    +00c4: op_54 9a54 2617 field@9751 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->L:Landroid/view/View;
+    +00c6: op_38 0a38 0005 branch_target=+0xcb
+    +00c8: op_6e 206e 1fd8 001a method@8152 Landroid/view/View;->setVisibility(I)V
+    +00cb: op_6e 106e 5601 0009 method@22017 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->N()V
+    +00ce: op_0e 000e
+    +00cf: op_62 0062 8231 field@33329 Lont;->a:Lont;
+    +00d1: op_71 2071 07c3 000a method@1987 Lachu;->m(Ljava/lang/Object;Ljava/lang/Object;)Z
+    +00d4: op_0a 000a
+    +00d5: op_38 0038 002f branch_target=+0x104
+    +00d7: op_54 9a54 263a field@9786 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->w:Landroid/widget/TextView;
+    +00d9: op_38 0a38 0005 branch_target=+0xde
+    +00db: op_6e 206e 2612 001a method@9746 Landroid/widget/TextView;->setVisibility(I)V
+    +00de: op_54 9a54 2639 field@9785 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->v:Landroid/view/View;
+    +00e0: op_38 0a38 0005 branch_target=+0xe5
+    +00e2: op_6e 206e 1fbe 004a method@8126 Landroid/view/View;->setPressed(Z)V
+    +00e5: op_54 9a54 2616 field@9750 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->K:Landroid/view/View;
+    +00e7: op_38 0a38 0005 branch_target=+0xec
+    +00e9: op_6e 206e 1fd8 001a method@8152 Landroid/view/View;->setVisibility(I)V
+    +00ec: op_54 9a54 2618 field@9752 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->M:Landroid/view/View;
+    +00ee: op_38 0a38 0005 branch_target=+0xf3
+    +00f0: op_6e 206e 1fd8 004a method@8152 Landroid/view/View;->setVisibility(I)V
+    +00f3: op_54 9954 2617 field@9751 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->L:Landroid/view/View;
+    +00f5: op_38 0938 0005 branch_target=+0xfa
+    +00f7: op_6e 206e 1fd8 0049 method@8152 Landroid/view/View;->setVisibility(I)V
+    +00fa: op_71 0071 e4d6 0000 method@58582 Lqlv;->b()Lqlv;
+    +00fd: op_0c 090c
+    +00fe: op_62 0a62 9185 field@37253 Lqxs;->s:Lqxs;
+    +0100: op_71 4071 e2c0 23a9 method@58048 Lqaz;->Q(Lqlv;Lqxs;ZLqcl;)V
+    +0103: op_0e 000e
+    +0104: op_62 0062 8232 field@33330 Lonu;->a:Lonu;
+    +0106: op_71 2071 07c3 000a method@1987 Lachu;->m(Ljava/lang/Object;Ljava/lang/Object;)Z
+    +0109: op_0a 0a0a
+    +010a: op_38 0a38 0006 branch_target=+0x110
+    +010c: op_6e 106e 55fa 0009 method@22010 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->F()V
+    +010f: op_0e 000e
+    +0110: op_22 0922 01bc
+    +0112: op_70 1070 0705 0009 method@1797 Laccp;-><init>()V
+    +0115: op_27 0927
+
+### virtual Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->D()Lqec; access=0x11
+  code_item_off=0x59e6c0 registers=1 ins=1 outs=1 tries=0 insns_size=12
+    +0000: op_54 0054 2632 field@9778 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->o:Lqec;
+    +0002: op_38 0038 0003 branch_target=+0x5
+    +0004: op_11 0011
+    +0005: op_1a 001a 964b string@38475 'metrics'
+    +0007: op_71 1071 07c2 0000 method@1986 Lachu;->l(Ljava/lang/String;)V
+    +000a: op_12 0012
+    +000b: op_11 0011
+
+### virtual Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->F()V access=0x11
+  code_item_off=0x59eb90 registers=3 ins=1 outs=2 tries=0 insns_size=14
+    +0000: op_13 0013 d8ec
+    +0002: op_62 0162 8d0b field@36107 Lqch;->b:Lqch;
+    +0004: op_71 2071 d329 0010 method@54057 Lohe;->e(ILjava/lang/Object;)Lohe;
+    +0007: op_0c 000c
+    +0008: op_54 2254 2614 field@9748 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->A:Lpkz;
+    +000a: op_72 2072 dd3a 0002 method@56634 Lpkz;->N(Lohe;)V
+    +000d: op_0e 000e
+
+### virtual Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->H()V access=0x11
+  code_item_off=0x59f2c4 registers=5 ins=1 outs=5 tries=0 insns_size=95
+    +0000: op_54 4054 262b field@9771 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->h:Landroid/view/View;
+    +0002: op_38 0038 0042 branch_target=+0x44
+    +0004: op_6e 106e 1f3b 0000 method@7995 Landroid/view/View;->getVisibility()I
+    +0007: op_0a 000a
+    +0008: op_39 0039 003c branch_target=+0x44
+    +000a: op_54 4054 262b field@9771 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->h:Landroid/view/View;
+    +000c: op_38 0038 0038 branch_target=+0x44
+    +000e: op_6e 106e 1ed6 0000 method@7894 Landroid/view/View;->animate()Landroid/view/ViewPropertyAnimator;
+    +0011: op_0c 000c
+    +0012: op_38 0038 0032 branch_target=+0x44
+    +0014: op_12 0112    +0015: op_6e 206e 2089 0010 method@8329 Landroid/view/ViewPropertyAnimator;->alpha(F)Landroid/view/ViewPropertyAnimator;
+    +0018: op_0c 000c
+    +0019: op_38 0038 002b branch_target=+0x44
+    +001b: op_61 0161 2636 field@9782 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->s:J
+    +001d: op_62 0362 0425 field@1061 Lacko;->c:Lacko;
+    +001f: op_71 3071 082f 0321 method@2095 Lackm;->h(JLacko;)J
+    +0022: op_0b 010b
+    +0023: op_6e 306e 208e 0210 method@8334 Landroid/view/ViewPropertyAnimator;->setDuration(J)Landroid/view/ViewPropertyAnimator;
+    +0026: op_0c 000c
+    +0027: op_38 0038 001d branch_target=+0x44
+    +0029: op_22 0122 06df
+    +002b: op_70 1070 21b9 0001 method@8633 Landroid/view/animation/DecelerateInterpolator;-><init>()V
+    +002e: op_6e 206e 208f 0010 method@8335 Landroid/view/ViewPropertyAnimator;->setInterpolator(Landroid/animation/TimeInterpolator;)Landroid/view/ViewPropertyAnimator;
+    +0031: op_0c 000c
+    +0032: op_38 0038 0012 branch_target=+0x44
+    +0034: op_22 0122 290b
+    +0036: op_13 0213 0013
+    +0038: op_70 3070 cc18 0241 method@52248 Lnkf;-><init>(Ljava/lang/Object;I)V
+    +003b: op_6e 206e 2096 0010 method@8342 Landroid/view/ViewPropertyAnimator;->withEndAction(Ljava/lang/Runnable;)Landroid/view/ViewPropertyAnimator;
+    +003e: op_0c 000c
+    +003f: op_38 0038 0005 branch_target=+0x44
+    +0041: op_6e 106e 2093 0000 method@8339 Landroid/view/ViewPropertyAnimator;->start()V
+    +0044: op_54 4054 2630 field@9776 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->m:Lomr;
+    +0046: op_38 0038 0018 branch_target=+0x5e
+    +0048: op_55 0155 81e0 field@33248 Lomr;->h:Z
+    +004a: op_39 0139 0014 branch_target=+0x5e
+    +004c: op_12 1112
+    +004d: op_5c 015c 81e0 field@33248 Lomr;->h:Z
+    +004f: op_54 4054 2627 field@9767 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->d:Laclu;
+    +0051: op_22 0122 3469
+    +0053: op_13 0213 000c
+    +0055: op_12 0312
+    +0056: op_70 4070 f718 2341 method@63256 Lua;-><init>(Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;Lacfd;I)V
+    +0059: op_12 3412
+    +005a: op_12 0212
+    +005b: op_71 5471 07ea 1230 method@2026 Lacig;->ar(Laclu;Lacfi;ILachc;I)Lacne;
+    +005e: op_0e 000e
+
+### virtual Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->I()V access=0x11
+  code_item_off=0x59f3bc registers=6 ins=1 outs=5 tries=0 insns_size=26
+    +0000: op_54 5054 262a field@9770 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->g:Lacne;
+    +0002: op_12 0112
+    +0003: op_38 0038 0005 branch_target=+0x8
+    +0005: op_72 2072 0884 0010 method@2180 Lacne;->s(Ljava/util/concurrent/CancellationException;)V
+    +0008: op_54 5054 2627 field@9767 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->d:Laclu;
+    +000a: op_22 0222 1f90
+    +000c: op_13 0313 000e
+    +000e: op_70 4070 a5ea 3152 method@42474 Ljcr;-><init>(Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;Lacfd;I)V
+    +0011: op_12 3312
+    +0012: op_12 0412
+    +0013: op_71 5371 07ea 2410 method@2026 Lacig;->ar(Laclu;Lacfi;ILachc;I)Lacne;
+    +0016: op_0c 000c
+    +0017: op_5b 505b 262a field@9770 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->g:Lacne;
+    +0019: op_0e 000e
+
+### virtual Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->J()V access=0x11
+  code_item_off=0x59f400 registers=6 ins=1 outs=3 tries=0 insns_size=133
+    +0000: op_54 5054 2630 field@9776 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->m:Lomr;
+    +0002: op_38 0038 007d branch_target=+0x7f
+    +0004: op_54 0054 81dc field@33244 Lomr;->d:Lomn;
+    +0006: op_38 0038 0079 branch_target=+0x7f
+    +0008: op_6e 106e d453 0000 method@54355 Lomn;->a()Z
+    +000b: op_0a 000a
+    +000c: op_39 0039 0073 branch_target=+0x7f
+    +000e: op_54 5054 2630 field@9776 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->m:Lomr;
+    +0010: op_38 0038 006f branch_target=+0x7f
+    +0012: op_6e 106e d464 0000 method@54372 Lomr;->a()Z
+    +0015: op_0a 000a
+    +0016: op_38 0038 0069 branch_target=+0x7f
+    +0018: op_6e 106e 55f9 0005 method@22009 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->D()Lqec;
+    +001b: op_0c 000c
+    +001c: op_62 0162 820b field@33291 Lond;->d:Lond;
+    +001e: op_12 0212
+    +001f: op_23 2223 39e4
+    +0021: op_72 3072 e35a 0210 method@58202 Lqec;->n(Lqeh;[Ljava/lang/Object;)V
+    +0024: op_54 5554 2628 field@9768 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->e:Lomc;
+    +0026: op_55 5055 816c field@33132 Lomc;->g:Z
+    +0028: op_38 0038 0056 branch_target=+0x7e
+    +002a: op_54 5054 816f field@33135 Lomc;->j:Lono;
+    +002c: op_6e 106e d4ad 0000 method@54445 Lono;->b()Z
+    +002f: op_0a 000a
+    +0030: op_38 0038 0009 branch_target=+0x39
+    +0032: op_6e 106e d41a 0005 method@54298 Lomc;->e()V
+    +0035: op_6e 106e d419 0005 method@54297 Lomc;->d()V
+    +0038: op_0e 000e
+    +0039: op_54 5054 8167 field@33127 Lomc;->b:Lqtm;
+    +003b: op_54 5154 816b field@33131 Lomc;->f:Lonx;
+    +003d: op_72 2072 e748 0010 method@59208 Lqtm;->A(Landroid/view/View;)Z
+    +0040: op_0a 020a
+    +0041: op_39 0239 003d branch_target=+0x7e
+    +0043: op_54 5254 8171 field@33137 Lomc;->l:Lpdg;
+    +0045: op_38 0238 0039 branch_target=+0x7e
+    +0047: op_6e 106e db5e 0002 method@56158 Lpdg;->n()Z
+    +004a: op_0a 020a
+    +004b: op_39 0239 0033 branch_target=+0x7e
+    +004d: op_6e 106e d416 0005 method@54294 Lomc;->a()Landroid/graphics/Point;
+    +0050: op_0c 020c
+    +0051: op_38 0238 002d branch_target=+0x7e
+    +0053: op_71 0071 e7dc 0000 method@59356 Lqup;->z()Lqul;
+    +0056: op_0c 030c
+    +0057: op_6e 106e e7a0 0003 method@59296 Lqul;->M()V
+    +005a: op_72 1072 e74e 0000 method@59214 Lqtm;->b()Landroid/view/View;
+    +005d: op_0c 040c
+    +005e: op_6e 206e e7b0 0043 method@59312 Lqul;->e(Landroid/view/View;)V
+    +0061: op_6e 206e e798 0013 method@59288 Lqul;->E(Landroid/view/View;)V
+    +0064: op_54 5554 8166 field@33126 Lomc;->a:Landroid/content/Context;
+    +0066: op_22 0122 0762
+    +0068: op_70 2070 255c 0051 method@9564 Landroid/widget/Space;-><init>(Landroid/content/Context;)V
+    +006b: op_5b 315b 90c2 field@37058 Lqul;->e:Landroid/view/View;
+    +006d: op_52 2552 09ea field@2538 Landroid/graphics/Point;->x:I
+    +006f: op_6e 206e e79d 0053 method@59293 Lqul;->J(I)V
+    +0072: op_52 2552 09eb field@2539 Landroid/graphics/Point;->y:I
+    +0074: op_6e 206e e79e 0053 method@59294 Lqul;->K(I)V
+    +0077: op_6e 106e e7ae 0003 method@59310 Lqul;->c()Lqup;
+    +007a: op_0c 050c
+    +007b: op_72 2072 e75d 0050 method@59229 Lqtm;->v(Lqup;)V
+    +007e: op_0e 000e
+    +007f: op_54 5554 2628 field@9768 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->e:Lomc;
+    +0081: op_6e 106e d417 0005 method@54295 Lomc;->b()V
+    +0084: op_0e 000e
+
+### virtual Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->K()V access=0x11
+  code_item_off=0x59f51c registers=16 ins=1 outs=13 tries=0 insns_size=70
+    +0000: op_12 1012
+    +0001: op_5c f05c 262d field@9773 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->j:Z
+    +0003: op_54 f054 2630 field@9776 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->m:Lomr;
+    +0005: op_12 0112
+    +0006: op_38 0038 000f branch_target=+0x15
+    +0008: op_54 0054 81de field@33246 Lomr;->f:Lpdg;
+    +000a: op_38 0038 000b branch_target=+0x15
+    +000c: op_6e 106e db52 0000 method@56146 Lpdg;->b()I
+    +000f: op_0a 000a
+    +0010: op_71 1071 a0ca 0000 method@41162 Ljava/lang/Integer;->valueOf(I)Ljava/lang/Integer;
+    +0013: op_0c 000c
+    +0014: op_28 0228 branch_target=+0x16
+    +0015: op_07 1007
+    +0016: op_5b f05b 262e field@9774 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->k:Ljava/lang/Integer;
+    +0018: op_71 0071 bc72 0000 method@48242 Llnz;->H()Lj$/time/Duration;
+    +001b: op_0c 000c
+    +001c: op_6e 106e 9e5a 0000 method@40538 Lj$/time/Duration;->toMillis()J
+    +001f: op_0b 030b
+    +0020: op_54 f054 2631 field@9777 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->n:Lpcn;
+    +0022: op_38 0038 0015 branch_target=+0x37
+    +0024: op_22 0222 0670
+    +0026: op_12 6d12
+    +0027: op_13 0e13 0101
+    +0029: op_12 0712
+    +002a: op_13 0813 003b
+    +002c: op_12 0912
+    +002d: op_12 0a12
+    +002e: op_12 fb12
+    +002f: op_12 0c12
+    +0030: op_04 3504
+    +0031: op_76 0d76 1dce 0002 method@7630 Landroid/view/KeyEvent;-><init>(JJIIIIIIII)V
+    +0034: op_72 2072 db09 0020 method@56073 Lpcn;->D(Landroid/view/KeyEvent;)V
+    +0037: op_54 f054 2614 field@9748 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->A:Lpkz;
+    +0039: op_13 0213 d896
+    +003b: op_71 2071 d329 0012 method@54057 Lohe;->e(ILjava/lang/Object;)Lohe;
+    +003e: op_0c 010c
+    +003f: op_72 2072 dd3a 0010 method@56634 Lpkz;->N(Lohe;)V
+    +0042: op_6e 106e 5601 000f method@22017 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->N()V
+    +0045: op_0e 000e
+
+### virtual Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->M()V access=0x11
+  code_item_off=0x59f5b8 registers=15 ins=1 outs=13 tries=0 insns_size=41
+    +0000: op_12 0012
+    +0001: op_5c e05c 262d field@9773 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->j:Z
+    +0003: op_12 0012
+    +0004: op_5b e05b 262e field@9774 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->k:Ljava/lang/Integer;
+    +0006: op_71 0071 bc72 0000 method@48242 Llnz;->H()Lj$/time/Duration;
+    +0009: op_0c 000c
+    +000a: op_6e 106e 9e5a 0000 method@40538 Lj$/time/Duration;->toMillis()J
+    +000d: op_0b 020b
+    +000e: op_54 e054 2631 field@9777 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->n:Lpcn;
+    +0010: op_38 0038 0015 branch_target=+0x25
+    +0012: op_22 0122 0670
+    +0014: op_12 6c12
+    +0015: op_13 0d13 0101
+    +0017: op_12 1612
+    +0018: op_13 0713 003b
+    +001a: op_12 0812
+    +001b: op_12 0912
+    +001c: op_12 fa12
+    +001d: op_12 0b12
+    +001e: op_04 2404
+    +001f: op_76 0d76 1dce 0001 method@7630 Landroid/view/KeyEvent;-><init>(JJIIIIIIII)V
+    +0022: op_72 2072 db09 0010 method@56073 Lpcn;->D(Landroid/view/KeyEvent;)V
+    +0025: op_6e 106e 5601 000e method@22017 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->N()V
+    +0028: op_0e 000e
+
+### virtual Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->N()V access=0x11
+  code_item_off=0x59f61c registers=7 ins=1 outs=2 tries=0 insns_size=129
+    +0000: op_54 6054 262c field@9772 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->i:Lonv;
+    +0002: op_20 0020 2b5c
+    +0004: op_54 6154 261c field@9756 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->Q:Landroid/view/View;
+    +0006: op_12 0212
+    +0007: op_12 1312
+    +0008: op_32 0332 0005 branch_target=+0xd
+    +000a: op_13 0013 0008
+    +000c: op_28 0228 branch_target=+0xe
+    +000d: op_01 2001
+    +000e: op_38 0138 0024 branch_target=+0x32
+    +0010: op_6e 206e 1fd8 0001 method@8152 Landroid/view/View;->setVisibility(I)V
+    +0013: op_71 0071 bce5 0000 method@48357 Llnz;->cf()Landroid/content/ClipData;
+    +0016: op_0c 040c
+    +0017: op_12 0512
+    +0018: op_38 0438 000c branch_target=+0x24
+    +001a: op_6e 206e 106f 0024 method@4207 Landroid/content/ClipData;->getItemAt(I)Landroid/content/ClipData$Item;
+    +001d: op_0c 040c
+    +001e: op_38 0438 0006 branch_target=+0x24
+    +0020: op_6e 106e 1069 0004 method@4201 Landroid/content/ClipData$Item;->getText()Ljava/lang/CharSequence;
+    +0023: op_0c 050c
+    +0024: op_38 0538 000a branch_target=+0x2e
+    +0026: op_72 1072 a03f 0005 method@41023 Ljava/lang/CharSequence;->length()I
+    +0029: op_0a 040a
+    +002a: op_38 0438 0004 branch_target=+0x2e
+    +002c: op_01 3401
+    +002d: op_28 0228 branch_target=+0x2f
+    +002e: op_01 2401
+    +002f: op_6e 206e 1f9c 0041 method@8092 Landroid/view/View;->setEnabled(Z)V
+    +0032: op_54 6154 261a field@9754 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->O:Landroid/view/View;
+    +0034: op_38 0138 0019 branch_target=+0x4d
+    +0036: op_6e 206e 1fd8 0001 method@8152 Landroid/view/View;->setVisibility(I)V
+    +0039: op_54 6454 2630 field@9776 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->m:Lomr;
+    +003b: op_38 0438 000e branch_target=+0x49
+    +003d: op_54 4454 81dc field@33244 Lomr;->d:Lomn;
+    +003f: op_38 0438 000a branch_target=+0x49
+    +0041: op_6e 106e d453 0004 method@54355 Lomn;->a()Z
+    +0044: op_0a 040a
+    +0045: op_33 3433 0004 branch_target=+0x49
+    +0047: op_01 3401
+    +0048: op_28 0228 branch_target=+0x4a
+    +0049: op_01 2401
+    +004a: op_6e 206e 1f9c 0041 method@8092 Landroid/view/View;->setEnabled(Z)V
+    +004d: op_54 6154 261b field@9755 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->P:Landroid/view/View;
+    +004f: op_38 0138 0017 branch_target=+0x66
+    +0051: op_6e 206e 1fd8 0001 method@8152 Landroid/view/View;->setVisibility(I)V
+    +0054: op_54 6454 2630 field@9776 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->m:Lomr;
+    +0056: op_38 0438 000d branch_target=+0x63
+    +0058: op_54 4454 81dc field@33244 Lomr;->d:Lomn;
+    +005a: op_38 0438 0009 branch_target=+0x63
+    +005c: op_6e 106e d453 0004 method@54355 Lomn;->a()Z
+    +005f: op_0a 040a
+    +0060: op_33 3433 0003 branch_target=+0x63
+    +0062: op_01 3201
+    +0063: op_6e 206e 1f9c 0021 method@8092 Landroid/view/View;->setEnabled(Z)V
+    +0066: op_54 6154 2619 field@9753 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->N:Landroid/view/View;
+    +0068: op_38 0138 000a branch_target=+0x72
+    +006a: op_6e 206e 1fd8 0001 method@8152 Landroid/view/View;->setVisibility(I)V
+    +006d: op_55 6255 262d field@9773 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->j:Z
+    +006f: op_6e 206e 1fca 0021 method@8138 Landroid/view/View;->setSelected(Z)V
+    +0072: op_54 6154 261d field@9757 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->R:Landroid/view/View;
+    +0074: op_38 0138 0005 branch_target=+0x79
+    +0076: op_6e 206e 1fd8 0001 method@8152 Landroid/view/View;->setVisibility(I)V
+    +0079: op_54 6654 261e field@9758 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->S:Landroid/view/View;
+    +007b: op_38 0638 0005 branch_target=+0x80
+    +007d: op_6e 206e 1fd8 0006 method@8152 Landroid/view/View;->setVisibility(I)V
+    +0080: op_0e 000e
+
+### virtual Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->O()Z access=0x11
+  code_item_off=0x59e44c registers=1 ins=1 outs=1 tries=0 insns_size=13
+    +0000: op_54 0054 2630 field@9776 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->m:Lomr;
+    +0002: op_38 0038 0005 branch_target=+0x7
+    +0004: op_54 0054 81d9 field@33241 Lomr;->a:Landroid/view/inputmethod/EditorInfo;
+    +0006: op_28 0228 branch_target=+0x8
+    +0007: op_12 0012
+    +0008: op_71 1071 d4b7 0000 method@54455 Lonq;->g(Landroid/view/inputmethod/EditorInfo;)Z
+    +000b: op_0a 000a
+    +000c: op_0f 000f
+
+### virtual Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->P(Lohe;)Z access=0x11
+  code_item_off=0x59e200 registers=11 ins=2 outs=2 tries=0 insns_size=285
+    +0000: op_54 9054 2630 field@9776 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->m:Lomr;
+    +0002: op_12 0112
+    +0003: op_39 0039 0003 branch_target=+0x6
+    +0005: op_0f 010f
+    +0006: op_54 0254 81de field@33246 Lomr;->f:Lpdg;
+    +0008: op_6e 106e d325 000a method@54053 Lohe;->a()I
+    +000b: op_0a 030a
+    +000c: op_12 1412
+    +000d: op_13 0513 0014
+    +000f: op_13 0613 0013
+    +0011: op_32 6332 001f branch_target=+0x30
+    +0013: op_33 5333 0034 branch_target=+0x47
+    +0015: op_38 0238 0032 branch_target=+0x47
+    +0017: op_6e 106e db59 0002 method@56153 Lpdg;->i()Ljava/lang/CharSequence;
+    +001a: op_0c 030c
+    +001b: op_38 0338 002c branch_target=+0x47
+    +001d: op_6e 106e db54 0002 method@56148 Lpdg;->d()I
+    +0020: op_0a 020a
+    +0021: op_3a 023a 0026 branch_target=+0x47
+    +0023: op_72 1072 a03f 0003 method@41023 Ljava/lang/CharSequence;->length()I
+    +0026: op_0a 070a
+    +0027: op_36 7236 0020 branch_target=+0x47
+    +0029: op_72 1072 a03f 0003 method@41023 Ljava/lang/CharSequence;->length()I
+    +002c: op_0a 030a
+    +002d: op_33 3233 001a branch_target=+0x47
+    +002f: op_28 1728 branch_target=+0x46
+    +0030: op_38 0238 0017 branch_target=+0x47
+    +0032: op_6e 106e db59 0002 method@56153 Lpdg;->i()Ljava/lang/CharSequence;
+    +0035: op_0c 030c
+    +0036: op_38 0338 0011 branch_target=+0x47
+    +0038: op_6e 106e db54 0002 method@56148 Lpdg;->d()I
+    +003b: op_0a 020a
+    +003c: op_3a 023a 000b branch_target=+0x47
+    +003e: op_72 1072 a03f 0003 method@41023 Ljava/lang/CharSequence;->length()I
+    +0041: op_0a 030a
+    +0042: op_36 3236 0005 branch_target=+0x47
+    +0044: op_39 0239 0003 branch_target=+0x47
+    +0046: op_0f 040f
+    +0047: op_6e 106e d325 000a method@54053 Lohe;->a()I
+    +004a: op_0a 020a
+    +004b: op_54 0054 81dd field@33245 Lomr;->e:Lnxq;
+    +004d: op_38 0038 00cf branch_target=+0x11c
+    +004f: op_54 0354 7e94 field@32404 Lnxq;->b:Lj$/util/Optional;
+    +0051: op_71 1071 07f8 0003 method@2040 Lacig;->r(Lj$/util/Optional;)Ljava/lang/Object;
+    +0054: op_0c 030c
+    +0055: op_1f 031f 04a7
+    +0057: op_38 0338 00c5 branch_target=+0x11c
+    +0059: op_54 0754 7e95 field@32405 Lnxq;->c:Lj$/util/Optional;
+    +005b: op_52 3352 09ed field@2541 Landroid/graphics/PointF;->y:F
+    +005d: op_71 1071 07f8 0007 method@2040 Lacig;->r(Lj$/util/Optional;)Ljava/lang/Object;
+    +0060: op_0c 070c
+    +0061: op_1f 071f 04a7
+    +0063: op_38 0738 00b9 branch_target=+0x11c
+    +0065: op_54 0054 7e98 field@32408 Lnxq;->f:Lwns;
+    +0067: op_52 7752 09ed field@2541 Landroid/graphics/PointF;->y:F
+    +0069: op_6e 106e fb84 0000 method@64388 Lwns;->isEmpty()Z
+    +006c: op_0a 080a
+    +006d: op_39 0839 00af branch_target=+0x11c
+    +006f: op_c6 73c6 0715
+    +0071: op_00 4000
+    +0072: op_c9 73c9 0712
+    +0074: op_32 6232 003f branch_target=+0xb3
+    +0076: op_33 5233 00a6 branch_target=+0x11c
+    +0078: op_72 1072 a0cf 0000 method@41167 Ljava/lang/Iterable;->iterator()Ljava/util/Iterator;
+    +007b: op_0c 000c
+    +007c: op_72 1072 a38a 0000 method@41866 Ljava/util/Iterator;->hasNext()Z
+    +007f: op_0a 020a
+    +0080: op_38 0238 0028 branch_target=+0xa8
+    +0082: op_72 1072 a38b 0000 method@41867 Ljava/util/Iterator;->next()Ljava/lang/Object;
+    +0085: op_0c 070c
+    +0086: op_72 1072 a38a 0000 method@41866 Ljava/util/Iterator;->hasNext()Z
+    +0089: op_0a 020a
+    +008a: op_38 0238 001e branch_target=+0xa8
+    +008c: op_07 7207
+    +008d: op_1f 021f 04ae
+    +008f: op_52 2252 09f9 field@2553 Landroid/graphics/RectF;->bottom:F
+    +0091: op_72 1072 a38b 0000 method@41867 Ljava/util/Iterator;->next()Ljava/lang/Object;
+    +0094: op_0c 050c
+    +0095: op_07 5607
+    +0096: op_1f 061f 04ae
+    +0098: op_52 6652 09f9 field@2553 Landroid/graphics/RectF;->bottom:F
+    +009a: op_71 2071 a0a2 0062 method@41122 Ljava/lang/Float;->compare(FF)I
+    +009d: op_0a 080a
+    +009e: op_3b 083b 0004 branch_target=+0xa2
+    +00a0: op_07 5707
+    +00a1: op_01 6201
+    +00a2: op_72 1072 a38a 0000 method@41866 Ljava/util/Iterator;->hasNext()Z
+    +00a5: op_0a 050a
+    +00a6: op_39 0539 ffeb branch_target=+0x91
+    +00a8: op_1f 071f 04ae
+    +00aa: op_38 0738 0072 branch_target=+0x11c
+    +00ac: op_52 7052 09fc field@2556 Landroid/graphics/RectF;->top:F
+    +00ae: op_2d 002d 0003
+    +00b0: op_3a 003a 006c branch_target=+0x11c
+    +00b2: op_28 3b28 branch_target=+0xed
+    +00b3: op_72 1072 a0cf 0000 method@41167 Ljava/lang/Iterable;->iterator()Ljava/util/Iterator;
+    +00b6: op_0c 000c
+    +00b7: op_72 1072 a38a 0000 method@41866 Ljava/util/Iterator;->hasNext()Z
+    +00ba: op_0a 020a
+    +00bb: op_38 0238 0028 branch_target=+0xe3
+    +00bd: op_72 1072 a38b 0000 method@41867 Ljava/util/Iterator;->next()Ljava/lang/Object;
+    +00c0: op_0c 070c
+    +00c1: op_72 1072 a38a 0000 method@41866 Ljava/util/Iterator;->hasNext()Z
+    +00c4: op_0a 020a
+    +00c5: op_38 0238 001e branch_target=+0xe3
+    +00c7: op_07 7207
+    +00c8: op_1f 021f 04ae
+    +00ca: op_52 2252 09fc field@2556 Landroid/graphics/RectF;->top:F
+    +00cc: op_72 1072 a38b 0000 method@41867 Ljava/util/Iterator;->next()Ljava/lang/Object;
+    +00cf: op_0c 050c
+    +00d0: op_07 5607
+    +00d1: op_1f 061f 04ae
+    +00d3: op_52 6652 09fc field@2556 Landroid/graphics/RectF;->top:F
+    +00d5: op_71 2071 a0a2 0062 method@41122 Ljava/lang/Float;->compare(FF)I
+    +00d8: op_0a 080a
+    +00d9: op_3d 083d 0004 branch_target=+0xdd
+    +00db: op_07 5707
+    +00dc: op_01 6201
+    +00dd: op_72 1072 a38a 0000 method@41866 Ljava/util/Iterator;->hasNext()Z
+    +00e0: op_0a 050a
+    +00e1: op_39 0539 ffeb branch_target=+0xcc
+    +00e3: op_1f 071f 04ae
+    +00e5: op_38 0738 0037 branch_target=+0x11c
+    +00e7: op_52 7052 09f9 field@2553 Landroid/graphics/RectF;->bottom:F
+    +00e9: op_2e 002e 0003
+    +00eb: op_3c 003c 0031 branch_target=+0x11c
+    +00ed: op_54 9954 2621 field@9761 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->V:Ljava/lang/Long;
+    +00ef: op_38 0938 002d branch_target=+0x11c
+    +00f1: op_6e 106e a0d6 0009 method@41174 Ljava/lang/Long;->longValue()J
+    +00f4: op_0b 020b
+    +00f5: op_53 a953 80e2 field@32994 Lohe;->j:J
+    +00f7: op_16 0516 0000
+    +00f9: op_31 0031 0509
+    +00fb: op_3c 003c 000a branch_target=+0x105
+    +00fd: op_71 0071 bc72 0000 method@48242 Llnz;->H()Lj$/time/Duration;
+    +0100: op_0c 090c
+    +0101: op_6e 106e 9e5a 0009 method@40538 Lj$/time/Duration;->toMillis()J
+    +0104: op_0b 090b
+    +0105: op_62 0062 81b6 field@33206 Loml;->aa:Lokc;
+    +0107: op_72 1072 d3c1 0000 method@54209 Lokc;->g()Ljava/lang/Object;
+    +010a: op_0c 000c
+    +010b: op_1a 051a 8d42 string@36162 'getValue(...)'
+    +010d: op_71 2071 07bf 0050 method@1983 Lachu;->g(Ljava/lang/Object;Ljava/lang/String;)V
+    +0110: op_1f 001f 1e6c
+    +0112: op_6e 106e a113 0000 method@41235 Ljava/lang/Number;->longValue()J
+    +0115: op_0b 050b
+    +0116: op_bc 29bc
+    +0117: op_31 0931 0509
+    +0119: op_3b 093b 0003 branch_target=+0x11c
+    +011b: op_0f 040f
+    +011c: op_0f 010f
+
+### virtual Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->e(Landroid/view/inputmethod/EditorInfo;Ljava/lang/Object;)V access=0x11
+  code_item_off=0x59ebbc registers=15 ins=3 outs=7 tries=0 insns_size=259
+    +0000: op_1a 001a 8368 string@33640 'editorInfo'
+    +0002: op_71 2071 07c0 000d method@1984 Lachu;->h(Ljava/lang/Object;Ljava/lang/String;)V
+    +0005: op_6f 306f 56fe 0edc method@22270 Lcom/google/android/libraries/inputmethod/keyboard/impl/Keyboard;->e(Landroid/view/inputmethod/EditorInfo;Ljava/lang/Object;)V
+    +0008: op_13 0013 0010
+    +000a: op_70 2070 5604 000c method@22020 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->Q(I)V
+    +000d: op_60 0060 8886 field@34950 Lpjc;->c:I
+    +000f: op_71 0071 e4d6 0000 method@58582 Lqlv;->b()Lqlv;
+    +0012: op_0c 000c
+    +0013: op_1c 011c 2d14 type@11540
+    +0015: op_6e 206e e4d5 0010 method@58581 Lqlv;->a(Ljava/lang/Class;)Lqlr;
+    +0018: op_0c 000c
+    +0019: op_20 0120 2d14
+    +001b: op_12 0212
+    +001c: op_38 0138 0007 branch_target=+0x23
+    +001e: op_1f 001f 2d14
+    +0020: op_55 0055 8885 field@34949 Lpjc;->a:Z
+    +0022: op_28 0228 branch_target=+0x24
+    +0023: op_01 2001
+    +0024: op_5c c05c 262f field@9775 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->l:Z
+    +0026: op_12 1012
+    +0027: op_12 0112
+    +0028: op_39 0e39 0012 branch_target=+0x3a
+    +002a: op_54 ce54 2638 field@9784 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->u:Lpex;
+    +002c: op_72 2072 dbd8 000e method@56280 Lpex;->p(Z)Z
+    +002f: op_0a 0e0a
+    +0030: op_38 0e38 0005 branch_target=+0x35
+    +0032: op_62 0e62 a246 field@41542 Lxfe;->f:Lxfe;
+    +0034: op_28 0328 branch_target=+0x37
+    +0035: op_62 0e62 a245 field@41541 Lxfe;->e:Lxfe;
+    +0037: op_07 ea07
+    +0038: op_07 1e07
+    +0039: op_28 3228 branch_target=+0x6b
+    +003a: op_20 e320 1efc
+    +003c: op_38 0338 0005 branch_target=+0x41
+    +003e: op_1f 0e1f 1efc
+    +0040: op_28 0228 branch_target=+0x42
+    +0041: op_07 1e07
+    +0042: op_38 0e38 0009 branch_target=+0x4b
+    +0044: op_1a 031a 86ed string@34541 'free_cursor_activation_source'
+    +0046: op_72 2072 a3ee 003e method@41966 Ljava/util/Map;->get(Ljava/lang/Object;)Ljava/lang/Object;
+    +0049: op_0c 030c
+    +004a: op_28 0228 branch_target=+0x4c
+    +004b: op_07 1307
+    +004c: op_20 3420 3674
+    +004e: op_38 0438 0005 branch_target=+0x53
+    +0050: op_1f 031f 3674
+    +0052: op_28 0228 branch_target=+0x54
+    +0053: op_07 1307
+    +0054: op_39 0339 0004 branch_target=+0x58
+    +0056: op_62 0362 a241 field@41537 Lxfe;->a:Lxfe;
+    +0058: op_38 0e38 0009 branch_target=+0x61
+    +005a: op_1a 041a 86ee string@34542 'free_cursor_activation_swipe_direction'
+    +005c: op_72 2072 a3ee 004e method@41966 Ljava/util/Map;->get(Ljava/lang/Object;)Ljava/lang/Object;
+    +005f: op_0c 0e0c
+    +0060: op_28 0228 branch_target=+0x62
+    +0061: op_07 1e07
+    +0062: op_20 e420 3675
+    +0064: op_38 0438 0005 branch_target=+0x69
+    +0066: op_1f 0e1f 3675
+    +0068: op_28 0228 branch_target=+0x6a
+    +0069: op_07 1e07
+    +006a: op_07 3a07
+    +006b: op_6e 106e 55f9 000c method@22009 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->D()Lqec;
+    +006e: op_0c 030c
+    +006f: op_62 0462 8208 field@33288 Lond;->a:Lond;
+    +0071: op_12 3b12
+    +0072: op_23 b523 39e4
+    +0074: op_4d 0d4d 0205
+    +0076: op_4d 0a4d 0005
+    +0078: op_12 2612
+    +0079: op_4d 0e4d 0605
+    +007b: op_72 3072 e35a 0543 method@58202 Lqec;->n(Lqeh;[Ljava/lang/Object;)V
+    +007e: op_54 c554 2634 field@9780 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->q:Llnz;
+    +0080: op_54 ce54 2614 field@9748 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->A:Lpkz;
+    +0082: op_22 0422 2b45
+    +0084: op_72 1072 dd4a 000e method@56650 Lpkz;->dr()Lmpy;
+    +0087: op_0c 070c
+    +0088: op_1a 031a 87a3 string@34723 'getAccessibilityHelper(...)'
+    +008a: op_71 2071 07bf 0037 method@1983 Lachu;->g(Ljava/lang/Object;Ljava/lang/String;)V
+    +008d: op_54 c854 2615 field@9749 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->C:Lcom/google/android/libraries/inputmethod/metadata/ImeDef;
+    +008f: op_1a 031a 909e string@37022 'imeDef'
+    +0091: op_71 2071 07bf 0038 method@1983 Lachu;->g(Ljava/lang/Object;Ljava/lang/String;)V
+    +0094: op_72 1072 dd42 000e method@56642 Lpkz;->ar()Z
+    +0097: op_0a 090a
+    +0098: op_07 d607
+    +0099: op_76 0776 d463 0004 method@54371 Lomr;-><init>(Llnz;Landroid/view/inputmethod/EditorInfo;Lmpy;Lcom/google/android/libraries/inputmethod/metadata/ImeDef;ZLxfe;)V
+    +009c: op_5b c45b 2630 field@9776 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->m:Lomr;
+    +009e: op_5b c15b 2621 field@9761 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->V:Ljava/lang/Long;
+    +00a0: op_5b c15b 2622 field@9762 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->W:Ljava/lang/Long;
+    +00a2: op_6e 106e 5602 000c method@22018 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->O()Z
+    +00a5: op_0a 0d0a
+    +00a6: op_38 0d38 000f branch_target=+0xb5
+    +00a8: op_22 0322 2b64
+    +00aa: op_12 0812
+    +00ab: op_13 0913 003e
+    +00ad: op_12 0512
+    +00ae: op_12 0612
+    +00af: op_12 0712
+    +00b0: op_07 c407
+    +00b1: op_76 0776 d4e7 0003 method@54503 Looa;-><init>(Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;Landroid/graphics/PointF;Landroid/graphics/PointF;Landroid/graphics/PointF;Lj$/time/Duration;I)V
+    +00b4: op_28 0728 branch_target=+0xbb
+    +00b5: op_07 c407
+    +00b6: op_22 0322 2b44
+    +00b8: op_70 2070 d45e 0043 method@54366 Lomq;-><init>(Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;)V
+    +00bb: op_5b 435b 2629 field@9769 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->f:Lomp;
+    +00bd: op_54 4c54 2623 field@9763 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->X:Lnxr;
+    +00bf: op_72 2072 dd45 00ce method@56645 Lpkz;->b(Lnxr;)V
+    +00c2: op_71 0071 e4d6 0000 method@58582 Lqlv;->b()Lqlv;
+    +00c5: op_0c 0c0c
+    +00c6: op_54 4d54 261f field@9759 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->T:Lqlu;
+    +00c8: op_54 4e54 2626 field@9766 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->c:Ljava/util/concurrent/Executor;
+    +00ca: op_1c 031c 28e2 type@10466
+    +00cc: op_6e 406e e4d7 e3dc method@58583 Lqlv;->c(Lqlu;Ljava/lang/Class;Ljava/util/concurrent/Executor;)V
+    +00cf: op_54 4c54 2620 field@9760 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->U:Lpdu;
+    +00d1: op_6e 206e db6b 00ec method@56171 Lpdu;->i(Ljava/util/concurrent/Executor;)V
+    +00d4: op_62 0c62 a247 field@41543 Lxfe;->g:Lxfe;
+    +00d6: op_33 ca33 0005 branch_target=+0xdb
+    +00d8: op_6e 106e 55ff 0004 method@22015 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->K()V
+    +00db: op_6e 106e 5601 0004 method@22017 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->N()V
+    +00de: op_54 4c54 2639 field@9785 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->v:Landroid/view/View;
+    +00e0: op_38 0c38 0017 branch_target=+0xf7
+    +00e2: op_62 0d62 81a0 field@33184 Loml;->D:Lokc;
+    +00e4: op_72 1072 d3c1 000d method@54209 Lokc;->g()Ljava/lang/Object;
+    +00e7: op_0c 0d0c
+    +00e8: op_1f 0d1f 1e45
+    +00ea: op_6e 106e a037 000d method@41015 Ljava/lang/Boolean;->booleanValue()Z
+    +00ed: op_0a 0d0a
+    +00ee: op_32 d032 0005 branch_target=+0xf3
+    +00f0: op_13 0d13 0008
+    +00f2: op_28 0228 branch_target=+0xf4
+    +00f3: op_01 2d01
+    +00f4: op_6e 206e 1fd8 00dc method@8152 Landroid/view/View;->setVisibility(I)V
+    +00f7: op_54 4c54 2627 field@9767 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->d:Laclu;
+    +00f9: op_22 0d22 2719
+    +00fb: op_12 4e12
+    +00fc: op_70 5e70 c49b 1a4d method@50331 Lmks;-><init>(Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;Lxfe;Lacfd;I)V
+    +00ff: op_71 5b71 07ea d21c method@2026 Lacig;->ar(Laclu;Lacfi;ILachc;I)Lacne;
+    +0102: op_0e 000e
+
+### virtual Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->eM()J access=0x14
+  code_item_off=0x59e6e8 registers=3 ins=1 outs=0 tries=0 insns_size=3
+    +0000: op_16 0016 0100
+    +0002: op_10 0010
+
+### virtual Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->eR(Lcom/google/android/libraries/inputmethod/widgets/SoftKeyboardView;Lcom/google/android/libraries/inputmethod/metadata/KeyboardViewDef;)V access=0x11
+  code_item_off=0x59f0c8 registers=7 ins=3 outs=3 tries=0 insns_size=212
+    +0000: op_1a 001a 9379 string@37753 'keyboardView'
+    +0002: op_71 2071 07c0 0005 method@1984 Lachu;->h(Ljava/lang/Object;Ljava/lang/String;)V
+    +0005: op_54 6654 27f4 field@10228 Lcom/google/android/libraries/inputmethod/metadata/KeyboardViewDef;->b:Lqcl;
+    +0007: op_38 0638 000b branch_target=+0x12
+    +0009: op_6e 106e e2fe 0006 method@58110 Lqcl;->ordinal()I
+    +000c: op_0a 060a
+    +000d: op_12 1012
+    +000e: op_38 0638 0023 branch_target=+0x31
+    +0010: op_32 0632 0003 branch_target=+0x13
+    +0012: op_0e 000e
+    +0013: op_14 0614 035f 7f0b
+    +0016: op_6e 206e 5c71 0065 method@23665 Lcom/google/android/libraries/inputmethod/widgets/SoftKeyboardView;->findViewById(I)Landroid/view/View;
+    +0019: op_0c 060c
+    +001a: op_5b 465b 262b field@9771 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->h:Landroid/view/View;
+    +001c: op_14 0614 0361 7f0b
+    +001f: op_6e 206e 5c71 0065 method@23665 Lcom/google/android/libraries/inputmethod/widgets/SoftKeyboardView;->findViewById(I)Landroid/view/View;
+    +0022: op_0c 060c
+    +0023: op_5b 465b 2639 field@9785 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->v:Landroid/view/View;
+    +0025: op_14 0614 0362 7f0b
+    +0028: op_6e 206e 5c71 0065 method@23665 Lcom/google/android/libraries/inputmethod/widgets/SoftKeyboardView;->findViewById(I)Landroid/view/View;
+    +002b: op_0c 050c
+    +002c: op_1f 051f 0768
+    +002e: op_5b 455b 263a field@9786 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->w:Landroid/widget/TextView;
+    +0030: op_0e 000e
+    +0031: op_14 0614 035c 7f0b
+    +0034: op_6e 206e 5c71 0065 method@23665 Lcom/google/android/libraries/inputmethod/widgets/SoftKeyboardView;->findViewById(I)Landroid/view/View;
+    +0037: op_0c 060c
+    +0038: op_5b 465b 2616 field@9750 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->K:Landroid/view/View;
+    +003a: op_14 0614 0503 7f0b
+    +003d: op_6e 206e 5c71 0065 method@23665 Lcom/google/android/libraries/inputmethod/widgets/SoftKeyboardView;->findViewById(I)Landroid/view/View;
+    +0040: op_0c 060c
+    +0041: op_5b 465b 2617 field@9751 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->L:Landroid/view/View;
+    +0043: op_14 0614 050a 7f0b
+    +0046: op_6e 206e 5c71 0065 method@23665 Lcom/google/android/libraries/inputmethod/widgets/SoftKeyboardView;->findViewById(I)Landroid/view/View;
+    +0049: op_0c 060c
+    +004a: op_5b 465b 2618 field@9752 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->M:Landroid/view/View;
+    +004c: op_14 0614 0364 7f0b
+    +004f: op_6e 206e 5c71 0065 method@23665 Lcom/google/android/libraries/inputmethod/widgets/SoftKeyboardView;->findViewById(I)Landroid/view/View;
+    +0052: op_0c 060c
+    +0053: op_12 0112
+    +0054: op_38 0638 000d branch_target=+0x61
+    +0056: op_22 0222 29f1
+    +0058: op_13 0313 0011
+    +005a: op_70 3070 cf84 0342 method@53124 Lnvd;-><init>(Ljava/lang/Object;I)V
+    +005d: op_6e 206e 1faf 0026 method@8111 Landroid/view/View;->setOnClickListener(Landroid/view/View$OnClickListener;)V
+    +0060: op_28 0228 branch_target=+0x62
+    +0061: op_07 1607
+    +0062: op_5b 465b 2619 field@9753 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->N:Landroid/view/View;
+    +0064: op_14 0614 035d 7f0b
+    +0067: op_6e 206e 5c71 0065 method@23665 Lcom/google/android/libraries/inputmethod/widgets/SoftKeyboardView;->findViewById(I)Landroid/view/View;
+    +006a: op_0c 060c
+    +006b: op_38 0638 000d branch_target=+0x78
+    +006d: op_22 0222 29f1
+    +006f: op_13 0313 0012
+    +0071: op_70 3070 cf84 0342 method@53124 Lnvd;-><init>(Ljava/lang/Object;I)V
+    +0074: op_6e 206e 1faf 0026 method@8111 Landroid/view/View;->setOnClickListener(Landroid/view/View$OnClickListener;)V
+    +0077: op_28 0228 branch_target=+0x79
+    +0078: op_07 1607
+    +0079: op_5b 465b 261a field@9754 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->O:Landroid/view/View;
+    +007b: op_14 0614 035e 7f0b
+    +007e: op_6e 206e 5c71 0065 method@23665 Lcom/google/android/libraries/inputmethod/widgets/SoftKeyboardView;->findViewById(I)Landroid/view/View;
+    +0081: op_0c 060c
+    +0082: op_38 0638 000d branch_target=+0x8f
+    +0084: op_22 0222 29f1
+    +0086: op_13 0313 0013
+    +0088: op_70 3070 cf84 0342 method@53124 Lnvd;-><init>(Ljava/lang/Object;I)V
+    +008b: op_6e 206e 1faf 0026 method@8111 Landroid/view/View;->setOnClickListener(Landroid/view/View$OnClickListener;)V
+    +008e: op_28 0228 branch_target=+0x90
+    +008f: op_07 1607
+    +0090: op_5b 465b 261b field@9755 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->P:Landroid/view/View;
+    +0092: op_14 0614 0363 7f0b
+    +0095: op_6e 206e 5c71 0065 method@23665 Lcom/google/android/libraries/inputmethod/widgets/SoftKeyboardView;->findViewById(I)Landroid/view/View;
+    +0098: op_0c 060c
+    +0099: op_38 0638 000d branch_target=+0xa6
+    +009b: op_22 0222 29f1
+    +009d: op_13 0313 0014
+    +009f: op_70 3070 cf84 0342 method@53124 Lnvd;-><init>(Ljava/lang/Object;I)V
+    +00a2: op_6e 206e 1faf 0026 method@8111 Landroid/view/View;->setOnClickListener(Landroid/view/View$OnClickListener;)V
+    +00a5: op_28 0228 branch_target=+0xa7
+    +00a6: op_07 1607
+    +00a7: op_5b 465b 261c field@9756 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->Q:Landroid/view/View;
+    +00a9: op_14 0614 0366 7f0b
+    +00ac: op_6e 206e 5c71 0065 method@23665 Lcom/google/android/libraries/inputmethod/widgets/SoftKeyboardView;->findViewById(I)Landroid/view/View;
+    +00af: op_0c 060c
+    +00b0: op_38 0638 000b branch_target=+0xbb
+    +00b2: op_22 0222 2b40
+    +00b4: op_70 3070 d450 0042 method@54352 Lomm;-><init>(Ljava/lang/Object;I)V
+    +00b7: op_6e 206e 1faf 0026 method@8111 Landroid/view/View;->setOnClickListener(Landroid/view/View$OnClickListener;)V
+    +00ba: op_28 0228 branch_target=+0xbc
+    +00bb: op_07 1607
+    +00bc: op_5b 465b 261d field@9757 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->R:Landroid/view/View;
+    +00be: op_14 0614 0360 7f0b
+    +00c1: op_6e 206e 5c71 0065 method@23665 Lcom/google/android/libraries/inputmethod/widgets/SoftKeyboardView;->findViewById(I)Landroid/view/View;
+    +00c4: op_0c 050c
+    +00c5: op_38 0538 000c branch_target=+0xd1
+    +00c7: op_22 0622 2b40
+    +00c9: op_12 0012
+    +00ca: op_70 3070 d450 0046 method@54352 Lomm;-><init>(Ljava/lang/Object;I)V
+    +00cd: op_6e 206e 1faf 0065 method@8111 Landroid/view/View;->setOnClickListener(Landroid/view/View$OnClickListener;)V
+    +00d0: op_07 5107
+    +00d1: op_5b 415b 261e field@9758 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->S:Landroid/view/View;
+    +00d3: op_0e 000e
+
+### virtual Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->eS(Lcom/google/android/libraries/inputmethod/metadata/KeyboardViewDef;)V access=0x11
+  code_item_off=0x59f280 registers=2 ins=2 outs=0 tries=0 insns_size=26
+    +0000: op_12 0112
+    +0001: op_5b 015b 262b field@9771 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->h:Landroid/view/View;
+    +0003: op_5b 015b 2639 field@9785 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->v:Landroid/view/View;
+    +0005: op_5b 015b 263a field@9786 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->w:Landroid/widget/TextView;
+    +0007: op_5b 015b 2616 field@9750 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->K:Landroid/view/View;
+    +0009: op_5b 015b 2617 field@9751 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->L:Landroid/view/View;
+    +000b: op_5b 015b 2618 field@9752 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->M:Landroid/view/View;
+    +000d: op_5b 015b 261e field@9758 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->S:Landroid/view/View;
+    +000f: op_5b 015b 261d field@9757 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->R:Landroid/view/View;
+    +0011: op_5b 015b 2619 field@9753 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->N:Landroid/view/View;
+    +0013: op_5b 015b 261b field@9755 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->P:Landroid/view/View;
+    +0015: op_5b 015b 261a field@9754 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->O:Landroid/view/View;
+    +0017: op_5b 015b 261c field@9756 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->Q:Landroid/view/View;
+    +0019: op_0e 000e
+
+### virtual Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->ey(JJ)V access=0x14
+  code_item_off=0x59effc registers=6 ins=5 outs=5 tries=0 insns_size=63
+    +0000: op_6f 556f 5707 4321 method@22279 Lcom/google/android/libraries/inputmethod/keyboard/impl/Keyboard;->ey(JJ)V
+    +0003: op_54 1154 2630 field@9776 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->m:Lomr;
+    +0005: op_38 0138 0039 branch_target=+0x3e
+    +0007: op_22 0222 01be
+    +0009: op_6e 106e d465 0001 method@54373 Lomr;->b()Z
+    +000c: op_0a 030a
+    +000d: op_71 1071 a03b 0003 method@41019 Ljava/lang/Boolean;->valueOf(Z)Ljava/lang/Boolean;
+    +0010: op_0c 030c
+    +0011: op_6e 106e d464 0001 method@54372 Lomr;->a()Z
+    +0014: op_0a 000a
+    +0015: op_71 1071 a03b 0000 method@41019 Ljava/lang/Boolean;->valueOf(Z)Ljava/lang/Boolean;
+    +0018: op_0c 000c
+    +0019: op_70 3070 0707 0032 method@1799 Laccr;-><init>(Ljava/lang/Object;Ljava/lang/Object;)V
+    +001c: op_5a 145a 81db field@33243 Lomr;->c:J
+    +001e: op_22 0322 01be
+    +0020: op_6e 106e d465 0001 method@54373 Lomr;->b()Z
+    +0023: op_0a 040a
+    +0024: op_71 1071 a03b 0004 method@41019 Ljava/lang/Boolean;->valueOf(Z)Ljava/lang/Boolean;
+    +0027: op_0c 040c
+    +0028: op_6e 106e d464 0001 method@54372 Lomr;->a()Z
+    +002b: op_0a 050a
+    +002c: op_71 1071 a03b 0005 method@41019 Ljava/lang/Boolean;->valueOf(Z)Ljava/lang/Boolean;
+    +002f: op_0c 050c
+    +0030: op_70 3070 0707 0543 method@1799 Laccr;-><init>(Ljava/lang/Object;Ljava/lang/Object;)V
+    +0033: op_71 2071 07c3 0023 method@1987 Lachu;->m(Ljava/lang/Object;Ljava/lang/Object;)Z
+    +0036: op_0a 020a
+    +0037: op_39 0239 0007 branch_target=+0x3e
+    +0039: op_54 1154 81df field@33247 Lomr;->g:Lool;
+    +003b: op_6e 106e d4fe 0001 method@54526 Lool;->a()V
+    +003e: op_0e 000e
+
+### virtual Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->h()V access=0x11
+  code_item_off=0x59edd4 registers=12 ins=1 outs=7 tries=0 insns_size=268
+    +0000: op_54 b054 262b field@9771 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->h:Landroid/view/View;
+    +0002: op_38 0038 0007 branch_target=+0x9
+    +0004: op_13 0113 0008
+    +0006: op_6e 206e 1fd8 0010 method@8152 Landroid/view/View;->setVisibility(I)V
+    +0009: op_62 0062 8231 field@33329 Lont;->a:Lont;
+    +000b: op_70 2070 5605 000b method@22021 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->R(Lonv;)V
+    +000e: op_54 b054 2614 field@9748 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->A:Lpkz;
+    +0010: op_72 1072 dd37 0000 method@56631 Lpkz;->E()Lqtm;
+    +0013: op_0c 010c
+    +0014: op_12 0212
+    +0015: op_72 2072 e753 0021 method@59219 Lqtm;->h(Landroid/view/View;)V
+    +0018: op_6e 106e 55f9 000b method@22009 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->D()Lqec;
+    +001b: op_0c 010c
+    +001c: op_62 0362 820c field@33292 Lond;->e:Lond;
+    +001e: op_12 0412
+    +001f: op_23 4523 39e4
+    +0021: op_72 3072 e35a 0531 method@58202 Lqec;->n(Lqeh;[Ljava/lang/Object;)V
+    +0024: op_54 b154 2628 field@9768 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->e:Lomc;
+    +0026: op_55 1355 816c field@33132 Lomc;->g:Z
+    +0028: op_38 0338 005a branch_target=+0x82
+    +002a: op_54 1354 8169 field@33129 Lomc;->d:Lomb;
+    +002c: op_6e 106e db6c 0003 method@56172 Lpdu;->j()V
+    +002f: op_54 1354 8167 field@33127 Lomc;->b:Lqtm;
+    +0031: op_54 1554 816a field@33130 Lomc;->e:Lome;
+    +0033: op_72 2072 e748 0053 method@59208 Lqtm;->A(Landroid/view/View;)Z
+    +0036: op_0a 060a
+    +0037: op_38 0638 0005 branch_target=+0x3c
+    +0039: op_72 2072 e753 0053 method@59219 Lqtm;->h(Landroid/view/View;)V
+    +003c: op_5b 525b 817e field@33150 Lome;->c:Landroid/graphics/PointF;
+    +003e: op_5b 525b 817c field@33148 Lome;->a:Lomg;
+    +0040: op_54 5654 817f field@33151 Lome;->d:Landroid/animation/ValueAnimator;
+    +0042: op_38 0638 0005 branch_target=+0x47
+    +0044: op_6e 106e 0f35 0006 method@3893 Landroid/animation/ValueAnimator;->cancel()V
+    +0047: op_6e 106e d42f 0005 method@54319 Lome;->invalidate()V
+    +004a: op_54 1554 816f field@33135 Lomc;->j:Lono;
+    +004c: op_6e 106e d4ad 0005 method@54445 Lono;->b()Z
+    +004f: op_0a 060a
+    +0050: op_38 0638 0005 branch_target=+0x55
+    +0052: op_6e 106e d4ac 0005 method@54444 Lono;->a()V
+    +0055: op_54 1654 816b field@33131 Lomc;->f:Lonx;
+    +0057: op_72 2072 e748 0063 method@59208 Lqtm;->A(Landroid/view/View;)Z
+    +005a: op_0a 070a
+    +005b: op_38 0738 0005 branch_target=+0x60
+    +005d: op_72 2072 e753 0063 method@59219 Lqtm;->h(Landroid/view/View;)V
+    +0060: op_55 5355 822b field@33323 Lono;->c:Z
+    +0062: op_38 0338 0005 branch_target=+0x67
+    +0064: op_6e 106e d4ac 0005 method@54444 Lono;->a()V
+    +0067: op_5b 525b 8229 field@33321 Lono;->a:Landroid/view/inputmethod/EditorInfo;
+    +0069: op_5b 525b 822a field@33322 Lono;->b:Lpcn;
+    +006b: op_5b 625b 823a field@33338 Lonx;->b:Lomg;
+    +006d: op_6e 106e d4d8 0006 method@54488 Lonx;->invalidate()V
+    +0070: op_5b 125b 8170 field@33136 Lomc;->k:Landroid/view/inputmethod/TextAppearanceInfo;
+    +0072: op_5b 125b 8172 field@33138 Lomc;->m:Lomg;
+    +0074: op_5c 145c 816c field@33132 Lomc;->g:Z
+    +0076: op_5b 125b 8171 field@33137 Lomc;->l:Lpdg;
+    +0078: op_5b 125b 816e field@33134 Lomc;->i:Landroid/view/inputmethod/CursorAnchorInfo;
+    +007a: op_62 0162 8882 field@34946 Lpjb;->b:Lpjb;
+    +007c: op_71 1071 dce2 0001 method@56546 Lpjc;->v(Lpjb;)V
+    +007f: op_71 1071 dce1 0001 method@56545 Lpjc;->a(Lpjb;)V
+    +0082: op_54 b154 261f field@9759 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->T:Lqlu;
+    +0084: op_1c 031c 28e2 type@10466
+    +0086: op_71 0071 e4d6 0000 method@58582 Lqlv;->b()Lqlv;
+    +0089: op_0c 050c
+    +008a: op_6e 306e e4d9 0315 method@58585 Lqlv;->e(Lqlu;Ljava/lang/Class;)V
+    +008d: op_54 b154 2620 field@9760 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->U:Lpdu;
+    +008f: op_6e 106e db6c 0001 method@56172 Lpdu;->j()V
+    +0092: op_54 b154 2623 field@9763 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->X:Lnxr;
+    +0094: op_72 2072 dd47 0010 method@56647 Lpkz;->d(Lnxr;)V
+    +0097: op_54 b154 262a field@9770 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->g:Lacne;
+    +0099: op_38 0138 0005 branch_target=+0x9e
+    +009b: op_72 2072 0884 0021 method@2180 Lacne;->s(Ljava/util/concurrent/CancellationException;)V
+    +009e: op_54 b154 2629 field@9769 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->f:Lomp;
+    +00a0: op_72 1072 d45c 0001 method@54364 Lomp;->b()V
+    +00a3: op_54 b154 2630 field@9776 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->m:Lomr;
+    +00a5: op_38 0138 0007 branch_target=+0xac
+    +00a7: op_55 1355 81e0 field@33248 Lomr;->h:Z
+    +00a9: op_54 1154 81da field@33242 Lomr;->b:Lxfe;
+    +00ab: op_28 0428 branch_target=+0xaf
+    +00ac: op_62 0162 a241 field@41537 Lxfe;->a:Lxfe;
+    +00ae: op_01 4301
+    +00af: op_38 0338 0005 branch_target=+0xb4
+    +00b1: op_67 0467 81f2 field@33266 Lomy;->a:I
+    +00b3: op_28 0d28 branch_target=+0xc0
+    +00b4: op_71 1071 d476 0001 method@54390 Lomy;->a(Lxfe;)Z
+    +00b7: op_0a 010a
+    +00b8: op_38 0138 0008 branch_target=+0xc0
+    +00ba: op_60 0160 81f2 field@33266 Lomy;->a:I
+    +00bc: op_d8 01d8 0101
+    +00be: op_67 0167 81f2 field@33266 Lomy;->a:I
+    +00c0: op_54 b154 2630 field@9776 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->m:Lomr;
+    +00c2: op_38 0138 0005 branch_target=+0xc7
+    +00c4: op_54 1154 81da field@33242 Lomr;->b:Lxfe;
+    +00c6: op_28 0228 branch_target=+0xc8
+    +00c7: op_07 2107
+    +00c8: op_62 0362 a247 field@41543 Lxfe;->g:Lxfe;
+    +00ca: op_33 3133 0035 branch_target=+0xff
+    +00cc: op_54 b154 263b field@9787 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->z:Landroid/content/Context;
+    +00ce: op_71 0071 e4d6 0000 method@58582 Lqlv;->b()Lqlv;
+    +00d1: op_0c 030c
+    +00d2: op_22 0422 2fe8
+    +00d4: op_62 0662 9184 field@37252 Lqxs;->q:Lqxs;
+    +00d6: op_22 0522 06a8
+    +00d8: op_70 2070 1ece 0015 method@7886 Landroid/view/View;-><init>(Landroid/content/Context;)V
+    +00db: op_71 1071 07a0 0005 method@1952 Lachu;->af(Ljava/lang/Object;)Ljava/util/List;
+    +00de: op_0c 070c
+    +00df: op_12 0912
+    +00e0: op_13 0a13 01f8
+    +00e2: op_1a 051a 175a string@5978 'FREE_CURSOR_SWIPE_DEL'
+    +00e4: op_12 0812
+    +00e5: op_76 0776 e8c7 0004 method@59591 Lqxr;-><init>(Ljava/lang/String;Lqxs;Ljava/util/List;Lacgn;Lacgn;I)V
+    +00e8: op_62 0162 8b22 field@35618 Lpsx;->c:Lpsx;
+    +00ea: op_71 3071 c597 0143 method@50583 Lmnw;->K(Lqlv;Lqxr;Lpsx;)V
+    +00ed: op_13 0113 0043
+    +00ef: op_71 2071 d329 0021 method@54057 Lohe;->e(ILjava/lang/Object;)Lohe;
+    +00f2: op_0c 010c
+    +00f3: op_72 2072 dd3a 0010 method@56634 Lpkz;->N(Lohe;)V
+    +00f6: op_13 0113 d8b9
+    +00f8: op_71 2071 d329 0021 method@54057 Lohe;->e(ILjava/lang/Object;)Lohe;
+    +00fb: op_0c 010c
+    +00fc: op_72 2072 dd3a 0010 method@56634 Lpkz;->N(Lohe;)V
+    +00ff: op_5b b25b 2630 field@9776 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->m:Lomr;
+    +0101: op_5b b25b 2621 field@9761 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->V:Ljava/lang/Long;
+    +0103: op_5b b25b 2622 field@9762 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->W:Ljava/lang/Long;
+    +0105: op_6e 106e 5600 000b method@22016 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->M()V
+    +0108: op_6f 106f 570a 000b method@22282 Lcom/google/android/libraries/inputmethod/keyboard/impl/Keyboard;->h()V
+    +010b: op_0e 000e
+
+### virtual Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->m(Lohe;)Z access=0x11
+  code_item_off=0x59e478 registers=12 ins=2 outs=3 tries=0 insns_size=266
+    +0000: op_1a 001a 84b5 string@33973 'event'
+    +0002: op_71 2071 07c0 000b method@1984 Lachu;->h(Ljava/lang/Object;Ljava/lang/String;)V
+    +0005: op_6e 106e d325 000b method@54053 Lohe;->a()I
+    +0008: op_0a 000a
+    +0009: op_13 0113 d801
+    +000b: op_12 1212
+    +000c: op_33 1033 000b branch_target=+0x17
+    +000e: op_54 a054 2629 field@9769 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->f:Lomp;
+    +0010: op_72 2072 d45b 00b0 method@54363 Lomp;->a(Lohe;)Lomp;
+    +0013: op_0c 0b0c
+    +0014: op_5b ab5b 2629 field@9769 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->f:Lomp;
+    +0016: op_0f 020f
+    +0017: op_54 a054 2630 field@9776 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->m:Lomr;
+    +0019: op_12 0112
+    +001a: op_38 0038 0008 branch_target=+0x22
+    +001c: op_6e 106e d465 0000 method@54373 Lomr;->b()Z
+    +001f: op_0a 000a
+    +0020: op_39 0039 0024 branch_target=+0x44
+    +0022: op_13 0013 0013
+    +0024: op_71 1071 a0ca 0000 method@41162 Ljava/lang/Integer;->valueOf(I)Ljava/lang/Integer;
+    +0027: op_0c 000c
+    +0028: op_13 0313 0014
+    +002a: op_71 1071 a0ca 0003 method@41162 Ljava/lang/Integer;->valueOf(I)Ljava/lang/Integer;
+    +002d: op_0c 030c
+    +002e: op_12 2412
+    +002f: op_23 4423 39e2
+    +0031: op_4d 004d 0104
+    +0033: op_4d 034d 0204
+    +0035: op_6e 106e d325 000b method@54053 Lohe;->a()I
+    +0038: op_0a 000a
+    +0039: op_71 1071 a0ca 0000 method@41162 Ljava/lang/Integer;->valueOf(I)Ljava/lang/Integer;
+    +003c: op_0c 000c
+    +003d: op_71 2071 06d7 0004 method@1751 Lacbw;->C([Ljava/lang/Object;Ljava/lang/Object;)Z
+    +0040: op_0a 000a
+    +0041: op_38 0038 0003 branch_target=+0x44
+    +0043: op_0f 020f
+    +0044: op_62 0062 2625 field@9765 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->b:[Ljava/lang/Integer;
+    +0046: op_6e 106e d325 000b method@54053 Lohe;->a()I
+    +0049: op_0a 030a
+    +004a: op_71 1071 a0ca 0003 method@41162 Ljava/lang/Integer;->valueOf(I)Ljava/lang/Integer;
+    +004d: op_0c 030c
+    +004e: op_71 2071 06d7 0030 method@1751 Lacbw;->C([Ljava/lang/Object;Ljava/lang/Object;)Z
+    +0051: op_0a 030a
+    +0052: op_12 0412
+    +0053: op_38 0338 0092 branch_target=+0xe5
+    +0055: op_54 a354 2629 field@9769 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->f:Lomp;
+    +0057: op_72 2072 d45d 00b3 method@54365 Lomp;->c(Lohe;)Z
+    +005a: op_0a 030a
+    +005b: op_38 0338 000b branch_target=+0x66
+    +005d: op_54 a054 2629 field@9769 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->f:Lomp;
+    +005f: op_72 2072 d45b 00b0 method@54363 Lomp;->a(Lohe;)Lomp;
+    +0062: op_0c 0b0c
+    +0063: op_5b ab5b 2629 field@9769 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->f:Lomp;
+    +0065: op_0f 020f
+    +0066: op_55 a355 262d field@9773 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->j:Z
+    +0068: op_38 0338 0012 branch_target=+0x7a
+    +006a: op_54 a354 2614 field@9748 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->A:Lpkz;
+    +006c: op_13 0513 d896
+    +006e: op_71 2071 d329 0045 method@54057 Lohe;->e(ILjava/lang/Object;)Lohe;
+    +0071: op_0c 040c
+    +0072: op_72 2072 dd3a 0043 method@56634 Lpkz;->N(Lohe;)V
+    +0075: op_52 b352 80e0 field@32992 Lohe;->h:I
+    +0077: op_b6 23b6
+    +0078: op_59 b359 80e0 field@32992 Lohe;->h:I
+    +007a: op_54 a354 2629 field@9769 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->f:Lomp;
+    +007c: op_72 2072 d45b 00b3 method@54363 Lomp;->a(Lohe;)Lomp;
+    +007f: op_0c 030c
+    +0080: op_5b a35b 2629 field@9769 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->f:Lomp;
+    +0082: op_6e 106e 55fc 000a method@22012 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->H()V
+    +0085: op_53 b353 80e2 field@32994 Lohe;->j:J
+    +0087: op_16 0516 0000
+    +0089: op_31 0531 0503
+    +008b: op_3c 053c 000a branch_target=+0x95
+    +008d: op_71 0071 bc72 0000 method@48242 Llnz;->H()Lj$/time/Duration;
+    +0090: op_0c 030c
+    +0091: op_6e 106e 9e5a 0003 method@40538 Lj$/time/Duration;->toMillis()J
+    +0094: op_0b 030b
+    +0095: op_71 2071 a0e1 0043 method@41185 Ljava/lang/Long;->valueOf(J)Ljava/lang/Long;
+    +0098: op_0c 050c
+    +0099: op_5b a55b 2621 field@9761 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->V:Ljava/lang/Long;
+    +009b: op_6e 106e 55f9 000a method@22009 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->D()Lqec;
+    +009e: op_0c 060c
+    +009f: op_62 0762 820a field@33290 Lond;->c:Lond;
+    +00a1: op_6e 106e d325 000b method@54053 Lohe;->a()I
+    +00a4: op_0a 080a
+    +00a5: op_71 1071 a0ca 0008 method@41162 Ljava/lang/Integer;->valueOf(I)Ljava/lang/Integer;
+    +00a8: op_0c 080c
+    +00a9: op_23 2223 39e4
+    +00ab: op_4d 084d 0102
+    +00ad: op_72 3072 e35a 0276 method@58202 Lqec;->n(Lqeh;[Ljava/lang/Object;)V
+    +00b0: op_6e 106e d325 000b method@54053 Lohe;->a()I
+    +00b3: op_0a 0b0a
+    +00b4: op_71 1071 a0ca 000b method@41162 Ljava/lang/Integer;->valueOf(I)Ljava/lang/Integer;
+    +00b7: op_0c 0b0c
+    +00b8: op_71 2071 06d7 00b0 method@1751 Lacbw;->C([Ljava/lang/Object;Ljava/lang/Object;)Z
+    +00bb: op_0a 0b0a
+    +00bc: op_38 0b38 0028 branch_target=+0xe4
+    +00be: op_54 ab54 2622 field@9762 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->W:Ljava/lang/Long;
+    +00c0: op_62 0062 81b7 field@33207 Loml;->ab:Lokc;
+    +00c2: op_72 1072 d3c1 0000 method@54209 Lokc;->g()Ljava/lang/Object;
+    +00c5: op_0c 000c
+    +00c6: op_1a 021a 8d42 string@36162 'getValue(...)'
+    +00c8: op_71 2071 07bf 0020 method@1983 Lachu;->g(Ljava/lang/Object;Ljava/lang/String;)V
+    +00cb: op_1f 001f 1e6c
+    +00cd: op_6e 106e a113 0000 method@41235 Ljava/lang/Number;->longValue()J
+    +00d0: op_0b 060b
+    +00d1: op_38 0b38 000c branch_target=+0xdd
+    +00d3: op_6e 106e a0d6 000b method@41174 Ljava/lang/Long;->longValue()J
+    +00d6: op_0b 080b
+    +00d7: op_bc 83bc
+    +00d8: op_31 0b31 0603
+    +00da: op_3b 0b3b 0003 branch_target=+0xdd
+    +00dc: op_0f 010f
+    +00dd: op_5b a55b 2622 field@9762 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->W:Ljava/lang/Long;
+    +00df: op_13 0b13 0009
+    +00e1: op_70 2070 5604 00ba method@22020 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->Q(I)V
+    +00e4: op_0f 010f
+    +00e5: op_6e 106e d325 000b method@54053 Lohe;->a()I
+    +00e8: op_0a 000a
+    +00e9: op_13 0113 d819
+    +00eb: op_33 1033 001a branch_target=+0x105
+    +00ed: op_6e 106e d32b 000b method@54059 Lohe;->g()Lqbc;
+    +00f0: op_0c 0b0c
+    +00f1: op_38 0b38 0005 branch_target=+0xf6
+    +00f3: op_54 bb54 8cf4 field@36084 Lqbc;->e:Ljava/lang/Object;
+    +00f5: op_28 0228 branch_target=+0xf7
+    +00f6: op_07 4b07
+    +00f7: op_20 b020 2b5f
+    +00f9: op_38 0038 0005 branch_target=+0xfe
+    +00fb: op_07 b407
+    +00fc: op_1f 041f 2b5f
+    +00fe: op_39 0439 0003 branch_target=+0x101
+    +0100: op_0f 020f
+    +0101: op_70 2070 5605 004a method@22021 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->R(Lonv;)V
+    +0104: op_0f 020f
+    +0105: op_6f 206f 570b 00ba method@22283 Lcom/google/android/libraries/inputmethod/keyboard/impl/Keyboard;->m(Lohe;)Z
+    +0108: op_0a 0a0a
+    +0109: op_0f 0a0f
+
+### virtual Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->o()Lomn; access=0x11
+  code_item_off=0x59e69c registers=1 ins=1 outs=0 tries=0 insns_size=9
+    +0000: op_54 0054 2630 field@9776 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorKeyboard;->m:Lomr;
+    +0002: op_38 0038 0005 branch_target=+0x7
+    +0004: op_54 0054 81dc field@33244 Lomr;->d:Lomn;    +0006: op_11 0011
+    +0007: op_12 0012
+    +0008: op_11 0011
+
+## Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorMotionEventHandler; (classes2.dex)
+
+### direct Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorMotionEventHandler;-><clinit>()V access=0x10008
+  code_item_off=0x5a1820 registers=3 ins=0 outs=3 tries=0 insns_size=55
+    +0000: op_22 0022 32c7
+    +0002: op_70 1070 a116 0000 method@41238 Ljava/lang/Object;-><init>()V
+    +0005: op_69 0069 2646 field@9798 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorMotionEventHandler;->k:Lsly;
+    +0007: op_60 0060 0423 field@1059 Lackm;->b:I
+    +0009: op_13 0013 0032
+    +000b: op_62 0162 0425 field@1061 Lacko;->c:Lacko;
+    +000d: op_71 2071 07e1 0010 method@2017 Lacig;->aA(ILacko;)J
+    +0010: op_0b 000b
+    +0011: op_68 0068 263c field@9788 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorMotionEventHandler;->a:J
+    +0013: op_13 0013 0096
+    +0015: op_62 0162 0425 field@1061 Lacko;->c:Lacko;
+    +0017: op_71 2071 07e1 0010 method@2017 Lacig;->aA(ILacko;)J
+    +001a: op_0b 000b
+    +001b: op_68 0068 263d field@9789 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorMotionEventHandler;->b:J
+    +001d: op_62 0062 819f field@33183 Loml;->C:Lokc;
+    +001f: op_72 1072 d3c1 0000 method@54209 Lokc;->g()Ljava/lang/Object;
+    +0022: op_0c 000c
+    +0023: op_1a 011a 8d42 string@36162 'getValue(...)'
+    +0025: op_71 2071 07bf 0010 method@1983 Lachu;->g(Ljava/lang/Object;Ljava/lang/String;)V
+    +0028: op_1f 001f 1e6c
+    +002a: op_6e 106e a110 0000 method@41232 Ljava/lang/Number;->doubleValue()D
+    +002d: op_0b 000b
+    +002e: op_62 0262 0425 field@1061 Lacko;->c:Lacko;
+    +0030: op_71 3071 07ec 0210 method@2028 Lacig;->az(DLacko;)J
+    +0033: op_0b 000b
+    +0034: op_68 0068 263e field@9790 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorMotionEventHandler;->c:J
+    +0036: op_0e 000e
+
+### direct Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorMotionEventHandler;-><init>(Landroid/content/Context;Lqit;)V access=0x10001
+  code_item_off=0x5a18a0 registers=6 ins=3 outs=3 tries=0 insns_size=47
+    +0000: op_1a 001a 8033 string@32819 'context'
+    +0002: op_71 2071 07c0 0004 method@1984 Lachu;->h(Ljava/lang/Object;Ljava/lang/String;)V
+    +0005: op_1a 011a 8207 string@33287 'delegate'
+    +0007: op_71 2071 07c0 0015 method@1984 Lachu;->h(Ljava/lang/Object;Ljava/lang/String;)V
+    +000a: op_1c 021c 2a1a type@10778
+    +000c: op_71 2071 fec8 0024 method@65224 Lzlp;->f(Landroid/content/Context;Ljava/lang/Class;)Ljava/lang/Object;
+    +000f: op_0c 020c
+    +0010: op_1f 021f 2a1a
+    +0012: op_72 1072 d02e 0002 method@53294 Lnxk;->aY()Laclu;
+    +0015: op_0c 020c
+    +0016: op_71 2071 07c0 0004 method@1984 Lachu;->h(Ljava/lang/Object;Ljava/lang/String;)V
+    +0019: op_71 2071 07c0 0015 method@1984 Lachu;->h(Ljava/lang/Object;Ljava/lang/String;)V
+    +001c: op_1a 001a 9570 string@38256 'mainScope'
+    +001e: op_71 2071 07c0 0002 method@1984 Lachu;->h(Ljava/lang/Object;Ljava/lang/String;)V
+    +0021: op_70 3070 58dd 0543 method@22749 Lcom/google/android/libraries/inputmethod/motioneventhandler/AbstractMotionEventHandler;-><init>(Landroid/content/Context;Lqit;)V
+    +0024: op_5b 325b 263f field@9791 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorMotionEventHandler;->d:Laclu;
+    +0026: op_22 0422 2b57
+    +0028: op_12 1512
+    +0029: op_70 3070 d4a8 0534 method@54440 Lonl;-><init>(Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorMotionEventHandler;I)V
+    +002c: op_5b 345b 2641 field@9793 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorMotionEventHandler;->f:Lonk;
+    +002e: op_0e 000e
+
+### direct Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorMotionEventHandler;->p()V access=0x12
+  code_item_off=0x5a1910 registers=3 ins=1 outs=2 tries=0 insns_size=29
+    +0000: op_54 2054 2642 field@9794 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorMotionEventHandler;->g:Lacne;
+    +0002: op_12 0112
+    +0003: op_38 0038 0005 branch_target=+0x8
+    +0005: op_72 2072 0884 0010 method@2180 Lacne;->s(Ljava/util/concurrent/CancellationException;)V
+    +0008: op_5b 215b 2642 field@9794 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorMotionEventHandler;->g:Lacne;
+    +000a: op_54 2054 2644 field@9796 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorMotionEventHandler;->i:Lacne;
+    +000c: op_38 0038 0005 branch_target=+0x11
+    +000e: op_72 2072 0884 0010 method@2180 Lacne;->s(Ljava/util/concurrent/CancellationException;)V
+    +0011: op_5b 215b 2644 field@9796 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorMotionEventHandler;->i:Lacne;
+    +0013: op_54 2054 2645 field@9797 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorMotionEventHandler;->j:Landroid/view/VelocityTracker;
+    +0015: op_38 0038 0005 branch_target=+0x1a
+    +0017: op_6e 106e 1ebf 0000 method@7871 Landroid/view/VelocityTracker;->recycle()V
+    +001a: op_5b 215b 2645 field@9797 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorMotionEventHandler;->j:Landroid/view/VelocityTracker;
+    +001c: op_0e 000e
+
+### virtual Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorMotionEventHandler;->b(Landroid/view/MotionEvent;Ljava/lang/Integer;Ljava/lang/Integer;)Lonj; access=0x11
+  code_item_off=0x5a1650 registers=20 ins=4 outs=3 tries=0 insns_size=192
+    +0000: op_08 0008 0010
+    +0002: op_08 0108 0011
+    +0004: op_54 0254 2643 field@9795 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorMotionEventHandler;->h:Lcom/google/android/libraries/inputmethod/widgets/SoftKeyboardView;
+    +0006: op_39 0239 0004 branch_target=+0xa
+    +0008: op_12 0c12
+    +0009: op_11 0c11
+    +000a: op_12 2412
+    +000b: op_23 4423 3891
+    +000d: op_6e 206e 5c76 0042 method@23670 Lcom/google/android/libraries/inputmethod/widgets/SoftKeyboardView;->getLocationOnScreen([I)V
+    +0010: op_12 0512
+    +0011: op_44 0644 0504
+    +0013: op_12 1712
+    +0014: op_44 0444 0704
+    +0016: op_62 0762 81c7 field@33223 Loml;->p:Lokc;
+    +0018: op_72 1072 d3c1 0007 method@54209 Lokc;->g()Ljava/lang/Object;
+    +001b: op_0c 070c
+    +001c: op_1a 081a 8d42 string@36162 'getValue(...)'
+    +001e: op_71 2071 07bf 0087 method@1983 Lachu;->g(Ljava/lang/Object;Ljava/lang/String;)V
+    +0021: op_1f 071f 1e6c
+    +0023: op_6e 106e a110 0007 method@41232 Ljava/lang/Number;->doubleValue()D
+    +0026: op_0b 070b
+    +0027: op_54 0054 2647 field@9799 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorMotionEventHandler;->o:Landroid/content/Context;
+    +0029: op_1a 091a 8033 string@32819 'context'
+    +002b: op_71 2071 07bf 0090 method@1983 Lachu;->g(Ljava/lang/Object;Ljava/lang/String;)V
+    +002e: op_71 3071 d4b1 0087 method@54449 Lonq;->a(DLandroid/content/Context;)D
+    +0031: op_0b 070b
+    +0032: op_6e 106e 1e3a 0001 method@7738 Landroid/view/MotionEvent;->getPointerCount()I
+    +0035: op_0a 090a
+    +0036: op_35 9535 ffd2 branch_target=+0x8
+    +0038: op_6e 206e 1e3b 0051 method@7739 Landroid/view/MotionEvent;->getPointerId(I)I
+    +003b: op_0a 0a0a
+    +003c: op_38 1238 0008 branch_target=+0x44
+    +003e: op_74 0174 a0c2 0012 method@41154 Ljava/lang/Integer;->intValue()I
+    +0041: op_0a 0b0a
+    +0042: op_32 ba32 0077 branch_target=+0xb9
+    +0044: op_38 1338 0008 branch_target=+0x4c
+    +0046: op_74 0174 a0c2 0013 method@41154 Ljava/lang/Integer;->intValue()I
+    +0049: op_0a 0b0a
+    +004a: op_33 ba33 006f branch_target=+0xb9
+    +004c: op_82 6b82
+    +004d: op_6e 206e 1e49 0051 method@7753 Landroid/view/MotionEvent;->getX(I)F
+    +0050: op_0a 0c0a
+    +0051: op_6e 106e 5c7b 0002 method@23675 Lcom/google/android/libraries/inputmethod/widgets/SoftKeyboardView;->getScaleX()F
+    +0054: op_0a 0d0a
+    +0055: op_c8 dcc8 4d82
+    +0057: op_6e 206e 1e4b 0051 method@7755 Landroid/view/MotionEvent;->getY(I)F
+    +005a: op_0a 0e0a
+    +005b: op_6e 106e 5c7c 0002 method@23676 Lcom/google/android/libraries/inputmethod/widgets/SoftKeyboardView;->getScaleY()F
+    +005e: op_0a 0f0a
+    +005f: op_c8 fec8 cbc6
+    +0061: op_01 4f01
+    +0062: op_12 0c12
+    +0063: op_89 b389
+    +0064: op_30 0330 0703
+    +0066: op_3b 033b 0009 branch_target=+0x6f
+    +0068: op_13 0313 0015
+    +006a: op_71 1071 a0ca 0003 method@41162 Ljava/lang/Integer;->valueOf(I)Ljava/lang/Integer;
+    +006d: op_0c 030c
+    +006e: op_28 3f28 branch_target=+0xad
+    +006f: op_6e 106e 10be 0000 method@4286 Landroid/content/Context;->getResources()Landroid/content/res/Resources;
+    +0072: op_0c 030c
+    +0073: op_6e 106e 118d 0003 method@4493 Landroid/content/res/Resources;->getDisplayMetrics()Landroid/util/DisplayMetrics;
+    +0076: op_0c 030c
+    +0077: op_52 3352 0c0f field@3087 Landroid/util/DisplayMetrics;->widthPixels:I
+    +0079: op_82 3382
+    +007a: op_c7 b3c7 3389
+    +007c: op_30 0330 0703
+    +007e: op_3b 033b 0009 branch_target=+0x87
+    +0080: op_13 0313 0016
+    +0082: op_71 1071 a0ca 0003 method@41162 Ljava/lang/Integer;->valueOf(I)Ljava/lang/Integer;
+    +0085: op_0c 030c
+    +0086: op_28 2728 branch_target=+0xad
+    +0087: op_c6 edc6 d389
+    +0089: op_30 0330 0703
+    +008b: op_3b 033b 0009 branch_target=+0x94
+    +008d: op_13 0313 0013
+    +008f: op_71 1071 a0ca 0003 method@41162 Ljava/lang/Integer;->valueOf(I)Ljava/lang/Integer;
+    +0092: op_0c 030c
+    +0093: op_28 1a28 branch_target=+0xad
+    +0094: op_6e 106e 10be 0000 method@4286 Landroid/content/Context;->getResources()Landroid/content/res/Resources;
+    +0097: op_0c 030c
+    +0098: op_6e 106e 118d 0003 method@4493 Landroid/content/res/Resources;->getDisplayMetrics()Landroid/util/DisplayMetrics;
+    +009b: op_0c 030c
+    +009c: op_52 3352 0c0e field@3086 Landroid/util/DisplayMetrics;->heightPixels:I
+    +009e: op_82 3382
+    +009f: op_c7 d3c7 3389
+    +00a1: op_30 0330 0703
+    +00a3: op_3b 033b 0009 branch_target=+0xac
+    +00a5: op_13 0313 0014
+    +00a7: op_71 1071 a0ca 0003 method@41162 Ljava/lang/Integer;->valueOf(I)Ljava/lang/Integer;
+    +00aa: op_0c 030c
+    +00ab: op_28 0228 branch_target=+0xad
+    +00ac: op_07 c307
+    +00ad: op_38 0338 000e branch_target=+0xbb
+    +00af: op_22 0022 2b55
+    +00b1: op_6e 106e a0c2 0003 method@41154 Ljava/lang/Integer;->intValue()I
+    +00b4: op_0a 010a
+    +00b5: op_70 3070 d4a3 0a10 method@54435 Lonj;-><init>(II)V
+    +00b8: op_11 0011
+    +00b9: op_01 4f01
+    +00ba: op_12 0c12
+    +00bb: op_d8 05d8 0105
+    +00bd: op_01 f401
+    +00be: op_29 0029 ff78 branch_target=+0x36
+
+### virtual Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorMotionEventHandler;->c(ILjava/lang/Long;ILjava/lang/Double;)V access=0x11
+  code_item_off=0x5a1994 registers=9 ins=5 outs=2 tries=0 insns_size=38
+    +0000: op_12 0012
+    +0001: op_35 7035 0024 branch_target=+0x25
+    +0003: op_12 0112
+    +0004: op_71 2071 d329 0015 method@54057 Lohe;->e(ILjava/lang/Object;)Lohe;
+    +0007: op_0c 010c
+    +0008: op_22 0222 2b59
+    +000a: op_70 2070 d4af 0082 method@54447 Lonp;-><init>(Ljava/lang/Double;)V
+    +000d: op_5b 125b 80e4 field@32996 Lohe;->l:Ljava/lang/Object;
+    +000f: op_6e 106e d337 0001 method@54071 Lohe;->r()V
+    +0012: op_38 0638 0007 branch_target=+0x19
+    +0014: op_6e 106e a0d6 0006 method@41174 Ljava/lang/Long;->longValue()J
+    +0017: op_0b 020b
+    +0018: op_28 0328 branch_target=+0x1b
+    +0019: op_53 1253 80e1 field@32993 Lohe;->i:J
+    +001b: op_5a 125a 80e2 field@32994 Lohe;->j:J
+    +001d: op_54 4254 2648 field@9800 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorMotionEventHandler;->p:Lqit;
+    +001f: op_72 2072 e42f 0012 method@58415 Lqit;->n(Lohe;)V
+    +0022: op_d8 00d8 0100
+    +0024: op_28 dd28 branch_target=+0x1
+    +0025: op_0e 000e
+
+### virtual Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorMotionEventHandler;->close()V access=0x11
+  code_item_off=0x5a195c registers=2 ins=1 outs=1 tries=0 insns_size=7
+    +0000: op_6e 106e 58de 0001 method@22750 Lcom/google/android/libraries/inputmethod/motioneventhandler/AbstractMotionEventHandler;->l()V
+    +0003: op_12 0012
+    +0004: op_5b 105b 2643 field@9795 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorMotionEventHandler;->h:Lcom/google/android/libraries/inputmethod/widgets/SoftKeyboardView;
+    +0006: op_0e 000e
+
+### virtual Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorMotionEventHandler;->f()V access=0x11
+  code_item_off=0x5a197c registers=1 ins=1 outs=1 tries=0 insns_size=4
+    +0000: op_6e 106e 58de 0000 method@22750 Lcom/google/android/libraries/inputmethod/motioneventhandler/AbstractMotionEventHandler;->l()V
+    +0003: op_0e 000e
+
+### virtual Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorMotionEventHandler;->g(Landroid/view/MotionEvent;)V access=0x11
+  code_item_off=0x5a19f0 registers=3 ins=2 outs=2 tries=0 insns_size=17
+    +0000: op_1a 001a 84b5 string@33973 'event'
+    +0002: op_71 2071 07c0 0002 method@1984 Lachu;->h(Ljava/lang/Object;Ljava/lang/String;)V
+    +0005: op_54 1054 2641 field@9793 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorMotionEventHandler;->f:Lonk;
+    +0007: op_72 2072 d4a7 0020 method@54439 Lonk;->a(Landroid/view/MotionEvent;)Lonk;
+    +000a: op_0c 020c
+    +000b: op_5b 125b 2641 field@9793 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorMotionEventHandler;->f:Lonk;
+    +000d: op_71 2071 07c3 0020 method@1987 Lachu;->m(Ljava/lang/Object;Ljava/lang/Object;)Z
+    +0010: op_0e 000e
+
+### virtual Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorMotionEventHandler;->gr(Landroid/view/inputmethod/EditorInfo;)V access=0x11
+  code_item_off=0x5a1a4c registers=2 ins=2 outs=0 tries=0 insns_size=3
+    +0000: op_5b 015b 2640 field@9792 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorMotionEventHandler;->e:Landroid/view/inputmethod/EditorInfo;
+    +0002: op_0e 000e
+
+### virtual Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorMotionEventHandler;->gs(Landroid/view/MotionEvent;)V access=0x11
+  code_item_off=0x5a1a64 registers=3 ins=2 outs=2 tries=0 insns_size=14
+    +0000: op_1a 001a 84b5 string@33973 'event'
+    +0002: op_71 2071 07c0 0002 method@1984 Lachu;->h(Ljava/lang/Object;Ljava/lang/String;)V
+    +0005: op_54 1054 2641 field@9793 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorMotionEventHandler;->f:Lonk;
+    +0007: op_72 2072 d4a7 0020 method@54439 Lonk;->a(Landroid/view/MotionEvent;)Lonk;
+    +000a: op_0c 020c
+    +000b: op_5b 125b 2641 field@9793 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorMotionEventHandler;->f:Lonk;
+    +000d: op_0e 000e
+
+### virtual Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorMotionEventHandler;->gt(Landroid/view/MotionEvent;)Z access=0x11
+  code_item_off=0x5a163c registers=2 ins=2 outs=0 tries=0 insns_size=2
+    +0000: op_12 1012
+    +0001: op_0f 000f
+
+### virtual Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorMotionEventHandler;->l()V access=0x11
+  code_item_off=0x5a1a24 registers=3 ins=1 outs=3 tries=0 insns_size=12
+    +0000: op_70 1070 561b 0002 method@22043 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorMotionEventHandler;->p()V
+    +0003: op_22 0022 2b57
+    +0005: op_12 1112
+    +0006: op_70 3070 d4a8 0120 method@54440 Lonl;-><init>(Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorMotionEventHandler;I)V
+    +0009: op_5b 205b 2641 field@9793 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorMotionEventHandler;->f:Lonk;
+    +000b: op_0e 000e
+
+### virtual Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorMotionEventHandler;->n(Lcom/google/android/libraries/inputmethod/widgets/SoftKeyboardView;)V access=0x11
+  code_item_off=0x5a1a90 registers=3 ins=2 outs=2 tries=0 insns_size=14
+    +0000: op_54 1054 2643 field@9795 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorMotionEventHandler;->h:Lcom/google/android/libraries/inputmethod/widgets/SoftKeyboardView;
+    +0002: op_71 2071 07c3 0002 method@1987 Lachu;->m(Ljava/lang/Object;Ljava/lang/Object;)Z
+    +0005: op_0a 000a
+    +0006: op_39 0039 0007 branch_target=+0xd
+    +0008: op_5b 125b 2643 field@9795 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorMotionEventHandler;->h:Lcom/google/android/libraries/inputmethod/widgets/SoftKeyboardView;
+    +000a: op_6e 106e 58de 0001 method@22750 Lcom/google/android/libraries/inputmethod/motioneventhandler/AbstractMotionEventHandler;->l()V
+    +000d: op_0e 000e
+
+### virtual Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorMotionEventHandler;->o()Lonk; access=0x11
+  code_item_off=0x5a17e0 registers=3 ins=1 outs=3 tries=0 insns_size=23
+    +0000: op_70 1070 561b 0002 method@22043 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorMotionEventHandler;->p()V
+    +0003: op_13 0013 d819
+    +0005: op_62 0162 8232 field@33330 Lonu;->a:Lonu;
+    +0007: op_71 2071 d329 0010 method@54057 Lohe;->e(ILjava/lang/Object;)Lohe;
+    +000a: op_0c 000c
+    +000b: op_54 2154 2648 field@9800 Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorMotionEventHandler;->p:Lqit;
+    +000d: op_72 2072 e42f 0001 method@58415 Lqit;->n(Lohe;)V
+    +0010: op_22 0022 2b57
+    +0012: op_12 1112
+    +0013: op_70 3070 d4a8 0120 method@54440 Lonl;-><init>(Lcom/google/android/libraries/inputmethod/freecursor/FreeCursorMotionEventHandler;I)V
+    +0016: op_11 0011
+
+## Lcom/google/android/libraries/inputmethod/freecursor/TriggerFreeCursorMotionEventHandler; (classes2.dex)
+
+### direct Lcom/google/android/libraries/inputmethod/freecursor/TriggerFreeCursorMotionEventHandler;-><clinit>()V access=0x10008
+  code_item_off=0x5a380c registers=7 ins=0 outs=1 tries=0 insns_size=83
+    +0000: op_22 0022 298c
+    +0002: op_70 1070 a116 0000 method@41238 Ljava/lang/Object;-><init>()V
+    +0005: op_69 0069 264e field@9806 Lcom/google/android/libraries/inputmethod/freecursor/TriggerFreeCursorMotionEventHandler;->f:Lnqd;
+    +0007: op_13 0013 003e
+    +0009: op_71 1071 a0ca 0000 method@41162 Ljava/lang/Integer;->valueOf(I)Ljava/lang/Integer;
+    +000c: op_0c 000c
+    +000d: op_13 0113 0013
+    +000f: op_71 1071 a0ca 0001 method@41162 Ljava/lang/Integer;->valueOf(I)Ljava/lang/Integer;
+    +0012: op_0c 010c
+    +0013: op_13 0213 0014
+    +0015: op_71 1071 a0ca 0002 method@41162 Ljava/lang/Integer;->valueOf(I)Ljava/lang/Integer;
+    +0018: op_0c 020c
+    +0019: op_13 0313 0015
+    +001b: op_71 1071 a0ca 0003 method@41162 Ljava/lang/Integer;->valueOf(I)Ljava/lang/Integer;
+    +001e: op_0c 030c
+    +001f: op_13 0413 0016
+    +0021: op_71 1071 a0ca 0004 method@41162 Ljava/lang/Integer;->valueOf(I)Ljava/lang/Integer;
+    +0024: op_0c 040c
+    +0025: op_12 5512
+    +0026: op_23 5523 39e2
+    +0028: op_12 0612
+    +0029: op_4d 004d 0605
+    +002b: op_12 1012
+    +002c: op_4d 014d 0005
+    +002e: op_12 2112
+    +002f: op_4d 024d 0105
+    +0031: op_12 3212
+    +0032: op_4d 034d 0205
+    +0034: op_12 4312
+    +0035: op_4d 044d 0305
+    +0037: op_71 1071 077b 0005 method@1915 Lachu;->P([Ljava/lang/Object;)Ljava/util/Set;
+    +003a: op_0c 040c
+    +003b: op_69 0469 2649 field@9801 Lcom/google/android/libraries/inputmethod/freecursor/TriggerFreeCursorMotionEventHandler;->a:Ljava/util/Set;
+    +003d: op_23 3323 3ae3
+    +003f: op_62 0462 8cd1 field@36049 Lqae;->c:Lqae;
+    +0041: op_4d 044d 0603
+    +0043: op_62 0462 8cd2 field@36050 Lqae;->d:Lqae;
+    +0045: op_4d 044d 0003
+    +0047: op_62 0062 8cd3 field@36051 Lqae;->e:Lqae;
+    +0049: op_4d 004d 0103
+    +004b: op_62 0062 8cd4 field@36052 Lqae;->f:Lqae;
+    +004d: op_4d 004d 0203
+    +004f: op_71 1071 077b 0003 method@1915 Lachu;->P([Ljava/lang/Object;)Ljava/util/Set;
+    +0052: op_0e 000e
+
+### direct Lcom/google/android/libraries/inputmethod/freecursor/TriggerFreeCursorMotionEventHandler;-><init>(Landroid/content/Context;Lqit;)V access=0x10001
+  code_item_off=0x5a38c4 registers=4 ins=3 outs=3 tries=0 insns_size=37
+    +0000: op_1a 001a 8033 string@32819 'context'
+    +0002: op_71 2071 07c0 0002 method@1984 Lachu;->h(Ljava/lang/Object;Ljava/lang/String;)V
+    +0005: op_1a 001a 8207 string@33287 'delegate'
+    +0007: op_71 2071 07c0 0003 method@1984 Lachu;->h(Ljava/lang/Object;Ljava/lang/String;)V
+    +000a: op_70 3070 58dd 0321 method@22749 Lcom/google/android/libraries/inputmethod/motioneventhandler/AbstractMotionEventHandler;-><init>(Landroid/content/Context;Lqit;)V
+    +000d: op_22 0222 2b68
+    +000f: op_70 2070 d4f5 0012 method@54517 Looe;-><init>(Lcom/google/android/libraries/inputmethod/freecursor/TriggerFreeCursorMotionEventHandler;)V
+    +0012: op_5b 125b 264f field@9807 Lcom/google/android/libraries/inputmethod/freecursor/TriggerFreeCursorMotionEventHandler;->g:Loof;
+    +0014: op_62 0262 5bdb field@23515 Lj$/time/Duration;->ZERO:Lj$/time/Duration;
+    +0016: op_1a 001a 6f48 string@28488 'ZERO'
+    +0018: op_71 2071 07bf 0002 method@1983 Lachu;->g(Ljava/lang/Object;Ljava/lang/String;)V
+    +001b: op_5b 125b 264d field@9805 Lcom/google/android/libraries/inputmethod/freecursor/TriggerFreeCursorMotionEventHandler;->e:Lj$/time/Duration;
+    +001d: op_22 0222 2b65
+    +001f: op_70 3070 d4ee 0132 method@54510 Loob;-><init>(Lqit;Lcom/google/android/libraries/inputmethod/freecursor/TriggerFreeCursorMotionEventHandler;)V
+    +0022: op_5b 125b 2650 field@9808 Lcom/google/android/libraries/inputmethod/freecursor/TriggerFreeCursorMotionEventHandler;->h:Lohg;
+    +0024: op_0e 000e
+
+### virtual Lcom/google/android/libraries/inputmethod/freecursor/TriggerFreeCursorMotionEventHandler;->b()V access=0x11
+  code_item_off=0x5a3a58 registers=2 ins=1 outs=0 tries=0 insns_size=4
+    +0000: op_12 0012
+    +0001: op_59 1059 264c field@9804 Lcom/google/android/libraries/inputmethod/freecursor/TriggerFreeCursorMotionEventHandler;->d:I
+    +0003: op_0e 000e
+
+### virtual Lcom/google/android/libraries/inputmethod/freecursor/TriggerFreeCursorMotionEventHandler;->close()V access=0x11
+  code_item_off=0x5a3974 registers=2 ins=1 outs=1 tries=0 insns_size=7
+    +0000: op_6e 106e 58de 0001 method@22750 Lcom/google/android/libraries/inputmethod/motioneventhandler/AbstractMotionEventHandler;->l()V
+    +0003: op_12 0012
+    +0004: op_5b 105b 264a field@9802 Lcom/google/android/libraries/inputmethod/freecursor/TriggerFreeCursorMotionEventHandler;->b:Lcom/google/android/libraries/inputmethod/widgets/SoftKeyboardView;
+    +0006: op_0e 000e
+
+### virtual Lcom/google/android/libraries/inputmethod/freecursor/TriggerFreeCursorMotionEventHandler;->d()V access=0x11
+  code_item_off=0x5a3920 registers=3 ins=1 outs=2 tries=0 insns_size=33
+    +0000: op_22 0022 2b68
+    +0002: op_70 2070 d4f5 0020 method@54517 Looe;-><init>(Lcom/google/android/libraries/inputmethod/freecursor/TriggerFreeCursorMotionEventHandler;)V
+    +0005: op_5b 205b 264f field@9807 Lcom/google/android/libraries/inputmethod/freecursor/TriggerFreeCursorMotionEventHandler;->g:Loof;
+    +0007: op_12 0012
+    +0008: op_59 2059 264c field@9804 Lcom/google/android/libraries/inputmethod/freecursor/TriggerFreeCursorMotionEventHandler;->d:I
+    +000a: op_62 0062 5bdb field@23515 Lj$/time/Duration;->ZERO:Lj$/time/Duration;
+    +000c: op_1a 011a 6f48 string@28488 'ZERO'
+    +000e: op_71 2071 07bf 0010 method@1983 Lachu;->g(Ljava/lang/Object;Ljava/lang/String;)V
+    +0011: op_5b 205b 264d field@9805 Lcom/google/android/libraries/inputmethod/freecursor/TriggerFreeCursorMotionEventHandler;->e:Lj$/time/Duration;
+    +0013: op_54 2054 2652 field@9810 Lcom/google/android/libraries/inputmethod/freecursor/TriggerFreeCursorMotionEventHandler;->p:Lqit;
+    +0015: op_54 2154 2650 field@9808 Lcom/google/android/libraries/inputmethod/freecursor/TriggerFreeCursorMotionEventHandler;->h:Lohg;
+    +0017: op_72 2072 e42d 0010 method@58413 Lqit;->l(Lohg;)V
+    +001a: op_71 0071 1ebe 0000 method@7870 Landroid/view/VelocityTracker;->obtain()Landroid/view/VelocityTracker;
+    +001d: op_0c 000c
+    +001e: op_5b 205b 264b field@9803 Lcom/google/android/libraries/inputmethod/freecursor/TriggerFreeCursorMotionEventHandler;->c:Landroid/view/VelocityTracker;
+    +0020: op_0e 000e
+
+### virtual Lcom/google/android/libraries/inputmethod/freecursor/TriggerFreeCursorMotionEventHandler;->f()V access=0x11
+  code_item_off=0x5a3994 registers=3 ins=1 outs=2 tries=0 insns_size=25
+    +0000: op_22 0022 2b68
+    +0002: op_70 2070 d4f5 0020 method@54517 Looe;-><init>(Lcom/google/android/libraries/inputmethod/freecursor/TriggerFreeCursorMotionEventHandler;)V
+    +0005: op_5b 205b 264f field@9807 Lcom/google/android/libraries/inputmethod/freecursor/TriggerFreeCursorMotionEventHandler;->g:Loof;
+    +0007: op_54 2054 2652 field@9810 Lcom/google/android/libraries/inputmethod/freecursor/TriggerFreeCursorMotionEventHandler;->p:Lqit;
+    +0009: op_54 2154 2650 field@9808 Lcom/google/android/libraries/inputmethod/freecursor/TriggerFreeCursorMotionEventHandler;->h:Lohg;
+    +000b: op_72 2072 e430 0010 method@58416 Lqit;->o(Lohg;)V
+    +000e: op_54 2054 264b field@9803 Lcom/google/android/libraries/inputmethod/freecursor/TriggerFreeCursorMotionEventHandler;->c:Landroid/view/VelocityTracker;
+    +0010: op_38 0038 0005 branch_target=+0x15
+    +0012: op_6e 106e 1ebf 0000 method@7871 Landroid/view/VelocityTracker;->recycle()V
+    +0015: op_12 0012
+    +0016: op_5b 205b 264b field@9803 Lcom/google/android/libraries/inputmethod/freecursor/TriggerFreeCursorMotionEventHandler;->c:Landroid/view/VelocityTracker;
+    +0018: op_0e 000e
+
+### virtual Lcom/google/android/libraries/inputmethod/freecursor/TriggerFreeCursorMotionEventHandler;->g(Landroid/view/MotionEvent;)V access=0x11
+  code_item_off=0x5a39d8 registers=3 ins=2 outs=2 tries=0 insns_size=17
+    +0000: op_1a 001a 84b5 string@33973 'event'
+    +0002: op_71 2071 07c0 0002 method@1984 Lachu;->h(Ljava/lang/Object;Ljava/lang/String;)V
+    +0005: op_54 1054 264f field@9807 Lcom/google/android/libraries/inputmethod/freecursor/TriggerFreeCursorMotionEventHandler;->g:Loof;
+    +0007: op_72 2072 d4f7 0020 method@54519 Loof;->a(Landroid/view/MotionEvent;)Loof;
+    +000a: op_0c 020c
+    +000b: op_5b 125b 264f field@9807 Lcom/google/android/libraries/inputmethod/freecursor/TriggerFreeCursorMotionEventHandler;->g:Loof;
+    +000d: op_71 2071 07c3 0020 method@1987 Lachu;->m(Ljava/lang/Object;Ljava/lang/Object;)Z
+    +0010: op_0e 000e
+
+### virtual Lcom/google/android/libraries/inputmethod/freecursor/TriggerFreeCursorMotionEventHandler;->l()V access=0x11
+  code_item_off=0x5a3a0c registers=2 ins=1 outs=2 tries=0 insns_size=8
+    +0000: op_22 0022 2b68
+    +0002: op_70 2070 d4f5 0010 method@54517 Looe;-><init>(Lcom/google/android/libraries/inputmethod/freecursor/TriggerFreeCursorMotionEventHandler;)V
+    +0005: op_5b 105b 264f field@9807 Lcom/google/android/libraries/inputmethod/freecursor/TriggerFreeCursorMotionEventHandler;->g:Loof;
+    +0007: op_0e 000e
+
+### virtual Lcom/google/android/libraries/inputmethod/freecursor/TriggerFreeCursorMotionEventHandler;->n(Lcom/google/android/libraries/inputmethod/widgets/SoftKeyboardView;)V access=0x11
+  code_item_off=0x5a3a2c registers=3 ins=2 outs=2 tries=0 insns_size=14
+    +0000: op_54 1054 264a field@9802 Lcom/google/android/libraries/inputmethod/freecursor/TriggerFreeCursorMotionEventHandler;->b:Lcom/google/android/libraries/inputmethod/widgets/SoftKeyboardView;
+    +0002: op_71 2071 07c3 0002 method@1987 Lachu;->m(Ljava/lang/Object;Ljava/lang/Object;)Z
+    +0005: op_0a 000a
+    +0006: op_39 0039 0007 branch_target=+0xd
+    +0008: op_5b 125b 264a field@9802 Lcom/google/android/libraries/inputmethod/freecursor/TriggerFreeCursorMotionEventHandler;->b:Lcom/google/android/libraries/inputmethod/widgets/SoftKeyboardView;
+    +000a: op_6e 106e 58de 0001 method@22750 Lcom/google/android/libraries/inputmethod/motioneventhandler/AbstractMotionEventHandler;->l()V
+    +000d: op_0e 000e

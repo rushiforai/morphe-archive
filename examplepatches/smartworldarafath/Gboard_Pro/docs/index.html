@@ -1,0 +1,2760 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gboard Pro — The Advanced Google Keyboard (Gboard) Mod with Gemini AI</title>
+  <meta name="description" content="Supercharge your Android typing with Gboard Pro. Featuring Gemini Rambler voice dictation, on-device AI writing tools, Material 3 dynamic color themes, and 24-hour clipboard history. Zero root required.">
+  <meta name="keywords" content="Gboard Pro, Gboard, Google Keyboard, Gboard APK, Gboard Mod, Gemini Voice Typing, AI Writing Tools, Material 3 Gboard, Android Keyboard, Clipboard History">
+  <meta name="author" content="Arafath Rahman (@smartworldarafath)">
+  <meta name="theme-color" content="#08090C">
+  
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://smartworldarafath.github.io/Gboard_Pro/">
+  <meta property="og:title" content="Gboard Pro — The Advanced Google Keyboard Mod for Android">
+  <meta property="og:description" content="Gemini Rambler conversational voice typing, AI writing tools, Material 3 Expressive themes, and 24h clipboard history. Zero root required.">
+  <meta property="og:image" content="https://raw.githubusercontent.com/smartworldarafath/Gboard_Pro/main/docs/images/showcase.png">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Gboard Pro — The Advanced Google Keyboard Mod">
+  <meta name="twitter:description" content="Gemini voice typing, AI writing tools & Material 3 themes on all Android phones. Zero root needed.">
+  <meta name="twitter:image" content="https://raw.githubusercontent.com/smartworldarafath/Gboard_Pro/main/docs/images/showcase.png">
+
+  <script>
+    // Immediate Theme Initialization (Zero FOUC)
+    (function() {
+      try {
+        var savedTheme = localStorage.getItem("gboard_pro_theme");
+        var prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+        var theme = savedTheme ? savedTheme : (prefersDark ? "dark" : "light");
+        document.documentElement.setAttribute("data-theme", theme);
+        document.documentElement.classList.add(theme);
+        var metaTheme = document.querySelector('meta[name="theme-color"]');
+        if (metaTheme) metaTheme.setAttribute("content", theme === "dark" ? "#07080B" : "#F8F9FE");
+      } catch (e) {
+        document.documentElement.setAttribute("data-theme", "dark");
+        document.documentElement.classList.add("dark");
+      }
+    })();
+  </script>
+
+  <link rel="icon" type="image/png" href="images/icon.png">
+
+  <!-- High-End Humanist & Geometric Typography: Plus Jakarta Sans, Google Sans & Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Google+Sans:wght@400;500;700&family=Google+Sans+Text:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <style>
+    /* ============================================================
+       GOOGLE GEMINI & GOOGLE AI DESIGN SYSTEM (60FPS HIGH-EFFICIENCY)
+       DARK & LIGHT DYNAMIC THEMES
+       ============================================================ */
+    :root {
+      /* Dark Theme Tokens (Obsidian Cosmic Gemini) */
+      --bg-dark: #07080B;
+      --bg-card: rgba(18, 20, 29, 0.72);
+      --bg-card-hover: rgba(26, 30, 44, 0.85);
+      --border-subtle: rgba(255, 255, 255, 0.08);
+      --border-hover: rgba(255, 255, 255, 0.22);
+      --border-gemini: linear-gradient(135deg, rgba(66, 133, 244, 0.5), rgba(155, 114, 207, 0.5), rgba(217, 101, 112, 0.5));
+      
+      --gemini-blue: #4285F4;
+      --gemini-purple: #9B72CF;
+      --gemini-rose: #D96570;
+      --gemini-cyan: #8AB4F8;
+      --gemini-emerald: #1EA362;
+      
+      --text-pri: #F5F7FA;
+      --text-sec: #9AA0A6;
+      --text-ter: #5F6368;
+
+      --nav-bg: rgba(14, 16, 24, 0.65);
+      --nav-border: rgba(255, 255, 255, 0.12);
+      --nav-shadow: 0 16px 40px -8px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.05);
+
+      --hero-grad-text: linear-gradient(135deg, #FFFFFF 20%, #AECBFA 45%, #C58AF9 70%, #F28B82 100%);
+      --gemini-pill-bg: rgba(26, 29, 43, 0.85);
+      --gemini-pill-border: rgba(155, 114, 207, 0.3);
+      --gemini-pill-text: #D2E3FC;
+
+      --btn-sec-bg: rgba(255, 255, 255, 0.05);
+      --btn-sec-border: rgba(255, 255, 255, 0.12);
+      --btn-sec-text: #F5F7FA;
+      --btn-sec-hover: rgba(255, 255, 255, 0.1);
+
+      --prompt-studio-bg: rgba(17, 20, 30, 0.7);
+      --prompt-studio-border: rgba(255, 255, 255, 0.1);
+      --prompt-studio-shadow: 0 24px 60px -12px rgba(0, 0, 0, 0.6), 0 0 40px rgba(66, 133, 244, 0.08);
+
+      --prompt-input-bg: rgba(10, 12, 18, 0.85);
+      --prompt-input-border: rgba(255, 255, 255, 0.12);
+
+      --chip-bg: rgba(255, 255, 255, 0.05);
+      --chip-border: rgba(255, 255, 255, 0.09);
+      --chip-text: #9AA0A6;
+
+      --keyboard-card-bg: rgba(14, 16, 24, 0.65);
+      --keyboard-card-border: rgba(255, 255, 255, 0.1);
+      --keyboard-card-shadow: 0 30px 80px -15px rgba(0, 0, 0, 0.7);
+
+      --palette-pill-bg: rgba(255, 255, 255, 0.05);
+      --palette-pill-border: rgba(255, 255, 255, 0.1);
+      --palette-pill-text: #9AA0A6;
+
+      --table-bg: rgba(18, 20, 29, 0.72);
+      --table-border: rgba(255, 255, 255, 0.08);
+      --table-th-bg: rgba(255, 255, 255, 0.03);
+      --table-highlight-bg: rgba(66, 133, 244, 0.06);
+      --table-highlight-border: rgba(66, 133, 244, 0.2);
+      --table-highlight-text: #E8F0FE;
+
+      --banner-bg: radial-gradient(circle at 50% 50%, rgba(66, 133, 244, 0.25) 0%, rgba(155, 114, 207, 0.15) 50%, rgba(18, 20, 29, 0.8) 100%);
+      --banner-border: rgba(255, 255, 255, 0.15);
+      --banner-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+
+      --nebula-1-bg: radial-gradient(circle, rgba(66, 133, 244, 0.35) 0%, rgba(155, 114, 207, 0.15) 60%, transparent 100%);
+      --nebula-2-bg: radial-gradient(circle, rgba(155, 114, 207, 0.28) 0%, rgba(217, 101, 112, 0.12) 65%, transparent 100%);
+      --nebula-3-bg: radial-gradient(circle, rgba(66, 133, 244, 0.2) 0%, rgba(30, 163, 98, 0.12) 70%, transparent 100%);
+      --nebula-opacity: 0.42;
+
+      --toggle-btn-bg: rgba(255, 255, 255, 0.08);
+      --toggle-btn-border: rgba(255, 255, 255, 0.14);
+      --toggle-btn-hover: rgba(255, 255, 255, 0.18);
+
+      --font-display: 'Plus Jakarta Sans', 'Google Sans', -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif;
+      --font-body: 'Plus Jakarta Sans', 'Google Sans Text', 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
+      
+      --radius-sm: 10px;
+      --radius-md: 18px;
+      --radius-lg: 28px;
+      --radius-pill: 9999px;
+      
+      --ease-gemini: cubic-bezier(0.2, 0.0, 0, 1.0);
+    }
+
+    /* Light Theme Tokens (Google AI / Material 3 Crisp Light) */
+    html[data-theme="light"],
+    html.light,
+    body[data-theme="light"],
+    body.light {
+      --bg-dark: #F8F9FE;
+      --bg-card: rgba(255, 255, 255, 0.88);
+      --bg-card-hover: rgba(255, 255, 255, 0.98);
+      --border-subtle: rgba(0, 0, 0, 0.08);
+      --border-hover: rgba(66, 133, 244, 0.4);
+      --border-gemini: linear-gradient(135deg, rgba(66, 133, 244, 0.6), rgba(155, 114, 207, 0.6), rgba(217, 101, 112, 0.6));
+
+      --gemini-blue: #1A73E8;
+      --gemini-purple: #7C4DFF;
+      --gemini-rose: #D93025;
+      --gemini-cyan: #1A73E8;
+      --gemini-emerald: #188038;
+
+      --text-pri: #1F1F1F;
+      --text-sec: #444746;
+      --text-ter: #747775;
+
+      --nav-bg: rgba(255, 255, 255, 0.84);
+      --nav-border: rgba(0, 0, 0, 0.09);
+      --nav-shadow: 0 16px 36px -6px rgba(60, 64, 67, 0.12), 0 0 0 1px rgba(0, 0, 0, 0.04);
+
+      --hero-grad-text: linear-gradient(135deg, #1F1F1F 20%, #1A73E8 50%, #7C4DFF 75%, #D93025 100%);
+      --gemini-pill-bg: rgba(240, 244, 252, 0.95);
+      --gemini-pill-border: rgba(124, 77, 255, 0.28);
+      --gemini-pill-text: #1A73E8;
+
+      --btn-sec-bg: rgba(0, 0, 0, 0.04);
+      --btn-sec-border: rgba(0, 0, 0, 0.12);
+      --btn-sec-text: #1F1F1F;
+      --btn-sec-hover: rgba(0, 0, 0, 0.08);
+
+      --prompt-studio-bg: rgba(255, 255, 255, 0.9);
+      --prompt-studio-border: rgba(0, 0, 0, 0.08);
+      --prompt-studio-shadow: 0 24px 60px -12px rgba(60, 64, 67, 0.14), 0 0 40px rgba(66, 133, 244, 0.06);
+
+      --prompt-input-bg: #F0F4F9;
+      --prompt-input-border: rgba(0, 0, 0, 0.1);
+
+      --chip-bg: rgba(0, 0, 0, 0.04);
+      --chip-border: rgba(0, 0, 0, 0.08);
+      --chip-text: #444746;
+
+      --keyboard-card-bg: rgba(255, 255, 255, 0.9);
+      --keyboard-card-border: rgba(0, 0, 0, 0.08);
+      --keyboard-card-shadow: 0 24px 60px -15px rgba(60, 64, 67, 0.15);
+
+      --palette-pill-bg: rgba(0, 0, 0, 0.04);
+      --palette-pill-border: rgba(0, 0, 0, 0.08);
+      --palette-pill-text: #444746;
+
+      --table-bg: rgba(255, 255, 255, 0.9);
+      --table-border: rgba(0, 0, 0, 0.08);
+      --table-th-bg: rgba(0, 0, 0, 0.025);
+      --table-highlight-bg: rgba(66, 133, 244, 0.08);
+      --table-highlight-border: rgba(66, 133, 244, 0.25);
+      --table-highlight-text: #1A73E8;
+
+      --banner-bg: radial-gradient(circle at 50% 50%, rgba(66, 133, 244, 0.14) 0%, rgba(155, 114, 207, 0.09) 50%, rgba(245, 247, 252, 0.95) 100%);
+      --banner-border: rgba(66, 133, 244, 0.22);
+      --banner-shadow: 0 20px 50px rgba(60, 64, 67, 0.1);
+
+      --nebula-1-bg: radial-gradient(circle, rgba(66, 133, 244, 0.2) 0%, rgba(155, 114, 207, 0.1) 60%, transparent 100%);
+      --nebula-2-bg: radial-gradient(circle, rgba(155, 114, 207, 0.16) 0%, rgba(217, 101, 112, 0.08) 65%, transparent 100%);
+      --nebula-3-bg: radial-gradient(circle, rgba(66, 133, 244, 0.12) 0%, rgba(30, 163, 98, 0.08) 70%, transparent 100%);
+      --nebula-opacity: 0.65;
+
+      --toggle-btn-bg: rgba(0, 0, 0, 0.06);
+      --toggle-btn-border: rgba(0, 0, 0, 0.12);
+      --toggle-btn-hover: rgba(0, 0, 0, 0.1);
+    }
+
+    html[data-theme="light"],
+    html.light {
+      background-color: #F8F9FE !important;
+      color: #1F1F1F !important;
+    }
+
+    html[data-theme="light"] body,
+    body.light {
+      background-color: #F8F9FE !important;
+      color: #1F1F1F !important;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      scroll-behavior: smooth;
+      background-color: var(--bg-dark);
+      color: var(--text-pri);
+      font-family: var(--font-body);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      text-rendering: optimizeLegibility;
+      font-feature-settings: "cv02", "cv03", "cv04", "cv11", "ss01";
+      overflow-x: hidden;
+    }
+
+    body {
+      background: var(--bg-dark);
+      min-height: 100vh;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    /* ============================================================
+       BUTTER-SMOOTH THEME SWITCHING TRANSITION (60FPS HARDWARE ACCELERATED)
+       ============================================================ */
+    html, body,
+    .liquid-nav,
+    .nav-cta,
+    .theme-toggle-btn,
+    .prompt-studio,
+    .prompt-input-box,
+    .prompt-input,
+    .keyboard-demo-card,
+    .feature-card,
+    .step-card,
+    .faq-item,
+    .faq-trigger,
+    .table-wrap,
+    .cta-banner,
+    .device-phone-frame,
+    .neon-console-card,
+    .neon-spec-item,
+    .chip-btn,
+    .palette-pill,
+    .phrase-chip,
+    .btn-secondary,
+    .btn-neon-secondary {
+      transition: background-color 0.35s cubic-bezier(0.2, 0.0, 0, 1.0),
+                  background 0.35s cubic-bezier(0.2, 0.0, 0, 1.0),
+                  color 0.35s cubic-bezier(0.2, 0.0, 0, 1.0),
+                  border-color 0.35s cubic-bezier(0.2, 0.0, 0, 1.0),
+                  box-shadow 0.35s cubic-bezier(0.2, 0.0, 0, 1.0);
+    }
+
+    /* Cosmic Ambient Nebulae (GPU Composited) */
+    .cosmic-mesh {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
+      contain: strict;
+    }
+
+    .nebula-glow {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(100px);
+      opacity: var(--nebula-opacity);
+      will-change: transform;
+      pointer-events: none;
+      transition: opacity 0.45s ease, background 0.45s ease;
+    }
+
+    .nebula-1 {
+      width: 550px;
+      height: 550px;
+      top: -150px;
+      left: 10%;
+      background: var(--nebula-1-bg);
+      animation: floatNebula 22s ease-in-out infinite alternate;
+    }
+
+    .nebula-2 {
+      width: 600px;
+      height: 600px;
+      top: 30%;
+      right: -100px;
+      background: var(--nebula-2-bg);
+      animation: floatNebula 26s ease-in-out infinite alternate-reverse;
+    }
+
+    .nebula-3 {
+      width: 500px;
+      height: 500px;
+      bottom: 10%;
+      left: 5%;
+      background: var(--nebula-3-bg);
+      animation: floatNebula 24s ease-in-out infinite alternate;
+    }
+
+    @keyframes floatNebula {
+      0% { transform: translate3d(0, 0, 0) scale(1); }
+      100% { transform: translate3d(60px, 40px, 0) scale(1.1); }
+    }
+
+    /* Container */
+    .container {
+      width: 100%;
+      max-width: 1240px;
+      margin: 0 auto;
+      padding: 0 24px;
+      position: relative;
+      z-index: 2;
+    }
+
+    /* ============================================================
+       FLOATING LIQUID GLASS NAVIGATION BAR & THEME SWITCH
+       ============================================================ */
+    .nav-wrap {
+      position: fixed;
+      top: 20px;
+      left: 0;
+      right: 0;
+      z-index: 1000;
+      display: flex;
+      justify-content: center;
+      pointer-events: none;
+    }
+
+    .liquid-nav {
+      pointer-events: auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 22px;
+      padding: 8px 12px 8px 18px;
+      border-radius: var(--radius-pill);
+      background: var(--nav-bg);
+      backdrop-filter: blur(28px) saturate(180%);
+      -webkit-backdrop-filter: blur(28px) saturate(180%);
+      border: 1px solid var(--nav-border);
+      box-shadow: var(--nav-shadow);
+      transition: border-color 0.3s ease, box-shadow 0.3s ease, background 0.3s ease;
+    }
+
+    .liquid-nav:hover {
+      border-color: var(--border-hover);
+      box-shadow: var(--nav-shadow);
+    }
+
+    .brand-link {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+      color: var(--text-pri);
+      font-family: var(--font-display);
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: -0.2px;
+    }
+
+    .brand-icon {
+      width: 30px;
+      height: 30px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #4285F4, #9B72CF);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      box-shadow: 0 2px 10px rgba(66, 133, 244, 0.35);
+    }
+
+    .brand-pro-badge {
+      background: linear-gradient(90deg, #4285F4, #9B72CF);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      font-weight: 700;
+    }
+
+    .nav-menu {
+      display: flex;
+      align-items: center;
+      list-style: none;
+      gap: 4px;
+    }
+
+    .nav-item a {
+      text-decoration: none;
+      color: var(--text-sec);
+      font-size: 13.5px;
+      font-weight: 500;
+      padding: 7px 13px;
+      border-radius: var(--radius-pill);
+      transition: color 0.2s ease, background-color 0.2s ease;
+    }
+
+    .nav-item a:hover {
+      color: var(--text-pri);
+      background: var(--toggle-btn-bg);
+    }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    /* Liquid Glass Theme Switch Toggle Lens */
+    .theme-toggle-btn {
+      position: relative;
+      width: 42px;
+      height: 42px;
+      border-radius: var(--radius-pill);
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.14) 0%, rgba(255, 255, 255, 0.03) 100%);
+      border: 1px solid rgba(255, 255, 255, 0.22);
+      backdrop-filter: blur(20px) saturate(180%);
+      -webkit-backdrop-filter: blur(20px) saturate(180%);
+      box-shadow: 
+        inset 0 1.5px 1px rgba(255, 255, 255, 0.5),
+        inset 0 -1px 1px rgba(0, 0, 0, 0.25),
+        0 4px 16px rgba(0, 0, 0, 0.24);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer !important;
+      pointer-events: auto !important;
+      overflow: hidden;
+      flex-shrink: 0;
+      outline: none;
+      z-index: 10;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+      transition: transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.25s ease, border-color 0.25s ease, background 0.25s ease;
+    }
+
+    html[data-theme="light"] .theme-toggle-btn,
+    html.light .theme-toggle-btn {
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(240, 244, 252, 0.75) 100%);
+      border: 1px solid rgba(0, 0, 0, 0.12);
+      box-shadow: 
+        inset 0 1.5px 1px rgba(255, 255, 255, 0.95),
+        inset 0 -1px 1px rgba(0, 0, 0, 0.06),
+        0 4px 14px rgba(60, 64, 67, 0.14);
+    }
+
+    .theme-toggle-btn::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 50%;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.35) 0%, rgba(255, 255, 255, 0) 100%);
+      border-radius: inherit;
+      pointer-events: none;
+    }
+
+    .theme-toggle-btn:hover {
+      transform: translateY(-1.5px) scale(1.08);
+      border-color: rgba(66, 133, 244, 0.55);
+      box-shadow: 
+        inset 0 2px 1.5px rgba(255, 255, 255, 0.7),
+        0 8px 24px rgba(66, 133, 244, 0.35);
+    }
+
+    .theme-toggle-btn:active {
+      transform: translateY(1px) scale(0.92);
+    }
+
+    .theme-icon-sun, .theme-icon-moon {
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s ease, color 0.3s ease;
+      pointer-events: none;
+    }
+
+    /* Dark mode: Moon visible, Sun hidden */
+    html[data-theme="dark"] .theme-icon-sun,
+    html:not([data-theme="light"]) .theme-icon-sun {
+      opacity: 0 !important;
+      transform: rotate(-90deg) scale(0.3) !important;
+      pointer-events: none !important;
+    }
+    html[data-theme="dark"] .theme-icon-moon,
+    html:not([data-theme="light"]) .theme-icon-moon {
+      opacity: 1 !important;
+      transform: rotate(0deg) scale(1) !important;
+      color: #D2E3FC !important;
+      pointer-events: none !important;
+    }
+
+    /* Light mode: Sun visible, Moon hidden */
+    html[data-theme="light"] .theme-icon-moon,
+    html.light .theme-icon-moon {
+      opacity: 0 !important;
+      transform: rotate(90deg) scale(0.3) !important;
+      pointer-events: none !important;
+    }
+    html[data-theme="light"] .theme-icon-sun,
+    html.light .theme-icon-sun {
+      opacity: 1 !important;
+      transform: rotate(0deg) scale(1) !important;
+      color: #E37400 !important;
+      pointer-events: none !important;
+    }
+
+    /* Liquid Glass Navbar CTA Button */
+    .nav-cta {
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: linear-gradient(135deg, rgba(66, 133, 244, 0.92), rgba(155, 114, 207, 0.92));
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      color: #FFFFFF !important;
+      text-decoration: none;
+      font-family: var(--font-display);
+      font-size: 13px;
+      font-weight: 600;
+      padding: 8px 18px;
+      border-radius: var(--radius-pill);
+      border: 1px solid rgba(255, 255, 255, 0.35);
+      box-shadow: 
+        inset 0 1.5px 1px 0 rgba(255, 255, 255, 0.65),
+        inset 0 -1px 1px 0 rgba(0, 0, 0, 0.25),
+        0 6px 20px -2px rgba(66, 133, 244, 0.45);
+      overflow: hidden;
+      white-space: nowrap;
+      transition: transform 0.24s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.24s ease, filter 0.24s ease;
+    }
+
+    .nav-cta::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 50%;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.35) 0%, rgba(255, 255, 255, 0) 100%);
+      border-radius: inherit;
+      pointer-events: none;
+    }
+
+    .nav-cta:hover {
+      transform: translateY(-1.5px) scale(1.02);
+      box-shadow: 
+        inset 0 2px 1.5px 0 rgba(255, 255, 255, 0.85),
+        0 10px 28px -2px rgba(66, 133, 244, 0.6);
+      filter: brightness(1.06);
+    }
+
+    .nav-cta:active {
+      transform: translateY(1px) scale(0.97);
+    }
+
+    /* Responsive Nav Rules */
+    @media (max-width: 880px) {
+      .nav-menu { display: none; }
+    }
+
+    @media (max-width: 480px) {
+      .liquid-nav {
+        gap: 12px;
+        padding: 6px 10px 6px 14px;
+      }
+      .brand-link span {
+        font-size: 14px;
+      }
+      .nav-cta span:first-child {
+        display: none;
+      }
+      .nav-cta::before {
+        content: "APK";
+      }
+    }
+
+    /* ============================================================
+       HERO SECTION (GEMINI LOOK & FEEL)
+       ============================================================ */
+    .hero {
+      padding: 160px 0 90px;
+      text-align: center;
+      position: relative;
+    }
+
+    .gemini-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 18px;
+      border-radius: var(--radius-pill);
+      background: var(--gemini-pill-bg);
+      border: 1px solid var(--gemini-pill-border);
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--gemini-pill-text);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+      margin-bottom: 28px;
+      animation: pulseGlow 4s ease-in-out infinite;
+    }
+
+    .sparkle-icon {
+      font-size: 14px;
+      color: #9B72CF;
+      animation: spinSparkle 8s linear infinite;
+    }
+
+    @keyframes spinSparkle {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    @keyframes pulseGlow {
+      0%, 100% { border-color: rgba(155, 114, 207, 0.25); box-shadow: 0 4px 20px rgba(0,0,0,0.15); }
+      50% { border-color: rgba(66, 133, 244, 0.5); box-shadow: 0 4px 25px rgba(66, 133, 244, 0.25); }
+    }
+
+    .hero-title {
+      font-family: var(--font-display);
+      font-size: clamp(38px, 6vw, 76px);
+      font-weight: 800;
+      line-height: 1.08;
+      letter-spacing: -0.035em;
+      max-width: 980px;
+      margin: 0 auto 24px;
+      color: var(--text-pri);
+    }
+
+    .hero-gradient-text {
+      background: var(--hero-grad-text);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      display: inline-block;
+    }
+
+    .hero-subtitle {
+      font-family: var(--font-body);
+      font-size: clamp(16px, 2.1vw, 20px);
+      line-height: 1.62;
+      color: var(--text-sec);
+      max-width: 760px;
+      margin: 0 auto 40px;
+      font-weight: 400;
+      letter-spacing: -0.012em;
+    }
+
+    .hero-actions {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-bottom: 50px;
+    }
+
+    /* Liquid Glass Primary Button */
+    .btn-primary {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      background: linear-gradient(135deg, rgba(66, 133, 244, 0.92) 0%, rgba(124, 77, 255, 0.88) 50%, rgba(179, 136, 255, 0.84) 100%);
+      backdrop-filter: blur(20px) saturate(190%);
+      -webkit-backdrop-filter: blur(20px) saturate(190%);
+      color: #FFFFFF !important;
+      text-decoration: none;
+      font-family: var(--font-display);
+      font-size: 15.5px;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      padding: 15px 34px;
+      border-radius: var(--radius-pill);
+      border: 1px solid rgba(255, 255, 255, 0.35);
+      box-shadow: 
+        inset 0 1.5px 1.5px 0 rgba(255, 255, 255, 0.7),
+        inset 0 -1.5px 2px 0 rgba(0, 0, 0, 0.25),
+        0 10px 32px -4px rgba(66, 133, 244, 0.48),
+        0 4px 12px 0 rgba(124, 77, 255, 0.3);
+      overflow: hidden;
+      transition: transform 0.26s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.26s cubic-bezier(0.2, 0.8, 0.2, 1), filter 0.26s ease;
+      will-change: transform;
+    }
+
+    .btn-primary::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 52%;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.36) 0%, rgba(255, 255, 255, 0) 100%);
+      border-radius: inherit;
+      pointer-events: none;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px) scale(1.015);
+      box-shadow: 
+        inset 0 2px 2px 0 rgba(255, 255, 255, 0.85),
+        inset 0 -1.5px 2px 0 rgba(0, 0, 0, 0.2),
+        0 16px 44px -4px rgba(66, 133, 244, 0.62),
+        0 6px 18px 0 rgba(124, 77, 255, 0.45);
+      filter: brightness(1.05);
+    }
+
+    .btn-primary:active {
+      transform: translateY(1px) scale(0.98);
+      box-shadow: 
+        inset 0 1px 1px 0 rgba(255, 255, 255, 0.5),
+        0 6px 20px -2px rgba(66, 133, 244, 0.4);
+    }
+
+    /* Liquid Glass Secondary Button */
+    .btn-secondary {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.02) 100%);
+      color: var(--text-pri) !important;
+      text-decoration: none;
+      font-family: var(--font-display);
+      font-size: 15.5px;
+      font-weight: 500;
+      letter-spacing: -0.01em;
+      padding: 15px 30px;
+      border-radius: var(--radius-pill);
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      backdrop-filter: blur(20px) saturate(180%);
+      -webkit-backdrop-filter: blur(20px) saturate(180%);
+      box-shadow: 
+        inset 0 1.5px 1px 0 rgba(255, 255, 255, 0.28),
+        inset 0 -1px 1.5px 0 rgba(0, 0, 0, 0.2),
+        0 8px 24px -4px rgba(0, 0, 0, 0.28);
+      overflow: hidden;
+      transition: transform 0.26s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.26s ease, border-color 0.26s ease, background 0.26s ease;
+      will-change: transform;
+    }
+
+    .btn-secondary::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 50%;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.18) 0%, rgba(255, 255, 255, 0) 100%);
+      border-radius: inherit;
+      pointer-events: none;
+    }
+
+    html[data-theme="light"] .btn-secondary {
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.85) 0%, rgba(240, 244, 252, 0.6) 100%);
+      border: 1px solid rgba(0, 0, 0, 0.1);
+      box-shadow: 
+        inset 0 1.5px 1px 0 rgba(255, 255, 255, 0.95),
+        inset 0 -1px 1px 0 rgba(0, 0, 0, 0.05),
+        0 8px 20px -4px rgba(60, 64, 67, 0.1);
+    }
+
+    .btn-secondary:hover {
+      transform: translateY(-2px);
+      border-color: rgba(155, 114, 207, 0.45);
+      box-shadow: 
+        inset 0 1.5px 1.5px 0 rgba(255, 255, 255, 0.45),
+        0 12px 30px -4px rgba(0, 0, 0, 0.38),
+        0 0 18px rgba(155, 114, 207, 0.2);
+    }
+
+    html[data-theme="light"] .btn-secondary:hover {
+      border-color: rgba(66, 133, 244, 0.35);
+      box-shadow: 
+        inset 0 1.5px 1.5px 0 rgba(255, 255, 255, 1),
+        0 12px 28px -4px rgba(60, 64, 67, 0.15),
+        0 0 18px rgba(66, 133, 244, 0.12);
+    }
+
+    .btn-secondary:active {
+      transform: translateY(1px) scale(0.98);
+    }
+
+    /* ============================================================
+       GEMINI AI PROMPT & INTERACTIVE STUDIO
+       ============================================================ */
+    .prompt-studio {
+      max-width: 820px;
+      margin: 0 auto;
+      border-radius: var(--radius-lg);
+      background: var(--prompt-studio-bg);
+      backdrop-filter: blur(24px) saturate(170%);
+      border: 1px solid var(--prompt-studio-border);
+      box-shadow: var(--prompt-studio-shadow);
+      padding: 24px;
+      text-align: left;
+      position: relative;
+    }
+
+    .prompt-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .prompt-title-tag {
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      color: var(--gemini-cyan);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .status-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--gemini-emerald);
+      box-shadow: 0 0 8px var(--gemini-emerald);
+    }
+
+    .prompt-input-box {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: var(--prompt-input-bg);
+      border: 1px solid var(--prompt-input-border);
+      border-radius: var(--radius-md);
+      padding: 12px 18px;
+      margin-bottom: 16px;
+      transition: border-color 0.25s ease, box-shadow 0.25s ease, background 0.25s ease;
+    }
+
+    .prompt-input-box:focus-within {
+      border-color: rgba(66, 133, 244, 0.6);
+      box-shadow: 0 0 20px rgba(66, 133, 244, 0.2);
+    }
+
+    .prompt-input-box input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: var(--text-pri);
+      font-family: var(--font-body);
+      font-size: 15px;
+    }
+
+    .prompt-input-box input::placeholder {
+      color: var(--text-ter);
+    }
+
+    .prompt-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    /* Liquid Glass Prompt Chips */
+    .chip-btn {
+      position: relative;
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.02) 100%);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      color: var(--chip-text);
+      font-family: var(--font-body);
+      font-size: 13px;
+      font-weight: 500;
+      padding: 8px 16px;
+      border-radius: var(--radius-pill);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      box-shadow: 
+        inset 0 1px 1px rgba(255, 255, 255, 0.25),
+        0 4px 12px rgba(0, 0, 0, 0.15);
+      overflow: hidden;
+      transition: all 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+
+    html[data-theme="light"] .chip-btn {
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.85) 0%, rgba(240, 244, 250, 0.55) 100%);
+      border: 1px solid rgba(0, 0, 0, 0.09);
+      box-shadow: 
+        inset 0 1px 1px rgba(255, 255, 255, 0.95),
+        0 2px 8px rgba(60, 64, 67, 0.08);
+    }
+
+    .chip-btn:hover, .chip-btn.active {
+      background: linear-gradient(135deg, rgba(66, 133, 244, 0.24) 0%, rgba(155, 114, 207, 0.24) 100%);
+      border-color: rgba(66, 133, 244, 0.55);
+      color: var(--gemini-cyan);
+      transform: translateY(-1.5px);
+      box-shadow: 
+        inset 0 1.5px 1px rgba(255, 255, 255, 0.4),
+        0 6px 18px rgba(66, 133, 244, 0.25);
+    }
+
+    html[data-theme="light"] .chip-btn:hover,
+    html[data-theme="light"] .chip-btn.active {
+      color: #1A73E8;
+      border-color: rgba(26, 115, 232, 0.45);
+    }
+
+    /* ============================================================
+       INTERACTIVE GBOARD PRO KEYBOARD DEMO (LIVE THEME SWITCHER)
+       ============================================================ */
+    .keyboard-demo-card {
+      margin-top: 50px;
+      border-radius: var(--radius-lg);
+      background: var(--keyboard-card-bg);
+      backdrop-filter: blur(28px) saturate(180%);
+      border: 1px solid var(--keyboard-card-border);
+      padding: 36px 28px;
+      box-shadow: var(--keyboard-card-shadow);
+    }
+
+    .demo-header {
+      text-align: center;
+      margin-bottom: 28px;
+    }
+
+    .demo-header h3 {
+      font-family: var(--font-display);
+      font-size: 26px;
+      font-weight: 700;
+      margin-bottom: 8px;
+      color: var(--text-pri);
+    }
+
+    .demo-header p {
+      color: var(--text-sec);
+      font-size: 14.5px;
+    }
+
+    .palette-selector {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 30px;
+    }
+
+    /* Liquid Glass Palette Selector Pills */
+    .palette-pill {
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 20px;
+      border-radius: var(--radius-pill);
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.02) 100%);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      color: var(--palette-pill-text);
+      font-family: var(--font-body);
+      font-size: 13.5px;
+      font-weight: 500;
+      cursor: pointer;
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      box-shadow: 
+        inset 0 1px 1px rgba(255, 255, 255, 0.25),
+        0 4px 14px rgba(0, 0, 0, 0.16);
+      transition: all 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+
+    html[data-theme="light"] .palette-pill {
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.88) 0%, rgba(240, 244, 250, 0.6) 100%);
+      border: 1px solid rgba(0, 0, 0, 0.09);
+      box-shadow: 
+        inset 0 1px 1px rgba(255, 255, 255, 0.95),
+        0 3px 10px rgba(60, 64, 67, 0.08);
+    }
+
+    .palette-pill:hover, .palette-pill.active {
+      background: linear-gradient(135deg, rgba(66, 133, 244, 0.2) 0%, rgba(155, 114, 207, 0.2) 100%);
+      border-color: rgba(155, 114, 207, 0.5);
+      color: var(--text-pri);
+      transform: translateY(-2px);
+      box-shadow: 
+        inset 0 1.5px 1px rgba(255, 255, 255, 0.45),
+        0 8px 24px rgba(0, 0, 0, 0.22),
+        0 0 18px rgba(155, 114, 207, 0.25);
+    }
+
+    .swatch {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      border: 1.5px solid rgba(255, 255, 255, 0.4);
+    }
+
+    /* Live Keyboard Frame */
+    .keyboard-viewport {
+      max-width: 540px;
+      margin: 0 auto;
+      border-radius: 28px;
+      overflow: hidden;
+      border: 2px solid var(--kb-border, #E8DDF0);
+      background: var(--kb-bg, #F8F2FA);
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+      transition: background 0.35s ease, border-color 0.35s ease;
+      color: var(--kb-text, #1D162B);
+    }
+
+    /* Themes dynamic CSS variables */
+    .theme-blush-lilac {
+      --kb-bg: #F8F2FA;
+      --kb-surface: #FFFFFF;
+      --kb-accent: #542983;
+      --kb-accent-bg: #EBDDFB;
+      --kb-border: #E8DDF0;
+      --kb-text: #1D162B;
+      --kb-text-sec: #5F4B6E;
+    }
+
+    .theme-cotton-candy {
+      --kb-bg: #FDEEF2;
+      --kb-surface: #FFFFFF;
+      --kb-accent: #B80058;
+      --kb-accent-bg: #FCE4EC;
+      --kb-border: #F8BBD0;
+      --kb-text: #2D121B;
+      --kb-text-sec: #6D4352;
+    }
+
+    .theme-sunset-peach {
+      --kb-bg: #FEF3EB;
+      --kb-surface: #FFFFFF;
+      --kb-accent: #B84A00;
+      --kb-accent-bg: #FFE5D4;
+      --kb-border: #FED2B3;
+      --kb-text: #2B1608;
+      --kb-text-sec: #6E4528;
+    }
+
+    .theme-fresh-mint {
+      --kb-bg: #EEF8F3;
+      --kb-surface: #FFFFFF;
+      --kb-accent: #007038;
+      --kb-accent-bg: #D4F4E2;
+      --kb-border: #BCE8D0;
+      --kb-text: #0B2416;
+      --kb-text-sec: #3A614A;
+    }
+
+    .theme-amoled-black {
+      --kb-bg: #000000;
+      --kb-surface: #141416;
+      --kb-accent: #8AB4F8;
+      --kb-accent-bg: #1F232E;
+      --kb-border: #222225;
+      --kb-text: #FFFFFF;
+      --kb-text-sec: #9AA0A6;
+    }
+
+    .keyboard-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 18px;
+      border-bottom: 1px solid var(--kb-border);
+      background: var(--kb-bg);
+    }
+
+    .toolbar-left, .toolbar-right {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .tool-icon {
+      font-size: 16px;
+      cursor: pointer;
+      color: var(--kb-text-sec);
+      transition: transform 0.15s ease, color 0.15s ease;
+    }
+
+    .tool-icon:hover {
+      transform: scale(1.15);
+      color: var(--kb-accent);
+    }
+
+    .ai-chip {
+      background: var(--kb-accent-bg);
+      color: var(--kb-accent);
+      font-size: 12px;
+      font-weight: 600;
+      padding: 4px 12px;
+      border-radius: var(--radius-pill);
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .keyboard-keys-grid {
+      padding: 14px 10px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .key-row {
+      display: flex;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .key-cap {
+      flex: 1;
+      height: 44px;
+      border-radius: 10px;
+      background: var(--kb-surface);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-display);
+      font-size: 17px;
+      font-weight: 500;
+      color: var(--kb-text);
+      box-shadow: 0 1.5px 3px rgba(0, 0, 0, 0.08);
+      cursor: pointer;
+      user-select: none;
+      transition: transform 0.08s ease, background 0.15s ease;
+    }
+
+    .key-cap:active {
+      transform: scale(0.92);
+      background: var(--kb-accent-bg);
+    }
+
+    .key-special {
+      flex: 1.4;
+      background: var(--kb-accent-bg);
+      color: var(--kb-accent);
+      font-size: 13.5px;
+    }
+
+    .key-space {
+      flex: 4.8;
+      font-size: 13px;
+      color: var(--kb-text-sec);
+    }
+
+    /* ============================================================
+       FEATURE CARDS (DEEPMIND / GOOGLE AI AESTHETIC)
+       ============================================================ */
+    .section-header {
+      text-align: center;
+      margin: 120px 0 60px;
+    }
+
+    .section-eyebrow {
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      color: var(--gemini-purple);
+      margin-bottom: 12px;
+    }
+
+    .section-title {
+      font-family: var(--font-display);
+      font-size: clamp(32px, 4.5vw, 52px);
+      font-weight: 700;
+      letter-spacing: -1px;
+      line-height: 1.15;
+      margin-bottom: 16px;
+      color: var(--text-pri);
+    }
+
+    .section-desc {
+      color: var(--text-sec);
+      font-size: 17px;
+      max-width: 660px;
+      margin: 0 auto;
+      line-height: 1.6;
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+      gap: 24px;
+      margin-bottom: 60px;
+    }
+
+    .feature-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 36px 30px;
+      position: relative;
+      overflow: hidden;
+      backdrop-filter: blur(20px);
+      transition: transform 0.3s var(--ease-gemini), border-color 0.3s ease, box-shadow 0.3s ease, background 0.3s ease;
+    }
+
+    .feature-card:hover {
+      transform: translateY(-4px);
+      border-color: var(--border-hover);
+      box-shadow: 0 20px 48px -10px rgba(0, 0, 0, 0.2), 0 0 30px rgba(66, 133, 244, 0.12);
+    }
+
+    .feature-icon-badge {
+      width: 48px;
+      height: 48px;
+      border-radius: 14px;
+      background: var(--toggle-btn-bg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      margin-bottom: 22px;
+      border: 1px solid var(--border-subtle);
+    }
+
+    .feature-card h3 {
+      font-family: var(--font-display);
+      font-size: 21px;
+      font-weight: 700;
+      margin-bottom: 12px;
+      letter-spacing: -0.3px;
+      color: var(--text-pri);
+    }
+
+    .feature-card p {
+      color: var(--text-sec);
+      font-size: 14.8px;
+      line-height: 1.65;
+    }
+
+    .feature-bullet-list {
+      margin-top: 16px;
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .feature-bullet-list li {
+      font-size: 13.5px;
+      color: var(--text-sec);
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+    }
+
+    .feature-bullet-list li::before {
+      content: "✦";
+      color: var(--gemini-cyan);
+      font-size: 11px;
+      margin-top: 2px;
+    }
+
+    /* ============================================================
+       COMPARISON TABLE (GLASS DESIGN)
+       ============================================================ */
+    .table-container {
+      overflow-x: auto;
+      border-radius: var(--radius-lg);
+      background: var(--table-bg);
+      border: 1px solid var(--table-border);
+      backdrop-filter: blur(24px);
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.15);
+      margin-bottom: 90px;
+    }
+
+    table.compare-table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 14px;
+    }
+
+    table.compare-table th, table.compare-table td {
+      padding: 16px 22px;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    table.compare-table th {
+      font-family: var(--font-display);
+      font-size: 14.5px;
+      font-weight: 600;
+      color: var(--text-sec);
+      background: var(--table-th-bg);
+    }
+
+    table.compare-table th.col-highlight {
+      color: var(--table-highlight-text);
+      background: var(--table-highlight-bg);
+      border-left: 1px solid var(--table-highlight-border);
+      border-right: 1px solid var(--table-highlight-border);
+    }
+
+    table.compare-table td.col-highlight {
+      background: var(--table-highlight-bg);
+      border-left: 1px solid var(--table-highlight-border);
+      border-right: 1px solid var(--table-highlight-border);
+      font-weight: 600;
+      color: var(--table-highlight-text);
+    }
+
+    table.compare-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .check-yes { color: #1EA362; font-weight: 700; }
+    .check-no { color: #EA4335; }
+
+    /* ============================================================
+       INSTALLATION STEPS
+       ============================================================ */
+    .steps-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+      margin-bottom: 90px;
+    }
+
+    .step-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 32px 26px;
+      position: relative;
+    }
+
+    .step-num {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #4285F4, #9B72CF);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 15px;
+      font-weight: 700;
+      color: #FFFFFF;
+      margin-bottom: 18px;
+    }
+
+    .step-card h4 {
+      font-family: var(--font-display);
+      font-size: 18px;
+      margin-bottom: 8px;
+      color: var(--text-pri);
+    }
+
+    .step-card p {
+      color: var(--text-sec);
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    /* ============================================================
+       FAQ ACCORDION
+       ============================================================ */
+    .faq-container {
+      max-width: 840px;
+      margin: 0 auto 100px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .faq-item {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      transition: border-color 0.2s ease, background 0.2s ease;
+    }
+
+    .faq-item:hover {
+      border-color: var(--border-hover);
+    }
+
+    .faq-trigger {
+      width: 100%;
+      padding: 20px 24px;
+      background: transparent;
+      border: none;
+      outline: none;
+      text-align: left;
+      font-family: var(--font-display);
+      font-size: 16.5px;
+      font-weight: 600;
+      color: var(--text-pri);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+    }
+
+    .faq-icon {
+      font-size: 20px;
+      color: var(--gemini-purple);
+      transition: transform 0.25s ease;
+    }
+
+    .faq-item.open .faq-icon {
+      transform: rotate(45deg);
+    }
+
+    .faq-content {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s var(--ease-gemini);
+      padding: 0 24px;
+      color: var(--text-sec);
+      font-size: 14.5px;
+      line-height: 1.65;
+    }
+
+    .faq-item.open .faq-content {
+      padding-bottom: 22px;
+      max-height: 300px;
+    }
+
+    /* ============================================================
+       FINAL CTA
+       ============================================================ */
+    .cta-banner {
+      background: var(--banner-bg);
+      border: 1px solid var(--banner-border);
+      border-radius: 36px;
+      padding: 70px 30px;
+      text-align: center;
+      box-shadow: var(--banner-shadow);
+      margin-bottom: 90px;
+      position: relative;
+    }
+
+    .cta-banner h2 {
+      font-family: var(--font-display);
+      font-size: clamp(30px, 4.2vw, 48px);
+      font-weight: 700;
+      margin-bottom: 16px;
+      color: var(--text-pri);
+    }
+
+    .cta-banner p {
+      color: var(--text-sec);
+      font-size: 16.5px;
+      max-width: 620px;
+      margin: 0 auto 34px;
+    }
+
+    /* ============================================================
+       FOOTER
+       ============================================================ */
+    footer {
+      border-top: 1px solid var(--border-subtle);
+      padding: 60px 0 40px;
+      text-align: center;
+      color: var(--text-ter);
+      font-size: 13.5px;
+    }
+
+    .footer-links {
+      display: flex;
+      justify-content: center;
+      gap: 22px;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+    }
+
+    .footer-links a {
+      color: var(--text-sec);
+      text-decoration: none;
+      transition: color 0.2s ease;
+    }
+
+    .footer-links a:hover {
+      color: var(--text-pri);
+    }
+
+    /* ============================================================
+       NEON MEDIUM LIVE EXPERIENCE SHOWCASE
+       ============================================================ */
+    .neon-showcase-section {
+      padding: 90px 0 110px;
+      position: relative;
+    }
+
+    .neon-showcase-grid {
+      display: grid;
+      grid-template-columns: 420px 1fr;
+      gap: 48px;
+      align-items: center;
+      margin-top: 48px;
+    }
+
+    /* Device Mockup Wrapper */
+    .device-stage-wrapper {
+      position: relative;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .device-phone-frame {
+      position: relative;
+      width: 390px;
+      height: 820px;
+      border-radius: 50px;
+      background: #000;
+      padding: 12px;
+      box-shadow: 
+        0 0 0 1px rgba(255, 255, 255, 0.15),
+        0 25px 70px -15px rgba(0, 0, 0, 0.9),
+        0 0 50px rgba(66, 133, 244, 0.25),
+        0 0 100px rgba(155, 114, 207, 0.18);
+      border: 4px solid #1a1e2e;
+      overflow: hidden;
+      transform: translateZ(0);
+      transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.4s ease, border-color 0.4s ease;
+    }
+
+    html[data-theme="light"] .device-phone-frame {
+      border-color: #D3D7E8;
+      box-shadow: 
+        0 0 0 1px rgba(0, 0, 0, 0.1),
+        0 25px 60px -15px rgba(60, 64, 67, 0.35),
+        0 0 40px rgba(66, 133, 244, 0.15);
+    }
+
+    .device-phone-frame:hover {
+      box-shadow: 
+        0 0 0 1px rgba(255, 255, 255, 0.25),
+        0 30px 85px -10px rgba(0, 0, 0, 0.95),
+        0 0 65px rgba(66, 133, 244, 0.35),
+        0 0 120px rgba(155, 114, 207, 0.28);
+    }
+
+    .device-screen-iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+      border-radius: 40px;
+      display: block;
+      background: #04060c;
+    }
+
+    /* Phone reflection shine overlay */
+    .device-phone-frame::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 48%;
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.01) 60%, transparent 100%);
+      pointer-events: none;
+      z-index: 10;
+      border-top-left-radius: 46px;
+      border-top-right-radius: 46px;
+    }
+
+    /* Control Console & Feature Highlights */
+    .neon-console-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 28px;
+      padding: 36px;
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
+      position: relative;
+    }
+
+    .console-badge-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    .console-live-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 5px 13px;
+      border-radius: 999px;
+      background: rgba(30, 163, 98, 0.15);
+      border: 1px solid rgba(30, 163, 98, 0.3);
+      color: #34A853;
+      font-size: 12.5px;
+      font-weight: 600;
+    }
+
+    .console-live-pill .pulse-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #34A853;
+      box-shadow: 0 0 8px #34A853;
+      animation: neonPulse 1.8s infinite;
+    }
+
+    @keyframes neonPulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.8); }
+    }
+
+    .console-fps-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 13px;
+      border-radius: 999px;
+      background: rgba(66, 133, 244, 0.15);
+      border: 1px solid rgba(66, 133, 244, 0.3);
+      color: #8AB4F8;
+      font-size: 12.5px;
+      font-weight: 500;
+    }
+
+    .neon-console-title {
+      font-family: var(--font-display);
+      font-size: 28px;
+      font-weight: 700;
+      letter-spacing: -0.025em;
+      margin-bottom: 12px;
+      color: var(--text-pri);
+    }
+
+    .neon-console-desc {
+      font-family: var(--font-body);
+      color: var(--text-sec);
+      font-size: 15.5px;
+      line-height: 1.62;
+      letter-spacing: -0.01em;
+      margin-bottom: 28px;
+    }
+
+    /* Quick Interactive Phrases */
+    .phrase-chips-group {
+      margin-bottom: 30px;
+    }
+
+    .phrase-chips-label {
+      font-family: var(--font-display);
+      font-size: 12.5px;
+      font-weight: 700;
+      color: var(--text-ter);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .phrase-chips-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 9px;
+    }
+
+    /* Liquid Glass Phrase Chips */
+    .phrase-chip {
+      position: relative;
+      padding: 10px 18px;
+      border-radius: 16px;
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.02) 100%);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: var(--text-pri);
+      font-family: var(--font-body);
+      font-size: 13.5px;
+      font-weight: 500;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      box-shadow: 
+        inset 0 1px 1px rgba(255, 255, 255, 0.28),
+        0 4px 14px rgba(0, 0, 0, 0.16);
+      transition: all 0.24s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+
+    html[data-theme="light"] .phrase-chip {
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.88) 0%, rgba(240, 244, 250, 0.6) 100%);
+      border: 1px solid rgba(0, 0, 0, 0.09);
+      box-shadow: 
+        inset 0 1px 1px rgba(255, 255, 255, 0.95),
+        0 3px 10px rgba(60, 64, 67, 0.08);
+    }
+
+    .phrase-chip:hover {
+      background: linear-gradient(135deg, rgba(155, 114, 207, 0.25), rgba(66, 133, 244, 0.2));
+      border-color: rgba(155, 114, 207, 0.5);
+      transform: translateY(-2px);
+      box-shadow: 
+        inset 0 1.5px 1px rgba(255, 255, 255, 0.45),
+        0 8px 22px rgba(0, 0, 0, 0.25),
+        0 0 16px rgba(155, 114, 207, 0.3);
+    }
+
+    .phrase-chip:active {
+      transform: scale(0.96);
+    }
+
+    /* Feature highlights inside console */
+    .neon-spec-list {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 32px;
+    }
+
+    .neon-spec-item {
+      padding: 16px;
+      border-radius: 18px;
+      background: var(--chip-bg);
+      border: 1px solid var(--border-subtle);
+      transition: all 0.25s ease;
+    }
+
+    html[data-theme="light"] .neon-spec-item {
+      background: rgba(0, 0, 0, 0.03);
+    }
+
+    .neon-spec-item:hover {
+      background: var(--bg-card-hover);
+      border-color: var(--border-hover);
+      transform: translateY(-2px);
+    }
+
+    .neon-spec-icon {
+      font-size: 22px;
+      margin-bottom: 8px;
+    }
+
+    .neon-spec-item h4 {
+      font-family: var(--font-display);
+      font-size: 14.5px;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      color: var(--text-pri);
+      margin-bottom: 4px;
+    }
+
+    .neon-spec-item p {
+      font-family: var(--font-body);
+      font-size: 12.5px;
+      color: var(--text-sec);
+      line-height: 1.5;
+      margin: 0;
+    }
+
+    /* Console Action Buttons */
+    .neon-action-row {
+      display: flex;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+
+    .btn-neon-action {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 13px 24px;
+      border-radius: var(--radius-pill);
+      font-family: var(--font-display);
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      text-decoration: none;
+      cursor: pointer;
+      transition: all 0.24s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+
+    /* Liquid Glass Neon Primary Button */
+    .btn-neon-primary {
+      position: relative;
+      background: linear-gradient(135deg, rgba(66, 133, 244, 0.92), rgba(155, 114, 207, 0.92));
+      color: #FFF !important;
+      border: 1px solid rgba(255, 255, 255, 0.35);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      box-shadow: 
+        inset 0 1.5px 1px rgba(255, 255, 255, 0.65),
+        inset 0 -1px 1px rgba(0, 0, 0, 0.25),
+        0 6px 24px rgba(66, 133, 244, 0.4);
+      overflow: hidden;
+    }
+
+    .btn-neon-primary::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 50%;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.35) 0%, rgba(255, 255, 255, 0) 100%);
+      border-radius: inherit;
+      pointer-events: none;
+    }
+
+    .btn-neon-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 
+        inset 0 2px 1.5px rgba(255, 255, 255, 0.85),
+        0 10px 32px rgba(155, 114, 207, 0.55);
+    }
+
+    /* Liquid Glass Neon Secondary Button */
+    .btn-neon-secondary {
+      position: relative;
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.02) 100%);
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      color: var(--text-pri);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      box-shadow: 
+        inset 0 1px 1px rgba(255, 255, 255, 0.3),
+        0 4px 16px rgba(0, 0, 0, 0.18);
+      overflow: hidden;
+    }
+
+    html[data-theme="light"] .btn-neon-secondary {
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.88) 0%, rgba(240, 244, 250, 0.58) 100%);
+      border: 1px solid rgba(0, 0, 0, 0.1);
+      box-shadow: 
+        inset 0 1px 1px rgba(255, 255, 255, 0.95),
+        0 3px 12px rgba(60, 64, 67, 0.08);
+    }
+
+    .btn-neon-secondary:hover {
+      transform: translateY(-2px);
+      border-color: rgba(155, 114, 207, 0.45);
+      background: var(--btn-sec-hover);
+      box-shadow: 
+        inset 0 1.5px 1px rgba(255, 255, 255, 0.45),
+        0 8px 22px rgba(0, 0, 0, 0.25);
+    }
+
+    @media (max-width: 992px) {
+      .neon-showcase-grid {
+        grid-template-columns: 1fr;
+        justify-items: center;
+      }
+      .neon-console-card {
+        max-width: 600px;
+        width: 100%;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .device-phone-frame {
+        width: 100%;
+        max-width: 360px;
+        height: 740px;
+        border-radius: 38px;
+        padding: 8px;
+      }
+      .device-screen-iframe {
+        border-radius: 30px;
+      }
+      .neon-spec-list {
+        grid-template-columns: 1fr;
+      }
+      .neon-console-card {
+        padding: 24px;
+      }
+    }
+
+    /* Accessibility reduced-motion */
+    @media (prefers-reduced-motion: reduce) {
+      .nebula-glow, .sparkle-icon, .gemini-pill {
+        animation: none !important;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Ambient Cosmic Nebulae -->
+  <div class="cosmic-mesh">
+    <div class="nebula-glow nebula-1"></div>
+    <div class="nebula-glow nebula-2"></div>
+    <div class="nebula-glow nebula-3"></div>
+  </div>
+
+  <!-- Floating Liquid Glass Navbar -->
+  <div class="nav-wrap">
+    <nav class="liquid-nav">
+      <a href="#" class="brand-link">
+        <div class="brand-icon">⌨️</div>
+        <span>Gboard <span class="brand-pro-badge">Pro</span></span>
+      </a>
+      <ul class="nav-menu">
+        <li class="nav-item"><a href="#overview">Overview</a></li>
+        <li class="nav-item"><a href="#live-demo">Live Demo</a></li>
+        <li class="nav-item"><a href="#features">Features</a></li>
+        <li class="nav-item"><a href="#studio">Studio</a></li>
+        <li class="nav-item"><a href="#comparison">Compare</a></li>
+        <li class="nav-item"><a href="#installation">Install</a></li>
+        <li class="nav-item"><a href="#faq">FAQ</a></li>
+      </ul>
+            <div class="nav-actions">
+        <button id="themeToggleBtn" class="theme-toggle-btn" onclick="toggleTheme(event)" aria-label="Toggle theme mode" title="Switch Theme (Dark / Light)">
+          <!-- Sun icon (for light mode) -->
+          <svg class="theme-icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="5"></circle>
+            <line x1="12" y1="1" x2="12" y2="3"></line>
+            <line x1="12" y1="21" x2="12" y2="23"></line>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+            <line x1="1" y1="12" x2="3" y2="12"></line>
+            <line x1="21" y1="12" x2="23" y2="12"></line>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+          </svg>
+          <!-- Moon icon (for dark mode) -->
+          <svg class="theme-icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+          </svg>
+        </button>
+        <a href="https://github.com/smartworldarafath/Gboard_Pro/releases/latest/download/Gboard_Pro.apk" class="nav-cta">
+          <span>Download v2.1.1</span>
+          <span>↓</span>
+        </a>
+      </div>
+    </nav>
+  </div>
+
+  <!-- Hero Section -->
+  <section class="hero" id="overview">
+    <div class="container">
+      <div class="gemini-pill">
+        <span class="sparkle-icon">✦</span>
+        <span>Powered by Pixel Gemini Rambler & Material 3 Expressive</span>
+      </div>
+      <h1 class="hero-title">
+        The Intelligence of Gemini.<br>
+        <span class="hero-gradient-text">The Keyboard You Love.</span>
+      </h1>
+      <p class="hero-subtitle">
+        Gboard Pro is the definitive open-source Google Keyboard mod for Android. Unlocking conversational Gemini voice typing, on-device AI writing tools, 24-hour clipboard history, and signature pastel palettes across all Android devices — zero root required.
+      </p>
+
+      <div class="hero-actions">
+        <a href="https://github.com/smartworldarafath/Gboard_Pro/releases/latest/download/Gboard_Pro.apk" class="btn-primary">
+          <span>Download Gboard Pro APK</span>
+          <span style="font-size: 13px; opacity: 0.85;">(v2.1.1 • 134 MB)</span>
+        </a>
+        <a href="#live-demo" class="btn-secondary" style="border-color: rgba(155, 114, 207, 0.45); background: rgba(155, 114, 207, 0.12);">
+          <span style="color: var(--gemini-purple);">✦</span>
+          <span>Try Live Keyboard Demo</span>
+        </a>
+        <a href="https://github.com/smartworldarafath/Gboard_Pro" class="btn-secondary">
+          <span>GitHub</span>
+          <span>★</span>
+        </a>
+      </div>
+
+      <!-- Interactive Gemini AI Prompt Simulator -->
+      <div class="prompt-studio" id="studio">
+        <div class="prompt-header">
+          <span class="prompt-title-tag">
+            <span class="status-dot"></span>
+            Gemini AI Typing Engine Active
+          </span>
+          <span style="font-size: 12px; color: var(--text-ter);">Gboard Pro v2.1.1</span>
+        </div>
+
+        <div class="prompt-input-box">
+          <span style="color: var(--gemini-purple); font-size: 17px;">✦</span>
+          <input type="text" id="aiInput" value="let's meet at 4 uh actually make it 5pm for the presentation" readonly>
+        </div>
+
+        <div class="prompt-chips">
+          <button class="chip-btn active" onclick="simulateAI('clean_fillers')">
+            <span>🎙️ Filter Speech Fillers</span>
+          </button>
+          <button class="chip-btn" onclick="simulateAI('professional')">
+            <span>✨ Professional Restyle</span>
+          </button>
+          <button class="chip-btn" onclick="simulateAI('casual')">
+            <span>💬 Casual Tone</span>
+          </button>
+          <button class="chip-btn" onclick="simulateAI('blush_theme')">
+            <span>🎨 Blush Lilac Theme</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Interactive Keyboard Studio -->
+      <div class="keyboard-demo-card">
+        <div class="demo-header">
+          <h3>Material 3 Expressive Dynamic Studio</h3>
+          <p>Switch between signature palettes and test real-time keycap feedback.</p>
+        </div>
+
+        <div class="palette-selector">
+          <div class="palette-pill active" onclick="switchTheme('theme-blush-lilac', this)">
+            <span class="swatch" style="background: #542983;"></span>
+            <span>Blush Lilac (Showcase Pink)</span>
+          </div>
+          <div class="palette-pill" onclick="switchTheme('theme-cotton-candy', this)">
+            <span class="swatch" style="background: #B80058;"></span>
+            <span>Cotton Candy</span>
+          </div>
+          <div class="palette-pill" onclick="switchTheme('theme-sunset-peach', this)">
+            <span class="swatch" style="background: #B84A00;"></span>
+            <span>Sunset Peach</span>
+          </div>
+          <div class="palette-pill" onclick="switchTheme('theme-fresh-mint', this)">
+            <span class="swatch" style="background: #007038;"></span>
+            <span>Fresh Mint</span>
+          </div>
+          <div class="palette-pill" onclick="switchTheme('theme-amoled-black', this)">
+            <span class="swatch" style="background: #000000; border-color: #8AB4F8;"></span>
+            <span>AMOLED Pure Black</span>
+          </div>
+        </div>
+
+        <!-- Live Keyboard Frame -->
+        <div class="keyboard-viewport theme-blush-lilac" id="liveKeyboard">
+          <div class="keyboard-toolbar">
+            <div class="toolbar-left">
+              <span class="tool-icon" title="Menu">≡</span>
+              <span class="ai-chip" id="keyboardAiBadge">✦ Gemini Active</span>
+            </div>
+            <div class="toolbar-right">
+              <span class="tool-icon" onclick="triggerEffect('clipboard')" title="24h Clipboard">📋</span>
+              <span class="tool-icon" onclick="triggerEffect('sparkle')" title="AI Proofread">✨</span>
+              <span class="tool-icon" onclick="triggerEffect('mic')" title="Rambler Voice">🎙️</span>
+              <span class="tool-icon" title="Settings">⚙️</span>
+            </div>
+          </div>
+
+          <div class="keyboard-keys-grid">
+            <div class="key-row">
+              <div class="key-cap" onclick="tapKey('Q')">Q</div>
+              <div class="key-cap" onclick="tapKey('W')">W</div>
+              <div class="key-cap" onclick="tapKey('E')">E</div>
+              <div class="key-cap" onclick="tapKey('R')">R</div>
+              <div class="key-cap" onclick="tapKey('T')">T</div>
+              <div class="key-cap" onclick="tapKey('Y')">Y</div>
+              <div class="key-cap" onclick="tapKey('U')">U</div>
+              <div class="key-cap" onclick="tapKey('I')">I</div>
+              <div class="key-cap" onclick="tapKey('O')">O</div>
+              <div class="key-cap" onclick="tapKey('P')">P</div>
+            </div>
+            <div class="key-row" style="padding: 0 16px;">
+              <div class="key-cap" onclick="tapKey('A')">A</div>
+              <div class="key-cap" onclick="tapKey('S')">S</div>
+              <div class="key-cap" onclick="tapKey('D')">D</div>
+              <div class="key-cap" onclick="tapKey('F')">F</div>
+              <div class="key-cap" onclick="tapKey('G')">G</div>
+              <div class="key-cap" onclick="tapKey('H')">H</div>
+              <div class="key-cap" onclick="tapKey('J')">J</div>
+              <div class="key-cap" onclick="tapKey('K')">K</div>
+              <div class="key-cap" onclick="tapKey('L')">L</div>
+            </div>
+            <div class="key-row">
+              <div class="key-cap key-special" onclick="tapKey('⇧')">⇧</div>
+              <div class="key-cap" onclick="tapKey('Z')">Z</div>
+              <div class="key-cap" onclick="tapKey('X')">X</div>
+              <div class="key-cap" onclick="tapKey('C')">C</div>
+              <div class="key-cap" onclick="tapKey('V')">V</div>
+              <div class="key-cap" onclick="tapKey('B')">B</div>
+              <div class="key-cap" onclick="tapKey('N')">N</div>
+              <div class="key-cap" onclick="tapKey('M')">M</div>
+              <div class="key-cap key-special" onclick="tapKey('⌫')">⌫</div>
+            </div>
+            <div class="key-row">
+              <div class="key-cap key-special" onclick="tapKey('?123')">?123</div>
+              <div class="key-cap" onclick="tapKey(',')">,</div>
+              <div class="key-cap key-space" onclick="tapKey(' ')">English (US)</div>
+              <div class="key-cap" onclick="tapKey('.')">.</div>
+              <div class="key-cap key-special" style="background: var(--kb-accent); color: #FFF;" onclick="tapKey('↵')">↵</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- Neon Medium Live Experience Showcase -->
+  <section class="container neon-showcase-section" id="live-demo">
+    <div class="section-header">
+      <div class="section-eyebrow">
+        <span class="sparkle-icon">✦</span>
+        <span>Liquid Glass Experience</span>
+      </div>
+      <h2 class="section-title">
+        Feel the <span class="hero-gradient-text">Neon Medium</span> Flow
+      </h2>
+      <p class="section-desc">
+        Touch, type, or press keys on your physical keyboard to interact with the live Gboard Pro simulator in real time. Experience liquid glass keycaps, multi-layer ambient neon radiance, and tactile haptic feedback running at a locked 60 FPS.
+      </p>
+    </div>
+
+    <div class="neon-showcase-grid">
+      <!-- Device Mockup Viewport -->
+      <div class="device-stage-wrapper">
+        <div class="device-phone-frame">
+          <iframe 
+            src="neon.html" 
+            id="neonFrame" 
+            class="device-screen-iframe" 
+            title="Gboard Pro Neon Medium Live Keyboard Demo" 
+            loading="lazy">
+          </iframe>
+        </div>
+      </div>
+
+      <!-- Interactive Control Console & Specifications -->
+      <div class="neon-console-card">
+        <div class="console-badge-row">
+          <span class="console-live-pill">
+            <span class="pulse-dot"></span>
+            Live Simulator Active
+          </span>
+          <span class="console-fps-pill">
+            ⚡ Locked 60 FPS
+          </span>
+          <span class="console-fps-pill" style="color: #C58AF9; border-color: rgba(197, 138, 249, 0.3); background: rgba(197, 138, 249, 0.1);">
+            🎨 Liquid Glass UI
+          </span>
+        </div>
+
+        <h3 class="neon-console-title">Interactive Keyboard Studio</h3>
+        <p class="neon-console-desc">
+          Test out real-time tactile typing right here. Click on any phrase below to instantly inject it into the live phone simulator, or tap keys directly inside the phone screen. Laptop & desktop physical keyboard input is fully synchronized!
+        </p>
+
+        <!-- Quick Phrase Injector -->
+        <div class="phrase-chips-group">
+          <div class="phrase-chips-label">
+            <span>⚡ Quick Phrase Presets</span>
+          </div>
+          <div class="phrase-chips-list">
+            <button class="phrase-chip" onclick="injectPhrase('Pixel Gemini Rambler')">
+              <span>🎙️</span>
+              <span>Gemini Rambler Voice</span>
+            </button>
+            <button class="phrase-chip" onclick="injectPhrase('Liquid Glass Keycaps')">
+              <span>💎</span>
+              <span>Liquid Glass Keycaps</span>
+            </button>
+            <button class="phrase-chip" onclick="injectPhrase('Arafath Rahman Gboard Pro')">
+              <span>👑</span>
+              <span>Arafath Rahman</span>
+            </button>
+            <button class="phrase-chip" onclick="injectPhrase('Butter-smooth 60 FPS')">
+              <span>⚡</span>
+              <span>60 FPS Animation</span>
+            </button>
+            <button class="phrase-chip" onclick="injectPhrase('Material 3 Expressive')">
+              <span>🎨</span>
+              <span>Material 3 Expressive</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Spec Cards -->
+        <div class="neon-spec-list">
+          <div class="neon-spec-item">
+            <div class="neon-spec-icon">🌈</div>
+            <h4>Rainbow Neon Aura</h4>
+            <p>Dual flowing gradient waves with bottom blur reflection that pulse smoothly without battery drain.</p>
+          </div>
+          <div class="neon-spec-item">
+            <div class="neon-spec-icon">🎧</div>
+            <h4>Tactile Audio Clicks</h4>
+            <p>Synthesized WebAudio micro-pulses and vibration API for an authentic physical keyboard feel.</p>
+          </div>
+          <div class="neon-spec-item">
+            <div class="neon-spec-icon">⌨️</div>
+            <h4>Physical Key Sync</h4>
+            <p>Press any key on your laptop/PC keyboard to type live into the simulator with ripple animations.</p>
+          </div>
+          <div class="neon-spec-item">
+            <div class="neon-spec-icon">💎</div>
+            <h4>Specular Rim Shaders</h4>
+            <p>140-degree directional glass reflection rim with depth layered keycap elevation.</p>
+          </div>
+        </div>
+
+        <!-- Action Row -->
+        <div class="neon-action-row">
+          <a href="neon.html" target="_blank" class="btn-neon-action btn-neon-primary" title="Open Fullscreen Neon Experience">
+            <span>⛶ Launch Fullscreen Mode</span>
+            <span>↗</span>
+          </a>
+          <button class="btn-neon-action btn-neon-secondary" id="soundToggleBtn" onclick="toggleSimulatorSound()" title="Toggle tactile key sound">
+            <span>🔊 Sound: ON</span>
+          </button>
+          <button class="btn-neon-action btn-neon-secondary" onclick="clearSimulatorText()" title="Clear simulator text">
+            <span>🗑️ Clear Screen</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Feature Grid -->
+  <section class="container" id="features">
+    <div class="section-header">
+      <div class="section-eyebrow">Next-Generation Capabilities</div>
+      <h2 class="section-title">Engineered Beyond Standard Typing</h2>
+      <p class="section-desc">Gboard Pro breaks through manufacturer lock-ins, granting every Android user the complete, unfiltered flagship Google typing suite.</p>
+    </div>
+
+    <div class="features-grid">
+      <!-- Feature 1 -->
+      <div class="feature-card">
+        <div class="feature-icon-badge">🎙️</div>
+        <h3>Gemini Rambler Conversational Voice Dictation</h3>
+        <p>Transcribe live speech naturally without having your vocal stumbles recorded. Rambler cleans up speech syntax in real time.</p>
+        <ul class="feature-bullet-list">
+          <li>Automated speech filler removal ("uh", "um", "you know")</li>
+          <li>Mid-sentence thought correction ("meet at 4, actually make it 5")</li>
+          <li>1.5-second screen rotation grace period prevents session cutoffs</li>
+          <li>Strict language policy eliminates unintended multilingual drift</li>
+        </ul>
+      </div>
+
+      <!-- Feature 2 -->
+      <div class="feature-card">
+        <div class="feature-icon-badge">🤖</div>
+        <h3>AI Writing Tools & Tone Restyler</h3>
+        <p>In-line Gemini intelligence built right into the keyboard strip for instant proofreading and stylistic transformations.</p>
+        <ul class="feature-bullet-list">
+          <li>One-tap proofread for typos, syntax, and grammatical nuance</li>
+          <li>Adaptive tone switcher: Professional, Casual, Concise, Emotive</li>
+          <li>Stable Google Server backend eliminates "cannot connect" errors</li>
+          <li>Direct Boot safety prevents cold device reboot lockups</li>
+        </ul>
+      </div>
+
+      <!-- Feature 3 -->
+      <div class="feature-card">
+        <div class="feature-icon-badge">🎨</div>
+        <h3>Material 3 Expressive & AMOLED Black</h3>
+        <p>Stunning tactile visual palettes and battery-saving pure pitch black surfaces designed for high-resolution OLED screens.</p>
+        <ul class="feature-bullet-list">
+          <li>Signature Blush Lilac pastel palette replicating showcase.png</li>
+          <li>Cotton Candy, Sunset Peach, and Fresh Mint curated themes</li>
+          <li>AMOLED Pure Black (#000000) mode for zero backlight bleed</li>
+          <li>Dynamic Monet wallpaper extraction on Android 12L to 16</li>
+        </ul>
+      </div>
+
+      <!-- Feature 4 -->
+      <div class="feature-card">
+        <div class="feature-icon-badge">📋</div>
+        <h3>24-Hour Clipboard & 100-Clip Buffer</h3>
+        <p>Overhaul the restrictive 1-hour clipboard limit. Never lose copied phone numbers, addresses, code snippets, or links again.</p>
+        <ul class="feature-bullet-list">
+          <li>Unpinned clips preserved for 24 hours by default (was 1 hour)</li>
+          <li>History buffer capacity expanded from 5 to 100 recent clips</li>
+          <li>Discrete 5-step slider: 1 hour, 24 hours, 7 days, 30 days, Never</li>
+          <li>Dynamic localized pin tip explanations across 83 languages</li>
+        </ul>
+      </div>
+
+      <!-- Feature 5 -->
+      <div class="feature-card">
+        <div class="feature-icon-badge">🛡️</div>
+        <h3>Zero Root & Harmonious Coexistence</h3>
+        <p>Enjoy flagship capabilities without modifying device firmware or compromising system banking integrity.</p>
+        <ul class="feature-bullet-list">
+          <li>Installs under com.gboardpro.app alongside factory Gboard</li>
+          <li>Zero Root, Magisk, or unlocked bootloader requirements</li>
+          <li>No background telemetry or third-party ad frameworks</li>
+          <li>Device-Protected Storage ensures on-device privacy</li>
+        </ul>
+      </div>
+
+      <!-- Feature 6 -->
+      <div class="feature-card">
+        <div class="feature-icon-badge">🔄</div>
+        <h3>Automated Background Update Checks</h3>
+        <p>A built-in maintenance daemon keeps your keyboard updated with the latest stability enhancements without Play Store delays.</p>
+        <ul class="feature-bullet-list">
+          <li>Automated 8-hour background query against GitHub releases</li>
+          <li>Instant Android notification when new versions drop</li>
+          <li>Integrated download speed meter with real-time transfer stats</li>
+          <li>One-tap in-app package installer launch</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- Comparison Matrix -->
+  <section class="container" id="comparison">
+    <div class="section-header">
+      <div class="section-eyebrow">Direct Comparison</div>
+      <h2 class="section-title">Stock Gboard vs. Gboard Pro</h2>
+      <p class="section-desc">See why hundreds of thousands of Android users choose Gboard Pro over factory stock keyboards.</p>
+    </div>
+
+    <div class="table-container">
+      <table class="compare-table">
+        <thead>
+          <tr>
+            <th>Feature / Capability</th>
+            <th>Stock Gboard (Play Store)</th>
+            <th>Pixel-Exclusive Gboard</th>
+            <th class="col-highlight">🌟 Gboard Pro (This Mod)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Non-Pixel Device Availability</td>
+            <td><span class="check-yes">✅ All Phones</span></td>
+            <td><span class="check-no">❌ Pixel 8/9 Only</span></td>
+            <td class="col-highlight"><span class="check-yes">✅ All Android 10-16 Devices</span></td>
+          </tr>
+          <tr>
+            <td>Gemini Rambler Voice Dictation</td>
+            <td><span class="check-no">❌ Standard Only</span></td>
+            <td><span class="check-yes">✅ Yes</span></td>
+            <td class="col-highlight"><span class="check-yes">✅ Fully Unlocked</span></td>
+          </tr>
+          <tr>
+            <td>Speech Filler Cleanser ("uh", "um")</td>
+            <td><span class="check-no">❌ Transcribes Stutters</span></td>
+            <td><span class="check-yes">✅ Yes</span></td>
+            <td class="col-highlight"><span class="check-yes">✅ Dynamic Real-Time Removal</span></td>
+          </tr>
+          <tr>
+            <td>Screen Rotation Audio Grace Window</td>
+            <td><span class="check-no">❌ Aborts Session</span></td>
+            <td><span class="check-no">❌ Aborts Session</span></td>
+            <td class="col-highlight"><span class="check-yes">✅ 1.5s Rotation Grace</span></td>
+          </tr>
+          <tr>
+            <td>AI Writing Assistant & Tone Rewriter</td>
+            <td><span class="check-no">❌ Restricted</span></td>
+            <td><span class="check-yes">⚠️ Region/Carrier Gated</span></td>
+            <td class="col-highlight"><span class="check-yes">✅ Stable Server Engine</span></td>
+          </tr>
+          <tr>
+            <td>Material 3 Expressive Color Palettes</td>
+            <td><span class="check-no">❌ Basic Monet</span></td>
+            <td><span class="check-no">❌ Basic Monet</span></td>
+            <td class="col-highlight"><span class="check-yes">✅ 5 Curated Palettes</span></td>
+          </tr>
+          <tr>
+            <td>AMOLED Pure Black (#000000)</td>
+            <td><span class="check-no">❌ Dark Gray Only</span></td>
+            <td><span class="check-no">❌ Dark Gray Only</span></td>
+            <td class="col-highlight"><span class="check-yes">✅ Deep Pitch Black</span></td>
+          </tr>
+          <tr>
+            <td>Unpinned Clipboard Retention Time</td>
+            <td><span class="check-no">❌ 1 Hour Only</span></td>
+            <td><span class="check-no">❌ 1 Hour Only</span></td>
+            <td class="col-highlight"><span class="check-yes">✅ 24h Default (Up to Never)</span></td>
+          </tr>
+          <tr>
+            <td>Unpinned Recent Clips Buffer</td>
+            <td><span class="check-no">❌ 5 Clips Cap</span></td>
+            <td><span class="check-no">❌ 5 Clips Cap</span></td>
+            <td class="col-highlight"><span class="check-yes">✅ 100 Recent Clips</span></td>
+          </tr>
+          <tr>
+            <td>Side-by-Side Coexistence</td>
+            <td><span class="check-no">❌ Replaces System</span></td>
+            <td><span class="check-no">❌ Replaces System</span></td>
+            <td class="col-highlight"><span class="check-yes">✅ com.gboardpro.app</span></td>
+          </tr>
+          <tr>
+            <td>Automated Background Update Checks</td>
+            <td><span class="check-no">❌ Play Store Only</span></td>
+            <td><span class="check-no">❌ Play Store Only</span></td>
+            <td class="col-highlight"><span class="check-yes">✅ Every 8h + Notification</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Installation Steps -->
+  <section class="container" id="installation">
+    <div class="section-header">
+      <div class="section-eyebrow">Quick Setup</div>
+      <h2 class="section-title">Install in 3 Simple Steps</h2>
+      <p class="section-desc">No root, no custom recovery, and no complex terminal commands required.</p>
+    </div>
+
+    <div class="steps-grid">
+      <div class="step-card">
+        <div class="step-num">1</div>
+        <h4>Download APK</h4>
+        <p>Get the official verified signed release <code>Gboard_Pro.apk</code> (v2.1.1) directly from GitHub Releases.</p>
+      </div>
+      <div class="step-card">
+        <div class="step-num">2</div>
+        <h4>Install Package</h4>
+        <p>Open the APK on your device, allow unknown sources if prompted, and complete the standard Android installation.</p>
+      </div>
+      <div class="step-card">
+        <div class="step-num">3</div>
+        <h4>Activate in Settings</h4>
+        <p>Navigate to <b>Settings > System > Languages & input > On-screen keyboard</b> and switch Gboard Pro to ON.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ Section -->
+  <section class="container" id="faq">
+    <div class="section-header">
+      <div class="section-eyebrow">Got Questions?</div>
+      <h2 class="section-title">Frequently Asked Questions</h2>
+      <p class="section-desc">Everything you need to know about Gboard Pro, security, and compatibility.</p>
+    </div>
+
+    <div class="faq-container">
+      <div class="faq-item open">
+        <button class="faq-trigger" onclick="toggleFaq(this)">
+          <span>What is Gboard Pro?</span>
+          <span class="faq-icon">+</span>
+        </button>
+        <div class="faq-content">
+          Gboard Pro is an enhanced, open-source modification of the official Google Keyboard (Gboard). It unlocks Pixel-exclusive features—like Gemini Rambler voice typing, on-device AI writing tools, Material 3 dynamic color themes, and a 24-hour clipboard—on any Android 10-16 smartphone without requiring root access.
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-trigger" onclick="toggleFaq(this)">
+          <span>Does Gboard Pro require root access or Magisk?</span>
+          <span class="faq-icon">+</span>
+        </button>
+        <div class="faq-content">
+          No! Gboard Pro is 100% non-root. It installs as a regular Android user application under its own isolated package namespace (<code>com.gboardpro.app</code>).
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-trigger" onclick="toggleFaq(this)">
+          <span>Will installing Gboard Pro replace my existing system Gboard?</span>
+          <span class="faq-icon">+</span>
+        </button>
+        <div class="faq-content">
+          No. Because Gboard Pro uses an isolated package identifier, it lives harmoniously alongside your factory keyboard. You can keep both installed and switch between them at any time.
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-trigger" onclick="toggleFaq(this)">
+          <span>Can I use Gemini voice dictation on Samsung, Xiaomi, or OnePlus devices?</span>
+          <span class="faq-icon">+</span>
+        </button>
+        <div class="faq-content">
+          Yes! While official Google Keyboard restricts Rambler voice typing to Pixel 8 Pro and Pixel 9 series phones, Gboard Pro unlocks full Rambler speech recognition across all ARM64 Android devices running Android 10 or higher.
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-trigger" onclick="toggleFaq(this)">
+          <span>Is my personal typing and voice data secure?</span>
+          <span class="faq-icon">+</span>
+        </button>
+        <div class="faq-content">
+          Yes. Gboard Pro removes promotional tracking and third-party analytics. Voice processing and clipboard storage operate locally on your device within encrypted Device-Protected Storage. Keystrokes are never logged or transmitted to unauthorized servers.
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-trigger" onclick="toggleFaq(this)">
+          <span>How does the 24-hour clipboard history feature work?</span>
+          <span class="faq-icon">+</span>
+        </button>
+        <div class="faq-content">
+          Stock Gboard discards unpinned clips after 1 hour and only displays 5 recent items. Gboard Pro raises the default retention to 24 hours, expands the buffer to 100 recent clips, and provides a discrete slider in Settings to choose between 1 hour, 24 hours, 7 days, 30 days, or Never.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Final CTA Banner -->
+  <section class="container">
+    <div class="cta-banner">
+      <h2>Experience Flagship Android Typing Today</h2>
+      <p>Upgrade to Gboard Pro v2.1.1 with Gemini voice typing, AI writing assistance, and Material 3 Expressive dynamic palettes.</p>
+      <div class="hero-actions" style="margin-bottom: 0;">
+        <a href="https://github.com/smartworldarafath/Gboard_Pro/releases/latest/download/Gboard_Pro.apk" class="btn-primary">
+          <span>Download Gboard Pro APK</span>
+          <span style="font-size: 13px; opacity: 0.85;">(v2.1.1 • 134 MB)</span>
+        </a>
+        <a href="https://github.com/smartworldarafath/Gboard_Pro" class="btn-secondary">
+          <span>GitHub Repository</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <div class="container">
+      <div class="footer-links">
+        <a href="https://github.com/smartworldarafath/Gboard_Pro">GitHub Source</a>
+        <a href="https://github.com/smartworldarafath/Gboard_Pro/releases/latest">Releases (v2.1.1)</a>
+        <a href="https://github.com/smartworldarafath/Gboard_Pro/issues">Report Issue</a>
+        <a href="https://www.supportkori.com/arafathrahman">Support Development</a>
+        <a href="https://github.com/smartworldarafath/Gboard_Pro/blob/main/LICENSE">GNU GPL-3.0 License</a>
+      </div>
+      <p style="margin-bottom: 8px;">Gboard Pro is an independent, non-commercial open-source project by <b>Arafath Rahman (@smartworldarafath)</b> with upstream architecture by <b>Akshay Kadam (@Akshayykadam)</b>.</p>
+      <p style="font-size: 12px; color: #5F6368;">Gboard, Google, Pixel, Android, and Gemini are trademarks of Google LLC. This project is not affiliated with or endorsed by Google LLC.</p>
+    </div>
+  </footer>
+
+  <!-- liquidGL WebGPU/WebGL liquid glass engine -->
+  <script src="assets/js/liquidGL.js"></script>
+  
+  <script>
+    // ============================================================
+    // 60FPS OPTIMIZED LIQUID GLASS & INTERACTIVITY INITIALIZATION
+    // ============================================================
+    document.addEventListener("DOMContentLoaded", function() {
+      // 1. Initialize liquidGL safely if any element exists with class
+      try {
+        if (typeof liquidGL === "function" && document.querySelector(".liquid-glass-lens")) {
+          liquidGL({
+            target: ".liquid-glass-lens",
+            snapshot: "body",
+            resolution: 1, // 1.0 resolution ensures 60fps on integrated laptop GPUs and mobile
+            refraction: 0.008,
+            aberration: 0.004,
+            bevelDepth: 0.08,
+            bevelWidth: 0.1,
+            frost: 2.5,
+            shadow: true,
+            specular: true,
+            tilt: true,
+            tiltFactor: 3.5,
+            tint: "rgba(255, 255, 255, 0.02)"
+          });
+        }
+      } catch (e) {
+        console.warn("liquidGL initialized with hardware CSS fallback:", e);
+      }
+    });
+
+    // ============================================================
+    // ROCK-SOLID BUTTER-SMOOTH DARK / LIGHT THEME CONTROLLER
+    // ============================================================
+    window.toggleTheme = function(event) {
+      if (event) {
+        try {
+          if (typeof event.preventDefault === "function") event.preventDefault();
+          if (typeof event.stopPropagation === "function") event.stopPropagation();
+        } catch(_) {}
+      }
+      
+      var html = document.documentElement;
+      var body = document.body;
+      var currentTheme = html.getAttribute("data-theme") || (html.classList.contains("light") ? "light" : "dark");
+      var newTheme = (currentTheme === "light") ? "dark" : "light";
+
+      // 1. Synchronously set attributes & classes on both html and body
+      html.setAttribute("data-theme", newTheme);
+      html.classList.remove("dark", "light");
+      html.classList.add(newTheme);
+
+      if (body) {
+        body.setAttribute("data-theme", newTheme);
+        body.classList.remove("dark", "light");
+        body.classList.add(newTheme);
+      }
+
+      // 2. Persist user preference
+      try {
+        localStorage.setItem("gboard_pro_theme", newTheme);
+      } catch(e) {}
+
+      // 3. Update mobile address bar theme color
+      try {
+        var metaTheme = document.querySelector('meta[name="theme-color"]');
+        if (metaTheme) {
+          metaTheme.setAttribute("content", newTheme === "dark" ? "#07080B" : "#F8F9FE");
+        }
+      } catch(_) {}
+
+      // 4. Update button accessibility title and aria-label
+      try {
+        var btn = document.getElementById("themeToggleBtn");
+        if (btn) {
+          btn.setAttribute("aria-label", newTheme === "dark" ? "Switch to light theme" : "Switch to dark theme");
+          btn.setAttribute("title", newTheme === "dark" ? "Switch to Light Theme" : "Switch to Dark Theme");
+        }
+      } catch(_) {}
+
+      // 5. Notify embedded simulator iframe if present
+      try {
+        var neonFrame = document.getElementById("neonFrame");
+        if (neonFrame && neonFrame.contentWindow) {
+          neonFrame.contentWindow.postMessage({ action: "theme", theme: newTheme }, "*");
+        }
+      } catch(_) {}
+
+      // 6. Re-render liquid glass if active
+      if (window.__liquidGLRenderer__ && typeof window.__liquidGLRenderer__.render === "function") {
+        try { window.__liquidGLRenderer__.render(); } catch(_) {}
+      }
+    };
+
+    // Ensure theme toggle is wired up immediately and on DOMContentLoaded
+    (function wireThemeToggle() {
+      function attach() {
+        var btn = document.getElementById("themeToggleBtn");
+        if (btn) {
+          btn.onclick = window.toggleTheme;
+        }
+      }
+      if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", attach);
+      } else {
+        attach();
+      }
+    })();
+
+    // Theme Switcher for Keyboard Simulator
+    function switchTheme(themeClass, el) {
+      document.querySelectorAll(".palette-pill").forEach(p => p.classList.remove("active"));
+      el.classList.add("active");
+      
+      const kb = document.getElementById("liveKeyboard");
+      kb.className = "keyboard-viewport " + themeClass;
+    }
+
+    // AI Simulation Prompts
+    function simulateAI(type) {
+      const input = document.getElementById("aiInput");
+      const badge = document.getElementById("keyboardAiBadge");
+
+      if (type === "clean_fillers") {
+        input.value = "Let's meet at 5:00 PM for the presentation.";
+        badge.innerText = "✦ Fillers Cleared";
+      } else if (type === "professional") {
+        input.value = "Could we please reschedule our presentation meeting to 5:00 PM?";
+        badge.innerText = "✦ Professional Tone";
+      } else if (type === "casual") {
+        input.value = "Hey! Let's catch up at 5pm instead for the deck 🚀";
+        badge.innerText = "✦ Casual Restyle";
+      } else if (type === "blush_theme") {
+        const blushPill = document.querySelector(".palette-pill:first-child");
+        switchTheme("theme-blush-lilac", blushPill);
+        badge.innerText = "✦ Blush Lilac Active";
+      }
+    }
+
+    // Tactile Key Tap Feedback
+    function tapKey(key) {
+      const input = document.getElementById("aiInput");
+      if (key === "⌫") {
+        input.value = input.value.slice(0, -1);
+      } else if (key !== "⇧" && key !== "?123" && key !== "↵") {
+        input.value += key;
+      }
+    }
+
+    // Toolbar Feature Trigger
+    function triggerEffect(type) {
+      const badge = document.getElementById("keyboardAiBadge");
+      if (type === "mic") {
+        badge.innerText = "🎙️ Listening (Gemini Rambler)...";
+        setTimeout(() => { badge.innerText = "✦ Gemini Active"; }, 2500);
+      } else if (type === "sparkle") {
+        badge.innerText = "✨ Proofreading Text...";
+        setTimeout(() => { badge.innerText = "✦ Perfect Grammar"; }, 1800);
+      } else if (type === "clipboard") {
+        badge.innerText = "📋 24h Clipboard (100 items)";
+        setTimeout(() => { badge.innerText = "✦ Gemini Active"; }, 2000);
+      }
+    }
+
+    // Neon Simulator Remote Integration
+    function injectPhrase(phrase) {
+      var frame = document.getElementById("neonFrame");
+      if (frame && frame.contentWindow) {
+        frame.contentWindow.postMessage({ action: "type", text: phrase }, "*");
+      }
+    }
+
+    function clearSimulatorText() {
+      var frame = document.getElementById("neonFrame");
+      if (frame && frame.contentWindow) {
+        frame.contentWindow.postMessage({ action: "clear" }, "*");
+      }
+    }
+
+    var simSoundOn = true;
+    function toggleSimulatorSound() {
+      simSoundOn = !simSoundOn;
+      var btn = document.getElementById("soundToggleBtn");
+      if (btn) {
+        btn.innerHTML = simSoundOn ? "<span>🔊 Sound: ON</span>" : "<span>🔇 Sound: OFF</span>";
+      }
+      var frame = document.getElementById("neonFrame");
+      if (frame && frame.contentWindow) {
+        frame.contentWindow.postMessage({ action: "toggleSound" }, "*");
+      }
+    }
+
+    // FAQ Accordion
+    function toggleFaq(btn) {
+      const item = btn.parentElement;
+      const isOpen = item.classList.contains("open");
+      document.querySelectorAll(".faq-item").forEach(f => f.classList.remove("open"));
+      if (!isOpen) {
+        item.classList.add("open");
+      }
+    }
+  </script>
+</body>
+</html>

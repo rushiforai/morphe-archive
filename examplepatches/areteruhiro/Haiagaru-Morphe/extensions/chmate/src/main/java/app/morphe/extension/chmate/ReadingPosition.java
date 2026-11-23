@@ -217,12 +217,13 @@ public final class ReadingPosition {
     static Object response(Object row) throws Exception {
         if (row == null) return null;
         if (responseType(row.getClass().getName())) return row;
-        for (Class<?> type = row.getClass(); type != null; type = type.getSuperclass()) {
-            for (Field field : type.getDeclaredFields()) {
-                if (Modifier.isStatic(field.getModifiers()) || !responseType(field.getType().getName())) continue;
-                field.setAccessible(true);
-                return field.get(row);
-            }
+        // This runs during visible-anchor checks. Native row classes are stable,
+        // so reuse the shared per-class field list instead of enumerating the
+        // hierarchy and allocating a new fields array on each inspection.
+        for (Field field : NativeFields.all(row.getClass())) {
+            if (Modifier.isStatic(field.getModifiers()) || !responseType(field.getType().getName())) continue;
+            field.setAccessible(true);
+            return field.get(row);
         }
         return null;
     }

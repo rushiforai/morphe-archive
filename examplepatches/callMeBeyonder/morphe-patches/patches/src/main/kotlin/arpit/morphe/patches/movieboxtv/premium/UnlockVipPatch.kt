@@ -56,8 +56,7 @@ private fun MutableMethod.returnConstant(value: Boolean, objectType: Boolean) {
 @Suppress("unused")
 val unlockVipPatch = bytecodePatch(
     name = "Unlock VIP",
-    description = "Reports the account as VIP, clears the per-title VIP locks and removes the " +
-        "visitor region block.",
+    description = "Unlocks VIP-only content and removes region restrictions.",
 ) {
     compatibleWith(COMPATIBILITY_MOVIEBOX_TV)
 

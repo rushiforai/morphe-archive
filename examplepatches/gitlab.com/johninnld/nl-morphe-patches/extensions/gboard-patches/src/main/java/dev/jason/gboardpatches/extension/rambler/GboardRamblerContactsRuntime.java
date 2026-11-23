@@ -184,4 +184,74 @@ public final class GboardRamblerContactsRuntime {
     static boolean addToVoiceCorrectionList(Context context, LinkedHashSet<String> words) {
         return false;
     }
+
+    /**
+     * 18.8.0 store contract: the update takes a transformer (`apply(currentStats) -> newStats`)
+     * instead of an AddWords value. Gboard's own per-word transformer is a standalone class with a
+     * `(String word, List phrases, int maxCount)` constructor, so we chain one per word behind a
+     * dynamic proxy for the transformer interface the patch discovered.
+     *
+     * <p>Returns null when anything is missing; Gboard then skips the update instead of storing a
+     * partial list.
+     */
+    public static Object appendWords(Set<String> words, String transformerClass,
+                                     String transformerInterface, int maxCount) {
+        if (words == null || words.isEmpty()) {
+            return null;
+        }
+        try {
+            ClassLoader loader = GboardRamblerContactsRuntime.class.getClassLoader();
+            Class<?> iface = Class.forName(transformerInterface, false, loader);
+            Class<?> implementation = Class.forName(transformerClass, false, loader);
+            java.lang.reflect.Constructor<?> constructor =
+                    implementation.getDeclaredConstructor(String.class, List.class, int.class);
+            constructor.setAccessible(true);
+            final java.lang.reflect.Method apply = iface.getMethod("apply", Object.class);
+            apply.setAccessible(true);
+            return java.lang.reflect.Proxy.newProxyInstance(
+                    loader,
+                    new Class<?>[]{iface},
+                    (proxy, method, args) -> {
+                        String name = method.getName();
+                        if ("apply".equals(name)) {
+                            Object stats = args != null && args.length > 0 ? args[0] : null;
+                            if (stats == null) {
+                                return null;
+                            }
+                            Object current = stats;
+                            for (String word : words) {
+                                if (word == null || word.isEmpty()) {
+                                    continue;
+                                }
+                                try {
+                                    Object transformer =
+                                            constructor.newInstance(word, java.util.Collections.emptyList(), maxCount);
+                                    Object next = apply.invoke(transformer, current);
+                                    if (next == null) {
+                                        return current;
+                                    }
+                                    current = next;
+                                } catch (Throwable failure) {
+                                    Log.w(TAG, "Word transformer failed for one name", failure);
+                                    return current;
+                                }
+                            }
+                            return current;
+                        }
+                        if ("equals".equals(name)) {
+                            return proxy == args[0];
+                        }
+                        if ("hashCode".equals(name)) {
+                            return System.identityHashCode(proxy);
+                        }
+                        if ("toString".equals(name)) {
+                            return "GboardPatchesWordTransformer";
+                        }
+                        return null;
+                    });
+        } catch (Throwable failure) {
+            Log.w(TAG, "Word transformer contract unavailable", failure);
+            return null;
+        }
+    }
 }

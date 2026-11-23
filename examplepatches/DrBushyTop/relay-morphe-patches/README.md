@@ -26,9 +26,12 @@ Extra [Morphe](https://morphe.software) patches for Relay for Reddit, made to be
     network.
   - The patch includes the viewer fix above.
 - **Prefer high refresh rate**: Relay never asks for a refresh rate, so on phones with an adaptive
-  refresh rate it stays at 60 Hz, scrolling included. While Relay is drawing (scrolling, flinging,
-  animating) it now asks for the display's highest refresh rate (120 Hz, 144 Hz, ...), and drops the
-  request 0.6 s after the screen goes still, so static content can run at a lower rate again.
+  refresh rate it stays at 60 Hz, scrolling included. While Relay moves because of you (scrolling,
+  flinging, the animations a tap starts) it now asks for the display's highest refresh rate (120 Hz,
+  144 Hz, ...), and drops the request 0.6 s after the screen goes still, so static content can run at a
+  lower rate again. Only movement within 3 s of a touch or key press counts: a playing video, an
+  animated GIF or a loading spinner doesn't hold the top rate, so the phone can run them at the rate
+  they need.
 - **Night theme like OLED, grey in dim light** (off by default; for vivo phones): vivo's LTPO phones hold
   the screen at 60 Hz in dim light while half of it or more is darker than 49/255, so a black theme is held
   at 60 Hz exactly when the screen is dimmest. Measured on a vivo X300 Ultra, that costs more battery
@@ -83,7 +86,7 @@ Add both sources to Morphe Manager, then patch Relay with patcheddit's patches a
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.7.0](https://github.com/DrBushyTop/relay-morphe-patches/releases/tag/v1.7.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;16 patches total
+> **[v1.7.1](https://github.com/DrBushyTop/relay-morphe-patches/releases/tag/v1.7.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;16 patches total
 <details open>
 <summary>📦 Relay for Reddit&nbsp;&nbsp;•&nbsp;&nbsp;8 patches</summary>
 <br>
@@ -101,7 +104,7 @@ Add both sources to Morphe Manager, then patch Relay with patcheddit's patches a
 | [Fix video crashes](#fix-video-crashes) | Stops Relay from crashing on a post whose video has no URL (when the post's More menu opens, for one) and when the video controls button is tapped before a video loads. |  |
 | [Night theme like OLED, grey in dim light](#night-theme-like-oled-grey-in-dim-light) | Makes the Night theme look like Night (OLED), except at very low brightness, where its blacks turn dark grey. For vivo phones with an adaptive refresh rate: they hold a mostly black screen at 60 Hz in dim light, which uses more battery than the grey. Night (OLED) is not changed. |  |
 | [Open Reddit images in the image viewer](#open-reddit-images-in-the-image-viewer) | Opens i.redd.it and preview.redd.it images (.jpeg, .webp, ...) in Relay's image viewer. Relay only recognised .jpg and .png, so these went to the browser, which Reddit now redirects to the comment thread. Also plays Reddit's MP4 copies of GIFs in Relay's video player. |  |
-| [Prefer high refresh rate](#prefer-high-refresh-rate) | Asks for the display's highest refresh rate while Relay is scrolling or animating, so scrolling is not held at 60 Hz on adaptive refresh rate phones. The request is dropped once the screen is still, so static content can run at a lower rate. |  |
+| [Prefer high refresh rate](#prefer-high-refresh-rate) | Asks for the display's highest refresh rate while Relay is scrolling or animating after a touch, so scrolling is not held at 60 Hz on adaptive refresh rate phones. The request is dropped once the screen is still, and videos and GIFs playing on their own don't hold it, so the phone can lower the rate for them. |  |
 | [Reject ad consent](#reject-ad-consent) | Answers Relay's ad consent request (Google's cookie and personal data form) with "reject all" without showing it: no purposes, no vendors, no legitimate interest. An answer given before is replaced. |  |
 | [Restore random subreddits](#restore-random-subreddits) | Makes the Random Subreddit and RandomNSFW Subreddit menu items work again. Reddit removed r/random and r/randnsfw, so Relay now picks one itself: Random from Reddit's popular subreddits, RandomNSFW from a list of NSFW subreddits bundled with the patch. Refresh picks another one, as before. |  |
 | [Show comment images inline](#show-comment-images-inline) | Draws pictures and GIFs linked in a comment (Reddit uploads, Giphy, i.imgur) inside the comment instead of as a link. Tapping one opens it full screen as before. GIFs animate on Wi-Fi and show a still on mobile data. Follows Relay's NSFW Thumbnails setting. Can be turned off, or limited to Wi-Fi, in Settings > Behaviour > Comments. |  |
@@ -125,7 +128,7 @@ Add both sources to Morphe Manager, then patch Relay with patcheddit's patches a
 | [Fix video crashes](#fix-video-crashes) | Stops Relay from crashing on a post whose video has no URL (when the post's More menu opens, for one) and when the video controls button is tapped before a video loads. |  |
 | [Night theme like OLED, grey in dim light](#night-theme-like-oled-grey-in-dim-light) | Makes the Night theme look like Night (OLED), except at very low brightness, where its blacks turn dark grey. For vivo phones with an adaptive refresh rate: they hold a mostly black screen at 60 Hz in dim light, which uses more battery than the grey. Night (OLED) is not changed. |  |
 | [Open Reddit images in the image viewer](#open-reddit-images-in-the-image-viewer) | Opens i.redd.it and preview.redd.it images (.jpeg, .webp, ...) in Relay's image viewer. Relay only recognised .jpg and .png, so these went to the browser, which Reddit now redirects to the comment thread. Also plays Reddit's MP4 copies of GIFs in Relay's video player. |  |
-| [Prefer high refresh rate](#prefer-high-refresh-rate) | Asks for the display's highest refresh rate while Relay is scrolling or animating, so scrolling is not held at 60 Hz on adaptive refresh rate phones. The request is dropped once the screen is still, so static content can run at a lower rate. |  |
+| [Prefer high refresh rate](#prefer-high-refresh-rate) | Asks for the display's highest refresh rate while Relay is scrolling or animating after a touch, so scrolling is not held at 60 Hz on adaptive refresh rate phones. The request is dropped once the screen is still, and videos and GIFs playing on their own don't hold it, so the phone can lower the rate for them. |  |
 | [Reject ad consent](#reject-ad-consent) | Answers Relay's ad consent request (Google's cookie and personal data form) with "reject all" without showing it: no purposes, no vendors, no legitimate interest. An answer given before is replaced. |  |
 | [Restore random subreddits](#restore-random-subreddits) | Makes the Random Subreddit and RandomNSFW Subreddit menu items work again. Reddit removed r/random and r/randnsfw, so Relay now picks one itself: Random from Reddit's popular subreddits, RandomNSFW from a list of NSFW subreddits bundled with the patch. Refresh picks another one, as before. |  |
 | [Show comment images inline](#show-comment-images-inline) | Draws pictures and GIFs linked in a comment (Reddit uploads, Giphy, i.imgur) inside the comment instead of as a link. Tapping one opens it full screen as before. GIFs animate on Wi-Fi and show a still on mobile data. Follows Relay's NSFW Thumbnails setting. Can be turned off, or limited to Wi-Fi, in Settings > Behaviour > Comments. |  |

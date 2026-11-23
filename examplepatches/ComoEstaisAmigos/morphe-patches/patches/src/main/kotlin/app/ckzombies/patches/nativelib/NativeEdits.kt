@@ -25,14 +25,46 @@ internal object NativeEdits {
             WordEdit(0x0057BCD0, 0x00000016L, 0x00000015L),
         ),
     )
-    val GSERVE_STALL: Map<String, List<WordEdit>> = mapOf(
+    val IS_AVAILABLE: Map<String, List<WordEdit>> = mapOf(
         "armeabi" to listOf(
-            WordEdit(0x004C5350, 0xE92D4030L, 0xE12FFF1EL),
+            WordEdit(0x000C43F4, 0xE92D4010L, 0xE3A00000L),
+            WordEdit(0x000C43F8, 0xE59F3020L, 0xE12FFF1EL),
         ),
         "armeabi-v7a" to listOf(
-            WordEdit(0x0049D1CC, 0xE92D4030L, 0xE12FFF1EL),
+            WordEdit(0x000C4734, 0xE59F3024L, 0xE3A00000L),
+            WordEdit(0x000C4738, 0xE92D4010L, 0xE12FFF1EL),
         ),
     )
+
+    val UNLIMITED_AMMO: Map<String, List<WordEdit>> = mapOf(
+        "armeabi" to listOf(
+            WordEdit(0x0041298C, 0xAAFFFFDEL, 0xE1A00000L),
+            WordEdit(0x004BBEE4, 0xE2433001L, 0xE1A00000L),
+            WordEdit(0x004BC0C0, 0xE2433001L, 0xE1A00000L),
+        ),
+        "armeabi-v7a" to listOf(
+            WordEdit(0x003F6748, 0xAAFFFFDDL, 0xE1A00000L),
+            WordEdit(0x00493E04, 0xE2433001L, 0xE1A00000L),
+            WordEdit(0x00493FBC, 0xE2433001L, 0xE1A00000L),
+        ),
+    )
+    val HUD_RELOAD: Map<String, HudPlan> = mapOf(
+        "armeabi" to HudPlan(
+            cave = 0x00596E80,
+            caveBytes = "9c2193e59000d3e5000050e30200001a880093e5030050e30000001a0020a0e31eff2fe1",
+            edits = listOf(
+                WordEdit(0x00417280, 0xE593219CL, 0xEB05FEFEL),
+            ),
+        ),
+        "armeabi-v7a" to HudPlan(
+            cave = 0x00566E80,
+            caveBytes = "9c1190e59020d0e5000052e30200001a882090e5030052e30000001a0010a0e31eff2fe1",
+            edits = listOf(
+                WordEdit(0x003FB0E8, 0xE590119CL, 0xEB05AF64L),
+            ),
+        ),
+    )
+
     val DEAD_SERVERS: Map<String, List<WordEdit>> = mapOf(
         "armeabi" to listOf(
             WordEdit(0x002B8638, 0xEB07BCDEL, 0xE1A00000L),
@@ -87,6 +119,16 @@ internal object NativeEdits {
         ),
         "armeabi-v7a" to listOf(
             WordEdit(0x0036D8C0, 0xE5D00004L, 0xE3A00000L),
+        ),
+    )
+    val EXPLOSION_SHAKE: Map<String, List<WordEdit>> = mapOf(
+        "armeabi" to listOf(
+            WordEdit(0x0030EC74, 0xEB059442L, 0xE1A00000L),
+            WordEdit(0x0030F7DC, 0xEB059168L, 0xE1A00000L),
+        ),
+        "armeabi-v7a" to listOf(
+            WordEdit(0x002F599C, 0xEB058448L, 0xE1A00000L),
+            WordEdit(0x002F6224, 0xEB058226L, 0xE1A00000L),
         ),
     )
     val JNI_GUARDS: Map<String, List<WordEdit>> = mapOf(

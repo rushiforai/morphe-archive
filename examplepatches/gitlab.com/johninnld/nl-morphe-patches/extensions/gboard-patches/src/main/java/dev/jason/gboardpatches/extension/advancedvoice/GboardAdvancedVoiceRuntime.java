@@ -44,6 +44,13 @@ public final class GboardAdvancedVoiceRuntime {
     }
 
     public static Object afterFlagValue(Object receiver, Object stockResult) {
+        // Load the bundled formatter even when the Advanced Voice toggle is off: the library is
+        // separate from the flag gate and Gboard's readiness check runs before the toggle is read.
+        try {
+            DictationPayloadLoader.ensureLoaded();
+        } catch (Throwable ignored) {
+            // Never let the payload loader affect flag evaluation.
+        }
         if (!GboardAdvancedVoiceRuntimeSettings.isEnabled()) {
             return stockResult;
         }

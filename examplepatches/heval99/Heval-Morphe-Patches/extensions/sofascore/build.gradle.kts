@@ -19,6 +19,8 @@ dependencies {
     // JVM unit tests of the pure-Java picker helpers (CountryIconsTest, CompetitionFilterTest, ShareLinkCleanerTest): .\gradlew :extensions:sofascore:testDebugUnitTest
     testImplementation(project(":extensions:hevalcontrols:core"))
     testImplementation(libs.junit)
+    // SpoilerFreeTest's push rule parses JSON; the android.jar stubs would throw.
+    testImplementation(libs.json)
 }
 
 // Pure-Java extension. AGP's built-in Kotlin adds kotlin-stdlib by default, which would grow the

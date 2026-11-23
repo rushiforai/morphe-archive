@@ -1,0 +1,53 @@
+name: Install the Android emulator
+description: >
+  Downloads the emulator and the system image before reactivecircus/android-emulator-runner
+  starts, and tries again when a download fails. The runner downloads them only once, so a
+  broken download from Google's servers ("Error reading Zip content") would otherwise fail the
+  whole test and stop the weekly release. The runner then finds both already installed.
+
+inputs:
+  api-level:
+    description: The system image's API level, as given to the runner (35, 36, 37.0 ...)
+    required: true
+  channel:
+    description: SDK channel, as given to the runner (stable, beta, dev or canary)
+    default: stable
+  target:
+    description: System image target, as given to the runner
+    default: google_apis
+  arch:
+    description: System image architecture, as given to the runner
+    default: x86_64
+
+runs:
+  using: composite
+  steps:
+    - name: Download the emulator and the system image
+      shell: bash
+      env:
+        API: ${{ inputs.api-level }}
+        CHANNEL: ${{ inputs.channel }}
+        TARGET: ${{ inputs.target }}
+        ARCH: ${{ inputs.arch }}
+      run: |
+        SDKMANAGER="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
+        case "$CHANNEL" in
+          stable) CH=0 ;; beta) CH=1 ;; dev) CH=2 ;; canary) CH=3 ;;
+          *) echo "::error::Unknown channel $CHANNEL"; exit 1 ;;
+        esac
+        (yes || true) | "$SDKMANAGER" --licenses > /dev/null || true
+        IMAGE="system-images;android-$API;$TARGET;$ARCH"
+        for try in 1 2 3; do
+          # sdkmanager can print "An error occurred while preparing SDK package" as a warning, so
+          # the log is checked too, not only the exit code.
+          if "$SDKMANAGER" --install emulator "$IMAGE" --channel=$CH > "$RUNNER_TEMP/sdkmanager.log" 2>&1 \
+              && ! grep -qi 'error occurred' "$RUNNER_TEMP/sdkmanager.log"; then
+            echo "Installed the emulator and $IMAGE (try $try)."
+            exit 0
+          fi
+          tail -5 "$RUNNER_TEMP/sdkmanager.log"
+          echo "::warning::Downloading the emulator or $IMAGE failed (try $try of 3)."
+          sleep $((try * 20))
+        done
+        echo "::error::Couldn't download the emulator or $IMAGE after 3 tries."
+        exit 1

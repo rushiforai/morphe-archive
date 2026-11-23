@@ -2711,7 +2711,7 @@ private fun wrapped(instructions: List<Instruction>, at: Int, result: Int): Bool
 val liveControlsPatch = bytecodePatch(
     name = "LIVE controls",
     description = "Stops a LIVE in the feed from opening by itself after a countdown. It can " +
-        "show a LIVE's exact viewer count instead of a rounded one, offer a quality choice and " +
+        "show a LIVE's exact viewer count and battle scores instead of rounded ones, offer a quality choice and " +
         "clear screen in more LIVE rooms, and keep your quality pick after TikTok restarts. " +
         "Starts off. Turn it on in Hushfeed settings > Playback. " +
         "It also keeps a LIVE in the feed from showing the Service+ row of the LIVE before it " +
@@ -2973,6 +2973,15 @@ val liveControlsPatch = bytecodePatch(
             0,
             "invoke-static/range {p0 .. p0}, $RECORD_EXTENSION->noteRoomFragment(Ljava/lang/Object;)V",
         )
+        // The room ID and connection line (#487) follows the same room pages, and reads the
+        // current player's stats by the route TikTok's own LIVE debug panel takes.
+        LivePlayFragmentResumeFingerprint.method.addInstruction(
+            0,
+            "invoke-static/range {p0 .. p0}, $LIVE_ROOM_INFO_EXTENSION->noteRoomFragment(Ljava/lang/Object;)V",
+        )
+        installLiveRoomInfoBridge(livePlayerStatsReads(LiveDebugInfoTextFingerprint.originalMethod))
+        // The profile card's rows (#487): each cell's answer to its container, by TikTok's module name.
+        hookLiveProfileCardRows()
         // Each message a LIVE room gets, for the name alert, before TikTok hands it out (#424).
         LiveMessageDispatchFingerprint.method.addInstruction(
             0,
@@ -3028,6 +3037,9 @@ val liveControlsPatch = bytecodePatch(
             }
             hookViewerCounts(type, found)
         }
+
+        // A battle's scores past the server's high score cap, shown whole on request (#495).
+        installBattleScoreHooks()
 
         // A LIVE preview bound to a LIVE with no Service+ item runs the row's own hide first
         // when it's still showing the last LIVE's row (#94). Matched and checked in full before

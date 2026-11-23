@@ -37,13 +37,13 @@ internal fun MutableMethod.requireGboardExpressionCorpusPatchState():
     }
 }
 
-private const val EXPRESSION_CORPUS_MANAGER_CLASS = "Lgva;"
+private const val EXPRESSION_CORPUS_MANAGER_CLASS = "Lnxt;"
 private const val EXPRESSION_CORPUS_MANAGER_METHOD = "a"
-private const val EXPRESSION_CORPUS_MANAGER_RETURN_TYPE = "Lwhe;"
+private const val EXPRESSION_CORPUS_MANAGER_RETURN_TYPE = "Lauaz;"
 private val EXPRESSION_CORPUS_MANAGER_PARAMETERS =
     listOf("Landroid/view/inputmethod/EditorInfo;", "Z")
 private const val EXPRESSION_CORPUS_MANAGER_DESCRIPTOR =
-    "Lgva;->a(Landroid/view/inputmethod/EditorInfo;Z)Lwhe;"
+    "Lnxt;->a(Landroid/view/inputmethod/EditorInfo;Z)Lauaz;"
 private val EXPECTED_ACCESS_FLAGS = AccessFlags.PUBLIC.value or AccessFlags.FINAL.value
 private const val STOCK_FINGERPRINT =
     "c071e8a7f60078eb4470e8abb45518697d7793ae17b939a5dab118432c7b94bf"

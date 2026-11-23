@@ -99,6 +99,13 @@ private object SaveButtonIconFingerprint2644 : Fingerprint(
     filters = listOf(literal(0x7f080867), literal(0x7f080813)),
 )
 
+/** 26.47 keeps the suitcase and heart drawables at their own resource ids. */
+private object SaveButtonIconFingerprint2647 : Fingerprint(
+    returnType = "I",
+    parameters = emptyList(),
+    filters = listOf(literal(0x7f080844), literal(0x7f0807f0)),
+)
+
 /** The place sheet's Call chip: its click is the only method with this trace label. */
 private object CallClickFingerprint : Fingerprint(
     filters = listOf(string("OnCallClick")),
@@ -115,6 +122,11 @@ private const val SHARE_PLACE_A11Y = 0x7f1400cb
 /** The place sheet's Share chip, by its content description. */
 private object ShareLabelFingerprint : Fingerprint(
     filters = listOf(literal(SHARE_PLACE_A11Y)),
+)
+
+/** 26.47 moved ACCESSIBILITY_SHARE_PLACE to 0x7f1400c6. */
+private object ShareLabelFingerprint2647 : Fingerprint(
+    filters = listOf(literal(0x7f1400c6)),
 )
 
 /** The place sheet's hero image view model, which reads the place's photos. Its trace label is unique. */
@@ -153,45 +165,53 @@ private val SAVE_ENTRY_SHAPE = listOf(
 )
 
 /** The "Local saved" row on the account sheet, right after Customization, in both of the sheet's builders. */
-private fun BytecodePatchContext.addLocalSavedRow() {
-    val rowHolder = mutableClassDefBy("Lomf;")
-    val template = rowHolder.methods.single { it.name == "a" && it.returnType == "Lbrdm;" && it.parameterTypes.isEmpty() }
+private fun BytecodePatchContext.addLocalSavedRow(is2647: Boolean) {
+    val holderType = if (is2647) "Lool;" else "Lomf;"
+    val rowType = if (is2647) "Lbrlr;" else "Lbrdm;"
+    val builderType = if (is2647) "Lbrlp;" else "Lbrdk;"
+    val listType = if (is2647) "Lbwzs;" else "Lbwpw;"
+    val category = if (is2647) "Lbrlo;" else "Lbrdj;"
+    val iconLoader = if (is2647) "Lfzc;->aP(Landroid/content/Context;I)Landroid/graphics/drawable/Drawable;" else "Lgez;->aC(Landroid/content/Context;I)Landroid/graphics/drawable/Drawable;"
+    val icon = if (is2647) "0x7f0804e3" else "$BOOKMARK_ICON"
+    val rowHolder = mutableClassDefBy(holderType)
+    val template = rowHolder.methods.single { it.name == "a" && it.returnType == rowType && it.parameterTypes.isEmpty() }
     val templateRefs = template.implementation!!.instructions.mapNotNull { (it as? ReferenceInstruction)?.reference?.toString() }
     listOf(
-        "Lgez;->aC(Landroid/content/Context;I)Landroid/graphics/drawable/Drawable;", "Lbrdm;->a()Lbrdk;",
-        "Lbrdk;->c(I)V", "Lbrdk;->d(Ljava/lang/String;)V", "Lbrdk;->f(I)V",
-        "Lbrdk;->e(Landroid/view/View\$OnClickListener;)V", "Lbrdj;->d:Lbrdj;", "Lbrdk;->a()Lbrdm;",
+        iconLoader, "$rowType->a()$builderType",
+        "$builderType->c(I)V", "$builderType->d(Ljava/lang/String;)V", "$builderType->f(I)V",
+        "$builderType->e(Landroid/view/View\$OnClickListener;)V", "$category->d:$category", "$builderType->a()$rowType",
     ).forEach { if (it !in templateRefs) throw PatchException("account sheet row builder no longer uses $it") }
     // Its action id must be unique on the sheet (Maps throws "appears in more than one action"
     // otherwise), so it is generated rather than copied from the Customization row.
     rowHolder.methods.add(
         ImmutableMethod(
-            rowHolder.type, "uaSavedRow", emptyList(), "Lbrdm;",
+            rowHolder.type, "uaSavedRow", emptyList(), rowType,
             AccessFlags.PUBLIC.value or AccessFlags.FINAL.value, null, null, MutableMethodImplementation(6),
         ).toMutable().apply {
             addInstructions(
                 0,
                 """
-                    iget-object v0, p0, Lomf;->a:Lnxh;
-                    const v1, $BOOKMARK_ICON
-                    invoke-static { v0, v1 }, Lgez;->aC(Landroid/content/Context;I)Landroid/graphics/drawable/Drawable;
+                    ${if (is2647) "iget-object v0, p0, $holderType->a:Ljava/lang/Object;" else "iget-object v0, p0, $holderType->a:Lnxh;"}
+                    ${if (is2647) "check-cast v0, Landroid/content/Context;" else ""}
+                    const v1, $icon
+                    invoke-static { v0, v1 }, $iconLoader
                     move-result-object v1
-                    invoke-static { }, Lbrdm;->a()Lbrdk;
+                    invoke-static { }, $rowType->a()$builderType
                     move-result-object v3
                     invoke-static { }, Landroid/view/View;->generateViewId()I
                     move-result v4
-                    invoke-virtual { v3, v4 }, Lbrdk;->c(I)V
-                    iput-object v1, v3, Lbrdk;->a:Landroid/graphics/drawable/Drawable;
+                    invoke-virtual { v3, v4 }, $builderType->c(I)V
+                    iput-object v1, v3, $builderType->a:Landroid/graphics/drawable/Drawable;
                     const-string v4, "Local saved"
-                    invoke-virtual { v3, v4 }, Lbrdk;->d(Ljava/lang/String;)V
+                    invoke-virtual { v3, v4 }, $builderType->d(Ljava/lang/String;)V
                     const v4, 0x161a8
-                    invoke-virtual { v3, v4 }, Lbrdk;->f(I)V
+                    invoke-virtual { v3, v4 }, $builderType->f(I)V
                     new-instance v2, $OPEN_SCREEN
                     invoke-direct { v2 }, $OPEN_SCREEN-><init>()V
-                    invoke-virtual { v3, v2 }, Lbrdk;->e(Landroid/view/View${'$'}OnClickListener;)V
-                    sget-object v4, Lbrdj;->d:Lbrdj;
-                    iput-object v4, v3, Lbrdk;->d:Lbrdj;
-                    invoke-virtual { v3 }, Lbrdk;->a()Lbrdm;
+                    invoke-virtual { v3, v2 }, $builderType->e(Landroid/view/View${'$'}OnClickListener;)V
+                    sget-object v4, $category->d:$category
+                    iput-object v4, v3, $builderType->d:$category
+                    invoke-virtual { v3 }, $builderType->a()$rowType
                     move-result-object v0
                     return-object v0
                 """,
@@ -206,7 +226,7 @@ private fun BytecodePatchContext.addLocalSavedRow() {
             for (m in c.methods) {
                 if (m.returnType != returnType || m.parameterTypes.map { it.toString() } != parameters) continue
                 val callsRow = m.implementation?.instructions?.any {
-                    ((it as? ReferenceInstruction)?.reference as? MethodReference)?.let { r -> r.definingClass == "Lomf;" && r.name == "uaCustomizationRow" } == true
+                    ((it as? ReferenceInstruction)?.reference as? MethodReference)?.let { r -> r.definingClass == holderType && r.name == "uaCustomizationRow" } == true
                 } == true
                 if (callsRow) found += c.type to m.name
             }
@@ -218,36 +238,41 @@ private fun BytecodePatchContext.addLocalSavedRow() {
         }
         val ins = method.implementation!!.instructions
         val call = ins.indexOfFirst {
-            ((it as? ReferenceInstruction)?.reference as? MethodReference)?.let { r -> r.definingClass == "Lomf;" && r.name == "uaCustomizationRow" } == true
+            ((it as? ReferenceInstruction)?.reference as? MethodReference)?.let { r -> r.definingClass == holderType && r.name == "uaCustomizationRow" } == true
         }
         val result = ins[call + 1]
         val add = ins[call + 2]
         if (result.opcode != Opcode.MOVE_RESULT_OBJECT || add.opcode != Opcode.INVOKE_VIRTUAL ||
-            ((add as ReferenceInstruction).reference as MethodReference).let { it.definingClass != "Lbwpw;" || it.name != "i" }
+            ((add as ReferenceInstruction).reference as MethodReference).let { it.definingClass != listType || it.name != "i" }
         ) throw PatchException("Customization row add changed shape")
         val scratch = (result as OneRegisterInstruction).registerA
         val list = (add as Instruction35c).registerC
         val holder = (ins[call] as Instruction35c).registerC
         // Modern builder: the holder is cast from a wider register just before; do the same.
-        val cast = ins.getOrNull(call - 1)?.takeIf { it.opcode == Opcode.CHECK_CAST && ((it as ReferenceInstruction).reference as TypeReference).type == "Lomf;" }
+        val cast = ins.getOrNull(call - 1)?.takeIf { it.opcode == Opcode.CHECK_CAST && ((it as ReferenceInstruction).reference as TypeReference).type == holderType }
         val source = cast?.let { (ins[call - 2] as TwoRegisterInstruction).registerB }
         method.addInstructions(
             call + 3,
             if (source != null) """
                 move-object v$scratch, v$source
-                check-cast v$scratch, Lomf;
-                invoke-virtual { v$scratch }, Lomf;->uaSavedRow()Lbrdm;
+                check-cast v$scratch, $holderType
+                invoke-virtual { v$scratch }, $holderType->uaSavedRow()$rowType
                 move-result-object v$scratch
-                invoke-virtual { v$list, v$scratch }, Lbwpw;->i(Ljava/lang/Object;)V
+                invoke-virtual { v$list, v$scratch }, $listType->i(Ljava/lang/Object;)V
             """ else """
-                invoke-virtual { v$holder }, Lomf;->uaSavedRow()Lbrdm;
+                invoke-virtual { v$holder }, $holderType->uaSavedRow()$rowType
                 move-result-object v$scratch
-                invoke-virtual { v$list, v$scratch }, Lbwpw;->i(Ljava/lang/Object;)V
+                invoke-virtual { v$list, v$scratch }, $listType->i(Ljava/lang/Object;)V
             """,
         )
     }
-    addAfterCustomization("Lbqye;", listOf("Lagdp;"))
-    addAfterCustomization("Lbqvz;", listOf("Z"))
+    if (is2647) {
+        addAfterCustomization("Lbrgh;", listOf("Lagnt;"))
+        addAfterCustomization("Lbrel;", listOf("Z"))
+    } else {
+        addAfterCustomization("Lbqye;", listOf("Lagdp;"))
+        addAfterCustomization("Lbqvz;", listOf("Z"))
+    }
 }
 
 /** Maps' place object, read off the Save button's state class [stateClass]: its position and feature id getters. */
@@ -280,7 +305,11 @@ internal val mapMarkersPatch = bytecodePatch(description = "Draws extra pins on 
     dependsOn(sharedExtensionPatch)
 
     execute {
-        val saveButton = if (packageMetadata.versionName == "26.44.06.1006895251") SaveButtonIconFingerprint2644 else SaveButtonIconFingerprint
+        val saveButton = when (packageMetadata.versionName) {
+            "26.44.06.1006895251" -> SaveButtonIconFingerprint2644
+            "26.47.00.1022347503" -> SaveButtonIconFingerprint2647
+            else -> SaveButtonIconFingerprint
+        }
         val (positionGetter, featureIdGetter) = placeGetters(mutableClassDefBy(saveButton.method.definingClass))
         savedOnMap(featureIdGetter.returnType, positionGetter.returnType)
     }
@@ -303,8 +332,17 @@ internal val localSavedPlacesPatch = bytecodePatch(
         // microG Maps saves to the Google account, as Maps does: it gets only the Local saved
         // screen, whose Pull from Google account copies the account's lists to the phone.
         val accountSaves = MicrogSelection.builds(this, "Offline saved places")
+        val is2647 = packageMetadata.versionName == "26.47.00.1022347503"
+        val shareLabel = if (is2647) ShareLabelFingerprint2647 else ShareLabelFingerprint
+        val addPlaceHint = if (is2647) 0x7f140156 else ADD_PLACE_HINT
+        val aliasSignInPrompt = if (is2647) 0x7f140251 else ALIAS_SIGN_IN_PROMPT
+        val labelSignInPrompt = if (is2647) 0x7f140235 else LABEL_SIGN_IN_PROMPT
         // ---- what Maps' place object offers, read off the Save button's state class ----
-        val saveButtonForState = if (packageMetadata.versionName == "26.44.06.1006895251") SaveButtonIconFingerprint2644 else SaveButtonIconFingerprint
+        val saveButtonForState = when (packageMetadata.versionName) {
+            "26.44.06.1006895251" -> SaveButtonIconFingerprint2644
+            "26.47.00.1022347503" -> SaveButtonIconFingerprint2647
+            else -> SaveButtonIconFingerprint
+        }
         val stateClass = mutableClassDefBy(saveButtonForState.method.definingClass)
         val ctor = stateClass.methods.singleOrNull { it.name == "<init>" }
             ?: throw PatchException("Save button state class has more than one constructor")
@@ -328,7 +366,7 @@ internal val localSavedPlacesPatch = bytecodePatch(
         val count = intFields.single { it.name != stateName }
 
         if (accountSaves) {
-            addLocalSavedRow()
+            addLocalSavedRow(is2647 = packageMetadata.versionName == "26.47.00.1022347503")
             // A place imported from Google Takeout still takes its position from Maps when shown;
             // read only -- the Save button keeps the account's state.
             val last = ctor.implementation!!.instructions.indexOfLast { it.opcode == Opcode.RETURN_VOID }
@@ -443,7 +481,7 @@ internal val localSavedPlacesPatch = bytecodePatch(
         )
 
         // ---- 3. A "Local saved" row on the account sheet, right after Customization ---------
-        addLocalSavedRow()
+        addLocalSavedRow(is2647 = packageMetadata.versionName == "26.47.00.1022347503")
 
         // ---- 4. Save buttons redraw after a change made here -----------------------------
         // Maps works a button's saved state out once, when the place is bound. Each button
@@ -714,7 +752,7 @@ internal val localSavedPlacesPatch = bytecodePatch(
         }
         val callChip = mutableClassDefBy(callClick.definingClass)
         hookChipClick(callChip.methods.single { it.name == callClick.name && it.parameterTypes.map { p -> p.toString() } == clickParams }, CALLED)
-        val shareChip = mutableClassDefBy(ShareLabelFingerprint.method.definingClass)
+        val shareChip = mutableClassDefBy(shareLabel.method.definingClass)
         hookChipClick(
             shareChip.methods.singleOrNull {
                 it.name == callClick.name && it.returnType == callClick.returnType &&
@@ -809,7 +847,7 @@ internal val localSavedPlacesPatch = bytecodePatch(
                         check-cast v0, $provider
                         invoke-interface { v0 }, $provider->$providerMethod()$helperType
                         move-result-object v0
-                        const v1, $ADD_PLACE_HINT
+                        const v1, $addPlaceHint
                         invoke-virtual { p0, v1 }, Landroid/app/Activity;->getString(I)Ljava/lang/String;
                         move-result-object v2
                         const/4 v1, 0x0
@@ -1069,7 +1107,14 @@ private fun BytecodePatchContext.savedOnMap(featureType: String, positionType: S
         source(i, (cast as OneRegisterInstruction).registerA)
             ?.takeIf { it.opcode == Opcode.IGET_OBJECT }
             ?.let { (it.ref() as FieldReference).takeIf { f -> f.definingClass == builderType } }
-    } ?: throw PatchException("$builderType's alias field not found")
+    }
+        // 26.47 types the builder's alias field with the enum itself, so the
+        // value needs no CHECK_CAST on its way into the item constructor.
+        ?: buildCode.firstNotNullOfOrNull { insn ->
+            if (insn.opcode != Opcode.IGET_OBJECT) return@firstNotNullOfOrNull null
+            (insn.ref() as FieldReference).takeIf { f -> f.definingClass == builderType && f.type == aliasType }
+        }
+        ?: throw PatchException("$builderType's alias field not found")
 
     // A saved list, as Maps describes it to the generator: (id, kind, 4, name, 4 flags, time, -, 4 strings, flag, list).
     class ListInfo(val type: String, val kind: String, val descriptor: String)
@@ -1196,6 +1241,8 @@ private fun BytecodePatchContext.savedOnMap(featureType: String, positionType: S
             const-class v1, $aliasType
             invoke-static { v1, v3 }, Ljava/lang/Enum;->valueOf(Ljava/lang/Class;Ljava/lang/String;)Ljava/lang/Enum;
             move-result-object v3
+            # valueOf is typed java.lang.Enum; 26.47 declares the builder field as the enum itself.
+            check-cast v3, ${aliasField.type}
             iput-object v3, v2, $builderType->${aliasField.name}:${aliasField.type}
             :alias_done
             if-eqz p11, :list_done
@@ -1233,12 +1280,14 @@ private object SearchSubmitFingerprint : Fingerprint(
  */
 private fun BytecodePatchContext.personalPlaceSearch() {
     fun Instruction.method() = (this as? ReferenceInstruction)?.reference as? MethodReference
+    val aliasSignInPrompt =
+        if (packageMetadata.versionName == "26.47.00.1022347503") 0x7f140251 else ALIAS_SIGN_IN_PROMPT
     // The sign-in dialog's view model: the class that names the sign-in prompt.
     val promptOwners = mutableListOf<String>()
     classDefForEach { c ->
         if (c.type.startsWith("Lorg/ungoogled/")) return@classDefForEach
         val names = c.methods.any { m ->
-            m.implementation?.instructions?.any { (it as? WideLiteralInstruction)?.wideLiteral == ALIAS_SIGN_IN_PROMPT.toLong() } == true
+            m.implementation?.instructions?.any { (it as? WideLiteralInstruction)?.wideLiteral == aliasSignInPrompt.toLong() } == true
         }
         if (names) promptOwners += c.type
     }
@@ -1494,11 +1543,13 @@ private fun BytecodePatchContext.localLabels(
     placeType: String, nameGetter: MethodReference, featureIdGetter: MethodReference, positionGetter: MethodReference,
 ) {
     fun Instruction.ref() = (this as? ReferenceInstruction)?.reference
+    val labelSignInPrompt =
+        if (packageMetadata.versionName == "26.47.00.1022347503") 0x7f140235 else LABEL_SIGN_IN_PROMPT
     // The prompt's text: the one class naming "To label places ... sign in".
     val texts = mutableListOf<String>()
     classDefForEach { c ->
         if (c.type.startsWith("Lorg/ungoogled/")) return@classDefForEach
-        if (c.methods.any { m -> m.implementation?.instructions?.any { (it as? WideLiteralInstruction)?.wideLiteral == LABEL_SIGN_IN_PROMPT.toLong() } == true }) {
+        if (c.methods.any { m -> m.implementation?.instructions?.any { (it as? WideLiteralInstruction)?.wideLiteral == labelSignInPrompt.toLong() } == true }) {
             texts += c.type
         }
     }

@@ -1,6 +1,6 @@
 {
   "NOTE": "Do NOT manually edit this file. This file is automatically updated when semantic release (release.yml) runs. Manually editing this file can break your releases and break third party tools that use this file.",
-  "version": "1.94.0",
+  "version": "1.101.0",
   "patches": [
     {
       "name": "120 refresh rate",
@@ -28,6 +28,18 @@
               "isExperimental": false,
               "minSdk": 29,
               "description": null
+            },
+            {
+              "version": "26.47.00.1022347503",
+              "versionCodes": {
+                "ARM64_V8A": 1068892333,
+                "ARMEABI_V7A": 1068892333,
+                "X86_64": 1068892333,
+                "X86": 1068892333
+              },
+              "isExperimental": false,
+              "minSdk": 29,
+              "description": null
             }
           ]
         }
@@ -36,7 +48,7 @@
     },
     {
       "name": "AI Writing Tools",
-      "description": "Enables Gboard's Writing tools: proofread, rewrite and tone changes on selected text, in every language and keyboard.",
+      "description": "Enables Gboard's Writing tools: rewrite and tone changes on selected text, in every language and keyboard. Proofread/Auto Fix is not ported to 18.8.",
       "default": true,
       "category": null,
       "compatiblePackages": [
@@ -53,22 +65,22 @@
           "formFactor": "MOBILE",
           "targets": [
             {
-              "version": "18.6.3.1002251336-release-armeabi-v7a",
+              "version": "18.8.0.1022711984-beta-arm64-v8a",
               "versionCodes": {
-                "ARMEABI_V7A": 176071765
+                "ARM64_V8A": 176124766
               },
               "isExperimental": false,
               "minSdk": 26,
-              "description": null
+              "description": "64-bit build (arm64-v8a), recommended for 64-bit devices."
             },
             {
-              "version": "18.6.3.1002251336-release-arm64-v8a",
+              "version": "18.8.0.1022711984-beta-armeabi-v7a",
               "versionCodes": {
-                "ARM64_V8A": 176071766
+                "ARMEABI_V7A": 176124765
               },
               "isExperimental": false,
               "minSdk": 26,
-              "description": null
+              "description": "32-bit build (armeabi-v7a), for 32-bit devices only."
             }
           ]
         }
@@ -77,8 +89,8 @@
     },
     {
       "name": "AMOLED dark keyboard",
-      "description": "Experimental. Turns Gboard's dark keyboard background pure black instead of Google's grey, including the dynamic theme that follows the wallpaper. Light mode and the light theme stay unchanged.",
-      "default": false,
+      "description": "Turns Gboard's dark keyboard background pure black instead of Google's grey, including the dynamic theme that follows the wallpaper. There is no separate AMOLED tile: choose Dynamic Color in Gboard → Theme, tap Apply, then use Android's dark theme. Light mode and the light theme stay unchanged.",
+      "default": true,
       "category": null,
       "compatiblePackages": [
         {
@@ -94,22 +106,22 @@
           "formFactor": "MOBILE",
           "targets": [
             {
-              "version": "18.6.3.1002251336-release-armeabi-v7a",
+              "version": "18.8.0.1022711984-beta-arm64-v8a",
               "versionCodes": {
-                "ARMEABI_V7A": 176071765
+                "ARM64_V8A": 176124766
               },
-              "isExperimental": true,
+              "isExperimental": false,
               "minSdk": 26,
-              "description": null
+              "description": "64-bit build (arm64-v8a), recommended for 64-bit devices."
             },
             {
-              "version": "18.6.3.1002251336-release-arm64-v8a",
+              "version": "18.8.0.1022711984-beta-armeabi-v7a",
               "versionCodes": {
-                "ARM64_V8A": 176071766
+                "ARMEABI_V7A": 176124765
               },
-              "isExperimental": true,
+              "isExperimental": false,
               "minSdk": 26,
-              "description": null
+              "description": "32-bit build (armeabi-v7a), for 32-bit devices only."
             }
           ]
         }
@@ -142,6 +154,18 @@
               "isExperimental": false,
               "minSdk": 29,
               "description": null
+            },
+            {
+              "version": "26.47.00.1022347503",
+              "versionCodes": {
+                "ARM64_V8A": 1068892333,
+                "ARMEABI_V7A": 1068892333,
+                "X86_64": 1068892333,
+                "X86": 1068892333
+              },
+              "isExperimental": false,
+              "minSdk": 29,
+              "description": null
             }
           ]
         }
@@ -167,22 +191,22 @@
           "formFactor": "MOBILE",
           "targets": [
             {
-              "version": "18.6.3.1002251336-release-armeabi-v7a",
+              "version": "18.8.0.1022711984-beta-arm64-v8a",
               "versionCodes": {
-                "ARMEABI_V7A": 176071765
+                "ARM64_V8A": 176124766
               },
               "isExperimental": false,
               "minSdk": 26,
-              "description": null
+              "description": "64-bit build (arm64-v8a), recommended for 64-bit devices."
             },
             {
-              "version": "18.6.3.1002251336-release-arm64-v8a",
+              "version": "18.8.0.1022711984-beta-armeabi-v7a",
               "versionCodes": {
-                "ARM64_V8A": 176071766
+                "ARMEABI_V7A": 176124765
               },
               "isExperimental": false,
               "minSdk": 26,
-              "description": null
+              "description": "32-bit build (armeabi-v7a), for 32-bit devices only."
             }
           ]
         }
@@ -245,6 +269,18 @@
                 "ARMEABI_V7A": 1068856906,
                 "X86_64": 1068856906,
                 "X86": 1068856906
+              },
+              "isExperimental": false,
+              "minSdk": 29,
+              "description": null
+            },
+            {
+              "version": "26.47.00.1022347503",
+              "versionCodes": {
+                "ARM64_V8A": 1068892333,
+                "ARMEABI_V7A": 1068892333,
+                "X86_64": 1068892333,
+                "X86": 1068892333
               },
               "isExperimental": false,
               "minSdk": 29,
@@ -312,6 +348,59 @@
               "isExperimental": false,
               "minSdk": 29,
               "description": null
+            },
+            {
+              "version": "26.47.00.1022347503",
+              "versionCodes": {
+                "ARM64_V8A": 1068892333,
+                "ARMEABI_V7A": 1068892333,
+                "X86_64": 1068892333,
+                "X86": 1068892333
+              },
+              "isExperimental": false,
+              "minSdk": 29,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Advanced voice typing (NGA)",
+      "description": "Enables Gboard's NGA dictation capabilities, consolidated speech-stack features and long-form dictation. Availability depends on Gboard's recognizer eligibility.",
+      "default": true,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "com.google.android.inputmethod.latin",
+          "name": "Gboard",
+          "description": null,
+          "apkFileType": "APK",
+          "appIconColor": "#4285F4",
+          "signatures": [
+            "7ce83c1b71f3d572fed04c8d40c5cb10ff75e6d87d9df6fbd53f0468c2905053",
+            "f0fd6c5b410f25cb25c3b53346c8972fae30f8ee7411df910480ad6b2d60db83"
+          ],
+          "formFactor": "MOBILE",
+          "targets": [
+            {
+              "version": "18.8.0.1022711984-beta-arm64-v8a",
+              "versionCodes": {
+                "ARM64_V8A": 176124766
+              },
+              "isExperimental": false,
+              "minSdk": 26,
+              "description": "64-bit build (arm64-v8a), recommended for 64-bit devices."
+            },
+            {
+              "version": "18.8.0.1022711984-beta-armeabi-v7a",
+              "versionCodes": {
+                "ARMEABI_V7A": 176124765
+              },
+              "isExperimental": false,
+              "minSdk": 26,
+              "description": "32-bit build (armeabi-v7a), for 32-bit devices only."
             }
           ]
         }
@@ -501,7 +590,7 @@
     },
     {
       "name": "Allow any Android Auto host",
-      "description": "Lets Deezer's car media browser accept any Android Auto host, including DriveDeck, Gearslip and hosts outside Deezer's package/signature allow-list. Home, Library, Recently played and Explore stay browsable and Deezer's own Up next queue is used. Account, catalogue and playback services are unchanged.",
+      "description": "Lets Deezer's native and templated car surfaces accept any compatible Android Auto host, including DriveDeck, Gearslip and hosts outside Deezer's package/signature allow-list. Home, Library, Recently played and Explore stay browsable and Deezer's own Up next queue is used. Account, catalogue and playback services are unchanged.",
       "default": true,
       "category": null,
       "compatiblePackages": [
@@ -517,12 +606,12 @@
           "formFactor": "MOBILE",
           "targets": [
             {
-              "version": "9.0.26.3",
+              "version": "9.0.27.3",
               "versionCodes": {
-                "ARM64_V8A": 9002603
+                "ARM64_V8A": 9002703
               },
               "isExperimental": false,
-              "minSdk": 28,
+              "minSdk": 26,
               "description": null
             }
           ]
@@ -959,6 +1048,37 @@
       ]
     },
     {
+      "name": "Android Auto API 9 media surface",
+      "description": "Adds Deezer's templated car browser and player for compatible Android Auto hosts. Uses the negotiated car API level, enabling API 9 styling only on API 9 hosts. All compatible custom hosts are allowed; Deezer's real session and queue stay authoritative.",
+      "default": true,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "deezer.android.app",
+          "name": "Deezer",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": null,
+          "signatures": [
+            "51a891a6c5d17b4e36a6f46bab675c1cae786a5af06f51d0105dab7ec6a94516"
+          ],
+          "formFactor": "MOBILE",
+          "targets": [
+            {
+              "version": "9.0.27.3",
+              "versionCodes": {
+                "ARM64_V8A": 9002703
+              },
+              "isExperimental": false,
+              "minSdk": 26,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
       "name": "Android Auto Up next",
       "description": "Myspoti 2.4.x and Orpheon publish their current and upcoming playlist/radio queue with metadata and queue selection themselves; on Myspoti 2.3.0 this patch exports that queue. It also lets every Android Auto host, or only the host packages you list, browse the library and control that queue.",
       "default": false,
@@ -1050,6 +1170,40 @@
           "values": null
         }
       ]
+    },
+    {
+      "name": "Android Auto browse upgrade",
+      "description": "Experimental: not yet confirmed on a classic media browser. Gives Eclipse Music's existing media browser (what hosts without templates show) the same layout as the templated app: Home in the phone's order (Umbra DJ, mixes, linked playlists, Your Shows; no See all), Discover, Library and Radio, a non-destructive Up Next, lists (Eclipse's own included) that never exceed the host's page size, and a tree that refreshes when the queue changes. Eclipse's own ids, playback resumption and queue stay as they are. Works on its own or with the templated app.",
+      "default": true,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "com.eclipse.android",
+          "name": "Eclipse Music",
+          "description": null,
+          "apkFileType": "APK",
+          "appIconColor": null,
+          "signatures": [
+            "18f904b5a1904154ebad737952edb8b951cd51b2e7b34920d63f82dba4a0142d"
+          ],
+          "formFactor": "MOBILE",
+          "targets": [
+            {
+              "version": "0.6.75",
+              "versionCodes": {
+                "ARM64_V8A": 155,
+                "ARMEABI_V7A": 155,
+                "X86_64": 155,
+                "X86": 155
+              },
+              "isExperimental": false,
+              "minSdk": 26,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
     },
     {
       "name": "Android Auto nieuws",
@@ -1272,6 +1426,50 @@
       "options": []
     },
     {
+      "name": "Android Auto options",
+      "description": "Adds an Android Auto page to the Customization screen: satellite view in the car, restoring satellite view on startup, and keeping your navatar on car screens. All three are read live, so changing one takes effect without repatching, and Maps' own settings stay the fallback. Nothing here changes Maps' entitlements or downloads extra content.",
+      "default": true,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "com.google.android.apps.maps",
+          "name": "Google Maps",
+          "description": null,
+          "apkFileType": "APK",
+          "appIconColor": "#FFFFFF",
+          "signatures": null,
+          "formFactor": "MOBILE",
+          "targets": [
+            {
+              "version": "26.44.06.1006895251",
+              "versionCodes": {
+                "ARM64_V8A": 1068856906,
+                "ARMEABI_V7A": 1068856906,
+                "X86_64": 1068856906,
+                "X86": 1068856906
+              },
+              "isExperimental": false,
+              "minSdk": 29,
+              "description": null
+            },
+            {
+              "version": "26.47.00.1022347503",
+              "versionCodes": {
+                "ARM64_V8A": 1068892333,
+                "ARMEABI_V7A": 1068892333,
+                "X86_64": 1068892333,
+                "X86": 1068892333
+              },
+              "isExperimental": false,
+              "minSdk": 29,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
       "name": "Android Auto show grid browse",
       "description": "Rebuilds the Android Auto browse around podcast series and opens it to every car client. The For-you episode sections become grids of series covers; opening a series lists its episodes newest-first through the app's own paginated query, so playback, queueing and entitlement keep running through unmodified Podimo code. The library tab disappears for guests with nothing saved locally. Any media-browser client may connect: the app's certificate-pinned caller allowlist is replaced with a lookup that serves the full section tree to every caller, including Android Automotive, desktop head units and aftermarket clients.",
       "default": true,
@@ -1340,6 +1538,40 @@
       "options": []
     },
     {
+      "name": "Android Auto templated media app",
+      "description": "Adds a Car App Library media app to Eclipse Music: a single root page with Home laid out like the phone's (Umbra DJ, Made For You, mixes, linked playlists, Your Shows, Radio; no See all), Discover and Library, collections, search through the provider selected on the phone with All, Tracks, Albums, Artists and Playlists filters, an editable Up Next and the host's now-playing template. Confirmed on API 9 hosts (DriveDeck); API 8 hosts are shown the same pages without API 9 components and are not yet confirmed. Every host is allowed; Eclipse's own player, queue and session stay authoritative, and the car screens refresh when the app's queue changes.",
+      "default": true,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "com.eclipse.android",
+          "name": "Eclipse Music",
+          "description": null,
+          "apkFileType": "APK",
+          "appIconColor": null,
+          "signatures": [
+            "18f904b5a1904154ebad737952edb8b951cd51b2e7b34920d63f82dba4a0142d"
+          ],
+          "formFactor": "MOBILE",
+          "targets": [
+            {
+              "version": "0.6.75",
+              "versionCodes": {
+                "ARM64_V8A": 155,
+                "ARMEABI_V7A": 155,
+                "X86_64": 155,
+                "X86": 155
+              },
+              "isExperimental": false,
+              "minSdk": 26,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
       "name": "Any media app",
       "description": "Navigation's Default media app (Settings > Navigation) offers every music and podcast app that works with Android Auto, such as Poweramp, also where Google switches media controls off. YouTube Music and Spotify only connect to Google's own Maps.",
       "default": true,
@@ -1361,6 +1593,18 @@
                 "ARMEABI_V7A": 1068856906,
                 "X86_64": 1068856906,
                 "X86": 1068856906
+              },
+              "isExperimental": false,
+              "minSdk": 29,
+              "description": null
+            },
+            {
+              "version": "26.47.00.1022347503",
+              "versionCodes": {
+                "ARM64_V8A": 1068892333,
+                "ARMEABI_V7A": 1068892333,
+                "X86_64": 1068892333,
+                "X86": 1068892333
               },
               "isExperimental": false,
               "minSdk": 29,
@@ -1578,6 +1822,59 @@
               "isExperimental": false,
               "minSdk": 29,
               "description": null
+            },
+            {
+              "version": "26.47.00.1022347503",
+              "versionCodes": {
+                "ARM64_V8A": 1068892333,
+                "ARMEABI_V7A": 1068892333,
+                "X86_64": 1068892333,
+                "X86": 1068892333
+              },
+              "isExperimental": false,
+              "minSdk": 29,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Beta features (18.8)",
+      "description": "Unlocks five new Gboard 18.8 features that are off by default: plain-text quick-paste chip, floating clipboard chip, invisible floating-keyboard resizing, the Emoji2 provider and the swipe-to-remove confirmation.",
+      "default": true,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "com.google.android.inputmethod.latin",
+          "name": "Gboard",
+          "description": null,
+          "apkFileType": "APK",
+          "appIconColor": "#4285F4",
+          "signatures": [
+            "7ce83c1b71f3d572fed04c8d40c5cb10ff75e6d87d9df6fbd53f0468c2905053",
+            "f0fd6c5b410f25cb25c3b53346c8972fae30f8ee7411df910480ad6b2d60db83"
+          ],
+          "formFactor": "MOBILE",
+          "targets": [
+            {
+              "version": "18.8.0.1022711984-beta-arm64-v8a",
+              "versionCodes": {
+                "ARM64_V8A": 176124766
+              },
+              "isExperimental": false,
+              "minSdk": 26,
+              "description": "64-bit build (arm64-v8a), recommended for 64-bit devices."
+            },
+            {
+              "version": "18.8.0.1022711984-beta-armeabi-v7a",
+              "versionCodes": {
+                "ARMEABI_V7A": 176124765
+              },
+              "isExperimental": false,
+              "minSdk": 26,
+              "description": "32-bit build (armeabi-v7a), for 32-bit devices only."
             }
           ]
         }
@@ -1606,6 +1903,18 @@
                 "ARMEABI_V7A": 1068856906,
                 "X86_64": 1068856906,
                 "X86": 1068856906
+              },
+              "isExperimental": false,
+              "minSdk": 29,
+              "description": null
+            },
+            {
+              "version": "26.47.00.1022347503",
+              "versionCodes": {
+                "ARM64_V8A": 1068892333,
+                "ARMEABI_V7A": 1068892333,
+                "X86_64": 1068892333,
+                "X86": 1068892333
               },
               "isExperimental": false,
               "minSdk": 29,
@@ -1757,6 +2066,18 @@
               "isExperimental": false,
               "minSdk": 29,
               "description": null
+            },
+            {
+              "version": "26.47.00.1022347503",
+              "versionCodes": {
+                "ARM64_V8A": 1068892333,
+                "ARMEABI_V7A": 1068892333,
+                "X86_64": 1068892333,
+                "X86": 1068892333
+              },
+              "isExperimental": false,
+              "minSdk": 29,
+              "description": null
             }
           ]
         }
@@ -1785,6 +2106,18 @@
                 "ARMEABI_V7A": 1068856906,
                 "X86_64": 1068856906,
                 "X86": 1068856906
+              },
+              "isExperimental": false,
+              "minSdk": 29,
+              "description": null
+            },
+            {
+              "version": "26.47.00.1022347503",
+              "versionCodes": {
+                "ARM64_V8A": 1068892333,
+                "ARMEABI_V7A": 1068892333,
+                "X86_64": 1068892333,
+                "X86": 1068892333
               },
               "isExperimental": false,
               "minSdk": 29,
@@ -1917,6 +2250,18 @@
                 "ARMEABI_V7A": 1068856906,
                 "X86_64": 1068856906,
                 "X86": 1068856906
+              },
+              "isExperimental": false,
+              "minSdk": 29,
+              "description": null
+            },
+            {
+              "version": "26.47.00.1022347503",
+              "versionCodes": {
+                "ARM64_V8A": 1068892333,
+                "ARMEABI_V7A": 1068892333,
+                "X86_64": 1068892333,
+                "X86": 1068892333
               },
               "isExperimental": false,
               "minSdk": 29,
@@ -2065,6 +2410,18 @@
               "isExperimental": false,
               "minSdk": 29,
               "description": null
+            },
+            {
+              "version": "26.47.00.1022347503",
+              "versionCodes": {
+                "ARM64_V8A": 1068892333,
+                "ARMEABI_V7A": 1068892333,
+                "X86_64": 1068892333,
+                "X86": 1068892333
+              },
+              "isExperimental": false,
+              "minSdk": 29,
+              "description": null
             }
           ]
         }
@@ -2191,6 +2548,18 @@
               "isExperimental": false,
               "minSdk": 29,
               "description": null
+            },
+            {
+              "version": "26.47.00.1022347503",
+              "versionCodes": {
+                "ARM64_V8A": 1068892333,
+                "ARMEABI_V7A": 1068892333,
+                "X86_64": 1068892333,
+                "X86": 1068892333
+              },
+              "isExperimental": false,
+              "minSdk": 29,
+              "description": null
             }
           ]
         }
@@ -2226,22 +2595,22 @@
           "formFactor": "MOBILE",
           "targets": [
             {
-              "version": "18.6.3.1002251336-release-armeabi-v7a",
+              "version": "18.8.0.1022711984-beta-arm64-v8a",
               "versionCodes": {
-                "ARMEABI_V7A": 176071765
+                "ARM64_V8A": 176124766
               },
               "isExperimental": false,
               "minSdk": 26,
-              "description": null
+              "description": "64-bit build (arm64-v8a), recommended for 64-bit devices."
             },
             {
-              "version": "18.6.3.1002251336-release-arm64-v8a",
+              "version": "18.8.0.1022711984-beta-armeabi-v7a",
               "versionCodes": {
-                "ARM64_V8A": 176071766
+                "ARMEABI_V7A": 176124765
               },
               "isExperimental": false,
               "minSdk": 26,
-              "description": null
+              "description": "32-bit build (armeabi-v7a), for 32-bit devices only."
             }
           ]
         }
@@ -2321,22 +2690,22 @@
           "formFactor": "MOBILE",
           "targets": [
             {
-              "version": "18.6.3.1002251336-release-armeabi-v7a",
+              "version": "18.8.0.1022711984-beta-arm64-v8a",
               "versionCodes": {
-                "ARMEABI_V7A": 176071765
+                "ARM64_V8A": 176124766
               },
               "isExperimental": false,
               "minSdk": 26,
-              "description": null
+              "description": "64-bit build (arm64-v8a), recommended for 64-bit devices."
             },
             {
-              "version": "18.6.3.1002251336-release-arm64-v8a",
+              "version": "18.8.0.1022711984-beta-armeabi-v7a",
               "versionCodes": {
-                "ARM64_V8A": 176071766
+                "ARMEABI_V7A": 176124765
               },
               "isExperimental": false,
               "minSdk": 26,
-              "description": null
+              "description": "32-bit build (armeabi-v7a), for 32-bit devices only."
             }
           ]
         }
@@ -2394,22 +2763,22 @@
           "formFactor": "MOBILE",
           "targets": [
             {
-              "version": "18.6.3.1002251336-release-armeabi-v7a",
+              "version": "18.8.0.1022711984-beta-arm64-v8a",
               "versionCodes": {
-                "ARMEABI_V7A": 176071765
+                "ARM64_V8A": 176124766
               },
               "isExperimental": false,
               "minSdk": 26,
-              "description": null
+              "description": "64-bit build (arm64-v8a), recommended for 64-bit devices."
             },
             {
-              "version": "18.6.3.1002251336-release-arm64-v8a",
+              "version": "18.8.0.1022711984-beta-armeabi-v7a",
               "versionCodes": {
-                "ARM64_V8A": 176071766
+                "ARMEABI_V7A": 176124765
               },
               "isExperimental": false,
               "minSdk": 26,
-              "description": null
+              "description": "32-bit build (armeabi-v7a), for 32-bit devices only."
             }
           ]
         }
@@ -2435,22 +2804,22 @@
           "formFactor": "MOBILE",
           "targets": [
             {
-              "version": "18.6.3.1002251336-release-armeabi-v7a",
+              "version": "18.8.0.1022711984-beta-arm64-v8a",
               "versionCodes": {
-                "ARMEABI_V7A": 176071765
+                "ARM64_V8A": 176124766
               },
               "isExperimental": false,
               "minSdk": 26,
-              "description": null
+              "description": "64-bit build (arm64-v8a), recommended for 64-bit devices."
             },
             {
-              "version": "18.6.3.1002251336-release-arm64-v8a",
+              "version": "18.8.0.1022711984-beta-armeabi-v7a",
               "versionCodes": {
-                "ARM64_V8A": 176071766
+                "ARMEABI_V7A": 176124765
               },
               "isExperimental": false,
               "minSdk": 26,
-              "description": null
+              "description": "32-bit build (armeabi-v7a), for 32-bit devices only."
             }
           ]
         }
@@ -2509,7 +2878,7 @@
     {
       "name": "Custom branding",
       "description": "Changes Gboard's app name and launcher icon. Choose the Parakeet icon (default), Gboard's original icon or one of five other designs. The name also appears in Android's keyboard list.",
-      "default": false,
+      "default": true,
       "category": null,
       "compatiblePackages": [
         {
@@ -2525,22 +2894,22 @@
           "formFactor": "MOBILE",
           "targets": [
             {
-              "version": "18.6.3.1002251336-release-armeabi-v7a",
+              "version": "18.8.0.1022711984-beta-arm64-v8a",
               "versionCodes": {
-                "ARMEABI_V7A": 176071765
+                "ARM64_V8A": 176124766
               },
               "isExperimental": false,
               "minSdk": 26,
-              "description": null
+              "description": "64-bit build (arm64-v8a), recommended for 64-bit devices."
             },
             {
-              "version": "18.6.3.1002251336-release-arm64-v8a",
+              "version": "18.8.0.1022711984-beta-armeabi-v7a",
               "versionCodes": {
-                "ARM64_V8A": 176071766
+                "ARMEABI_V7A": 176124765
               },
               "isExperimental": false,
               "minSdk": 26,
-              "description": null
+              "description": "32-bit build (armeabi-v7a), for 32-bit devices only."
             }
           ]
         }
@@ -2552,7 +2921,7 @@
           "description": "Name shown in the launcher, Android's keyboard list and app information. Leave empty to keep Gboard.",
           "required": false,
           "type": "kotlin.String",
-          "default": null,
+          "default": "Gboard Parakeet/Rambler",
           "values": null
         },
         {
@@ -3008,6 +3377,52 @@
               "isExperimental": false,
               "minSdk": 29,
               "description": null
+            },
+            {
+              "version": "26.47.00.1022347503",
+              "versionCodes": {
+                "ARM64_V8A": 1068892333,
+                "ARMEABI_V7A": 1068892333,
+                "X86_64": 1068892333,
+                "X86": 1068892333
+              },
+              "isExperimental": false,
+              "minSdk": 29,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Disable Crashlytics reporter",
+      "description": "Stops Titanium's Crashlytics exception reporter. Required together with the ad/tracking patch: the reporter calls FirebaseCrashlytics after that component is removed, which otherwise crashes the app on any JavaScript exception.",
+      "default": true,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "com.douglas.upflix",
+          "name": "upflix",
+          "description": null,
+          "apkFileType": "APKS",
+          "appIconColor": "#E50914",
+          "signatures": [
+            "f353b78a9eb823d58cd45fc3ba1afba336346969c8b78809b91638444ec39007"
+          ],
+          "formFactor": "MOBILE",
+          "targets": [
+            {
+              "version": "5.12.10",
+              "versionCodes": {
+                "ARM64_V8A": 423,
+                "ARMEABI_V7A": 423,
+                "X86_64": 423,
+                "X86": 423
+              },
+              "isExperimental": false,
+              "minSdk": 29,
+              "description": null
             }
           ]
         }
@@ -3117,6 +3532,40 @@
       "options": []
     },
     {
+      "name": "Disable Play license check",
+      "description": "Required for a patched (re-signed) Upflix: skips the Google Play (PairIP) license check that would otherwise close the app.",
+      "default": true,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "com.douglas.upflix",
+          "name": "upflix",
+          "description": null,
+          "apkFileType": "APKS",
+          "appIconColor": "#E50914",
+          "signatures": [
+            "f353b78a9eb823d58cd45fc3ba1afba336346969c8b78809b91638444ec39007"
+          ],
+          "formFactor": "MOBILE",
+          "targets": [
+            {
+              "version": "5.12.10",
+              "versionCodes": {
+                "ARM64_V8A": 423,
+                "ARMEABI_V7A": 423,
+                "X86_64": 423,
+                "X86": 423
+              },
+              "isExperimental": false,
+              "minSdk": 29,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
       "name": "Disable Swrve (expert)",
       "description": "Reduces data sharing by stopping the remaining Swrve user and device updates and background push activity. Includes the standard ad, tracking and consent controls. Push notifications and Swrve channel synchronization stop working; shared Firebase authentication and configuration remain available.",
       "default": false,
@@ -3172,10 +3621,10 @@
             {
               "version": "7.4.8",
               "versionCodes": {
-                "ARM64_V8A": 7897,
-                "ARMEABI_V7A": 7897,
-                "X86_64": 7897,
-                "X86": 7897
+                "ARM64_V8A": 7915,
+                "ARMEABI_V7A": 7915,
+                "X86_64": 7915,
+                "X86": 7915
               },
               "isExperimental": false,
               "minSdk": 28,
@@ -3247,6 +3696,40 @@
               },
               "isExperimental": false,
               "minSdk": 32,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Disable ads and tracking",
+      "description": "Removes all seven ad placements and the ad SDK bootstrap, the Google UMP consent flow, Firebase Analytics/Crashlytics collection, the advertising ID, Facebook SDK auto-init and third-party IP geolocation. The encrypted Titanium bundle is rewritten and re-encrypted with the app's own key, and the stable device identifier becomes a random per-install UUID.",
+      "default": true,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "com.douglas.upflix",
+          "name": "upflix",
+          "description": null,
+          "apkFileType": "APKS",
+          "appIconColor": "#E50914",
+          "signatures": [
+            "f353b78a9eb823d58cd45fc3ba1afba336346969c8b78809b91638444ec39007"
+          ],
+          "formFactor": "MOBILE",
+          "targets": [
+            {
+              "version": "5.12.10",
+              "versionCodes": {
+                "ARM64_V8A": 423,
+                "ARMEABI_V7A": 423,
+                "X86_64": 423,
+                "X86": 423
+              },
+              "isExperimental": false,
+              "minSdk": 29,
               "description": null
             }
           ]
@@ -3672,10 +4155,10 @@
             {
               "version": "7.4.8",
               "versionCodes": {
-                "ARM64_V8A": 7897,
-                "ARMEABI_V7A": 7897,
-                "X86_64": 7897,
-                "X86": 7897
+                "ARM64_V8A": 7915,
+                "ARMEABI_V7A": 7915,
+                "X86_64": 7915,
+                "X86": 7915
               },
               "isExperimental": false,
               "minSdk": 28,
@@ -3738,12 +4221,12 @@
           "formFactor": "MOBILE",
           "targets": [
             {
-              "version": "9.0.26.3",
+              "version": "9.0.27.3",
               "versionCodes": {
-                "ARM64_V8A": 9002603
+                "ARM64_V8A": 9002703
               },
               "isExperimental": false,
-              "minSdk": 28,
+              "minSdk": 26,
               "description": null
             }
           ]
@@ -5175,22 +5658,22 @@
           "formFactor": "MOBILE",
           "targets": [
             {
-              "version": "18.6.3.1002251336-release-armeabi-v7a",
+              "version": "18.8.0.1022711984-beta-arm64-v8a",
               "versionCodes": {
-                "ARMEABI_V7A": 176071765
+                "ARM64_V8A": 176124766
               },
               "isExperimental": false,
               "minSdk": 26,
-              "description": null
+              "description": "64-bit build (arm64-v8a), recommended for 64-bit devices."
             },
             {
-              "version": "18.6.3.1002251336-release-arm64-v8a",
+              "version": "18.8.0.1022711984-beta-armeabi-v7a",
               "versionCodes": {
-                "ARM64_V8A": 176071766
+                "ARMEABI_V7A": 176124765
               },
               "isExperimental": false,
               "minSdk": 26,
-              "description": null
+              "description": "32-bit build (armeabi-v7a), for 32-bit devices only."
             }
           ]
         }
@@ -5317,12 +5800,12 @@
           "formFactor": "MOBILE",
           "targets": [
             {
-              "version": "9.0.26.3",
+              "version": "9.0.27.3",
               "versionCodes": {
-                "ARM64_V8A": 9002603
+                "ARM64_V8A": 9002703
               },
               "isExperimental": false,
-              "minSdk": 28,
+              "minSdk": 26,
               "description": null
             }
           ]
@@ -5437,6 +5920,99 @@
               },
               "isExperimental": false,
               "minSdk": 28,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Enable lyrics",
+      "description": "Opens Deezer's native lyrics view from the legacy and modern players instead of the Premium offer. Keeps native lyrics first and uses matching LRCLIB lyrics when native data is missing. Availability follows usable native or fallback data; LRCLIB metadata lookups use no account credentials.",
+      "default": true,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "deezer.android.app",
+          "name": "Deezer",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": null,
+          "signatures": [
+            "51a891a6c5d17b4e36a6f46bab675c1cae786a5af06f51d0105dab7ec6a94516"
+          ],
+          "formFactor": "MOBILE",
+          "targets": [
+            {
+              "version": "9.0.27.3",
+              "versionCodes": {
+                "ARM64_V8A": 9002703
+              },
+              "isExperimental": false,
+              "minSdk": 26,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Enable offline downloads",
+      "description": "Enables Deezer's native album, playlist and Favorite tracks downloads using the offline rights enabled by full streaming. Removes the contextual download upgrade offer. Downloaded media, library registration and offline playback remain native.",
+      "default": true,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "deezer.android.app",
+          "name": "Deezer",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": null,
+          "signatures": [
+            "51a891a6c5d17b4e36a6f46bab675c1cae786a5af06f51d0105dab7ec6a94516"
+          ],
+          "formFactor": "MOBILE",
+          "targets": [
+            {
+              "version": "9.0.27.3",
+              "versionCodes": {
+                "ARM64_V8A": 9002703
+              },
+              "isExperimental": false,
+              "minSdk": 26,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Enable queue item selection",
+      "description": "Publishes provider-owned occurrence handles for ordinary media-session Up next selection. Retires changed queues and preserves Deezer's native account checks, queue order and selection dispatch. Grants no playback rights.",
+      "default": true,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "deezer.android.app",
+          "name": "Deezer",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": null,
+          "signatures": [
+            "51a891a6c5d17b4e36a6f46bab675c1cae786a5af06f51d0105dab7ec6a94516"
+          ],
+          "formFactor": "MOBILE",
+          "targets": [
+            {
+              "version": "9.0.27.3",
+              "versionCodes": {
+                "ARM64_V8A": 9002703
+              },
+              "isExperimental": false,
+              "minSdk": 26,
               "description": null
             }
           ]
@@ -5913,6 +6489,18 @@
               "isExperimental": false,
               "minSdk": 29,
               "description": null
+            },
+            {
+              "version": "26.47.00.1022347503",
+              "versionCodes": {
+                "ARM64_V8A": 1068892333,
+                "ARMEABI_V7A": 1068892333,
+                "X86_64": 1068892333,
+                "X86": 1068892333
+              },
+              "isExperimental": false,
+              "minSdk": 29,
+              "description": null
             }
           ]
         }
@@ -5979,6 +6567,18 @@
               "isExperimental": false,
               "minSdk": 29,
               "description": null
+            },
+            {
+              "version": "26.47.00.1022347503",
+              "versionCodes": {
+                "ARM64_V8A": 1068892333,
+                "ARMEABI_V7A": 1068892333,
+                "X86_64": 1068892333,
+                "X86": 1068892333
+              },
+              "isExperimental": false,
+              "minSdk": 29,
+              "description": null
             }
           ]
         }
@@ -6004,22 +6604,22 @@
           "formFactor": "MOBILE",
           "targets": [
             {
-              "version": "18.6.3.1002251336-release-armeabi-v7a",
+              "version": "18.8.0.1022711984-beta-arm64-v8a",
               "versionCodes": {
-                "ARMEABI_V7A": 176071765
+                "ARM64_V8A": 176124766
               },
               "isExperimental": false,
               "minSdk": 26,
-              "description": null
+              "description": "64-bit build (arm64-v8a), recommended for 64-bit devices."
             },
             {
-              "version": "18.6.3.1002251336-release-arm64-v8a",
+              "version": "18.8.0.1022711984-beta-armeabi-v7a",
               "versionCodes": {
-                "ARM64_V8A": 176071766
+                "ARMEABI_V7A": 176124765
               },
               "isExperimental": false,
               "minSdk": 26,
-              "description": null
+              "description": "32-bit build (armeabi-v7a), for 32-bit devices only."
             }
           ]
         }
@@ -6089,22 +6689,22 @@
           "formFactor": "MOBILE",
           "targets": [
             {
-              "version": "18.6.3.1002251336-release-armeabi-v7a",
+              "version": "18.8.0.1022711984-beta-arm64-v8a",
               "versionCodes": {
-                "ARMEABI_V7A": 176071765
+                "ARM64_V8A": 176124766
               },
               "isExperimental": false,
               "minSdk": 26,
-              "description": null
+              "description": "64-bit build (arm64-v8a), recommended for 64-bit devices."
             },
             {
-              "version": "18.6.3.1002251336-release-arm64-v8a",
+              "version": "18.8.0.1022711984-beta-armeabi-v7a",
               "versionCodes": {
-                "ARM64_V8A": 176071766
+                "ARMEABI_V7A": 176124765
               },
               "isExperimental": false,
               "minSdk": 26,
-              "description": null
+              "description": "32-bit build (armeabi-v7a), for 32-bit devices only."
             }
           ]
         }
@@ -6187,6 +6787,37 @@
               },
               "isExperimental": false,
               "minSdk": 21,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Google sign-in through microG-RE",
+      "description": "Google account chooser and sign-in routing through installed microG-RE. Uses Deezer's original OAuth identity through microG compatibility metadata. Google SDK availability checks still apply. Resolves interactive consent from foreground sign-in using Deezer's standard package name. Does not change email, Facebook or Apple sign-in.",
+      "default": true,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "deezer.android.app",
+          "name": "Deezer",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": null,
+          "signatures": [
+            "51a891a6c5d17b4e36a6f46bab675c1cae786a5af06f51d0105dab7ec6a94516"
+          ],
+          "formFactor": "MOBILE",
+          "targets": [
+            {
+              "version": "9.0.27.3",
+              "versionCodes": {
+                "ARM64_V8A": 9002703
+              },
+              "isExperimental": false,
+              "minSdk": 26,
               "description": null
             }
           ]
@@ -6302,6 +6933,47 @@
               "isExperimental": false,
               "minSdk": 32,
               "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Hidden flags (18.8)",
+      "description": "Adds a Hidden flags screen that forces individual Gboard 18.8 flags through Gboard's own override store: app-specific word biasing, the app-specific suggestion bar and the square search radius.",
+      "default": true,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "com.google.android.inputmethod.latin",
+          "name": "Gboard",
+          "description": null,
+          "apkFileType": "APK",
+          "appIconColor": "#4285F4",
+          "signatures": [
+            "7ce83c1b71f3d572fed04c8d40c5cb10ff75e6d87d9df6fbd53f0468c2905053",
+            "f0fd6c5b410f25cb25c3b53346c8972fae30f8ee7411df910480ad6b2d60db83"
+          ],
+          "formFactor": "MOBILE",
+          "targets": [
+            {
+              "version": "18.8.0.1022711984-beta-arm64-v8a",
+              "versionCodes": {
+                "ARM64_V8A": 176124766
+              },
+              "isExperimental": false,
+              "minSdk": 26,
+              "description": "64-bit build (arm64-v8a), recommended for 64-bit devices."
+            },
+            {
+              "version": "18.8.0.1022711984-beta-armeabi-v7a",
+              "versionCodes": {
+                "ARMEABI_V7A": 176124765
+              },
+              "isExperimental": false,
+              "minSdk": 26,
+              "description": "32-bit build (armeabi-v7a), for 32-bit devices only."
             }
           ]
         }
@@ -6467,10 +7139,10 @@
             {
               "version": "7.4.8",
               "versionCodes": {
-                "ARM64_V8A": 7897,
-                "ARMEABI_V7A": 7897,
-                "X86_64": 7897,
-                "X86": 7897
+                "ARM64_V8A": 7915,
+                "ARMEABI_V7A": 7915,
+                "X86_64": 7915,
+                "X86": 7915
               },
               "isExperimental": false,
               "minSdk": 28,
@@ -7392,10 +8064,10 @@
             {
               "version": "7.4.8",
               "versionCodes": {
-                "ARM64_V8A": 7897,
-                "ARMEABI_V7A": 7897,
-                "X86_64": 7897,
-                "X86": 7897
+                "ARM64_V8A": 7915,
+                "ARMEABI_V7A": 7915,
+                "X86_64": 7915,
+                "X86": 7915
               },
               "isExperimental": false,
               "minSdk": 28,
@@ -8723,6 +9395,18 @@
               "isExperimental": false,
               "minSdk": 29,
               "description": null
+            },
+            {
+              "version": "26.47.00.1022347503",
+              "versionCodes": {
+                "ARM64_V8A": 1068892333,
+                "ARMEABI_V7A": 1068892333,
+                "X86_64": 1068892333,
+                "X86": 1068892333
+              },
+              "isExperimental": false,
+              "minSdk": 29,
+              "description": null
             }
           ]
         }
@@ -9216,6 +9900,41 @@
       "options": []
     },
     {
+      "name": "Hide update prompt",
+      "description": "Skips the startup update prompt and continues into Buienradar.",
+      "default": true,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "com.supportware.Buienradar",
+          "name": "Buienradar",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#243C88",
+          "signatures": [
+            "4392d8f67eedd4d2c52370e69911df3ad465d6d6f7d7176cd5f2b4bdefcca9cc",
+            "80d91716e88298892a4d34076ae3562ac9e2212e08048d09dbfeca2c26a6ed92"
+          ],
+          "formFactor": "MOBILE",
+          "targets": [
+            {
+              "version": "7.4.8",
+              "versionCodes": {
+                "ARM64_V8A": 7915,
+                "ARMEABI_V7A": 7915,
+                "X86_64": 7915,
+                "X86": 7915
+              },
+              "isExperimental": false,
+              "minSdk": 28,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
       "name": "Hide weather warnings overlay",
       "description": "Removes the Weather Warnings map-layer control and stops its overlay downloads. Keeps weather warnings delivered as part of ordinary forecasts.",
       "default": true,
@@ -9336,22 +10055,22 @@
           "formFactor": "MOBILE",
           "targets": [
             {
-              "version": "18.6.3.1002251336-release-armeabi-v7a",
+              "version": "18.8.0.1022711984-beta-arm64-v8a",
               "versionCodes": {
-                "ARMEABI_V7A": 176071765
+                "ARM64_V8A": 176124766
               },
               "isExperimental": false,
               "minSdk": 26,
-              "description": null
+              "description": "64-bit build (arm64-v8a), recommended for 64-bit devices."
             },
             {
-              "version": "18.6.3.1002251336-release-arm64-v8a",
+              "version": "18.8.0.1022711984-beta-armeabi-v7a",
               "versionCodes": {
-                "ARM64_V8A": 176071766
+                "ARMEABI_V7A": 176124765
               },
               "isExperimental": false,
               "minSdk": 26,
-              "description": null
+              "description": "32-bit build (armeabi-v7a), for 32-bit devices only."
             }
           ]
         }
@@ -9489,22 +10208,22 @@
           "formFactor": "MOBILE",
           "targets": [
             {
-              "version": "18.6.3.1002251336-release-armeabi-v7a",
+              "version": "18.8.0.1022711984-beta-arm64-v8a",
               "versionCodes": {
-                "ARMEABI_V7A": 176071765
+                "ARM64_V8A": 176124766
               },
               "isExperimental": false,
               "minSdk": 26,
-              "description": null
+              "description": "64-bit build (arm64-v8a), recommended for 64-bit devices."
             },
             {
-              "version": "18.6.3.1002251336-release-arm64-v8a",
+              "version": "18.8.0.1022711984-beta-armeabi-v7a",
               "versionCodes": {
-                "ARM64_V8A": 176071766
+                "ARMEABI_V7A": 176124765
               },
               "isExperimental": false,
               "minSdk": 26,
-              "description": null
+              "description": "32-bit build (armeabi-v7a), for 32-bit devices only."
             }
           ]
         }
@@ -9581,6 +10300,18 @@
               "isExperimental": false,
               "minSdk": 29,
               "description": null
+            },
+            {
+              "version": "26.47.00.1022347503",
+              "versionCodes": {
+                "ARM64_V8A": 1068892333,
+                "ARMEABI_V7A": 1068892333,
+                "X86_64": 1068892333,
+                "X86": 1068892333
+              },
+              "isExperimental": false,
+              "minSdk": 29,
+              "description": null
             }
           ]
         }
@@ -9609,6 +10340,18 @@
                 "ARMEABI_V7A": 1068856906,
                 "X86_64": 1068856906,
                 "X86": 1068856906
+              },
+              "isExperimental": false,
+              "minSdk": 29,
+              "description": null
+            },
+            {
+              "version": "26.47.00.1022347503",
+              "versionCodes": {
+                "ARM64_V8A": 1068892333,
+                "ARMEABI_V7A": 1068892333,
+                "X86_64": 1068892333,
+                "X86": 1068892333
               },
               "isExperimental": false,
               "minSdk": 29,
@@ -9842,6 +10585,18 @@
               "isExperimental": false,
               "minSdk": 29,
               "description": null
+            },
+            {
+              "version": "26.47.00.1022347503",
+              "versionCodes": {
+                "ARM64_V8A": 1068892333,
+                "ARMEABI_V7A": 1068892333,
+                "X86_64": 1068892333,
+                "X86": 1068892333
+              },
+              "isExperimental": false,
+              "minSdk": 29,
+              "description": null
             }
           ]
         }
@@ -10004,6 +10759,18 @@
               "isExperimental": false,
               "minSdk": 29,
               "description": null
+            },
+            {
+              "version": "26.47.00.1022347503",
+              "versionCodes": {
+                "ARM64_V8A": 1068892333,
+                "ARMEABI_V7A": 1068892333,
+                "X86_64": 1068892333,
+                "X86": 1068892333
+              },
+              "isExperimental": false,
+              "minSdk": 29,
+              "description": null
             }
           ]
         }
@@ -10063,22 +10830,22 @@
           "formFactor": "MOBILE",
           "targets": [
             {
-              "version": "18.6.3.1002251336-release-armeabi-v7a",
+              "version": "18.8.0.1022711984-beta-arm64-v8a",
               "versionCodes": {
-                "ARMEABI_V7A": 176071765
+                "ARM64_V8A": 176124766
               },
               "isExperimental": false,
               "minSdk": 26,
-              "description": null
+              "description": "64-bit build (arm64-v8a), recommended for 64-bit devices."
             },
             {
-              "version": "18.6.3.1002251336-release-arm64-v8a",
+              "version": "18.8.0.1022711984-beta-armeabi-v7a",
               "versionCodes": {
-                "ARM64_V8A": 176071766
+                "ARMEABI_V7A": 176124765
               },
               "isExperimental": false,
               "minSdk": 26,
-              "description": null
+              "description": "32-bit build (armeabi-v7a), for 32-bit devices only."
             }
           ]
         }
@@ -10104,22 +10871,22 @@
           "formFactor": "MOBILE",
           "targets": [
             {
-              "version": "18.6.3.1002251336-release-armeabi-v7a",
+              "version": "18.8.0.1022711984-beta-arm64-v8a",
               "versionCodes": {
-                "ARMEABI_V7A": 176071765
+                "ARM64_V8A": 176124766
               },
               "isExperimental": false,
               "minSdk": 26,
-              "description": null
+              "description": "64-bit build (arm64-v8a), recommended for 64-bit devices."
             },
             {
-              "version": "18.6.3.1002251336-release-arm64-v8a",
+              "version": "18.8.0.1022711984-beta-armeabi-v7a",
               "versionCodes": {
-                "ARM64_V8A": 176071766
+                "ARMEABI_V7A": 176124765
               },
               "isExperimental": false,
               "minSdk": 26,
-              "description": null
+              "description": "32-bit build (armeabi-v7a), for 32-bit devices only."
             }
           ]
         }
@@ -10256,6 +11023,37 @@
       "options": []
     },
     {
+      "name": "Player queue shortcuts",
+      "description": "Adds Add to queue and Play next candidates to the full player menu. Deezer's native resolver decides visibility using the account, track and queue state, and retains its normal confirmation and insertion paths. Grants no additional rights.",
+      "default": true,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "deezer.android.app",
+          "name": "Deezer",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": null,
+          "signatures": [
+            "51a891a6c5d17b4e36a6f46bab675c1cae786a5af06f51d0105dab7ec6a94516"
+          ],
+          "formFactor": "MOBILE",
+          "targets": [
+            {
+              "version": "9.0.27.3",
+              "versionCodes": {
+                "ARM64_V8A": 9002703
+              },
+              "isExperimental": false,
+              "minSdk": 26,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
       "name": "Power saving mode",
       "description": "Brings the Pixel-only power saving mode to every phone: while driving with navigation, press the power button and Maps shows only key information such as the next turn on a black screen. Turn it on or off in Settings > Navigation > Power saving mode. Pixels that have it built in keep Google's own version unless Power saving mode is turned on in Power Saving Options, a row on the account sheet under Customization, which also has: a navigation button that opens the power saving screen without locking the phone, switching to it by itself when idle, a speedometer on it, a lower frame rate, and its black map in navigation or all over Maps.",
       "default": true,
@@ -10277,6 +11075,18 @@
                 "ARMEABI_V7A": 1068856906,
                 "X86_64": 1068856906,
                 "X86": 1068856906
+              },
+              "isExperimental": false,
+              "minSdk": 29,
+              "description": null
+            },
+            {
+              "version": "26.47.00.1022347503",
+              "versionCodes": {
+                "ARM64_V8A": 1068892333,
+                "ARMEABI_V7A": 1068892333,
+                "X86_64": 1068892333,
+                "X86": 1068892333
               },
               "isExperimental": false,
               "minSdk": 29,
@@ -10309,6 +11119,18 @@
                 "ARMEABI_V7A": 1068856906,
                 "X86_64": 1068856906,
                 "X86": 1068856906
+              },
+              "isExperimental": false,
+              "minSdk": 29,
+              "description": null
+            },
+            {
+              "version": "26.47.00.1022347503",
+              "versionCodes": {
+                "ARM64_V8A": 1068892333,
+                "ARMEABI_V7A": 1068892333,
+                "X86_64": 1068892333,
+                "X86": 1068892333
               },
               "isExperimental": false,
               "minSdk": 29,
@@ -10372,22 +11194,63 @@
           "formFactor": "MOBILE",
           "targets": [
             {
-              "version": "18.6.3.1002251336-release-armeabi-v7a",
+              "version": "18.8.0.1022711984-beta-arm64-v8a",
               "versionCodes": {
-                "ARMEABI_V7A": 176071765
+                "ARM64_V8A": 176124766
               },
               "isExperimental": false,
               "minSdk": 26,
-              "description": null
+              "description": "64-bit build (arm64-v8a), recommended for 64-bit devices."
             },
             {
-              "version": "18.6.3.1002251336-release-arm64-v8a",
+              "version": "18.8.0.1022711984-beta-armeabi-v7a",
               "versionCodes": {
-                "ARM64_V8A": 176071766
+                "ARMEABI_V7A": 176124765
               },
               "isExperimental": false,
               "minSdk": 26,
-              "description": null
+              "description": "32-bit build (armeabi-v7a), for 32-bit devices only."
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Rambler automatic retry (18.8)",
+      "description": "Lets Rambler retry eligible recognition errors automatically using the audio from the current dictation. Rambler may send that audio to Google again.",
+      "default": true,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "com.google.android.inputmethod.latin",
+          "name": "Gboard",
+          "description": null,
+          "apkFileType": "APK",
+          "appIconColor": "#4285F4",
+          "signatures": [
+            "7ce83c1b71f3d572fed04c8d40c5cb10ff75e6d87d9df6fbd53f0468c2905053",
+            "f0fd6c5b410f25cb25c3b53346c8972fae30f8ee7411df910480ad6b2d60db83"
+          ],
+          "formFactor": "MOBILE",
+          "targets": [
+            {
+              "version": "18.8.0.1022711984-beta-arm64-v8a",
+              "versionCodes": {
+                "ARM64_V8A": 176124766
+              },
+              "isExperimental": false,
+              "minSdk": 26,
+              "description": "64-bit build (arm64-v8a), recommended for 64-bit devices."
+            },
+            {
+              "version": "18.8.0.1022711984-beta-armeabi-v7a",
+              "versionCodes": {
+                "ARMEABI_V7A": 176124765
+              },
+              "isExperimental": false,
+              "minSdk": 26,
+              "description": "32-bit build (armeabi-v7a), for 32-bit devices only."
             }
           ]
         }
@@ -10413,22 +11276,22 @@
           "formFactor": "MOBILE",
           "targets": [
             {
-              "version": "18.6.3.1002251336-release-armeabi-v7a",
+              "version": "18.8.0.1022711984-beta-arm64-v8a",
               "versionCodes": {
-                "ARMEABI_V7A": 176071765
+                "ARM64_V8A": 176124766
               },
               "isExperimental": false,
               "minSdk": 26,
-              "description": null
+              "description": "64-bit build (arm64-v8a), recommended for 64-bit devices."
             },
             {
-              "version": "18.6.3.1002251336-release-arm64-v8a",
+              "version": "18.8.0.1022711984-beta-armeabi-v7a",
               "versionCodes": {
-                "ARM64_V8A": 176071766
+                "ARMEABI_V7A": 176124765
               },
               "isExperimental": false,
               "minSdk": 26,
-              "description": null
+              "description": "32-bit build (armeabi-v7a), for 32-bit devices only."
             }
           ]
         }
@@ -10454,22 +11317,22 @@
           "formFactor": "MOBILE",
           "targets": [
             {
-              "version": "18.6.3.1002251336-release-armeabi-v7a",
+              "version": "18.8.0.1022711984-beta-arm64-v8a",
               "versionCodes": {
-                "ARMEABI_V7A": 176071765
+                "ARM64_V8A": 176124766
               },
               "isExperimental": false,
               "minSdk": 26,
-              "description": null
+              "description": "64-bit build (arm64-v8a), recommended for 64-bit devices."
             },
             {
-              "version": "18.6.3.1002251336-release-arm64-v8a",
+              "version": "18.8.0.1022711984-beta-armeabi-v7a",
               "versionCodes": {
-                "ARM64_V8A": 176071766
+                "ARMEABI_V7A": 176124765
               },
               "isExperimental": false,
               "minSdk": 26,
-              "description": null
+              "description": "32-bit build (armeabi-v7a), for 32-bit devices only."
             }
           ]
         }
@@ -10495,22 +11358,22 @@
           "formFactor": "MOBILE",
           "targets": [
             {
-              "version": "18.6.3.1002251336-release-armeabi-v7a",
+              "version": "18.8.0.1022711984-beta-arm64-v8a",
               "versionCodes": {
-                "ARMEABI_V7A": 176071765
+                "ARM64_V8A": 176124766
               },
               "isExperimental": false,
               "minSdk": 26,
-              "description": null
+              "description": "64-bit build (arm64-v8a), recommended for 64-bit devices."
             },
             {
-              "version": "18.6.3.1002251336-release-arm64-v8a",
+              "version": "18.8.0.1022711984-beta-armeabi-v7a",
               "versionCodes": {
-                "ARM64_V8A": 176071766
+                "ARMEABI_V7A": 176124765
               },
               "isExperimental": false,
               "minSdk": 26,
-              "description": null
+              "description": "32-bit build (armeabi-v7a), for 32-bit devices only."
             }
           ]
         }
@@ -10536,22 +11399,22 @@
           "formFactor": "MOBILE",
           "targets": [
             {
-              "version": "18.6.3.1002251336-release-armeabi-v7a",
+              "version": "18.8.0.1022711984-beta-arm64-v8a",
               "versionCodes": {
-                "ARMEABI_V7A": 176071765
+                "ARM64_V8A": 176124766
               },
               "isExperimental": false,
               "minSdk": 26,
-              "description": null
+              "description": "64-bit build (arm64-v8a), recommended for 64-bit devices."
             },
             {
-              "version": "18.6.3.1002251336-release-arm64-v8a",
+              "version": "18.8.0.1022711984-beta-armeabi-v7a",
               "versionCodes": {
-                "ARM64_V8A": 176071766
+                "ARMEABI_V7A": 176124765
               },
               "isExperimental": false,
               "minSdk": 26,
-              "description": null
+              "description": "32-bit build (armeabi-v7a), for 32-bit devices only."
             }
           ]
         }
@@ -10577,22 +11440,63 @@
           "formFactor": "MOBILE",
           "targets": [
             {
-              "version": "18.6.3.1002251336-release-armeabi-v7a",
+              "version": "18.8.0.1022711984-beta-arm64-v8a",
               "versionCodes": {
-                "ARMEABI_V7A": 176071765
+                "ARM64_V8A": 176124766
               },
               "isExperimental": false,
               "minSdk": 26,
-              "description": null
+              "description": "64-bit build (arm64-v8a), recommended for 64-bit devices."
             },
             {
-              "version": "18.6.3.1002251336-release-arm64-v8a",
+              "version": "18.8.0.1022711984-beta-armeabi-v7a",
               "versionCodes": {
-                "ARM64_V8A": 176071766
+                "ARMEABI_V7A": 176124765
               },
               "isExperimental": false,
               "minSdk": 26,
-              "description": null
+              "description": "32-bit build (armeabi-v7a), for 32-bit devices only."
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Rambler toolbar & revert extras (18.8)",
+      "description": "Adds the overflow button to the floating Rambler toolbar, keeps rewritten text when you revert a transcript, and passes edit history on the Jetson Lite path.",
+      "default": true,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "com.google.android.inputmethod.latin",
+          "name": "Gboard",
+          "description": null,
+          "apkFileType": "APK",
+          "appIconColor": "#4285F4",
+          "signatures": [
+            "7ce83c1b71f3d572fed04c8d40c5cb10ff75e6d87d9df6fbd53f0468c2905053",
+            "f0fd6c5b410f25cb25c3b53346c8972fae30f8ee7411df910480ad6b2d60db83"
+          ],
+          "formFactor": "MOBILE",
+          "targets": [
+            {
+              "version": "18.8.0.1022711984-beta-arm64-v8a",
+              "versionCodes": {
+                "ARM64_V8A": 176124766
+              },
+              "isExperimental": false,
+              "minSdk": 26,
+              "description": "64-bit build (arm64-v8a), recommended for 64-bit devices."
+            },
+            {
+              "version": "18.8.0.1022711984-beta-armeabi-v7a",
+              "versionCodes": {
+                "ARMEABI_V7A": 176124765
+              },
+              "isExperimental": false,
+              "minSdk": 26,
+              "description": "32-bit build (armeabi-v7a), for 32-bit devices only."
             }
           ]
         }
@@ -10618,22 +11522,22 @@
           "formFactor": "MOBILE",
           "targets": [
             {
-              "version": "18.6.3.1002251336-release-armeabi-v7a",
+              "version": "18.8.0.1022711984-beta-arm64-v8a",
               "versionCodes": {
-                "ARMEABI_V7A": 176071765
+                "ARM64_V8A": 176124766
               },
               "isExperimental": false,
               "minSdk": 26,
-              "description": null
+              "description": "64-bit build (arm64-v8a), recommended for 64-bit devices."
             },
             {
-              "version": "18.6.3.1002251336-release-arm64-v8a",
+              "version": "18.8.0.1022711984-beta-armeabi-v7a",
               "versionCodes": {
-                "ARM64_V8A": 176071766
+                "ARMEABI_V7A": 176124765
               },
               "isExperimental": false,
               "minSdk": 26,
-              "description": null
+              "description": "32-bit build (armeabi-v7a), for 32-bit devices only."
             }
           ]
         }
@@ -11202,6 +12106,18 @@
               "isExperimental": false,
               "minSdk": 29,
               "description": null
+            },
+            {
+              "version": "26.47.00.1022347503",
+              "versionCodes": {
+                "ARM64_V8A": 1068892333,
+                "ARMEABI_V7A": 1068892333,
+                "X86_64": 1068892333,
+                "X86": 1068892333
+              },
+              "isExperimental": false,
+              "minSdk": 29,
+              "description": null
             }
           ]
         }
@@ -11264,6 +12180,18 @@
                 "ARMEABI_V7A": 1068856906,
                 "X86_64": 1068856906,
                 "X86": 1068856906
+              },
+              "isExperimental": false,
+              "minSdk": 29,
+              "description": null
+            },
+            {
+              "version": "26.47.00.1022347503",
+              "versionCodes": {
+                "ARM64_V8A": 1068892333,
+                "ARMEABI_V7A": 1068892333,
+                "X86_64": 1068892333,
+                "X86": 1068892333
               },
               "isExperimental": false,
               "minSdk": 29,
@@ -11344,7 +12272,7 @@
     },
     {
       "name": "Remove advertising",
-      "description": "Disables Deezer's banner, native, audio and preroll advertising: no ad configuration is exposed to the placement logic, playback continues without an ad break, and the audio-ad launcher cannot receive its ad payload. Playback, catalogue and account services are unchanged.",
+      "description": "Removes display, audio, preroll and video advertising using Deezer's existing no-ad paths and playback continuation.",
       "default": true,
       "category": null,
       "compatiblePackages": [
@@ -11360,12 +12288,12 @@
           "formFactor": "MOBILE",
           "targets": [
             {
-              "version": "9.0.26.3",
+              "version": "9.0.27.3",
               "versionCodes": {
-                "ARM64_V8A": 9002603
+                "ARM64_V8A": 9002703
               },
               "isExperimental": false,
-              "minSdk": 28,
+              "minSdk": 26,
               "description": null
             }
           ]
@@ -11395,6 +12323,18 @@
                 "ARMEABI_V7A": 1068856906,
                 "X86_64": 1068856906,
                 "X86": 1068856906
+              },
+              "isExperimental": false,
+              "minSdk": 29,
+              "description": null
+            },
+            {
+              "version": "26.47.00.1022347503",
+              "versionCodes": {
+                "ARM64_V8A": 1068892333,
+                "ARMEABI_V7A": 1068892333,
+                "X86_64": 1068892333,
+                "X86": 1068892333
               },
               "isExperimental": false,
               "minSdk": 29,
@@ -11441,7 +12381,7 @@
     },
     {
       "name": "Remove premium upsell UI",
-      "description": "Removes the Premium tab from the bottom navigation bar, the Get Premium button on the user profile, the conversion banner and Plan management row in Settings, and shows the free account plan as Deezer Premium. Account, catalogue, playback and the remaining Settings items are unchanged.",
+      "description": "Removes the Premium navigation item, profile promotion, Settings conversion banner and Plan management row, the Downloaded music subscription banner and Listen without ads menu entries, and displays the free plan as Deezer Premium. Account and playback transport are unchanged.",
       "default": true,
       "category": null,
       "compatiblePackages": [
@@ -11457,12 +12397,12 @@
           "formFactor": "MOBILE",
           "targets": [
             {
-              "version": "9.0.26.3",
+              "version": "9.0.27.3",
               "versionCodes": {
-                "ARM64_V8A": 9002603
+                "ARM64_V8A": 9002703
               },
               "isExperimental": false,
-              "minSdk": 28,
+              "minSdk": 26,
               "description": null
             }
           ]
@@ -11576,6 +12516,18 @@
               "isExperimental": false,
               "minSdk": 29,
               "description": null
+            },
+            {
+              "version": "26.47.00.1022347503",
+              "versionCodes": {
+                "ARM64_V8A": 1068892333,
+                "ARMEABI_V7A": 1068892333,
+                "X86_64": 1068892333,
+                "X86": 1068892333
+              },
+              "isExperimental": false,
+              "minSdk": 29,
+              "description": null
             }
           ]
         }
@@ -11680,12 +12632,12 @@
           "formFactor": "MOBILE",
           "targets": [
             {
-              "version": "9.0.26.3",
+              "version": "9.0.27.3",
               "versionCodes": {
-                "ARM64_V8A": 9002603
+                "ARM64_V8A": 9002703
               },
               "isExperimental": false,
-              "minSdk": 28,
+              "minSdk": 26,
               "description": null
             }
           ]
@@ -11715,6 +12667,18 @@
                 "ARMEABI_V7A": 1068856906,
                 "X86_64": 1068856906,
                 "X86": 1068856906
+              },
+              "isExperimental": false,
+              "minSdk": 29,
+              "description": null
+            },
+            {
+              "version": "26.47.00.1022347503",
+              "versionCodes": {
+                "ARM64_V8A": 1068892333,
+                "ARMEABI_V7A": 1068892333,
+                "X86_64": 1068892333,
+                "X86": 1068892333
               },
               "isExperimental": false,
               "minSdk": 29,
@@ -11812,18 +12776,49 @@
           "formFactor": "MOBILE",
           "targets": [
             {
-              "version": "18.6.3.1002251336-release-armeabi-v7a",
+              "version": "18.8.0.1022711984-beta-arm64-v8a",
               "versionCodes": {
-                "ARMEABI_V7A": 176071765
+                "ARM64_V8A": 176124766
               },
               "isExperimental": false,
               "minSdk": 26,
-              "description": null
+              "description": "64-bit build (arm64-v8a), recommended for 64-bit devices."
             },
             {
-              "version": "18.6.3.1002251336-release-arm64-v8a",
+              "version": "18.8.0.1022711984-beta-armeabi-v7a",
               "versionCodes": {
-                "ARM64_V8A": 176071766
+                "ARMEABI_V7A": 176124765
+              },
+              "isExperimental": false,
+              "minSdk": 26,
+              "description": "32-bit build (armeabi-v7a), for 32-bit devices only."
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Search and sort playlists",
+      "description": "Shows native playlist header search and the Sort menu action for playlist management. Keeps Deezer's search, display-order preferences, ownership checks and chart exclusion. Account, content access and playback permissions are unchanged.",
+      "default": true,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "deezer.android.app",
+          "name": "Deezer",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": null,
+          "signatures": [
+            "51a891a6c5d17b4e36a6f46bab675c1cae786a5af06f51d0105dab7ec6a94516"
+          ],
+          "formFactor": "MOBILE",
+          "targets": [
+            {
+              "version": "9.0.27.3",
+              "versionCodes": {
+                "ARM64_V8A": 9002703
               },
               "isExperimental": false,
               "minSdk": 26,
@@ -11887,22 +12882,22 @@
           "formFactor": "MOBILE",
           "targets": [
             {
-              "version": "18.6.3.1002251336-release-armeabi-v7a",
+              "version": "18.8.0.1022711984-beta-arm64-v8a",
               "versionCodes": {
-                "ARMEABI_V7A": 176071765
+                "ARM64_V8A": 176124766
               },
               "isExperimental": false,
               "minSdk": 26,
-              "description": null
+              "description": "64-bit build (arm64-v8a), recommended for 64-bit devices."
             },
             {
-              "version": "18.6.3.1002251336-release-arm64-v8a",
+              "version": "18.8.0.1022711984-beta-armeabi-v7a",
               "versionCodes": {
-                "ARM64_V8A": 176071766
+                "ARMEABI_V7A": 176124765
               },
               "isExperimental": false,
               "minSdk": 26,
-              "description": null
+              "description": "32-bit build (armeabi-v7a), for 32-bit devices only."
             }
           ]
         }
@@ -12065,10 +13060,10 @@
             {
               "version": "7.4.8",
               "versionCodes": {
-                "ARM64_V8A": 7897,
-                "ARMEABI_V7A": 7897,
-                "X86_64": 7897,
-                "X86": 7897
+                "ARM64_V8A": 7915,
+                "ARMEABI_V7A": 7915,
+                "X86_64": 7915,
+                "X86": 7915
               },
               "isExperimental": false,
               "minSdk": 28,
@@ -13451,6 +14446,18 @@
               "isExperimental": false,
               "minSdk": 29,
               "description": null
+            },
+            {
+              "version": "26.47.00.1022347503",
+              "versionCodes": {
+                "ARM64_V8A": 1068892333,
+                "ARMEABI_V7A": 1068892333,
+                "X86_64": 1068892333,
+                "X86": 1068892333
+              },
+              "isExperimental": false,
+              "minSdk": 29,
+              "description": null
             }
           ]
         }
@@ -13626,6 +14633,18 @@
               "isExperimental": false,
               "minSdk": 29,
               "description": null
+            },
+            {
+              "version": "26.47.00.1022347503",
+              "versionCodes": {
+                "ARM64_V8A": 1068892333,
+                "ARMEABI_V7A": 1068892333,
+                "X86_64": 1068892333,
+                "X86": 1068892333
+              },
+              "isExperimental": false,
+              "minSdk": 29,
+              "description": null
             }
           ]
         }
@@ -13741,22 +14760,22 @@
           "formFactor": "MOBILE",
           "targets": [
             {
-              "version": "18.6.3.1002251336-release-armeabi-v7a",
+              "version": "18.8.0.1022711984-beta-arm64-v8a",
               "versionCodes": {
-                "ARMEABI_V7A": 176071765
+                "ARM64_V8A": 176124766
               },
               "isExperimental": false,
               "minSdk": 26,
-              "description": null
+              "description": "64-bit build (arm64-v8a), recommended for 64-bit devices."
             },
             {
-              "version": "18.6.3.1002251336-release-arm64-v8a",
+              "version": "18.8.0.1022711984-beta-armeabi-v7a",
               "versionCodes": {
-                "ARM64_V8A": 176071766
+                "ARMEABI_V7A": 176124765
               },
               "isExperimental": false,
               "minSdk": 26,
-              "description": null
+              "description": "32-bit build (armeabi-v7a), for 32-bit devices only."
             }
           ]
         }
@@ -13785,6 +14804,18 @@
                 "ARMEABI_V7A": 1068856906,
                 "X86_64": 1068856906,
                 "X86": 1068856906
+              },
+              "isExperimental": false,
+              "minSdk": 29,
+              "description": null
+            },
+            {
+              "version": "26.47.00.1022347503",
+              "versionCodes": {
+                "ARM64_V8A": 1068892333,
+                "ARMEABI_V7A": 1068892333,
+                "X86_64": 1068892333,
+                "X86": 1068892333
               },
               "isExperimental": false,
               "minSdk": 29,
@@ -14081,6 +15112,47 @@
       "options": []
     },
     {
+      "name": "Use Bluetooth microphone",
+      "description": "Shows Gboard's Voice typing → Use Bluetooth microphone setting so dictation can capture from a paired headset. Routing stays Gboard's own decision.",
+      "default": true,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "com.google.android.inputmethod.latin",
+          "name": "Gboard",
+          "description": null,
+          "apkFileType": "APK",
+          "appIconColor": "#4285F4",
+          "signatures": [
+            "7ce83c1b71f3d572fed04c8d40c5cb10ff75e6d87d9df6fbd53f0468c2905053",
+            "f0fd6c5b410f25cb25c3b53346c8972fae30f8ee7411df910480ad6b2d60db83"
+          ],
+          "formFactor": "MOBILE",
+          "targets": [
+            {
+              "version": "18.8.0.1022711984-beta-arm64-v8a",
+              "versionCodes": {
+                "ARM64_V8A": 176124766
+              },
+              "isExperimental": false,
+              "minSdk": 26,
+              "description": "64-bit build (arm64-v8a), recommended for 64-bit devices."
+            },
+            {
+              "version": "18.8.0.1022711984-beta-armeabi-v7a",
+              "versionCodes": {
+                "ARMEABI_V7A": 176124765
+              },
+              "isExperimental": false,
+              "minSdk": 26,
+              "description": "32-bit build (armeabi-v7a), for 32-bit devices only."
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
       "name": "Use the system voice for navigation",
       "description": "Uses the phone's selected text-to-speech engine for Maps navigation instead of requiring Google TTS. Select DriveDeck in Android's text-to-speech settings to hear Maps with the local DriveDeck voice. If no system engine is ready, Maps keeps its original voice.",
       "default": false,
@@ -14114,6 +15186,18 @@
                 "ARMEABI_V7A": 1068856906,
                 "X86_64": 1068856906,
                 "X86": 1068856906
+              },
+              "isExperimental": false,
+              "minSdk": 29,
+              "description": null
+            },
+            {
+              "version": "26.47.00.1022347503",
+              "versionCodes": {
+                "ARM64_V8A": 1068892333,
+                "ARMEABI_V7A": 1068892333,
+                "X86_64": 1068892333,
+                "X86": 1068892333
               },
               "isExperimental": false,
               "minSdk": 29,
@@ -14204,22 +15288,22 @@
           "formFactor": "MOBILE",
           "targets": [
             {
-              "version": "18.6.3.1002251336-release-armeabi-v7a",
+              "version": "18.8.0.1022711984-beta-arm64-v8a",
               "versionCodes": {
-                "ARMEABI_V7A": 176071765
+                "ARM64_V8A": 176124766
               },
               "isExperimental": false,
               "minSdk": 26,
-              "description": null
+              "description": "64-bit build (arm64-v8a), recommended for 64-bit devices."
             },
             {
-              "version": "18.6.3.1002251336-release-arm64-v8a",
+              "version": "18.8.0.1022711984-beta-armeabi-v7a",
               "versionCodes": {
-                "ARM64_V8A": 176071766
+                "ARMEABI_V7A": 176124765
               },
               "isExperimental": false,
               "minSdk": 26,
-              "description": null
+              "description": "32-bit build (armeabi-v7a), for 32-bit devices only."
             }
           ]
         }
@@ -14294,6 +15378,18 @@
                 "ARMEABI_V7A": 1068856906,
                 "X86_64": 1068856906,
                 "X86": 1068856906
+              },
+              "isExperimental": false,
+              "minSdk": 29,
+              "description": null
+            },
+            {
+              "version": "26.47.00.1022347503",
+              "versionCodes": {
+                "ARM64_V8A": 1068892333,
+                "ARMEABI_V7A": 1068892333,
+                "X86_64": 1068892333,
+                "X86": 1068892333
               },
               "isExperimental": false,
               "minSdk": 29,

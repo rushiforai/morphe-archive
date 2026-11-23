@@ -17,7 +17,7 @@ class MapsWarningVoiceTest {
         val original=validateMapsWarningVoice(classes)
         assertEquals(51,original.size)
         val methods=original.mapValues { MutableMethod(it.value) }
-        bindMapsNativeVoice(methods)
+        bindMapsNativeVoice(methods,false)
         val dispatch=methods.getValue("Lbmyo;->b(Ljava/lang/Object;)V")
         val refs=dispatch.implementation!!.instructions.mapNotNull { (it as? ReferenceInstruction)?.reference?.toString() }
         assertEquals(0,refs.count { it=="Lbnau;->d(Lbnas;)V" })

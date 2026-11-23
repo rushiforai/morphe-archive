@@ -304,9 +304,7 @@ private fun speedTabSelectionHook(): String =
 @Suppress("unused")
 val customSeekStepPatch = bytecodePatch(
     name = "Custom seek step",
-    description = "Lets the seek distance of the player's left/right keys be set inside the app. " +
-        "Applies to the D-pad and to the media rewind/fast-forward keys, and adds " +
-        "\"Seek 30s/1m/5m/10m/30m\" choices to the SPEED tab of the player settings panel.",
+    description = "Lets you choose how far the player skips when seeking, from the player settings.",
 ) {
     compatibleWith(COMPATIBILITY_MOVIEBOX_TV)
 

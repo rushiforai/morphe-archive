@@ -32,7 +32,9 @@ public final class GboardAiVoiceSettingsGroupFeature
                 Arrays.asList(
                         new GboardAiWritingToolsSettingsFeature(context),
                         new GboardAdvancedVoiceSettingsFeature(context),
-                        new GboardBluetoothMicrophoneSettingsFeature(context)));
+                        new GboardBluetoothMicrophoneSettingsFeature(context),
+                        new dev.jason.gboardpatches.extension.advancedvoice
+                                .GboardVoiceTypingExtrasSettingsFeature(context)));
     }
 
     @Override

@@ -6,12 +6,13 @@ package app.morphe.patches.facebook.media.backgroundplay
 
 import app.morphe.patcher.StringComparisonType
 import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.instructions
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
-import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.patch.patch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patcher.util.smali.ExternalLabel
 import app.morphe.patches.facebook.feed.aidetected.EXTENSION_CLASSES
@@ -30,6 +31,7 @@ import app.morphe.patches.facebook.misc.extension.requireLocals
 import app.morphe.patches.facebook.misc.settings.settingsPatch
 import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.util.addInstructionsAtControlFlowLabel
+import app.morphe.util.executeBytecode
 import app.morphe.util.findMutableMethodOf
 import app.morphe.util.returnEarly
 import com.android.tools.smali.dexlib2.Opcode
@@ -47,22 +49,24 @@ internal const val PATCH = "Keep playing in the background"
  * left, and has the notification's server flag read on for that video alone.
  */
 @Suppress("unused")
-val backgroundPlayPatch = bytecodePatch(
+val backgroundPlayPatch = patch(
     name = "Keep playing in the background",
-    description = "A video you started with a tap keeps its sound when you leave Facebook, with Facebook's own " +
-        "notification to pause it. A headphones button in the picture-in-picture window does the same for the video " +
-        "in it. Both start off. Turn them on in Hushfacebook settings > Video and audio.",
+    description = "A video you started with a tap, or a reel you swiped to in Reels, keeps its sound when you " +
+        "leave Facebook, with Facebook's own notification to pause it. A reel can go on to the next one " +
+        "instead of playing again. A headphones button in the picture-in-picture window does the same for the video " +
+        "in it. All start off. Turn them on in Hushfacebook settings > Video and audio.",
 ) {
     category("Playback")
     dependsOn(settingsPatch)
     compatibleWith(*AppCompatibilities.facebook())
 
-    execute {
+    executeBytecode {
         val player = findPlayer()
         val handler = findHandler(player.trigger)
         fillStubs(player, handler.classDef.type)
         hookPlayer(player)
         hookHandler(handler)
+        hookNextReel(player, handler)
         hookWindowButtons()
         hookTouches(PATCH, doubleTap = false)
         enableStatus("backgroundPlay")
@@ -270,11 +274,13 @@ internal fun hookCheck(check: MutableMethod, handler: Handler) {
         }
     }
 
-    // Nothing has run yet, so v0 to v2 are free.
+    // Nothing has run yet, so v0 to v2 are free. The handler, the session and the record are p0 to
+    // p2, which the range form hands to Next reel in the background as they are.
     check.requireLocals(PATCH, 3)
     check.addInstructionsWithLabels(
         0,
         """
+            invoke-static/range { p0 .. p2 }, $CHECKING
             move-object/from16 v0, ${check.parameterRegister(1)}
             iget-object v1, v0, ${handler.record}->${handler.videoField}:$STRING
             iget-object v2, v0, ${handler.record}->${handler.triggerField}:${handler.trigger}
@@ -286,6 +292,50 @@ internal fun hookCheck(check: MutableMethod, handler: Handler) {
             return v0
         """.trimIndent(),
         ExternalLabel("facebook", check.getInstruction(0)),
+    )
+}
+
+/**
+ * Next reel in the background: the player's binder tells the extension each reel bound with its
+ * rich params, which a record needs for Facebook's handler to build a background player, and the
+ * extension gets the name of the release the handler's return lets go of its player with.
+ */
+private fun BytecodePatchContext.hookNextReel(player: Player, handler: Handler) {
+    val record = classDefByOrNull(handler.record) ?: throw PatchException("$PATCH: the record ${handler.record} isn't in this build")
+    val params = recordParams(record)
+        ?: throw PatchException("$PATCH: ${handler.record} has no one constructor taking rich params after its PlayerOrigin")
+    val found = binders(player.owner, player.trigger, params)
+    val binder = found.singleOrNull() ?: throw PatchException(
+        "$PATCH: expected one static binder in ${player.owner.type} taking the player, an origin, the trigger and $params, " +
+            "found ${found.size}",
+    )
+    hookBinder(mutableClassDefBy(player.owner.type).findMutableMethodOf(binder), player.owner.type, params)
+    val release = returnRelease(handler.back, player.owner.type, player.trigger) ?: throw PatchException(
+        "$PATCH: ${handler.classDef.type}->${handler.back.name} doesn't pause and then release its player with the trigger",
+    )
+    mutableClassDefBy(NEXT_REEL).methods
+        .singleOrNull { it.name == RELEASE_METHOD && it.parameterTypes.isEmpty() && it.returnType == STRING }
+        ?.returnEarly(release)
+        ?: throw PatchException("$PATCH: the extension has no $RELEASE_METHOD() to fill in")
+}
+
+/** The binder hands the player, its origin and the rich params to the extension before its own first instruction. */
+internal fun hookBinder(bind: MutableMethod, player: String, params: String) {
+    val types = bind.parameterTypes.map(CharSequence::toString)
+    val at = listOf(player, PLAYER_ORIGIN, params).map { type ->
+        types.indexOf(type).takeIf { it >= 0 }
+            ?: throw PatchException("$PATCH: ${bind.definingClass}->${bind.name} takes no $type")
+    }
+    // Nothing has run yet, so v0 to v2 are free.
+    bind.requireLocals(PATCH, 3)
+    bind.addInstructions(
+        0,
+        """
+            move-object/from16 v0, ${bind.parameterRegister(at[0])}
+            move-object/from16 v1, ${bind.parameterRegister(at[1])}
+            move-object/from16 v2, ${bind.parameterRegister(at[2])}
+            invoke-static { v0, v1, v2 }, $BOUND
+        """.trimIndent(),
     )
 }
 

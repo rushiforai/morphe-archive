@@ -1,8 +1,8 @@
 # Buienradar
 
-**Appversie:** 7.4.8 · **Build:** 7897 · **Origineel bestand:** APKM
+**Appversie:** 7.4.8 · **Build:** 7915 · **Origineel bestand:** APKM
 
-[Download originele app](https://buzzheavier.com/v4m79608e677){ .md-button .md-button--primary }
+[Download originele app](https://www.apkmirror.com/apk/dpg-media/buienradar-weer/buienradar-weer-7-4-8-release/buienradar-weer-7-4-8-4-android-apk-download/){ .md-button .md-button--primary }
 
 Selecteer het exacte originele bestand in Morphe Manager. Gebruik bij een gesplitste app het volledige archief.
 
@@ -14,6 +14,7 @@ Selecteer het exacte originele bestand in Morphe Manager. Gebruik bij een gespli
 | **Disable tracking** | Aan | Stopt de ondersteunde optionele gebruiksstatistieken, advertentie-ID’s en diagnostiek. |
 | **Hide Premium banner** | Aan | Verbergt automatische abonnementsaanbiedingen en Premium-promoties. |
 | **Hide ads** | Aan | Verwijdert advertenties tussen weerkaarten en vóór weervideo’s. |
+| **Hide update prompt** | Aan | Slaat de updatemelding bij het opstarten over en opent Buienradar. |
 | **Skip consent screens** | Aan | Slaat automatische toestemmingsschermen voor advertenties over; handmatige privacykeuzes blijven beschikbaar. |
 
 ## Advertentie- en trackingdiensten

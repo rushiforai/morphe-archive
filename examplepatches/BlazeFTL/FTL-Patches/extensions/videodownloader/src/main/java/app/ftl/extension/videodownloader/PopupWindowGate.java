@@ -1,26 +1,17 @@
 package app.ftl.extension.videodownloader;
 
 import android.app.Activity;
-import android.app.AlertDialog;
-import android.content.DialogInterface;
 import android.os.Message;
 import android.webkit.WebView;
 
 import java.lang.ref.WeakReference;
 
-public final class PopupWindowGate implements DialogInterface.OnClickListener, DialogInterface.OnDismissListener {
+public final class PopupWindowGate {
     private static WeakReference<WebView> openerView;
     private static String openerUrl;
     private static String hitExtra;
 
-    private final Activity activity;
-    private final String url;
-    private final String key;
-
-    private PopupWindowGate(Activity activity, String url, String key) {
-        this.activity = activity;
-        this.url = url;
-        this.key = key;
+    private PopupWindowGate() {
     }
 
     public static void captureOpener(WebView view) {
@@ -91,50 +82,35 @@ public final class PopupWindowGate implements DialogInterface.OnClickListener, D
         showDialog(activity, opener, url);
     }
 
-    private static void showDialog(Activity activity, String opener, String url) {
+    private static void showDialog(final Activity activity, String opener, final String url) {
         String host = PopupUtil.hostOf(url);
-        String key = null;
+        String ruleHost = null;
         if (host != null && !PopupUtil.sameSite(PopupUtil.hostOf(opener), host)) {
-            key = host;
+            ruleHost = host;
         }
-        PopupWindowGate gate = new PopupWindowGate(activity, url, key);
-        try {
-            AlertDialog.Builder builder = new AlertDialog.Builder(activity)
-                    .setTitle("Popup blocked")
-                    .setMessage("Popup from: " + PopupUtil.shorten(opener) + "\nOpened URL: "
-                            + (url != null ? PopupUtil.shorten(url) : "N/A (script popup)"));
-            if (key != null) {
-                builder.setPositiveButton("Always allow", gate)
-                        .setNeutralButton("Allow once", gate)
-                        .setNegativeButton("Always Block", gate);
-            } else {
-                if (url != null) {
-                    builder.setPositiveButton("Allow once", gate);
-                }
-                builder.setNegativeButton("Block", gate);
-            }
-            builder.setOnDismissListener(gate).show();
-        } catch (Throwable t) {
-            PopupUtil.release();
+        int[] choices;
+        if (ruleHost != null) {
+            choices = new int[]{PopupPrompt.ALLOW_ONCE, PopupPrompt.ALWAYS_BLOCK, PopupPrompt.ALWAYS_ALLOW};
+        } else if (url != null) {
+            choices = new int[]{PopupPrompt.ALLOW_ONCE, PopupPrompt.BLOCK_ONCE};
+        } else {
+            choices = new int[]{PopupPrompt.BLOCK_ONCE};
         }
-    }
-
-    @Override
-    public void onClick(DialogInterface dialog, int which) {
-        if (which == DialogInterface.BUTTON_NEUTRAL) {
-            PopupUtil.openUrl(activity, url);
-        } else if (which == DialogInterface.BUTTON_POSITIVE) {
-            if (key != null) {
-                PopupStore.put(activity, PopupStore.WINDOW, key, PopupStore.ALLOW);
-            }
-            PopupUtil.openUrl(activity, url);
-        } else if (which == DialogInterface.BUTTON_NEGATIVE && key != null) {
-            PopupStore.put(activity, PopupStore.WINDOW, key, PopupStore.BLOCK);
-        }
-    }
-
-    @Override
-    public void onDismiss(DialogInterface dialog) {
-        PopupUtil.release();
+        PopupPrompt.show(activity, opener, url, "A page tried to open a new window", ruleHost, choices,
+                new PopupPrompt.Callback() {
+                    @Override
+                    public void onChoice(int choice, String key) {
+                        if (choice == PopupPrompt.ALLOW_ONCE) {
+                            PopupUtil.openUrl(activity, url);
+                        } else if (choice == PopupPrompt.ALWAYS_ALLOW) {
+                            if (key != null) {
+                                PopupStore.put(activity, PopupStore.WINDOW, key, PopupStore.ALLOW);
+                            }
+                            PopupUtil.openUrl(activity, url);
+                        } else if (choice == PopupPrompt.ALWAYS_BLOCK && key != null) {
+                            PopupStore.put(activity, PopupStore.WINDOW, key, PopupStore.BLOCK);
+                        }
+                    }
+                });
     }
 }

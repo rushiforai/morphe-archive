@@ -17,7 +17,8 @@ import patches.gboard.shared.gboardStructuralFingerprint
 import patches.gboard.shared.generated.GboardVersionBindings
 
 internal fun MutableMethod.preservePendingRamblerResetCleanup(classes: List<ClassDef>) {
-    check(GboardVersionBindings.targetVersion == "18.6.3")
+    // 18.6.3-only header reset; 18.8.0 replaced that screen, so the shim has nothing to patch.
+    if (GboardVersionBindings.targetVersion != "18.6.3") return
     check(definingClass == "Lfio;" && name == "i" && parameterTypes == listOf("Z") && returnType == "V")
     val byType = classes.associateBy { it.type }
     // Pin the callback constructor/ownership guard and both cancellation paths.

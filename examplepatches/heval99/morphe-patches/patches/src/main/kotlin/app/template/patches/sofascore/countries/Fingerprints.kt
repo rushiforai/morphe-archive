@@ -64,6 +64,27 @@ internal val IndexedEventsPageCallFingerprint = apiCaller("getIndexedEventsPage"
  */
 internal val CategoryScheduledEventsCallFingerprint = apiCaller("categoryScheduledEvents")
 
+/** NetworkCoroutineAPI.getPopularEvents(sport, countryCode, date, continuation), not the (continuation) overload. */
+internal fun MethodReference.isDatePopularEvents() =
+    definingClass == NETWORK_COROUTINE_API && name == "getPopularEvents" && parameterTypes.size == 4 &&
+        parameterTypes.take(3).all { it.toString() == "Ljava/lang/String;" }
+
+/**
+ * The popular matches at the top of a date in the Matches tab (`api/v1/sport/{sport}/{countryCode}/
+ * popular-events/{date}`, EventListResponse; 26.11.09: the default case of the merged lambda cil,
+ * whose other case asks queryCategoriesForData). The (continuation) overload of getPopularEvents
+ * is a head-to-head request (Head2HeadEventsResponse, lambda ow), so the overload is checked.
+ */
+internal object PopularEventsCallFingerprint : Fingerprint(
+    returnType = "Ljava/lang/Object;",
+    filters = listOf(methodCall(definingClass = NETWORK_COROUTINE_API, name = "getPopularEvents")),
+    custom = { method, _ ->
+        method.implementation?.instructions?.any {
+            ((it as? ReferenceInstruction)?.reference as? MethodReference)?.isDatePopularEvents() == true
+        } == true
+    },
+)
+
 private fun ReferenceInstruction.isCountryInit() =
     (reference as? MethodReference)?.let { it.definingClass == COUNTRY && it.name == "<init>" } == true
 

@@ -6,6 +6,7 @@ import android.content.ContextWrapper;
 import android.net.Uri;
 import android.os.SystemClock;
 
+import java.util.ArrayList;
 import java.util.Locale;
 
 final class PopupUtil {
@@ -29,6 +30,73 @@ final class PopupUtil {
         }
         String s = host.toLowerCase(Locale.ROOT);
         return s.startsWith("www.") ? s.substring(4) : s;
+    }
+
+    private static final String[] SECOND_LEVEL = {
+            "co", "com", "org", "net", "gov", "edu", "ac", "or", "ne", "go"
+    };
+
+    private static boolean isSecondLevel(String label) {
+        for (String s : SECOND_LEVEL) {
+            if (s.equals(label)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    static String base(String host) {
+        String h = norm(host);
+        if (h == null || h.indexOf(':') >= 0) {
+            return h;
+        }
+        String[] p = h.split("\\.");
+        int n = p.length;
+        if (n <= 2) {
+            return h;
+        }
+        boolean numeric = true;
+        for (String s : p) {
+            if (!s.matches("\\d+")) {
+                numeric = false;
+                break;
+            }
+        }
+        if (numeric) {
+            return h;
+        }
+        int keep = (p[n - 1].length() == 2 && isSecondLevel(p[n - 2])) ? 3 : 2;
+        if (n <= keep) {
+            return h;
+        }
+        StringBuilder sb = new StringBuilder();
+        for (int i = n - keep; i < n; i++) {
+            if (sb.length() > 0) {
+                sb.append('.');
+            }
+            sb.append(p[i]);
+        }
+        return sb.toString();
+    }
+
+    static ArrayList<String> options(String host) {
+        ArrayList<String> out = new ArrayList<String>();
+        String h = norm(host);
+        if (h == null || h.length() == 0) {
+            return out;
+        }
+        out.add(h);
+        String base = base(h);
+        String cur = h;
+        while (base != null && !cur.equals(base)) {
+            int dot = cur.indexOf('.');
+            if (dot < 0) {
+                break;
+            }
+            cur = cur.substring(dot + 1);
+            out.add(cur);
+        }
+        return out;
     }
 
     static String hostOf(String url) {

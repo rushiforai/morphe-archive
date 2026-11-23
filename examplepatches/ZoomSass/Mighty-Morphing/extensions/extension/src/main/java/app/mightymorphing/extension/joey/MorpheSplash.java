@@ -690,7 +690,9 @@ public final class MorpheSplash {
         String theme = ModernUi.getMaterialAccent(context);
         if (ModernUi.isPureAmoled(context)) theme = ModernUi.ACCENT_AMOLED;
         String logo = logoFor(theme);
-        int fur = swatch(context, ModernUi.ACCENT_AMOLED.equals(theme) ? ModernUi.ACCENT_BLUE : theme);
+        int fur = ModernTheme.isPreset(theme) || ModernTheme.isMine(theme)
+                ? ModernUi.getPalette(context).accent
+                : swatch(context, ModernUi.ACCENT_AMOLED.equals(theme) ? ModernUi.ACCENT_BLUE : theme);
         return new Look(normalizeStyle(style), lift(fur), SplashArt.recolor(logo, fur));
     }
 

@@ -47,7 +47,7 @@ and sends nothing anywhere. There are no accounts, no telemetry, no dependencies
    The first run writes `token.txt` next to the script. That file is your password: the phone needs
    the whole string, and the bridge refuses anyone who does not have it.
 
-5. In the app: **More → Noam's Patches → Game Review → Stockfish on your computer**, then
+5. In the app: **More → Quwi's Patches → Game Review on your computer**, then
 
    - **Computer address** — what the bridge printed after "on your network", e.g. `192.168.1.10:7892`;
    - **Token** — the whole string from `token.txt` (or copy `token.txt` into a message to yourself);

@@ -115,7 +115,7 @@ val discordRpcPatch = bytecodePatch(
         "Discord's own browser page, so no password and no computer are involved. Discord shows the " +
         "activity under this bundle's Discord application name and keeps the status picked in the " +
         "settings while the phone is connected. Runs by default and can be switched off in Quwi's " +
-        "Patches.",
+        "Patches. Connecting a Discord account does not work with root mounting.",
     default = true,
 ) {
     compatibleWith(Constants.COMPATIBILITY)

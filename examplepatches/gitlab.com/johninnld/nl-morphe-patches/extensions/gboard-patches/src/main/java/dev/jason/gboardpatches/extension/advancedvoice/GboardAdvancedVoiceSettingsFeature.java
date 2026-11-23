@@ -34,8 +34,6 @@ public final class GboardAdvancedVoiceSettingsFeature
     private final String errorSummary;
     private final String enabledTitle;
     private final String enabledSummary;
-    private final String zhTwPunctuationTitle;
-    private final String zhTwPunctuationSummary;
     private final String sectionBehavior;
     private final String sectionInformation;
     private final String sectionOfflineSpeechModel;
@@ -89,10 +87,6 @@ public final class GboardAdvancedVoiceSettingsFeature
                 R.string.gboard_patches_advanced_voice_enabled_title);
         enabledSummary = GboardSettingsText.get(context,
                 R.string.gboard_patches_advanced_voice_enabled_summary);
-        zhTwPunctuationTitle = GboardSettingsText.get(context,
-                R.string.gboard_patches_advanced_voice_zh_tw_punctuation_title);
-        zhTwPunctuationSummary = GboardSettingsText.get(context,
-                R.string.gboard_patches_advanced_voice_zh_tw_punctuation_summary);
         sectionBehavior = GboardSettingsText.get(context,
                 R.string.gboard_patches_advanced_voice_section_behavior);
         sectionInformation = GboardSettingsText.get(context,
@@ -199,8 +193,6 @@ public final class GboardAdvancedVoiceSettingsFeature
             SharedPreferences preferences = GboardAdvancedVoiceSettings.preferences(context);
             GboardAdvancedVoiceSettings.ensureDefaults(preferences);
             boolean enabled = GboardAdvancedVoiceSettings.readEnabled(preferences);
-            boolean zhTwPunctuationEnabled =
-                    GboardAdvancedVoiceSettings.readZhTwPunctuationEnabled(preferences);
             GboardDictationPayloadDetector.Detection payloadDetection =
                     GboardDictationPayloadDetector.detect(
                             context,
@@ -210,7 +202,6 @@ public final class GboardAdvancedVoiceSettingsFeature
             GboardPatchesSettingsContract.OfflineSpeechLanguages offlineSpeechLanguages =
                     host.getOfflineSpeechLanguages();
             Log.i(TAG, "Loaded Advanced Voice Typing enabled=" + enabled
-                    + ", zhTwPunctuationEnabled=" + zhTwPunctuationEnabled
                     + ", payloadStatus=" + payloadDetection.getStatus()
                     + ", payloadPackage=" + payloadDetection.getPackageName()
                     + ", speechServicesStatus=" + speechServicesStatus
@@ -228,14 +219,6 @@ public final class GboardAdvancedVoiceSettingsFeature
                     enabled,
                     value -> saveEnabled(host, context, value))
                     .setRestartRequired(GboardAdvancedVoiceSettings.PREF_KEY_ENABLED));
-            behaviorRows.add(new GboardPatchesSettingsContract.ToggleRow(
-                    zhTwPunctuationTitle,
-                    zhTwPunctuationSummary,
-                    enabled,
-                    zhTwPunctuationEnabled,
-                    value -> saveZhTwPunctuationEnabled(context, value))
-                    .setRestartRequired(
-                            GboardAdvancedVoiceSettings.PREF_KEY_ZH_TW_PUNCTUATION_ENABLED));
 
             List<GboardPatchesSettingsContract.Row> informationRows =
                     new ArrayList<GboardPatchesSettingsContract.Row>();

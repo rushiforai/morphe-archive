@@ -123,7 +123,7 @@ private fun Collection<GboardPointerOwnerFeatureSpec>.validatePointerOwnerSpecs(
 }
 
 private fun MutableMethod.requireSupportedPointerOwnerStock() {
-    check(GboardVersionBindings.targetVersion in setOf("18.0.3", "18.6.3", "18.6.3")) {
+    check(GboardVersionBindings.targetVersion in setOf("18.0.3", "18.6.3", "18.8.0-beta")) {
         "Unsupported Gboard pointer-owner stock contract for ${GboardVersionBindings.targetVersion}"
     }
     requireExact1803PointerOwnerStockShape()
@@ -186,7 +186,7 @@ private enum class PointerLifecycleRole(val label: String) {
 private fun MutableMethod.requireSupportedPointerLifecycleStock(
     role: PointerLifecycleRole,
 ) {
-    check(GboardVersionBindings.targetVersion in setOf("18.0.3", "18.6.3", "18.6.3")) {
+    check(GboardVersionBindings.targetVersion in setOf("18.0.3", "18.6.3", "18.8.0-beta")) {
         "Unsupported Gboard ${role.label} stock contract for ${GboardVersionBindings.targetVersion}"
     }
     requireExact1803PointerLifecycleShape(role)
@@ -202,8 +202,8 @@ private fun MutableMethod.requireExact1803PointerLifecycleShape(role: PointerLif
         PointerLifecycleRole.FINISH -> {
             val dispatches = instructions.mapNotNull { it.methodReference() }.count { reference ->
                 reference.definingClass == when (GboardVersionBindings.targetVersion) {
-                    "18.6.3" -> "Lqcl;"
-                    else -> "Lprt;"
+                    "18.6.3" -> "Lagyx;"
+                    else -> "Lahov;"
                 } && reference.name == "f" &&
                     reference.parameterTypes == GboardVersionBindings.gestureDispatch.parameterTypes &&
                     reference.returnType == GboardVersionBindings.gestureDispatch.returnType
@@ -221,13 +221,13 @@ private fun MutableMethod.requireExact1803PointerLifecycleShape(role: PointerLif
                 check(implementation!!.registerCount == 4 && instructions.size == 8 &&
                     instructions[0].opcode == Opcode.IGET_OBJECT &&
                     first?.registerA == 0 && first.registerB == 1 &&
-                    instructions[0].isFieldReference("Lqnm;->q:Lalv;") &&
+                    instructions[0].isFieldReference("Lahsz;->q:Lalv;") &&
                     instructions[1].opcode == Opcode.IF_EQZ &&
                     instructions[2].isMethodReference("Lalz;->a(J)V") &&
-                    instructions[3].isFieldReference("Lqnm;->r:Lrey;") &&
-                    instructions[4].isMethodReference("Lqnn;->k()V") &&
+                    instructions[3].isFieldReference("Lahsz;->r:Lrey;") &&
+                    instructions[4].isMethodReference("Lahtb;->k()V") &&
                     instructions[5].isLiteralWrite(2, 0) &&
-                    instructions[6].isFieldReference("Lqnm;->O:Z") &&
+                    instructions[6].isFieldReference("Lahsz;->O:Z") &&
                     instructions[7].opcode == Opcode.RETURN_VOID) {
                     "18.5.4 cancel timestamp/delegate/reset sequence drift"
                 }
@@ -559,7 +559,7 @@ private fun GboardPointerOwnerTransformationContext.verifyCompleteTransformation
 }
 
 private fun MutableMethod.requireExactPatchedPointerOwnerFingerprint() {
-    check(GboardVersionBindings.targetVersion in setOf("18.0.3", "18.6.3", "18.6.3")) {
+    check(GboardVersionBindings.targetVersion in setOf("18.0.3", "18.6.3", "18.8.0-beta")) {
         "Unsupported patched pointer-owner contract for ${GboardVersionBindings.targetVersion}"
     }
     // Exact descriptors, semantic stock checks, selected call order, and

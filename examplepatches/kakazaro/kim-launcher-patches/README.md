@@ -45,12 +45,12 @@ The bundle is written to `patches/build/libs/patches-<version>.mpp`.
 
 ## Tested
 
-Upstream warns: *Kim Launcher is upgrading to API v2; update to 1.0.2789+401 or later, older versions will no longer be supported.* Only 1.0.2789 is supported here.
+Upstream warns: *Kim Launcher is upgrading to API v2; update to 1.0.2789+401 or later, older versions will no longer be supported.* Only 1.0.2796 is supported here.
 
 
 | App version | Status |
 |---|---|
-| 1.0.2789 | both patches apply with Morphe CLI, patched APK builds; not yet run on a device |
+| 1.0.2796 | both patches apply with Morphe CLI, patched APK builds; not yet run on a device |
 
 ## License
 

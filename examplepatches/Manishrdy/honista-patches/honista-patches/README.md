@@ -4,15 +4,13 @@ A local Morphe `.mpp` bundle implementing the retained changes in the workspace'
 
 ## Supported input
 
-Use the **original** `Honista_v13.0__x64.apk`, package `cc.honista.app`, version `426.0.0.37.69`, version code `383207253`. It contains ARM64 native libraries despite its filename.
+Use the **original** `Honista_v13.1__x64.apk`, package `cc.honista.app`, version `426.0.0.37.70`, version code `383207254`. It contains ARM64 native libraries despite its filename.
 
-Original APK SHA-256: `42d28e1b08b4ba10de460dad4e9230cf00909ad7c6f578d5a50f86eb1b7876b3`.
-
-The patch checks package/version/code and canonical DEX fingerprints of all 23 original classes it modifies. It rejects modified inputs and existing local helper classes. Future Honista versions require a port; do not force compatibility. No original APK or signing key is included in the source archive.
+The patch checks package/version/code and canonical DEX fingerprints of all 17 original classes it modifies. It rejects modified inputs and existing local helper classes. Future Honista versions require a port; do not force compatibility. No original APK or signing key is included in the source archive.
 
 ## Apply using Morphe Manager
 
-1. Add `https://github.com/Manishrdy/honista-patches` as a Remote patch source, or copy `honista-patches-1.0.0.mpp` and the original APK to your phone for local import.
+1. Add `https://github.com/Manishrdy/honista-patches` as a Remote patch source, or copy `honista-patches-1.1.0.mpp` and the original APK to your phone for local import.
 2. In Manager, open **Add patch source → Local → Select patch source files** and select the `.mpp`. The exact entry point can vary by Manager release.
 3. Select Honista's original APK from storage. Select **Honista v13 complete local fixes** from **Honista Local Patches**.
 4. Patch with Manager's default settings, then install the result using the signing-key instructions below.
@@ -47,7 +45,7 @@ There is no new media-picker patch: normal-gallery access worked after the dual 
 
 ## Build and edit
 
-The project includes Kotlin patch code, 38 replacement method bodies in `payload-smali/`, both helper Java sources, and the tested dynamic-module DEX asset. The full APK is not embedded. Original method annotations/register counts/exception tables are retained in the replacements; unrelated methods stay in the input APK.
+The project includes Kotlin patch code, replacement method bodies in `payload-smali/` (17 source files across 15 obfuscated classes and 2 `com.instagram` classes), both helper Java sources, and the tested dynamic-module DEX asset. The full APK is not embedded. Original method annotations/register counts/exception tables are retained in the replacements; unrelated methods stay in the input APK.
 
 Requirements: JDK 17+, Python 3 for optional helper regeneration, Android SDK platform 36/build-tools 36.1.0, and the pinned Gradle/Morphe dependencies. Set `ANDROID_HOME` and run:
 
@@ -66,21 +64,21 @@ For the exact local workspace, verification tasks are:
 ./gradlew :patches:verifyBundle :patches:verifyRejection
 ```
 
-These use the parent's original/tested APKs, compare all 25 changed/added output classes and the module asset byte for byte after canonical DEX serialization, and confirm already-patched input rejection. `audit/classes.txt` and `audit/module-methods/` contain the target class list and module replacement source. Detailed logs and the local action record are excluded from Git.
+These use the parent's original/tested APKs, compare all 17 changed/added output classes and the module asset byte for byte after canonical DEX serialization, and confirm already-patched input rejection. `audit/classes.txt` and `audit/module-methods/` contain the target class list and module replacement source. Detailed logs and the local action record are excluded from Git.
 
 ## Desktop usage
 
 ```sh
 java -Xmx6g -jar morphe-desktop-1.18.1-all.jar patch \
-  --unsigned -p honista-patches-1.0.0.mpp \
-  -o Honista-morphe-unsigned.apk Honista_v13.0__x64.apk
+  --unsigned -p honista-patches-1.1.0.mpp \
+  -o Honista-morphe-unsigned.apk Honista_v13.1__x64.apk
 ```
 
 Use Desktop's default bytecode mode. On the tested Desktop 1.18.1/JDK 26 combination, `STRIP_FAST` and `FULL` succeed; explicitly selecting `STRIP_SAFE` hit an upstream `Already closed` mapped-buffer failure during DEX compilation. The default is the mode used by Manager's patcher configuration too. Unsigned output is for inspection and must be signed before installing.
 
 ## Validation
 
-Built using Morphe patches plugin 1.3.2 and patcher API 1.5.0, then successfully loaded/patched by **official Morphe Desktop 1.18.1** using its current patcher. The default-mode output matches all 25 tested changed/added classes exactly and includes the identical module asset. A complete descriptor-based comparison checked 178,544 source classes with no unaccounted retained changes.
+Built using Morphe patches plugin 1.3.2 and patcher API 1.5.0, then successfully loaded/patched by **official Morphe Desktop 1.18.1** using its current patcher. The default-mode output matches all 17 tested changed/added classes exactly and includes the identical module asset. A complete descriptor-based comparison checked 179,274 source classes with no unaccounted retained changes.
 
 Android bundle loading was prepared using the official Manager 1.34.0 runtime, but could not execute because ADB reported no connected device. Manager UI import/patch/install is therefore not claimed as device-tested. No app was installed or removed during bundle creation. Earlier Android filtering tests and live observations belong to the installed build documented in section 23 of the action log.
 

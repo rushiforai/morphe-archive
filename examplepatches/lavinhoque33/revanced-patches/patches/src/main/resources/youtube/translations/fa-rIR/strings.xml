@@ -291,8 +291,10 @@
     <string name="morphe_playback_in_feeds_entry_off">خاموش</string>
     <string name="morphe_playback_in_feeds_entry_wifi_only">فقط Wi-Fi</string>
     <string name="morphe_playback_in_feeds_title">پخش در خوراک‌ها</string>
-    <string name="morphe_player_control_buttons_background_opacity_summary">شفافیت پس‌زمینهٔ پشت دکمه‌های کنترل پخش‌کننده و نوار زمان را تنظیم کنید (۰ نامرئی و ۱۰۰ یک‌دست است)</string>
-    <string name="morphe_player_control_buttons_background_opacity_title">شفافیت پس‌زمینهٔ دکمه‌های کنترل</string>
+    <string name="morphe_player_transport_background_opacity_summary">میزان کدری پس‌زمینهٔ دکمه‌های پخش، مکث، پخش دوباره، بعدی و قبلی را تنظیم کنید</string>
+    <string name="morphe_player_transport_background_opacity_title">کدری پس‌زمینهٔ دکمه‌های پخش</string>
+    <string name="morphe_player_other_overlay_background_opacity_summary">میزان کدری پس‌زمینهٔ دیگر دکمه‌های پخش‌کننده و نشانگر زمان را تنظیم کنید</string>
+    <string name="morphe_player_other_overlay_background_opacity_title">کدری دیگر پس‌زمینه‌های روی‌هم‌افتادگی</string>
     <string name="morphe_playlist_hide_removal_snackbar_summary">پس از حذف یک ویدیو از لیست پخش، تاییدیه نمایش داده نمی‌شود</string>
     <string name="morphe_playlist_hide_removal_snackbar_title">مخفی کردن اسنک‌بار حذف از لیست پخش</string>
     <string name="morphe_playlist_long_press_drag_summary">یک ویدیو از لیست پخش خود را لمس کرده و نگه دارید تا آن را به موقعیت جدیدی بکشید</string>

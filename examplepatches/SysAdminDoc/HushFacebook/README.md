@@ -1,7 +1,7 @@
 ![Hushfacebook. Keep the people. Cut the noise.](assets/readme-hero.png)
 
 <p align="center">
-  <a href="https://github.com/SysAdminDoc/Hushfacebook/releases"><img src="https://img.shields.io/badge/version-0.23.0-0866FF" alt="Version 0.23.0"></a>
+  <a href="https://github.com/SysAdminDoc/Hushfacebook/releases"><img src="https://img.shields.io/badge/version-0.24.0-0866FF" alt="Version 0.24.0"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-GPL--3.0-blue" alt="License GPL-3.0"></a>
   <img src="https://img.shields.io/badge/platform-Android%2011%2B-3DDC84" alt="Platform Android 11+">
   <img src="https://img.shields.io/badge/Facebook-588.0.0.42.55-0866FF" alt="Facebook 588.0.0.42.55">
@@ -22,7 +22,7 @@ Each row in the [patch table](docs/patches.md) says how its switch starts. The a
 
 This project has no connection to Meta or to the Morphe project. Neither endorses it, and neither wrote it.
 
-The latest release is [v0.23.0](https://github.com/SysAdminDoc/Hushfacebook/releases/tag/v0.23.0), with 126 patches. It includes all changes since v0.22.0, among them folding long posts and comments at the length you pick, background play for a video you started, switches for Facebook's new Repost button, watched stories moving to the end of the tray, and the move to Facebook 588.0.0.42.55, as the [changelog](CHANGELOG.md) describes.
+The latest release is [v0.24.0](https://github.com/SysAdminDoc/Hushfacebook/releases/tag/v0.24.0), with 127 patches. It includes all changes since v0.23.0, among them background play for the next reel, a tab bar that stays in groups, a pause button for feed videos, a proxy you can point Facebook at, a centered feed column on tablets, and the move to Facebook 588.0.0.42.55, as the [changelog](CHANGELOG.md) describes.
 
 [Add to Morphe](https://morphe.software/add-source?github=SysAdminDoc%2FHushfacebook) | [Download a release](https://github.com/SysAdminDoc/Hushfacebook/releases/latest) | [Browse the patches](docs/patches.md)
 
@@ -63,7 +63,7 @@ Changing one of those brings up a **Restart Facebook** row at the top of the pag
 
 Morphe Manager can back up your patch choices but not these switches. **Export settings** saves them to a JSON file, word lists included, and **Import settings** reads one back on this phone or a new one. It shows what the file would change before anything does. **Reset settings** puts them all back to how a new install has them, and **Undo the reset** brings yours back. **Check for new Hushfacebook releases** under Updates is off until you turn it on. Then it asks GitHub once a day and tells you when there's a newer release, and you update through Morphe Manager as usual.
 
-The settings follow the language Facebook shows. German, Spanish, Indonesian, Brazilian Portuguese, Turkish, Vietnamese, Russian, Thai, Simplified Chinese and Traditional Chinese (Taiwan) are translated. Other languages get English. [Translating](CONTRIBUTING.md#translating) explains how to fix a string or add a language.
+The settings follow the language Facebook shows. German, Spanish, Indonesian, Brazilian Portuguese, Turkish, Vietnamese, Russian, Thai, Arabic, Simplified Chinese and Traditional Chinese (Taiwan) are translated. Other languages get English. [Translating](CONTRIBUTING.md#translating) explains how to fix a string or add a language.
 
 To keep Reel downloads in More without the sidebar button, leave **Download** on under **Reels and Watch** and turn off **Download button on reels** on the same page.
 

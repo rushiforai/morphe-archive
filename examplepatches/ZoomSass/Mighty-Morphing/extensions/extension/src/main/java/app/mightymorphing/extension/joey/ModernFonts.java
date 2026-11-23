@@ -572,14 +572,14 @@ public final class ModernFonts {
                 "Fonts and sizes in Modern. Classic keeps Joey's own font settings.");
         float density = activity.getResources().getDisplayMetrics().density;
 
-        TextView modern = MorpheDialog.action(activity, "Modern", MorpheDialog.TEXT);
-        TextView classic = MorpheDialog.action(activity, "Classic Joey", MorpheDialog.TEXT);
+        View modern = MorpheDialog.mode(activity, "Modern");
+        View classic = MorpheDialog.mode(activity, "Classic Joey");
         LinearLayout presets = new LinearLayout(activity);
-        presets.setOrientation(LinearLayout.HORIZONTAL);
-        LinearLayout.LayoutParams half = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f);
-        half.rightMargin = Math.round(8 * density);
-        presets.addView(modern, half);
-        presets.addView(classic, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
+        presets.setOrientation(LinearLayout.VERTICAL);
+        presets.addView(modern, new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+        presets.addView(classic, new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
         page.addView(presets);
         TextView note = new TextView(activity);
         note.setText("Classic Joey copies the fonts and sizes saved in Joey's own font settings.");
@@ -611,8 +611,14 @@ public final class ModernFonts {
         page.addView(MorpheDialog.scroller(activity, list));
 
         TextView doneButton = MorpheDialog.action(activity, "Done", MorpheDialog.GOLD);
-        page.addView(MorpheDialog.actions(activity, doneButton));
+        TextView resetButton = MorpheDialog.action(activity, "Reset", MorpheDialog.SUB);
+        page.addView(MorpheDialog.actions(activity, resetButton, doneButton));
         AlertDialog dialog = MorpheDialog.show(activity, page, 460);
+        // Back to the Modern fonts and sizes, which is what a fresh install starts with.
+        resetButton.setOnClickListener(v -> {
+            applyModern(activity);
+            paint[0].run();
+        });
         modern.setOnClickListener(v -> {
             applyModern(activity);
             paint[0].run();

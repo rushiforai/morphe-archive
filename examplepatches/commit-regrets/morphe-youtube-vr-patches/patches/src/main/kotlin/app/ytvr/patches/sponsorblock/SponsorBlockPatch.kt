@@ -97,10 +97,12 @@ internal class SeekbarIds(
 
 @Suppress("MagicNumber")
 internal val SEEKBAR_SETS = listOf(
+    // 1.92.11 (public.xml: seekbar=0x7f0b0a1f, bg=0x7f0b0a20, buffered=0x7f0b0a21,
+    // container=0x7f0b0a22, position=0x7f0b0a25, thumb=0x7f0b0a26; the binder is
+    // Lgxl;-><init>, and its ctor holds all five code-referenced ids)
+    SeekbarIds(0x7f0b0a1f, 0x7f0b0a20, 0x7f0b0a21, 0x7f0b0a22, 0x7f0b0a25, 0x7f0b0a26),
     // 1.91.10
     SeekbarIds(0x7f0b0a3e, 0x7f0b0a3f, 0x7f0b0a40, 0x7f0b0a41, 0x7f0b0a44, 0x7f0b0a45),
-    // 1.90.05
-    SeekbarIds(0x7f0b0a3b, 0x7f0b0a3c, 0x7f0b0a3d, 0x7f0b0a3e, 0x7f0b0a41, 0x7f0b0a42),
 )
 
 /**
@@ -167,10 +169,11 @@ private fun Method.matchedSeekbarIds(): SeekbarIds? = matchingSeekbarSets().firs
 /**
  * Every supported seek-bar id set whose five code-referenced ids this method contains
  * (seekbar, buffered, container, position, thumb). The 1.90.05 and 1.89.09 sets overlapped by
- * one id (1.90.05's seekbar was 1.89.09's seekbar_buffered); the two supported sets today,
- * 1.91.10 and 1.90.05, share two ids (between those builds `0x7f0b0a3e` changed role from
- * container to seekbar and `0x7f0b0a41` from position to container). A denser overlap could
- * make two sets match one method; the
+ * one id (1.90.05's seekbar was 1.89.09's seekbar_buffered) and 1.91.10 and 1.90.05 shared two
+ * ids (between those builds `0x7f0b0a3e` changed role from container to seekbar and
+ * `0x7f0b0a41` from position to container); 1.90.05 was dropped with the 2026-11-22 flip. The
+ * two supported sets today, 1.92.11 and 1.91.10, share none: 1.92.11's whole window moved down
+ * ~0x1f. A denser overlap could make two sets match one method; the
  * bake site throws in that case instead of baking the first set's ids into the wrong build.
  */
 private fun Method.matchingSeekbarSets(): List<SeekbarIds> {

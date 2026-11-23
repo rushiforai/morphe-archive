@@ -57,6 +57,16 @@ private object ReviewSummaryLayoutFingerprint : Fingerprint(
     filters = listOf(literal(AI_REVIEW_SUMMARY_DISCLAIMER)),
 )
 
+/** 26.47 moved AI_REVIEW_SUMMARY_DISCLAIMER to 0x7f140217. */
+private object ReviewSummaryLayoutFingerprint2647 : Fingerprint(
+    filters = listOf(literal(0x7f140217)),
+)
+
+/** 26.47 moved ASKMAPS_ENTRYPOINT_LABEL to 0x7f14036d. */
+private object AskMapsChipFingerprint2647 : Fingerprint(
+    filters = listOf(literal(0x7f14036d)),
+)
+
 /**
  * How the header's "Know before you go" getter ends: `return slot` when nothing else
  * fills its spot, else `return null`. The header's other getters of that type are a
@@ -116,7 +126,17 @@ internal val hideAiPatch = bytecodePatch(
         // The review summary. Both lists that add it (the Reviews tab and the overview's reviews
         // block) ask its view model "is there one" right before creating its layout; that is the
         // nearest call in front of the layout's new-instance.
-        val layout = ReviewSummaryLayoutFingerprint.originalMethod.definingClass
+        val layoutFingerprint = if (packageMetadata.versionName == "26.47.00.1022347503") ReviewSummaryLayoutFingerprint2647 else ReviewSummaryLayoutFingerprint
+        val layout = layoutFingerprint.originalMethod.definingClass
+        // Interfaces with exactly one implementation: the summary's "is there one" check lives on
+        // one of them, while the calls 26.47 puts between it and the layout (trace helpers,
+        // iterator steps) are on framework or multi-implementation types.
+        val implementers = mutableMapOf<String, MutableList<String>>()
+        classDefForEach { classDef ->
+            if (classDef.type.startsWith("Lorg/ungoogled/")) return@classDefForEach
+            for (i in classDef.interfaces) implementers.getOrPut(i) { mutableListOf() } += classDef.type
+        }
+        val singleImpl = implementers.filterValues { it.size == 1 }.keys
         val gates = mutableSetOf<MethodReference>()
         classDefForEach { classDef ->
             if (classDef.type.startsWith("Lorg/ungoogled/")) return@classDefForEach
@@ -125,12 +145,16 @@ internal val hideAiPatch = bytecodePatch(
                 insns.forEachIndexed { i, insn ->
                     if (insn.opcode != Opcode.NEW_INSTANCE) return@forEachIndexed
                     if (((insn as ReferenceInstruction).reference as TypeReference).type != layout) return@forEachIndexed
-                    val call = insns.subList(0, i).lastOrNull { (it as? ReferenceInstruction)?.reference is MethodReference }
-                    val ref = (call as? ReferenceInstruction)?.reference as? MethodReference
-                        ?: throw PatchException("no call in front of the review summary layout in ${method.definingClass}")
-                    if (ref.parameterTypes.isNotEmpty() || ref.returnType != "Z") {
-                        throw PatchException("unexpected call in front of the review summary layout: $ref")
-                    }
+                    // The gate is the nearest no-arg boolean call on a single-implementation
+                    // interface in front of the layout. 26.47 inserts a void trace helper and
+                    // iterates a list between the check and the layout, so the literally last
+                    // call is no longer the gate.
+                    val ref = insns.subList(0, i).asReversed().asSequence()
+                        .mapNotNull { (it as? ReferenceInstruction)?.reference as? MethodReference }
+                        .firstOrNull {
+                            it.parameterTypes.isEmpty() && it.returnType == "Z" && it.definingClass in singleImpl
+                        }
+                        ?: throw PatchException("no review summary check in front of the layout in ${method.definingClass}")
                     gates += ref
                 }
             }
@@ -160,7 +184,8 @@ internal val hideAiPatch = bytecodePatch(
 
         // Ask Maps' chip under the search bar (issues #68, #82). Every chip row asks one factory for it and adds
         // it only when it got one -- null is what a phone without Ask Maps gets -- so the factory answers null.
-        val chip = AskMapsChipFingerprint.originalMethod.definingClass
+        val chipFingerprint = if (packageMetadata.versionName == "26.47.00.1022347503") AskMapsChipFingerprint2647 else AskMapsChipFingerprint
+        val chip = chipFingerprint.originalMethod.definingClass
         val factories = mutableListOf<Pair<String, Method>>()
         classDefForEach { classDef ->
             if (classDef.type.startsWith("Lorg/ungoogled/")) return@classDefForEach
@@ -172,6 +197,10 @@ internal val hideAiPatch = bytecodePatch(
                 if (builds) factories += classDef.type to method
             }
         }
+        val is2647 = packageMetadata.versionName == "26.47.00.1022347503"
+        val askMapsSearchHeaderButton = if (is2647) 0x7f141c76 else ASK_MAPS_SEARCH_HEADER_BUTTON
+        val askMapsPlaceAction = if (is2647) 0x7f1403a7 else ASK_MAPS_PLACE_ACTION
+        val askMapsListAction = if (is2647) 0x7f140390 else ASK_MAPS_LIST_ACTION
         val (owner, built) = factories.singleOrNull()
             ?: throw PatchException("expected one Ask Maps chip factory, found ${factories.size}")
         val factory = mutableClassDefBy(owner).methods.single {
@@ -205,11 +234,11 @@ internal val hideAiPatch = bytecodePatch(
             var header: Pair<String, Method>? = null
             classDefForEach { c ->
                 if (c.type.startsWith("Lorg/ungoogled/")) return@classDefForEach
-                c.methods.firstOrNull { it.literalAt(ASK_MAPS_SEARCH_HEADER_BUTTON) >= 0 }?.let { header = c.type to it }
+                c.methods.firstOrNull { it.literalAt(askMapsSearchHeaderButton) >= 0 }?.let { header = c.type to it }
             }
             val (_, headerMethod) = header ?: throw PatchException("Ask Maps search header button not found")
             val headerInsns = headerMethod.implementation!!.instructions.toList()
-            val at = headerMethod.literalAt(ASK_MAPS_SEARCH_HEADER_BUTTON)
+            val at = headerMethod.literalAt(askMapsSearchHeaderButton)
             fun boolCall(insn: com.android.tools.smali.dexlib2.iface.instruction.Instruction) =
                 ((insn as? ReferenceInstruction)?.reference as? MethodReference)?.takeIf {
                     insn.opcode == Opcode.INVOKE_VIRTUAL && it.returnType == "Z" && it.parameterTypes.isEmpty()
@@ -250,9 +279,37 @@ internal val hideAiPatch = bytecodePatch(
         run {
             var owner: String? = null
             classDefForEach { c ->
-                if (owner == null && c.methods.any { it.literalAt(ASK_MAPS_PLACE_ACTION) >= 0 }) owner = c.type
+                if (owner == null && c.methods.any { it.literalAt(askMapsPlaceAction) >= 0 }) owner = c.type
             }
-            val show = mutableClassDefBy(owner ?: throw PatchException("place sheet Ask action not found")).methods.singleOrNull {
+            val askClass = mutableClassDefBy(owner ?: throw PatchException("place sheet Ask action not found"))
+            if (is2647) {
+                // 26.47 answers with a plain boolean getter over its own field instead of
+                // boxing it, so hide the action by returning false at its entry.
+                val show = askClass.methods.singleOrNull {
+                    it.parameterTypes.isEmpty() && it.returnType == "Z" &&
+                        it.implementation?.instructions?.firstOrNull()?.opcode == Opcode.IGET_BOOLEAN
+                } ?: throw PatchException("place sheet Ask action has no boolean visibility answer")
+                // 26.47 compiles this to `iget-boolean v0,v0,field; return v0`: its only register is
+                // `this`, so an entry guard would clobber it before the field read. Change the answer
+                // on its way out instead: false stays false, true becomes !HIDE_AI.
+                val askReturns = show.implementation!!.instructions.withIndex()
+                    .filter { it.value.opcode == Opcode.RETURN }.map { it.index }.reversed()
+                if (askReturns.isEmpty()) throw PatchException("place sheet Ask action has no return")
+                for (r in askReturns) {
+                    val ret = show.implementation!!.instructions[r]
+                    val register = (ret as OneRegisterInstruction).registerA
+                    show.addInstructionsWithLabels(
+                        r,
+                        """
+                            if-eqz v$register, :place_ask
+                            sget-boolean v$register, $SHAPES->HIDE_AI:Z
+                            xor-int/lit8 v$register, v$register, 0x1
+                        """,
+                        ExternalLabel("place_ask", ret),
+                    )
+                }
+            } else {
+            val show = askClass.methods.singleOrNull {
                 it.parameterTypes.isEmpty() && it.returnType == "Ljava/lang/Boolean;" &&
                     it.implementation?.instructions?.firstOrNull()?.opcode == Opcode.IGET_BOOLEAN
             } ?: throw PatchException("place sheet Ask action has no visibility answer")
@@ -271,6 +328,7 @@ internal val hideAiPatch = bytecodePatch(
                 """,
                 ExternalLabel("place_ask", box),
             )
+            }
         }
 
         // A saved list's "Ask" action: added after its own server check; skipped the way that check skips it.
@@ -279,7 +337,7 @@ internal val hideAiPatch = bytecodePatch(
             classDefForEach { c ->
                 if (field != null) return@classDefForEach
                 val init = c.methods.firstOrNull { it.name == "<clinit>" } ?: return@classDefForEach
-                val at = init.literalAt(ASK_MAPS_LIST_ACTION)
+                val at = init.literalAt(askMapsListAction)
                 if (at < 0) return@classDefForEach
                 field = init.implementation!!.instructions.drop(at).firstNotNullOfOrNull { insn ->
                     ((insn as? ReferenceInstruction)?.reference as? FieldReference)?.takeIf { insn.opcode == Opcode.SPUT_OBJECT }
@@ -330,16 +388,25 @@ internal val hideAiPatch = bytecodePatch(
         // Ask Maps in navigation (issues #17, #68): the navigation sheet's Gemini button and its voice session
         // only start when this says yes, as on a phone the server gives no Ask Maps.
         AskMapsInNavigationFingerprint.method.let { inNavigation ->
-            inNavigation.addInstructionsWithLabels(
-                0,
-                """
-                    sget-boolean v0, $SHAPES->HIDE_AI:Z
-                    if-eqz v0, :ask_maps_navigation
-                    const/4 v0, 0x0
-                    return v0
-                """,
-                ExternalLabel("ask_maps_navigation", inNavigation.implementation!!.instructions.first()),
-            )
+            // Its only register may be `this` (26.47's answer is `iget-boolean v0,v0,field; return v0`),
+            // so an entry guard would clobber `this` before the field read. Change the answer on its way
+            // out instead: false stays false, true becomes !HIDE_AI.
+            val returns = inNavigation.implementation!!.instructions.withIndex()
+                .filter { it.value.opcode == Opcode.RETURN }.map { it.index }.reversed()
+            if (returns.isEmpty()) throw PatchException("Ask Maps navigation check has no return")
+            for (r in returns) {
+                val ret = inNavigation.implementation!!.instructions[r]
+                val register = (ret as OneRegisterInstruction).registerA
+                inNavigation.addInstructionsWithLabels(
+                    r,
+                    """
+                        if-eqz v$register, :ask_maps_navigation
+                        sget-boolean v$register, $SHAPES->HIDE_AI:Z
+                        xor-int/lit8 v$register, v$register, 0x1
+                    """,
+                    ExternalLabel("ask_maps_navigation", ret),
+                )
+            }
         }
     }
 }

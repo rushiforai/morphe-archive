@@ -7,12 +7,8 @@ import app.morphe.patcher.string
 // The "firebase_analytics_collection_deactivated" read fingerprint lives in
 // shared/misc/telemetry/FirebaseAnalyticsDeactivated.kt (shared with FotMob, 2026-10-22).
 
-// Firebase Analytics: in this build FirebaseAnalytics no longer declares logEvent, so
-// every event funnels through the underlying Google Measurement SDK entry point.
-object GmsMeasurementLogEventFingerprint : Fingerprint(
-    definingClass = "Lcom/google/android/gms/measurement/api/AppMeasurementSdk;",
-    name = "logEvent",
-)
+// The AppMeasurementSdk.logEvent step iterates every concrete overload by class name (see
+// DisableTelemetryPatch.kt), so it has no fingerprint here.
 
 // Sofascore's own first-party analytics sender (b9e.c in 26.10.12): every app analytics event
 // goes through this (String eventName, FirebaseBundle)V method, which stamps the bundle with

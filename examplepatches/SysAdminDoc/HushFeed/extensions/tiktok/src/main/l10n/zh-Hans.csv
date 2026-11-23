@@ -150,7 +150,6 @@ A message is already on its way,一条消息已经在路上
 A name of your own under this tab's icon. Leave it empty to keep TikTok's.,此选项卡图标下有你自己的名称。将其留空以保留 TikTok.
 A port is a whole number from 1 to 65535,端口是 1 到 65535 之间的整数
 A press on Share under a video copies its link instead of opening the share sheet. Press Share again right after to open the sheet.,按视频下的“共享”会复制其链接，而不是打开共享表。之后再次按“共享”即可打开工作表.
-"A profile's share sheet gets an Account facts button. It shows what TikTok already sent about the account: when it joined, its region and language, when its username and display name last changed, whether it's private and whether its liked videos are public. Nothing extra is fetched.",个人资料的共享表有一个账号事实按钮。它显示 TikTok 已发送的有关该账号的内容：加入时间、地区和语言、用户名和显示名称上次更改时间、是否是私人的以及其喜欢的视频是否是公开的。没有获取任何额外的内容.
 "A screen's layout is recorded. Export the diagnostic report to send it, or tap to record another.",屏幕的布局被记录。导出诊断报告以发送它，或点击以记录另一个报告.
 "A small label on the feed shows the minutes or videos left of today's budget, whichever is closer to running out.",信息流上的一个小标签显示了今天预算剩余的分钟或视频，以接近耗尽的为准.
 A tap on Home or on the For You tab while For You is showing no longer reloads it. The video you're on stays.,当“为你推荐”显示时，点击“主页”或“为你推荐”选项卡不再重新加载它。你正在观看的视频将保留.
@@ -1177,7 +1176,6 @@ Not requested in this process yet,在此过程中尚未请求
 Not saved yet,尚未保存
 Not seen,没见过
 Not seen yet,还没见过
-Not sent,未发送
 "Nothing has been checked yet, so there's nothing to report.",尚未检查任何内容，因此没有任何可报告的内容.
 "Nothing has been looked up yet. Use the app for a moment, then come back.",还没有查到什么。使用该应用程序一会儿，然后再回来.
 Nothing hidden.,没有什么隐藏的.
@@ -2884,7 +2882,7 @@ One isn't on TikTok anymore,有 1 个已不在 TikTok 上
 The host can see you,主播能看到你
 Let the host see you,让主播看到你
 Couldn't tell which LIVE this is. Open it again.,无法判断这是哪个 LIVE。请再打开一次.
-The host can already see you in this LIVE,主播已经能在这个 LIVE 中看到你
+The host won't see you next time you open it,下次你打开时主播就不会看到你
 Letting the host see you,正在让主播看到你
 The host can see you now,主播现在能看到你
 The host sees you next time you open it,下次你打开时主播就会看到你
@@ -2975,3 +2973,53 @@ Always show the expand button in comments,始终显示评论中的展开按钮
 Puts the button that stretches the comments over the whole screen on every video. TikTok only gives it to some accounts. Hide the expand button in comments wins if both are on.,在每个视频的评论里都放上把评论拉满整个屏幕的按钮。TikTok 只给部分账号这个按钮。两个开关都打开时，以“隐藏评论中的展开按钮”为准.
 Keep the video full size under comments,评论打开时保持视频原大小
 "The video keeps its size when you open the comments, and the comments cover its lower part instead of pushing it up into a smaller box.",打开评论时视频保持原来的大小，评论盖住视频的下半部分，而不是把视频推到上方的小框里.
+Round the corners on profile grids,个人资料网格显示圆角
+"Gives each video on profile grids rounded corners, on your own profile and on Liked and Favorites too.",让个人资料网格中每个视频的边角变圆，你自己的主页以及喜欢和收藏里也一样.
+Gifter level,送礼等级
+SecUID,SecUID
+Unknown (TikTok didn't send it),未知 (TikTok 未发送)
+"A profile's share sheet gets an Account facts button. It shows what TikTok already sent about the account: when it joined, its region and language, its gifter level and SecUID, when its username and display name last changed, whether it's private and whether its liked videos are public. Nothing extra is fetched.",个人资料的共享表有一个账号事实按钮。它显示 TikTok 已发送的有关该账号的内容：加入时间、地区和语言、送礼等级和 SecUID、用户名和显示名称上次更改时间、是否是私人的以及其喜欢的视频是否是公开的。没有获取任何额外的内容.
+Show the room ID and your connection,显示直播间 ID 和你的连接
+"Adds a small line to LIVE rooms with the room's ID and how your own connection to the stream is doing, as TikTok's player measures it: ping, latency and download speed. Tap the line to copy the room ID.",在直播间加一行小字，显示直播间 ID 以及你自己到直播流的连接状况，数据来自 TikTok 播放器自己的测量：Ping 值、延迟和下载速度。点按这一行可复制直播间 ID.
+Room ID %1$s,直播间 ID %1$s
+Ping %1$s ms,Ping %1$s 毫秒
+Latency %1$s s,延迟 %1$s 秒
+Room ID copied,已复制直播间 ID
+LIVE room ID,直播间 ID
+Hide playable games,隐藏可玩的游戏
+Hide the mini games you can play right in the For You feed.,隐藏可以直接在“为你推荐”信息流里玩的小游戏.
+Playable games,可玩的游戏
+Hide the pause icon,隐藏暂停图标
+"A tap still pauses and plays the video, but the big play icon doesn't show over it.",轻点仍会暂停和播放视频，但视频上不会显示大的播放图标.
+Exit with one Back,按一次返回即退出
+"Back on Home leaves TikTok right away, with no ""Tap again to exit"" message. From another tab, Back still takes you to Home first, or to the tab Open TikTok on picks.",在首页按返回会立即离开 TikTok，不再显示“再按一次退出”。在其他标签页，按返回仍会先回到首页，或回到“打开 TikTok 于”所选的标签页.
+LIVE profile card background,LIVE 个人资料卡背景
+"Colors the card a tap on a name opens in a LIVE room. Chips, buttons and boxes on it keep their own colors, and while a color is picked the card skips Dark LIVE panels.",为在 LIVE 直播间点按名字时打开的卡片上色。卡片上的标签、按钮和方框保留各自的颜色，选了颜色后这张卡片不再使用深色 LIVE 面板.
+LIVE profile card text,LIVE 个人资料卡文字
+"Colors the text drawn on the card itself. Automatic picks white or black, whichever stands out from the card.",为卡片本身上的文字上色。“自动”会选白色或黑色，哪种在卡片上更醒目就用哪种.
+Hide rows on LIVE profile cards,隐藏 LIVE 个人资料卡上的行
+Pick the rows to take off the card a tap on a name opens in a LIVE room. The rest stay where they are.,选择要从 LIVE 直播间点按名字时打开的卡片上去掉的行。其余的保持原位.
+Upcoming LIVE events,即将开始的 LIVE 活动
+Products in the LIVE,LIVE 中的商品
+Shop rating,店铺评分
+Group chat,群聊
+Bulletin board,公告板
+Gift gallery,礼物展馆
+Festival honors,节日荣誉
+Smaller text sizes,更小的文字大小
+"Adds three stops below the smallest size on TikTok's own Text size slider, in Settings and privacy > Accessibility. Pick one there, then restart TikTok.",在 TikTok 自带的“文字大小”滑块（“设置与隐私 > 辅助功能”）上，在最小字号之下再加三档。在那里选一档，然后重启 TikTok.
+UI size,界面大小
+"Makes TikTok's whole interface smaller, text and buttons alike, so more fits on screen. 100 leaves it as it is. Restart TikTok to see the change.",把 TikTok 的整个界面缩小，文字和按钮一起变小，屏幕上能放下更多内容。100 表示保持原样。重新启动 TikTok 以查看更改.
+Show how long a LIVE has been on,显示 LIVE 已开播多久
+"Adds a small line to LIVE rooms with how long the host has been live, counted from when the room started. With the room ID on too, it goes under that.",在直播间加一行小字，显示主播已经直播了多久，从直播间开始时算起。如果也开着直播间 ID，这一行在它下面.
+LIVE for %1$s,已直播 %1$s
+Show exact LIVE battle scores,显示准确的 LIVE PK 分数
+"In a LIVE battle, TikTok caps the big scores viewers see while the host sees the whole number. This shows the whole score in the battle bar and the co-host windows.",在 LIVE PK 中，TikTok 会限制观众看到的高分，而主播能看到完整数字。开启后，PK 进度条和连麦窗口都会显示完整分数.
+Start LIVEs at,LIVE 起始画质
+The quality you picked last,你上次选的画质
+"A LIVE room opens at this quality until you pick another one, and that pick carries to the next rooms until TikTok closes. A room whose stream doesn't have it opens at TikTok's choice.",直播间会以这个画质打开，直到你选别的画质，之后这个选择会沿用到后面的直播间，直到 TikTok 关闭。直播流没有这个画质的直播间会以 TikTok 的选择打开.
+Skip promo lines,跳过推广字幕行
+"Skips the part of a video where a caption line has a word from Promo words, like a casino or promo code plug, and shows Undo. It reads the video's own captions, so a video without any plays as usual.",某行字幕含有“推广词”里的词时（例如赌场或优惠码广告），跳过视频的这一段，并显示撤消。它读取视频自带的字幕，所以没有字幕的视频照常播放.
+Promo words,推广词
+"Separate words or phrases with commas, like casino, promo code. Capital letters don't matter, and ""a"" & ""b"" or ""a"" !& ""b"" work as they do for Blocked caption words.","用逗号分隔词语或短语，例如 casino, promo code。不区分大小写，""a"" & ""b"" 或 ""a"" !& ""b"" 的用法与“屏蔽的标题文字”相同."
+Skipped a promo line,已跳过一行推广内容

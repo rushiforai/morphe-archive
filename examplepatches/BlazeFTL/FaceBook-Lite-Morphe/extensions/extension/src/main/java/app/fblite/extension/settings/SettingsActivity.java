@@ -60,6 +60,7 @@ public final class SettingsActivity extends Activity {
     private TextView preview;
     private int percent;
     private View qualityRow;
+    private View debugOptions;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -144,8 +145,11 @@ public final class SettingsActivity extends Activity {
         LinearLayout debug = card();
         addToggle(debug, MorpheSettings.DEBUG_LOG, SettingsIcons.BUG_REPORT,
                 t("Debug logging", "Ghi nhật ký gỡ lỗi"),
-                t("Logs how Facebook loads ads (feed, Reels, Marketplace) and where videos come from. The log holds on-screen text, so keep it off unless needed.",
-                        "Ghi cách Facebook tải quảng cáo (bảng tin, Reels, Marketplace) và nguồn video. Nhật ký chứa chữ hiện trên màn hình, nên chỉ bật khi cần."));
+                t("Writes a log file for bug reports. The log holds on-screen text, so keep it off unless needed.",
+                        "Ghi nhật ký để báo lỗi. Nhật ký chứa chữ hiện trên màn hình, nên chỉ bật khi cần."));
+        debugOptions = debugOptions();
+        debugOptions.setVisibility(MorpheSettings.isEnabled(this, MorpheSettings.DEBUG_LOG) ? View.VISIBLE : View.GONE);
+        debug.addView(debugOptions);
         debug.addView(divider());
         debug.addView(logButtons());
         root.addView(sectionLabel(t("Troubleshooting", "Khắc phục sự cố")));
@@ -364,6 +368,51 @@ public final class SettingsActivity extends Activity {
         return card;
     }
 
+    // ---- Log options ----
+
+    private LinearLayout debugOptions() {
+        LinearLayout box = new LinearLayout(this);
+        box.setOrientation(LinearLayout.VERTICAL);
+        addToggle(box, MorpheSettings.DEBUG_ADS, SettingsIcons.BLOCK,
+                t("Ads and sponsored items", "Quảng cáo và mục được tài trợ"),
+                t("How Facebook loads ads in the feed, Reels and Marketplace, and what was hidden.",
+                        "Cách Facebook tải quảng cáo ở bảng tin, Reels, Marketplace và những mục đã ẩn."));
+        addToggle(box, MorpheSettings.DEBUG_VIEWS, SettingsIcons.VIEW_CAROUSEL,
+                t("Views and layout", "Giao diện và bố cục"),
+                t("Every view of the current reel or video with its size and position. Use it for button placement bugs.",
+                        "Mọi view của reel hoặc video đang phát kèm kích thước và vị trí. Dùng khi nút đặt sai chỗ."));
+        addToggle(box, MorpheSettings.DEBUG_PLAYER, SettingsIcons.FAST_FORWARD,
+                t("Player buttons", "Nút trình phát"),
+                t("Seek bar, double tap, speaker button, and when buttons hide over comments.",
+                        "Thanh tua, chạm đúp, nút loa và lúc các nút bị ẩn khi mở bình luận."));
+        addToggle(box, MorpheSettings.DEBUG_VIDEO, SettingsIcons.DOWNLOAD,
+                t("Videos and downloads", "Video và tải xuống"),
+                t("Where video files come from, quality options and downloads.",
+                        "Nguồn tệp video, các mức chất lượng và việc tải."));
+        addToggle(box, MorpheSettings.DEBUG_STORIES, SettingsIcons.PERSON,
+                t("Stories and profiles", "Story và hồ sơ"),
+                t("Story headers and ads, and the creator profile redirect.",
+                        "Tiêu đề và quảng cáo trong story, việc chuyển tới hồ sơ người đăng."));
+        addToggle(box, MorpheSettings.DEBUG_APP, SettingsIcons.INFO,
+                t("Screens and app", "Màn hình và ứng dụng"),
+                t("Which screen is open, clone install, and your switches at the start of each session.",
+                        "Màn hình đang mở, bản sao (clone) và các công tắc của bạn ở đầu mỗi phiên."));
+        box.addView(divider(), 0);
+        return box;
+    }
+
+    private void showDebugOptions(boolean visible) {
+        if (debugOptions == null) return;
+        debugOptions.animate().cancel();
+        if (visible) {
+            debugOptions.setAlpha(0f);
+            debugOptions.setVisibility(View.VISIBLE);
+            debugOptions.animate().alpha(1f).setDuration(150).start();
+        } else {
+            debugOptions.setVisibility(View.GONE);
+        }
+    }
+
     // ---- Log buttons ----
 
     private LinearLayout logButtons() {
@@ -419,6 +468,7 @@ public final class SettingsActivity extends Activity {
             if (MorpheSettings.VIDEO_DOWNLOAD.equals(key) && qualityRow != null) {
                 qualityRow.animate().alpha(checked ? 1f : 0.5f).setDuration(150).start();
             }
+            if (MorpheSettings.DEBUG_LOG.equals(key)) showDebugOptions(checked);
         });
         card.addView(row);
         return row;

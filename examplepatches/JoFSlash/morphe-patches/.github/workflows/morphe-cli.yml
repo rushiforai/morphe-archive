@@ -1,0 +1,113 @@
+name: Morphe CLI
+
+# The emulator, feed and Quora version workflows patch Quora with the Morphe CLI release named in
+# .github/morphe-cli-version. Dependabot can't see that file, so this workflow looks once a week for
+# a newer stable release (pre-releases are left out). For a newer one it runs the emulator test
+# with it and then opens a pull request that changes the file, or an issue when the test fails.
+# Checks don't run on pull requests a workflow opens; the emulator test in this run tested it.
+
+on:
+  schedule:
+    - cron: '40 5 * * 0'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: Look for a new Morphe CLI
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      version: ${{ steps.check.outputs.version }}
+      current: ${{ steps.check.outputs.current }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          # Pull requests go to dev, so they start from dev (or from the branch a test run is on).
+          ref: ${{ github.ref_name == 'main' && 'dev' || github.ref_name }}
+
+      - name: Check
+        id: check
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          current=$(cat .github/morphe-cli-version)
+          latest=$(gh release view -R MorpheApp/morphe-cli --json tagName --jq .tagName)
+          echo "Using $current, the newest stable release is $latest."
+          echo "current=$current" >> "$GITHUB_OUTPUT"
+          if ! echo "$latest" | grep -qE '^v[0-9]+\.[0-9]+\.[0-9]+$'; then echo "::error::Not a version: $latest"; exit 1; fi
+          if [ "$latest" = "$current" ] || [ "$(printf '%s\n%s\n' "$current" "$latest" | sort -V | tail -1)" != "$latest" ]; then
+            echo "Nothing new."; exit 0
+          fi
+          title="ci: Morphe CLI $latest"
+          if gh pr list --state all --search "\"$title\" in:title" --json title --jq '.[].title' | grep -qxF "$title"; then
+            echo "A pull request for $latest already exists."; exit 0
+          fi
+          echo "version=$latest" >> "$GITHUB_OUTPUT"
+
+  test:
+    name: Emulator test with ${{ needs.check.outputs.version }}
+    needs: check
+    if: needs.check.outputs.version != ''
+    permissions:
+      contents: read
+      packages: read
+    uses: ./.github/workflows/emulator.yml
+    secrets: inherit
+    with:
+      cli-version: ${{ needs.check.outputs.version }}
+
+  report:
+    name: Open a pull request or an issue
+    needs: [check, test]
+    if: ${{ !cancelled() && needs.check.outputs.version != '' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+    env:
+      VERSION: ${{ needs.check.outputs.version }}
+      CURRENT: ${{ needs.check.outputs.current }}
+      TEST: ${{ needs.test.result }}
+      GH_TOKEN: ${{ github.token }}
+      RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          # Pull requests go to dev, so they start from dev (or from the branch a test run is on).
+          ref: ${{ github.ref_name == 'main' && 'dev' || github.ref_name }}
+
+      - name: Open a pull request or an issue
+        run: |
+          notes="https://github.com/MorpheApp/morphe-cli/releases/tag/$VERSION"
+          if [ "$TEST" = "success" ]; then
+            branch="ci/morphe-cli-$VERSION"
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git checkout -b "$branch"
+            echo "$VERSION" > .github/morphe-cli-version
+            git commit -am "ci: Morphe CLI $VERSION"
+            body=$(printf '%s\n\n%s\n' \
+              "Morphe CLI $VERSION is out ([release notes]($notes)); the workflows use $CURRENT. With $VERSION every patch applies and the patched app starts on the Android 15, 16 and 17 emulators ([run]($RUN_URL))." \
+              "Opened by the Morphe CLI workflow. Checks don't run on pull requests it opens; this run tested it.")
+            git push -f origin "$branch"
+            gh pr create --base dev --head "$branch" --title "ci: Morphe CLI $VERSION" --body "$body"
+            exit 0
+          fi
+          title="Morphe CLI $VERSION fails the emulator test"
+          body=$(printf '%s\n\n%s\n' \
+            "Morphe CLI $VERSION is out ([release notes]($notes)), but the emulator test with it didn't pass ($TEST). The workflows keep using $CURRENT." \
+            "[Workflow run]($RUN_URL). The workflow tries again next week while this issue is open; close it when $VERSION is sorted out, or change .github/morphe-cli-version by hand.")
+          existing=$(gh issue list --state open --search "\"$title\" in:title" --json number,title --jq ".[] | select(.title == \"$title\") | .number" | head -1)
+          if [ -n "$existing" ]; then
+            gh issue comment "$existing" --body "$body"
+          else
+            gh issue create --title "$title" --label bug --body "$body"
+          fi

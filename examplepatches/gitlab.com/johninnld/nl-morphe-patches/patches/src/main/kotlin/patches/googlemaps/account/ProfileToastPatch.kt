@@ -35,6 +35,10 @@ internal val profileToastPatch = bytecodePatch(
 
     execute {
         if (MicrogSelection.replaces(this, "Remove sign-in prompts")) return@execute
+        val is2647 = packageMetadata.versionName == "26.47.00.1022347503"
+        // 26.47 has one shared dispatcher (`Look.onClick`); its case is replaced by the
+        // legacy-shaped edit below, so skip the removed modern builder entirely.
+        if (!is2647)
         // Modern builder: 10 real instructions, this row's whole case.
         ProfileClickModernFingerprint.let { fp ->
             val matches = fp.instructionMatches
@@ -72,7 +76,34 @@ internal val profileToastPatch = bytecodePatch(
         // method_id cap, so only method refs it already contains may be used:
         // Toast.makeText and Toast.show are both already called elsewhere in
         // this dex, and Lolm;->a is an existing field ref.
-        if (packageMetadata.versionName != "26.44.06.1006895251")
+        if (is2647) ProfileClickLegacyFingerprint2647.let { fp ->
+            val matches = fp.instructionMatches
+            val start = matches.first().index
+            val end = matches.last().index
+            val count = end - start + 1
+            if (count != 14) throw PatchException("26.47 profile-click case is $count instructions, expected 14")
+            fp.method.apply {
+                replaceBlockAtLabel(
+                    start,
+                    """
+                        move-object/from16 v0, p0
+                        iget-object v0, v0, Look;->a:Ljava/lang/Object;
+                        check-cast v0, Lool;
+                        iget-object v0, v0, Lool;->a:Ljava/lang/Object;
+                        check-cast v0, Landroid/content/Context;
+                        const/4 v1, 0x1
+                        sput-boolean v1, $SHAPES->SKIP_DISMISS:Z
+                        const-string v1, "$TOAST_TEXT"
+                        const/4 v2, 0x0
+                        invoke-static {v0, v1, v2}, Landroid/widget/Toast;->makeText(Landroid/content/Context;Ljava/lang/CharSequence;I)Landroid/widget/Toast;
+                        move-result-object v0
+                        invoke-virtual {v0}, Landroid/widget/Toast;->show()V
+                        return-void
+                    """,
+                )
+            }
+        }
+        if (packageMetadata.versionName != "26.44.06.1006895251" && !is2647)
         ProfileClickLegacyFingerprint.let { fp ->
             val matches = fp.instructionMatches
             val start = matches.first().index

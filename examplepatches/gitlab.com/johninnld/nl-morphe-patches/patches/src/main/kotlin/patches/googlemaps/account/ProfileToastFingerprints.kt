@@ -67,3 +67,29 @@ internal object ProfileClickLegacyFingerprint : Fingerprint(
         methodCall(definingClass = "Lbvol;", name = "close", opcode = Opcode.INVOKE_INTERFACE, location = MatchAfterImmediately()),
     ),
 )
+
+/**
+ * 26.47 merged both "Your profile" dispatchers into `Look.onClick`. The case is
+ * still the 14-instruction trace/open/close span (`Look.a` -> `ool` row ->
+ * its `o` action spec -> the click string -> profile open -> close).
+ */
+internal object ProfileClickLegacyFingerprint2647 : Fingerprint(
+    name = "onClick",
+    parameters = listOf("Landroid/view/View;"),
+    filters = listOf(
+        fieldAccess(opcode = Opcode.IGET_OBJECT, definingClass = "Look;", name = "a"),
+        opcode(Opcode.MOVE_OBJECT, MatchAfterImmediately()),
+        checkCast("Lool;", location = MatchAfterImmediately()),
+        fieldAccess(opcode = Opcode.IGET_OBJECT, definingClass = "Lool;", name = "o", location = MatchAfterImmediately()),
+        string("YourProfileActionSpecClicked", location = MatchAfterImmediately()),
+        methodCall(definingClass = "Lbwgz;", name = "a", opcode = Opcode.INVOKE_INTERFACE, location = MatchAfterImmediately()),
+        opcode(Opcode.MOVE_RESULT_OBJECT, MatchAfterImmediately()),
+        checkCast("Lool;", location = MatchAfterImmediately()),
+        fieldAccess(opcode = Opcode.IGET_OBJECT, definingClass = "Lool;", name = "i", location = MatchAfterImmediately()),
+        methodCall(definingClass = "Lcrhl;", name = "a", opcode = Opcode.INVOKE_INTERFACE, location = MatchAfterImmediately()),
+        opcode(Opcode.MOVE_RESULT_OBJECT, MatchAfterImmediately()),
+        checkCast("Lbbow;", location = MatchAfterImmediately()),
+        methodCall(definingClass = "Lbbow;", name = "a", opcode = Opcode.INVOKE_VIRTUAL, location = MatchAfterImmediately()),
+        methodCall(definingClass = "Lbwex;", name = "close", opcode = Opcode.INVOKE_INTERFACE, location = MatchAfterImmediately()),
+    ),
+)

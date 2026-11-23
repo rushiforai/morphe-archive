@@ -101,6 +101,7 @@ public final class PostLayout {
         sBar = null;
         sDetails = null;
         sMenu = null;
+        sCards = null;
     };
     private static boolean sWatched;
 
@@ -140,10 +141,28 @@ public final class PostLayout {
      */
     private static void liftImageStyle(Context context) {
         if (!modern()) return;
+        liftWide();
         String name = imageName();
         if (!"BLANK_THUMBNAIL".equals(name) && !"NO_IMAGE".equals(name)) return;
         writeJoey("PREF_SUBMISSION_IMAGE_STYLE", "THUMBNAIL", "jc.k$b", "b");
         joeySubmission(context).edit().putBoolean(KEY_SAME_STYLE, true).apply();
+    }
+
+    /**
+     * Modern has Full image and Thumbnail. A saved 16:9 is drawn as Full image by swapping the live
+     * setting only; the saved value is not touched, so Classic still gets its 16:9 back.
+     * Also called by Joey's own settings loader.
+     */
+    public static void liftWide() {
+        try {
+            if (!modern() || !"_16_IS_TO_9".equals(imageName())) return;
+            Class<?> za = Class.forName("za.a");
+            @SuppressWarnings({"unchecked", "rawtypes"})
+            Object full = Enum.valueOf((Class) Class.forName("jc.k$b"), "FULL_HEIGHT");
+            za.getField("b").set(null, full);
+        } catch (Throwable t) {
+            Log.e(TAG, "liftWide", t);
+        }
     }
 
     private static Settings bar(Context context) {
@@ -246,6 +265,7 @@ public final class PostLayout {
             if (item == null || !ModernUi.isModernUiEnabled(item.getContext())) return;
             styleChrome(item);
             markStyle(item, card);
+            identityFirst(item);
             placeThumbnail(item);
             PostMotion.wireTaps(item);
             MediaDownload.attach(item, field(card, "b"));
@@ -256,7 +276,9 @@ public final class PostLayout {
     }
 
     public static boolean offerLayout(Activity activity) {
-        return activity != null && ModernUi.isModernUiEnabled(activity);
+        if (activity == null || !ModernUi.isModernUiEnabled(activity)) return false;
+        showLayout(activity, null);
+        return true;
     }
 
     /** Modern UI already fixes layout, thumbnail side, and corner radius. */
@@ -300,21 +322,20 @@ public final class PostLayout {
     }
 
     public static String layoutBlurb() {
-        String which = "CARD".equals(layoutName()) ? "Card" : "Compact";
-        return which + ". Card is the roomier post, with the community on its own line. "
-                + "Compact is the denser list. You can also change this from the subreddit menu "
-                + "when Post layout is not hidden.";
+        Context context = ModernUi.getContext();
+        return context != null && cards(context) ? "Cards" : "Compact";
     }
 
     public static String imageBlurb() {
-        return imageLabel() + ". Full height, 16:9, or a thumbnail beside the title.";
+        return imageLabel();
     }
 
     public static void showLayout(Activity activity, TextView subtitle) {
-        String current = layoutName();
-        int selected = "CARD".equals(current) ? 0 : "COMPACT".equals(current) ? 1 : -1;
-        MorpheDialog.choices(activity, "Post layout", new String[]{"Card", "Compact"}, selected, index -> {
-            writeJoey("PREF_SUBMISSION_CARD_VIEW_TYPE", index == 0 ? "CARD" : "COMPACT", "jc.k$c", "a");
+        int selected = cards(activity) ? 1 : 0;
+        MorpheDialog.exclusive(activity, "Post layout", new String[]{"Compact", "Cards"},
+                new String[]{"A flat list with a line between posts", "Each post on its own rounded card"},
+                selected, index -> {
+            prefs(activity).edit().putBoolean(KEY_CARDS, index == 1).apply();
             if (subtitle != null) subtitle.setText(layoutBlurb());
             changed(activity);
         });
@@ -322,8 +343,9 @@ public final class PostLayout {
 
     public static void showImage(Activity activity, TextView subtitle) {
         String current = imageName();
-        int selected = "FULL_HEIGHT".equals(current) ? 0 : "_16_IS_TO_9".equals(current) ? 1
-                : "THUMBNAIL".equals(current) ? 2 : -1;
+        // Modern offers two styles. A saved 16:9 is drawn as Full image and left as it is.
+        int selected = "FULL_HEIGHT".equals(current) || "_16_IS_TO_9".equals(current) ? 0
+                : "THUMBNAIL".equals(current) ? 1 : -1;
         boolean sameNow = joeySubmission(activity).getBoolean(KEY_SAME_STYLE, false);
         View[] thumbOnly = new View[2];
         // Both choices wait for Save, so a style and the opened-post box can be set in one go.
@@ -335,9 +357,10 @@ public final class PostLayout {
         LinearLayout cards = new LinearLayout(activity);
         cards.setOrientation(LinearLayout.HORIZONTAL);
         AlertDialog[] shown = new AlertDialog[1];
-        String[] labels = {"Full height", "16:9", "Thumbnail"};
-        LinearLayout[] cardViews = new LinearLayout[3];
-        for (int i = 0; i < 3; i++) {
+        String[] labels = {"Full image", "Thumbnail"};
+        int[] sketches = {0, 2};
+        LinearLayout[] cardViews = new LinearLayout[2];
+        for (int i = 0; i < 2; i++) {
             int index = i;
             LinearLayout card = new LinearLayout(activity);
             card.setOrientation(LinearLayout.VERTICAL);
@@ -353,14 +376,14 @@ public final class PostLayout {
             cardViews[i] = card;
             card.setOnClickListener(v -> {
                 pick[0] = index;
-                for (int k = 0; k < 3; k++) paintImageCard(activity, cardViews[k], k, k == pick[0], accent, sub, density);
-                for (View view : thumbOnly) if (view != null) view.setVisibility(pick[0] == 2 ? View.VISIBLE : View.GONE);
+                for (int k = 0; k < 2; k++) paintImageCard(activity, cardViews[k], sketches[k], k == pick[0], accent, sub, density);
+                for (View view : thumbOnly) if (view != null) view.setVisibility(pick[0] == 1 ? View.VISIBLE : View.GONE);
             });
             LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f);
             if (i > 0) lp.leftMargin = Math.round(8 * density);
             cards.addView(card, lp);
         }
-        for (int k = 0; k < 3; k++) paintImageCard(activity, cardViews[k], k, k == pick[0], accent, sub, density);
+        for (int k = 0; k < 2; k++) paintImageCard(activity, cardViews[k], sketches[k], k == pick[0], accent, sub, density);
         page.addView(cards);
         // Only matters with Thumbnail: the other two already show the picture in full when opened.
         // Ticked is Joey's "Same as above" off. Joey's own choice is kept as the user left it.
@@ -376,7 +399,7 @@ public final class PostLayout {
         page.addView(sameNote);
         thumbOnly[0] = same;
         thumbOnly[1] = sameNote;
-        for (View view : thumbOnly) view.setVisibility(pick[0] == 2 ? View.VISIBLE : View.GONE);
+        for (View view : thumbOnly) view.setVisibility(pick[0] == 1 ? View.VISIBLE : View.GONE);
         TextView cancel = MorpheDialog.action(activity, "Cancel", MorpheDialog.SUB);
         cancel.setOnClickListener(v -> {
             if (shown[0] != null) shown[0].dismiss();
@@ -385,9 +408,9 @@ public final class PostLayout {
         save.setOnClickListener(v -> {
             boolean styleChanged = pick[0] >= 0 && pick[0] != selected;
             // The box is only offered with Thumbnail; otherwise the saved choice is left alone.
-            boolean sameChanged = pick[0] == 2 && !same.isChecked() != sameNow;
+            boolean sameChanged = pick[0] == 1 && !same.isChecked() != sameNow;
             if (styleChanged) {
-                String name = pick[0] == 0 ? "FULL_HEIGHT" : pick[0] == 1 ? "_16_IS_TO_9" : "THUMBNAIL";
+                String name = pick[0] == 0 ? "FULL_HEIGHT" : "THUMBNAIL";
                 writeJoey("PREF_SUBMISSION_IMAGE_STYLE", name, "jc.k$b", "b");
                 if (subtitle != null) subtitle.setText(imageBlurb());
             }
@@ -432,6 +455,14 @@ public final class PostLayout {
             lp.bottomMargin = Math.round(4 * density);
             title.addView(bar, lp);
         }
+        View who = new View(activity);
+        GradientDrawable whoShape = new GradientDrawable();
+        whoShape.setCornerRadius(2 * density);
+        whoShape.setColor((color & 0x00FFFFFF) | 0x44000000);
+        who.setBackground(whoShape);
+        LinearLayout.LayoutParams whoLp = new LinearLayout.LayoutParams(Math.round(26 * density), Math.round(3 * density));
+        whoLp.bottomMargin = Math.round(4 * density);
+        title.addView(who, whoLp);
         View picture = new View(activity);
         GradientDrawable fill = new GradientDrawable();
         fill.setCornerRadius(4 * density);
@@ -457,11 +488,74 @@ public final class PostLayout {
     }
 
     public static void showDetails(Activity activity) {
-        showPlaces(activity, "Post info line",
-                "Drag the handle to change the order. Hide takes a detail off the line.",
-                DETAILS, false, false, KEY_DETAIL_ORDER, KEY_DETAIL_PLACE, PostLayout::drawDetails);
-    }
+        List<String> order = new ArrayList<>(order(activity, KEY_DETAIL_ORDER, DETAILS));
+        JSONObject place = places(activity, KEY_DETAIL_PLACE, DETAILS);
+        List<List<String>> zones = ZoneEditor.lists(2);
+        for (String id : order) {
+            if (findDef(DETAILS, id) == null) continue;
+            zones.get(modeOf(place, id) == SHOWN ? 0 : 1).add(id);
+        }
+        FrameLayout stage = new FrameLayout(activity);
+        stage.setClipChildren(true);
+        Runnable paint = () -> {
+            List<String> all = new ArrayList<>(zones.get(0));
+            all.addAll(zones.get(1));
+            JSONObject now = new JSONObject();
+            for (String id : zones.get(0)) put(now, id, SHOWN);
+            for (String id : zones.get(1)) put(now, id, HIDDEN);
+            LinearLayout host = new LinearLayout(activity);
+            host.setOrientation(LinearLayout.VERTICAL);
+            drawDetails(activity, host, 0, all, now);
+            BarPreview.show(activity, stage, host);
+        };
+        Runnable save = () -> {
+            List<String> all = new ArrayList<>(zones.get(0));
+            all.addAll(zones.get(1));
+            for (String id : zones.get(0)) put(place, id, SHOWN);
+            for (String id : zones.get(1)) put(place, id, HIDDEN);
+            savePlaces(activity, KEY_DETAIL_PLACE, place);
+            saveOrder(activity, KEY_DETAIL_ORDER, all);
+            paint.run();
+            refreshFeed(activity);
+        };
+        ZoneEditor editor = new ZoneEditor(activity,
+                new String[]{"On the info line", "Hidden"},
+                new String[]{"Drag a detail here", "Drag a detail here to hide it"},
+                zones,
+                (id, zone) -> true,
+                new ZoneEditor.Look() {
+                    @Override
+                    public String label(String id) {
+                        String[] def = findDef(DETAILS, id);
+                        return def == null ? id : def[1];
+                    }
 
+                    @Override
+                    public String icon(String id) {
+                        return null;
+                    }
+                }, save);
+        TextView reset = MorpheDialog.action(activity, "Reset", MorpheDialog.SUB);
+        TextView done = MorpheDialog.action(activity, "Done", MorpheDialog.GOLD);
+        LinearLayout page = ZoneEditor.screen(activity, "Post info line",
+                "Drag the handle to reorder the line, or to move a detail between the line and hidden.",
+                stage, editor, reset, done);
+        android.app.Dialog dialog = MorpheDialog.showFull(activity, page, 640, null);
+        page.post(paint);
+        reset.setOnClickListener(v -> {
+            prefs(activity).edit().remove(KEY_DETAIL_ORDER).remove(KEY_DETAIL_PLACE).commit();
+            JSONObject fresh = joeyDefaults(DETAILS);
+            for (List<String> zone : zones) zone.clear();
+            for (String[] def : DETAILS) {
+                zones.get(fresh.optInt(def[0], HIDDEN) == SHOWN ? 0 : 1).add(def[0]);
+                put(place, def[0], fresh.optInt(def[0], HIDDEN));
+            }
+            editor.rebuild();
+            paint.run();
+            refreshFeed(activity);
+        });
+        done.setOnClickListener(v -> dialog.dismiss());
+    }
 
     private static void changed(Activity activity) {
         refreshFeed(activity);
@@ -693,26 +787,35 @@ public final class PostLayout {
                 }
             }
         }
+        boolean cards = cards(context);
         if (template != null) {
-            paintBackground(template, palette.canvas);
+            float density = context.getResources().getDisplayMetrics().density;
+            if (cards) paintCard(template, palette.container, 16 * density);
+            else {
+                paintBackground(template, palette.canvas);
+                if (template.getClipToOutline()) template.setClipToOutline(false);
+            }
+            int side = cards ? Math.round(8 * density) : 0;
+            int gap = cards ? Math.round(4 * density) : 0;
             ViewGroup.LayoutParams lp = template.getLayoutParams();
             if (lp instanceof ViewGroup.MarginLayoutParams) {
                 ViewGroup.MarginLayoutParams mlp = (ViewGroup.MarginLayoutParams) lp;
-                if (mlp.leftMargin != 0 || mlp.rightMargin != 0 || mlp.topMargin != 0 || mlp.bottomMargin != 0) {
-                    mlp.leftMargin = 0;
-                    mlp.rightMargin = 0;
-                    mlp.topMargin = 0;
-                    mlp.bottomMargin = 0;
+                if (mlp.leftMargin != side || mlp.rightMargin != side
+                        || mlp.topMargin != gap || mlp.bottomMargin != gap) {
+                    mlp.leftMargin = side;
+                    mlp.rightMargin = side;
+                    mlp.topMargin = gap;
+                    mlp.bottomMargin = gap;
                     template.setLayoutParams(mlp);
                 }
             }
         }
-        drawRule(item, palette.outline);
+        drawRule(item, palette.outline, !cards);
         plate(item, palette.containerHigh);
     }
 
     /** A one-pixel line in the theme outline, under each post. */
-    private static void drawRule(View item, int color) {
+    private static void drawRule(View item, int color, boolean show) {
         View frame = find(item, "revealFrameLayout");
         if (!(frame instanceof ViewGroup)) frame = item;
         if (!(frame instanceof ViewGroup)) return;
@@ -732,7 +835,9 @@ public final class PostLayout {
             group.addView(rule, new FrameLayout.LayoutParams(
                     ViewGroup.LayoutParams.MATCH_PARENT, 1, Gravity.BOTTOM));
         }
-        if (rule.getVisibility() != View.VISIBLE) rule.setVisibility(View.VISIBLE);
+        int want = show ? View.VISIBLE : View.GONE;
+        if (rule.getVisibility() != want) rule.setVisibility(want);
+        if (!show) return;
         if (rule.getAlpha() != 1f) rule.setAlpha(1f);
         paintBackground(rule, color);
         ViewGroup.LayoutParams lp = rule.getLayoutParams();
@@ -750,6 +855,36 @@ public final class PostLayout {
         if (preview != null && preview.getVisibility() == View.VISIBLE) paintBackground(preview, color);
     }
 
+    /** Rounded surface for Cards. Rebuilt only when the colour or radius changes; the picture is clipped to it. */
+    private static void paintCard(View view, int color, float radius) {
+        Object tag = view.getTag(CARD_TAG);
+        long key = ((long) color << 32) | Float.floatToIntBits(radius);
+        if (!(tag instanceof Long) || (Long) tag != key || !view.getClipToOutline()) {
+            GradientDrawable shape = new GradientDrawable();
+            shape.setColor(color);
+            shape.setCornerRadius(radius);
+            view.setBackground(shape);
+            view.setClipToOutline(true);
+            view.setTag(CARD_TAG, key);
+        }
+    }
+
+    private static final int CARD_TAG = 0x4d4d4344;
+    private static final String KEY_CARDS = "post_cards";
+
+    /** Modern's Cards option: the Compact row as a rounded card. Stored only here, not in Joey's settings. */
+    public static boolean cards(Context context) {
+        Boolean cached = sCards;
+        if (cached != null) return cached;
+        watch(context);
+        boolean on = prefs(context).getBoolean(KEY_CARDS, false);
+        sCards = on;
+        return on;
+    }
+
+    /** Read on every bind, so it is kept and dropped by WATCH when any setting changes. */
+    private static volatile Boolean sCards;
+
     /** setBackgroundColor makes a new drawable and redraws every time, even for the same colour. */
     private static void paintBackground(View view, int color) {
         Drawable background = view.getBackground();
@@ -763,6 +898,40 @@ public final class PostLayout {
      * Here the padding becomes picture, it sits level with the title, and the
      * action bar runs the full width underneath.
      */
+
+    /**
+     * The calm post row: Joey keeps the title first and the info line under it. The title is set in
+     * medium weight and the info line a touch smaller than the user's own post-info size.
+     */
+    private static final int MEDIUM_TAG = 0x4d4d4d54;
+
+    private static void identityFirst(View item) {
+        View title = find(item, "titleTextView");
+        View info = find(item, "submissionInfo");
+        if (title == null || info == null) return;
+        float density = item.getResources().getDisplayMetrics().density;
+        info.setPadding(info.getPaddingLeft(), Math.round(4 * density), info.getPaddingRight(), info.getPaddingBottom());
+        if (info instanceof TextView) {
+            TextView text = (TextView) info;
+            Object first = info.getTag(SIZED);
+            if (!(first instanceof Float)) {
+                first = text.getTextSize();
+                info.setTag(SIZED, first);
+            }
+            text.setTextSize(android.util.TypedValue.COMPLEX_UNIT_PX, (Float) first * 0.96f);
+        }
+        if (title instanceof TextView && android.os.Build.VERSION.SDK_INT >= 28) {
+            TextView text = (TextView) title;
+            // Runs on every bind. Making a typeface and setting it lays the title out again, so the
+            // medium weight is built once and only rebuilt when Joey or a font choice replaced it.
+            if (text.getTag(MEDIUM_TAG) != text.getTypeface() || text.getTypeface() == null) {
+                android.graphics.Typeface medium = android.graphics.Typeface.create(text.getTypeface(), 500, false);
+                text.setTypeface(medium);
+                text.setTag(MEDIUM_TAG, text.getTypeface());
+            }
+        }
+    }
+
     private static void placeThumbnail(View item) {
         View thumb = find(item, "thumbnail");
         View title = find(item, "titleTextView");
@@ -856,6 +1025,7 @@ public final class PostLayout {
 
     private static final int BODY_SEATED = 0x4d4f0007;
     private static final int ORIGINAL = 0x4d4f0042;
+    private static final int SIZED = 0x4d4f004a;
     private static final String[] BODY_FIELDS = {
             "topToTop", "topToBottom", "leftToRight", "leftToLeft", "rightToLeft", "rightToRight",
     };
@@ -954,6 +1124,8 @@ public final class PostLayout {
         View info = find(item, "submissionInfo");
         View spoken = find(item, "submission_tts");
         if (info != null && info.getVisibility() != View.GONE) textBottom = info.getBottom();
+        View heading = find(item, "titleTextView");
+        if (heading != null && heading.getVisibility() != View.GONE) textBottom = Math.max(textBottom, heading.getBottom());
         if (spoken != null && spoken.getVisibility() != View.GONE) {
             textBottom = Math.max(textBottom, spoken.getBottom());
         }
@@ -1007,6 +1179,14 @@ public final class PostLayout {
     }
 
     /** Joey asks whether to set up save, share or hide on the bar. Modern sets each one up and places it itself. */
+    /**
+     * Joey's "Show thumbnail on right" (za.a.d). Modern always places the thumbnail on the right,
+     * so with the switch off Joey's left-side constraints fought Modern's and centred it.
+     */
+    public static boolean joeyRightThumbnail(boolean joey) {
+        return joey || modern();
+    }
+
     public static boolean joeyBar(boolean joey) {
         return joey || modern();
     }
@@ -1158,6 +1338,12 @@ public final class PostLayout {
                 CharSequence[] piece = pieces.get(key);
                 if (piece == null && "score".equals(key)) piece = scorePiece(submission);
                 join(out, piece);
+                if ("subreddit".equals(key) && piece != null && piece[1].length() > 0) {
+                    // The community is the one accent word on the line.
+                    int end = out.length();
+                    out.setSpan(new ForegroundColorSpan(ModernUi.getPalette(context).accent),
+                            end - piece[1].length(), end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                }
             }
             for (String key : extras) join(out, pieces.get(key));
             int start = all.length() - line.length();
@@ -1540,6 +1726,7 @@ public final class PostLayout {
         int icon = context.getResources().getIdentifier(sheetIcon(id), "drawable", context.getPackageName());
         if (icon == 0) icon = context.getResources().getIdentifier("link", "drawable", context.getPackageName());
         if (icon == 0) return null;
+        icon = ModernIcons.swap(context, icon);
         Object cellView = sSheetCell.invoke(null, new TableRow(context), icon, labelOf(id));
         if (!(cellView instanceof View)) return null;
         View cell = (View) cellView;
@@ -2011,7 +2198,7 @@ public final class PostLayout {
             int id = drawable == null ? 0
                     : activity.getResources().getIdentifier(drawable, "drawable", activity.getPackageName());
             if (id != 0) {
-                Drawable image = activity.getDrawable(id);
+                Drawable image = activity.getDrawable(ModernIcons.swap(activity, id));
                 if (image != null) {
                     image = image.mutate();
                     image.setTint(color);
@@ -2597,8 +2784,9 @@ public final class PostLayout {
         title.setText("Sample post title");
         title.setTextColor(text);
         title.setTextSize(16);
-        title.setPadding(Math.round(16 * density), Math.round(14 * density), Math.round(16 * density), 0);
-        host.addView(title);
+        if (android.os.Build.VERSION.SDK_INT >= 28) {
+            title.setTypeface(android.graphics.Typeface.create(title.getTypeface(), 500, false));
+        }
         // Built the way Joey builds the real line: the same gaps, and Joey's own icons.
         SpannableStringBuilder rich = new SpannableStringBuilder();
         for (String id : order) {
@@ -2616,16 +2804,18 @@ public final class PostLayout {
         TextView meta = new TextView(activity);
         meta.setText(rich.length() == 0 ? "Nothing on this line" : rich);
         meta.setTextColor(sub);
-        meta.setTextSize(13);
+        meta.setTextSize(11.5f);
         meta.setSingleLine(true);
-        meta.setPadding(Math.round(16 * density), Math.round(6 * density), Math.round(16 * density), Math.round(16 * density));
+        meta.setPadding(Math.round(16 * density), Math.round(4 * density), Math.round(16 * density), Math.round(16 * density));
+        title.setPadding(Math.round(16 * density), Math.round(14 * density), Math.round(16 * density), 0);
         int box = Math.round(Math.min(
                 activity.getResources().getDisplayMetrics().widthPixels - 96 * density, 640 * density));
-        float size = 13f;
+        float size = 11.5f;
         while (size > 8f && meta.getPaint().measureText(meta.getText().toString()) > box) {
             size -= 0.5f;
             meta.setTextSize(size);
         }
+        host.addView(title);
         host.addView(meta);
         host.setMinimumHeight(Math.round(88 * density));
         host.setBackgroundColor(ModernUi.isModernUiEnabled(activity)
@@ -2837,7 +3027,7 @@ public final class PostLayout {
     private static final String KEY_SAME_STYLE = "PREF_SAA_COMMENT_SCREENT_POST_STYLE";
 
     private static SharedPreferences joeySubmission(Context context) {
-        return context.getSharedPreferences("submission_preferences", Context.MODE_PRIVATE);
+        return ModernSettings.prefs(context, "submission_preferences");
     }
 
     private static String imageName() {
@@ -2846,7 +3036,6 @@ public final class PostLayout {
 
     private static String imageLabel() {
         String name = imageName();
-        if ("_16_IS_TO_9".equals(name)) return "16:9 image";
         if ("THUMBNAIL".equals(name)) return "Thumbnail";
         if ("BLANK_THUMBNAIL".equals(name)) return "Blank thumbnail";
         if ("NO_IMAGE".equals(name)) return "No image";

@@ -86,6 +86,20 @@ final class SiteBoardProtocol {
         String tag=futabaTag(board);
         return tag.isEmpty()||text.endsWith(tag)?text:text+" "+tag;
     }
+    static String catalogueCookies(URI address,String cookies){
+        String query=address.getRawQuery();
+        String host=address.getHost();
+        if((!"may.2chan.net".equals(host)&&!"img.2chan.net".equals(host))||!"/b/futaba.php".equals(address.getRawPath())
+                ||!("mode=cat".equals(query)||"mode=cat&sort=3".equals(query)))return cookies;
+        // Use the site's catalogue preference with the default grid and 100 title characters.
+        StringBuilder header=new StringBuilder("cxyl=14x6x100x0x0");
+        if(cookies!=null)for(String cookie:cookies.split(";")){
+            String value=cookie.trim();
+            int separator=value.indexOf('=');
+            if(separator>0&&!"cxyl".equals(value.substring(0,separator).trim()))header.append("; ").append(value);
+        }
+        return header.toString();
+    }
     static final class Topic {
         final String id,title;final int count;
         Topic(String id,String title,int count){this.id=id;this.title=title;this.count=count;}
@@ -292,12 +306,22 @@ final class SiteBoardProtocol {
             return sameBoard(board,parsed)?parsed.thread:null;
         }catch(IOException invalid){return null;}
     }
+    static String bakusaiBoardIdentity(String url) {
+        try {
+            Board board = address(url);
+            if ("bakusai".equals(board.kind) && board.thread == null)
+                return bakusaiBoardPath(board);
+        } catch (IOException ignored) { }
+        return null;
+    }
+    private static String bakusaiBoardPath(Board board) {
+        return board.path.substring(board.path.indexOf('/') + 1);
+    }
     static boolean sameBoard(Board board,Board other){
         if(!board.kind.equals(other.kind))return false;
         if(board.url.equals(other.url))return true;
         // Bakusai regional paths can refer to the same ctgid/bid board.
-        return board.kind.equals("bakusai")&&board.path.replaceFirst("^acode=[0-9]+/","")
-                .equals(other.path.replaceFirst("^acode=[0-9]+/",""));
+        return board.kind.equals("bakusai") && bakusaiBoardPath(board).equals(bakusaiBoardPath(other));
     }
     static boolean matchesRegisteredBoard(Board registered,Board source,String animanchCategory){
         if(!registered.kind.equals(source.kind))return false;

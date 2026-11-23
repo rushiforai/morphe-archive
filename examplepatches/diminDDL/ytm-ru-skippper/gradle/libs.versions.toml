@@ -1,0 +1,15 @@
+[versions]
+morphe-patcher = "2.4.0"
+# Must match the morphe-patches release whose Settings patch the add-on preferences merge into.
+morphe-patches-library = "2.2.0"
+#noinspection GradleDependency
+smali = "5eaff5a2c9"
+gson = "2.15.0"
+
+[libraries]
+gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
+# Provides the Morphe Setting classes at compile time. The app gets them from the official shared extension.
+morphe-extensions-library = { module = "app.morphe:morphe-extensions-library", version.ref = "morphe-patches-library" }
+# Gradle plugins adds the dependency during build, this declaration is here only for dependabot to provide updates.
+#noinspection UnusedVersionCatalogEntry
+morphe-patcher = { module = "app.morphe:morphe-patcher", version.ref = "morphe-patcher" }

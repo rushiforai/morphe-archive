@@ -1,0 +1,9 @@
+Focus Guard Patches is an independent third-party patch project.
+
+It is not affiliated with, endorsed by, or an official project of Morphe,
+Mozilla, or the LeechBlock developer. Product and project names are used only
+to identify the software this patch targets.
+
+Morphe Patcher is a separate project distributed under its own license and
+terms. No Morphe source code is included in this repository; Morphe Patcher is
+used as a build dependency.

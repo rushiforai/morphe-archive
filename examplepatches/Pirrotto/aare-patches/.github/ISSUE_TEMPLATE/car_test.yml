@@ -1,0 +1,62 @@
+name: 🚗 Car test
+description: Tell us how the patches work in your car (working or not, both help).
+title: "[Car] <make> <model> <year>"
+labels: ["Car test"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for testing AARE Patches in a real car! Reports are added to the tested-cars list in the README.
+
+        **Privacy:** don't paste your location, contacts or messages. If you add *Copy diagnostics*, read it first.
+  - type: input
+    id: car
+    attributes:
+      label: Car
+      description: Make, model and year, and the infotainment if you know it.
+      placeholder: 2022 Skoda Octavia IV, MIB3
+    validations:
+      required: true
+  - type: input
+    id: phone
+    attributes:
+      label: Phone
+      description: Model and Android version.
+      placeholder: Pixel 9a, Android 17
+    validations:
+      required: true
+  - type: dropdown
+    id: connection
+    attributes:
+      label: Connection
+      options:
+        - USB
+        - Wireless
+        - Both
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: AARE Patches version
+      placeholder: v1.10.0
+    validations:
+      required: true
+  - type: checkboxes
+    id: works
+    attributes:
+      label: What works
+      description: Tick what you tried and works.
+      options:
+        - label: Background location
+        - label: Tunnel navigation
+        - label: Voice messages (WhatsApp)
+        - label: Voice reply
+        - label: Car microphone
+        - label: AARE assistant
+        - label: Integrated Shizuku (car audio without the Shizuku app)
+  - type: textarea
+    id: details
+    attributes:
+      label: Problems or notes
+      description: What didn't work, and anything worth knowing.

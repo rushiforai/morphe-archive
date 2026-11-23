@@ -1,0 +1,852 @@
+<?xml version="1.0" ?>
+<settings-text locales="en es fr de it pt ru hi ja ko zh ar in tr vi pl nl th uk">
+    <string name="gboard_patches_activity_title">
+        <translation locale="en">Advanced settings</translation>
+        <translation locale="es">Ajustes avanzados</translation>
+        <translation locale="fr">Paramètres avancés</translation>
+        <translation locale="de">Erweiterte Einstellungen</translation>
+        <translation locale="it">Impostazioni avanzate</translation>
+        <translation locale="pt">Configurações avançadas</translation>
+        <translation locale="ru">Расширенные настройки</translation>
+        <translation locale="hi">उन्नत सेटिंग्स</translation>
+        <translation locale="ja">詳細設定</translation>
+        <translation locale="ko">고급 설정</translation>
+        <translation locale="zh">高级设置</translation>
+        <translation locale="ar">الإعدادات المتقدمة</translation>
+        <translation locale="in">Setelan lanjutan</translation>
+        <translation locale="tr">Gelişmiş ayarlar</translation>
+        <translation locale="vi">Cài đặt nâng cao</translation>
+        <translation locale="pl">Ustawienia zaawansowane</translation>
+        <translation locale="nl">Geavanceerde instellingen</translation>
+        <translation locale="th">การตั้งค่าขั้นสูง</translation>
+        <translation locale="uk">Розширені налаштування</translation>
+    </string>
+    <string name="gboard_patches_header_badge">
+        <translation locale="en">Gboard</translation>
+        <translation locale="ar">Gboard</translation>
+    </string>
+    <string name="gboard_patches_header_title">
+        <translation locale="en">Advanced settings</translation>
+        <translation locale="es">Ajustes avanzados</translation>
+        <translation locale="fr">Paramètres avancés</translation>
+        <translation locale="de">Erweiterte Einstellungen</translation>
+        <translation locale="it">Impostazioni avanzate</translation>
+        <translation locale="pt">Configurações avançadas</translation>
+        <translation locale="ru">Расширенные настройки</translation>
+        <translation locale="hi">उन्नत सेटिंग्स</translation>
+        <translation locale="ja">詳細設定</translation>
+        <translation locale="ko">고급 설정</translation>
+        <translation locale="zh">高级设置</translation>
+        <translation locale="ar">الإعدادات المتقدمة</translation>
+        <translation locale="in">Setelan lanjutan</translation>
+        <translation locale="tr">Gelişmiş ayarlar</translation>
+        <translation locale="vi">Cài đặt nâng cao</translation>
+        <translation locale="pl">Ustawienia zaawansowane</translation>
+        <translation locale="nl">Geavanceerde instellingen</translation>
+        <translation locale="th">การตั้งค่าขั้นสูง</translation>
+        <translation locale="uk">Розширені налаштування</translation>
+    </string>
+    <string name="gboard_patches_header_summary">
+        <translation locale="en"/>
+        <translation locale="ar"/>
+    </string>
+    <string name="gboard_patches_preview_label">
+        <translation locale="en">Preview</translation>
+        <translation locale="es">Vista previa</translation>
+        <translation locale="fr">Aperçu</translation>
+        <translation locale="de">Vorschau</translation>
+        <translation locale="it">Anteprima</translation>
+        <translation locale="pt">Prévia</translation>
+        <translation locale="ru">Предпросмотр</translation>
+        <translation locale="hi">पूर्वावलोकन</translation>
+        <translation locale="ja">プレビュー</translation>
+        <translation locale="ko">미리보기</translation>
+        <translation locale="zh">预览</translation>
+        <translation locale="ar">معاينة</translation>
+        <translation locale="in">Pratinjau</translation>
+        <translation locale="tr">Önizleme</translation>
+        <translation locale="vi">Xem trước</translation>
+        <translation locale="pl">Podgląd</translation>
+        <translation locale="nl">Voorbeeld</translation>
+        <translation locale="th">ดูตัวอย่าง</translation>
+        <translation locale="uk">Попередній перегляд</translation>
+    </string>
+    <string name="gboard_patches_current_value_label">
+        <translation locale="en">Current</translation>
+        <translation locale="es">Actual</translation>
+        <translation locale="fr">Actuel</translation>
+        <translation locale="de">Aktuell</translation>
+        <translation locale="it">Attuale</translation>
+        <translation locale="pt">Atual</translation>
+        <translation locale="ru">Текущее</translation>
+        <translation locale="hi">वर्तमान</translation>
+        <translation locale="ja">現在</translation>
+        <translation locale="ko">현재</translation>
+        <translation locale="zh">当前</translation>
+        <translation locale="ar">الحالي</translation>
+        <translation locale="in">Saat ini</translation>
+        <translation locale="tr">Mevcut</translation>
+        <translation locale="vi">Hiện tại</translation>
+        <translation locale="pl">Bieżące</translation>
+        <translation locale="nl">Huidig</translation>
+        <translation locale="th">ปัจจุบัน</translation>
+        <translation locale="uk">Поточний</translation>
+    </string>
+    <string name="gboard_patches_confirm_action">
+        <translation locale="en">Confirm</translation>
+        <translation locale="es">Confirmar</translation>
+        <translation locale="fr">Confirmer</translation>
+        <translation locale="de">Bestätigen</translation>
+        <translation locale="it">Conferma</translation>
+        <translation locale="pt">Confirmar</translation>
+        <translation locale="ru">Подтвердить</translation>
+        <translation locale="hi">पुष्टि करें</translation>
+        <translation locale="ja">確認</translation>
+        <translation locale="ko">확인</translation>
+        <translation locale="zh">确认</translation>
+        <translation locale="ar">تأكيد</translation>
+        <translation locale="in">Konfirmasi</translation>
+        <translation locale="tr">Onayla</translation>
+        <translation locale="vi">Xác nhận</translation>
+        <translation locale="pl">Potwierdź</translation>
+        <translation locale="nl">Bevestigen</translation>
+        <translation locale="th">ยืนยัน</translation>
+        <translation locale="uk">Підтвердити</translation>
+    </string>
+    <string name="gboard_patches_dialog_cancel">
+        <translation locale="en">Cancel</translation>
+        <translation locale="es">Cancelar</translation>
+        <translation locale="fr">Annuler</translation>
+        <translation locale="de">Abbrechen</translation>
+        <translation locale="it">Annulla</translation>
+        <translation locale="pt">Cancelar</translation>
+        <translation locale="ru">Отмена</translation>
+        <translation locale="hi">रद्द करें</translation>
+        <translation locale="ja">キャンセル</translation>
+        <translation locale="ko">취소</translation>
+        <translation locale="zh">取消</translation>
+        <translation locale="ar">إلغاء</translation>
+        <translation locale="in">Batal</translation>
+        <translation locale="tr">İptal</translation>
+        <translation locale="vi">Hủy</translation>
+        <translation locale="pl">Anuluj</translation>
+        <translation locale="nl">Annuleren</translation>
+        <translation locale="th">ยกเลิก</translation>
+        <translation locale="uk">Скасувати</translation>
+    </string>
+    <string name="gboard_patches_dialog_save">
+        <translation locale="en">Save</translation>
+        <translation locale="es">Guardar</translation>
+        <translation locale="fr">Enregistrer</translation>
+        <translation locale="de">Speichern</translation>
+        <translation locale="it">Salva</translation>
+        <translation locale="pt">Salvar</translation>
+        <translation locale="ru">Сохранить</translation>
+        <translation locale="hi">सहेजें</translation>
+        <translation locale="ja">保存</translation>
+        <translation locale="ko">저장</translation>
+        <translation locale="zh">保存</translation>
+        <translation locale="ar">حفظ</translation>
+        <translation locale="in">Simpan</translation>
+        <translation locale="tr">Kaydet</translation>
+        <translation locale="vi">Lưu</translation>
+        <translation locale="pl">Zapisz</translation>
+        <translation locale="nl">Opslaan</translation>
+        <translation locale="th">บันทึก</translation>
+        <translation locale="uk">Зберегти</translation>
+    </string>
+    <string name="gboard_patches_dialog_close">
+        <translation locale="en">Close</translation>
+        <translation locale="es">Cerrar</translation>
+        <translation locale="fr">Fermer</translation>
+        <translation locale="de">Schließen</translation>
+        <translation locale="it">Chiudi</translation>
+        <translation locale="pt">Fechar</translation>
+        <translation locale="ru">Закрыть</translation>
+        <translation locale="hi">बंद करें</translation>
+        <translation locale="ja">閉じる</translation>
+        <translation locale="ko">닫기</translation>
+        <translation locale="zh">关闭</translation>
+        <translation locale="ar">إغلاق</translation>
+        <translation locale="in">Tutup</translation>
+        <translation locale="tr">Kapat</translation>
+        <translation locale="vi">Đóng</translation>
+        <translation locale="pl">Zamknij</translation>
+        <translation locale="nl">Sluiten</translation>
+        <translation locale="th">ปิด</translation>
+        <translation locale="uk">Закрити</translation>
+    </string>
+    <string name="gboard_patches_keyboard_preview_action">
+        <translation locale="en">Open keyboard</translation>
+        <translation locale="ar">فتح لوحة المفاتيح</translation>
+    </string>
+    <string name="gboard_patches_keyboard_preview_title">
+        <translation locale="en">Gboard Patches</translation>
+        <translation locale="ar">ترقيعات Gboard</translation>
+    </string>
+    <string name="gboard_patches_keyboard_preview_input_accessibility">
+        <translation locale="en">Keyboard test field</translation>
+        <translation locale="ar">حقل اختبار لوحة المفاتيح</translation>
+    </string>
+    <string name="gboard_patches_dialog_error_positive">
+        <translation locale="en">Enter a positive number.</translation>
+        <translation locale="ar">يُرجى إدخال رقم موجب.</translation>
+    </string>
+    <string name="gboard_patches_dialog_error_save_failed">
+        <translation locale="en">Failed to save setting.</translation>
+        <translation locale="ar">تعذّر حفظ الإعداد.</translation>
+    </string>
+    <string name="gboard_patches_section_preferences">
+        <translation locale="en">Preferences</translation>
+        <translation locale="es">Preferencias</translation>
+        <translation locale="fr">Préférences</translation>
+        <translation locale="de">Einstellungen</translation>
+        <translation locale="it">Preferenze</translation>
+        <translation locale="pt">Preferências</translation>
+        <translation locale="ru">Настройки</translation>
+        <translation locale="hi">प्राथमिकताएं</translation>
+        <translation locale="ja">設定</translation>
+        <translation locale="ko">환경설정</translation>
+        <translation locale="zh">偏好设置</translation>
+        <translation locale="ar">التفضيلات</translation>
+        <translation locale="in">Preferensi</translation>
+        <translation locale="tr">Tercihler</translation>
+        <translation locale="vi">Tùy chọn</translation>
+        <translation locale="pl">Preferencje</translation>
+        <translation locale="nl">Voorkeuren</translation>
+        <translation locale="th">ค่ากำหนด</translation>
+        <translation locale="uk">Налаштування</translation>
+    </string>
+    <string name="gboard_patches_section_features">
+        <translation locale="en">Features</translation>
+        <translation locale="es">Funciones</translation>
+        <translation locale="fr">Fonctionnalités</translation>
+        <translation locale="de">Funktionen</translation>
+        <translation locale="it">Funzionalità</translation>
+        <translation locale="pt">Recursos</translation>
+        <translation locale="ru">Функции</translation>
+        <translation locale="hi">सुविधाएं</translation>
+        <translation locale="ja">機能</translation>
+        <translation locale="ko">기능</translation>
+        <translation locale="zh">功能</translation>
+        <translation locale="ar">الميزات</translation>
+        <translation locale="in">Fitur</translation>
+        <translation locale="tr">Özellikler</translation>
+        <translation locale="vi">Tính năng</translation>
+        <translation locale="pl">Funkcje</translation>
+        <translation locale="nl">Functies</translation>
+        <translation locale="th">ฟีเจอร์</translation>
+        <translation locale="uk">Функції</translation>
+    </string>
+    <string name="gboard_patches_section_about">
+        <translation locale="en">About</translation>
+        <translation locale="es">Acerca de</translation>
+        <translation locale="fr">À propos</translation>
+        <translation locale="de">Über</translation>
+        <translation locale="it">Informazioni</translation>
+        <translation locale="pt">Sobre</translation>
+        <translation locale="ru">О приложении</translation>
+        <translation locale="hi">के बारे में</translation>
+        <translation locale="ja">アプリ情報</translation>
+        <translation locale="ko">정보</translation>
+        <translation locale="zh">关于</translation>
+        <translation locale="ar">حول</translation>
+        <translation locale="in">Tentang</translation>
+        <translation locale="tr">Hakkında</translation>
+        <translation locale="vi">Giới thiệu</translation>
+        <translation locale="pl">Informacje</translation>
+        <translation locale="nl">Over</translation>
+        <translation locale="th">เกี่ยวกับ</translation>
+        <translation locale="uk">Про додаток</translation>
+    </string>
+    <string name="gboard_patches_about_author_title">
+        <translation locale="en">Author</translation>
+        <translation locale="es">Autor</translation>
+        <translation locale="fr">Auteur</translation>
+        <translation locale="de">Autor</translation>
+        <translation locale="it">Autore</translation>
+        <translation locale="pt">Autor</translation>
+        <translation locale="ru">Автор</translation>
+        <translation locale="hi">लेखक</translation>
+        <translation locale="ja">作成者</translation>
+        <translation locale="ko">작성자</translation>
+        <translation locale="zh">作者</translation>
+        <translation locale="ar">المؤلف</translation>
+        <translation locale="in">Penulis</translation>
+        <translation locale="tr">Geliştirici</translation>
+        <translation locale="vi">Tác giả</translation>
+        <translation locale="pl">Autor</translation>
+        <translation locale="nl">Auteur</translation>
+        <translation locale="th">ผู้สร้าง</translation>
+        <translation locale="uk">Автор</translation>
+    </string>
+    <string name="gboard_patches_about_patch_version_title">
+        <translation locale="en">Patch Version</translation>
+        <translation locale="es">Versión del parche</translation>
+        <translation locale="fr">Version du patch</translation>
+        <translation locale="de">Patch-Version</translation>
+        <translation locale="it">Versione patch</translation>
+        <translation locale="pt">Versão do patch</translation>
+        <translation locale="ru">Версия патча</translation>
+        <translation locale="hi">पैच संस्करण</translation>
+        <translation locale="ja">パッチバージョン</translation>
+        <translation locale="ko">패치 버전</translation>
+        <translation locale="zh">补丁版本</translation>
+        <translation locale="ar">إصدار الترقيع</translation>
+        <translation locale="in">Versi Patch</translation>
+        <translation locale="tr">Yama Sürümü</translation>
+        <translation locale="vi">Phiên bản bản vá</translation>
+        <translation locale="pl">Wersja łatki</translation>
+        <translation locale="nl">Patchversie</translation>
+        <translation locale="th">เวอร์ชันแพตช์</translation>
+        <translation locale="uk">Версія патча</translation>
+    </string>
+    <string name="gboard_patches_error_header_title">
+        <translation locale="en">Feature unavailable</translation>
+        <translation locale="ar">الميزة غير متوفرة</translation>
+    </string>
+    <string name="gboard_patches_error_header_summary">
+        <translation locale="en">This settings page failed to load and was safely disabled.</translation>
+        <translation locale="ar">تعذّر تحميل صفحة الإعدادات هذه وتم تعطيلها بأمان.</translation>
+    </string>
+    <string name="gboard_patches_error_row_title">
+        <translation locale="en">Unable to load feature</translation>
+        <translation locale="ar">تعذّر تحميل الميزة</translation>
+    </string>
+    <string name="gboard_patches_error_row_summary">
+        <translation locale="en">The host app stayed alive. Reopen Gboard_Pro settings and try again.</translation>
+        <translation locale="ar">ظل التطبيق المضيف يعمل. أعد فتح إعدادات Gboard_Pro وحاول مجدداً.</translation>
+    </string>
+    <string name="gboard_patches_fatal_fallback_title">
+        <translation locale="en">Patches temporarily unavailable</translation>
+        <translation locale="ar">الترقيعات غير متوفرة مؤقتاً</translation>
+    </string>
+    <string name="gboard_patches_fatal_fallback_summary">
+        <translation locale="en">This screen hit an internal error and was safely disabled. Gboard stays alive. Reopen settings and try again.</translation>
+        <translation locale="ar">حدث خطأ داخلي في هذه الشاشة وتم تعطيلها بأمان، مع بقاء Gboard قيد التشغيل. أعد فتح الإعدادات وحاول مجدداً.</translation>
+    </string>
+    <string name="gboard_patches_preview_load_failed">
+        <translation locale="en">Failed to load preview media.</translation>
+        <translation locale="ar">تعذّر تحميل وسائط المعاينة.</translation>
+    </string>
+    <string name="gboard_patches_navigate_up">
+        <translation locale="en">Navigate up</translation>
+        <translation locale="es">Desplazarse hacia arriba</translation>
+        <translation locale="fr">Revenir en haut</translation>
+        <translation locale="de">Nach oben</translation>
+        <translation locale="it">Torna su</translation>
+        <translation locale="pt">Navegar para cima</translation>
+        <translation locale="ru">Перейти вверх</translation>
+        <translation locale="hi">ऊपर जाएं</translation>
+        <translation locale="ja">上へ移動</translation>
+        <translation locale="ko">위로 이동</translation>
+        <translation locale="zh">向上导航</translation>
+        <translation locale="ar">التنقل إلى أعلى</translation>
+        <translation locale="in">Navigasi ke atas</translation>
+        <translation locale="tr">Yukarı git</translation>
+        <translation locale="vi">Điều hướng lên</translation>
+        <translation locale="pl">Przejdź wyżej</translation>
+        <translation locale="nl">Omhoog navigeren</translation>
+        <translation locale="th">นำทางขึ้น</translation>
+        <translation locale="uk">Вгору</translation>
+    </string>
+    <string name="gboard_patches_restart_action">
+        <translation locale="en">Restart Gboard</translation>
+        <translation locale="es">Reiniciar Gboard</translation>
+        <translation locale="fr">Redémarrer Gboard</translation>
+        <translation locale="de">Gboard neu starten</translation>
+        <translation locale="it">Riavvia Gboard</translation>
+        <translation locale="pt">Reiniciar Gboard</translation>
+        <translation locale="ru">Перезапустить Gboard</translation>
+        <translation locale="hi">Gboard पुनः आरंभ करें</translation>
+        <translation locale="ja">Gboardを再起動</translation>
+        <translation locale="ko">Gboard 다시 시작</translation>
+        <translation locale="zh">重启 Gboard</translation>
+        <translation locale="ar">إعادة تشغيل Gboard</translation>
+        <translation locale="in">Mulai ulang Gboard</translation>
+        <translation locale="tr">Gboard\'u yeniden başlat</translation>
+        <translation locale="vi">Khởi động lại Gboard</translation>
+        <translation locale="pl">Uruchom ponownie Gboard</translation>
+        <translation locale="nl">Gboard opnieuw starten</translation>
+        <translation locale="th">รีสตาร์ท Gboard</translation>
+        <translation locale="uk">Перезапустити Gboard</translation>
+    </string>
+    <string name="gboard_patches_restarting">
+        <translation locale="en">Restarting Gboard</translation>
+        <translation locale="es">Reiniciando Gboard</translation>
+        <translation locale="fr">Redémarrage de Gboard</translation>
+        <translation locale="de">Gboard wird neu gestartet</translation>
+        <translation locale="it">Riavvio di Gboard</translation>
+        <translation locale="pt">Reiniciando o Gboard</translation>
+        <translation locale="ru">Перезапуск Gboard</translation>
+        <translation locale="hi">Gboard पुनः आरंभ हो रहा है</translation>
+        <translation locale="ja">Gboardを再起動しています</translation>
+        <translation locale="ko">Gboard 다시 시작 중</translation>
+        <translation locale="zh">正在重启 Gboard</translation>
+        <translation locale="ar">جارٍ إعادة تشغيل Gboard</translation>
+        <translation locale="in">Memulai ulang Gboard</translation>
+        <translation locale="tr">Gboard yeniden başlatılıyor</translation>
+        <translation locale="vi">Đang khởi động lại Gboard</translation>
+        <translation locale="pl">Ponowne uruchamianie Gboard</translation>
+        <translation locale="nl">Gboard wordt opnieuw gestart</translation>
+        <translation locale="th">กำลังรีสตาร์ท Gboard</translation>
+        <translation locale="uk">Перезапуск Gboard</translation>
+    </string>
+    <string name="gboard_patches_warning_label">
+        <translation locale="en">Warning</translation>
+        <translation locale="es">Advertencia</translation>
+        <translation locale="fr">Avertissement</translation>
+        <translation locale="de">Warnung</translation>
+        <translation locale="it">Avviso</translation>
+        <translation locale="pt">Aviso</translation>
+        <translation locale="ru">Предупреждение</translation>
+        <translation locale="hi">चेतावनी</translation>
+        <translation locale="ja">警告</translation>
+        <translation locale="ko">경고</translation>
+        <translation locale="zh">警告</translation>
+        <translation locale="ar">تحذير</translation>
+        <translation locale="in">Peringatan</translation>
+        <translation locale="tr">Uyarı</translation>
+        <translation locale="vi">Cảnh báo</translation>
+        <translation locale="pl">Ostrzeżenie</translation>
+        <translation locale="nl">Waarschuwing</translation>
+        <translation locale="th">คำเตือน</translation>
+        <translation locale="uk">Попередження</translation>
+    </string>
+    <string name="gboard_patches_restart_failed">
+        <translation locale="en">Gboard could not be restarted. Reopen Gboard_Pro settings and try again.</translation>
+        <translation locale="ar">تعذّرت إعادة تشغيل Gboard. أعد فتح إعدادات Gboard_Pro وحاول مجدداً.</translation>
+    </string>
+    <string name="gboard_patches_language_title">
+        <translation locale="en">Language</translation>
+        <translation locale="ar">اللغة</translation>
+    </string>
+    <string name="gboard_patches_language_summary">
+        <translation locale="en"/>
+        <translation locale="ar"/>
+    </string>
+    <string name="gboard_patches_language_system_label">
+        <translation locale="en">System default</translation>
+        <translation locale="ar">الافتراضي للنظام</translation>
+    </string>
+    <string name="gboard_patches_language_english_label">
+        <translation locale="en">English</translation>
+        <translation locale="ar">الإنجليزية</translation>
+    </string>
+    <string name="gboard_patches_language_system_value">
+        <translation locale="en">System default (%1$s)</translation>
+        <translation locale="ar">الافتراضي للنظام (%1$s)</translation>
+    </string>
+    <string name="gboard_patches_group_ai_voice_title">
+        <translation locale="en">AI &amp; Voice</translation>
+        <translation locale="ar">الذكاء الاصطناعي والصوت</translation>
+    </string>
+    <string name="gboard_patches_group_ai_voice_summary">
+        <translation locale="en">AI writing tools, advanced voice typing, and Bluetooth microphone.</translation>
+        <translation locale="ar">أدوات الكتابة بالذكاء الاصطناعي، والكتابة الصوتية المتقدمة، وميكروفون البلوتوث.</translation>
+    </string>
+    <string name="gboard_patches_group_keyboard_header_summary">
+        <translation locale="en"/>
+        <translation locale="ar"/>
+    </string>
+    <string name="gboard_patches_group_keyboard_empty_title">
+        <translation locale="en">No keyboard settings available</translation>
+        <translation locale="ar">لا تتوفر إعدادات للوحة المفاتيح</translation>
+    </string>
+    <string name="gboard_patches_group_keyboard_empty_summary">
+        <translation locale="en">This build does not include any keyboard settings features.</translation>
+        <translation locale="ar">لا يتضمن هذا الإصدار أي ميزات لإعدادات لوحة المفاتيح.</translation>
+    </string>
+    <string name="gboard_patches_developer_options_package_warning_title">
+        <translation locale="en">Unsupported Gboard package</translation>
+        <translation locale="ar">حزمة Gboard غير مدعومة</translation>
+    </string>
+    <string name="gboard_patches_developer_options_package_warning_message">
+        <translation locale="en">The current Gboard package is %1$s. Gboard_Pro Patches supports only the official package com.google.android.inputmethod.latin and com.akshaykadam.pixelboard. Mixing Gboard builds from multiple sources may cause instability.</translation>
+        <translation locale="ar">حزمة Gboard الحالية هي %1$s. تدعم ترقيعات Gboard_Pro الحزمة الرسمية com.google.android.inputmethod.latin وحزمة com.akshaykadam.pixelboard فقط. قد يؤدي خلط إصدارات Gboard من مصادر متعددة إلى عدم الاستقرار.</translation>
+    </string>
+    <string name="gboard_patches_developer_options_try_anyway">
+        <translation locale="en">Try anyway</translation>
+        <translation locale="ar">المتابعة على أي حال</translation>
+    </string>
+    <string name="gboard_patches_developer_options_launch_failed">
+        <translation locale="en">Unable to open Developer options for %1$s.</translation>
+        <translation locale="ar">تعذّر فتح خيارات المطور لـ %1$s.</translation>
+    </string>
+    <string name="gboard_patches_ai_writing_tools_title">
+        <translation locale="en">AI Writing Tools</translation>
+        <translation locale="ar">أدوات الكتابة بالذكاء الاصطناعي</translation>
+    </string>
+    <string name="gboard_patches_ai_writing_tools_summary">
+        <translation locale="en">Controls Gboard AI Writing Tools availability, keyboard support, and backend routing.</translation>
+        <translation locale="ar">التحكم في توفر أدوات الكتابة بالذكاء الاصطناعي في Gboard، ودعم لوحات المفاتيح، وتوجيه المعالجة الخلفية.</translation>
+    </string>
+    <string name="gboard_patches_ai_writing_tools_header_summary">
+        <translation locale="en"/>
+        <translation locale="ar"/>
+    </string>
+    <string name="gboard_patches_ai_writing_tools_error_title">
+        <translation locale="en">AI Writing Tools unavailable</translation>
+        <translation locale="ar">أدوات الكتابة بالذكاء الاصطناعي غير متوفرة</translation>
+    </string>
+    <string name="gboard_patches_ai_writing_tools_error_summary">
+        <translation locale="en">The AI Writing Tools settings screen failed to load. Reopen Gboard_Pro settings and try again.</translation>
+        <translation locale="ar">تعذّر تحميل شاشة إعدادات أدوات الكتابة بالذكاء الاصطناعي. أعد فتح إعدادات Gboard_Pro وحاول مجدداً.</translation>
+    </string>
+    <string name="gboard_patches_ai_writing_tools_enabled_title">
+        <translation locale="en">Enable AI Writing Tools</translation>
+        <translation locale="es">Habilitar herramientas de escritura con IA</translation>
+        <translation locale="fr">Activer les outils d\'écriture IA</translation>
+        <translation locale="de">KI-Schreibwerkzeuge aktivieren</translation>
+        <translation locale="it">Attiva strumenti di scrittura IA</translation>
+        <translation locale="pt">Ativar ferramentas de escrita com IA</translation>
+        <translation locale="ru">Включить инструменты письма с ИИ</translation>
+        <translation locale="hi">AI राइटिंग टूल्स सक्षम करें</translation>
+        <translation locale="ja">AI作成ツールを有効にする</translation>
+        <translation locale="ko">AI 글쓰기 도구 사용</translation>
+        <translation locale="zh">启用 AI 写作工具</translation>
+        <translation locale="ar">تفعيل أدوات الكتابة بالذكاء الاصطناعي</translation>
+        <translation locale="in">Aktifkan Alat Penulisan AI</translation>
+        <translation locale="tr">Yapay Zeka Yazma Araçlarını Etkinleştir</translation>
+        <translation locale="vi">Bật công cụ viết bằng AI</translation>
+        <translation locale="pl">Włącz narzędzia pisania AI</translation>
+        <translation locale="nl">AI-schrijftools inschakelen</translation>
+        <translation locale="th">เปิดใช้เครื่องมือเขียนด้วย AI</translation>
+        <translation locale="uk">Увімкнути інструменти письма зі ШІ</translation>
+    </string>
+    <string name="gboard_patches_ai_writing_tools_enabled_summary">
+        <translation locale="en">Show AI writing tools in the suggestion strip for instant proofreading, text rewriting, and smart suggestions.</translation>
+        <translation locale="es">Muestra herramientas de escritura con IA en la tira de sugerencias para corrección instantánea, reescritura y sugerencias inteligentes.</translation>
+        <translation locale="fr">Affichez les outils d\'écriture IA dans la bande de suggestions pour la relecture instantanée, la réécriture et les suggestions intelligentes.</translation>
+        <translation locale="de">KI-Schreibwerkzeuge in der Vorschlagsleiste für sofortiges Korrekturlesen, Umschreiben und intelligente Vorschläge anzeigen.</translation>
+        <translation locale="it">Mostra gli strumenti di scrittura IA nella barra dei suggerimenti per correzione immediata, riscrittura e suggerimenti smart.</translation>
+        <translation locale="pt">Mostra ferramentas de escrita com IA na barra de sugestões para revisão instantânea, reescrita de texto e sugestões inteligentes.</translation>
+        <translation locale="ru">Отображать инструменты письма с ИИ в строке подсказок для быстрой проверки, перефразирования и умных предложений.</translation>
+        <translation locale="hi">सुझाव पट्टी में त्वरित प्रूफरीडिंग, टेक्स्ट पुनर्लेखन और स्मार्ट सुझावों के लिए AI राइटिंग टूल्स दिखाएं।</translation>
+        <translation locale="ja">候補ストリップにAI作成ツールを表示し、即時の校正、文章の書き直し、スマートな提案を行います。</translation>
+        <translation locale="ko">실시간 교정, 텍스트 재작성 및 스마트 추천을 위해 추천 표시줄에 AI 글쓰기 도구를 표시합니다.</translation>
+        <translation locale="zh">在建议栏中显示 AI 写作工具，提供即时校对、文本重写和智能建议。</translation>
+        <translation locale="ar">إظهار أدوات الكتابة بالذكاء الاصطناعي في شريط الاقتراحات للتدقيق اللغوي الفوري وإعادة الصياغة والاقتراحات الذكية.</translation>
+        <translation locale="in">Tampilkan alat penulisan AI di strip saran untuk koreksi instan, penulisan ulang teks, dan saran cerdas.</translation>
+        <translation locale="tr">Anında düzeltme, metin yeniden yazma ve akıllı öneriler için öneri şeridinde Yapay Zeka yazma araçlarını gösterin.</translation>
+        <translation locale="vi">Hiển thị công cụ viết bằng AI trên dải gợi ý để sửa lỗi tức thì, viết lại văn bản và đề xuất thông minh.</translation>
+        <translation locale="pl">Pokaż narzędzia pisania AI na pasku sugestii do natychmiastowej korekty, redagowania tekstu i inteligentnych podpowiedzi.</translation>
+        <translation locale="nl">Toon AI-schrijftools in de suggestiebalk voor directe proeflezing, herschrijven van tekst en slimme suggesties.</translation>
+        <translation locale="th">แสดงเครื่องมือเขียนด้วย AI ในแถบคำแนะนำสำหรับการตรวจทาน แก้ไขข้อความ และคำแนะนำอัจฉริยะแบบทันที</translation>
+        <translation locale="uk">Показувати інструменти письма зі ШІ в рядку підказок для швидкого редагування, переписування тексту та розумних пропозицій.</translation>
+    </string>
+    <string name="gboard_patches_ai_writing_tools_all_keyboards_title">
+        <translation locale="en">Support All Keyboards</translation>
+        <translation locale="es">Admitir todos los teclados</translation>
+        <translation locale="fr">Prendre en charge tous les claviers</translation>
+        <translation locale="de">Alle Tastaturen unterstützen</translation>
+        <translation locale="it">Supporta tutte le tastiere</translation>
+        <translation locale="pt">Suportar todos os teclados</translation>
+        <translation locale="ru">Поддержка всех клавиатур</translation>
+        <translation locale="hi">सभी कीबोर्ड का समर्थन करें</translation>
+        <translation locale="ja">すべてのキーボードをサポート</translation>
+        <translation locale="ko">모든 키보드 지원</translation>
+        <translation locale="zh">支持所有键盘</translation>
+        <translation locale="ar">دعم جميع لوحات المفاتيح</translation>
+        <translation locale="in">Dukung Semua Keyboard</translation>
+        <translation locale="tr">Tüm Klavyeleri Destekle</translation>
+        <translation locale="vi">Hỗ trợ tất cả bàn phím</translation>
+        <translation locale="pl">Obsługuj wszystkie klawiatury</translation>
+        <translation locale="nl">Alle toetsenborden ondersteunen</translation>
+        <translation locale="th">รองรับคีย์บอร์ดทั้งหมด</translation>
+        <translation locale="uk">Підтримка всіх клавіатур</translation>
+    </string>
+    <string name="gboard_patches_ai_writing_tools_all_keyboards_summary">
+        <translation locale="en">Enable AI Writing Tools across all language layouts and input fields without restrictions.</translation>
+        <translation locale="es">Habilita las herramientas de escritura con IA en todas las distribuciones de idioma y campos de entrada sin restricciones.</translation>
+        <translation locale="fr">Activez les outils d\'écriture IA sur toutes les dispositions de langue et champs de saisie sans restriction.</translation>
+        <translation locale="de">KI-Schreibwerkzeuge für alle Sprachlayouts und Eingabefelder ohne Einschränkungen aktivieren.</translation>
+        <translation locale="it">Abilita gli strumenti di scrittura IA su tutti i layout di lingua e campi di testo senza restrizioni.</translation>
+        <translation locale="pt">Ative ferramentas de escrita com IA em todos os layouts de idiomas e campos de entrada sem restrições.</translation>
+        <translation locale="ru">Включить инструменты письма с ИИ во всех языковых раскладках и полях ввода без ограничений.</translation>
+        <translation locale="hi">बिना किसी प्रतिबंध के सभी भाषा लेआउट और इनपुट फ़ील्ड में AI राइटिंग टूल्स सक्षम करें।</translation>
+        <translation locale="ja">制限なしにすべての言語レイアウトと入力フィールドでAI作成ツールを有効にします。</translation>
+        <translation locale="ko">제한 없이 모든 언어 레이아웃 및 입력란에서 AI 글쓰기 도구를 사용합니다.</translation>
+        <translation locale="zh">无限制地在所有语言布局和输入字段中启用 AI 写作工具。</translation>
+        <translation locale="ar">تفعيل أدوات الكتابة بالذكاء الاصطناعي عبر جميع تخطيطات اللغات وحقول الإدخال بدون قيود.</translation>
+        <translation locale="in">Aktifkan Alat Penulisan AI di semua tata letak bahasa dan bidang masukan tanpa batasan.</translation>
+        <translation locale="tr">Tüm dil düzenlerinde ve giriş alanlarında kısıtlama olmaksızın Yapay Zeka Yazma Araçlarını etkinleştirin.</translation>
+        <translation locale="vi">Bật công cụ viết AI trên mọi bố cục ngôn ngữ và trường nhập mà không bị giới hạn.</translation>
+        <translation locale="pl">Włącz narzędzia pisania AI we wszystkich układach językowych i polach wprowadzania bez ograniczeń.</translation>
+        <translation locale="nl">Schakel AI-schrijftools in voor alle taallay-outs en invoervelden zonder beperkingen.</translation>
+        <translation locale="th">เปิดใช้เครื่องมือเขียนด้วย AI ในทุกรูปแบบแป้นพิมพ์ภาษาและช่องป้อนข้อมูลโดยไม่มีข้อจำกัด</translation>
+        <translation locale="uk">Увімкнути інструменти письма зі ШІ для всіх мовних розкладок і полів вводу без обмежень.</translation>
+    </string>
+    <string name="gboard_patches_ai_writing_tools_backend_type_title">
+        <translation locale="en">AI Processing Backend</translation>
+        <translation locale="ar">محرك معالجة الذكاء الاصطناعي</translation>
+    </string>
+    <string name="gboard_patches_ai_writing_tools_backend_type_summary">
+        <translation locale="en">Choose between Google Cloud processing or private on-device inference (AICore / Astrea).</translation>
+        <translation locale="ar">الاختيار بين المعالجة عبر سحابة Google أو الاستنتاج الخاص على الجهاز (AICore / Astrea).</translation>
+    </string>
+    <string name="gboard_patches_ai_writing_tools_backend_type_dialog_title">
+        <translation locale="en">AI Processing Backend</translation>
+        <translation locale="ar">محرك معالجة الذكاء الاصطناعي</translation>
+    </string>
+    <string name="gboard_patches_ai_writing_tools_v2_title">
+        <translation locale="en">Writing Tools V2</translation>
+        <translation locale="ar">أدوات الكتابة (الإصدار 2)</translation>
+    </string>
+    <string name="gboard_patches_ai_writing_tools_v2_summary">
+        <translation locale="en">Enable \'Suggested\' style chips and \'Describe your edit\' freeform instruction bar.</translation>
+        <translation locale="ar">تفعيل شرائح نمط \'المقترحة\' وشريط التعليمات الحرة \'صف تعديلك\'.</translation>
+    </string>
+    <string name="gboard_patches_ai_writing_tools_v2_badge">
+        <translation locale="en">BETA</translation>
+        <translation locale="ar">تجريبي</translation>
+    </string>
+    <string name="gboard_patches_ai_writing_tools_section_behavior">
+        <translation locale="en">Behavior</translation>
+        <translation locale="ar">السلوك</translation>
+    </string>
+    <string name="gboard_patches_advanced_voice_title">
+        <translation locale="en">Advanced Voice Typing</translation>
+        <translation locale="ar">الكتابة الصوتية المتقدمة</translation>
+    </string>
+    <string name="gboard_patches_advanced_voice_summary">
+        <translation locale="en">Controls whether Advanced Voice Typing is forced on.</translation>
+        <translation locale="ar">التحكم في فرض تفعيل الكتابة الصوتية المتقدمة.</translation>
+    </string>
+    <string name="gboard_patches_advanced_voice_header_summary">
+        <translation locale="en">Voice typing -&gt; Advanced features, Add punctuation</translation>
+        <translation locale="ar">الكتابة بالصوت -> الميزات المتقدمة، إضافة علامات الترقيم</translation>
+    </string>
+    <string name="gboard_patches_advanced_voice_error_title">
+        <translation locale="en">Advanced Voice Typing unavailable</translation>
+        <translation locale="ar">الكتابة الصوتية المتقدمة غير متوفرة</translation>
+    </string>
+    <string name="gboard_patches_advanced_voice_error_summary">
+        <translation locale="en">The Advanced Voice Typing settings screen failed to load. Reopen Gboard_Pro settings and try again.</translation>
+        <translation locale="ar">تعذّر تحميل شاشة إعدادات الكتابة الصوتية المتقدمة. أعد فتح إعدادات Gboard_Pro وحاول مجدداً.</translation>
+    </string>
+    <string name="gboard_patches_advanced_voice_enabled_title">
+        <translation locale="en">Enable Advanced Voice Typing</translation>
+        <translation locale="es">Habilitar escritura por voz avanzada</translation>
+        <translation locale="fr">Activer la saisie vocale avancée</translation>
+        <translation locale="de">Erweiterte Spracheingabe aktivieren</translation>
+        <translation locale="it">Attiva digitazione vocale avanzata</translation>
+        <translation locale="pt">Ativar digitação por voz avançada</translation>
+        <translation locale="ru">Включить расширенный голосовой ввод</translation>
+        <translation locale="hi">उन्नत वॉइस टाइपिंग सक्षम करें</translation>
+        <translation locale="ja">高度な音声入力を有効にする</translation>
+        <translation locale="ko">고급 음성 입력 사용</translation>
+        <translation locale="zh">启用高级语音输入</translation>
+        <translation locale="ar">تفعيل الكتابة بالصوت المتقدمة</translation>
+        <translation locale="in">Aktifkan Pengetikan Suara Lanjutan</translation>
+        <translation locale="tr">Gelişmiş Sesle Yazmayı Etkinleştir</translation>
+        <translation locale="vi">Bật nhập liệu bằng giọng nói nâng cao</translation>
+        <translation locale="pl">Włącz zaawansowane pisanie głosowe</translation>
+        <translation locale="nl">Geavanceerd spraakgestuurd typen inschakelen</translation>
+        <translation locale="th">เปิดใช้การพิมพ์ด้วยเสียงขั้นสูง</translation>
+        <translation locale="uk">Увімкнути розширене голосове введення</translation>
+    </string>
+    <string name="gboard_patches_advanced_voice_enabled_summary">
+        <translation locale="en">Activate Pixel Rambler voice dictation for fast on-device speech-to-text with automatic punctuation.</translation>
+        <translation locale="es">Activa el dictado por voz Pixel Rambler para transcripción rápida en el dispositivo con puntuación automática.</translation>
+        <translation locale="fr">Activez la dictée vocale Pixel Rambler pour une synthèse vocale rapide sur l\'appareil avec ponctuation automatique.</translation>
+        <translation locale="de">Pixel Rambler Sprachdiktat für schnelle Spracherkennung auf dem Gerät mit automatischer Zeichensetzung aktivieren.</translation>
+        <translation locale="it">Attiva la dettatura vocale Pixel Rambler per sintesi vocale rapida sul dispositivo con punteggiatura automatica.</translation>
+        <translation locale="pt">Ative o ditado por voz Pixel Rambler para conversão rápida de voz em texto no dispositivo com pontuação automática.</translation>
+        <translation locale="ru">Активируйте голосовой ввод Pixel Rambler для быстрого локального распознавания речи с автоматической пунктуацией.</translation>
+        <translation locale="hi">स्वचालित विराम चिह्नों के साथ तेज़ ऑन-डिवाइस स्पीच-टू-टेक्स्ट के लिए पिक्सेल रैम्बलर वॉयस डिक्टेशन सक्रिय करें।</translation>
+        <translation locale="ja">自動句読点機能を備えた高速なオンデバイス音声入力を可能にするPixel Rambler音声ディクテーションを有効にします。</translation>
+        <translation locale="ko">자동 구두점이 포함된 빠른 온디바이스 음성 텍스트 변환을 위해 Pixel Rambler 음성 입력을 활성화합니다.</translation>
+        <translation locale="zh">激活 Pixel Rambler 语音听写功能，实现快速且带自动标点的设备端语音转文字。</translation>
+        <translation locale="ar">تفعيل الإملاء الصوتي Pixel Rambler لتحويل الكلام إلى نص سريعاً على الجهاز مع علامات ترقيم تلقائية.</translation>
+        <translation locale="in">Aktifkan dikte suara Pixel Rambler untuk ucapan-ke-teks di perangkat yang cepat dengan tanda baca otomatis.</translation>
+        <translation locale="tr">Otomatik noktalama işaretleriyle hızlı cihaz içi konuşmayı metne dönüştürme için Pixel Rambler sesli diktesini etkinleştirin.</translation>
+        <translation locale="vi">Kích hoạt nhập liệu bằng giọng nói Pixel Rambler để chuyển giọng nói thành văn bản nhanh trên thiết bị với dấu câu tự động.</translation>
+        <translation locale="pl">Aktywuj dyktowanie głosowe Pixel Rambler, aby szybko przetwarzać mowę na tekst na urządzeniu z automatyczną interpunkcją.</translation>
+        <translation locale="nl">Activeer Pixel Rambler-spraakdictaat voor snelle spraak-naar-tekst op het apparaat met automatische interpunctie.</translation>
+        <translation locale="th">เปิดใช้การป้อนตามคำบอกด้วยเสียง Pixel Rambler เพื่อการแปลงเสียงพูดเป็นข้อความบนอุปกรณ์ที่รวดเร็วพร้อมเครื่องหมายวรรคตอนอัตโนมัติ</translation>
+        <translation locale="uk">Активуйте голосове диктування Pixel Rambler для швидкого розпізнавання мови на пристрої з автоматичною пунктуацією.</translation>
+    </string>
+    <string name="gboard_patches_advanced_voice_section_behavior">
+        <translation locale="en">Behavior</translation>
+        <translation locale="ar">السلوك</translation>
+    </string>
+    <string name="gboard_patches_advanced_voice_section_information">
+        <translation locale="en">Information</translation>
+        <translation locale="ar">معلومات</translation>
+    </string>
+    <string name="gboard_patches_advanced_voice_section_offline_speech_model">
+        <translation locale="en">Offline speech model</translation>
+        <translation locale="ar">نموذج التعرف الصوتي بلا اتصال</translation>
+    </string>
+    <string name="gboard_patches_advanced_voice_section_supported_languages">
+        <translation locale="en">Supported languages</translation>
+        <translation locale="ar">اللغات المدعومة</translation>
+    </string>
+    <string name="gboard_patches_advanced_voice_supported_languages_title">
+        <translation locale="en">Supported languages</translation>
+        <translation locale="ar">اللغات المدعومة</translation>
+    </string>
+    <string name="gboard_patches_advanced_voice_supported_languages_summary">
+        <translation locale="en">Only en-US supports the complete feature set.\n\nEnglish en-AU, en-CA, en-GB, en-IE, en-IN, en-SG, en-US\nGerman de-AT, de-BE, de-CH, de-DE\nFrench fr-BE, fr-CA, fr-CH, fr-FR\nItalian it-CH, it-IT\nJapanese ja-JP\nSpanish es-ES, es-US</translation>
+        <translation locale="ar">تدعم en-US فقط مجموعة الميزات الكاملة.\n\nالإنجليزية: en-AU، en-CA، en-GB، en-IE، en-IN، en-SG، en-US\nالألمانية: de-AT، de-BE، de-CH، de-DE\nالفرنسية: fr-BE، fr-CA، fr-CH، fr-FR\nالإيطالية: it-CH، it-IT\nاليابانية: ja-JP\nالإسبانية: es-ES، es-US</translation>
+    </string>
+    <string name="gboard_patches_advanced_voice_github_star_title">
+        <translation locale="en">Support this project on GitHub 😊</translation>
+        <translation locale="ar">ادعم هذا المشروع على GitHub 😊</translation>
+    </string>
+    <string name="gboard_patches_advanced_voice_github_star_summary">
+        <translation locale="en">This feature took a significant amount of time to build. If it helps you, please give the project a Star on GitHub.</translation>
+        <translation locale="ar">استغرق بناء هذه الميزة وقتاً وجهداً كبيرين. إذا نالت إعجابك وأفادتك، يُرجى دعم المشروع بنجمة على GitHub.</translation>
+    </string>
+    <string name="gboard_patches_advanced_voice_speech_services_present_title">
+        <translation locale="en">Speech Recognition &amp; Synthesis (Installed)</translation>
+        <translation locale="ar">خدمات التعرف على الكلام وتحويل النص إلى كلام (مثبّتة)</translation>
+    </string>
+    <string name="gboard_patches_advanced_voice_speech_services_absent_title">
+        <translation locale="en">Speech Recognition &amp; Synthesis (Not installed)</translation>
+        <translation locale="ar">خدمات التعرف على الكلام وتحويل النص إلى كلام (غير مثبّتة)</translation>
+    </string>
+    <string name="gboard_patches_advanced_voice_speech_services_unknown_title">
+        <translation locale="en">Speech Recognition &amp; Synthesis (Unable to verify)</translation>
+        <translation locale="ar">خدمات التعرف على الكلام وتحويل النص إلى كلام (تعذّر التحقق)</translation>
+    </string>
+    <string name="gboard_patches_advanced_voice_speech_services_status_summary">
+        <translation locale="en">Package: com.google.android.tts. Required for Advanced Voice Typing: install Speech Recognition &amp; Synthesis and download the offline speech recognition model for every language you use. Tap to open its Google Play page.</translation>
+        <translation locale="ar">الحزمة: com.google.android.tts. متطلب للكتابة الصوتية المتقدمة: تثبيت خدمات \'التعرف على الكلام وتحويل النص إلى كلام\' وتنزيل نموذج التعرف الصوتي بلا اتصال لكل لغة تستخدمها. انقر لفتح صفحته على Google Play.</translation>
+    </string>
+    <string name="gboard_patches_advanced_voice_speech_services_open_failed">
+        <translation locale="en">Unable to open the Speech Recognition &amp; Synthesis Google Play page.</translation>
+        <translation locale="ar">تعذّر فتح صفحة خدمات \'التعرف على الكلام وتحويل النص إلى كلام\' على Google Play.</translation>
+    </string>
+    <string name="gboard_patches_advanced_voice_downloaded_languages_title">
+        <translation locale="en">Downloaded offline languages</translation>
+        <translation locale="ar">اللغات المنزّلة بلا اتصال</translation>
+    </string>
+    <string name="gboard_patches_advanced_voice_downloaded_languages_loading_summary">
+        <translation locale="en">Checking downloaded offline languages…</translation>
+        <translation locale="ar">جارٍ التحقق من اللغات المنزّلة بلا اتصال…</translation>
+    </string>
+    <string name="gboard_patches_advanced_voice_downloaded_languages_empty_summary">
+        <translation locale="en">No downloaded offline languages detected.</translation>
+        <translation locale="ar">لم يتم العثور على أي لغات منزّلة بلا اتصال.</translation>
+    </string>
+    <string name="gboard_patches_advanced_voice_downloaded_languages_unsupported_summary">
+        <translation locale="en">This Android version cannot query downloaded offline languages.</translation>
+        <translation locale="ar">لا يمكن لإصدار Android هذا الاستعلام عن اللغات المنزّلة بلا اتصال.</translation>
+    </string>
+    <string name="gboard_patches_advanced_voice_downloaded_languages_unavailable_summary">
+        <translation locale="en">No on-device speech recognition service is available.</translation>
+        <translation locale="ar">لا تتوفر خدمة تعرف صوتي على الجهاز.</translation>
+    </string>
+    <string name="gboard_patches_advanced_voice_downloaded_languages_error_summary">
+        <translation locale="en">Unable to read downloaded offline languages. Check them in Live Transcribe.</translation>
+        <translation locale="ar">تعذّرت قراءة اللغات المنزّلة بلا اتصال. تحقق منها في تطبيق الكتابة المباشرة (Live Transcribe).</translation>
+    </string>
+    <string name="gboard_patches_advanced_voice_downloaded_languages_separator">
+        <translation locale="en">, </translation>
+        <translation locale="ar">، </translation>
+    </string>
+    <string name="gboard_patches_advanced_voice_live_transcribe_manage_title">
+        <translation locale="en">Manage languages with Live Transcribe</translation>
+        <translation locale="ar">إدارة اللغات عبر تطبيق الكتابة المباشرة</translation>
+    </string>
+    <string name="gboard_patches_advanced_voice_live_transcribe_manage_summary">
+        <translation locale="en">Use Google’s official Live Transcribe app to download the Speech Recognition &amp; Synthesis offline recognition models required for Advanced Voice Typing. In Live Transcribe, open Settings → More settings → Primary language.\nTap to open Live Transcribe.</translation>
+        <translation locale="ar">استخدم تطبيق الكتابة المباشرة (Live Transcribe) الرسمي من Google لتنزيل نماذج التعرف الصوتي بلا اتصال المطلوبة للكتابة الصوتية المتقدمة. في التطبيق، افتح الإعدادات ← المزيد من الإعدادات ← اللغة الأساسية.\nانقر لفتح التطبيق.</translation>
+    </string>
+    <string name="gboard_patches_advanced_voice_live_transcribe_open_failed">
+        <translation locale="en">Unable to open Live Transcribe or its Google Play page.</translation>
+        <translation locale="ar">تعذّر فتح تطبيق الكتابة المباشرة أو صفحته على Google Play.</translation>
+    </string>
+    <string name="gboard_patches_advanced_voice_payload_present_title">
+        <translation locale="en">Dictation payload (Installed)</translation>
+        <translation locale="ar">حزمة الإملاء الصوتي (مثبّتة)</translation>
+    </string>
+    <string name="gboard_patches_advanced_voice_payload_present_summary">
+        <translation locale="en">The currently installed %1$s meets the APK payload requirement for Advanced Voice Typing.</translation>
+        <translation locale="ar">تفي حزمة %1$s المثبتة حالياً بمتطلبات حزمة APK للكتابة الصوتية المتقدمة.</translation>
+    </string>
+    <string name="gboard_patches_advanced_voice_payload_present_requirement_title">
+        <translation locale="en">Installation requirement (currently met)</translation>
+        <translation locale="ar">متطلبات التثبيت (مستوفاة حالياً)</translation>
+    </string>
+    <string name="gboard_patches_advanced_voice_payload_present_requirement_summary">
+        <translation locale="en">No download is needed right now. For future updates or reinstalls, you must still use a bundle or split APKM and apply the patch with Gboard_Pro Patcher; a standalone APK cannot work.\nTap to view the APKMirror download page</translation>
+        <translation locale="ar">لا يلزم أي تنزيل حالياً. بالنسبة للتحديثات المستقبلية أو إعادة التثبيت، يجب عليك استخدام حزمة مجمّعة (Bundle) أو حزم مجزأة (APKM) وتطبيق الترقيع عبر Gboard_Pro Patcher؛ فحزم APK المستقلة لن تعمل.\nانقر لعرض صفحة التنزيل على APKMirror</translation>
+    </string>
+    <string name="gboard_patches_advanced_voice_payload_absent_title">
+        <translation locale="en">Dictation payload (Not installed)</translation>
+        <translation locale="ar">حزمة الإملاء الصوتي (غير مثبّتة)</translation>
+    </string>
+    <string name="gboard_patches_advanced_voice_payload_absent_summary">
+        <translation locale="en">The currently installed %1$s does not contain libdictation_jni.so, which Advanced Voice Typing requires.</translation>
+        <translation locale="ar">لا تحتوي حزمة %1$s المثبتة حالياً على مكتبة libdictation_jni.so المطلوبة للكتابة الصوتية المتقدمة.</translation>
+    </string>
+    <string name="gboard_patches_advanced_voice_payload_absent_requirement_title">
+        <translation locale="en">Get a bundle or split APKM</translation>
+        <translation locale="ar">الحصول على حزمة مجمّعة أو مجزأة (APKM)</translation>
+    </string>
+    <string name="gboard_patches_advanced_voice_payload_absent_requirement_summary">
+        <translation locale="en">Get a bundle or split APKM and apply the patch with Gboard_Pro Patcher; a standalone APK cannot work.\nTap to open the APKMirror download page</translation>
+        <translation locale="ar">احصل على حزمة مجمّعة أو مجزأة (APKM) وطبّق الترقيع عبر Gboard_Pro Patcher؛ فحزم APK المستقلة لن تعمل.\nانقر لفتح صفحة التنزيل على APKMirror</translation>
+    </string>
+    <string name="gboard_patches_advanced_voice_payload_unknown_title">
+        <translation locale="en">Dictation payload (Unable to verify)</translation>
+        <translation locale="ar">حزمة الإملاء الصوتي (تعذّر التحقق)</translation>
+    </string>
+    <string name="gboard_patches_advanced_voice_payload_unknown_summary">
+        <translation locale="en">The installed APK files for the selected Gboard package could not be inspected.</translation>
+        <translation locale="ar">تعذّر فحص ملفات APK المثبتة لحزمة Gboard المحددة.</translation>
+    </string>
+    <string name="gboard_patches_advanced_voice_payload_unknown_requirement_title">
+        <translation locale="en">Verify the installation source</translation>
+        <translation locale="ar">التحقق من مصدر التثبيت</translation>
+    </string>
+    <string name="gboard_patches_advanced_voice_payload_unknown_requirement_summary">
+        <translation locale="en">It is currently unclear whether another download is needed. Verify that you used a bundle or split APKM and applied the patch with Gboard_Pro Patcher; a standalone APK cannot work.\nTap to view the APKMirror download page</translation>
+        <translation locale="ar">من غير الواضح حالياً ما إذا كان يلزم تنزيل آخر. تأكد من أنك استخدمت حزمة مجمّعة أو مجزأة (APKM) وطبّقت الترقيع عبر Gboard_Pro Patcher؛ فحزم APK المستقلة لن تعمل.\nانقر لعرض صفحة التنزيل على APKMirror</translation>
+    </string>
+    <string name="gboard_patches_rounded_keys_enabled_title">
+        <translation locale="en">Rounded Keys</translation>
+        <translation locale="es">Teclas redondeadas</translation>
+        <translation locale="fr">Touches arrondies</translation>
+        <translation locale="de">Abgerundete Tasten</translation>
+        <translation locale="it">Tasti arrotondati</translation>
+        <translation locale="pt">Teclas arredondadas</translation>
+        <translation locale="ru">Скруглённые клавиши</translation>
+        <translation locale="hi">राउंडेड कीज़ (Rounded Keys)</translation>
+        <translation locale="ja">角丸キー</translation>
+        <translation locale="ko">둥근 키</translation>
+        <translation locale="zh">圆角按键</translation>
+        <translation locale="ar">مفاتيح مستديرة</translation>
+        <translation locale="in">Tombol Membulat</translation>
+        <translation locale="tr">Yuvarlatılmış Tuşlar</translation>
+        <translation locale="vi">Phím bo tròn</translation>
+        <translation locale="pl">Zaokrąglone klawisze</translation>
+        <translation locale="nl">Afgeronde toetsen</translation>
+        <translation locale="th">ปุ่มโค้งมน</translation>
+        <translation locale="uk">Закруглені клавіші</translation>
+    </string>
+    <string name="gboard_patches_rounded_keys_enabled_summary">
+        <translation locale="en">Enable Material 3 Expressive rounded (Belka) key style.</translation>
+        <translation locale="es">Habilita el estilo de teclas redondeadas Material 3 Expressive (Belka).</translation>
+        <translation locale="fr">Activer le style de touches arrondies Material 3 Expressive (Belka).</translation>
+        <translation locale="de">Material 3 Expressive abgerundeten Tastenstil (Belka) aktivieren.</translation>
+        <translation locale="it">Abilita lo stile dei tasti arrotondati Material 3 Expressive (Belka).</translation>
+        <translation locale="pt">Ative o estilo de teclas arredondadas Material 3 Expressive (Belka).</translation>
+        <translation locale="ru">Включить стиль скруглённых клавиш Material 3 Expressive (Belka).</translation>
+        <translation locale="hi">मटीरियल 3 एक्सप्रेसिव राउंडेड (Belka) कुंजी शैली सक्षम करें।</translation>
+        <translation locale="ja">Material 3 Expressiveの角丸（Belka）キースタイルを有効にします。</translation>
+        <translation locale="ko">Material 3 Expressive 둥근(Belka) 키 스타일을 사용합니다.</translation>
+        <translation locale="zh">启用 Material 3 Expressive 圆角 (Belka) 按键样式。</translation>
+        <translation locale="ar">تفعيل نمط المفاتيح المستديرة Material 3 Expressive (Belka).</translation>
+        <translation locale="in">Aktifkan gaya tombol membulat Material 3 Expressive (Belka).</translation>
+        <translation locale="tr">Material 3 Expressive yuvarlatılmış (Belka) tuş stilini etkinleştirin.</translation>
+        <translation locale="vi">Bật kiểu phím bo tròn Material 3 Expressive (Belka).</translation>
+        <translation locale="pl">Włącz zaokrąglony styl klawiszy Material 3 Expressive (Belka).</translation>
+        <translation locale="nl">Schakel Material 3 Expressive afgeronde (Belka) toetsstijl in.</translation>
+        <translation locale="th">เปิดใช้รูปแบบปุ่มโค้งมน Material 3 Expressive (Belka)</translation>
+        <translation locale="uk">Увімкнути закруглений стиль клавіш Material 3 Expressive (Belka).</translation>
+    </string>
+</settings-text>

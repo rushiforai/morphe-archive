@@ -1041,6 +1041,14 @@ Shows a handle at the right edge of Saved and your collections while they scroll
 Hide the New collection button	隐藏新建珍藏分类按钮
 # context: Profiles > summary of Hide the New collection button; Saved is Instagram's own Saved page (#762)
 Takes the + for a new collection off the top of Saved. Your collections stay.	移除“已收藏”顶部用来新建珍藏分类的 + 按钮。你的珍藏分类会保留。
+# context: Profiles > switch right after Hide the New collection button; Reels is Instagram's own label for the Reels tab at the top of Saved, Saved is Instagram's own Saved page (#810)
+Hide the Reels tab in Saved	隐藏“已收藏”中的 Reels 标签页
+# context: Profiles > summary of Hide the Reels tab in Saved; saved reels still show under All (#810)
+Takes the Reels tab out of Saved. Your saved reels stay saved.	移除“已收藏”中的 Reels 标签页。你收藏的 Reels 仍会保留。
+# context: Profiles > switch right after Hide the Reels tab in Saved; Saved is Instagram's own label for the bookmark at the top right of the Search tab, beside the search bar (#810)
+Hide Saved on the Search tab	隐藏搜索标签页上的“已收藏”
+# context: Profiles > summary of Hide Saved on the Search tab (#810)
+Takes the Saved bookmark off the top of the Search tab. Restart Instagram after changing it.	移除搜索标签页顶部的“已收藏”书签。变更后请重新启动 Instagram。
 Battery	电池
 Stop the background heartbeat	禁用背景存活上报
 Instagram wakes your phone every minute or two, screen off included, only to note that it is still running. This stops that. Messages, notifications and everything you see are unaffected.	Instagram 每隔一两分钟就会唤醒手机，即使屏幕关闭也一样，目的只是记录自己仍在运行。此选项会停止该行为。消息、通知与画面上的功能不受影响。
@@ -1906,6 +1914,10 @@ Glass top bar in chats	聊天顶栏玻璃效果
 Turn it off to leave a chat's top bar as Instagram draws it, with no frosted band behind it. The round glass buttons and the glass message bar stay.	关闭后聊天顶栏保持 Instagram 原本的样子，背后没有毛玻璃色带。圆形玻璃按钮和玻璃消息栏会保留。
 Top bar tint in chats	聊天顶栏染色
 Message bar tint	消息栏染色
+Glass buttons in chats	聊天玻璃按钮
+Turn it off for a plain blur with no round glass behind the buttons at the top of a chat.	关闭后改为普通模糊，聊天顶部按钮后面不再有圆形玻璃。
+Blur the chat behind a held message	长按消息时模糊聊天背景
+Hold a message and the rest of the chat blurs behind it and its reactions. Needs Android 12 or newer.	长按一条消息，聊天的其余部分会在这条消息及其回应后面变模糊。需要 Android 12 或更新版本。
 # context: Reels switch Hide reels with few views, its summary, the Minimum views row, its dialog message and the row's summary, then the Minimum likes row, its dialog message, its summary and its summary at 0; %1$s is a number with thousands separators (#444)
 Hide reels with few views	隐藏观看次数少的 Reels
 Leaves out reels in the Reels tab outside the numbers below. Reels from accounts you follow, reels sent to you and reels that don't show a number still play.	在 Reels 标签页中略过超出下方数字范围的 Reels。你关注的账户、别人传给你的 Reels，以及没有显示数字的 Reels 仍会播放。
@@ -2782,3 +2794,21 @@ Couldn't start recording this call	无法开始录制这次通话
 Couldn't save the call recording	无法保存通话录音
 # context: a toast when a recording ends with no sound in it (#732)
 Nothing was recorded	什么都没有录到
+# context: a toast when a save starts, naming the account the media is from (#792)
+Saving from @%1$s...	正在保存 @%1$s 的内容…
+# context: a second toast after the one above, when notifications are off (#792)
+You can cancel from Downloads in HushGram settings.	你可以从 HushGram 设置中的“下载”取消。
+# context: a toast when a save waits for the ones already running, the account unknown (#792)
+Queued	已加入队列
+# context: a toast when a save waits for the ones already running, naming the account (#792)
+Queued: @%1$s	已加入队列：@%1$s
+# context: a toast when too many saves already wait their turn (#792)
+Not saved: %1$d saves are already waiting	未保存：已有 %1$d 个在等待
+# context: a waiting save's notification text and its line in Downloads (#792)
+Waiting for the saves before it	正在等待前面的保存
+# context: Feed settings: a switch under Start feed videos with sound that starts them with sound while the phone is on silent or vibrate too (#762)
+Even on silent	静音时也播放声音
+# context: Summary of Even on silent, a switch under Start feed videos with sound (#762)
+Feed videos start with sound with the phone on silent or vibrate too. Only the media volume counts.	手机处于静音或振动模式时，动态视频也会带声音开始播放。只看媒体音量.
+Also in search	同时应用至搜索
+Takes rows of the Explore grid and of search results out when a post in them holds a word or phrase from the list, or comes from an account the list names with @.	当探索网格或搜索结果中的某一行有帖子包含列表中的字词，或来自列表用 @ 点名的账号时，会移除该行.

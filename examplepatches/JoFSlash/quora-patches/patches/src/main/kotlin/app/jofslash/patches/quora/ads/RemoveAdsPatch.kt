@@ -17,7 +17,7 @@ val removeAdsPatch = bytecodePatch(
     category("Privacy")
     compatibleWith(COMPATIBILITY_QUORA)
 
-    extendWith("extensions/extension.mpe")
+    extendWith("extensions/quora.mpe")
 
     execute {
         // Quora renders its content in a WebView, so ads are part of the web page.

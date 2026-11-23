@@ -109,18 +109,18 @@ val gboardCustomThemePatch = resourcePatch(
  * with the system in dark mode the keyboard goes #000000. Accent colours and the elevated surfaces
  * (keys, chips, dialogs) keep Gboard's own values.
  *
- * Marked experimental for its first release: the dark palette override is confirmed on an AOSP
- * Android 16 emulator, not yet on a physical phone with a wallpaper-derived palette.
+ * The dark palette override was verified on an AOSP Android 16 emulator and on the owner's OnePlus 15.
  */
 @Suppress("unused")
 val gboardAmoledDynamicDarkPatch = bytecodePatch(
     name = "AMOLED dark keyboard",
-    description = "Experimental. Turns Gboard's dark keyboard background pure black instead of " +
-        "Google's grey, including the dynamic theme that follows the wallpaper. Light mode and " +
-        "the light theme stay unchanged.",
-    default = false,
+    description = "Turns Gboard's dark keyboard background pure black instead of Google's grey, " +
+        "including the dynamic theme that follows the wallpaper. There is no separate AMOLED tile: " +
+        "choose Dynamic Color in Gboard \u2192 Theme, tap Apply, then use Android's dark theme. " +
+        "Light mode and the light theme stay unchanged.",
+    default = true,
 ) {
-    compatibleWith(gboardExperimental)
+    compatibleWith(gboard)
 
     dependsOn(gboardAmoledDynamicDarkBytecodePatch)
 }

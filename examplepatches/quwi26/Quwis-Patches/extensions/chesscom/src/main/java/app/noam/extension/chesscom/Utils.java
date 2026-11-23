@@ -3,6 +3,7 @@ package app.noam.extension.chesscom;
 import android.app.Activity;
 import android.app.Application;
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -92,6 +93,24 @@ public final class Utils {
         };
         if (Looper.myLooper() == Looper.getMainLooper()) show.run();
         else MAIN.post(show);
+    }
+
+    /**
+     * Opens one of the app's own screens. A mounted patch can leave the system still holding the
+     * manifest from before patching, and then the screen is not declared yet; that only shows a
+     * hint, so the app does not crash on the tap.
+     */
+    public static boolean startScreen(Context context, Intent intent) {
+        if (context == null || intent == null) return false;
+        if (!(context instanceof Activity)) intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        try {
+            context.startActivity(intent);
+            return true;
+        } catch (Throwable throwable) {
+            logError("Could not open " + intent.getComponent(), throwable);
+            toast("Root mount cannot open this screen. Install the patched app normally to use it.");
+            return false;
+        }
     }
 
     public static String appString(String name, String fallback) {

@@ -2,9 +2,7 @@ package app.morphe.patches.chmate
 
 import app.morphe.patcher.patch.filePathOption
 import app.morphe.patcher.patch.resourcePatch
-import java.io.File
 import java.security.MessageDigest
-import java.util.zip.ZipFile
 import org.w3c.dom.Element
 
 private const val modelPath = "assets/haiagaru/image-moderation/model.onnx"
@@ -55,7 +53,7 @@ val imageModerationPatch = resourcePatch(
         check(combined.isNotBlank() || model.isNotBlank()&&runtime.isNotBlank()) { "一括ZIP、またはモデルZIPとONNX Runtime ZIPを両方選んでください。" }
         val archives=if(combined.isNotBlank())listOf(combined) else listOf(model,runtime)
         val seen=mutableSetOf<String>()
-        for(archive in archives)ZipFile(File(archive)).use { zip ->
+        for(archive in archives)withImageModerationArchive(archive) { zip ->
             val items = zip.entries().asSequence().filterNot { it.isDirectory }.groupBy { it.name }
             val notices = setOf("assets/haiagaru/image-moderation/ONNX-LICENSE.txt",
                 "assets/haiagaru/image-moderation/ONNX-ThirdPartyNotices.txt",

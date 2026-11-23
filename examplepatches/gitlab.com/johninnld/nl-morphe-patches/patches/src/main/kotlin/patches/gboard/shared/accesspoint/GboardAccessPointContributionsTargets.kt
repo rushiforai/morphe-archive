@@ -4,22 +4,22 @@ import patches.gboard.shared.GboardMethodTarget
 
 internal object GboardAccessPointContributionsTargets {
     val orderFactory = GboardMethodTarget(
-        classType = "Lmob;",
+        classType = "Laagb;",
         name = "m",
         parameterTypes = listOf(
             "Landroid/content/Context;",
-            "Lnbt;",
-            "Lnru;",
-            "Lwim;",
-            "Lwim;",
+            "Laaiz;",
+            "Lackz;",
+            "Lauco;",
+            "Lauco;",
         ),
-        returnType = "Lmob;",
+        returnType = "Laagb;",
     )
 
     val controllerConstructor = GboardMethodTarget(
-        classType = "Lmpq;",
+        classType = "Laajh;",
         name = "<init>",
-        parameterTypes = listOf("Landroid/content/Context;", "Lmqw;"),
+        parameterTypes = listOf("Landroid/content/Context;", "Laalq;"),
         returnType = "V",
     )
 }

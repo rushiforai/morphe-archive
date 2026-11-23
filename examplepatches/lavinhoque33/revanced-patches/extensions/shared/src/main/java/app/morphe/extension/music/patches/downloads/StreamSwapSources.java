@@ -2,6 +2,7 @@
  * Copyright (C) 2026 lavinhoque33
  * Licensed under the GNU General Public License v3.0.
  * Modified by lavinhoque33, 2026-11-12.
+ * Modified by lavinhoque33, 2026-11-22.
  * Written by lavinhoque33, 2026-11-07.
  */
 package app.morphe.extension.music.patches.downloads;
@@ -53,6 +54,7 @@ final class StreamSwapSources {
         final String online;
         final String key;
         final String token;
+        final PlaybackSourceInspector.LocalFormat inspectionFormat;
         final long fileModified;
         volatile boolean available = true;
 
@@ -63,6 +65,7 @@ final class StreamSwapSources {
             this.key = key;
             this.token = token;
             fileModified = served.file().lastModified();
+            inspectionFormat = PlaybackSourceInspector.supported() ? inspectionFormat(served) : null;
         }
 
         String fallback() throws FileNotFoundException {
@@ -85,6 +88,16 @@ final class StreamSwapSources {
     private static final Map<String, ArrayDeque<Source>> issued = new HashMap<>();
 
     private StreamSwapSources() {}
+
+    private static PlaybackSourceInspector.LocalFormat inspectionFormat(Served served) {
+        PlaybackSourceInspector.Source source = switch (served.kind()) {
+            case KIND_RAW -> PlaybackSourceInspector.Source.CACHED_AUDIO;
+            case KIND_VIDEO_AUDIO -> PlaybackSourceInspector.Source.CACHED_VIDEO_AUDIO;
+            case KIND_VIDEO -> PlaybackSourceInspector.Source.CACHED_VIDEO;
+            default -> null;
+        };
+        return source == null ? null : new PlaybackSourceInspector.LocalFormat(source, served.itag());
+    }
 
     static void select(List<Source> sources) {
         selected.put(sources.get(0).videoId, sources);

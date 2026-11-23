@@ -1,3 +1,15 @@
+## [1.19.2](https://github.com/callMeBeyonder/morphe-patches/compare/v1.19.1...v1.19.2) (2026-11-23)
+
+### 🐛 Bug Fixes
+
+* **hypertrophy:** drop unsupported v1.9.0 target ([028d4e5](https://github.com/callMeBeyonder/morphe-patches/commit/028d4e59161465e10f2372c9244566690ab2dd38))
+
+## [1.19.1](https://github.com/callMeBeyonder/morphe-patches/compare/v1.19.0...v1.19.1) (2026-11-23)
+
+### 🚀 Updated App Support
+
+* **hypertrophy:** support v1.11.0 ([c17c08e](https://github.com/callMeBeyonder/morphe-patches/commit/c17c08eea4e4da8d00a16a39db0a1849d86cfc2f))
+
 ## [1.19.0](https://github.com/callMeBeyonder/morphe-patches/compare/v1.18.0...v1.19.0) (2026-11-16)
 
 ### ✨ New Features

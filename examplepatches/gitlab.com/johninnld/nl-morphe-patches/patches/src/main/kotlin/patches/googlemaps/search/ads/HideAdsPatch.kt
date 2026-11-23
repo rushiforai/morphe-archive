@@ -6,14 +6,20 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLa
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.fieldAccess
+import app.morphe.patcher.methodCall
 import app.morphe.patcher.string
 import app.morphe.patcher.util.smali.ExternalLabel
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.builder.instruction.BuilderInstruction21t
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.formats.Instruction35c
+import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.ThreeRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import org.ungoogled.patches.maps.ui.SHAPES
 import org.ungoogled.patches.maps.ui.activityContextHookPatch
@@ -34,6 +40,20 @@ private object PromotedPinAdsRequestFingerprint2644 : Fingerprint(
     name = "b",
     returnType = "V",
     parameters = listOf("Lcdrl;", "Lcjlw;", "Z"),
+)
+
+/** 26.47 inlined the promoted-pin request into `avbe.e(F)`, which ends by handing
+ *  the options builder to `avbt.c(Lcecc;Lcnnv;)V`. */
+private object PromotedPinAdsRequestFingerprint2647 : Fingerprint(
+    name = "e",
+    returnType = "V",
+    parameters = listOf("F"),
+    filters = listOf(
+        fieldAccess(opcode = Opcode.IGET_OBJECT, definingClass = "Lbjva;", name = "t", type = "Lcjwt;"),
+        methodCall(opcode = Opcode.INVOKE_VIRTUAL, definingClass = "Lcnod;", name = "createBuilder"),
+        methodCall(opcode = Opcode.INVOKE_VIRTUAL, definingClass = "Lavbt;", name = "c"),
+    ),
+    custom = { method, _ -> method.definingClass == "Lavbe;" },
 )
 
 /**
@@ -57,8 +77,17 @@ internal val hideAdsPatch = bytecodePatch(
     execute {
         markPatched("hideAdsPatched")
 
-        /** At method entry v0 is a free local in all three (none takes more than 4 parameter registers). */
+        /**
+         * At method entry v0 is a free local, but only when the method has a local at all: a method
+         * whose registers are just its parameters has `this` in v0, and overwriting it turns an
+         * object register into a boolean (the verifier then rejects the class on first use).
+         */
         fun app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.leaveEarlyWhenHidingAds(leave: String) {
+            val parameterRegisters = parameterTypes.size +
+                if (com.android.tools.smali.dexlib2.AccessFlags.STATIC.isSet(accessFlags)) 0 else 1
+            if (implementation!!.registerCount - parameterRegisters < 1) {
+                throw PatchException("$definingClass->$name has no local register for the hide-ads guard")
+            }
             addInstructionsWithLabels(
                 0,
                 """
@@ -73,8 +102,57 @@ internal val hideAdsPatch = bytecodePatch(
         // Promoted map pins: never request them. Their impression beacons
         // (www.google.com/adview) are fired by the native engine when a pin is
         // drawn, so not requesting the pins also stops those.
-        val promotedPinRequest = if (packageMetadata.versionName == "26.44.06.1006895251") PromotedPinAdsRequestFingerprint2644 else PromotedPinAdsRequestFingerprint
-        promotedPinRequest.method.leaveEarlyWhenHidingAds("return-void")
+        val is2644 = packageMetadata.versionName == "26.44.06.1006895251"
+        val is2647 = packageMetadata.versionName == "26.47.00.1022347503"
+        // 26.47 keeps 26.44's refactored ad paths; only the promoted-pin request
+        // moved (it is inlined into the search-request method now).
+        val refactoredAds = is2644 || is2647
+        val promotedPinRequest = when {
+            is2644 -> PromotedPinAdsRequestFingerprint2644
+            is2647 -> PromotedPinAdsRequestFingerprint2647
+            else -> PromotedPinAdsRequestFingerprint
+        }
+        if (is2647) {
+            // `avbe.e(F)` ends with the promoted-pin options hand-off, so return
+            // right before it instead of skipping the whole request method.
+            // The hand-off is a virtual call, so its receiver and its arguments are live at that
+            // point: v0 is the receiver. Use a local that the call and everything after it do not
+            // touch, otherwise clobbering it turns a reference into a boolean and the verifier
+            // rejects the whole class on the first draw.
+            fun readRegisters(insn: com.android.tools.smali.dexlib2.iface.instruction.Instruction): List<Int> = buildList {
+                (insn as? OneRegisterInstruction)?.let { add(it.registerA) }
+                (insn as? TwoRegisterInstruction)?.let { add(it.registerB) }
+                (insn as? ThreeRegisterInstruction)?.let { add(it.registerC) }
+                (insn as? FiveRegisterInstruction)?.let {
+                    add(it.registerC); add(it.registerD); add(it.registerE); add(it.registerF); add(it.registerG)
+                }
+                (insn as? RegisterRangeInstruction)?.let {
+                    for (register in it.startRegister until it.startRegister + it.registerCount) add(register)
+                }
+            }
+            val method = promotedPinRequest.method
+            val code = method.implementation!!.instructions.toList()
+            val callIndex = promotedPinRequest.instructionMatches.last().index
+            val call = code[callIndex]
+            val busy = buildSet {
+                addAll(readRegisters(call))
+                for (after in callIndex + 1 until code.size) addAll(readRegisters(code[after]))
+            }
+            val locals = method.implementation!!.registerCount - method.parameterTypes.size - 1
+            val scratch = (0 until locals).firstOrNull { it !in busy }
+                ?: throw PatchException("no free local register before ${method.name}'s ad hand-off")
+            method.addInstructionsWithLabels(
+                callIndex,
+                """
+                    sget-boolean v$scratch, $SHAPES->HIDE_ADS:Z
+                    if-eqz v$scratch, :ads_on
+                    return-void
+                """,
+                ExternalLabel("ads_on", call),
+            )
+        } else {
+            promotedPinRequest.method.leaveEarlyWhenHidingAds("return-void")
+        }
 
         // Promoted pins along a route (issue #64). Every directions request asks for them (its
         // promotedPinAdsRequestOptions), and the answer's promoted-pin list goes, apart from the map's own
@@ -119,17 +197,23 @@ internal val hideAdsPatch = bytecodePatch(
         // response's ad pins, with their prepared labels, to one drawer -- the square pins carrying the ad's
         // tagline. It returns at once when hiding ads, as it already does for an empty list; the callout that
         // points at an off-screen ad pin answers "none", as it does for an empty list too.
-        SearchAdPinsDrawerFingerprint.method.leaveEarlyWhenHidingAds("return-void")
-        AdPinCalloutFingerprint.method.leaveEarlyWhenHidingAds("sget-object v0, Lbweh;->a:Lbweh;\nreturn-object v0")
+        val pinsDrawer = if (is2647) SearchAdPinsDrawerFingerprint2647 else SearchAdPinsDrawerFingerprint
+        pinsDrawer.method.leaveEarlyWhenHidingAds("return-void")
+        val callout = if (is2647) AdPinCalloutFingerprint2647 else AdPinCalloutFingerprint
+        val nonePin = if (is2647) "Lbwob;" else "Lbweh;"
+        callout.method.leaveEarlyWhenHidingAds("sget-object v0, $nonePin->a:$nonePin\nreturn-object v0")
 
         // Sponsored-pin placemark objects: the factory returns null instead of
         // building one. Both existing callers already skip a null result.
-        AdPlacemarkFactoryFingerprint.method.leaveEarlyWhenHidingAds("const/4 v0, 0x0\nreturn-object v0")
+        val placemarkFactory = if (is2647) AdPlacemarkFactoryFingerprint2647 else AdPlacemarkFactoryFingerprint
+        placemarkFactory.method.leaveEarlyWhenHidingAds("const/4 v0, 0x0\nreturn-object v0")
 
         // Sponsored placemarks list, built from a search response: never build it.
-        if (packageMetadata.versionName == "26.44.06.1006895251") {
-            AdsListBuilderFingerprint2644A.method.leaveEarlyWhenHidingAds("return-void")
-            AdsListBuilderFingerprint2644B.method.leaveEarlyWhenHidingAds("return-void")
+        if (refactoredAds) {
+            val builderA = if (is2647) AdsListBuilderFingerprint2647A else AdsListBuilderFingerprint2644A
+            val builderB = if (is2647) AdsListBuilderFingerprint2647B else AdsListBuilderFingerprint2644B
+            builderA.method.leaveEarlyWhenHidingAds("return-void")
+            builderB.method.leaveEarlyWhenHidingAds("return-void")
         } else {
         AdsListBuilderFingerprint.method.leaveEarlyWhenHidingAds(
             "sget-object v0, Ljava/util/Collections;->EMPTY_LIST:Ljava/util/List;\nreturn-object v0",
@@ -161,7 +245,7 @@ internal val hideAdsPatch = bytecodePatch(
         // 26.44 refactored the unified row builder into larger fragment methods
         // and replaced the row proto; the factory above still suppresses every
         // sponsored placemark object. Skip these two 26.43-shaped gates.
-        if (packageMetadata.versionName != "26.44.06.1006895251") {
+        if (!refactoredAds) {
         // Unified results list: two independent signals mark an entry as an ad
         // (the chaq oneof case, and a placemark's own is-ad query), both gated
         // here. Capture everything needed from the PRISTINE method first, then

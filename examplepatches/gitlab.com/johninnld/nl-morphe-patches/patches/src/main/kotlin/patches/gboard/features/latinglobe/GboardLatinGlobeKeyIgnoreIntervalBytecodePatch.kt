@@ -43,7 +43,7 @@ private const val TARGET_DESCRIPTOR =
     "$LATIN_IME_CLASS->N()$LATIN_RUNTIME_PARAMS_TYPE"
 private const val STOCK_REGISTER_COUNT = 11
 private const val STOCK_RETURN_REGISTER = 0
-private const val TARGET_INTERVAL_FIELD = "Lylt;->h:F"
+private const val TARGET_INTERVAL_FIELD = "Laxwp;->h:F"
 private val TARGET_ACCESS_FLAGS =
     AccessFlags.PROTECTED.value or AccessFlags.STATIC.value or AccessFlags.FINAL.value
 

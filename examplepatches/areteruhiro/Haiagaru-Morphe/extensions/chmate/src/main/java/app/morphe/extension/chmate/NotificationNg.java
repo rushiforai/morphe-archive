@@ -101,18 +101,59 @@ final class NotificationNg {
     }
 
     static Map<Integer,String> filter(Context context,ThreadWatchRules.Target target,String dat,int before,int count)throws Exception{
-        Map<Integer,String> candidates=ThreadWatchRules.newBodies(target,dat,before,count);
+        boolean skipRead=FeatureSwitches.prefs(context).getBoolean(ExpertSettings.NEW_DAT,true);
+        Map<Integer,String> candidates=ThreadWatchRules.newBodies(target,dat,before,count,skipRead);
         if(candidates.isEmpty()||!enabled(context))return candidates;
         boolean chain=chainedRepliesEnabled(context);
         boolean script=ProgrammableNgController.programmableBodyRulesEnabled();
         List<Row> rows=new ArrayList<>();
-        int ordinal=0;
-        for(String line:dat.split("\n")){
-            Row row=Row.parse(line,++ordinal,target.shitaraba);
-            if(row!=null&&row.number<=count&&(chain||script||candidates.containsKey(row.number)))rows.add(row);
+        if(skipRead&&!target.shitaraba&&!chain&&!script){
+            int start=ThreadWatchRules.afterLines(dat,before);
+            for(int ordinal=before+1;start>=0&&start<dat.length()&&ordinal<=count;ordinal++){
+                int end=ThreadWatchRules.lineEnd(dat,start);
+                if(candidates.containsKey(ordinal)){
+                    Row row=Row.parse(dat.substring(start,end),ordinal,false);
+                    if(row!=null)rows.add(row);
+                }
+                if(end>=dat.length())break;
+                start=end+1;
+            }
+        }else{
+            int ordinal=0;
+            for(String line:dat.split("\n")){
+                ordinal++;
+                Row row=Row.parse(line,ordinal,target.shitaraba);
+                if(row!=null&&row.number<=count&&(chain||script||candidates.containsKey(row.number)))rows.add(row);
+            }
         }
         removeBlocked(context,target,rows,candidates,chain,script);
         return candidates;
+    }
+
+    private static BitSet chainAncestors(List<Row> rows, Set<Integer> candidates) {
+        BitSet needed = new BitSet();
+        int next = Integer.MAX_VALUE;
+        for (int i = rows.size() - 1; i >= 0; i--) {
+            Row row = rows.get(i);
+            // Unordered or unusual imported DATs retain the original sequential scan.
+            if (row.number <= 0 || row.number >= next || row.number > 1000000) return null;
+            next = row.number;
+            if (!candidates.contains(row.number) && !needed.get(row.number)) continue;
+            Matcher anchors = ANCHOR.matcher(ProgrammableNgController.plain(row.body));
+            while (anchors.find()) {
+                int first;
+                int last;
+                try {
+                    first = Integer.parseInt(anchors.group(1));
+                    last = anchors.group(2) == null ? first : Integer.parseInt(anchors.group(2));
+                } catch (NumberFormatException malformedAnchor) {
+                    return null;
+                }
+                last = Math.min(last, row.number - 1);
+                if (first <= last) needed.set(first, last + 1);
+            }
+        }
+        return needed;
     }
 
     static void removeBlocked(Context context,ThreadWatchRules.Target target,List<Row> rows,
@@ -123,11 +164,13 @@ final class NotificationNg {
         List<ProgrammableNgScript.Input> inputs=new ArrayList<>();
         List<Integer> numbers=new ArrayList<>();
         boolean shared=SharedNg.enabled();
+        BitSet ancestors = chain && FeatureSwitches.prefs(context).getBoolean(ExpertSettings.CHAIN_ANCESTORS,true)
+                ? chainAncestors(rows,candidates.keySet()) : null;
         String boardUrl=target.subject.substring(0,target.subject.length()-"subject.txt".length());
         for(Row row:rows){
             int number=row.number;
             boolean candidate=candidates.containsKey(number);
-            if(chain||candidate){
+            if(candidate || (chain && (ancestors == null || ancestors.get(number)))){
                 boolean nativeBlocked=checker.blocked(number,row.name,row.date,row.body);
                 if(candidate&&nativeBlocked)blocked.add(number);
             }

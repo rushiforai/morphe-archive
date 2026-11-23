@@ -57,7 +57,11 @@ internal object PopupBlockerOnCreateWindowFingerprint : Fingerprint(
             smali = "Ljava/lang/String;->split(Ljava/lang/String;)[Ljava/lang/String;",
             opcode = Opcode.INVOKE_VIRTUAL,
         ),
-        opcode(Opcode.CONST_4),
+        fieldAccess(
+            definingClass = "this",
+            type = BROWSER_ACTIVITY,
+            opcode = Opcode.IGET_OBJECT,
+        ),
         opcode(Opcode.IF_NEZ, MatchAfterImmediately()),
         methodCall(
             smali = "Landroid/webkit/WebView\$WebViewTransport;->setWebView(Landroid/webkit/WebView;)V",
@@ -119,15 +123,11 @@ val popupBlockerPatch = bytecodePatch(
         PopupBlockerOnCreateWindowFingerprint.let { fingerprint ->
             val method = fingerprint.method
             val registerCount = method.implementation!!.registerCount
-            val p1 = registerCount - 4
             val p4 = registerCount - 1
-            val constMatch = fingerprint.instructionMatches[1]
             val ifMatch = fingerprint.instructionMatches[2]
 
-            if (constMatch.getInstruction<OneRegisterInstruction>().registerA != p1 ||
-                ifMatch.getInstruction<OneRegisterInstruction>().registerA != p4
-            ) {
-                throw PatchException("onCreateWindow layout changed: expected const/4 p1 followed by if-nez p4")
+            if (ifMatch.getInstruction<OneRegisterInstruction>().registerA != p4) {
+                throw PatchException("onCreateWindow layout changed: expected if-nez p4")
             }
 
             val ifIndex = ifMatch.index
@@ -135,8 +135,8 @@ val popupBlockerPatch = bytecodePatch(
                 ifIndex,
                 """
                     invoke-static { p4 }, $EXT/PopupWindowGate;->shouldBlock(Landroid/os/Message;)Z
-                    move-result p3
-                    if-eqz p3, :ftl_continue
+                    move-result p1
+                    if-eqz p1, :ftl_continue
                     return p1
                 """,
                 ExternalLabel("ftl_continue", method.getInstruction(ifIndex)),

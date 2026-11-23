@@ -149,6 +149,17 @@ val followButtonOnPostsPatch = bytecodePatch(
         val buttonParams = button.parameterTypes.map { it.toString() }
         val handlerType = buttonParams[2]
         if (style == null || defaultsMask == null) throw PatchException("The focal post never draws the follow button")
+        // The button's own arguments end with the Composer at index 14, then Compose's $changed
+        // ints and the defaults mask: two ints up to 12.44, three from 12.45 (a second $changed).
+        val trailingInts = buttonParams.size - 15
+        if (buttonParams[14] != COMPOSER || trailingInts < 2 || buttonParams.drop(15).any { it != "I" }) {
+            throw PatchException("The follow button's arguments changed: $buttonParams")
+        }
+        // The arguments go in v5 onwards, after the helper's four scratch registers.
+        val lastArgument = 5 + buttonParams.size - 1
+        val trailing = (0 until trailingInts).joinToString("\n") { k ->
+            if (k < trailingInts - 1) "const/16 v${20 + k}, 0x0" else "const v${20 + k}, $defaultsMask"
+        }
 
         // The friendship factory makes the handler a follow button follows and unfollows through.
         var factoryType: String? = null
@@ -309,7 +320,8 @@ val followButtonOnPostsPatch = bytecodePatch(
                     AccessFlags.PUBLIC.value or AccessFlags.STATIC.value,
                     null,
                     null,
-                    MutableMethodImplementation(24),
+                    // v0 .. the last argument, then the two parameters.
+                    MutableMethodImplementation(lastArgument + 1 + 2),
                 ).toMutable().apply {
                     addInstructionsWithLabels(
                         0,
@@ -359,9 +371,8 @@ val followButtonOnPostsPatch = bytecodePatch(
                             const/16 v17, 0x0
                             const/16 v18, 0x0
                             move-object/from16 v19, v4
-                            const/16 v20, 0x0
-                            const v21, $defaultsMask
-                            invoke-static/range { v5 .. v21 }, ${button.definingClass}->${button.name}(${buttonParams.joinToString("")})V
+                            $trailing
+                            invoke-static/range { v5 .. v$lastArgument },${button.definingClass}->${button.name}(${buttonParams.joinToString("")})V
                             $closeGroup
                             return-void
                             :hide

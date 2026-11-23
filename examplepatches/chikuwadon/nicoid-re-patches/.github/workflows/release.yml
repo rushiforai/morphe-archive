@@ -84,6 +84,8 @@ jobs:
             python3 porting/revisions/v2.1.3-release/test_release.py
           elif grep -Eq '^version[[:space:]]*=[[:space:]]*2\.1\.4[[:space:]]*$' gradle.properties; then
             python3 porting/revisions/v2.1.4-release/test_release.py
+          elif grep -Eq '^version[[:space:]]*=[[:space:]]*2[.]1[.]8[[:space:]]*$' gradle.properties; then
+            python3 porting/revisions/v2.1.8-release/test_release.py
           elif grep -Eq '^version[[:space:]]*=[[:space:]]*2[.]1[.]7[[:space:]]*$' gradle.properties; then
             python3 porting/revisions/v2.1.7-release/test_release.py
           elif grep -Eq '^version[[:space:]]*=[[:space:]]*2[.]1[.]6[[:space:]]*$' gradle.properties; then
@@ -257,6 +259,8 @@ jobs:
             NICOID_OFFICIAL_RELEASE_APPROVED=APPROVE bash .github/scripts/stage-v2.1.3-mpp.sh
           elif grep -Fq "version = 2.1.4" gradle.properties; then
             NICOID_OFFICIAL_RELEASE_APPROVED=APPROVE bash .github/scripts/stage-v2.1.4-mpp.sh
+          elif grep -Fq "version = 2.1.8" gradle.properties; then
+            NICOID_OFFICIAL_RELEASE_APPROVED=APPROVE bash .github/scripts/stage-v2.1.8-mpp.sh
           elif grep -Fq "version = 2.1.7" gradle.properties; then
             NICOID_OFFICIAL_RELEASE_APPROVED=APPROVE bash .github/scripts/stage-v2.1.7-mpp.sh
           elif grep -Fq "version = 2.1.6" gradle.properties; then

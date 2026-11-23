@@ -36,14 +36,17 @@ def newest_mpp():
 
 
 def patch_names(cli=None, mpp=None):
-    """The patches in the bundle itself; patches-list.json is only updated by a release."""
+    """This app's patches in the bundle itself; patches-list.json is only updated by a release.
+    The bundle also has the other apps' patches, which never apply to this one."""
     if cli and mpp:
-        run = subprocess.run(["java", "-jar", cli, "list-patches", f"--patches={mpp}"],
+        run = subprocess.run(["java", "-jar", cli, "list-patches", f"--patches={mpp}",
+                              f"--filter-package-name={PACKAGE}"],
                              capture_output=True, text=True, encoding="utf8", errors="replace")
         names = re.findall(r"^Name: (.+)$", run.stdout, re.M)
         if names:
             return [n.strip() for n in names]
-    return [p["name"] for p in json.loads((ROOT / "patches-list.json").read_text(encoding="utf8"))["patches"]]
+    return [p["name"] for p in json.loads((ROOT / "patches-list.json").read_text(encoding="utf8"))["patches"]
+            if any(c.get("packageName") == PACKAGE for c in p.get("compatiblePackages") or [])]
 
 
 def listed_versions():
@@ -130,6 +133,11 @@ def main():
     if args.install and out_apk.exists():
         print("\nInstalling on the phone ...")
         ok = start_and_check(args.adb, [str(out_apk)], args.expect_login, patched=True)
+        if not ok:
+            # A slow emulator now and then misses the sign-in page or the start: one more try
+            # (a real crash or patch error shows up again).
+            print("\nTrying the patched app once more ...")
+            ok = start_and_check(args.adb, [str(out_apk)], args.expect_login, patched=True)
         if not ok and args.compare_original:
             # Whether Quora itself works here tells a broken patch from an Android or WebView
             # that Quora no longer supports.
@@ -258,15 +266,20 @@ def login_page_shown(adb, timeout=60):
 
     Quora picks the page's language from the IP address, so a runner can get it in French or
     another language. The page's top image (logged_out_home_mobile_top.png) is the same in
-    every language, so it counts as well as the English buttons.
+    every language, so it counts as well as the English buttons; it isn't always in the dump,
+    so the Google and Facebook buttons count in any language too.
     """
     end = time.time() + timeout
     while time.time() < end:
         subprocess.run([adb, "shell", "uiautomator", "dump", "/sdcard/window.xml"], capture_output=True)
         screen = subprocess.run([adb, "shell", "cat", "/sdcard/window.xml"],
                                 capture_output=True, text=True, errors="replace").stdout
+        # The sign-in buttons name Google and Facebook in every language ("Continuer avec
+        # Google"), so both brand names on buttons count too.
+        brands = (re.search(r'text="[^"]*\bGoogle\b[^"]*"', screen)
+                  and re.search(r'text="[^"]*\bFacebook\b[^"]*"', screen))
         if (re.search(r'text="(Continue with Google|Sign up with email|Login|Reject All|I Accept)"', screen)
-                or "logged_out_home" in screen):
+                or "logged_out_home" in screen or brands):
             return True
         time.sleep(5)
     return False

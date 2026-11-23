@@ -16,6 +16,9 @@ private const val ABOUT_XML = "res/xml/setting_about.xml"
 private val ABOUT_VERSION_TITLE_REFS = mapOf(
     "@string/APKTOOL_RENAMED_0x7f140b16" to "@string/APKTOOL_RENAMED_0x7f140b20",
     "@string/string_0x7f140b16" to "@string/string_0x7f140b20",
+    // 18.8.0-beta renumbered the About page strings.
+    "@string/APKTOOL_RENAMED_0x7f140b29" to "@string/APKTOOL_RENAMED_0x7f140b33",
+    "@string/string_0x7f140b29" to "@string/string_0x7f140b33",
 )
 private const val ABOUT_PREFERENCE_CLASS =
     "com.google.android.libraries.inputmethod.settings.widget.ExtendedPreference"

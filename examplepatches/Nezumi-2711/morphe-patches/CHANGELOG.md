@@ -1,3 +1,44 @@
+## [1.6.0](https://github.com/Nezumi-2711/morphe-patches/compare/v1.5.0...v1.6.0) (2026-11-23)
+
+### 🐛 Bug Fixes
+
+* **zalo:** keep OA accounts hidden after relaunch ([3f2d5ed](https://github.com/Nezumi-2711/morphe-patches/commit/3f2d5edd38e83d486406a092c5644a9bf3c553da))
+* **zalo:** stop hide read receipts from altering message deletion ([82ae3bd](https://github.com/Nezumi-2711/morphe-patches/commit/82ae3bde4dbad8eaec9696e31958a64151cb3044))
+
+### ✨ New Features
+
+* **zalo:** add Mark as read button to chat toolbar ([84528a2](https://github.com/Nezumi-2711/morphe-patches/commit/84528a2b074faf9a7d942769f98814b2fe2de305))
+* **zalo:** add optional feed ad hiding ([fbbff95](https://github.com/Nezumi-2711/morphe-patches/commit/fbbff9588e524fe0d9ad9043dbcc17754aa6a738))
+* **zalo:** add patch to hide OA accounts ([2439f3e](https://github.com/Nezumi-2711/morphe-patches/commit/2439f3e9ad0cd44c495aeb89844a56dd9890bf99))
+* **zalo:** hide ads in Messages ([d1389fd](https://github.com/Nezumi-2711/morphe-patches/commit/d1389fd67e82cdc5ac3d9f54652a1ff0afa3d598))
+* **zalo:** split OA hide and mute into separate options ([3e0fe87](https://github.com/Nezumi-2711/morphe-patches/commit/3e0fe870d47bf42d03c57bcfcbac23cf0eb15b29))
+* **zalo:** unlock original photo quality and select it by default ([3e518e2](https://github.com/Nezumi-2711/morphe-patches/commit/3e518e230a95cecec954b16cca4b81556f353425))
+
+### 🚀 Updated App Support
+
+* **zalo:** add support for Zalo 26.11.01 ([7c310d9](https://github.com/Nezumi-2711/morphe-patches/commit/7c310d90d9c7de0b162db4cd2fdf675d1a877f24))
+
+## [1.6.0-dev.6](https://github.com/Nezumi-2711/morphe-patches/compare/v1.6.0-dev.5...v1.6.0-dev.6) (2026-11-23)
+
+### ✨ New Features
+
+* **zalo:** split OA hide and mute into separate options ([3e0fe87](https://github.com/Nezumi-2711/morphe-patches/commit/3e0fe870d47bf42d03c57bcfcbac23cf0eb15b29))
+* **zalo:** unlock original photo quality and select it by default ([3e518e2](https://github.com/Nezumi-2711/morphe-patches/commit/3e518e230a95cecec954b16cca4b81556f353425))
+
+## [1.6.0-dev.5](https://github.com/Nezumi-2711/morphe-patches/compare/v1.6.0-dev.4...v1.6.0-dev.5) (2026-11-22)
+
+### 🐛 Bug Fixes
+
+* **zalo:** stop hide read receipts from altering message deletion ([82ae3bd](https://github.com/Nezumi-2711/morphe-patches/commit/82ae3bde4dbad8eaec9696e31958a64151cb3044))
+
+### ✨ New Features
+
+* **zalo:** add Mark as read button to chat toolbar ([84528a2](https://github.com/Nezumi-2711/morphe-patches/commit/84528a2b074faf9a7d942769f98814b2fe2de305))
+
+### 🚀 Updated App Support
+
+* **zalo:** add support for Zalo 26.11.01 ([7c310d9](https://github.com/Nezumi-2711/morphe-patches/commit/7c310d90d9c7de0b162db4cd2fdf675d1a877f24))
+
 ## [1.6.0-dev.4](https://github.com/Nezumi-2711/morphe-patches/compare/v1.6.0-dev.3...v1.6.0-dev.4) (2026-11-13)
 
 ### ✨ New Features

@@ -1,0 +1,74 @@
+name: Build
+
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - '**.md'
+      - 'patches-bundle.json'
+      - 'patches-list.json'
+      - 'LICENSE'
+      - 'docs/**'
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+  packages: read
+
+concurrency:
+  group: build-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build & Verify Patches
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          packages: 'platforms;android-36 build-tools;36.0.0'
+          log-accepted-android-sdk-licenses: false
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Build .mpp bundle and run unit tests
+        env:
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          chmod +x gradlew
+          ./gradlew :patches:buildAndroid :patches:verifyLinnProtocol :patches:generatePatchesList copyMppToDist --no-daemon --stacktrace
+          if ! compgen -G "dist/MaterialTidal-patches-*.mpp" > /dev/null; then
+            echo "::error::No dist/MaterialTidal-patches-*.mpp artifact was generated."
+            exit 1
+          fi
+          if [ ! -s "patches-list.json" ]; then
+            echo "::error::Generated patches-list.json is missing or empty."
+            exit 1
+          fi
+          ls -lh dist/
+
+      - name: Upload built .mpp artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: materialtidal-patches-build
+          path: dist/MaterialTidal-patches-*.mpp
+          if-no-files-found: error
+          retention-days: 14

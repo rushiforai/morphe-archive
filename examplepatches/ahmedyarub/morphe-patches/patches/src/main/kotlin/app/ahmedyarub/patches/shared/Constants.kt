@@ -51,6 +51,24 @@ internal object Constants {
     )
 
     /**
+     * Claude by Anthropic. Only the latest release is supported, for the same reason as
+     * Instagram: almost every class is R8-obfuscated (top-level packages such as `au`, `wz`).
+     * Play delivers it as split APKs; give Morphe the splits bundled as an .apks file.
+     */
+    val COMPATIBILITY_CLAUDE = Compatibility(
+        name = "Claude",
+        packageName = "com.anthropic.claude",
+        apkFileType = ApkFileType.APKS,
+        appIconColor = 0xD97757,
+        targets = listOf(
+            AppTarget(
+                version = "1.261120.19",
+                minSdk = 32
+            )
+        )
+    )
+
+    /**
      * X (Twitter). Ported from piko, which targets 12.19.1; adapted to the latest release only,
      * for the same reason as Instagram.
      */
@@ -104,6 +122,9 @@ internal object Constants {
             ),
             AppTarget(
                 version = "12.44.0-prod.01"
+            ),
+            AppTarget(
+                version = "12.45.1-prod.01"
             ),
         )
     )

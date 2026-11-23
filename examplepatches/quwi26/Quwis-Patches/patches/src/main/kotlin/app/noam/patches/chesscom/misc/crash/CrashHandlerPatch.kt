@@ -44,7 +44,8 @@ private val crashHandlerResourcePatch = patch(
 @Suppress("unused")
 val crashHandlerPatch = bytecodePatch(
     name = "Global Crash Handler",
-    description = "Catches uncaught exceptions and displays a custom crash screen with details to report issues.",
+    description = "Catches uncaught exceptions and displays a custom crash screen with details to report issues. " +
+        "The crash screen does not work with root mounting; Android shows its own dialog instead.",
 ) {
     compatibleWith(Constants.COMPATIBILITY)
 

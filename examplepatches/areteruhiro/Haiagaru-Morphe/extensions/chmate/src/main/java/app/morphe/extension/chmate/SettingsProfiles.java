@@ -79,6 +79,19 @@ public final class SettingsProfiles {
         booleanKey(GigaFilePosting.SHOW_BUTTON);defaultValue(GigaFilePosting.SHOW_BUTTON,false);
         numberKey(GigaFilePosting.LINK_MODE,0,2);defaultValue(GigaFilePosting.LINK_MODE,GigaFilePosting.IN_APP);
         booleanKey(ExtraQuickFilters.OPTIMIZATION);defaultValue(ExtraQuickFilters.OPTIMIZATION,false);
+        booleanKey(ExpertSettings.MIGRATION_ONCE);defaultValue(ExpertSettings.MIGRATION_ONCE,true);
+        booleanKey(ExpertSettings.HISTORY_LIMIT);defaultValue(ExpertSettings.HISTORY_LIMIT,true);
+        booleanKey(ExpertSettings.CHAIN_ANCESTORS);defaultValue(ExpertSettings.CHAIN_ANCESTORS,true);
+        booleanKey(ExpertSettings.BOARD_DB);defaultValue(ExpertSettings.BOARD_DB,true);
+        booleanKey(ExpertSettings.MODEL_ACCESS);defaultValue(ExpertSettings.MODEL_ACCESS,true);
+        booleanKey(ExpertSettings.NEW_DAT);defaultValue(ExpertSettings.NEW_DAT,true);
+        booleanKey(ExpertSettings.BOARD_COOKIES);defaultValue(ExpertSettings.BOARD_COOKIES,true);
+        booleanKey(ExpertSettings.COOKIE_AUTH_UI);defaultValue(ExpertSettings.COOKIE_AUTH_UI,true);
+        booleanKey(ExpertSettings.RUNTIME_VERSION);defaultValue(ExpertSettings.RUNTIME_VERSION,true);
+        booleanKey(HomeThreadOrder.FOLD_ON_TAP);defaultValue(HomeThreadOrder.FOLD_ON_TAP,true);
+        booleanKey(ExpertSettings.BACKGROUND_POSTING);defaultValue(ExpertSettings.BACKGROUND_POSTING,false);
+        booleanKey(ShortThreadFilter.ENABLED);defaultValue(ShortThreadFilter.ENABLED,false);
+        numberKey(ShortThreadFilter.LIMIT,1,ShortThreadFilter.MAX);defaultValue(ShortThreadFilter.LIMIT,1);
         booleanKey(FilterPosition.DELAYED_SNAPSHOT);defaultValue(FilterPosition.DELAYED_SNAPSHOT,false);
         booleanKey(ArchiveSearchLayout.ORIGINAL_SITE);defaultValue(ArchiveSearchLayout.ORIGINAL_SITE,false);
         for(String key:new String[]{"fast191UpdateConnect","optimize191UpdateProgress"}){booleanKey(key);defaultValue(key,true);}

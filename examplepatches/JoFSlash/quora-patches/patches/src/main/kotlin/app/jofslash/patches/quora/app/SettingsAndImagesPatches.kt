@@ -2,6 +2,7 @@ package app.jofslash.patches.quora.app
 
 import app.jofslash.patches.quora.ads.PageFinishedFingerprint
 import app.jofslash.patches.quora.shared.Constants.COMPATIBILITY_QUORA
+import app.jofslash.patches.quora.shared.registerSetting
 import app.jofslash.patches.quora.video.InitWebViewFingerprint
 import app.jofslash.patches.quora.tabs.SetupTabsFingerprint
 import app.morphe.patcher.Fingerprint
@@ -27,7 +28,7 @@ val patchSettingsPatch = bytecodePatch(
     category("App")
     compatibleWith(COMPATIBILITY_QUORA)
 
-    extendWith("extensions/extension.mpe")
+    extendWith("extensions/quora.mpe")
 
     execute {
         SetupTabsFingerprint.method.apply {
@@ -63,6 +64,26 @@ val patchSettingsPatch = bytecodePatch(
     }
 }
 
+@Suppress("unused")
+val filterUpdatesPatch = bytecodePatch(
+    name = "Filter updates",
+    description = "When Quora renames what a patch hides, fixes come without a new release: once a day the app downloads " +
+            "a small list of selectors from this project's GitHub repository and uses it for the patches you have on. " +
+            "The list can only hide things. The download sends nothing but a normal web request.",
+    default = false
+) {
+    category("App")
+    compatibleWith(COMPATIBILITY_QUORA)
+
+    extendWith("extensions/quora.mpe")
+    // The download starts where Patch settings hooks the tab bar, and the switch is on its page.
+    dependsOn(patchSettingsPatch)
+
+    execute {
+        registerSetting("filterUpdates", "Filter updates")
+    }
+}
+
 internal object OpenImageFingerprint : Fingerprint(
     definingClass = "Lcom/quora/android/controls/FullScreenImageViewer;",
     name = "openImage",
@@ -79,7 +100,7 @@ val saveImagesPatch = bytecodePatch(
     category("Reading")
     compatibleWith(COMPATIBILITY_QUORA)
 
-    extendWith("extensions/extension.mpe")
+    extendWith("extensions/quora.mpe")
 
     execute {
         // p0 is the viewer, p1 the image URL.

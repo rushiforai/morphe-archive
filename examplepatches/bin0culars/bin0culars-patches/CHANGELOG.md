@@ -1,3 +1,105 @@
+## [1.13.0](https://github.com/bin0culars/bin0culars-patches/compare/v1.12.0...v1.13.0) (2026-11-23)
+
+### ✨ New Features
+
+* **reddit:** Colorize comment indent lines ([#56](https://github.com/bin0culars/bin0culars-patches/issues/56)) ([e6d8824](https://github.com/bin0culars/bin0culars-patches/commit/e6d88247ed90defaccff187485f184895fa4dfdd))
+* **reddit:** Disable bottom bar auto-hide, home feed auto-refresh and refresh on back to exit ([#55](https://github.com/bin0culars/bin0culars-patches/issues/55)) ([7e2a2f9](https://github.com/bin0culars/bin0culars-patches/commit/7e2a2f9850af95e2d922bdefb13bf51ec2493964))
+
+## [1.13.0-dev.1](https://github.com/bin0culars/bin0culars-patches/compare/v1.12.0...v1.13.0-dev.1) (2026-11-23)
+
+### ✨ New Features
+
+* **reddit:** Colorize comment indent lines ([#56](https://github.com/bin0culars/bin0culars-patches/issues/56)) ([e6d8824](https://github.com/bin0culars/bin0culars-patches/commit/e6d88247ed90defaccff187485f184895fa4dfdd))
+* **reddit:** Disable bottom bar auto-hide, home feed auto-refresh and refresh on back to exit ([#55](https://github.com/bin0culars/bin0culars-patches/issues/55)) ([7e2a2f9](https://github.com/bin0culars/bin0culars-patches/commit/7e2a2f9850af95e2d922bdefb13bf51ec2493964))
+
+## [1.13.0-dev.1](https://github.com/bin0culars/bin0culars-patches/compare/v1.12.0...v1.13.0-dev.1) (2026-11-23)
+
+### ✨ New Features
+
+* **reddit:** Disable bottom bar auto-hide, home feed auto-refresh and refresh on back to exit ([#55](https://github.com/bin0culars/bin0culars-patches/issues/55)) ([7e2a2f9](https://github.com/bin0culars/bin0culars-patches/commit/7e2a2f9850af95e2d922bdefb13bf51ec2493964))
+
+## [1.12.0](https://github.com/bin0culars/bin0culars-patches/compare/v1.11.0...v1.12.0) (2026-11-22)
+
+### ✨ New Features
+
+* **reddit:** Collapse all comments ([#54](https://github.com/bin0culars/bin0culars-patches/issues/54)) ([823f628](https://github.com/bin0culars/bin0culars-patches/commit/823f628fe777a7ac32b596279f6b818623762a26))
+* **reddit:** download all items of a gallery from the share sheet ([#51](https://github.com/bin0culars/bin0culars-patches/issues/51)) ([50c9c7e](https://github.com/bin0culars/bin0culars-patches/commit/50c9c7edf2d24e9a4ff3aab79fa1db3e95ac9f23))
+
+## [1.12.0-dev.2](https://github.com/bin0culars/bin0culars-patches/compare/v1.12.0-dev.1...v1.12.0-dev.2) (2026-11-22)
+
+### ✨ New Features
+
+* **reddit:** Collapse all comments ([#54](https://github.com/bin0culars/bin0culars-patches/issues/54)) ([823f628](https://github.com/bin0culars/bin0culars-patches/commit/823f628fe777a7ac32b596279f6b818623762a26))
+
+## [1.12.0-dev.1](https://github.com/bin0culars/bin0culars-patches/compare/v1.11.0...v1.12.0-dev.1) (2026-11-22)
+
+### ✨ New Features
+
+* **reddit:** download all items of a gallery from the share sheet ([#51](https://github.com/bin0culars/bin0culars-patches/issues/51)) ([50c9c7e](https://github.com/bin0culars/bin0culars-patches/commit/50c9c7edf2d24e9a4ff3aab79fa1db3e95ac9f23))
+
+## [1.11.0](https://github.com/bin0culars/bin0culars-patches/compare/v1.10.0...v1.11.0) (2026-11-22)
+
+### ✨ New Features
+
+* **reddit:** add full-screen reply option ([#48](https://github.com/bin0culars/bin0culars-patches/issues/48)) ([68931d1](https://github.com/bin0culars/bin0culars-patches/commit/68931d13902bfa940913c26fec6523cc650c5f34))
+* **reddit:** add swipe up for comments option ([#49](https://github.com/bin0culars/bin0culars-patches/issues/49)) ([4bdde78](https://github.com/bin0culars/bin0culars-patches/commit/4bdde7806cb92a57abd954e06d80e8f9eaf311c6))
+* **reddit:** add swipeable home feed tabs ([#45](https://github.com/bin0culars/bin0culars-patches/issues/45)) ([02eb48d](https://github.com/bin0culars/bin0culars-patches/commit/02eb48d34a137fe18f356c9441902285dcdc5d44))
+* **reddit:** ask to restart when leaving bin0culars mods after a change ([#50](https://github.com/bin0culars/bin0culars-patches/issues/50)) ([fb9ff59](https://github.com/bin0culars/bin0culars-patches/commit/fb9ff59cf362a6821bc4ea5da9d146e57b0555df))
+* **reddit:** collapse or hide AutoModerator comments ([#43](https://github.com/bin0culars/bin0culars-patches/issues/43)) ([384fce1](https://github.com/bin0culars/bin0culars-patches/commit/384fce1ef073b59308f7e801c164b24e2a1b3cfc))
+* **reddit:** keep Hide in the post menu ([#47](https://github.com/bin0culars/bin0culars-patches/issues/47)) ([81c2318](https://github.com/bin0culars/bin0culars-patches/commit/81c231842a0530847e6546de99db76e9fe003cf7))
+
+### 🐛 Bug Fixes
+
+* **reddit:** make home feed tabs swipeable ([#46](https://github.com/bin0culars/bin0culars-patches/issues/46)) ([b733e43](https://github.com/bin0culars/bin0culars-patches/commit/b733e43b1764dd71a3752ca416ba96fa4ff82667))
+
+## [1.11.0-dev.7](https://github.com/bin0culars/bin0culars-patches/compare/v1.11.0-dev.6...v1.11.0-dev.7) (2026-11-22)
+
+### ✨ New Features
+
+* **reddit:** ask to restart when leaving bin0culars mods after a change ([#50](https://github.com/bin0culars/bin0culars-patches/issues/50)) ([fb9ff59](https://github.com/bin0culars/bin0culars-patches/commit/fb9ff59cf362a6821bc4ea5da9d146e57b0555df))
+
+## [1.11.0-dev.6](https://github.com/bin0culars/bin0culars-patches/compare/v1.11.0-dev.5...v1.11.0-dev.6) (2026-11-22)
+
+### ✨ New Features
+
+* **reddit:** add swipe up for comments option ([#49](https://github.com/bin0culars/bin0culars-patches/issues/49)) ([4bdde78](https://github.com/bin0culars/bin0culars-patches/commit/4bdde7806cb92a57abd954e06d80e8f9eaf311c6))
+
+## [1.11.0-dev.6](https://github.com/bin0culars/bin0culars-patches/compare/v1.11.0-dev.5...v1.11.0-dev.6) (2026-11-22)
+
+### ✨ New Features
+
+* **reddit:** add swipe up for comments option ([#49](https://github.com/bin0culars/bin0culars-patches/issues/49)) ([4bdde78](https://github.com/bin0culars/bin0culars-patches/commit/4bdde7806cb92a57abd954e06d80e8f9eaf311c6))
+
+## [1.11.0-dev.5](https://github.com/bin0culars/bin0culars-patches/compare/v1.11.0-dev.4...v1.11.0-dev.5) (2026-11-22)
+
+### ✨ New Features
+
+* **reddit:** add full-screen reply option ([#48](https://github.com/bin0culars/bin0culars-patches/issues/48)) ([68931d1](https://github.com/bin0culars/bin0culars-patches/commit/68931d13902bfa940913c26fec6523cc650c5f34))
+
+## [1.11.0-dev.4](https://github.com/bin0culars/bin0culars-patches/compare/v1.11.0-dev.3...v1.11.0-dev.4) (2026-11-22)
+
+### ✨ New Features
+
+* **reddit:** keep Hide in the post menu ([#47](https://github.com/bin0culars/bin0culars-patches/issues/47)) ([81c2318](https://github.com/bin0culars/bin0culars-patches/commit/81c231842a0530847e6546de99db76e9fe003cf7))
+
+## [1.11.0-dev.3](https://github.com/bin0culars/bin0culars-patches/compare/v1.11.0-dev.2...v1.11.0-dev.3) (2026-11-22)
+
+### 🐛 Bug Fixes
+
+* **reddit:** make home feed tabs swipeable ([#46](https://github.com/bin0culars/bin0culars-patches/issues/46)) ([b733e43](https://github.com/bin0culars/bin0culars-patches/commit/b733e43b1764dd71a3752ca416ba96fa4ff82667))
+
+## [1.11.0-dev.2](https://github.com/bin0culars/bin0culars-patches/compare/v1.11.0-dev.1...v1.11.0-dev.2) (2026-11-22)
+
+### ✨ New Features
+
+* **reddit:** add swipeable home feed tabs ([#45](https://github.com/bin0culars/bin0culars-patches/issues/45)) ([02eb48d](https://github.com/bin0culars/bin0culars-patches/commit/02eb48d34a137fe18f356c9441902285dcdc5d44))
+
+## [1.11.0-dev.1](https://github.com/bin0culars/bin0culars-patches/compare/v1.10.0...v1.11.0-dev.1) (2026-11-22)
+
+### ✨ New Features
+
+* **reddit:** collapse or hide AutoModerator comments ([#43](https://github.com/bin0culars/bin0culars-patches/issues/43)) ([384fce1](https://github.com/bin0culars/bin0culars-patches/commit/384fce1ef073b59308f7e801c164b24e2a1b3cfc))
+
 ## [1.10.0](https://github.com/bin0culars/bin0culars-patches/compare/v1.9.0...v1.10.0) (2026-11-21)
 
 ### ✨ New Features

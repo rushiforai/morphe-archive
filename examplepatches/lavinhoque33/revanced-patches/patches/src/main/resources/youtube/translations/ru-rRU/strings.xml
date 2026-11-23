@@ -293,8 +293,10 @@
     <string name="morphe_playback_in_feeds_entry_off">Выкл</string>
     <string name="morphe_playback_in_feeds_entry_wifi_only">Только по Wi-Fi</string>
     <string name="morphe_playback_in_feeds_title">Воспроизведение в ленте</string>
-    <string name="morphe_player_control_buttons_background_opacity_summary">Регулирует непрозрачность фона за кнопками управления плеером и временной шкалой (0 — невидимый, 100 — непрозрачный)</string>
-    <string name="morphe_player_control_buttons_background_opacity_title">Прозрачность фона кнопок управления</string>
+    <string name="morphe_player_transport_background_opacity_summary">Настройте непрозрачность фона кнопок воспроизведения, паузы, повтора, перехода к следующему и предыдущему видео</string>
+    <string name="morphe_player_transport_background_opacity_title">Непрозрачность фона кнопок воспроизведения</string>
+    <string name="morphe_player_other_overlay_background_opacity_summary">Настройте непрозрачность фона остальных кнопок проигрывателя и индикатора времени</string>
+    <string name="morphe_player_other_overlay_background_opacity_title">Непрозрачность фона других элементов оверлея</string>
     <string name="morphe_playlist_hide_removal_snackbar_summary">Подтверждение не будет отображаться после удаления видео из плейлиста</string>
     <string name="morphe_playlist_hide_removal_snackbar_title">Скрыть уведомление об удалении из плейлиста</string>
     <string name="morphe_playlist_long_press_drag_summary">Нажмите и удерживайте видео в вашем плейлисте, чтобы переместить его на новую позицию</string>

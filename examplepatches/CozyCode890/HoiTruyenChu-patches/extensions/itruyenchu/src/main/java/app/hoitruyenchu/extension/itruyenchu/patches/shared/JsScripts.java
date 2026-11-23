@@ -12,6 +12,10 @@ import java.nio.charset.StandardCharsets;
 /**
  * Evaluates a plain-JS script in the app's Hermes runtime, right after the app bundle
  * (called at the end of ReactInstance.loadJSBundle, the app's Hermes compiles plain JS).
+ * <p>
+ * Every script is preceded by the current settings: {@code globalThis.__htcS} (see
+ * {@link HtcSettings#toJson()}), kept up to date by the settings script, and
+ * {@code globalThis.__htcSL}, the functions called after a change.
  */
 public final class JsScripts {
     private JsScripts() {
@@ -26,8 +30,9 @@ public final class JsScripts {
             contextField.setAccessible(true);
             Object reactContext = contextField.get(reactInstance);
             Context context = (Context) reactContext;
+            JsBridge.setContext(reactContext);
             File file = new File(context.getFilesDir(), fileName);
-            byte[] bytes = script.getBytes(StandardCharsets.UTF_8);
+            byte[] bytes = (prelude() + script).getBytes(StandardCharsets.UTF_8);
             try (FileOutputStream out = new FileOutputStream(file)) {
                 out.write(bytes);
             }
@@ -41,5 +46,18 @@ public final class JsScripts {
             Log.e(tag, "could not load " + fileName, t);
             return null;
         }
+    }
+
+    private static String prelude() {
+        String settings;
+        try {
+            settings = HtcSettings.toJson().toString();
+        } catch (Throwable t) {
+            settings = "{}";
+        }
+        // A JSON object is a valid JS expression; U+2028 / U+2029 are escaped by JSONObject.
+        return "(function (g) { try { if (!g.__htcS) g.__htcS = " + settings + ";"
+                + " if (!g.__htcSL) g.__htcSL = []; } catch (e) {} })"
+                + "(typeof globalThis !== 'undefined' ? globalThis : this);\n";
     }
 }

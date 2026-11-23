@@ -13,6 +13,9 @@ import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patches.tiktok.misc.settings.configurableBytecodePatch as bytecodePatch
 import app.morphe.patches.shared.compat.AppCompatibilities
+import app.morphe.patcher.patch.classDefByOrNull
+import app.morphe.patches.tiktok.interaction.downloads.CollectionGridHolderBindFingerprint
+import app.morphe.patches.tiktok.interaction.engagement.ProfileGridHolderBindFingerprint
 import app.morphe.patches.tiktok.interaction.engagement.profileGridCountPatch
 import app.morphe.patches.tiktok.misc.extension.sharedExtensionPatch
 import app.morphe.patches.tiktok.misc.settings.SettingsStatusLoadFingerprint
@@ -81,6 +84,15 @@ val alwaysShowPublishDatePatch = bytecodePatch(
             showPostTimeForMainFeeds()
         }
         hookGridSortOn(packageMetadata.versionName)
+        // Round the corners on profile grids (#487): each cell's root view as its holder binds.
+        ProfileGridHolderBindFingerprint.method.hookGridCorners(ProfileGridHolderBindFingerprint.originalMethod) {
+            classDefByOrNull(it)?.superclass
+        }
+        // A Favorites collection folder's posts, which have a holder of their own. Advanced
+        // downloads may have hooked this bind already, so the hook reads it as it is now.
+        CollectionGridHolderBindFingerprint.method.hookCollectionGridCorners {
+            classDefByOrNull(it)?.superclass
+        }
     }
 }
 

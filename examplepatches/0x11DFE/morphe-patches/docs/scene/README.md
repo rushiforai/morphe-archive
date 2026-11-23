@@ -74,39 +74,35 @@ gate provably stays open. Unknown or non-root setups are untouched.
 
 Logs one line per daemon instance to `files/gp.log` next to the daemon.
 
-### Runtime self-verification of the gate offsets
+### Signature-derived gate location (PR5 and later)
 
-The IV-relative offsets (MASTER = IV-720, RESTRICT = IV+319578) are a
-property of each daemon build's Go data layout, not of the app. N1 2026.11
-PreRelease 5 ships a rewritten daemon (the IV anchor moved from image
-offset `0x69c230` to `0x6ae7d0`), and on it the old offsets are stale: with
-the poker dead through a full app reconnect + validator cycle, dashboard
-stats kept updating and a writable-memory diff showed no daemon writes at
-the deltas - that build simply has no monitor gate. Conversely, nothing but
-the daemon ever closes the gate on builds that have one.
+The IV-relative deltas were a property of each daemon build's data layout and
+broke on the PR5 rewrite (the restriction also moved to daemon startup
+instead of a periodic validator - there is no post-init flag write for an
+observer to catch). The poker no longer uses any hardcoded offsets: on every
+daemon start it scans the sealed r-xs unpacked image (readable via
+/proc/pid/mem) for the gate check's instruction shape - the dispatcher's
+`MASTER ? allow : (RESTRICT ? perm_map[op] : allow)` compiles to two
+ADRP+LDRB flag loads around TBZ/TBNZ branches with two identical ORR #1
+arms - decodes the ADRP+LDRB targets into both flag addresses, validates 15
+semantic constraints plus flag-plausible values and writable-mapping
+membership, then sets MASTER=1 (which overrides every gate tier, including
+the PR5 startup-time restriction). A 10s loop re-asserts it for as long as
+the daemon lives. A rebuild that reshapes the gate fails the signature and
+the poker writes nothing (fail-safe).
 
-The poker therefore proves the offsets per daemon instance before it ever
-writes: until one of the two candidate bytes is OBSERVED changing (the
-validator engaging RESTRICT ~40s after an app connect, or the 63s one-shot
-clearing MASTER), it only reads (2s cadence for ~10 minutes, then 10s).
-The first daemon-initiated change arms it (`/dev/.mp_gate_evid`, keyed by
-daemon pid); from then on it pokes and holds as before. Daemons younger
-than ~30s only refresh the observation baseline: a fresh daemon
-initializes its Go globals during its first seconds, and those startup
-writes are init noise, not gate evidence (observed as a false arm ~10s
-after daemon spawn on a PR5 reboot before this grace existed). The
-earliest legitimate validator write is an app connect plus its 40s delay,
-so the grace cannot mask a real gate event; it also covers a daemon
-restarting under a live observation loop. Gate-less builds
-like PR5's daemon are never touched at all. An earlier revision
-(v1.12.7) used a hardcoded daemon-md5 blacklist instead; it was replaced
-by this runtime check because a static list cannot cover future builds.
+Verified on device against the PR5 daemon (frozen stats -> live within one
+poll cycle after the poke; a manual MASTER clear is re-held within 10s; the
+sparse anchor matches exactly one site in the 6MB image). The same signature
+matches the PR2-era gate.
 
-If a future build re-freezes the stats WHILE the poker is running and
-never arms, the daemon closed a gate elsewhere: re-derive the offsets
-(snapshot the small rw regions, force a reconnect, snapshot again, diff
-for 00->01 / 01->00 flips near the IV anchor) and update the deltas in
-`DaemonGateBypassPatch.kt`.
+Reference RE (PR5 daemon, build 2026.11.21 16:39): request router
+sub_2C906C, gate+dispatch sub_2C7920 (gate check at +0x2C7950), startup
+restrictor sub_2E3F50 (probes /data/scene-permission-test with magic
+0x544F4F52, /data/local/tmp dev-deploy check, config owner checks; one-way
+per boot), license-conditional MASTER writer sub_2C60B0 (MASTER=1 only if
+the daemon-side license record starts with "success"), deactivate setter
+sub_2BF8A8, per-op handler registry at 0x6206A0, permission map at 0x620420.
 
 ## Technical reference: what the unlock replicates
 

@@ -293,8 +293,10 @@
     <string name="morphe_playback_in_feeds_entry_off">متوقف</string>
     <string name="morphe_playback_in_feeds_entry_wifi_only">فقط Wi-Fi</string>
     <string name="morphe_playback_in_feeds_title">التشغيل في الخلاصات</string>
-    <string name="morphe_player_control_buttons_background_opacity_summary">ضبط شفافية الخلفية خلف أزرار تحكم المشغل وشريط الوقت (0 غير مرئية، 100 معتمة)</string>
-    <string name="morphe_player_control_buttons_background_opacity_title">شفافية خلفية أزرار التحكم</string>
+    <string name="morphe_player_transport_background_opacity_summary">اضبط عتامة خلفيات أزرار التشغيل والإيقاف المؤقت والإعادة والتالي والسابق</string>
+    <string name="morphe_player_transport_background_opacity_title">عتامة خلفية أزرار التشغيل</string>
+    <string name="morphe_player_other_overlay_background_opacity_summary">اضبط عتامة خلفيات بقية أزرار المشغّل ومؤشر الوقت</string>
+    <string name="morphe_player_other_overlay_background_opacity_title">عتامة بقية خلفيات واجهة المشغّل</string>
     <string name="morphe_playlist_hide_removal_snackbar_summary">لا يظهر التأكيد بعد إزالة فيديو من قائمة التشغيل</string>
     <string name="morphe_playlist_hide_removal_snackbar_title">إخفاء شريط تنبيه إزالة قائمة التشغيل</string>
     <string name="morphe_playlist_long_press_drag_summary">المس واستمر في الضغط على فيديو من قائمة التشغيل الخاصة بك لسحبه إلى موضع جديد</string>

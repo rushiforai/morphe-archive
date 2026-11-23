@@ -1,4 +1,4 @@
-# Orca custom font
+# Orca font and bot pictures
 
 Morphe patch for the Android package `dev.orca.app`. Supported versions are listed in
 `patches/src/main/kotlin/app/template/patches/orca/Compatibility.kt`; adapter identities are in
@@ -27,6 +27,9 @@ Morphe patch for the Android package `dev.orca.app`. Supported versions are list
   SHA-256 of the official bundle for that exact version, replaces it with the adapter and verifies
   the adapter's own checksum. Expo updates stay disabled in the manifest, so a downloaded bundle
   cannot outlive the patch.
+- Home draws each bot's uploaded picture instead of the first letter of its name, in the Feed tab's
+  Bots section and the Bots tab. Those rows read the upload's bytes through `bots.avatar.read`, once
+  per upload, and keep the read for the launch, as a bot's own screen already did.
 - The web shell — home, bot and worktree chats, review and files — fetches every resource through one
   WebView client. The patch serves the selected face from the shell's own origin under
   `/__morphe-font/` (allowed by its `font-src 'self'`) and writes a stylesheet link into the shell
@@ -75,7 +78,7 @@ The runtime in `orca/runtime/` is plain Java compiled against `android.jar` and 
 ```sh
 ./gradlew -I scripts/compat/compat.init.gradle :patches:compatSmoke -x :patches:test \
   -Dcompat.apk=<orca app-release.apk> -Dcompat.out=build/orca-smoke \
-  -Dcompat.sdk=$ANDROID_HOME -Dcompat.patches='Orca custom font'
+  -Dcompat.sdk=$ANDROID_HOME -Dcompat.patches='Orca font and bot pictures'
 ```
 
 The patch loads the adapter for the APK's own `versionName`; a version without an adapter, or an

@@ -7,13 +7,31 @@ import android.widget.*;
 import java.io.*;
 import java.lang.reflect.*;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import org.json.*;
 
 /** Opt-in partition around native HTTP's cookie interceptor. The original jar remains untouched. */
 public final class BoardCookies {
     static final String KEY="boardCookiesEnabled";
+    private static final java.util.concurrent.ExecutorService AUTH_IO=java.util.concurrent.Executors.newSingleThreadExecutor(r->{Thread t=new Thread(r,"Haiagaru-cookie-check");t.setDaemon(true);return t;});
     private static volatile Context context;
     private static volatile long generation;
+    private static final ConcurrentHashMap<String,Long> BOARD_REVISIONS=new ConcurrentHashMap<>();
+    private static final Object[] BOARD_LOCKS=new Object[32];
+    static{for(int i=0;i<BOARD_LOCKS.length;i++)BOARD_LOCKS[i]=new Object();}
+    private static final ConcurrentHashMap<String,CachedJar> CACHED_JARS=new ConcurrentHashMap<>();
+    private static final int MAX_CACHED_JARS=24;
+    private static final class CachedCookie {
+        final Object cookie;final String wire;final long expires;
+        CachedCookie(Object cookie,String wire,long expires){this.cookie=cookie;this.wire=wire;this.expires=expires;}
+    }
+    private static final class CachedJar {
+        final long epoch,revision;final List<String> wire;final List<CachedCookie> cookies;
+        CachedJar(long epoch,long revision,List<String> wire,List<CachedCookie> cookies){
+            this.epoch=epoch;this.revision=revision;this.wire=Collections.unmodifiableList(wire);
+            this.cookies=Collections.unmodifiableList(cookies);
+        }
+    }
     private static final ThreadLocal<Scope> CURRENT=new ThreadLocal<>();
     private static final Map<MenuItem,String> MENUS=Collections.synchronizedMap(new WeakHashMap<>());
     private static final Map<MenuItem,java.lang.ref.WeakReference<Activity>> OWNERS=Collections.synchronizedMap(new WeakHashMap<>());
@@ -21,9 +39,28 @@ public final class BoardCookies {
     private static String authBoard;
     private static long authRevision,authGeneration;
     private static java.lang.ref.WeakReference<Activity> authOwner=new java.lang.ref.WeakReference<>(null);
-    private static final class Scope{final String board;final long revision;final long epoch;Scope(String board){this.board=board;epoch=generation;revision=prefs().getLong("revision:"+board,0);}}
+    private static final class Scope{final String board;final long revision;final long epoch;Scope(String board){this.board=board;epoch=generation;revision=revision(board);}}
+    private static Object boardLock(String board){return BOARD_LOCKS[(board.hashCode()&0x7fffffff)%BOARD_LOCKS.length];}
+    private static long revision(String board){
+        if(!optimizedReads())return prefs().getLong("revision:"+board,0);
+        Long known=BOARD_REVISIONS.get(board);if(known!=null)return known;
+        long loaded=prefs().getLong("revision:"+board,0);Long previous=BOARD_REVISIONS.putIfAbsent(board,loaded);return previous==null?loaded:previous;
+    }
+    private static void rememberRevision(String board,long value){
+        if(!optimizedReads()){BOARD_REVISIONS.remove(board);return;}
+        BOARD_REVISIONS.put(board,value);
+        if(BOARD_REVISIONS.size()>MAX_CACHED_JARS)for(String key:BOARD_REVISIONS.keySet())
+            if(!key.equals(board)&&BOARD_REVISIONS.size()>MAX_CACHED_JARS)BOARD_REVISIONS.remove(key);
+    }
+    private static void invalidate(String board){CACHED_JARS.remove(board);}
+    private static boolean optimizedReads(){Context c=context;return c!=null&&SettingsProfiles.prefs(c).getBoolean(ExpertSettings.BOARD_COOKIES,true);}
+    private static boolean optimizedAuthUi(){Context c=context;return c!=null&&SettingsProfiles.prefs(c).getBoolean(ExpertSettings.COOKIE_AUTH_UI,true);}
     private BoardCookies(){}
-    static void initialize(Context c){context=c.getApplicationContext();}
+    static void initialize(Context c){
+        context=c.getApplicationContext();
+        // Reinitialization follows the same boundary as preference/profile restoration.
+        CACHED_JARS.clear();BOARD_REVISIONS.clear();
+    }
     public static boolean enabled(){Context c=context;return c!=null&&SettingsProfiles.prefs(c).getBoolean(KEY,false);}
     static boolean active(){return enabled()&&CURRENT.get()!=null;}
     private static SharedPreferences prefs(){return context.getSharedPreferences("haiagaru.board-cookies",0);}
@@ -47,8 +84,11 @@ public final class BoardCookies {
     public static List<?> load(List<?> original,Object url){
         Scope scope=CURRENT.get();return enabled()&&scope!=null?loadBoard(scope.board,original,url):original;
     }
-    static synchronized List<?> loadBoard(String raw,List<?> original,Object url){
+    static List<?> loadBoard(String raw,List<?> original,Object url){
         String board=BoardCookiePolicy.board(raw,null);if(!enabled()||board==null)return original;
+        return optimizedReads()?loadCached(board,original,url):loadUncached(board,original,url);
+    }
+    private static synchronized List<?> loadUncached(String board,List<?> original,Object url){
         String key="jar:"+board;
         try{
             if(!prefs().contains(key))store(board,Collections.emptyList(),false);
@@ -57,6 +97,31 @@ public final class BoardCookies {
                 if(cookie!=null&&expires(cookie)>now&&matches(cookie,url))result.add(cookie);}
             return result;
         }catch(Exception error){throw new IllegalStateException("Board cookie storage unavailable",error);}
+    }
+    private static List<?> loadCached(String board,List<?> original,Object url){
+        synchronized(boardLock(board)){
+            long epoch=generation,rev=revision(board);CachedJar jar=CACHED_JARS.get(board);
+            if(jar==null||jar.epoch!=epoch||jar.revision!=rev){
+                String key="jar:"+board;
+                try{
+                    if(!prefs().contains(key))store(board,Collections.emptyList(),false);
+                    JSONArray saved=new JSONArray(prefs().getString(key,"[]"));ArrayList<String> wire=new ArrayList<>();
+                    ArrayList<CachedCookie> cookies=new ArrayList<>();
+                    for(int i=0;i<saved.length();i++){
+                        String value=saved.getString(i);wire.add(value);Object cookie=ExternalBoardAuth.parseCookie(url,value);
+                        if(cookie!=null)cookies.add(new CachedCookie(cookie,value,expires(cookie)));
+                    }
+                    jar=new CachedJar(epoch,rev,wire,cookies);CACHED_JARS.put(board,jar);trimCache(board);
+                }catch(Exception error){throw new IllegalStateException("Board cookie storage unavailable",error);}
+            }
+            long now=System.currentTimeMillis();ArrayList<Object> result=new ArrayList<>();
+            for(CachedCookie cookie:jar.cookies)if(cookie.expires>now&&BoardCookiePolicy.matches(cookie.wire,url.toString()))result.add(cookie.cookie);
+            return result;
+        }
+    }
+    private static void trimCache(String keep){
+        if(CACHED_JARS.size()<=MAX_CACHED_JARS)return;
+        for(String key:CACHED_JARS.keySet())if(!key.equals(keep)&&CACHED_JARS.size()>MAX_CACHED_JARS){CACHED_JARS.remove(key);BOARD_REVISIONS.remove(key);}
     }
     static List<?> authCookies(String board,List<?> original,Object url){return enabled()?loadBoard(board,original,url):original;}
     static synchronized int importShared(String address){
@@ -71,37 +136,57 @@ public final class BoardCookies {
             List<?> shared=(List<?>)read.invoke(jar,url);
             ArrayList<Object> selected=new ArrayList<>();long now=System.currentTimeMillis();
             for(Object cookie:shared)if(expires(cookie)>now&&matches(cookie,url))selected.add(cookie);
-            store(board,selected,false);
-            String key="revision:"+board;
-            if(!prefs().edit().putLong(key,prefs().getLong(key,0)+1).commit())throw new IOException("Cookie割り当てを保存できません");
+            synchronized(boardLock(board)){
+                store(board,selected,false);
+                String key="revision:"+board;long next=revision(board)+1;
+                if(!prefs().edit().putLong(key,next).commit())throw new IOException("Cookie割り当てを保存できません");
+                rememberRevision(board,next);invalidate(board);
+            }
             return selected.size();
         }catch(InvocationTargetException error){throw new IllegalStateException("共通Cookieを読み込めません",error.getCause());}
         catch(Exception error){throw new IllegalStateException("共通Cookieを読み込めません",error);}
     }
-    public static synchronized boolean save(Object url,List<?> cookies){
-        Scope scope=CURRENT.get();if(!enabled()||scope==null)return false;
-        if(scope.epoch!=generation||prefs().getLong("revision:"+scope.board,0)!=scope.revision)return true;
+    public static boolean save(Object url,List<?> cookies){
+        if(!optimizedReads())synchronized(BoardCookies.class){return saveScoped(CURRENT.get(),url,cookies);}
+        Scope scope=CURRENT.get();if(scope==null)return false;
+        synchronized(boardLock(scope.board)){return saveScoped(scope,url,cookies);}
+    }
+    private static boolean saveScoped(Scope scope,Object url,List<?> cookies){
+        if(!enabled()||scope==null)return false;
+        if(scope.epoch!=generation||revision(scope.board)!=scope.revision)return true;
         if(!BoardCookiePolicy.sameServer(scope.board,url.toString()))return true;
         store(scope.board,cookies,true);return true;
     }
     private static void store(String board,List<?> cookies,boolean merge){
-        try{
-            LinkedHashMap<String,String> values=new LinkedHashMap<>();
-            if(merge){JSONArray old=new JSONArray(prefs().getString("jar:"+board,"[]"));for(int i=0;i<old.length();i++)values.put(BoardCookiePolicy.cookieKey(old.getString(i)),old.getString(i));}
-            long now=System.currentTimeMillis();
-            for(Object cookie:cookies){String value=cookie.toString(),key=BoardCookiePolicy.cookieKey(value);
-                if(expires(cookie)<=now)values.remove(key);else values.put(key,value);}
-            JSONArray result=new JSONArray();for(String value:values.values())result.put(value);
-            if(!prefs().edit().putString("jar:"+board,result.toString()).commit())throw new IOException("Cookie save failed");
-        }catch(Exception error){throw new IllegalStateException("Board cookie save failed",error);}
+        synchronized(boardLock(board)){
+            try{
+                LinkedHashMap<String,String> values=new LinkedHashMap<>();
+                if(merge){
+                    CachedJar cached=CACHED_JARS.get(board);
+                    if(optimizedReads()&&cached!=null&&cached.epoch==generation&&cached.revision==revision(board))
+                        for(String value:cached.wire)values.put(BoardCookiePolicy.cookieKey(value),value);
+                    else{JSONArray old=new JSONArray(prefs().getString("jar:"+board,"[]"));for(int i=0;i<old.length();i++)values.put(BoardCookiePolicy.cookieKey(old.getString(i)),old.getString(i));}
+                }
+                long now=System.currentTimeMillis();
+                for(Object cookie:cookies){String value=cookie.toString(),key=BoardCookiePolicy.cookieKey(value);
+                    if(expires(cookie)<=now)values.remove(key);else values.put(key,value);}
+                JSONArray result=new JSONArray();for(String value:values.values())result.put(value);
+                if(!prefs().edit().putString("jar:"+board,result.toString()).commit())throw new IOException("Cookie save failed");
+                invalidate(board);
+            }catch(Exception error){throw new IllegalStateException("Board cookie save failed",error);}
+        }
     }
     // Backup restoration must invalidate requests/auth windows started before it.
-    static synchronized void restored(){generation++;authBoard=null;}
+    static synchronized void restored(){generation++;authBoard=null;CACHED_JARS.clear();BOARD_REVISIONS.clear();}
     static synchronized void clear(String raw){
         String board=BoardCookiePolicy.board(raw,null);if(board==null)throw new IllegalArgumentException("Invalid board");
-        // Keep a tombstone: a cleared board must not inherit the shared jar again.
-        if(!prefs().edit().putString("jar:"+board,"[]").putLong("revision:"+board,prefs().getLong("revision:"+board,0)+1).commit())
-            throw new IllegalStateException("Cookie delete failed");
+        synchronized(boardLock(board)){
+            // Keep a tombstone: a cleared board must not inherit the shared jar again.
+            long next=revision(board)+1;
+            if(!prefs().edit().putString("jar:"+board,"[]").putLong("revision:"+board,next).commit())
+                throw new IllegalStateException("Cookie delete failed");
+            rememberRevision(board,next);invalidate(board);
+        }
     }
     static synchronized boolean beginAuth(Activity activity){
         if(!enabled())return true;Activity previous=authOwner.get();
@@ -111,23 +196,47 @@ public final class BoardCookies {
     static synchronized void endAuth(Activity activity){if(authOwner.get()==activity){authOwner.clear();authBoard=null;}}
     static void prepareBrowser(Activity activity,String board,String address,Runnable ready){
         if(!enabled()){ready.run();return;}
-        synchronized(BoardCookies.class){authBoard=BoardCookiePolicy.board(board,null);authRevision=prefs().getLong("revision:"+authBoard,0);authGeneration=generation;}
-        // WebView's cookie store is shared. Only one auth window may hold this lease;
-        // native cookies in other board partitions never read back from that store.
+        synchronized(BoardCookies.class){authBoard=BoardCookiePolicy.board(board,null);authRevision=authBoard==null?0:revision(authBoard);authGeneration=generation;}
+        if(optimizedAuthUi()){
+            AUTH_IO.execute(()->{
+                final ArrayList<String[]> removals;
+                try{removals=browserRemovals(board,address);}
+                catch(RuntimeException error){activity.runOnUiThread(()->authPreparationFailed(activity,error));return;}
+                activity.runOnUiThread(()->{
+                    if(activity.isFinishing()||activity.isDestroyed())return;
+                    synchronized(BoardCookies.class){
+                        if(authGeneration!=generation||!Objects.equals(authBoard,BoardCookiePolicy.board(board,null))
+                                ||authBoard==null||revision(authBoard)!=authRevision){
+                            authPreparationFailed(activity,new IllegalStateException("Cookie state changed during preparation"));return;
+                        }
+                    }
+                    removeBrowser(removals,0,ready);
+                });
+            });
+            return;
+        }
+        removeBrowser(browserRemovals(board,address),0,ready);
+    }
+    private static ArrayList<String[]> browserRemovals(String board,String address){
         ArrayList<String[]> removals=new ArrayList<>();
-        try{
-            java.net.URI uri=java.net.URI.create(board);String host=uri.getHost();
-            LinkedHashSet<String> names=new LinkedHashSet<>();
-            for(String url:new String[]{board,address}){
-                String header=android.webkit.CookieManager.getInstance().getCookie(url);
-                if(header!=null)for(String pair:header.split(";"))names.add(pair.trim().split("=",2)[0]);
-            }
-            ArrayList<String> domains=new ArrayList<>();domains.add(null);String domain=host;
-            while(domain.contains(".")){domains.add(domain);domain=domain.substring(domain.indexOf('.')+1);}
-            for(String name:names)for(String target:domains)for(String path:new String[]{"/",uri.getPath(),"/test","/test/"})
-                removals.add(new String[]{board,name+"=; Max-Age=0; Path="+path+(target==null?"":"; Domain="+target)});
-        }catch(RuntimeException error){throw new IllegalStateException("Board authentication cookie reset failed",error);}
-        removeBrowser(removals,0,ready);
+        java.net.URI uri=java.net.URI.create(board);String host=uri.getHost();
+        LinkedHashSet<String> names=new LinkedHashSet<>();
+        for(String url:new String[]{board,address}){
+            String header=android.webkit.CookieManager.getInstance().getCookie(url);
+            if(header!=null)for(String pair:header.split(";"))names.add(pair.trim().split("=",2)[0]);
+        }
+        ArrayList<String> domains=new ArrayList<>();domains.add(null);String domain=host;
+        while(domain.contains(".")){domains.add(domain);domain=domain.substring(domain.indexOf('.')+1);}
+        for(String name:names)for(String target:domains)for(String path:new String[]{"/",uri.getPath(),"/test","/test/"})
+            removals.add(new String[]{board,name+"=; Max-Age=0; Path="+path+(target==null?"":"; Domain="+target)});
+        return removals;
+    }
+    private static void authPreparationFailed(Activity activity,RuntimeException error){
+        android.util.Log.w("HaiagaruBoardCookies","Authentication cookie preparation failed",error);
+        if(activity.isFinishing()||activity.isDestroyed())return;
+        new HaiagaruDialog.Builder(activity).setTitle("認証を準備できません")
+                .setMessage("Cookieの確認に失敗しました。前の画面に戻ってから再試行してください。")
+                .setPositiveButton("閉じる",(dialog,which)->activity.finish()).show();
     }
     private static void removeBrowser(List<String[]> removals,int index,Runnable ready){
         if(index>=removals.size()){ready.run();return;}
@@ -141,7 +250,7 @@ public final class BoardCookies {
         for(String pair:header.split(";")){Object cookie=ExternalBoardAuth.parseCookie(url,pair.trim()+"; Path=/");if(cookie!=null)received.add(cookie);}
         synchronized(BoardCookies.class){
             String canonical=BoardCookiePolicy.board(board,null);
-            if(canonical==null||authGeneration!=generation||!canonical.equals(authBoard)||prefs().getLong("revision:"+canonical,0)!=authRevision)return;
+            if(canonical==null||authGeneration!=generation||!canonical.equals(authBoard)||revision(canonical)!=authRevision)return;
             store(canonical,received,true);
         }
     }

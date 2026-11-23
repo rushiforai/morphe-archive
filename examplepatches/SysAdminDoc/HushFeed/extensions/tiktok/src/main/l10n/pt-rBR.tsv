@@ -2039,11 +2039,9 @@ Shows a small count under TikTok's top tabs of what the feed filter has removed 
 1 filtered out	1 filtrado
 %1$d filtered out	%1$d filtrados
 Account facts on profiles	Dados da conta nos perfis
-A profile's share sheet gets an Account facts button. It shows what TikTok already sent about the account: when it joined, its region and language, when its username and display name last changed, whether it's private and whether its liked videos are public. Nothing extra is fetched.	O menu de compartilhar de um perfil ganha um botão Dados da conta. Ele mostra o que o TikTok já enviou sobre a conta: quando ela entrou, a região e o idioma, quando o nome de usuário e o nome de exibição mudaram pela última vez, se ela é privada e se os vídeos curtidos são públicos. Nada a mais é baixado.
 Account facts	Dados da conta
 TikTok account facts	Dados da conta do TikTok
 Account facts copied	Dados da conta copiados
-Not sent	Não enviado
 Joined	Entrou em
 Account region	Região da conta
 Language	Idioma
@@ -3036,7 +3034,7 @@ One isn't on TikTok anymore	Um não está mais no TikTok
 The host can see you	O anfitrião pode ver você
 Let the host see you	Deixar o anfitrião ver você
 Couldn't tell which LIVE this is. Open it again.	Não deu para saber qual LIVE é esta. Abra de novo.
-The host can already see you in this LIVE	O anfitrião já pode ver você nesta LIVE
+The host won't see you next time you open it	O anfitrião não vê você na próxima vez que abrir
 Letting the host see you	Deixando o anfitrião ver você
 The host can see you now	Agora o anfitrião pode ver você
 The host sees you next time you open it	O anfitrião vê você na próxima vez que abrir
@@ -3133,3 +3131,59 @@ Always show the expand button in comments	Sempre mostrar o botão de expandir no
 Puts the button that stretches the comments over the whole screen on every video. TikTok only gives it to some accounts. Hide the expand button in comments wins if both are on.	Coloca o botão que estica os comentários pela tela inteira em todos os vídeos. O TikTok só dá esse botão para algumas contas. Se os dois estiverem ativados, vale Esconder o botão de expandir nos comentários.
 Keep the video full size under comments	Manter o vídeo em tamanho cheio sob os comentários
 The video keeps its size when you open the comments, and the comments cover its lower part instead of pushing it up into a smaller box.	O vídeo mantém o tamanho quando você abre os comentários, e os comentários cobrem a parte de baixo dele em vez de empurrá-lo para cima numa caixa menor.
+# context: Always show publish date grid switch; rounds each profile grid cell's corners
+Round the corners on profile grids	Arredondar os cantos na grade do perfil
+Gives each video on profile grids rounded corners, on your own profile and on Liked and Favorites too.	Arredonda os cantos de cada vídeo na grade do perfil, no seu próprio perfil e também em Curtidos e Favoritos.
+# context: Account facts sheet on a profile's share sheet: the gifter level (pay_grade) and SecUID lines, the value shown for a detail TikTok left out, and the switch summary
+Gifter level	Nível de doador
+SecUID	SecUID
+Unknown (TikTok didn't send it)	Desconhecido (o TikTok não enviou)
+A profile's share sheet gets an Account facts button. It shows what TikTok already sent about the account: when it joined, its region and language, its gifter level and SecUID, when its username and display name last changed, whether it's private and whether its liked videos are public. Nothing extra is fetched.	O menu de compartilhar de um perfil ganha um botão Dados da conta. Ele mostra o que o TikTok já enviou sobre a conta: quando ela entrou, a região e o idioma, o nível de doador e o SecUID, quando o nome de usuário e o nome de exibição mudaram pela última vez, se ela é privada e se os vídeos curtidos são públicos. Nada a mais é baixado.
+# context: LIVE controls: a small line in a LIVE room with the room ID and the viewer's own connection (ping, latency, download speed) from TikTok's player; a tap copies the room ID
+Show the room ID and your connection	Mostrar o ID da sala e sua conexão
+Adds a small line to LIVE rooms with the room's ID and how your own connection to the stream is doing, as TikTok's player measures it: ping, latency and download speed. Tap the line to copy the room ID.	Adiciona uma linha pequena às salas LIVE com o ID da sala e como está a sua própria conexão com a transmissão, como o player do TikTok mede: ping, latência e velocidade de download. Toque na linha para copiar o ID da sala.
+Room ID %1$s	ID da sala %1$s
+Ping %1$s ms	Ping %1$s ms
+Latency %1$s s	Latência %1$s s
+Room ID copied	ID da sala copiado
+LIVE room ID	ID da sala LIVE
+Hide playable games	Esconder os jogos jogáveis
+Hide the mini games you can play right in the For You feed.	Esconder os minijogos que você pode jogar direto no feed Para você.
+Playable games	Jogos jogáveis
+Hide the pause icon	Esconder o ícone de pausa
+A tap still pauses and plays the video, but the big play icon doesn't show over it.	Um toque ainda pausa e reproduz o vídeo, mas o ícone grande de reproduzir não aparece por cima.
+Exit with one Back	Sair com um só Voltar
+Back on Home leaves TikTok right away, with no "Tap again to exit" message. From another tab, Back still takes you to Home first, or to the tab Open TikTok on picks.	Voltar no Início fecha o TikTok na hora, sem a mensagem "Toque de novo para sair". Em outra aba, Voltar ainda leva você primeiro ao Início, ou à aba que Abrir o TikTok em escolhe.
+# context: LIVE controls: colors and hidden rows for the profile card a tap on a name opens in a LIVE room
+LIVE profile card background	Fundo do cartão de perfil na LIVE
+Colors the card a tap on a name opens in a LIVE room. Chips, buttons and boxes on it keep their own colors, and while a color is picked the card skips Dark LIVE panels.	Colore o cartão que abre ao tocar em um nome numa sala de LIVE. Etiquetas, botões e caixas nele mantêm as próprias cores, e enquanto houver uma cor escolhida o cartão não usa os painéis de LIVE escuros.
+LIVE profile card text	Texto do cartão de perfil na LIVE
+Colors the text drawn on the card itself. Automatic picks white or black, whichever stands out from the card.	Colore o texto escrito no próprio cartão. Automático escolhe branco ou preto, o que mais se destacar no cartão.
+Hide rows on LIVE profile cards	Ocultar linhas nos cartões de perfil da LIVE
+Pick the rows to take off the card a tap on a name opens in a LIVE room. The rest stay where they are.	Escolha as linhas que saem do cartão que abre ao tocar em um nome numa sala de LIVE. O resto fica onde está.
+Upcoming LIVE events	Próximos eventos de LIVE
+Products in the LIVE	Produtos na LIVE
+Shop rating	Avaliação da loja
+Group chat	Chat em grupo
+Bulletin board	Mural de avisos
+Gift gallery	Galeria de presentes
+Festival honors	Honrarias de festivais
+# context: an Appearance switch and its summary (#476). Text size, Settings and privacy and Accessibility are TikTok's own labels (its NxString entries 13899, 2691 and 2892 on 47.9.3): the slider page, the menu, and the menu row that holds the page. Use TikTok's label for each in this language
+Smaller text sizes	Tamanhos de texto menores
+Adds three stops below the smallest size on TikTok's own Text size slider, in Settings and privacy > Accessibility. Pick one there, then restart TikTok.	Adiciona três níveis abaixo do menor tamanho ao próprio controle Tamanho do texto do TikTok, em Configurações e privacidade > Acessibilidade. Escolha um lá e reinicie o TikTok.
+# context: a number row under Appearance and its summary (#477). The number is a percent of TikTok's own size, from 50 to 100, and the row shows it as 80% and so on
+UI size	Tamanho da interface
+Makes TikTok's whole interface smaller, text and buttons alike, so more fits on screen. 100 leaves it as it is. Restart TikTok to see the change.	Deixa toda a interface do TikTok menor, tanto o texto quanto os botões, para caber mais na tela. Com 100 ela fica como está. Reinicie o TikTok para ver a mudança.
+Show how long a LIVE has been on	Mostrar há quanto tempo uma LIVE está no ar
+Adds a small line to LIVE rooms with how long the host has been live, counted from when the room started. With the room ID on too, it goes under that.	Adiciona uma linha pequena às salas LIVE com há quanto tempo o anfitrião está ao vivo, contado a partir do início da sala. Com o ID da sala também ativado, ela fica embaixo dele.
+LIVE for %1$s	LIVE há %1$s
+Show exact LIVE battle scores	Mostrar pontuações exatas das batalhas LIVE
+In a LIVE battle, TikTok caps the big scores viewers see while the host sees the whole number. This shows the whole score in the battle bar and the co-host windows.	Em uma batalha LIVE, o TikTok limita as pontuações altas que os espectadores veem, enquanto o anfitrião vê o número inteiro. Isso mostra a pontuação inteira na barra da batalha e nas janelas dos coanfitriões.
+Start LIVEs at	Iniciar as LIVEs em
+The quality you picked last	A última qualidade que você escolheu
+A LIVE room opens at this quality until you pick another one, and that pick carries to the next rooms until TikTok closes. A room whose stream doesn't have it opens at TikTok's choice.	Uma sala LIVE abre nesta qualidade até você escolher outra, e essa escolha passa para as próximas salas até o TikTok fechar. Uma sala cuja transmissão não tem essa qualidade abre na escolha do TikTok.
+Skip promo lines	Pular linhas promocionais
+Skips the part of a video where a caption line has a word from Promo words, like a casino or promo code plug, and shows Undo. It reads the video's own captions, so a video without any plays as usual.	Pula a parte de um vídeo em que uma linha da legenda tem uma palavra de Palavras promocionais, como um anúncio de cassino ou um código promocional, e mostra Desfazer. Lê as legendas do próprio vídeo, então um vídeo sem legendas toca normalmente.
+Promo words	Palavras promocionais
+Separate words or phrases with commas, like casino, promo code. Capital letters don't matter, and "a" & "b" or "a" !& "b" work as they do for Blocked caption words.	Separe palavras ou frases com vírgulas, como casino, promo code. Maiúsculas não fazem diferença, e "a" & "b" ou "a" !& "b" funcionam como em Palavras bloqueadas nas legendas.
+Skipped a promo line	Linha promocional pulada

@@ -6,6 +6,8 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.*
 import androidx.compose.foundation.background
+import androidx.compose.foundation.relocation.BringIntoViewRequester
+import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.text.font.FontWeight
@@ -179,10 +181,34 @@ internal fun SettingSwitchRow(
 @OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
 @Composable
 internal fun BoundSettingRow(item: BoundSetting, changed: () -> Unit) {
+    val highlight = LocalSettingHighlight.current
+    val bringIntoView = remember { BringIntoViewRequester() }
+    var blue by remember(item.control, highlight) { mutableStateOf(false) }
+    LaunchedEffect(item.control, highlight) {
+        if (highlight.isNotBlank() && item.label == highlight) {
+            withFrameNanos { }
+            withFrameNanos { }
+            bringIntoView.bringIntoView()
+            repeat(6) { blue = !blue; kotlinx.coroutines.delay(350) }
+            blue = false
+        }
+    }
+    Column(Modifier.fillMaxWidth().bringIntoViewRequester(bringIntoView)
+        .background(if (blue) Color(0x55448AFF) else Color.Transparent)) {
+        BoundSettingContent(item, changed)
+    }
+}
+
+internal val LocalSettingHighlight = staticCompositionLocalOf { "" }
+
+@Composable
+private fun BoundSettingContent(item: BoundSetting, changed: () -> Unit) {
     val view = item.control
     when (view) {
         is SettingsSection -> {
-            var expanded by remember(view) { mutableStateOf(!view.collapsed) }
+            val target = LocalSettingHighlight.current
+            fun containsTarget(row: BoundSetting): Boolean = row.label == target || row.children.orEmpty().any { containsTarget(it) }
+            var expanded by remember(view, target) { mutableStateOf(!view.collapsed || target.isNotBlank() && containsTarget(item)) }
             Column(Modifier.fillMaxWidth()) {
                 ListItem(headlineContent = { SelectableSettingLabel { Text(item.label, style = MaterialTheme.typography.titleMedium, fontSize = 17.sp,
                     color = MaterialTheme.colorScheme.onSurface) } },

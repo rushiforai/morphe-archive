@@ -1,7 +1,7 @@
 # IDN
 
 Patches for **IDN** (`com.idntimes.idntimes`, "IDN App: News & Entertainment" on APKPure),
-version `6.69.1`, as an XAPK or APKS bundle.
+version `6.70.0` (or `6.69.1`), as an XAPK or APKS bundle.
 
 ## Patches
 
@@ -52,10 +52,10 @@ See the [repo README](../../README.md).
 With [morphe-desktop](https://github.com/MorpheApp/morphe-cli/releases) (needs Java 21):
 
 ```bash
-java -jar morphe-desktop-1.19.1-all.jar patch -p patches/build/libs/patches-<version>.mpp -o idn-patched.apk <IDN 6.69.1 bundle>
+java -jar morphe-desktop-1.19.1-all.jar patch -p patches/build/libs/patches-<version>.mpp -o idn-patched.apk <IDN 6.70.0 bundle>
 ```
 
 ## Getting the APK
 
-Download the `6.69.1` bundle (XAPK or APKS) from APKPure or APKCube by hand. Morphe Manager's own lookup only knows APKMirror
+Download the `6.70.0` bundle (XAPK or APKS) from APKPure or APKCube by hand. Morphe Manager's own lookup only knows APKMirror
 and Uptodown pages.

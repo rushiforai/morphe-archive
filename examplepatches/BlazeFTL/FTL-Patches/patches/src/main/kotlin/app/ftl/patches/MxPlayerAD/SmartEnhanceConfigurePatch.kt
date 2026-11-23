@@ -6,70 +6,54 @@ import app.morphe.patcher.InstructionLocation.MatchAfterWithin
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.removeInstructions
 import app.morphe.patcher.fieldAccess
-import app.morphe.patcher.literal
 import app.morphe.patcher.opcode
 import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.string
+import app.morphe.patcher.util.getFreeRegisterProvider
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 
-// ActivityScreen is the app's own manifest-declared Activity - real, stable,
-// safe to pin. Everything else here is opcode/literal shape only:
+// Target: ActivityScreen toggle method (3.4.0: "Ha"; next build: "ya"). Name is R8, never pinned.
+// How to find it again: the only ActivityScreen ()V method containing the string "enhanceEnabled"
+// (same method also holds the sget of R field "smart_enhance_disabled" - R field names are not obfuscated).
 //
-//   [enable branch]
-//   invoke-virtual/range ...->Sa()V      (toggle+apply, obfuscated name)
-//   sget-boolean ...->q:Z                (re-read the toggled flag, obfuscated field)
-//   const/4 v5, -1                       (sentinel, unique literal)
-//   if-eqz  ...                          (branch on the flag)
-//   iget-object ...->I:...               (player-controls field, obfuscated)
-//   invoke-virtual ...->E0(I)V           (obfuscated)
-//   invoke-virtual ...->e8(I)V           <- enable-branch insertion point is right after this
-//   ... (everything between is the animation/analytics block we leave dead) ...
-//   [disable branch tail]
-//   sget    ...->smart_enhance_disabled:I  (R-class field NAME - never obfuscated)
-//   [optional const/4 register reload]   <- present on 3.2.2, absent on 3.1.4/3.2.1;
-//                                          the boolean arg register gets clobbered by
-//                                          the dead middle block and sometimes has to
-//                                          be re-materialized right before the call.
-//   invoke-static ...->c(Landroid/content/Context;IZ)V  (toast helper, obfuscated)
-//   return-void                          (method's real end - array-data payloads
-//                                          from the dead middle block follow after
-//                                          this, so the true end of the method's
-//                                          instruction list is NOT a safe anchor)
+// Shape in the next build (obfuscated names in brackets, all read off instructions, none pinned):
+//   [0] sget-boolean   b6f.q:Z          flag flipped by the toggle (sget-boolean + if-eqz pair)
+//   [1] if-eqz         -> disable branch
+//   [2] iget-object    this.I           player controls field
+//   [3] invoke-virtual o.x1(I)V         enable effect
+//       const/4        (arg reload, only present when registers are tight)
+//   [4] invoke-virtual this.i8(I)V      <- insertion point is right after this
+//       new-instance / const-string "enhanceEnabled" ... analytics + animation (left dead)
+//   [6] sget           cah.smart_enhance_disabled:I   (R class name is R8, field name is real)
+//       const/4        false reload
+//   [7] invoke-static  svk.d(Context,I,Z)V            toast helper, SDK-typed signature
+//   [8] return-void
 //
-// The dead middle block (analytics + EnhanceEffectView construction) also
-// contains its own iget-object/invoke-virtual pairs on other fields, so
-// anchoring the second half on a bare iget-object opcode is not safe - the
-// filter chain locks onto the first one it finds (whichever field it belongs
-// to) and, when nothing sget immediately follows the invoke-virtual after
-// it, the whole match fails outright: the enable branch's Sa()V call is the
-// only INVOKE_VIRTUAL_RANGE in the method, so there's no later occurrence
-// left to retry against. The R-class field name is the one thing in that
-// stretch that's both real and unique, so it anchors the second half
-// directly instead.
+// Differences from 3.4.0: first filter is no longer invoke-virtual/range (p0 now fits in 4 bits),
+// and the const/4 -1 sentinel moved into the disable branch, so neither is used as an anchor.
 private const val SMART_ENHANCE_TOAST_KEY = "smart_enhance_toast"
+private const val SMART_ENHANCE_ENABLED_FIELD = "smart_enhance_enabled"
 
 internal object SmartEnhanceToggleFingerprint : Fingerprint(
     definingClass = "Lcom/mxtech/videoplayer/ActivityScreen;",
+    returnType = "V",
+    parameters = emptyList(),
     filters = listOf(
-        opcode(Opcode.INVOKE_VIRTUAL_RANGE),
-        opcode(Opcode.SGET_BOOLEAN, location = MatchAfterImmediately()),
-        literal(-1, location = MatchAfterImmediately()),
+        opcode(Opcode.SGET_BOOLEAN),
         opcode(Opcode.IF_EQZ, location = MatchAfterImmediately()),
         opcode(Opcode.IGET_OBJECT, location = MatchAfterImmediately()),
         opcode(Opcode.INVOKE_VIRTUAL, location = MatchAfterImmediately()),
-        opcode(Opcode.INVOKE_VIRTUAL, location = MatchAfterImmediately()), // e8(I)V - insertion point follows
+        opcode(Opcode.INVOKE_VIRTUAL, location = MatchAfterWithin(1)),
+        string("enhanceEnabled", location = MatchAfterWithin(40)),
         fieldAccess(
             name = "smart_enhance_disabled",
             opcode = Opcode.SGET,
             location = MatchAfterWithin(300),
         ),
-        // 3.1.4/3.2.1: invoke-static immediately follows the sget above (gap 0).
-        // 3.2.2: an extra "const/4 v2, 0x0" reload lands in between (gap 1),
-        // re-materializing the boolean arg after the dead middle block clobbers it.
-        // MatchAfterWithin(1) accepts either, so both builds still match.
-        opcode(Opcode.INVOKE_STATIC, location = MatchAfterWithin(1)), // disable toast call
+        opcode(Opcode.INVOKE_STATIC, location = MatchAfterWithin(1)),
         opcode(Opcode.RETURN_VOID, location = MatchAfterImmediately()),
     ),
 )
@@ -86,35 +70,50 @@ val configureSmartEnhanceToastPatch = bytecodePatch(
         val matches = SmartEnhanceToggleFingerprint.instructionMatches
         val method = SmartEnhanceToggleFingerprint.method
 
-        val insertIndex = matches[6].index + 1
-        val disabledIdRef = matches[7].getInstruction<ReferenceInstruction>().reference as FieldReference
-        val disabledToastRef = matches[8].getInstruction<ReferenceInstruction>().reference as MethodReference
+        val insertIndex = matches[4].index + 1
+        val disabledIdRef = matches[6].getInstruction<ReferenceInstruction>().reference as FieldReference
+        val disabledToastRef = matches[7].getInstruction<ReferenceInstruction>().reference as MethodReference
 
         val toastMethod = "${disabledToastRef.definingClass}->${disabledToastRef.name}(" +
             disabledToastRef.parameterTypes.joinToString("") { it.toString() } +
             ")${disabledToastRef.returnType}"
-        // Same R-class as the disable id; R field names are never obfuscated,
-        // only the sibling field differs (enabled vs disabled).
-        val enabledIdField = "${disabledIdRef.definingClass}->smart_enhance_enabled:${disabledIdRef.type}"
 
-        // Disable-branch toast is always dropped. Span from the field read
-        // through the toast call inclusive - on 3.2.2 a const/4 reload sits
-        // between them (see fingerprint filter 9 above), so this can be 2 or
-        // 3 instructions depending on build; a hardcoded count would either
-        // leave the reload behind or, worse, delete the toast call while
-        // leaving its now-undefined register operands referenced nowhere,
-        // which the verifier would reject at install time.
-        method.removeInstructions(matches[7].index, matches[8].index - matches[7].index + 1)
+        val enabledIdExists = classDefByOrNull(disabledIdRef.definingClass)
+            ?.fields?.any { it.name == SMART_ENHANCE_ENABLED_FIELD } == true
+        val enabledIdField = "${disabledIdRef.definingClass}->$SMART_ENHANCE_ENABLED_FIELD:${disabledIdRef.type}"
+
+        val thisRegister = method.implementation!!.registerCount - method.parameters.size - 1
+        val free = method.getFreeRegisterProvider(insertIndex, 3, thisRegister)
+        val keyReg = free.getFreeRegister4Bit()
+        val idReg = free.getFreeRegister4Bit()
+        val flagReg = free.getFreeRegister4Bit()
+
+        val enabledToast = if (enabledIdExists) {
+            """
+                sget v$idReg, $enabledIdField
+                const/4 v$flagReg, 0x0
+                invoke-static {p0, v$idReg, v$flagReg}, $toastMethod
+            """.trimIndent()
+        } else {
+            """
+                const-string v$idReg, "Smart Enhance Enabled"
+                const/4 v$flagReg, 0x0
+                invoke-static {p0, v$idReg, v$flagReg}, Landroid/widget/Toast;->makeText(Landroid/content/Context;Ljava/lang/CharSequence;I)Landroid/widget/Toast;
+                move-result-object v$idReg
+                invoke-virtual {v$idReg}, Landroid/widget/Toast;->show()V
+            """.trimIndent()
+        }
+
+        method.removeInstructions(matches[6].index, matches[7].index - matches[6].index + 1)
 
         method.addInstructionsWithLabels(
             insertIndex,
             """
-                const-string v4, "$SMART_ENHANCE_TOAST_KEY"
-                invoke-static {v4}, $MOD_SETTINGS_CLASS->get(Ljava/lang/String;)Z
-                move-result v4
-                if-eqz v4, :silent
-                sget v4, $enabledIdField
-                invoke-static {v0, v4, v1}, $toastMethod
+                const-string v$keyReg, "$SMART_ENHANCE_TOAST_KEY"
+                invoke-static {v$keyReg}, $MOD_SETTINGS_CLASS->get(Ljava/lang/String;)Z
+                move-result v$keyReg
+                if-eqz v$keyReg, :silent
+                $enabledToast
                 :silent
                 return-void
             """.trimIndent(),

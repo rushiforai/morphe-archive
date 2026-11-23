@@ -1,0 +1,40 @@
+{
+  "buildFiles": [
+    "/Users/jneerdael/Scripts/nl-morphe-patches/extensions/waze/src/main/cpp/CMakeLists.txt"
+  ],
+  "cleanCommandsComponents": [
+    [
+      "/Users/jneerdael/Library/Android/sdk/cmake/3.22.1/bin/ninja",
+      "-C",
+      "/Users/jneerdael/Scripts/nl-morphe-patches/extensions/waze/.cxx/RelWithDebInfo/112ug251/arm64-v8a",
+      "clean"
+    ]
+  ],
+  "buildTargetsCommandComponents": [
+    "/Users/jneerdael/Library/Android/sdk/cmake/3.22.1/bin/ninja",
+    "-C",
+    "/Users/jneerdael/Scripts/nl-morphe-patches/extensions/waze/.cxx/RelWithDebInfo/112ug251/arm64-v8a",
+    "{LIST_OF_TARGETS_TO_BUILD}"
+  ],
+  "libraries": {
+    "waze_tile_cameras::@6890427a1f51a3e7e1df": {
+      "toolchain": "toolchain",
+      "abi": "arm64-v8a",
+      "artifactName": "waze_tile_cameras",
+      "output": "/Users/jneerdael/Scripts/nl-morphe-patches/extensions/waze/build/intermediates/cxx/RelWithDebInfo/112ug251/obj/arm64-v8a/libwaze_tile_cameras.so",
+      "runtimeFiles": [
+        "/Users/jneerdael/Scripts/nl-morphe-patches/extensions/waze/build/generated/shadowhook-runtime/jni/arm64-v8a/libshadowhook.so"
+      ]
+    }
+  },
+  "toolchains": {
+    "toolchain": {
+      "cCompilerExecutable": "/Users/jneerdael/Library/Android/sdk/ndk/27.2.12479018/toolchains/llvm/prebuilt/darwin-x86_64/bin/clang.lld",
+      "cppCompilerExecutable": "/Users/jneerdael/Library/Android/sdk/ndk/27.2.12479018/toolchains/llvm/prebuilt/darwin-x86_64/bin/clang++.lld"
+    }
+  },
+  "cFileExtensions": [],
+  "cppFileExtensions": [
+    "cpp"
+  ]
+}

@@ -616,7 +616,16 @@
             <SwitchPreference android:title="@string/revanced_hide_player_collapse_button_title" android:key="revanced_hide_player_collapse_button" android:summaryOn="@string/revanced_hide_player_collapse_button_summary_on" android:summaryOff="@string/revanced_hide_player_collapse_button_summary_off" />
             <SwitchPreference android:title="@string/revanced_hide_player_fullscreen_button_title" android:key="revanced_hide_player_fullscreen_button" android:summaryOn="@string/revanced_hide_player_fullscreen_button_summary_on" android:summaryOff="@string/revanced_hide_player_fullscreen_button_summary_off" />
             <SwitchPreference android:title="@string/revanced_hide_player_control_buttons_background_title" android:key="revanced_hide_player_control_buttons_background" android:summaryOn="@string/revanced_hide_player_control_buttons_background_summary_on" android:summaryOff="@string/revanced_hide_player_control_buttons_background_summary_off" />
-            <app.morphe.extension.shared.settings.preference.SliderPreference android:title="@string/morphe_player_control_buttons_background_opacity_title" android:key="morphe_player_control_buttons_background_opacity" android:summary="@string/morphe_player_control_buttons_background_opacity_summary" android:inputType="number" />
+            <app.morphe.extension.shared.settings.preference.SliderPreference
+                android:title="@string/morphe_player_transport_background_opacity_title"
+                android:key="morphe_player_transport_background_opacity"
+                android:summary="@string/morphe_player_transport_background_opacity_summary"
+                android:inputType="number" />
+            <app.morphe.extension.shared.settings.preference.SliderPreference
+                android:title="@string/morphe_player_other_overlay_background_opacity_title"
+                android:key="morphe_player_other_overlay_background_opacity"
+                android:summary="@string/morphe_player_other_overlay_background_opacity_summary"
+                android:inputType="number" />
             <SwitchPreference android:title="@string/revanced_hide_player_previous_next_button_title" android:key="revanced_hide_player_previous_next_button" android:summaryOn="@string/revanced_hide_player_previous_next_button_summary_on" android:summaryOff="@string/revanced_hide_player_previous_next_button_summary_off" />
             <SwitchPreference android:title="@string/revanced_hide_player_youtube_music_button_title" android:key="revanced_hide_player_youtube_music_button" android:summaryOn="@string/revanced_hide_player_youtube_music_button_summary_on" android:summaryOff="@string/revanced_hide_player_youtube_music_button_summary_off" />SETTINGS: HIDE_PLAYER_BUTTONS -->
 

@@ -20,7 +20,7 @@ Each app has its own README with the full patch list.
 | DoDo Music | `com.dundunstudio.autoplay` | `2.0.14`, `2.0.17`, `2.0.18` | XAPK from APKPure | [apps/dodo](apps/dodo/README.md) |
 | FlipSide | `com.dinoster.flipside` | `1.6`, `1.7.1` | APKS from APKCube | [apps/flipside](apps/flipside/README.md) |
 | GitHub | `com.github.android` | `1.282.0`, `1.283.0`, `1.284.0`, `1.285.0` | APKM from APKMirror | [apps/github](apps/github/README.md) |
-| IDN | `com.idntimes.idntimes` | `6.69.1` | XAPK or APKS from APKPure or APKCube | [apps/idn](apps/idn/README.md) |
+| IDN | `com.idntimes.idntimes` | `6.69.1`, `6.70.0` | XAPK or APKS from APKPure or APKCube | [apps/idn](apps/idn/README.md) |
 | Jira | `com.atlassian.android.jira.core` | `2026.22.0`, `2026.22.1` | APKM from APKMirror | [apps/jira](apps/jira/README.md) |
 | KOMPAS.com | `com.ertanto.kompas.official` | `9.8.7` | XAPK from APKPure | [apps/kompas](apps/kompas/README.md) |
 | LinkedIn | `com.linkedin.android` | `4.1.1264`, `4.1.1267`, `4.1.1269`, `4.1.1270`, `4.1.1272`, `4.1.1275`, `4.1.1276`, `4.1.1278` | APKM from APKMirror | [apps/linkedin](apps/linkedin/README.md) |
@@ -29,6 +29,7 @@ Each app has its own README with the full patch list.
 | Smart Life | `com.tuya.smartlife` | `7.12.3-877`, `7.12.6-880` | XAPK from APKPure, APKM from APKMirror | [apps/smartlife](apps/smartlife/README.md) |
 | Tuya Smart | `com.tuya.smart` | `7.12.3-870`, `7.12.6-872`, `7.13.0-875`, `7.13.3-876` | APKM from APKMirror | [apps/smartlife](apps/smartlife/README.md) |
 | Windy | `com.windyty.android` | `51.3.2` | APKM from APKMirror | [apps/windy](apps/windy/README.md) |
+| FOMO Indonesia | `id.anon.android` | `9.0.64` | XAPK from APKPure | [apps/fomo](apps/fomo/README.md) |
 
 ## Use
 

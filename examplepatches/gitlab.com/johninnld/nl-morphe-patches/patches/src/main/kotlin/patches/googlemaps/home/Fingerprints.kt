@@ -24,6 +24,26 @@ internal object ExploreSheetStateFingerprint : Fingerprint(
     ),
 )
 
+/** 26.47: the same resolver, as `aghs.bb()`, reading the sheet state from `agqi.a`. */
+internal object ExploreSheetStateFingerprint2647 : Fingerprint(
+    name = "bb",
+    returnType = "V",
+    parameters = emptyList(),
+    filters = listOf(
+        fieldAccess(opcode = Opcode.SGET_OBJECT, definingClass = "Lagqi;", name = "a", type = "Lpic;"),
+        opcode(Opcode.NEW_INSTANCE, MatchAfterImmediately()),
+    ),
+)
+
+/** 26.47: the same bind, from `agqf.u(ViewGroup)` into `aghs.de`. */
+internal object BottomTabStripBindFingerprint2647 : Fingerprint(
+    filters = listOf(
+        methodCall(definingClass = "Lagqf;", name = "u", opcode = Opcode.INVOKE_INTERFACE),
+        opcode(Opcode.MOVE_RESULT_OBJECT, MatchAfterImmediately()),
+        fieldAccess(opcode = Opcode.IPUT_OBJECT, definingClass = "Laghs;", name = "de", location = MatchAfterImmediately()),
+    ),
+)
+
 /** Where the home fragment binds the bottom tab strip's view holder, once. */
 internal object BottomTabStripBindFingerprint : Fingerprint(
     filters = listOf(

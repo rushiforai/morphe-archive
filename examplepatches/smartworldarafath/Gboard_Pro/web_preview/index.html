@@ -1,0 +1,1180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gboard Pro v2.0.7 - Visual Look Preview</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Google+Sans+Text:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #F8F2FA;
+      --surface: #FFFFFF;
+      --surface-alt: #F3EAF6;
+      --surface-stroke: #E8DDF0;
+      --primary: #542983;
+      --primary-container: #EBDDFB;
+      --on-primary-container: #2A0054;
+      --text-primary: #1D162B;
+      --text-secondary: #5B4F6E;
+      --switch-track: #542983;
+      --switch-thumb: #FFFFFF;
+      --key-bg: #FFFFFF;
+      --key-special-bg: #EBDDFB;
+      --key-text: #1D162B;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    body {
+      font-family: 'Google Sans Text', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #0F0E13;
+      color: #E6E1E5;
+      padding: 40px 24px;
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 36px;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 6px 16px;
+      border-radius: 999px;
+      background: rgba(126, 87, 194, 0.2);
+      color: #D0BCFF;
+      font-size: 13px;
+      font-weight: 500;
+      letter-spacing: 0.5px;
+      margin-bottom: 12px;
+      border: 1px solid rgba(208, 188, 255, 0.3);
+    }
+
+    h1 {
+      font-family: 'Google Sans', sans-serif;
+      font-size: 32px;
+      font-weight: 700;
+      color: #FFFFFF;
+      margin-bottom: 8px;
+    }
+
+    p.subtitle {
+      font-size: 16px;
+      color: #CAC4D0;
+      max-width: 720px;
+      margin: 0 auto;
+    }
+
+    .control-panel {
+      background: #1C1B1F;
+      border: 1px solid #49454F;
+      border-radius: 20px;
+      padding: 20px 24px;
+      margin-bottom: 40px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .control-group {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .control-label {
+      font-size: 14px;
+      font-weight: 500;
+      color: #CAC4D0;
+    }
+
+    .theme-btn {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: #2B2930;
+      border: 1px solid #49454F;
+      color: #E6E1E5;
+      padding: 8px 16px;
+      border-radius: 12px;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 14px;
+      font-weight: 500;
+      transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);
+    }
+
+    .theme-btn:hover {
+      background: #36343B;
+      border-color: #79747E;
+    }
+
+    .theme-btn.active {
+      background: #542983;
+      border-color: #D0BCFF;
+      color: #FFFFFF;
+      box-shadow: 0 0 16px rgba(126, 87, 194, 0.4);
+    }
+
+    .swatch-mini {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+
+    /* Phone Mockups Grid */
+    .mockups-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 32px;
+      margin-bottom: 48px;
+    }
+
+    .phone-card {
+      background: #1C1B1F;
+      border: 1px solid #332D41;
+      border-radius: 32px;
+      padding: 16px;
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4);
+    }
+
+    .phone-title {
+      font-family: 'Google Sans', sans-serif;
+      font-size: 15px;
+      font-weight: 500;
+      color: #CAC4D0;
+      text-align: center;
+      margin-bottom: 12px;
+    }
+
+    .phone-frame {
+      background: var(--bg);
+      border-radius: 24px;
+      overflow: hidden;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+      border: 1px solid var(--surface-stroke);
+      height: 640px;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      transition: background 0.3s ease;
+    }
+
+    /* Android Status Bar */
+    .status-bar {
+      height: 32px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 18px;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-primary);
+      opacity: 0.8;
+    }
+
+    /* Android Toolbar */
+    .app-toolbar {
+      height: 56px;
+      display: flex;
+      align-items: center;
+      padding: 0 16px;
+      gap: 16px;
+    }
+
+    .icon-btn {
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      cursor: pointer;
+      color: var(--text-primary);
+      font-size: 18px;
+    }
+
+    .toolbar-title {
+      font-family: 'Google Sans', sans-serif;
+      font-size: 20px;
+      font-weight: 500;
+      color: var(--text-primary);
+      flex: 1;
+    }
+
+    /* Phone Content Scroll */
+    .phone-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 12px 16px 24px;
+    }
+
+    .header-card {
+      background: var(--surface-alt);
+      border: 1px solid var(--surface-stroke);
+      border-radius: 20px;
+      padding: 18px;
+      margin-bottom: 16px;
+    }
+
+    .header-badge-chip {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 8px;
+      background: var(--primary-container);
+      color: var(--on-primary-container);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+    }
+
+    .header-title-text {
+      font-family: 'Google Sans', sans-serif;
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 4px;
+    }
+
+    .header-desc-text {
+      font-size: 13px;
+      color: var(--text-secondary);
+      line-height: 1.4;
+    }
+
+    .section-label {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--primary);
+      letter-spacing: 0.8px;
+      margin: 16px 8px 8px;
+      text-transform: uppercase;
+    }
+
+    .settings-group {
+      background: var(--surface);
+      border: 1px solid var(--surface-stroke);
+      border-radius: 20px;
+      overflow: hidden;
+      margin-bottom: 16px;
+    }
+
+    .settings-row {
+      padding: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      border-bottom: 1px solid var(--surface-stroke);
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .settings-row:last-child {
+      border-bottom: none;
+    }
+
+    .settings-row:hover {
+      background: rgba(126, 87, 194, 0.04);
+    }
+
+    .row-text {
+      flex: 1;
+    }
+
+    .row-title {
+      font-size: 15px;
+      font-weight: 500;
+      color: var(--text-primary);
+      margin-bottom: 2px;
+    }
+
+    .row-summary {
+      font-size: 13px;
+      color: var(--text-secondary);
+      line-height: 1.35;
+    }
+
+    /* Switch Component */
+    .switch {
+      width: 48px;
+      height: 28px;
+      background: var(--surface-stroke);
+      border-radius: 999px;
+      position: relative;
+      cursor: pointer;
+      transition: background 0.2s;
+      flex-shrink: 0;
+    }
+
+    .switch.active {
+      background: var(--switch-track);
+    }
+
+    .switch-thumb {
+      width: 22px;
+      height: 22px;
+      background: var(--switch-thumb);
+      border-radius: 50%;
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      transition: transform 0.2s cubic-bezier(0.2, 0, 0, 1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      color: var(--switch-track);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    }
+
+    .switch.active .switch-thumb {
+      transform: translateX(20px);
+    }
+
+    /* Theme Option Card */
+    .theme-card-row {
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--surface-stroke);
+      cursor: pointer;
+    }
+
+    .theme-card-row:last-child {
+      border-bottom: none;
+    }
+
+    .theme-card-left {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .swatch-box {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      overflow: hidden;
+      display: flex;
+      border: 1px solid rgba(0,0,0,0.12);
+      flex-shrink: 0;
+    }
+
+    .swatch-quad {
+      flex: 1;
+      height: 100%;
+    }
+
+    .radio-circle {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      border: 2px solid var(--text-secondary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .radio-circle.active {
+      border-color: var(--primary);
+    }
+
+    .radio-circle.active::after {
+      content: '';
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--primary);
+    }
+
+    /* Gboard Mockup */
+    .keyboard-preview {
+      background: var(--surface);
+      border-top: 1px solid var(--surface-stroke);
+      padding: 8px 4px 14px;
+      box-shadow: 0 -4px 16px rgba(0,0,0,0.06);
+    }
+
+    .kb-strip {
+      height: 38px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 12px;
+      margin-bottom: 6px;
+    }
+
+    .kb-strip-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-primary);
+    }
+
+    .sparkle-icon {
+      color: var(--primary);
+      font-weight: bold;
+    }
+
+    .kb-row {
+      display: flex;
+      justify-content: center;
+      gap: 5px;
+      margin-bottom: 5px;
+    }
+
+    .kb-key {
+      background: var(--key-bg);
+      color: var(--key-text);
+      border-radius: 12px;
+      height: 44px;
+      min-width: 27px;
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 17px;
+      font-weight: 500;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+      border: 1px solid var(--surface-stroke);
+    }
+
+    .kb-key.special {
+      background: var(--key-special-bg);
+      color: var(--on-primary-container);
+      font-size: 14px;
+      flex: 1.4;
+    }
+
+    .kb-key.space {
+      flex: 4;
+    }
+
+    .kb-key.action {
+      background: var(--primary);
+      color: #FFFFFF;
+      flex: 1.4;
+    }
+
+    /* Side-by-side comparison section */
+    .comparison-section {
+      background: #1C1B1F;
+      border: 1px solid #332D41;
+      border-radius: 28px;
+      padding: 32px;
+      margin-top: 48px;
+    }
+
+    .comparison-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+      gap: 32px;
+      align-items: center;
+    }
+
+    .comparison-img {
+      width: 100%;
+      border-radius: 20px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+      border: 1px solid #49454F;
+    }
+
+    /* Details Table */
+    .specs-card {
+      background: #25232A;
+      border: 1px solid #49454F;
+      border-radius: 20px;
+      padding: 24px;
+    }
+
+    .specs-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 12px;
+    }
+
+    .specs-table th, .specs-table td {
+      padding: 10px 12px;
+      text-align: left;
+      border-bottom: 1px solid #36343B;
+      font-size: 14px;
+    }
+
+    .specs-table th {
+      color: #CAC4D0;
+      font-weight: 500;
+    }
+
+    .specs-table td {
+      color: #E6E1E5;
+    }
+
+    .color-chip {
+      width: 20px;
+      height: 20px;
+      border-radius: 6px;
+      display: inline-block;
+      vertical-align: middle;
+      margin-right: 8px;
+      border: 1px solid rgba(255,255,255,0.2);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <header>
+      <div class="badge">GBOARD PRO v2.0.7</div>
+      <h1>Dynamic Colors & Appearance Studio</h1>
+      <p class="subtitle">
+        Interactive local preview of the <strong>Blush Lilac (Showcase Light Pink)</strong> theme matching <code>showcase.png</code> and Material 3 Expressive dynamic color palettes.
+      </p>
+    </header>
+
+    <!-- Interactive Palette Controls -->
+    <div class="control-panel">
+      <div class="control-group">
+        <span class="control-label">Select Color Theme:</span>
+        <button class="theme-btn active" onclick="setTheme('blush_lilac')">
+          <span class="swatch-mini" style="background: #542983;"></span>
+          Blush Lilac (Showcase Pink)
+        </button>
+        <button class="theme-btn" onclick="setTheme('cotton_candy')">
+          <span class="swatch-mini" style="background: #B80058;"></span>
+          Cotton Candy (Pastel Rose)
+        </button>
+        <button class="theme-btn" onclick="setTheme('sunset_peach')">
+          <span class="swatch-mini" style="background: #D35A2D;"></span>
+          Sunset Peach (Warm Apricot)
+        </button>
+        <button class="theme-btn" onclick="setTheme('fresh_mint')">
+          <span class="swatch-mini" style="background: #046665;"></span>
+          Fresh Mint (Sage Teal)
+        </button>
+        <button class="theme-btn" onclick="setTheme('system_default')">
+          <span class="swatch-mini" style="background: #1A73E8;"></span>
+          Default (System Dynamic)
+        </button>
+      </div>
+
+      <div class="control-group">
+        <span class="control-label">Mode:</span>
+        <button class="theme-btn active" id="btn-light" onclick="setMode('light')">Light</button>
+        <button class="theme-btn" id="btn-dark" onclick="setMode('dark')">Dark</button>
+      </div>
+    </div>
+
+    <!-- Phone Mockups -->
+    <div class="mockups-grid">
+      <!-- 1. Pro Hub -->
+      <div class="phone-card">
+        <div class="phone-title">1. Pro Hub (Settings)</div>
+        <div class="phone-frame">
+          <div class="status-bar">
+            <span>11:36</span>
+            <span>LTE &bull; 98%</span>
+          </div>
+          <div class="app-toolbar">
+            <div class="icon-btn">&larr;</div>
+            <div class="toolbar-title">Pro</div>
+            <div class="icon-btn">&#x21bb;</div>
+          </div>
+          <div class="phone-content">
+            <div class="header-card">
+              <div class="header-badge-chip">GBOARD PRO</div>
+              <div class="header-title-text">Pro Customizations</div>
+              <div class="header-desc-text">Exclusive appearance styles, board UI and advanced features</div>
+            </div>
+
+            <div class="section-label">CUSTOMIZATIONS</div>
+            <div class="settings-group">
+              <div class="settings-row">
+                <div class="row-text">
+                  <div class="row-title">Appearance</div>
+                  <div class="row-summary">Material 3 Expressive UI theme palettes (Blush Lilac active)</div>
+                </div>
+                <div style="color: var(--primary); font-size: 18px;">&rsaquo;</div>
+              </div>
+              <div class="settings-row">
+                <div class="row-text">
+                  <div class="row-title">Board UI</div>
+                  <div class="row-summary">AMOLED Pure Black keyboard styling</div>
+                </div>
+                <div style="color: var(--primary); font-size: 18px;">&rsaquo;</div>
+              </div>
+              <div class="settings-row">
+                <div class="row-text">
+                  <div class="row-title">Advanced Settings</div>
+                  <div class="row-summary">Gemini voice typing, writing tools & modular patches</div>
+                </div>
+                <div style="color: var(--primary); font-size: 18px;">&rsaquo;</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. Appearance Section -->
+      <div class="phone-card">
+        <div class="phone-title">2. Appearance (Theme Selector)</div>
+        <div class="phone-frame">
+          <div class="status-bar">
+            <span>11:36</span>
+            <span>LTE &bull; 98%</span>
+          </div>
+          <div class="app-toolbar">
+            <div class="icon-btn">&larr;</div>
+            <div class="toolbar-title">Appearance</div>
+            <div class="icon-btn">&#x21bb;</div>
+          </div>
+          <div class="phone-content">
+            <div class="header-card">
+              <div class="header-badge-chip">THEMES</div>
+              <div class="header-title-text">Gboard UI Vibes <span style="font-size: 13px; font-weight: normal; color: var(--primary);">(Beta)</span></div>
+              <div class="header-desc-text">Select your favorite Google Material 3 Expressive color palette.</div>
+            </div>
+
+            <div class="section-label">PALETTES</div>
+            <div class="settings-group">
+              <!-- Blush Lilac (Showcase Pink) -->
+              <div class="theme-card-row" onclick="setTheme('blush_lilac')">
+                <div class="theme-card-left">
+                  <div class="swatch-box">
+                    <div class="swatch-quad" style="background: #542983;"></div>
+                    <div class="swatch-quad" style="background: #EBDDFB;"></div>
+                    <div class="swatch-quad" style="background: #D0BCFF;"></div>
+                    <div class="swatch-quad" style="background: #F8F2FA;"></div>
+                  </div>
+                  <div class="row-text">
+                    <div class="row-title">Blush Lilac (Showcase Pink)</div>
+                    <div class="row-summary">The signature light pink / pastel lilac look from showcase.png</div>
+                  </div>
+                </div>
+                <div class="radio-circle active" id="radio-blush"></div>
+              </div>
+
+              <!-- Cotton Candy -->
+              <div class="theme-card-row" onclick="setTheme('cotton_candy')">
+                <div class="theme-card-left">
+                  <div class="swatch-box">
+                    <div class="swatch-quad" style="background: #B80058;"></div>
+                    <div class="swatch-quad" style="background: #FCE4EC;"></div>
+                    <div class="swatch-quad" style="background: #FF80AB;"></div>
+                    <div class="swatch-quad" style="background: #FDF2F7;"></div>
+                  </div>
+                  <div class="row-text">
+                    <div class="row-title">Cotton Candy (Pastel Rose)</div>
+                    <div class="row-summary">Gentle pastel rose pink & airy sky tones</div>
+                  </div>
+                </div>
+                <div class="radio-circle" id="radio-candy"></div>
+              </div>
+
+              <!-- Sunset Peach -->
+              <div class="theme-card-row" onclick="setTheme('sunset_peach')">
+                <div class="theme-card-left">
+                  <div class="swatch-box">
+                    <div class="swatch-quad" style="background: #D35A2D;"></div>
+                    <div class="swatch-quad" style="background: #FFCCBC;"></div>
+                    <div class="swatch-quad" style="background: #FF8A65;"></div>
+                    <div class="swatch-quad" style="background: #FFF5F2;"></div>
+                  </div>
+                  <div class="row-text">
+                    <div class="row-title">Sunset Peach (Warm Apricot)</div>
+                    <div class="row-summary">Warm glowing peach & soft melon pink</div>
+                  </div>
+                </div>
+                <div class="radio-circle" id="radio-peach"></div>
+              </div>
+
+              <!-- Fresh Mint -->
+              <div class="theme-card-row" onclick="setTheme('fresh_mint')">
+                <div class="theme-card-left">
+                  <div class="swatch-box">
+                    <div class="swatch-quad" style="background: #046665;"></div>
+                    <div class="swatch-quad" style="background: #C8E6C9;"></div>
+                    <div class="swatch-quad" style="background: #4DB6AC;"></div>
+                    <div class="swatch-quad" style="background: #F2F8F5;"></div>
+                  </div>
+                  <div class="row-text">
+                    <div class="row-title">Fresh Mint (Sage Teal)</div>
+                    <div class="row-summary">Botanical garden sage & fresh mint</div>
+                  </div>
+                </div>
+                <div class="radio-circle" id="radio-mint"></div>
+              </div>
+
+              <!-- Default -->
+              <div class="theme-card-row" onclick="setTheme('system_default')">
+                <div class="theme-card-left">
+                  <div class="swatch-box">
+                    <div class="swatch-quad" style="background: #1A73E8;"></div>
+                    <div class="swatch-quad" style="background: #E8F0FE;"></div>
+                    <div class="swatch-quad" style="background: #4285F4;"></div>
+                    <div class="swatch-quad" style="background: #F1F3F4;"></div>
+                  </div>
+                  <div class="row-text">
+                    <div class="row-title">Default (System Dynamic)</div>
+                    <div class="row-summary">Material You dynamic wallpaper-based accent tones</div>
+                  </div>
+                </div>
+                <div class="radio-circle" id="radio-default"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. Advanced Settings -->
+      <div class="phone-card">
+        <div class="phone-title">3. Advanced Settings (Matching showcase.png)</div>
+        <div class="phone-frame">
+          <div class="status-bar">
+            <span>11:36</span>
+            <span>LTE &bull; 98%</span>
+          </div>
+          <div class="app-toolbar">
+            <div class="icon-btn">&larr;</div>
+            <div class="toolbar-title">Advanced settings</div>
+            <div class="icon-btn">&#x21bb;</div>
+          </div>
+          <div class="phone-content">
+            <div class="section-label">FEATURES</div>
+            <div class="settings-group">
+              <div class="settings-row" onclick="toggleSwitch(this)">
+                <div class="row-text">
+                  <div class="row-title">Enable AI Writing Tools</div>
+                  <div class="row-summary">Show AI writing tools in the suggestion strip for instant proofreading, text rewriting, and smart suggestions.</div>
+                </div>
+                <div class="switch active"><div class="switch-thumb">&#10003;</div></div>
+              </div>
+
+              <div class="settings-row" onclick="toggleSwitch(this)">
+                <div class="row-text">
+                  <div class="row-title">Support All Keyboards</div>
+                  <div class="row-summary">Enable AI Writing Tools across all language layouts and input fields without restrictions.</div>
+                </div>
+                <div class="switch active"><div class="switch-thumb">&#10003;</div></div>
+              </div>
+
+              <div class="settings-row" onclick="toggleSwitch(this)">
+                <div class="row-text">
+                  <div class="row-title">Enable Advanced Voice Typing</div>
+                  <div class="row-summary">Activate Pixel Rambler voice dictation for fast on-device speech-to-text with automatic punctuation.</div>
+                </div>
+                <div class="switch active"><div class="switch-thumb">&#10003;</div></div>
+              </div>
+
+              <div class="settings-row" onclick="toggleSwitch(this)">
+                <div class="row-text">
+                  <div class="row-title">Rounded Keys</div>
+                  <div class="row-summary">Enable Material 3 Expressive rounded (Belka) key style.</div>
+                </div>
+                <div class="switch active"><div class="switch-thumb">&#10003;</div></div>
+              </div>
+
+              <div class="settings-row" onclick="toggleSwitch(this)">
+                <div class="row-text">
+                  <div class="row-title">Frequently used emojis</div>
+                  <div class="row-summary">Show frequently used emojis instead of recently used emojis in the emoji drawer</div>
+                </div>
+                <div class="switch"><div class="switch-thumb"></div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4. Gboard Keyboard Preview -->
+      <div class="phone-card">
+        <div class="phone-title">4. Gboard Keyboard in Blush Lilac</div>
+        <div class="phone-frame">
+          <div class="status-bar">
+            <span>11:36</span>
+            <span>LTE &bull; 98%</span>
+          </div>
+          <div class="app-toolbar">
+            <div class="icon-btn">&larr;</div>
+            <div class="toolbar-title" style="font-size: 16px; color: var(--text-secondary);">Tap to type...</div>
+          </div>
+          <div class="phone-content" style="display: flex; align-items: center; justify-content: center;">
+            <div style="text-align: center; color: var(--text-secondary); font-size: 14px;">
+              <span style="font-size: 32px; display: block; margin-bottom: 8px;">&#x2728;</span>
+              Active Theme Applied to Gboard
+            </div>
+          </div>
+
+          <!-- Keyboard -->
+          <div class="keyboard-preview">
+            <div class="kb-strip">
+              <div class="kb-strip-left">
+                <span class="sparkle-icon">&#x2728;</span>
+                <span>Proofread</span>
+                <span style="opacity: 0.5;">&bull;</span>
+                <span>Fix tone</span>
+              </div>
+              <div class="sparkle-icon">&#x1F3A4;</div>
+            </div>
+
+            <!-- Key rows -->
+            <div class="kb-row">
+              <div class="kb-key">q</div><div class="kb-key">w</div><div class="kb-key">e</div><div class="kb-key">r</div><div class="kb-key">t</div><div class="kb-key">y</div><div class="kb-key">u</div><div class="kb-key">i</div><div class="kb-key">o</div><div class="kb-key">p</div>
+            </div>
+            <div class="kb-row" style="padding: 0 14px;">
+              <div class="kb-key">a</div><div class="kb-key">s</div><div class="kb-key">d</div><div class="kb-key">f</div><div class="kb-key">g</div><div class="kb-key">h</div><div class="kb-key">j</div><div class="kb-key">k</div><div class="kb-key">l</div>
+            </div>
+            <div class="kb-row">
+              <div class="kb-key special">&uArr;</div>
+              <div class="kb-key">z</div><div class="kb-key">x</div><div class="kb-key">c</div><div class="kb-key">v</div><div class="kb-key">b</div><div class="kb-key">n</div><div class="kb-key">m</div>
+              <div class="kb-key special">&larr;</div>
+            </div>
+            <div class="kb-row">
+              <div class="kb-key special">?123</div>
+              <div class="kb-key special">&#x263A;</div>
+              <div class="kb-key space">Gboard Pro</div>
+              <div class="kb-key special">.</div>
+              <div class="kb-key action">&crarr;</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Side-by-Side Comparison -->
+    <div class="comparison-section">
+      <h2 style="font-family: 'Google Sans'; font-size: 24px; margin-bottom: 8px;">1:1 Showcase Reference Comparison</h2>
+      <p style="color: #CAC4D0; font-size: 14px; margin-bottom: 24px;">
+        Comparing the reference screenshot from <code>docs/images/showcase.png</code> with our exact Material 3 Blush Lilac (Showcase Pink) palette.
+      </p>
+
+      <div class="comparison-grid">
+        <div>
+          <div style="font-weight: 500; font-size: 14px; color: #D0BCFF; margin-bottom: 8px;">Original Reference: showcase.png</div>
+          <img src="showcase.png" alt="Showcase Reference" class="comparison-img">
+        </div>
+
+        <div class="specs-card">
+          <h3 style="font-family: 'Google Sans'; font-size: 18px; margin-bottom: 12px; color: #FFFFFF;">Blush Lilac Palette Specifications</h3>
+          <p style="font-size: 13px; color: #CAC4D0; line-height: 1.5;">
+            Engineered using Google Material 3 Expressive dynamic color calculations to replicate the exact pastel lilac and light pink Monet vibe.
+          </p>
+
+          <table class="specs-table">
+            <thead>
+              <tr>
+                <th>Element Token</th>
+                <th>Color Name</th>
+                <th>Hex Code</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Window Background</td>
+                <td><span class="color-chip" style="background: #F8F2FA;"></span>Pastel Blush Lilac</td>
+                <td><code>#F8F2FA</code></td>
+              </tr>
+              <tr>
+                <td>Card Surface</td>
+                <td><span class="color-chip" style="background: #FFFFFF;"></span>Crisp White</td>
+                <td><code>#FFFFFF</code></td>
+              </tr>
+              <tr>
+                <td>Tonal Surface Alt</td>
+                <td><span class="color-chip" style="background: #F3EAF6;"></span>Soft Tinted Lilac</td>
+                <td><code>#F3EAF6</code></td>
+              </tr>
+              <tr>
+                <td>Surface Stroke</td>
+                <td><span class="color-chip" style="background: #E8DDF0;"></span>Delicate Lilac Border</td>
+                <td><code>#E8DDF0</code></td>
+              </tr>
+              <tr>
+                <td>Primary Accent (Active)</td>
+                <td><span class="color-chip" style="background: #542983;"></span>Vibrant Violet Purple</td>
+                <td><code>#7E57C2</code></td>
+              </tr>
+              <tr>
+                <td>Pill Container</td>
+                <td><span class="color-chip" style="background: #EBDDFB;"></span>Pastel Lavender Pill</td>
+                <td><code>#EBDDFB</code></td>
+              </tr>
+              <tr>
+                <td>Text Primary</td>
+                <td><span class="color-chip" style="background: #1D162B;"></span>Deep Eggplant Charcoal</td>
+                <td><code>#1D162B</code></td>
+              </tr>
+              <tr>
+                <td>Text Secondary</td>
+                <td><span class="color-chip" style="background: #5B4F6E;"></span>Medium Slate Violet</td>
+                <td><code>#5B4F6E</code></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const themes = {
+      blush_lilac: {
+        light: {
+          bg: '#F7EFFA',
+          surface: '#FFFFFF',
+          surfaceAlt: '#F3EAF6',
+          surfaceStroke: '#E8DDF0',
+          primary: '#542983',
+          primaryContainer: '#EBD7FA',
+          onPrimaryContainer: '#2A0054',
+          textPrimary: '#24152F',
+          textSecondary: '#5F4B6E',
+          switchTrack: '#542983',
+          switchThumb: '#FFFFFF',
+          keyBg: '#FFFFFF',
+          keySpecialBg: '#EBDDFB',
+          keyText: '#1D162B'
+        },
+        dark: {
+          bg: '#181122',
+          surface: '#241C2E',
+          surfaceAlt: '#322840',
+          surfaceStroke: '#443755',
+          primary: '#D0BCFF',
+          primaryContainer: '#4F378B',
+          onPrimaryContainer: '#EADDFF',
+          textPrimary: '#F5EEFF',
+          textSecondary: '#CCC2DC',
+          switchTrack: '#D0BCFF',
+          switchThumb: '#381E72',
+          keyBg: '#2E253A',
+          keySpecialBg: '#4F378B',
+          keyText: '#F5EEFF'
+        }
+      },
+      cotton_candy: {
+        light: {
+          bg: '#FDE7E9',
+          surface: '#FFFFFF',
+          surfaceAlt: '#FCE4EC',
+          surfaceStroke: '#F8BBD0',
+          primary: '#B80058',
+          primaryContainer: '#F6B0CA',
+          onPrimaryContainer: '#4A0023',
+          textPrimary: '#2D121B',
+          textSecondary: '#6D4352',
+          switchTrack: '#B80058',
+          switchThumb: '#FFFFFF',
+          keyBg: '#FFFFFF',
+          keySpecialBg: '#FCE4EC',
+          keyText: '#2B121C'
+        },
+        dark: {
+          bg: '#1F1117',
+          surface: '#2E1922',
+          surfaceAlt: '#402330',
+          surfaceStroke: '#5E3146',
+          primary: '#FF80AB',
+          primaryContainer: '#880E4F',
+          onPrimaryContainer: '#FCE4EC',
+          textPrimary: '#FCE4EC',
+          textSecondary: '#F8BBD0',
+          switchTrack: '#FF80AB',
+          switchThumb: '#4A0023',
+          keyBg: '#3B212D',
+          keySpecialBg: '#880E4F',
+          keyText: '#FCE4EC'
+        }
+      },
+      sunset_peach: {
+        light: {
+          bg: '#FDE8E7',
+          surface: '#FFFFFF',
+          surfaceAlt: '#FDEEE9',
+          surfaceStroke: '#FFCCBC',
+          primary: '#D35A2D',
+          primaryContainer: '#FD987C',
+          onPrimaryContainer: '#3E0F04',
+          textPrimary: '#2D1610',
+          textSecondary: '#6E443A',
+          switchTrack: '#D35A2D',
+          switchThumb: '#FFFFFF',
+          keyBg: '#FFFFFF',
+          keySpecialBg: '#FFCCBC',
+          keyText: '#2D1610'
+        },
+        dark: {
+          bg: '#1C1310',
+          surface: '#281C17',
+          surfaceAlt: '#372720',
+          surfaceStroke: '#44FF8A65',
+          primary: '#FF7043',
+          primaryContainer: '#5D2416',
+          onPrimaryContainer: '#FFDBCF',
+          textPrimary: '#FBE9E7',
+          textSecondary: '#FFCCBC',
+          switchTrack: '#FF7043',
+          switchThumb: '#3E0F04',
+          keyBg: '#372720',
+          keySpecialBg: '#5D2416',
+          keyText: '#FBE9E7'
+        }
+      },
+      fresh_mint: {
+        light: {
+          bg: '#EFF5F5',
+          surface: '#FFFFFF',
+          surfaceAlt: '#E8F5E9',
+          surfaceStroke: '#C8E6C9',
+          primary: '#046665',
+          primaryContainer: '#D4FAEF',
+          onPrimaryContainer: '#002B24',
+          textPrimary: '#0E1F1E',
+          textSecondary: '#3F5C5A',
+          switchTrack: '#046665',
+          switchThumb: '#FFFFFF',
+          keyBg: '#FFFFFF',
+          keySpecialBg: '#E8F5E9',
+          keyText: '#10241E'
+        },
+        dark: {
+          bg: '#0E1815',
+          surface: '#162521',
+          surfaceAlt: '#20342E',
+          surfaceStroke: '#2D4A42',
+          primary: '#4DB6AC',
+          primaryContainer: '#004D40',
+          onPrimaryContainer: '#E0F2F1',
+          textPrimary: '#E0F2F1',
+          textSecondary: '#80CBC4',
+          switchTrack: '#4DB6AC',
+          switchThumb: '#002B24',
+          keyBg: '#20342E',
+          keySpecialBg: '#004D40',
+          keyText: '#E0F2F1'
+        }
+      },
+      system_default: {
+        light: {
+          bg: '#F6F8FE',
+          surface: '#FFFFFF',
+          surfaceAlt: '#E8F0FE',
+          surfaceStroke: '#D2E3FC',
+          primary: '#1A73E8',
+          primaryContainer: '#E8F0FE',
+          onPrimaryContainer: '#041E49',
+          textPrimary: '#1F1F1F',
+          textSecondary: '#444746',
+          switchTrack: '#1A73E8',
+          switchThumb: '#FFFFFF',
+          keyBg: '#FFFFFF',
+          keySpecialBg: '#E8F0FE',
+          keyText: '#1F1F1F'
+        },
+        dark: {
+          bg: '#121316',
+          surface: '#1E1F24',
+          surfaceAlt: '#2A2C33',
+          surfaceStroke: '#3C4043',
+          primary: '#8AB4F8',
+          primaryContainer: '#0842A0',
+          onPrimaryContainer: '#D3E3FD',
+          textPrimary: '#E3E3E3',
+          textSecondary: '#C4C7C5',
+          switchTrack: '#8AB4F8',
+          switchThumb: '#041E49',
+          keyBg: '#2A2C33',
+          keySpecialBg: '#0842A0',
+          keyText: '#E3E3E3'
+        }
+      }
+    };
+
+    let currentThemeKey = 'blush_lilac';
+    let currentMode = 'light';
+
+    function setTheme(key) {
+      currentThemeKey = key;
+      document.querySelectorAll('.theme-btn').forEach(b => {
+        if (b.innerText.toLowerCase().includes(key.replace('_', ' ').split(' ')[0])) {
+          b.classList.add('active');
+        } else if (!b.id) {
+          b.classList.remove('active');
+        }
+      });
+
+      // Update Radio in Phone 2
+      document.querySelectorAll('.radio-circle').forEach(r => r.classList.remove('active'));
+      const mapping = {
+        blush_lilac: 'radio-blush',
+        cotton_candy: 'radio-candy',
+        sunset_peach: 'radio-peach',
+        fresh_mint: 'radio-mint',
+        system_default: 'radio-default'
+      };
+      const radio = document.getElementById(mapping[key]);
+      if (radio) radio.classList.add('active');
+
+      applyStyles();
+    }
+
+    function setMode(mode) {
+      currentMode = mode;
+      document.getElementById('btn-light').classList.toggle('active', mode === 'light');
+      document.getElementById('btn-dark').classList.toggle('active', mode === 'dark');
+      applyStyles();
+    }
+
+    function applyStyles() {
+      const palette = themes[currentThemeKey][currentMode];
+      const r = document.documentElement;
+      r.style.setProperty('--bg', palette.bg);
+      r.style.setProperty('--surface', palette.surface);
+      r.style.setProperty('--surface-alt', palette.surfaceAlt);
+      r.style.setProperty('--surface-stroke', palette.surfaceStroke);
+      r.style.setProperty('--primary', palette.primary);
+      r.style.setProperty('--primary-container', palette.primaryContainer);
+      r.style.setProperty('--on-primary-container', palette.onPrimaryContainer);
+      r.style.setProperty('--text-primary', palette.textPrimary);
+      r.style.setProperty('--text-secondary', palette.textSecondary);
+      r.style.setProperty('--switch-track', palette.switchTrack);
+      r.style.setProperty('--switch-thumb', palette.switchThumb);
+      r.style.setProperty('--key-bg', palette.keyBg);
+      r.style.setProperty('--key-special-bg', palette.keySpecialBg);
+      r.style.setProperty('--key-text', palette.keyText);
+    }
+
+    function toggleSwitch(row) {
+      const sw = row.querySelector('.switch');
+      sw.classList.toggle('active');
+      const thumb = sw.querySelector('.switch-thumb');
+      thumb.innerHTML = sw.classList.contains('active') ? '&#10003;' : '';
+    }
+
+    // Initialize
+    applyStyles();
+  </script>
+</body>
+</html>

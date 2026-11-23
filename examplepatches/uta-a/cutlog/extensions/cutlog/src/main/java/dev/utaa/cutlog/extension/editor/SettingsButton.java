@@ -10,8 +10,9 @@ import android.view.View;
 import dev.utaa.cutlog.extension.record.RecordDuration;
 
 /**
- * 撮影画面のシャッターの並びの右端（長さのボタンと左右対称の位置）に置く、cutlog の設定を開く歯車ボタン。
- * どの機能を OFF にしても設定へ戻れるよう、このボタンは常に出す。
+ * 撮影画面のシャッターの右（フラッシュと左右対称の位置）に置く、cutlog の設定を開く歯車ボタン。
+ * 本体のエフェクトボタンが出ているときは、その右へずらす（{@link CameraChrome}）。
+ * 設定画面から「ファイルから選ぶ」も開くため、どの機能を OFF にしてもこのボタンは常に出す。
  */
 @SuppressLint("ViewConstructor")
 public final class SettingsButton extends View {
@@ -33,7 +34,7 @@ public final class SettingsButton extends View {
 
     /** 撮影画面の View にボタンを足す。シャッターが見つからなければ何もしない。 */
     public static void attach(View cameraRoot) {
-        CameraChrome.place(cameraRoot, new SettingsButton(cameraRoot.getContext()), TAG, 2f);
+        CameraChrome.place(cameraRoot, new SettingsButton(cameraRoot.getContext()), TAG, 1f);
     }
 
     private void open() {

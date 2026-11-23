@@ -31,7 +31,13 @@ public final class NativeCarContent {
         void run()throws Exception{
             if(!enabled)throw new SecurityException("Native action is unavailable");
             if(consumer>=0){
-                Class<?> type=model.getClass().getClassLoader().loadClass("poe");
+                ClassLoader loader=model.getClass().getClassLoader();
+                // Maps renames this consumer every release: 26.43/26.44 "poe", 26.47 "pqg".
+                Class<?> type=null;
+                for(String name:new String[]{"poe","pqg"}){
+                    try{type=loader.loadClass(name);break;}catch(ClassNotFoundException next){/* try the next build's name */}
+                }
+                if(type==null)throw new ClassNotFoundException("Maps' native search consumer");
                 Constructor<?> constructor=type.getDeclaredConstructor(int.class);constructor.setAccessible(true);
                 Object handler=constructor.newInstance(consumer);call(handler,"accept",new Class<?>[]{Object.class},model);
             }else call(model,method);
@@ -81,8 +87,9 @@ public final class NativeCarContent {
             Object owner=NativeCarScopes.producerOwner(source);
             if(owner==null)try{
                 String type=source.getClass().getName();
-                if("qdf".equals(type))owner=NativeCarScopes.owner((Context)field(source,"c"),field(source,"b"));
-                else if("qbn".equals(type))owner=NativeCarScopes.owner((Context)field(source,"p"),field(source,"b"));
+                // 26.43/26.44 "qdf" (Context c) and "qbn"; 26.47 "qfp" (Context d) and "qdu".
+                if("qdf".equals(type)||"qfp".equals(type))owner=NativeCarScopes.owner((Context)field(source,"qfp".equals(type)?"d":"c"),field(source,"b"));
+                else if("qbn".equals(type)||"qdu".equals(type))owner=NativeCarScopes.owner((Context)field(source,"p"),field(source,"b"));
             }catch(Exception unavailable){return null;}
             if(owner!=null)SOURCES.put(source,new WeakReference<>(owner));return owner;
         }
@@ -93,8 +100,8 @@ public final class NativeCarContent {
         if(model==null)return;NativeCarContent current=forOwner(ownerFor(model));if(current==null||current.closed)return;
         try{
             String key;List<Row> rows;
-            if(instance(model,"qcq")){current.recents=new WeakReference<>(model);key="recents";rows=readRecents(model);}
-            else if(instance(model,"qbh")){current.search=new WeakReference<>(model);key="search";rows=current.readSearch(model);}
+            if(instance(model,"qcq")||instance(model,"qfa")){current.recents=new WeakReference<>(model);key="recents";rows=readRecents(model);}
+            else if(instance(model,"qbh")||instance(model,"qdo")){current.search=new WeakReference<>(model);key="search";rows=current.readSearch(model);}
             else return;
             current.captured(key,model,rows);
         }catch(Exception error){Log.w("MapsNativeCar","Native search model unavailable",error);}
@@ -122,7 +129,9 @@ public final class NativeCarContent {
 
     static List<Row> readRecents(Object source)throws Exception{
         List<Row> rows=new ArrayList<>();
-        for(Object model:list(call(source,"d"))){
+        // 26.47 moved the list getter one slot: d -> e on the "qfp" window.
+        String listGetter="qfp".equals(source.getClass().getName())?"e":"d";
+        for(Object model:list(call(source,listGetter))){
             String title=text(call(model,"h"));if(title.isEmpty())continue;
             rows.add(new Row(title,texts(call(model,"i"),call(model,"g")),new Action(model,title,"j",-1,true)));
         }
@@ -135,9 +144,9 @@ public final class NativeCarContent {
             rows.add(new Row(title,texts(call(place,"d")),new Action(model,title,"accept",18,true)));
         }
         Object footer=call(source,"b");
-        if(footer!=null&&"qbo".equals(footer.getClass().getName())){
+        if(footer!=null&&("qbo".equals(footer.getClass().getName())||"qdv".equals(footer.getClass().getName()))){
             String title=text(field(footer,"a"));if(!title.isEmpty())rows.add(new Row(title,Collections.emptyList(),null));
-        }else if(footer!=null&&"qbp".equals(footer.getClass().getName())){
+        }else if(footer!=null&&hasMethod(footer,"accept")){
             String title=label("OFFLINE_TOUCH_TO_RETRY","Offline. Tap to retry");
             rows.add(new Row(title,Collections.emptyList(),new Action(footer,title,"accept",19,true)));
         }
@@ -156,6 +165,13 @@ public final class NativeCarContent {
     private static Object field(Object value,String name)throws Exception{
         for(Class<?> type=value.getClass();type!=null;type=type.getSuperclass())try{Field field=type.getDeclaredField(name);field.setAccessible(true);return field.get(value);}catch(NoSuchFieldException absent){}
         throw new NoSuchFieldException(name);
+    }
+    /** True when the object exposes a public one-argument accept(Object) (the retry footer). */
+    private static boolean hasMethod(Object value,String name){
+        for(Class<?> type=value.getClass();type!=null;type=type.getSuperclass()){
+            try{type.getDeclaredMethod(name,Object.class);return true;}catch(NoSuchMethodException absent){}
+        }
+        return false;
     }
     private static Object call(Object value,String name)throws Exception{return call(value,name,new Class<?>[0]);}
     private static Object call(Object value,String name,Class<?>[] types,Object...args)throws Exception{

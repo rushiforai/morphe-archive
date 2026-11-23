@@ -33,7 +33,7 @@ $K -jvm-target 11 -no-stdlib -cp $CLI -d $B/pcls patches 2>&1 | quiet
 $BT/d8 --release --min-api 26 --lib $AJ --classpath $CLI --output $B/dex $(find $B/pcls -name "*.class") > $B/d8.log 2>&1
 cp -r $B/pcls/duskdream $B/pcls/patapon888 $B/bundle/ && cp $B/dex/classes.dex $B/bundle/
 printf '%s\n' "Manifest-Version: 1.0" "Name: Patapon888's Patches" \
-  "Description: Google Daydream, Nova Launcher and Bejeweled Classic patches for use with Morphe" "Version: $VERSION" \
+  "Description: Google Daydream, Nova Launcher, Bejeweled Classic and Fruit Ninja Classic patches for use with Morphe" "Version: $VERSION" \
   "Timestamp: $(date +%s%3N)" "Source: https://github.com/$REPO" "Author: Patapon888" \
   "Website: https://github.com/$REPO" "License: GPLv3" "Patcher-Version: 1.14.1" "" \
   > $B/bundle/META-INF/MANIFEST.MF

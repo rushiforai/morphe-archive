@@ -1,0 +1,52 @@
+name: Build patch bundle
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3 # v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Install build tools
+        shell: bash
+        run: |
+          cd "$RUNNER_TEMP"
+          curl --fail --silent --show-error --location --retry 3 -O \
+            https://dl.google.com/android/repository/build-tools_r36_linux.zip
+          curl --fail --silent --show-error --location --retry 3 -O \
+            https://github.com/JetBrains/kotlin/releases/download/v2.4.21/kotlin-compiler-2.4.21.zip
+          curl --fail --silent --show-error --location --retry 3 -O \
+            https://github.com/MorpheApp/morphe-desktop/releases/download/v2.2.0/morphe-desktop-2.2.0-all.jar
+          sha256sum --check <<'CHECKSUMS'
+          5d9ac77fb6ff43d9da518a337b4fcf8f9097113df531d99ccefe80ef7ce8250b  build-tools_r36_linux.zip
+          7cc140e76daf416a0424a5557f99afd7ca89ebd463ea1101261e3e01c33e75cd  kotlin-compiler-2.4.21.zip
+          5ca0320ee05481df1ae3afd2f003bba3ff994d11d1f66ae48811ced71355e4fe  morphe-desktop-2.2.0-all.jar
+          CHECKSUMS
+          unzip -q build-tools_r36_linux.zip
+          unzip -q kotlin-compiler-2.4.21.zip
+          echo "$RUNNER_TEMP/kotlinc/bin" >> "$GITHUB_PATH"
+      - name: Build and inspect the MPP
+        shell: bash
+        run: |
+          desktop="$RUNNER_TEMP/morphe-desktop-2.2.0-all.jar"
+          ./scripts/build.sh "$desktop" "$RUNNER_TEMP/android-16"
+          bundle="x-video-upload-60fps-$(cat VERSION).mpp"
+          java -jar "$desktop" list-patches --patches="dist/$bundle" --with-packages --with-versions
+          cd dist
+          sha256sum "$bundle" > SHA256SUMS
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: mpp
+          path: dist/
+          if-no-files-found: error

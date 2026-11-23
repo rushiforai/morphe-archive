@@ -16,6 +16,8 @@ val backupRestorePatch = bytecodePatch(
 ) {
     compatibleWith(JOEY)
 
+    dependsOn(problemReportPatch)
+
     extendWith("extensions/extension.mpe")
 
     execute {

@@ -1,9 +1,11 @@
 package app.template.patches.sofascore.misc.update
 
+import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.returnEarly
 import app.template.patches.shared.Constants.COMPATIBILITY_SOFASCORE
+import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
@@ -41,6 +43,17 @@ private fun ClassDef.isUpdateHelper() =
         methods.any { it.isUpdateCheck() } &&
         methods.any { it.isUpdateFlow() }
 
+// The Feed's "update the app" card (2026-11-22): static (Context)Z deciding whether the card shows,
+// from Remote Config "feed_min_version" above the installed build and the PREF_FEED_UPDATE_* prefs
+// (26.11.09: an R8-relocated class; its only caller is the Feed ViewModel's <init>, which keeps the
+// answer in the feed state). nd9.invoke also holds PREF_FEED_UPDATE_ON_VERSION, but is no (Context)Z.
+internal object FeedUpdateCardFingerprint : Fingerprint(
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC),
+    returnType = "Z",
+    parameters = listOf(CONTEXT),
+    strings = listOf("feed_min_version", "PREF_FEED_UPDATE_ON_VERSION"),
+)
+
 @Suppress("unused")
 val disableUpdatePromptsPatch = bytecodePatch(
     name = "Disable update prompts",
@@ -59,7 +72,11 @@ val disableUpdatePromptsPatch = bytecodePatch(
             ?: throw PatchException("$helper: expected one update check")
         val flow = methods.singleOrNull { it.isUpdateFlow() }
             ?: throw PatchException("$helper: expected one update flow")
+        val feedCard = FeedUpdateCardFingerprint.method
         check.returnEarly()
         flow.returnEarly()
+        // The Feed's update card never shows (const/4 v0, 0x0; return v0). The skipped part only
+        // resets PREF_FEED_UPDATE_COUNTER after an app update, a counter for this card.
+        feedCard.returnEarly(false)
     }
 }

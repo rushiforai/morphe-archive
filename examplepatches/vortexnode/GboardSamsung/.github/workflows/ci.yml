@@ -1,0 +1,101 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: Build and test
+    permissions:
+      contents: read
+      packages: read
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Verify Morphe GitHub Packages credentials
+        env:
+          MORPHE_PACKAGES_TOKEN: ${{ secrets.MORPHE_PACKAGES_TOKEN }}
+        run: |
+          if [ -z "$MORPHE_PACKAGES_TOKEN" ]; then
+            echo "::error::Missing repository secret MORPHE_PACKAGES_TOKEN (GitHub PAT with read:packages scope required for Morphe GitHub Packages)."
+            exit 1
+          fi
+
+      - name: Setup Java
+        uses: actions/setup-java@v6
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Cache Gradle
+        uses: burrunan/gradle-cache-action@v3
+
+      - name: Make Gradle wrapper executable
+        run: chmod +x ./gradlew
+
+      - name: Run unit tests across all modules
+        env:
+          GITHUB_ACTOR: ${{ github.repository_owner }}
+          GITHUB_TOKEN: ${{ secrets.MORPHE_PACKAGES_TOKEN }}
+        run: ./gradlew :patches:test :extensions:extension:testDebugUnitTest :extensions:calculator:testDebugUnitTest
+
+      - name: Verify patches-list.json is up to date
+        env:
+          GITHUB_ACTOR: ${{ github.repository_owner }}
+          GITHUB_TOKEN: ${{ secrets.MORPHE_PACKAGES_TOKEN }}
+        run: |
+          ./gradlew generatePatchesList
+          git diff --exit-code -- patches-list.json
+
+      - name: Build Morphe Android patch bundle
+        env:
+          GITHUB_ACTOR: ${{ github.repository_owner }}
+          GITHUB_TOKEN: ${{ secrets.MORPHE_PACKAGES_TOKEN }}
+        run: ./gradlew :patches:buildAndroid
+
+      - name: Resolve bundle version for artifact
+        id: bundle
+        shell: bash
+        run: |
+          set -euo pipefail
+          version="$(awk -F= '/^[[:space:]]*version[[:space:]]*=/ { value=$2; sub(/^[[:space:]]+/, "", value); sub(/[[:space:]]*#.*/, "", value); sub(/[[:space:]]+$/, "", value); print value; exit }' gradle.properties)"
+          if [[ -z "$version" ]]; then
+            echo "::error::Unable to resolve version from gradle.properties."
+            exit 1
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+      - name: Generate MPP SHA-256 checksum
+        shell: bash
+        env:
+          VERSION: ${{ steps.bundle.outputs.version }}
+        run: |
+          set -euo pipefail
+          bundle="patches/build/libs/patches-${VERSION}.mpp"
+          if [[ ! -s "${bundle}" ]]; then
+            echo "::error::Expected versioned MPP output ${bundle} is missing or empty."
+            exit 1
+          fi
+          (cd patches/build/libs && sha256sum "patches-${VERSION}.mpp" > SHA256SUMS)
+
+      - name: Upload Morphe Android patch bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: GboardSamsung-MPP-${{ steps.bundle.outputs.version }}
+          path: |
+            patches/build/libs/*.mpp
+            patches/build/libs/SHA256SUMS
+          if-no-files-found: error
+          retention-days: 90

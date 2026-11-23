@@ -21,6 +21,7 @@ import android.widget.TextView;
 import org.json.JSONArray;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -111,8 +112,8 @@ public final class Sidebar {
             if (parent instanceof ViewGroup) hideDrawerFab((ViewGroup) parent);
         }
         if (activity != null) {
-            View fab = activity.findViewById(activity.getResources().getIdentifier(
-                    "navigation_fab", "id", activity.getPackageName()));
+            int fabId = id(recycler, "navigation_fab");
+            View fab = fabId == 0 ? null : activity.findViewById(fabId);
             if (fab != null) keepGone(fab);
         }
     }
@@ -142,20 +143,41 @@ public final class Sidebar {
 
     private static void paintSurface(View view, int color) {
         if (view == null) return;
-        view.setBackgroundColor(color);
-        view.setElevation(0f);
+        // Every drawer row paints this once it is bound, so a surface that is already right is left alone.
+        android.graphics.drawable.Drawable now = view.getBackground();
+        if (!(now instanceof android.graphics.drawable.ColorDrawable)
+                || ((android.graphics.drawable.ColorDrawable) now).getColor() != color) {
+            view.setBackgroundColor(color);
+        }
+        if (view.getElevation() != 0f) view.setElevation(0f);
         useCanvasToken(view);
     }
 
+    /** Joey's themed view keeps a colour token in field b.a. The two fields are found once per class. */
+    private static final java.util.Map<Class<?>, Field[]> TOKEN_FIELDS = new java.util.HashMap<>();
+    private static final Field[] NO_TOKEN = new Field[0];
+
     private static void useCanvasToken(View view) {
         try {
-            Field field = view.getClass().getDeclaredField("b");
-            field.setAccessible(true);
-            Object attr = field.get(view);
+            Field[] fields = TOKEN_FIELDS.get(view.getClass());
+            if (fields == null) {
+                try {
+                    Field field = view.getClass().getDeclaredField("b");
+                    field.setAccessible(true);
+                    Object attr = field.get(view);
+                    if (attr == null) return;
+                    Field token = attr.getClass().getDeclaredField("a");
+                    token.setAccessible(true);
+                    fields = new Field[]{field, token};
+                } catch (Throwable t) {
+                    fields = NO_TOKEN;
+                }
+                TOKEN_FIELDS.put(view.getClass(), fields);
+            }
+            if (fields.length == 0) return;
+            Object attr = fields[0].get(view);
             if (attr == null) return;
-            Field token = attr.getClass().getDeclaredField("a");
-            token.setAccessible(true);
-            if (token.getInt(attr) == 11) token.setInt(attr, 12);
+            if (fields[1].getInt(attr) == 11) fields[1].setInt(attr, 12);
         } catch (Throwable ignored) {
         }
     }
@@ -199,7 +221,14 @@ public final class Sidebar {
         if (item == null || !item.isAttachedToWindow()) return;
         View list = drawerList(item);
         if (list != null && scrollState(list) != 0) {
-            item.post(() -> paintWhenStill(item));
+            // One wait per row. A row bound mid-scroll used to post again for every request.
+            if (item.getTag(WAITING) == null) {
+                item.setTag(WAITING, Boolean.TRUE);
+                item.post(() -> {
+                    item.setTag(WAITING, null);
+                    paintWhenStill(item);
+                });
+            }
             return;
         }
         try {
@@ -209,9 +238,13 @@ public final class Sidebar {
         }
     }
 
+    private static final int WAITING = 0x4d4d5753;
+    private static Method sScrollState;
+
     private static int scrollState(View list) {
         try {
-            Object state = list.getClass().getMethod("getScrollState").invoke(list);
+            if (sScrollState == null) sScrollState = list.getClass().getMethod("getScrollState");
+            Object state = sScrollState.invoke(list);
             if (state instanceof Integer) return (Integer) state;
         } catch (Throwable ignored) {
         }
@@ -310,6 +343,7 @@ public final class Sidebar {
 
         if (find(item, "drawer_top") != null || id(item, "drawer_top") == item.getId()) {
             paintAccount(item, palette);
+            diagnoseDrawer(item);
             return;
         }
 
@@ -320,6 +354,67 @@ public final class Sidebar {
         }
 
         paintRow(item, palette);
+    }
+
+    private static int sDiagRuns;
+
+    /**
+     * Temporary diagnostic for the gap under the header when the banner is hidden.
+     * Logs (tag MorpheDrawer) the first rows of the drawer list and the views around it,
+     * three times per process: now, after 700ms and after 2000ms.
+     */
+    private static void diagnoseDrawer(View item) {
+        if (sDiagRuns >= 3) return;
+        sDiagRuns++;
+        long[] delays = {0L, 700L, 2000L};
+        final int run = sDiagRuns;
+        item.postDelayed(() -> {
+            try {
+                dumpDrawer(item, run);
+            } catch (Throwable t) {
+                Log.w("MorpheDrawer", "dump", t);
+            }
+        }, delays[run - 1]);
+    }
+
+    private static void dumpDrawer(View item, int run) throws Exception {
+        float d = item.getResources().getDisplayMetrics().density;
+        View list = drawerList(item);
+        Log.w("MorpheDrawer", "run " + run + " density " + d + " banner "
+                + SeasonalBanner.showsPicture(item.getContext()) + " list "
+                + (list == null ? "null" : list.getClass().getName() + " h=" + list.getHeight()
+                + " padTop=" + list.getPaddingTop() + " top=" + list.getTop()
+                + " clip=" + (list instanceof ViewGroup && ((ViewGroup) list).getClipToPadding())));
+        if (!(list instanceof ViewGroup)) return;
+        ViewGroup group = (ViewGroup) list;
+        Object adapter = list.getClass().getMethod("getAdapter").invoke(list);
+        java.lang.reflect.Method type = adapter == null ? null
+                : adapter.getClass().getMethod("getItemViewType", int.class);
+        Log.w("MorpheDrawer", "children " + group.getChildCount() + " adapterItems "
+                + (adapter == null ? -1 : adapter.getClass().getMethod("getItemCount").invoke(adapter)));
+        int n = Math.min(8, group.getChildCount());
+        for (int i = 0; i < n; i++) {
+            View c = group.getChildAt(i);
+            Object pos = list.getClass().getMethod("getChildAdapterPosition", View.class).invoke(list, c);
+            Object vt = (type != null && pos instanceof Integer && (Integer) pos >= 0)
+                    ? type.invoke(adapter, (Integer) pos) : null;
+            ViewGroup.LayoutParams lp = c.getLayoutParams();
+            Log.w("MorpheDrawer", "row " + i + " pos=" + pos + " type=" + vt + " "
+                    + c.getClass().getSimpleName() + " top=" + c.getTop() + " h=" + c.getHeight()
+                    + " dp=" + Math.round(c.getHeight() / d) + " lp.h=" + (lp == null ? "?" : lp.height)
+                    + " vis=" + c.getVisibility() + " minH=" + c.getMinimumHeight()
+                    + " kids=" + (c instanceof ViewGroup ? ((ViewGroup) c).getChildCount() : 0));
+        }
+        View parent = (View) list.getParent();
+        if (parent instanceof ViewGroup) {
+            ViewGroup pg = (ViewGroup) parent;
+            for (int i = 0; i < pg.getChildCount(); i++) {
+                View s = pg.getChildAt(i);
+                Log.w("MorpheDrawer", "sibling " + i + " " + s.getClass().getName() + " top=" + s.getTop()
+                        + " h=" + s.getHeight() + " dp=" + Math.round(s.getHeight() / d)
+                        + " vis=" + s.getVisibility() + " isList=" + (s == list));
+            }
+        }
     }
 
     /**
@@ -399,6 +494,9 @@ public final class Sidebar {
         top.setElevation(0f);
         top.setMinimumHeight(0);
         heightIfChanged(top, height);
+        // Joey wraps the header in a FrameLayout row that keeps the 168dp the banner had.
+        // Sizing only the child left that wrapper tall, a blank gap under a hidden banner.
+        if (item != top) heightIfChanged(item, height);
         if (bird) top.setPadding(0, 0, 0, 0);
         else top.setPadding(Math.round(16 * density), 0, Math.round(12 * density), 0);
 
@@ -505,8 +603,14 @@ public final class Sidebar {
 
     private static void fill(View view, int color) {
         if (view == null) return;
-        view.setBackgroundColor(color);
-        view.setElevation(0f);
+        // Runs for the whole row on every bind, including mid-scroll, so a colour already set is kept
+        // instead of making a new drawable and redrawing for it.
+        android.graphics.drawable.Drawable now = view.getBackground();
+        if (!(now instanceof android.graphics.drawable.ColorDrawable)
+                || ((android.graphics.drawable.ColorDrawable) now).getColor() != color) {
+            view.setBackgroundColor(color);
+        }
+        if (view.getElevation() != 0f) view.setElevation(0f);
         if (!(view instanceof ViewGroup)) return;
         ViewGroup group = (ViewGroup) view;
         for (int i = 0; i < group.getChildCount(); i++) {
@@ -645,66 +749,90 @@ public final class Sidebar {
     }
 
     static void show(Activity activity) {
-        LinearLayout page = MorpheDialog.page(activity, "Sidebar",
-                "Untick an entry to hide it, or drag the handle to change the order. Go to includes bookmarks. Apply and restart for changes to take effect. Account, My profile, Settings and subreddit list remain untouched.");
-
         Set<String> hidden = new HashSet<>(hidden(activity));
-        List<String> order = new ArrayList<>(getOrder(activity));
-
-        LinearLayout rowsContainer = new LinearLayout(activity);
-        rowsContainer.setOrientation(LinearLayout.VERTICAL);
-
-        Runnable[] rebuildRef = new Runnable[1];
-        rebuildRef[0] = () -> {
-            rowsContainer.removeAllViews();
-            float density = activity.getResources().getDisplayMetrics().density;
-            for (int i = 0; i < order.size(); i++) {
-                final int index = i;
-                final String idName = order.get(i);
-                String[] def = findDef(idName);
-                if (def == null) continue;
-
-                LinearLayout line = new LinearLayout(activity);
-                line.setOrientation(LinearLayout.HORIZONTAL);
-                line.setGravity(Gravity.CENTER_VERTICAL);
-                line.setMinimumHeight(Math.round(44 * density));
-
-                CheckBox box = MorpheDialog.check(activity, def[1], !hidden.contains(idName), null);
-                box.setOnCheckedChangeListener((buttonView, checked) -> {
-                    if (checked) hidden.remove(idName);
-                    else hidden.add(idName);
-                    saveHidden(activity, hidden);
-                });
-                line.addView(box, new LinearLayout.LayoutParams(
-                        0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
-                line.addView(DragOrder.handle(activity, rowsContainer, (from, to) -> {
-                    Collections.swap(order, from, to);
-                    saveOrder(activity, order);
-                    return true;
-                }));
-
-                rowsContainer.addView(line);
-            }
+        List<List<String>> zones = ZoneEditor.lists(2);
+        for (String id : getOrder(activity)) {
+            if (findDef(id) == null) continue;
+            zones.get(hidden.contains(id) ? 1 : 0).add(id);
+        }
+        FrameLayout stage = new FrameLayout(activity);
+        stage.setClipChildren(true);
+        Runnable paint = () -> {
+            LinearLayout host = new LinearLayout(activity);
+            host.setOrientation(LinearLayout.VERTICAL);
+            drawDrawer(activity, host, zones.get(0));
+            BarPreview.show(activity, stage, host);
         };
-        rebuildRef[0].run();
+        Runnable save = () -> {
+            List<String> all = new ArrayList<>(zones.get(0));
+            all.addAll(zones.get(1));
+            saveHidden(activity, new HashSet<>(zones.get(1)));
+            saveOrder(activity, all);
+            paint.run();
+        };
+        ZoneEditor editor = new ZoneEditor(activity,
+                new String[]{"In the sidebar", "Hidden"},
+                new String[]{"Drag an entry here", "Drag an entry here to hide it"},
+                zones, (id, zone) -> true,
+                new ZoneEditor.Look() {
+                    @Override
+                    public String label(String id) {
+                        String[] def = findDef(id);
+                        return def == null ? id : def[1];
+                    }
 
-        page.addView(MorpheDialog.scroller(activity, rowsContainer));
+                    @Override
+                    public String icon(String id) {
+                        return null;
+                    }
+                }, save);
         TextView reset = MorpheDialog.action(activity, "Reset", MorpheDialog.SUB);
         TextView done = MorpheDialog.action(activity, "Done", MorpheDialog.SUB);
         TextView apply = MorpheDialog.action(activity, "Apply and restart", MorpheDialog.GOLD);
-        page.addView(MorpheDialog.actions(activity, reset, done, apply));
-
-        AlertDialog dialog = MorpheDialog.show(activity, page);
+        LinearLayout page = ZoneEditor.screen(activity, "Sidebar",
+                "Drag the handle to reorder an entry, or to move it between the sidebar and hidden. Go to includes bookmarks. Apply and restart for changes to take effect. Account, My profile, Settings and the subreddit list stay as they are.",
+                stage, editor, reset, done, apply);
+        android.app.Dialog dialog = MorpheDialog.showFull(activity, page, 640, null);
+        page.post(paint);
         reset.setOnClickListener(v -> {
-            hidden.clear();
-            order.clear();
-            for (String[] def : ENTRIES) order.add(def[0]);
-            saveHidden(activity, hidden);
-            saveOrder(activity, order);
-            rebuildRef[0].run();
+            for (List<String> zone : zones) zone.clear();
+            for (String[] def : ENTRIES) zones.get(0).add(def[0]);
+            save.run();
+            editor.rebuild();
         });
         done.setOnClickListener(v -> dialog.dismiss());
         apply.setOnClickListener(v -> restart(activity));
+    }
+
+    /** The drawer's entries in order, between Joey's own fixed rows. Scrolls inside a short frame. */
+    private static void drawDrawer(Activity activity, LinearLayout host, List<String> shown) {
+        float density = activity.getResources().getDisplayMetrics().density;
+        int text = MorpheDialog.text(activity);
+        int sub = MorpheDialog.sub(activity);
+        LinearLayout column = new LinearLayout(activity);
+        column.setOrientation(LinearLayout.VERTICAL);
+        column.setPadding(Math.round(14 * density), Math.round(6 * density), Math.round(14 * density), Math.round(6 * density));
+        column.addView(drawerRow(activity, "My profile", sub, density));
+        for (String id : shown) {
+            String[] def = findDef(id);
+            if (def != null) column.addView(drawerRow(activity, def[1], text, density));
+        }
+        column.addView(drawerRow(activity, "Settings", sub, density));
+        android.widget.ScrollView frame = new android.widget.ScrollView(activity);
+        frame.addView(column);
+        host.addView(frame, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
+                Math.round(170 * density)));
+        host.setBackgroundColor(BarPreview.canvas(activity));
+    }
+
+    private static TextView drawerRow(Activity activity, String label, int color, float density) {
+        TextView row = new TextView(activity);
+        row.setText(label);
+        row.setTextColor(color);
+        row.setTextSize(14);
+        row.setGravity(Gravity.CENTER_VERTICAL);
+        row.setMinimumHeight(Math.round(32 * density));
+        return row;
     }
 
     private static String[] findDef(String key) {
@@ -797,12 +925,7 @@ public final class Sidebar {
     }
 
     private static Context context() {
-        try {
-            Object app = Class.forName("o.o.joey.MyApplication").getMethod("p").invoke(null);
-            if (app instanceof Context) return (Context) app;
-        } catch (Throwable ignored) {
-        }
-        return null;
+        return ModernUi.getContext();
     }
 
     private static SharedPreferences prefs(Context context) {

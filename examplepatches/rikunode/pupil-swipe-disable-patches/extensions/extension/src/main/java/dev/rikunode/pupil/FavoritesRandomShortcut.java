@@ -10,12 +10,16 @@ import android.view.Gravity;
 import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
+import android.widget.Button;
 import android.widget.Toast;
 import java.lang.ref.WeakReference;
 import java.lang.reflect.Method;
+import java.util.List;
+import java.util.concurrent.ThreadLocalRandom;
 import kotlin.Unit;
 import kotlin.jvm.functions.Function0;
 import kotlin.jvm.functions.Function1;
+import kotlin.jvm.functions.Function3;
 
 @SuppressWarnings({"rawtypes", "unchecked"})
 public final class FavoritesRandomShortcut {
@@ -23,9 +27,20 @@ public final class FavoritesRandomShortcut {
             "xyz.quaver.pupil.ui.viewmodel.FavoritesViewModel";
     private static Object viewModel;
     private static Function1 showDetail;
+    private static Function1 detailNavigation;
     private static final String PREFS_NAME = "pupil_morphe_shortcut";
     private static final String SIDE_KEY = "random_button_side";
+    private static final String DETAIL_KEY = "random_button_on_detail";
+    private static final String DOWNLOADS_NAV_KEY = "random_button_in_downloads_slot";
+    private static final int DOWNLOAD_ICON_RES = 0x7f0800cd;
+    private static final int RANDOM_ICON_RES = 0x7f08015d;
+    private static final int DOWNLOAD_LABEL_RES = 0x7f11010b;
+    private static final int RANDOM_LABEL_RES = 0x7f110116;
+    private static WeakReference<List> detailStack = new WeakReference<>(null);
+    private static WeakReference<Object> navController = new WeakReference<>(null);
+    private static Boolean lastDownloadsNavEnabled;
     private static WeakReference<ImageButton> shortcutButton = new WeakReference<>(null);
+    private static WeakReference<Activity> currentActivity = new WeakReference<>(null);
     private static boolean openingRandom;
     private static boolean onFavorites;
     private static boolean detailVisible;
@@ -39,7 +54,7 @@ public final class FavoritesRandomShortcut {
                 && onShowDetail instanceof Function1;
         viewModel = onFavorites ? currentViewModel : null;
         showDetail = onFavorites ? (Function1) onShowDetail : null;
-        if (!onFavorites || !previouslyFavorites) detailVisible = false;
+        if ((!onFavorites || !previouslyFavorites) && detailNavigation == null) detailVisible = false;
         refreshVisibility();
     }
 
@@ -48,10 +63,17 @@ public final class FavoritesRandomShortcut {
         refreshVisibility();
     }
 
+    public static void bindDetail(Function1 onOpenGallery) {
+        detailNavigation = onOpenGallery;
+        detailVisible = true;
+        refreshVisibility();
+    }
+
     public static Function0 wrapOnDismiss(Function0 onDismiss) {
         if (onDismiss == null) return null;
         return () -> {
             Object result = onDismiss.invoke();
+            detailNavigation = null;
             detailVisible = false;
             refreshVisibility();
             return result;
@@ -59,6 +81,16 @@ public final class FavoritesRandomShortcut {
     }
 
     public static void install(Activity activity) {
+        currentActivity = new WeakReference<>(activity);
+        boolean enabled = downloadsNavEnabled(activity);
+        if (lastDownloadsNavEnabled == null || lastDownloadsNavEnabled != enabled) {
+            boolean needsRefresh = enabled || lastDownloadsNavEnabled != null;
+            lastDownloadsNavEnabled = enabled;
+            if (needsRefresh) {
+                activity.recreate();
+                return;
+            }
+        }
         FrameLayout root = activity.findViewById(android.R.id.content);
         if (root == null) return;
 
@@ -116,6 +148,204 @@ public final class FavoritesRandomShortcut {
         } catch (ReflectiveOperationException | RuntimeException error) {
             return;
         }
+        renderDetailPreference(context, composer);
+    }
+
+    private static void renderDetailPreference(Context context, Object composer) {
+        boolean enabled = showOnDetail(context);
+        Function0 onClick = () -> {
+            Context owner = context;
+            while (owner instanceof ContextWrapper && !(owner instanceof Activity)) {
+                owner = ((ContextWrapper) owner).getBaseContext();
+            }
+            if (owner instanceof Activity) {
+                Activity activity = (Activity) owner;
+                new AlertDialog.Builder(activity)
+                        .setTitle("作品ページにもランダムボタンを表示")
+                        .setSingleChoiceItems(new String[]{"ON", "OFF"}, enabled ? 0 : 1,
+                                (dialog, which) -> {
+                                    context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+                                            .edit().putBoolean(DETAIL_KEY, which == 0).apply();
+                                    dialog.dismiss();
+                                    activity.recreate();
+                                })
+                        .setNegativeButton("キャンセル", null)
+                        .show();
+            }
+            return Unit.INSTANCE;
+        };
+        try {
+            Class<?> preferences = Class.forName(
+                    "xyz.quaver.pupil.ui.compose.settings.PreferenceKt");
+            Method preference = null;
+            for (Method candidate : preferences.getDeclaredMethods()) {
+                if ("Preference".equals(candidate.getName())
+                        && candidate.getParameterTypes().length == 12) {
+                    preference = candidate;
+                    break;
+                }
+            }
+            if (preference == null) return;
+            preference.invoke(null, "作品ページにもランダムボタンを表示", null,
+                    enabled ? "ON" : "OFF", false, false, null, onClick,
+                    null, null, composer, 0, 446);
+        } catch (ReflectiveOperationException | RuntimeException error) {
+            return;
+        }
+        renderDownloadsNavPreference(context, composer);
+    }
+
+    private static boolean downloadsNavEnabled(Context context) {
+        return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+                .getBoolean(DOWNLOADS_NAV_KEY, false);
+    }
+
+    private static void renderDownloadsNavPreference(Context context, Object composer) {
+        boolean enabled = downloadsNavEnabled(context);
+        Function0 onClick = () -> {
+            Context owner = context;
+            while (owner instanceof ContextWrapper && !(owner instanceof Activity)) {
+                owner = ((ContextWrapper) owner).getBaseContext();
+            }
+            if (owner instanceof Activity) {
+                Activity activity = (Activity) owner;
+                new AlertDialog.Builder(activity)
+                        .setTitle("ダウンロードタブをランダムに置き換える")
+                        .setSingleChoiceItems(new String[]{"ON", "OFF"}, enabled ? 0 : 1,
+                                (dialog, which) -> {
+                                    context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+                                            .edit().putBoolean(DOWNLOADS_NAV_KEY, which == 0).apply();
+                                    dialog.dismiss();
+                                    activity.recreate();
+                                })
+                        .setNegativeButton("キャンセル", null).show();
+            }
+            return Unit.INSTANCE;
+        };
+        try {
+            Class<?> preferences = Class.forName(
+                    "xyz.quaver.pupil.ui.compose.settings.PreferenceKt");
+            Method preference = null;
+            for (Method candidate : preferences.getDeclaredMethods()) {
+                if ("Preference".equals(candidate.getName())
+                        && candidate.getParameterTypes().length == 12) {
+                    preference = candidate;
+                    break;
+                }
+            }
+            if (preference == null) return;
+            preference.invoke(null, "ダウンロードタブをランダムに置き換える", null,
+                    enabled ? "ON" : "OFF", false, false, null, onClick,
+                    null, null, composer, 0, 446);
+        } catch (ReflectiveOperationException | RuntimeException ignored) {
+            return;
+        }
+    }
+
+    // Registers a separate LazyColumn item between the thumbnails header and pager.
+    // The original three-column thumbnail grid is left untouched.
+    public static void addThumbnailShortcutItem(Object lazyListScope) {
+        Activity activity = currentActivity.get();
+        if (activity == null || !showOnDetail(activity)) return;
+        try {
+            Function3 content = (scope, composer, flags) -> {
+                renderThumbnailShortcut((Context) activity, composer);
+                return Unit.INSTANCE;
+            };
+            Class<?> impl = Class.forName("androidx.compose.runtime.internal.ComposableLambdaImpl");
+            Object composable = impl.getConstructor(int.class, Object.class, boolean.class)
+                    .newInstance(0x5A4F01, content, true);
+            Class<?> scopeClass = Class.forName("androidx.compose.foundation.lazy.LazyListScope");
+            Class<?> itemClass = Class.forName("androidx.compose.foundation.lazy.LazyItemScope$-CC");
+            itemClass.getMethod("item$default", scopeClass, Function3.class)
+                    .invoke(null, lazyListScope, composable);
+        } catch (ReflectiveOperationException | RuntimeException ignored) {
+            // Fail soft: preserve the original thumbnail pager if internals differ.
+        }
+    }
+
+    private static void renderThumbnailShortcut(Context context, Object composer) {
+        Function1 factory = value -> createThumbnailShortcutRow((Context) value);
+        Function1 update = value -> Unit.INSTANCE;
+        try {
+            Class<?> modifierClass = Class.forName("androidx.compose.ui.Modifier");
+            Object companion = Class.forName("androidx.compose.ui.Modifier$Companion")
+                    .getField("$$INSTANCE").get(null);
+            Object modifier = Class.forName("androidx.compose.foundation.layout.SizeKt")
+                    .getMethod("fillMaxWidth", modifierClass, float.class)
+                    .invoke(null, companion, 1.0f);
+            Class<?> composerClass = Class.forName("androidx.compose.runtime.Composer");
+            Class.forName("androidx.compose.ui.viewinterop.AndroidView_androidKt")
+                    .getMethod("AndroidView", Function1.class, modifierClass, Function1.class,
+                            composerClass, int.class)
+                    .invoke(null, factory, modifier, update, composer, 0);
+        } catch (ReflectiveOperationException | RuntimeException ignored) {
+            // Do not crash the gallery when an internal Compose signature differs.
+        }
+    }
+
+    private static View createThumbnailShortcutRow(Context context) {
+        FrameLayout row = new FrameLayout(context) {
+            @Override
+            protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+                int width = View.MeasureSpec.getSize(widthMeasureSpec);
+                // ThumbnailPager: 3 columns, 8dp between columns, aspect ratio 0.7.
+                int itemWidth = Math.max(1, Math.round((width - 2f * dp(context, 8)) / 3f));
+                int itemHeight = Math.max(1, Math.round(itemWidth / 0.7f));
+                int buttonHeight = Math.max(1, (itemHeight + 1) / 2);
+                getChildAt(0).measure(
+                        View.MeasureSpec.makeMeasureSpec(itemWidth, View.MeasureSpec.EXACTLY),
+                        View.MeasureSpec.makeMeasureSpec(buttonHeight, View.MeasureSpec.EXACTLY));
+                getChildAt(1).measure(
+                        View.MeasureSpec.makeMeasureSpec(itemWidth, View.MeasureSpec.EXACTLY),
+                        View.MeasureSpec.makeMeasureSpec(buttonHeight, View.MeasureSpec.EXACTLY));
+                setMeasuredDimension(width, View.resolveSize(buttonHeight, heightMeasureSpec));
+            }
+
+            @Override
+            protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
+                View random = getChildAt(0);
+                View bookmarks = getChildAt(1);
+                int buttonWidth = random.getMeasuredWidth();
+                int gap = dp(getContext(), 8);
+                random.layout(0, 0, buttonWidth, random.getMeasuredHeight());
+                bookmarks.layout(buttonWidth + gap, 0,
+                        buttonWidth + gap + bookmarks.getMeasuredWidth(),
+                        bookmarks.getMeasuredHeight());
+            }
+        };
+        ImageButton button = new ImageButton(context);
+        int iconId = context.getResources().getIdentifier(
+                "shuffle_variant", "drawable", context.getPackageName());
+        if (iconId == 0) iconId = android.R.drawable.ic_menu_rotate;
+        GradientDrawable background = new GradientDrawable();
+        background.setColor(Color.rgb(68, 68, 91));
+        background.setCornerRadius(dp(context, 6));
+        button.setBackground(background);
+        button.setImageResource(iconId);
+        button.setColorFilter(Color.WHITE);
+        button.setScaleType(ImageButton.ScaleType.CENTER_INSIDE);
+        button.setPadding(dp(context, 16), dp(context, 16), dp(context, 16), dp(context, 16));
+        button.setContentDescription("お気に入りからランダムに作品を開く");
+        button.setOnClickListener(ignored -> openRandom(button));
+        row.addView(button);
+        Button bookmarks = new Button(context);
+        bookmarks.setText("ブックマークに戻る");
+        bookmarks.setTextColor(Color.WHITE);
+        bookmarks.setTextSize(12);
+        bookmarks.setAllCaps(false);
+        GradientDrawable backBackground = new GradientDrawable();
+        backBackground.setColor(Color.rgb(68, 68, 91));
+        backBackground.setCornerRadius(dp(context, 6));
+        bookmarks.setBackground(backBackground);
+        bookmarks.setOnClickListener(ignored -> returnToBookmarks());
+        row.addView(bookmarks);
+        return row;
+    }
+
+    private static boolean showOnDetail(Context context) {
+        return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+                .getBoolean(DETAIL_KEY, true);
     }
 
     private static boolean isLeft(Context context) {
@@ -166,6 +396,8 @@ public final class FavoritesRandomShortcut {
                     showDetail = null;
                     onFavorites = false;
                     detailVisible = false;
+                    detailNavigation = null;
+                    currentActivity.clear();
                     openingRandom = false;
                 }
             }
@@ -173,21 +405,101 @@ public final class FavoritesRandomShortcut {
         return button;
     }
 
+    // Called from PupilApp's existing content lambda. The state list is the
+    // detail overlay stack, and the controller is the native top-level navigator.
+    public static void bindNavigation(Object stack, Object controller) {
+        if (stack instanceof List && controller != null) {
+            detailStack = new WeakReference<>((List) stack);
+            navController = new WeakReference<>(controller);
+        }
+    }
+
+    private static List<?> savedFavorites() throws ReflectiveOperationException {
+        Object store = Class.forName("xyz.quaver.pupil.PupilKt")
+                .getMethod("getFavorites").invoke(null);
+        return (List<?>) store.getClass().getMethod("getItems").invoke(store);
+    }
+
+    public static boolean onDownloadsNavClick(Object destination) {
+        Activity activity = currentActivity.get();
+        if (activity == null || !(destination instanceof Enum)
+                || !"Downloads".equals(((Enum) destination).name())
+                || !downloadsNavEnabled(activity)) return false;
+        try {
+            List stack = detailStack.get();
+            List<?> favorites = savedFavorites();
+            if (stack == null) throw new IllegalStateException("Detail navigation unavailable");
+            if (favorites.isEmpty()) {
+                Toast.makeText(activity, "ブックマークがありません", Toast.LENGTH_SHORT).show();
+                return true;
+            }
+            stack.add(favorites.get(ThreadLocalRandom.current().nextInt(favorites.size())));
+        } catch (ReflectiveOperationException | RuntimeException ignored) {
+            Toast.makeText(activity, "ランダム表示を開けませんでした", Toast.LENGTH_SHORT).show();
+        }
+        return true;
+    }
+
+    public static int navIconResource(int original) {
+        Activity activity = currentActivity.get();
+        return original == DOWNLOAD_ICON_RES && activity != null && downloadsNavEnabled(activity)
+                ? RANDOM_ICON_RES : original;
+    }
+
+    public static int navLabelResource(int original) {
+        Activity activity = currentActivity.get();
+        return original == DOWNLOAD_LABEL_RES && activity != null && downloadsNavEnabled(activity)
+                ? RANDOM_LABEL_RES : original;
+    }
+
+    private static void returnToBookmarks() {
+        Activity activity = currentActivity.get();
+        List stack = detailStack.get();
+        Object controller = navController.get();
+        if (activity == null || stack == null || controller == null) return;
+        try {
+            Class<?> destinationClass = Class.forName(
+                    "xyz.quaver.pupil.ui.compose.Destination");
+            Object favorites = destinationClass.getField("Favorites").get(null);
+            Class<?> controllerClass = Class.forName("androidx.navigation.NavHostController");
+            Method navigate = Class.forName("xyz.quaver.pupil.ui.compose.PupilAppKt")
+                    .getDeclaredMethod("navigateToTopLevel", controllerClass, destinationClass);
+            navigate.setAccessible(true);
+            stack.clear();
+            navigate.invoke(null, controller, favorites);
+            detailNavigation = null;
+            detailVisible = false;
+            refreshVisibility();
+        } catch (ReflectiveOperationException | RuntimeException ignored) {
+            Toast.makeText(activity, "ブックマークに戻れませんでした", Toast.LENGTH_SHORT).show();
+        }
+    }
+
     private static void openRandom(ImageButton button) {
+        boolean inDetail = detailVisible && detailNavigation != null;
         Object model = viewModel;
-        Function1 detail = showDetail;
-        if (!onFavorites || detailVisible || openingRandom || model == null || detail == null) return;
+        Function1 destination = inDetail ? detailNavigation : showDetail;
+        if (openingRandom || destination == null || (!inDetail && (!onFavorites || model == null))) return;
 
         openingRandom = true;
         button.setEnabled(false);
         try {
-            Object galleryId = model.getClass().getMethod("randomGalleryID").invoke(model);
+            Object galleryId;
+            if (inDetail) {
+                // Gallery details can be opened from tabs other than Favorites.
+                // Read Pupil's saved Favorites rather than relying on a tab ViewModel.
+                List<?> favorites = savedFavorites();
+                galleryId = favorites.isEmpty() ? null
+                        : favorites.get(ThreadLocalRandom.current().nextInt(favorites.size()));
+            } else {
+                galleryId = model.getClass().getMethod("randomGalleryID").invoke(model);
+            }
             if (galleryId instanceof Integer) {
-                hideForDetail();
-                detail.invoke(galleryId);
+                if (!inDetail) hideForDetail();
+                destination.invoke(galleryId);
             }
         } catch (ReflectiveOperationException | RuntimeException error) {
-            detailVisible = false;
+            if (!inDetail) detailVisible = false;
             refreshVisibility();
             Toast.makeText(button.getContext(), "ランダム表示を開けませんでした", Toast.LENGTH_SHORT).show();
         } finally {
@@ -197,13 +509,16 @@ public final class FavoritesRandomShortcut {
     }
 
     private static void refreshVisibility() {
-        int visibility = onFavorites && !detailVisible && viewModel != null && showDetail != null
-                ? View.VISIBLE : View.GONE;
         ImageButton button = shortcutButton.get();
-        if (button != null) button.setVisibility(visibility);
+        if (button == null) return;
+        Activity activity = currentActivity.get();
+        boolean downloadsSlotReplaced = activity != null && downloadsNavEnabled(activity);
+        boolean visible = !downloadsSlotReplaced && !detailVisible && onFavorites
+                && viewModel != null && showDetail != null;
+        button.setVisibility(visible ? View.VISIBLE : View.GONE);
     }
 
-    private static int dp(Activity activity, int value) {
+    private static int dp(Context activity, int value) {
         return Math.round(value * activity.getResources().getDisplayMetrics().density);
     }
 }

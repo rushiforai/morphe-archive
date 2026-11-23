@@ -2,6 +2,7 @@
  * Copyright (C) 2026 lavinhoque33
  * Licensed under the GNU General Public License v3.0.
  * Modified by lavinhoque33, 2026-11-14.
+ * Modified by lavinhoque33, 2026-11-22.
  * Written by lavinhoque33, 2026-11-07.
  */
 package app.morphe.patches.music.interaction.downloads
@@ -13,6 +14,7 @@ import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.util.getReference
 import app.morphe.patcher.util.smali.ExternalLabel
 import app.morphe.util.Utils.printInfo
+import app.morphe.util.Utils.printWarn
 import app.morphe.util.fingerprint.matchSingle
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.builder.BuilderOffsetInstruction
@@ -46,7 +48,7 @@ private const val FILE_SOURCE_MARKER = "c.FileNotFound;src."
  * no guard, no decryption. The hook skips `i(true)` (`read()` reopening mid-stream), so it is only correct while the
  * public `open(DataSpec)` calls `i(false)`; [checkInitialOpenIsNotMidStream] verifies that on every version.
  */
-internal fun BytecodePatchContext.prepareStreamSwapLocalSource(): () -> Unit {
+internal fun BytecodePatchContext.prepareStreamSwapLocalSource(): () -> Boolean {
         val dataSpec = streamSwapDataSpec()
         val uriField = dataSpec.fields.single { it.type == LOCAL_URI }
         val open = Fingerprint(
@@ -145,7 +147,22 @@ internal fun BytecodePatchContext.prepareStreamSwapLocalSource(): () -> Unit {
         check(wideNext + 1 <= 15 && builder <= 15 && specRegister <= 15 && sourceRegister <= 15) { "register range" }
 
         val localFile = "$LOCAL_SWAP->route(${LOCAL_URI}JJ)$LOCAL_URI"
+        val inspector = try {
+            check(wide != sourceRegister && wide != specRegister && wide != keyRegister && wide != thisRegister)
+            preparePlaybackSourceInspector(fileReader)
+        } catch (ex: Exception) {
+            printWarn("Playback source inspector unavailable on this Music build: ${ex.message}")
+            null
+        }
+
         return {
+        val bindReader = try {
+            inspector?.install?.invoke()
+            inspector?.bindFileReader(sourceRegister, wide, thisRegister, specField, uriField).orEmpty()
+        } catch (ex: Exception) {
+            printWarn("Playback source inspector unavailable on this Music build: ${ex.message}")
+            ""
+        }
         method.addInstructionsWithLabels(1, """
             if-nez p1, :stream_swap_stock_request
             iget-object v$specRegister, v$thisRegister, ${specField.definingClass}->${specField.name}:${specField.type}
@@ -172,12 +189,14 @@ internal fun BytecodePatchContext.prepareStreamSwapLocalSource(): () -> Unit {
             new-instance v$sourceRegister, ${fileReader.type}
             const-string v$wide, "StreamSwap"
             invoke-direct {v$sourceRegister, v$wide}, ${fileReader.type}-><init>($LOCAL_STRING)V
+            $bindReader
             const/4 v$span, 0x0
             const/4 v$nullReg, 0x0
             const-wide/16 v$minusReg, -0x1
             goto :stream_swap_merge
         """, stock, merge)
         printInfo("StreamSwap: local file route hooked ${cache.type}->${method.name}; reader ${fileReader.type}")
+        bindReader.isNotEmpty()
     }
 }
 

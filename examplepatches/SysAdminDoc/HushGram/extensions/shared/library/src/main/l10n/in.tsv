@@ -1052,6 +1052,14 @@ Shows a handle at the right edge of Saved and your collections while they scroll
 Hide the New collection button	Sembunyikan tombol Koleksi baru
 # context: Profiles > summary of Hide the New collection button; Saved is Instagram's own Saved page (#762)
 Takes the + for a new collection off the top of Saved. Your collections stay.	Menghapus + untuk koleksi baru dari bagian atas Tersimpan. Koleksimu tetap ada.
+# context: Profiles > switch right after Hide the New collection button; Reels is Instagram's own label for the Reels tab at the top of Saved, Saved is Instagram's own Saved page (#810)
+Hide the Reels tab in Saved	Sembunyikan tab Reels di Tersimpan
+# context: Profiles > summary of Hide the Reels tab in Saved; saved reels still show under All (#810)
+Takes the Reels tab out of Saved. Your saved reels stay saved.	Menghapus tab Reels dari Tersimpan. Reels yang kamu simpan tetap tersimpan.
+# context: Profiles > switch right after Hide the Reels tab in Saved; Saved is Instagram's own label for the bookmark at the top right of the Search tab, beside the search bar (#810)
+Hide Saved on the Search tab	Sembunyikan Tersimpan di tab Cari
+# context: Profiles > summary of Hide Saved on the Search tab (#810)
+Takes the Saved bookmark off the top of the Search tab. Restart Instagram after changing it.	Menghapus penanda Tersimpan dari bagian atas tab Cari. Mulai ulang Instagram setelah mengubahnya.
 Battery	Baterai
 Stop the background heartbeat	Hentikan detak latar belakang
 Instagram wakes your phone every minute or two, screen off included, only to note that it is still running. This stops that. Messages, notifications and everything you see are unaffected.	Instagram membangunkan ponselmu setiap satu atau dua menit, termasuk saat layar mati, hanya untuk mencatat bahwa ia masih berjalan. Ini menghentikannya. Pesan, notifikasi, dan semua yang kamu lihat tidak terpengaruh.
@@ -1903,6 +1911,10 @@ Glass top bar in chats	Kaca di bilah atas chat
 Turn it off to leave a chat's top bar as Instagram draws it, with no frosted band behind it. The round glass buttons and the glass message bar stay.	Matikan agar bilah atas chat tetap seperti yang digambar Instagram, tanpa pita kaca buram di belakangnya. Tombol kaca bulat dan bilah pesan kaca tetap ada.
 Top bar tint in chats	Warna bilah atas chat
 Message bar tint	Warna bilah pesan
+Glass buttons in chats	Tombol kaca di chat
+Turn it off for a plain blur with no round glass behind the buttons at the top of a chat.	Matikan untuk blur polos tanpa kaca bulat di balik tombol di bagian atas chat.
+Blur the chat behind a held message	Blur chat di balik pesan yang ditahan
+Hold a message and the rest of the chat blurs behind it and its reactions. Needs Android 12 or newer.	Tahan sebuah pesan dan bagian chat lainnya menjadi blur di belakang pesan itu dan reaksinya. Butuh Android 12 atau lebih baru.
 # context: Reels switch Hide reels with few views, its summary, the Minimum views row, its dialog message and the row's summary, then the Minimum likes row, its dialog message, its summary and its summary at 0; %1$s is a number with thousands separators (#444)
 Hide reels with few views	Sembunyikan reel dengan sedikit tayangan
 Leaves out reels in the Reels tab outside the numbers below. Reels from accounts you follow, reels sent to you and reels that don't show a number still play.	Menyembunyikan reel di tab Reels yang berada di luar angka di bawah. Reel dari akun yang kamu ikuti, reel yang dikirim kepadamu, dan reel yang tidak menampilkan angka tetap diputar.
@@ -2779,3 +2791,21 @@ Couldn't start recording this call	Tidak dapat mulai merekam panggilan ini
 Couldn't save the call recording	Rekaman panggilan tidak dapat disimpan
 # context: a toast when a recording ends with no sound in it (#732)
 Nothing was recorded	Tidak ada yang terekam
+# context: a toast when a save starts, naming the account the media is from (#792)
+Saving from @%1$s...	Menyimpan dari @%1$s...
+# context: a second toast after the one above, when notifications are off (#792)
+You can cancel from Downloads in HushGram settings.	Kamu bisa membatalkan dari Unduhan di pengaturan HushGram.
+# context: a toast when a save waits for the ones already running, the account unknown (#792)
+Queued	Dalam antrean
+# context: a toast when a save waits for the ones already running, naming the account (#792)
+Queued: @%1$s	Dalam antrean: @%1$s
+# context: a toast when too many saves already wait their turn (#792)
+Not saved: %1$d saves are already waiting	Tidak disimpan: %1$d sudah menunggu
+# context: a waiting save's notification text and its line in Downloads (#792)
+Waiting for the saves before it	Menunggu simpanan sebelumnya
+# context: Feed settings: a switch under Start feed videos with sound that starts them with sound while the phone is on silent or vibrate too (#762)
+Even on silent	Juga saat senyap
+# context: Summary of Even on silent, a switch under Start feed videos with sound (#762)
+Feed videos start with sound with the phone on silent or vibrate too. Only the media volume counts.	Video feed tetap mulai dengan suara saat ponsel dalam mode senyap atau getar. Hanya volume media yang dihitung.
+Also in search	Juga di pencarian
+Takes rows of the Explore grid and of search results out when a post in them holds a word or phrase from the list, or comes from an account the list names with @.	Menghapus baris dari kisi Jelajahi dan hasil pencarian jika ada postingan di dalamnya yang berisi kata atau frasa dari daftar, atau berasal dari akun yang disebut daftar dengan @.

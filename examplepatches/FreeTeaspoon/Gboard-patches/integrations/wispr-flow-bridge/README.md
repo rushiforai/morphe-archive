@@ -1,8 +1,8 @@
 # Wispr Flow keyboard bridge
 
 An experimental LSPosed companion for the Gboard **Wispr Flow** patch. It supports the
-Wispr Flow Android app versions **2.8.5** and **2.8.7**, with patched Gboard **18.5.4**.
-Use bridge **0.3.1** with the current Gboard patch bundle.
+Wispr Flow Android app versions **2.8.5**, **2.8.7**, and **2.8.8**, with patched Gboard
+**18.5.4**. Use bridge **0.3.2** with the current Gboard patch bundle.
 
 The Gboard menu button can be tapped in the menu or held and dragged to the toolbar.
 Tap it to enable keyboard mode and start dictation. Gboard shows its native Advanced

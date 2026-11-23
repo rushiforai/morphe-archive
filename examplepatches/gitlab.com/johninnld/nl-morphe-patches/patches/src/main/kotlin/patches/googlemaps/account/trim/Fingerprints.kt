@@ -103,3 +103,62 @@ internal object LegacyYourProfileFingerprint : Fingerprint(
         methodCall(definingClass = "Lomf;", name = "e", opcode = Opcode.INVOKE_VIRTUAL),
     ),
 )
+
+/** 26.47: row holder ool, list bwzs, row brlr/brmc, builders oim (O) and ooo (a). */
+internal object CustomActionsListFingerprint2647 : Fingerprint(
+    name = "O",
+    parameters = listOf("Lagnt;"),
+    returnType = "Lbrgh;",
+    filters = listOf(
+        methodCall(definingClass = "Lbwzs;", name = "<init>", opcode = Opcode.INVOKE_DIRECT, parameters = listOf("I")),
+        methodCall(definingClass = "Lool;", name = "e", opcode = Opcode.INVOKE_VIRTUAL),
+    ),
+)
+
+internal object CommonActionsListFingerprint2647 : Fingerprint(
+    name = "O",
+    parameters = listOf("Lagnt;"),
+    returnType = "Lbrgh;",
+    filters = listOf(
+        methodCall(definingClass = "Lool;", name = "e", opcode = Opcode.INVOKE_VIRTUAL),
+        methodCall(definingClass = "Lbwzs;", name = "<init>", opcode = Opcode.INVOKE_DIRECT, parameters = listOf("I")),
+        fieldAccess(opcode = Opcode.IGET_OBJECT, definingClass = "Lool;", name = "r"),
+    ),
+)
+
+internal object SettingsRowAddFingerprint2647 : Fingerprint(
+    name = "O",
+    parameters = listOf("Lagnt;"),
+    returnType = "Lbrgh;",
+    filters = listOf(
+        methodCall(definingClass = "Lbucr;", name = "bg", opcode = Opcode.INVOKE_STATIC),
+        opcode(Opcode.MOVE_RESULT_OBJECT, MatchAfterImmediately()),
+        methodCall(definingClass = "Lbwzs;", name = "i", opcode = Opcode.INVOKE_VIRTUAL, location = MatchAfterImmediately()),
+        methodCall(definingClass = "Lbwzs;", name = "h", opcode = Opcode.INVOKE_VIRTUAL),
+    ),
+)
+
+internal object LegacySettingsRowAddFingerprint2647 : Fingerprint(
+    name = "a",
+    parameters = listOf("Z"),
+    returnType = "Lbrel;",
+    filters = listOf(
+        methodCall(definingClass = "Lbucr;", name = "bg", opcode = Opcode.INVOKE_STATIC),
+        opcode(Opcode.MOVE_RESULT_OBJECT, MatchAfterImmediately()),
+        methodCall(definingClass = "Lbwzs;", name = "i", opcode = Opcode.INVOKE_VIRTUAL, location = MatchAfterImmediately()),
+        methodCall(definingClass = "Lbwzs;", name = "h", opcode = Opcode.INVOKE_VIRTUAL),
+    ),
+)
+
+/** Legacy: Your profile's own row-add (kept, start) .. Offline maps' own call (kept, end). */
+internal object LegacyYourProfileFingerprint2647 : Fingerprint(
+    name = "a",
+    parameters = listOf("Z"),
+    returnType = "Lbrel;",
+    filters = listOf(
+        methodCall(definingClass = "Lbrmb;", name = "a", returnType = "Lbrmc;", opcode = Opcode.INVOKE_VIRTUAL),
+        opcode(Opcode.MOVE_RESULT_OBJECT, MatchAfterImmediately()),
+        methodCall(definingClass = "Lbwzs;", name = "i", opcode = Opcode.INVOKE_VIRTUAL, location = MatchAfterImmediately()),
+        methodCall(definingClass = "Lool;", name = "e", opcode = Opcode.INVOKE_VIRTUAL),
+    ),
+)

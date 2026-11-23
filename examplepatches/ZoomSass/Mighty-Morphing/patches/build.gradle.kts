@@ -31,6 +31,15 @@ tasks {
         mainClass.set("util.PatchListGeneratorKt")
     }
 
+    // ProblemReport shows the bundle version. bundle-version.txt gets the version this build uses.
+    processResources {
+        val bundleVersion = project.version.toString()
+        inputs.property("bundleVersion", bundleVersion)
+        filesMatching("bundle-version.txt") {
+            expand("bundleVersion" to bundleVersion)
+        }
+    }
+
     // Used by gradle-semantic-release-plugin.
     publish {
         dependsOn("generatePatchesList")

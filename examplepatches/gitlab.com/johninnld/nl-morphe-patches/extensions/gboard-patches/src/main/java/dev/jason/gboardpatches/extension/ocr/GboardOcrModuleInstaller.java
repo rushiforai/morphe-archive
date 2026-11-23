@@ -155,7 +155,7 @@ final class GboardOcrModuleInstaller {
     }
 
     private static Object createClient(Context context, ClassLoader classLoader) throws Throwable {
-        Class<?> moduleInstallClientClass = Class.forName("lyu", false, classLoader);
+        Class<?> moduleInstallClientClass = Class.forName("zgp", false, classLoader);
         Constructor<?> clientConstructor = moduleInstallClientClass.getDeclaredConstructor(
                 Context.class);
         clientConstructor.setAccessible(true);
@@ -166,7 +166,7 @@ final class GboardOcrModuleInstaller {
 
     private static Object createInstallTask(Object client, List<Object> optionalApis,
             Object statusListener, ClassLoader classLoader) throws Throwable {
-        Class<?> requestClass = Class.forName("srk", false, classLoader);
+        Class<?> requestClass = Class.forName("amly", false, classLoader);
         Class<?> statusListenerClass = Class.forName("ackq", false, classLoader);
         Constructor<?> requestConstructor = requestClass.getDeclaredConstructor(
                 List.class,
@@ -174,7 +174,7 @@ final class GboardOcrModuleInstaller {
         requestConstructor.setAccessible(true);
         Object installRequest = requestConstructor.newInstance(optionalApis, statusListener);
 
-        Class<?> moduleInstallClientClass = Class.forName("lyu", false, classLoader);
+        Class<?> moduleInstallClientClass = Class.forName("zgp", false, classLoader);
         Method installMethod = moduleInstallClientClass.getDeclaredMethod("c", requestClass);
         installMethod.setAccessible(true);
         Object task = installMethod.invoke(client, installRequest);

@@ -8,9 +8,9 @@ internal const val AI_WRITING_TOOLS_FEATURE_MARKER_NAME =
 internal val AI_WRITING_TOOLS_RUNTIME_CLASS = RuntimeAbiCatalog.abi(
     RuntimeCallId.AI_WRITING_TOOLS_RUNTIME_APPLY_OVERRIDDEN_FLAG_VALUE,
 ).owner
-internal const val SIGNAL_GATE_CLASS = "Loyg;"
-internal const val SIGNAL_MARKER_CLASS = "Lqly;"
-internal const val PREFERENCE_MANAGER_CLASS = "Lphj;"
-internal const val SETTINGS_CONTROLLER_CLASS = "Lens;"
+internal const val SIGNAL_GATE_CLASS = "Laetx;"
+internal const val SIGNAL_MARKER_CLASS = "Lahqj;"
+internal const val PREFERENCE_MANAGER_CLASS = "Lafjj;"
+internal const val SETTINGS_CONTROLLER_CLASS = "Lhyn;"
 internal const val PREFERENCE_WRAPPER_CLASS = "Lpmy;"
-internal const val BACKEND_FACTORY_CLASS = "Lguo;"
+internal const val BACKEND_FACTORY_CLASS = "Lnwy;"

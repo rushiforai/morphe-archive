@@ -142,7 +142,7 @@ final class NativeLine {
                 String id = cursor.getString(0), senderId = cursor.getString(2), body = cursor.getString(3);
                 long numericId;
                 try { numericId = Long.parseLong(id); } catch (NumberFormatException ignored) { continue; }
-                if (body == null || body.isEmpty()) body = "[첨부 메시지]";
+                if (body == null || body.isEmpty()) body = Strings.get("line_notify_attachment_placeholder", "[Attachment]");
                 String sender = senders.get(senderId);
                 if (sender == null) {
                     sender = senderName(senderId);
@@ -164,7 +164,7 @@ final class NativeLine {
                      new String[]{mid})) {
             if (cursor.moveToFirst() && cursor.getString(0) != null) return cursor.getString(0);
         } catch (RuntimeException ignored) { }
-        return "메시지";
+        return Strings.get("line_notify_fallback_sender", "Message");
     }
 
     /**

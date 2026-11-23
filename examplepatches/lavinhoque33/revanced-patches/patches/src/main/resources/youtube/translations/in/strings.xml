@@ -292,8 +292,10 @@ Untuk memperbaikinya, aktifkan 'Palsukan aliran video' dan ubah 'Klien bawaan' m
     <string name="morphe_playback_in_feeds_entry_off">Nonaktif</string>
     <string name="morphe_playback_in_feeds_entry_wifi_only">Wi-Fi saja</string>
     <string name="morphe_playback_in_feeds_title">Pemutaran di feed</string>
-    <string name="morphe_player_control_buttons_background_opacity_summary">Sesuaikan opasitas latar belakang di belakang tombol kontrol pemutar dan bilah waktu (0 tidak terlihat, 100 solid)</string>
-    <string name="morphe_player_control_buttons_background_opacity_title">Opasitas latar belakang tombol kontrol</string>
+    <string name="morphe_player_transport_background_opacity_summary">Sesuaikan opasitas latar belakang tombol Putar, Jeda, Putar ulang, Berikutnya, dan Sebelumnya</string>
+    <string name="morphe_player_transport_background_opacity_title">Opasitas latar tombol pemutaran</string>
+    <string name="morphe_player_other_overlay_background_opacity_summary">Sesuaikan opasitas latar belakang tombol pemutar lainnya dan penanda waktu</string>
+    <string name="morphe_player_other_overlay_background_opacity_title">Opasitas latar hamparan lainnya</string>
     <string name="morphe_playlist_hide_removal_snackbar_summary">Konfirmasi tidak ditampilkan setelah video dihapus dari daftar putar</string>
     <string name="morphe_playlist_hide_removal_snackbar_title">Sembunyikan snackbar penghapusan daftar putar</string>
     <string name="morphe_playlist_long_press_drag_summary">Sentuh dan tahan video di daftar putar Anda untuk menyeretnya ke posisi baru</string>

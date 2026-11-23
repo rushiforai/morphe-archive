@@ -41,7 +41,7 @@ internal val gboardCustomThemeOfficialImportPatch = bytecodePatch(
 
 context(context: app.morphe.patcher.patch.BytecodePatchContext)
 private fun validateCustomThemeTargetContract(): Pair<MutableMethod, MutableMethod> = with(context) {
-    check(GboardVersionBindings.targetVersion == "18.6.3") {
+    check(GboardVersionBindings.targetVersion in setOf("18.6.3", "18.8.0-beta")) {
         "Unsupported Custom Theme stock contract for ${GboardVersionBindings.targetVersion}"
     }
     val publicFinal = AccessFlags.PUBLIC.value or AccessFlags.FINAL.value
@@ -60,11 +60,17 @@ private fun validateCustomThemeTargetContract(): Pair<MutableMethod, MutableMeth
     }
     plusHandler.requireStockFingerprintUnlessPatched(
         RuntimeCallId.CUSTOM_THEME_RUNTIME_INTERCEPT_PLUS,
-        CUSTOM_THEME_PLUS_1863_FINGERPRINT,
+        when (GboardVersionBindings.targetVersion) {
+            "18.8.0-beta" -> CUSTOM_THEME_PLUS_188_FINGERPRINT
+            else -> CUSTOM_THEME_PLUS_1863_FINGERPRINT
+        },
     )
     resultHandler.requireStockFingerprintUnlessPatched(
         RuntimeCallId.CUSTOM_THEME_RUNTIME_HANDLE_ACTIVITY_RESULT,
-        CUSTOM_THEME_RESULT_1863_FINGERPRINT,
+        when (GboardVersionBindings.targetVersion) {
+            "18.8.0-beta" -> CUSTOM_THEME_RESULT_188_FINGERPRINT
+            else -> CUSTOM_THEME_RESULT_1863_FINGERPRINT
+        },
     )
     findMutableMethodOrThrow(GboardVersionBindings.customThemeValidator).let { method ->
         check(method.accessFlags == publicStatic && method.implementation != null) {
@@ -104,6 +110,12 @@ internal const val CUSTOM_THEME_PLUS_1863_FINGERPRINT =
     "847c767ae8a96d901f25a912eb42071221255933fee93b12fa3487f6a868e910"
 internal const val CUSTOM_THEME_RESULT_1863_FINGERPRINT =
     "0686622b70cde1e986f10d2bb83162eccd3d52fa0e5abcfe5b644432d984df11"
+
+// Stock 18.8.0-beta structure: Lvmj;->c(Lvmh;Lvmn;I)V and ThemeListingFragment;->X(IILandroid/content/Intent;)V.
+internal const val CUSTOM_THEME_PLUS_188_FINGERPRINT =
+    "4a43629ebfda38c5d74e14116833f177c261c890b3231a4f56192f87eb557739"
+internal const val CUSTOM_THEME_RESULT_188_FINGERPRINT =
+    "113d1137ff039d25b4e1a925a3513a8ef8fe7d588f45243c9a6317884e3b9324"
 
 // Register files the stock bodies are compiled with; the guard only needs v0 as scratch,
 // and the entry copies keep those values readable after the adapter is prepended.

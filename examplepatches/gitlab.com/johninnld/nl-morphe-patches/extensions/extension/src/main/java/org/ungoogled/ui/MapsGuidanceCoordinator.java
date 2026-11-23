@@ -58,16 +58,25 @@ public final class MapsGuidanceCoordinator {
     private void bind() {
         try {
             Object component=applicationComponent(app);
-            Object provider=field(component.getClass(),"hU").get(component);
-            Object actual=method(provider.getClass(),"a").invoke(provider);
-            if(!actual.getClass().getName().equals("bmxs"))throw new IllegalStateException("NATIVE_MANAGER");
+            // The native manager keeps the f/j/p/q slots. 26.44 reaches it through the component's hU
+            // provider, 26.47 through hX; hU there holds an aywx instead. Pick by shape, not by slot or
+            // class name, because both are renamed between releases.
+            Object actual=null;Exception wrong=null;
+            for(String slot:new String[]{"hX","hU"})try{
+                Object provider=field(component.getClass(),slot).get(component);
+                Object value=method(provider.getClass(),"a").invoke(provider);
+                if(value!=null&&field(value.getClass(),"f")!=null&&field(value.getClass(),"q")!=null){actual=value;break;}
+            }catch(ReflectiveOperationException|RuntimeException error){wrong=error;}
+            if(actual==null)throw new IllegalStateException("NATIVE_MANAGER",wrong);
             manager=actual;bound=true;
         }catch(ReflectiveOperationException | RuntimeException error){fault=true;}
     }
     static Object applicationComponent(Object application)throws ReflectiveOperationException{
         // 26.44 inherits the cached component accessor from nsm. Its protected
         // e() factory creates a different manager and must never be used here.
-        return method(application.getClass(),"rS").invoke(application);
+        // 26.44 inherits the cached component accessor as rS(); 26.47 as pY().
+        try{return method(application.getClass(),"rS").invoke(application);}
+        catch(NoSuchMethodException older){return method(application.getClass(),"pY").invoke(application);}
     }
     public boolean isReady(){return hooksInstalled()&&bound&&!fault;}
     public WarningAudioOwner.Mode effectiveMode(WarningAudioOwner.Mode requested) {
@@ -134,8 +143,7 @@ public final class MapsGuidanceCoordinator {
         }catch(ReflectiveOperationException | RuntimeException error){fault=true;abandon(version,callback,"GUIDANCE_EXECUTOR_FAILED");}
     }
     private void cancel(Object job) throws ReflectiveOperationException {
-        Class<?> jobInterface=Class.forName("bnav",false,app.getClassLoader());
-        method(manager.getClass(),"l",jobInterface).invoke(manager,job);
+        oneArgumentMethod(manager.getClass(),"l",job).invoke(manager,job);
     }
     private void awaitQuiet(long version,long deadline,Ready callback) {
         if(version!=generation || !holding)return;
@@ -221,7 +229,7 @@ public final class MapsGuidanceCoordinator {
     }
     private static RoadWarningEngine.Route warningRoute(Object owner)throws ReflectiveOperationException{
         Object model=routeField(owner,"e").get(owner);if(model==null)return null;
-        ClassLoader loader=owner.getClass().getClassLoader();Class<?> routeModel=Class.forName("blvb",false,loader),pathType=Class.forName("ycj",false,loader),polylineType=Class.forName("bjpp",false,loader),pointType=Class.forName("bjpk",false,loader);
+        ClassLoader loader=owner.getClass().getClassLoader();Class<?> routeModel=type(loader,"bmca","blvb"),pathType=type(loader,"yfm","ycj"),polylineType=type(loader,"bjws","bjpp"),pointType=type(loader,"bjwm","bjpk");
         if(!routeModel.isInstance(model))return null;Field pathField=field(routeModel,"b");if(pathField.getType()!=pathType)return null;Object path=pathField.get(model);if(path==null)return null;Field geometry=field(pathType,"k");if(geometry.getType()!=polylineType)return null;Object polyline=geometry.get(path);if(polyline==null)return null;
         synchronized(LOCK){if(polyline==cachedPolyline)return cachedWarningRoute;}
         int count=((Number)method(polylineType,"g").invoke(polyline)).intValue();if(count<2||count>50000)return null;double[] latitudes=new double[count],longitudes=new double[count];Method point=method(polylineType,"n",int.class),latitude=method(pointType,"b"),longitude=method(pointType,"d");
@@ -229,14 +237,17 @@ public final class MapsGuidanceCoordinator {
         RoadWarningEngine.Route snapshot=new RoadWarningEngine.Route(latitudes,longitudes);synchronized(LOCK){if(route.get()==owner){cachedPolyline=polyline;cachedWarningRoute=snapshot;}}return snapshot;
     }
     private static Class<?> routeBase(Object owner)throws ClassNotFoundException {
-        Class<?> base=Class.forName("bmon",false,owner.getClass().getClassLoader());
+        Class<?> base=type(owner.getClass().getClassLoader(),"bmvq","bmon");
         if(!base.isInstance(owner))throw new IllegalArgumentException("ROUTE_OWNER");return base;
     }
     /** Obfuscated subclasses reuse member names; use the guarded base declaration, not a name walk. */
     private static Field routeField(Object owner,String name)throws ReflectiveOperationException {
         Field value=routeBase(owner).getDeclaredField(name);value.setAccessible(true);
-        String expected="o".equals(name)?"ycx":"e".equals(name)?"blvb":"bmnv";
-        if(!value.getType().getName().equals(expected))throw new NoSuchFieldException("ROUTE_FIELD_TYPE");return value;
+        String[] expected="o".equals(name)?new String[]{"ycx","yga"}
+            :"e".equals(name)?new String[]{"blvb","bmca"}
+            :new String[]{"bmnv","bmuy"};
+        for(String option:expected)if(value.getType().getName().equals(option))return value;
+        throw new NoSuchFieldException("ROUTE_FIELD_TYPE");
     }
     private static boolean navigationActive(Object owner)throws ReflectiveOperationException {
         Object controller=routeField(owner,"c").get(owner);return controller!=null&&(Boolean)method(controller.getClass(),"bv").invoke(controller);
@@ -274,7 +285,7 @@ public final class MapsGuidanceCoordinator {
     private static void reject(MapsGuidanceCoordinator coordinator,Object job,Object player)throws ReflectiveOperationException {
         coordinator.regenerate=true;((AtomicBoolean)field(job.getClass(),"s").get(job)).set(true);
         method(player.getClass(),"l").invoke(player);
-        method(job.getClass(),"e",Class.forName("bnau",false,job.getClass().getClassLoader())).invoke(job,player);
+        oneArgumentMethod(job.getClass(),"e",player).invoke(job,player);
         synchronized(LOCK) {
             try{if(released(player,0))PLAYERS.remove(job);}
             catch(ReflectiveOperationException | RuntimeException error){coordinator.fault=true;}
@@ -295,7 +306,7 @@ public final class MapsGuidanceCoordinator {
                 // Release its resources, then use the original never-played queue completion path.
                 reject(coordinator,job,player);return;
             }
-            method(player.getClass(),"d",Class.forName("bnas",false,player.getClass().getClassLoader())).invoke(player,callback);
+            oneArgumentMethod(player.getClass(),"d",callback).invoke(player,callback);
         }catch(InvocationTargetException error) {
             Throwable cause=error.getCause();if(cause instanceof RuntimeException)throw (RuntimeException)cause;if(cause instanceof Error)throw (Error)cause;throw new IllegalStateException(cause);
         }catch(ReflectiveOperationException error){if(coordinator!=null)coordinator.fault=true;throw new IllegalStateException("Maps native dispatch ABI",error);}
@@ -323,18 +334,40 @@ public final class MapsGuidanceCoordinator {
     private static boolean released(Object player,int depth) throws ReflectiveOperationException {
         if(depth>8)throw new IllegalArgumentException("PLAYER_DEPTH");
         switch(player.getClass().getName()) {
-            case "bmzd":return field(player.getClass(),"a").get(player)==null;
-            case "bnam":Object leaf=field(player.getClass(),"a").get(player);return leaf==null || released(leaf,depth+1);
-            case "bmza":for(Object leafPlayer:(Object[])field(player.getClass(),"a").get(player))if(!released(leafPlayer,depth+1))return false;return true;
+            case "bmzd":case "bngu":return field(player.getClass(),"a").get(player)==null;
+            case "bnam":case "bnid":Object leaf=field(player.getClass(),"a").get(player);return leaf==null || released(leaf,depth+1);
+            case "bmza":case "bngr":for(Object leafPlayer:(Object[])field(player.getClass(),"a").get(player))if(!released(leafPlayer,depth+1))return false;return true;
             case "bmzb":return true; // Native non-audio silence timer.
-            case "bnah":return true; // Native no-op sentinel: callbacks only, no audio resource.
-            case "bnaq":return true; // Native vibration/wearable transport, not a local audio player.
+            case "bnah":case "bnhy":return true; // Native no-op sentinel: callbacks only, no audio resource.
+            case "bnaq":case "bnih":return true; // Native vibration/wearable transport, not a local audio player.
             default:throw new IllegalArgumentException("PLAYER_UNSUPPORTED");
         }
+    }
+    /** Maps renames its obfuscated types every release; take the first name this build has. */
+    static Class<?> type(ClassLoader loader,String... names) throws ClassNotFoundException {
+        for(String name:names)try { return Class.forName(name,false,loader); }catch(ClassNotFoundException ignored){}
+        throw new ClassNotFoundException(java.util.Arrays.toString(names));
     }
     static Field field(Class<?> type,String name) throws NoSuchFieldException {
         for(Class<?> owner=type;owner!=null;owner=owner.getSuperclass())try { Field f=owner.getDeclaredField(name);f.setAccessible(true);return f; }catch(NoSuchFieldException ignored){}
         throw new NoSuchFieldException(type.getName()+"."+name);
+    }
+    /**
+     * Resolve `name` with exactly one parameter, preferring an overload the argument satisfies.
+     * Maps renamed the listener interfaces between versions, so the parameter type is not stable
+     * and cannot be looked up by name.
+     */
+    static Method oneArgumentMethod(Class<?> type,String name,Object argument) throws NoSuchMethodException {
+        for(Class<?> owner=type;owner!=null;owner=owner.getSuperclass()) {
+            Method fallback=null;
+            for(Method candidate:owner.getDeclaredMethods()) {
+                if(!candidate.getName().equals(name)||candidate.getParameterCount()!=1)continue;
+                if(candidate.getParameterTypes()[0].isInstance(argument)){candidate.setAccessible(true);return candidate;}
+                if(fallback==null)fallback=candidate;
+            }
+            if(fallback!=null){fallback.setAccessible(true);return fallback;}
+        }
+        throw new NoSuchMethodException(type.getName()+"."+name);
     }
     static Method method(Class<?> type,String name,Class<?>...parameters) throws NoSuchMethodException {
         for(Class<?> owner=type;owner!=null;owner=owner.getSuperclass())try { Method m=owner.getDeclaredMethod(name,parameters);m.setAccessible(true);return m; }catch(NoSuchMethodException ignored){}

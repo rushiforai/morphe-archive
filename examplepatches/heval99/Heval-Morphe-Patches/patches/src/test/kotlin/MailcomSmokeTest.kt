@@ -107,7 +107,7 @@ class MailcomSmokeTest {
             apk = apk,
             workDir = workDir,
             pkg = PKG,
-            version = "9.20.2",
+            version = "9.21.2",
             patchNames = setOf("Disable ads", "Disable telemetry", "Disable rating prompts", "Hide upsells"),
             allPatches = loadAllPatches(newestPatchBundle(root)),
         )
@@ -131,16 +131,25 @@ class MailcomSmokeTest {
             expected = false, label = "InterstitialAdConfig.isEnabled",
         )
 
-        // Disable ads 3: the ad pixel sender returns at once (its body is still there behind it).
+        // Disable ads 3: the ad pixel sender (CommonTracker.trackCustomUrl since 9.21.2, a suspend
+        // method returning Unit) returns Unit.INSTANCE at once (its body is still there behind it).
         val adTrackerSends = allMethods.filter { (_, method) ->
             val strings = method.strings()
-            method.returnType == "V" && method.parameterTypes.map(CharSequence::toString) == listOf(STRING) &&
+            method.returnType == "Ljava/lang/Object;" && method.parameterTypes.size == 2 &&
+                method.parameterTypes[0].toString() == STRING &&
                 strings.any { it.startsWith("AdTracker: url is null or invalid") } &&
                 strings.any { it.startsWith("AdTracker failed") }
         }
         val (_, adTrackerSend) = adTrackerSends.singleOrNull()
-            ?: error("expected one AdTracker.send, found ${adTrackerSends.map { it.first.type }}")
-        assertReturnsEarlyVoid(adTrackerSend, label = "AdTracker.send(String)")
+            ?: error("expected one AdTracker sender, found ${adTrackerSends.map { it.first.type }}")
+        val adTrackerHead = adTrackerSend.instructions().take(2).toList()
+        assertEquals(Opcode.SGET_OBJECT, adTrackerHead[0].opcode, "AdTracker sender must start with sget-object")
+        assertEquals(
+            "Lkotlin/Unit;->INSTANCE:Lkotlin/Unit;",
+            ((adTrackerHead[0] as ReferenceInstruction).reference as FieldReference).let { "${it.definingClass}->${it.name}:${it.type}" },
+            "AdTracker sender must load Unit.INSTANCE",
+        )
+        assertEquals(Opcode.RETURN_OBJECT, adTrackerHead[1].opcode, "AdTracker sender must return it at once")
 
         // Disable telemetry 1 and 3: Tracking2 and app monitoring.
         assertForcedBoolean(
@@ -181,28 +190,50 @@ class MailcomSmokeTest {
         val p0 = constructor.implementation!!.registerCount - 6
         assertEquals(listOf(p0 + 1, p0 + 2, p0 + 3), denied, "Brain/Reach/Trop are no longer p1..p3")
 
-        // Disable telemetry 4: Sentry is never started.
-        val sentryStarts = allMethods.filter { (classDef, method) ->
-            method.returnType == "V" && method.parameterTypes.size == 1 && method.implementation != null &&
-                !AccessFlags.STATIC.isSet(method.accessFlags) && !classDef.type.startsWith("Lio/sentry/") &&
-                method.calls { it.definingClass == SENTRY_ANDROID && it.name == "init" }
+        // Disable telemetry 4: Sentry is never started: CrashTrackingConfig's constructor zeroes
+        // the register that the isCrashTrackingAllowedByUser iput-boolean stores.
+        val crashConfig = classes.byToString("CrashTrackingConfig(isCrashTrackingAllowedByUser=")
+        val crashConstructor = crashConfig.methods.single { method ->
+            method.name == "<init>" && method.instructions().any {
+                it.opcode == Opcode.IPUT_BOOLEAN &&
+                    it.fieldRef()?.let { ref -> ref.definingClass == crashConfig.type && ref.name == "isCrashTrackingAllowedByUser" } == true
+            }
         }
-        val (sentryClass, sentryStart) = sentryStarts.singleOrNull()
-            ?: error("expected one SentryAPI.start, found ${sentryStarts.map { it.first.type }}")
-        assertReturnsEarlyVoid(sentryStart, label = "SentryAPI.start (${sentryClass.type})")
+        val crashInsns = crashConstructor.instructions()
+        val crashStore = crashInsns.single {
+            it.opcode == Opcode.IPUT_BOOLEAN &&
+                it.fieldRef()?.let { ref -> ref.definingClass == crashConfig.type && ref.name == "isCrashTrackingAllowedByUser" } == true
+        }.let { (it as TwoRegisterInstruction).registerA }
+        val crashHead = crashInsns.first()
+        assertTrue(
+            crashHead is NarrowLiteralInstruction && crashHead.narrowLiteral == 0 &&
+                (crashHead.opcode == Opcode.CONST_4 || crashHead.opcode == Opcode.CONST_16) &&
+                (crashHead as OneRegisterInstruction).registerA == crashStore,
+            "CrashTrackingConfig.<init> does not start by zeroing the isCrashTrackingAllowedByUser register v$crashStore: ${crashHead.opcode}",
+        )
 
-        // Disable rating prompts: the review gate answers false.
-        val (_, canRequestReview) = allMethods.byCall("canRequestInAppReviewFlow", "getCurrentTimeMillis", calleeReturns = "J")
-        assertForcedBoolean(canRequestReview, expected = false, label = "InAppRatingManager.canRequestInAppReviewFlow")
-
+        // Disable rating prompts: the review gate (MailListModuleAdapterImpl.shouldStartInAppFlow)
+        // answers false.
+        val reviewGates = allMethods.filter { (_, method) ->
+            method.name == "shouldStartInAppFlow" && method.returnType == "Z" && method.parameterTypes.isEmpty() &&
+                method.implementation != null
+        }
+        val (_, shouldStartReview) = reviewGates.singleOrNull()
+            ?: error("expected one concrete shouldStartInAppFlow()Z, found ${reviewGates.map { it.first.type }}")
+        assertForcedBoolean(shouldStartReview, expected = false, label = "MailListModuleAdapterImpl.shouldStartInAppFlow")
         // Hide upsells: the swipe-to-upsell toggle answers false; the IAP upselling check (Settings
         // "Upgrade", drawer Premium) is untouched. 9.19.0 replaced the IapUpsellingFeature toggle
         // with the per-account suspend check UpsellFeatureImpl.isIapUpsellEnabled(Account, Continuation).
-        val (_, swipe2Upsell) = allMethods.byCall("isEnabledByConfig", "isSwipe2UpsellEnabled")
+        val swipe2Upsells = allMethods.filter { (_, method) ->
+            method.name == "isEnabledByConfig" && method.returnType == "Z" && method.parameterTypes.isEmpty() &&
+                method.implementation != null && method.strings().contains("feature.swipe2upsell.enabled")
+        }
+        val (_, swipe2Upsell) = swipe2Upsells.singleOrNull()
+            ?: error("expected one Swipe2UpsellFeature.isEnabledByConfig, found ${swipe2Upsells.map { it.first.type }}")
         assertForcedBoolean(swipe2Upsell, expected = false, label = "Swipe2UpsellFeature.isEnabledByConfig")
         val iapUpsell = allMethods.filter { (_, method) ->
             method.name == "isIapUpsellEnabled" && method.implementation != null &&
-                method.parameterTypes.lastOrNull()?.toString() == "Lkotlin/coroutines/Continuation;"
+                method.parameterTypes.lastOrNull()?.toString()?.startsWith("Lkotlin/coroutines/") == true && method.parameterTypes.last().toString().contains("Continuation")
         }
         assertTrue(iapUpsell.isNotEmpty(), "IAP upsell check isIapUpsellEnabled(..., Continuation) not found")
         iapUpsell.forEach { (classDef, method) ->

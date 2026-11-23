@@ -12,7 +12,7 @@ import org.junit.jupiter.api.io.TempDir
 import java.io.File
 
 private const val PKG = "com.beeper.android"
-private const val VERSION = "4.64.0"
+private const val VERSION = "4.66.2"
 private const val SIGNER_SHA256 = "786f42f5e93e8a7c111fde4eab018ab490666dedcda7cce4bc7006f52a6f31f8"
 private const val SENTRY_INIT_PROVIDER = "Lio/sentry/android/core/SentryInitProvider;"
 private const val MAIN_ACTIVITY = "Lcom/beeper/chat/booper/MainActivity;"

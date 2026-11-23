@@ -14,7 +14,7 @@ Click here to add these patches to Morphe: https://morphe.software/add-source?gi
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.19.0](https://github.com/callMeBeyonder/morphe-patches/releases/tag/v1.19.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;29 patches total
+> **[v1.19.2](https://github.com/callMeBeyonder/morphe-patches/releases/tag/v1.19.2)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;29 patches total
 <details open>
 <summary>📦 Alpha Progression&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
 <br>
@@ -77,11 +77,11 @@ Click here to add these patches to Morphe: https://morphe.software/add-source?gi
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
-| [Custom seek step](#custom-seek-step) | Lets the seek distance of the player's left/right keys be set inside the app. Applies to the D-pad and to the media rewind/fast-forward keys, and adds "Seek 30s/1m/5m/10m/30m" choices to the SPEED tab of the player settings panel. | • Default seek step (seconds) |
+| [Custom seek step](#custom-seek-step) | Lets you choose how far the player skips when seeking, from the player settings. | • Default seek step (seconds) |
 | [Disable forced update](#disable-forced-update) | Hides the blocking update dialog and the update prompt. |  |
-| [Prefer highest resolution](#prefer-highest-resolution) | Starts playback at the best available resolution instead of the built-in 480p default. An explicit choice in the settings panel still takes precedence. |  |
-| [Serve requested resolution](#serve-requested-resolution) | Uses the signed DASH streams of the mobile play-info endpoint, so 480p/720p/1080p/4K actually select a real video track instead of reloading the same low-res MP4. Falls back to the TV streams when the mobile ladder is unavailable or lower. |  |
-| [Unlock VIP](#unlock-vip) | Reports the account as VIP, clears the per-title VIP locks and removes the visitor region block. |  |
+| [Prefer highest resolution](#prefer-highest-resolution) | Starts videos at the highest available quality instead of 480p. |  |
+| [Serve requested resolution](#serve-requested-resolution) | Makes quality selection work: 480p, 720p, 1080p and 4K actually switch to that resolution. |  |
+| [Unlock VIP](#unlock-vip) | Unlocks VIP-only content and removes region restrictions. |  |
 
 </details>
 
@@ -212,7 +212,7 @@ Click here to add these patches to Morphe: https://morphe.software/add-source?gi
 
 **🎯 Supported versions:**
 
-| 1.9.0 |
+| 1.11.0 |
 | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |

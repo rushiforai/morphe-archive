@@ -108,11 +108,16 @@ patches {
 // generatePatchesList task but never bundled into the APK.
 val patchListGeneratorClasspath = configurations.create("patchListGeneratorClasspath")
 
+// The Eclipse extension's compile-only stubs: tests compare what they declare with what the patch
+// expects of the app's dex, so a stub the patch does not know about cannot go unnoticed.
+val eclipseStubsJar = project(":extensions:eclipse-auto").layout.buildDirectory.file("eclipse-stubs/eclipse-stubs.jar")
+
 dependencies {
     compileOnly(libs.gson)
     patchListGeneratorClasspath(libs.gson)
     testImplementation("junit:junit:4.13.2")
     testImplementation(libs.gson)
+    testImplementation(files(eclipseStubsJar).builtBy(":extensions:eclipse-auto:eclipseStubsJar"))
 }
 
 tasks {

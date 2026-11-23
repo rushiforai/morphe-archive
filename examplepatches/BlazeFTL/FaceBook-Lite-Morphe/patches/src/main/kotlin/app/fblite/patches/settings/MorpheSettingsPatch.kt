@@ -88,7 +88,7 @@ private val settingsActivityPatch = resourcePatch {
 @Suppress("unused")
 val morpheSettingsPatch = bytecodePatch(
     name = "Morphe settings",
-    description = "Adds a settings screen to the app icon's long-press menu, with a font size slider.",
+    description = "Long Press On Apps's Icon To See The Option. Adds a settings screen to the app icon's long-press menu, with a font size slider.",
     default = true
 ) {
     compatibleWith(COMPATIBILITY_FACEBOOK_LITE)

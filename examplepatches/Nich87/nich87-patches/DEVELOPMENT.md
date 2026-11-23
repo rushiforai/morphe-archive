@@ -72,9 +72,9 @@ target APK. Do not run `generatePatchesList` merely to validate loading:
 that task replaces the release-managed `patches-list.json`.
 
 The Apple Music patches target `com.apple.android.music` 7.0.0 (1614),
-7.0.1 (1622), and 7.0.2 (1624). Their tested input is an APK merged from an
-arm64 split set. Merge APKM or XAPK splits before applying the patches. Each
-patch can be selected independently.
+7.0.1 (1622), 7.0.2 (1624), and 7.0.3 (1626). Their tested input is an APK
+merged from an arm64 split set. Merge APKM or XAPK splits before applying the
+patches. Each patch can be selected independently.
 Android 13+ provides live refraction. Older versions retain the native blur;
 that fallback has not been verified on a device.
 
@@ -140,6 +140,28 @@ fast scrolling is disabled so its touch area cannot cover disclosure buttons.
 Text controls use small software layers to avoid disappearing cached text
 after list invalidations on the tested Android renderer; the list remains
 hardware accelerated.
+
+### Twitter/X Spaces local mute
+
+`Spaces local mute` targets `com.twitter.android` `12.19.1-release.0`
+(`versionCode = 312191000`, `ApkFileType.APKM`). It is a pure bytecode patch
+with no resource modifications, avoiding resource ID and hook collisions with
+`crimera/piko` (`app.voidhack.extension.twitter.spaces.mute.*` hooks only
+`com.twitter.rooms.*`, `tv.periscope.*`, ExoPlayer2 `DefaultAudioSink`, and
+Media3 `AudioTrackAudioOutput`).
+
+Per-user listener-side muting is exposed in two native surfaces using the app's
+`ConstraintSet` (`androidx.constraintlayout.widget.d`):
+
+- Directly inside Twitter's Space User Profile popup (`com.twitter.rooms.ui.utils.profile.r0.O`)
+  as a 1-tap toggle row (automatically hidden on the current user's own profile).
+- Via a compact Mute pill injected into live Space (`a2.O`) and Space replay
+  (`l0.O`) headers that opens a speaker-list control sheet with live talking
+  indicators, one-tap mute/unmute, unmute-all, and Smart vs Strict overlap mode.
+- Uses per-speaker `org.webrtc.AudioTrack.setVolume(0.0d)` isolation in WebRTC
+  mode (`tv.periscope.android.hydra.janus.b.{d,g}`, `tv.periscope.android.hydra.media.d.b`)
+  and a real-time active-speaker `AudioTrack` volume gate (400ms word-gap
+  hangover and smooth volume ramp) in HLS listener and Replay modes.
 
 Build the bundle and run the tests with:
 

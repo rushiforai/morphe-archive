@@ -5,6 +5,7 @@
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to Morphe contributions.
  * Modified by lavinhoque33, 2026-11-20.
  * Modified by lavinhoque33, 2026-11-19.
+ * Modified by lavinhoque33, 2026-11-22.
  *
  * Modified by lavinhoque33, 2026-11-11.
  */
@@ -36,6 +37,7 @@ import app.morphe.patches.music.utils.settings.addListPreference
 import app.morphe.patches.music.utils.settings.addSwitchPreference
 import app.morphe.patches.music.utils.settings.settingsPatch
 import app.morphe.patches.shared.mainactivity.injectOnCreateMethodCall
+import app.morphe.patches.shared.mapping.resourceMappingPatch
 import app.morphe.patches.shared.misc.fix.proto.fixProtoLibraryPatch
 import app.morphe.patches.shared.misc.fix.proto.parseByteArrayMethodRef
 import app.morphe.patches.shared.misc.media.MediaSessionSetMetadataFingerprint
@@ -177,13 +179,18 @@ val downloadsPatch = bytecodePatch(
         fixProtoLibraryPatch,
         flyoutMenuComponentsPatch,
         portableExportResources,
+        resourceMappingPatch,
         settingsPatch,
         sharedExtensionPatch,
     )
 
     compatibleWith(COMPATIBILITY_YOUTUBE_MUSIC)
 
+    var protectLocalStreamFromSpoof: (() -> Unit)? = null
+
     execute {
+        protectLocalStreamFromSpoof = null
+
         if (is_7_25_or_greater) {
             addCustomPreference(
                 CategoryType.MISC,
@@ -210,7 +217,7 @@ val downloadsPatch = bytecodePatch(
         val resolver = nativeDownloadsCommandResolverFingerprint.method
         val command = mutableClassDefBy(resolver.parameters[1].type)
 
-        installStreamSwap()
+        protectLocalStreamFromSpoof = installStreamSwap()
         installDownloadedMarkers()
         installAudioFirst()
         installLibraryRestore()
@@ -344,6 +351,8 @@ val downloadsPatch = bytecodePatch(
 
     // After the playlist track tap patch, which hooks the same method: this hook has to run first.
     finalize {
+        protectLocalStreamFromSpoof?.invoke()
+        protectLocalStreamFromSpoof = null
         installAudioFirstCommandHook()
     }
 }

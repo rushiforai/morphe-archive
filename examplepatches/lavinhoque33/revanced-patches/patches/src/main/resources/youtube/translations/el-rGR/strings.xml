@@ -277,8 +277,10 @@
     <string name="morphe_playback_in_feeds_entry_off">Απενεργό</string>
     <string name="morphe_playback_in_feeds_entry_wifi_only">Μόνο Wi-Fi</string>
     <string name="morphe_playback_in_feeds_title">Αναπαραγωγή στις ροές</string>
-    <string name="morphe_player_control_buttons_background_opacity_summary">Προσαρμόστε την αδιαφάνεια του φόντου πίσω από τα κουμπιά ελέγχου του προγράμματος αναπαραγωγής και τη γραμμή χρόνου (0 είναι αόρατο, 100 είναι αδιαφανές)</string>
-    <string name="morphe_player_control_buttons_background_opacity_title">Αδιαφάνεια φόντου κουμπιών ελέγχου</string>
+    <string name="morphe_player_transport_background_opacity_summary">Ρυθμίστε την αδιαφάνεια του φόντου πίσω από τα κουμπιά Αναπαραγωγή, Παύση, Επανάληψη, Επόμενο και Προηγούμενο</string>
+    <string name="morphe_player_transport_background_opacity_title">Αδιαφάνεια φόντου κουμπιών αναπαραγωγής</string>
+    <string name="morphe_player_other_overlay_background_opacity_summary">Ρυθμίστε την αδιαφάνεια του φόντου πίσω από τα υπόλοιπα κουμπιά του προγράμματος αναπαραγωγής και την ένδειξη χρόνου</string>
+    <string name="morphe_player_other_overlay_background_opacity_title">Αδιαφάνεια φόντου λοιπής επικάλυψης</string>
     <string name="morphe_playlist_hide_removal_snackbar_summary">Η επιβεβαίωση δεν εμφανίζεται αφού αφαιρεθεί ένα βίντεο από μια λίστα αναπαραγωγής</string>
     <string name="morphe_playlist_hide_removal_snackbar_title">Απόκρυψη της ειδοποίησης αφαίρεσης λίστας αναπαραγωγής</string>
     <string name="morphe_playlist_long_press_drag_summary">Αγγίξτε και κρατήστε ένα βίντεο της λίστας αναπαραγωγής σας για να το μετακινήσετε σε μια νέα θέση</string>

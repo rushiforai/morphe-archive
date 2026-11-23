@@ -136,7 +136,7 @@ public final class NewStarSoccerRetroSeasonHelper {
                         ? SEASON_VERSIONS[which]
                         : null;
                     bypassNextPrompt = true;
-                    postOnGameUi(new Runnable() {
+                    postOnGameThread(new Runnable() {
                         @Override
                         public void run() {
                             invokeStaticNoArgs("c_TPlayer", "m_DoNewCareer");
@@ -172,36 +172,82 @@ public final class NewStarSoccerRetroSeasonHelper {
     private static void cancelAndReturnToSaveSlots() {
         selectedCareerVersion = null;
         bypassNextPrompt = false;
-        postOnGameUi(new Runnable() {
+        postOnGameThread(new Runnable() {
             @Override
             public void run() {
+                // c_TScreen_SaveSlot.m_ButtonSlot0/1/2 descarrega c_TScreen_MainMenu.m_screen logo
+                // após chamar m_DoNewCareer(). Ao voltar para os slots sem recriar m_screen, clicar
+                // em qualquer slot depois (inclusive em uma carreira existente) causa NullPointerException
+                // em c_TScreen_MainMenu.m_screen.p_Unload().
+                ensureMainMenuScreenLoaded();
                 invokeStaticNoArgs("c_TScreen_SaveSlot", "m_SetUpScreen");
             }
         });
     }
 
+    private static void ensureMainMenuScreenLoaded() {
+        try {
+            Class<?> mainMenuCls = Class.forName(GAME_PKG + "c_TScreen_MainMenu");
+            Field screenField = mainMenuCls.getDeclaredField("m_screen");
+            screenField.setAccessible(true);
+            if (screenField.get(null) == null) {
+                Method createScreen = mainMenuCls.getDeclaredMethod("m_CreateScreen");
+                createScreen.setAccessible(true);
+                createScreen.invoke(null);
+            }
+        } catch (Throwable t) {
+            Log.e(TAG, "Failed to restore c_TScreen_MainMenu.m_screen", t);
+        }
+    }
+
     /**
-     * No motor Monkey deste APK, {@code BBAndroidGame$GameTimer} executa {@code UpdateGame()} na
-     * thread principal via {@code _view.postDelayed(...)}, e dispara a renderização via
-     * {@code _view.requestRender()}. Postar em {@code _view} garante a mesma thread e redesenho.
+     * Os botões de tela do motor Monkey (g_HitGadget -> m_ButtonSlot0/1/2 -> m_DoNewCareer)
+     * executam na GLThread dentro de BBGame.RenderGame() sob o monitor de BBGame._delegate.
+     * Usar queueEvent() + monitor em _delegate garante a mesma thread GL (com contexto OpenGL
+     * ativo para carregar telas/texturas) e elimina corrida com UpdateGame()/RenderGame().
      */
-    private static void postOnGameUi(final Runnable action) {
+    private static void postOnGameThread(final Runnable action) {
+        final Runnable guardedAction = new Runnable() {
+            @Override
+            public void run() {
+                Object delegate = getGameDelegate();
+                if (delegate != null) {
+                    synchronized (delegate) {
+                        action.run();
+                    }
+                } else {
+                    action.run();
+                }
+            }
+        };
+
         final GLSurfaceView view = getGameView();
         if (view != null) {
-            view.post(new Runnable() {
-                @Override
-                public void run() {
-                    action.run();
-                    try {
-                        view.requestRender();
-                    } catch (Throwable ignored) {}
-                }
-            });
+            view.queueEvent(guardedAction);
+            try {
+                view.requestRender();
+            } catch (Throwable ignored) {}
             return;
         }
         Activity activity = getGameActivity();
         if (activity != null) {
-            activity.runOnUiThread(action);
+            activity.runOnUiThread(guardedAction);
+        }
+    }
+
+    private static Object getGameDelegate() {
+        try {
+            Object game = getBBAndroidGame();
+            if (game == null) {
+                return null;
+            }
+            Class<?> bbGameCls = Class.forName(GAME_PKG + "BBGame");
+            Field delegateField = bbGameCls.getDeclaredField("_delegate");
+            delegateField.setAccessible(true);
+            return delegateField.get(game);
+        } catch (Throwable t) {
+            Log.w(TAG, "Failed to obtain BBGame._delegate", t);
+            return null;
         }
     }
 

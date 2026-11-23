@@ -292,10 +292,12 @@ Para corrigir isso, ative 'Simular streams de vídeo' e altere o 'Cliente padrã
     <string name="morphe_playback_in_feeds_entry_off">Desligado</string>
     <string name="morphe_playback_in_feeds_entry_wifi_only">Somente Wi-Fi</string>
     <string name="morphe_playback_in_feeds_title">Reprodução nos feeds</string>
-    <string name="morphe_player_control_buttons_background_opacity_summary">Ajuste a opacidade do fundo atrás dos botões de controle do player e da barra de tempo (0 é invisível, 100 é sólido)</string>
+    <string name="morphe_player_transport_background_opacity_summary">Ajuste a opacidade do fundo dos botões Reproduzir, Pausar, Reproduzir novamente, Próximo e Anterior</string>
+    <string name="morphe_player_other_overlay_background_opacity_summary">Ajuste a opacidade do fundo dos outros botões do player e do indicador de tempo</string>
     <string name="morphe_center_playback_button_size_summary">Ajusta o tamanho do botão de reproduzir, pausar e reproduzir novamente e da sua área de toque. 100% mantém o tamanho original.</string>
     <string name="morphe_center_playback_button_size_title">Tamanho do botão de reprodução</string>
-    <string name="morphe_player_control_buttons_background_opacity_title">Opacidade do fundo dos botões de controle</string>
+    <string name="morphe_player_transport_background_opacity_title">Opacidade do fundo dos botões de reprodução</string>
+    <string name="morphe_player_other_overlay_background_opacity_title">Opacidade do fundo dos demais elementos da sobreposição</string>
     <string name="morphe_playlist_hide_removal_snackbar_summary">A confirmação não é exibida após um vídeo ser removido de uma playlist</string>
     <string name="morphe_playlist_hide_removal_snackbar_title">Ocultar snackbar de remoção de playlist</string>
     <string name="morphe_playlist_long_press_drag_summary">Toque e segure um vídeo da sua playlist para arrastá-lo para uma nova posição</string>

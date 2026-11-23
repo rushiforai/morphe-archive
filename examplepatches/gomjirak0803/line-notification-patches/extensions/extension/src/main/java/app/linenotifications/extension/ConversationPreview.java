@@ -29,7 +29,8 @@ final class ConversationPreview {
 
         String title = room + "  [" + unread + "]";
         boolean group = !chat.chatId.startsWith("u");
-        Person self = new Person.Builder().setName("나").setKey("self:" + chat.accountId).build();
+        Person self = new Person.Builder().setName(Strings.get("line_notify_self_name", "You"))
+                .setKey("self:" + chat.accountId).build();
         Notification.MessagingStyle style = new Notification.MessagingStyle(self).setGroupConversation(group);
         // Android uses the peer's Person name for a one-to-one heading; a group has a
         // separate conversation heading. Brackets survive platform span sanitization.
@@ -39,7 +40,7 @@ final class ConversationPreview {
             Person person = people.get(message.senderId);
             if (person == null) {
                 String sender = group ? message.sender : title;
-                if (sender == null || sender.isEmpty()) sender = "메시지";
+                if (sender == null || sender.isEmpty()) sender = Strings.get("line_notify_fallback_sender", "Message");
                 Person.Builder personBuilder = new Person.Builder().setName(sender)
                         .setKey(chat.accountId + ":" + message.senderId);
                 Icon icon = icons != null ? icons.get(message.senderId) : null;

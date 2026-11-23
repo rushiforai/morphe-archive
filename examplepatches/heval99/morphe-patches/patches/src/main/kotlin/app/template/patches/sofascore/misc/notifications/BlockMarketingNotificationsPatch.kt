@@ -105,9 +105,9 @@ private fun BytecodePatchContext.keepGone(type: String): () -> Unit {
 @Suppress("unused")
 val blockMarketingNotificationsPatch = sofascoreControls.featurePatch(
     BLOCK_MARKETING_NOTIFICATIONS,
-    // The Manager patch keeps its name and description; only the Patch settings row was reworded (2026-11-11).
+    // The Manager patch keeps its name; the Patch settings row was reworded (2026-11-11) and the description (2026-11-22).
     name = "Block marketing notifications",
-    description = "Blocks promo popups and banners.",
+    description = "Hides promo banners and pop-ups, not push alerts.",
 ) {
     // Validate every site before the first edit.
     val promotionModal = PromotionModalFingerprint.method

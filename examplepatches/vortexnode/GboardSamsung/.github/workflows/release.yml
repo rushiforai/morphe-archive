@@ -1,0 +1,129 @@
+name: Manual release from tag
+
+on:
+  # Automatic Morphe releases are handled by publish-morphe-source.yml.
+  # This legacy workflow remains available for explicit manual use only.
+  workflow_dispatch:
+
+jobs:
+  release:
+    name: Release
+    permissions:
+      actions: read
+      contents: write
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Validate synced release metadata
+        id: metadata
+        shell: pwsh
+        env:
+          REPO_SLUG: ${{ github.repository }}
+        run: |
+          $tag = $env:GITHUB_REF_NAME
+          if (-not $tag.StartsWith("v")) {
+              throw "Release tag must start with 'v'."
+          }
+          $expectedVersion = $tag.Substring(1)
+          $gradleText = Get-Content -LiteralPath "gradle.properties" -Raw
+          $match = [regex]::Match($gradleText, '(?m)^\s*version\s*=\s*([^\r\n#]+?)\s*$')
+          if (-not $match.Success) {
+              throw "Unable to resolve version from gradle.properties."
+          }
+          $actualVersion = $match.Groups[1].Value.Trim()
+          if ($actualVersion -ne $expectedVersion) {
+              throw "Tag version '$expectedVersion' does not match gradle.properties version '$actualVersion'."
+          }
+          $bundle = Get-Content -LiteralPath "patches-bundle.json" -Raw | ConvertFrom-Json
+          if ([string]$bundle.version -ne $actualVersion) {
+              throw "patches-bundle.json version '$($bundle.version)' does not match '$actualVersion'."
+          }
+          $expectedDownloadUrl = "https://github.com/$($env:REPO_SLUG)/releases/download/$tag/patches-$actualVersion.mpp"
+          if ([string]$bundle.download_url -ne $expectedDownloadUrl) {
+              throw "patches-bundle.json download_url does not match expected public release URL."
+          }
+          if (-not [string]::IsNullOrEmpty([string]$bundle.signature_download_url)) {
+              throw "patches-bundle.json signature_download_url must be empty for the public repo."
+          }
+          "version=$actualVersion" >> $env:GITHUB_OUTPUT
+
+      - name: Find successful CI run for this exact commit
+        id: ci
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          COMMIT_SHA: ${{ github.sha }}
+          VERSION: ${{ steps.metadata.outputs.version }}
+        run: |
+          set -euo pipefail
+          artifact_name="GboardSamsung-MPP-$VERSION"
+          runs="$(gh api -X GET "repos/$GH_REPO/actions/workflows/ci.yml/runs" \
+            -f head_sha="$COMMIT_SHA" \
+            -f per_page=100)"
+          run_id="$(jq -r --arg sha "$COMMIT_SHA" '
+            [.workflow_runs[]
+              | select(.head_sha == $sha)
+              | select(.event == "push" or .event == "workflow_dispatch")
+              | select(.conclusion == "success")]
+            | sort_by(.created_at)
+            | last
+            | .id // empty
+          ' <<< "$runs")"
+          if [[ -z "$run_id" ]]; then
+            echo "::error::No successful CI run found for commit $COMMIT_SHA."
+            exit 1
+          fi
+          artifacts="$(gh api "repos/$GH_REPO/actions/runs/$run_id/artifacts")"
+          artifact_count="$(jq --arg name "$artifact_name" '[.artifacts[] | select(.name == $name and .expired == false)] | length' <<< "$artifacts")"
+          if [[ "$artifact_count" != "1" ]]; then
+            echo "::error::Expected exactly one unexpired artifact named $artifact_name; found $artifact_count."
+            exit 1
+          fi
+          echo "run_id=$run_id" >> "$GITHUB_OUTPUT"
+          echo "artifact_name=$artifact_name" >> "$GITHUB_OUTPUT"
+
+      - name: Download verified CI build artifact
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CI_RUN_ID: ${{ steps.ci.outputs.run_id }}
+          ARTIFACT_NAME: ${{ steps.ci.outputs.artifact_name }}
+          VERSION: ${{ steps.metadata.outputs.version }}
+        run: |
+          set -euo pipefail
+          gh run download "$CI_RUN_ID" \
+            --repo "$GITHUB_REPOSITORY" \
+            --name "$ARTIFACT_NAME" \
+            --dir release-artifact
+          bundle="release-artifact/patches-$VERSION.mpp"
+          test -s "$bundle"
+          test -s release-artifact/SHA256SUMS
+          (cd release-artifact && sha256sum --check SHA256SUMS)
+          mkdir -p patches/build/libs
+          cp "$bundle" "patches/build/libs/patches-$VERSION.mpp"
+
+      - name: Prepare release notes
+        shell: pwsh
+        run: |
+          $bundle = Get-Content -LiteralPath "patches-bundle.json" -Raw | ConvertFrom-Json
+          $notes = [string]$bundle.description
+          if ([string]::IsNullOrWhiteSpace($notes)) {
+              $notes = "Public mirror release for $env:GITHUB_REF_NAME."
+          }
+          Set-Content -LiteralPath "release-notes.md" -Value $notes -Encoding utf8
+
+      - name: Publish GitHub release
+        uses: softprops/action-gh-release@v3
+        with:
+          tag_name: ${{ github.ref_name }}
+          body_path: release-notes.md
+          prerelease: ${{ contains(github.ref_name, '-dev.') }}
+          files: |
+            patches/build/libs/patches-${{ steps.metadata.outputs.version }}.mpp
+          overwrite_files: false
+          fail_on_unmatched_files: true

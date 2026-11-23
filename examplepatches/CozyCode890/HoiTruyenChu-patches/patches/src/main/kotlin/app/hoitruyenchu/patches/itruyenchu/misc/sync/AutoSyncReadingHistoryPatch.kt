@@ -1,5 +1,7 @@
 package app.hoitruyenchu.patches.itruyenchu.misc.sync
 
+import app.hoitruyenchu.patches.itruyenchu.misc.settings.enablePatchFlag
+import app.hoitruyenchu.patches.itruyenchu.misc.settings.settingsPatch
 import app.hoitruyenchu.patches.itruyenchu.misc.extension.sharedExtensionPatch
 import app.hoitruyenchu.patches.itruyenchu.shared.Constants.COMPATIBILITY_ITRUYENCHU
 import app.hoitruyenchu.patches.itruyenchu.shared.Constants.EXTENSION_AUTO_SYNC
@@ -31,9 +33,11 @@ val autoSyncReadingHistoryPatch = patch(
 ) {
     compatibleWith(COMPATIBILITY_ITRUYENCHU)
 
-    dependsOn(sharedExtensionPatch)
+    dependsOn(sharedExtensionPatch, settingsPatch)
 
     execute {
+        enablePatchFlag("autoSync")
+
         // 1. Module created: remember the context and start the startup sync in the background.
         AsyncStorageConstructorFingerprint.method.apply {
             if (implementation!!.registerCount - parameters.size - 1 < 1) {

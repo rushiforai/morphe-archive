@@ -6,6 +6,8 @@ import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.smali.ExternalLabel
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import org.ungoogled.patches.maps.ui.SHAPES
 import org.ungoogled.patches.maps.ui.activityContextHookPatch
 import org.ungoogled.patches.maps.ui.markPatched
@@ -29,19 +31,30 @@ internal val hideExploreFeedPatch = bytecodePatch(
         // check jumps to it), so the check goes AT its label: an earlier version put
         // the override in front of the label, on the fall-through path only, and the
         // sheet stayed visible whenever the time check jumped past it.
-        ExploreSheetStateFingerprint.method.apply {
-            val mergePoint = ExploreSheetStateFingerprint.instructionMatches.last().index
+        val resolver = if (packageMetadata.versionName == "26.47.00.1022347503")
+            ExploreSheetStateFingerprint2647 else ExploreSheetStateFingerprint
+        resolver.method.apply {
+            val mergePoint = resolver.instructionMatches.last().index
             val merged = implementation!!.instructions[mergePoint]
-            // The flag borrows v1, which the merge point itself overwrites.
-            if (merged.opcode != Opcode.NEW_INSTANCE || (merged as OneRegisterInstruction).registerA != 1) {
-                throw PatchException("explore sheet merge point no longer starts by overwriting v1")
+            if (merged.opcode != Opcode.NEW_INSTANCE) {
+                throw PatchException("explore sheet merge point is not the sheet-state construction")
             }
-            addInstructionsAtLabel(mergePoint, "sget-boolean v1, $SHAPES->HIDE_EXPLORE:Z")
+            // The flag borrows the register the merge point itself overwrites (v1 in 26.44,
+            // v0 in 26.47), and the sheet state is the destination of the state read right
+            // before it (v9 in 26.44, v7 in 26.47), so neither is hardcoded.
+            val scratch = (merged as OneRegisterInstruction).registerA
+            val stateRead = implementation!!.instructions[mergePoint - 1] as? ReferenceInstruction
+                ?: throw PatchException("explore sheet merge point lost its state read")
+            val stateField = stateRead.reference as? FieldReference
+                ?: throw PatchException("explore sheet merge point's state read is not a field")
+            val stateReg = (stateRead as OneRegisterInstruction).registerA
+            if (scratch == stateReg) throw PatchException("explore sheet merge point reuses the state register")
+            addInstructionsAtLabel(mergePoint, "sget-boolean v$scratch, $SHAPES->HIDE_EXPLORE:Z")
             addInstructionsWithLabels(
                 mergePoint + 1,
                 """
-                    if-eqz v1, :keep_state
-                    sget-object v9, Lpfx;->a:Lpfx;
+                    if-eqz v$scratch, :keep_state
+                    sget-object v$stateReg, ${stateField.definingClass}->${stateField.name}:${stateField.type}
                 """,
                 ExternalLabel("keep_state", implementation!!.instructions[mergePoint + 1]),
             )

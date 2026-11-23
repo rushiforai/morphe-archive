@@ -293,10 +293,12 @@ Para solucionarlo, activa 'Falsificar transmisiones de vídeo' y cambia 'Cliente
     <string name="morphe_playback_in_feeds_entry_off">Desactivada</string>
     <string name="morphe_playback_in_feeds_entry_wifi_only">Solo con Wi-Fi</string>
     <string name="morphe_playback_in_feeds_title">Reproducción en feeds</string>
-    <string name="morphe_player_control_buttons_background_opacity_summary">Ajusta la opacidad del fondo detrás de los botones de control del reproductor y la barra de tiempo (0 es invisible, 100 es opaco)</string>
+    <string name="morphe_player_transport_background_opacity_summary">Ajusta la opacidad del fondo de los botones Reproducir, Pausar, Volver a reproducir, Siguiente y Anterior</string>
+    <string name="morphe_player_other_overlay_background_opacity_summary">Ajusta la opacidad del fondo de los demás botones del reproductor y del indicador de tiempo</string>
     <string name="morphe_center_playback_button_size_summary">Cambia el tamaño del botón de reproducir, pausar y volver a reproducir, y el de su zona táctil. El 100 % conserva el tamaño original.</string>
     <string name="morphe_center_playback_button_size_title">Tamaño del botón de reproducción</string>
-    <string name="morphe_player_control_buttons_background_opacity_title">Opacidad del fondo de los botones de control</string>
+    <string name="morphe_player_transport_background_opacity_title">Opacidad del fondo de los botones de reproducción</string>
+    <string name="morphe_player_other_overlay_background_opacity_title">Opacidad del fondo del resto de la superposición</string>
     <string name="morphe_playlist_hide_removal_snackbar_summary">La confirmación no se muestra después de que un vídeo se elimina de una lista de reproducción</string>
     <string name="morphe_playlist_hide_removal_snackbar_title">Ocultar mensaje emergente de eliminación de la lista de reproducción</string>
     <string name="morphe_playlist_long_press_drag_summary">Mantén pulsado un vídeo de tu lista de reproducción para arrastrarlo a una nueva posición</string>

@@ -3,7 +3,6 @@ package app.noam.extension.chesscom.gamereview;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
-import android.content.Intent;
 import android.os.Handler;
 import android.os.Looper;
 import android.webkit.CookieManager;
@@ -91,7 +90,10 @@ final class LichessSession {
         if (activity == null) return false;
         login = new CountDownLatch(1);
         loggedIn = false;
-        MAIN.post(() -> activity.startActivity(new Intent(activity, LichessLoginActivity.class)));
+        MAIN.post(() -> {
+            // A root mount has no login activity in the manifest; the dialog stands in for it.
+            if (!LichessLoginActivity.show(activity)) login.countDown();
+        });
         try {
             if (!login.await(LOGIN_MS, TimeUnit.MILLISECONDS)) return false;
         } catch (InterruptedException e) {

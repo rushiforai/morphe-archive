@@ -1,0 +1,6 @@
+[submodule "build-logic/morphe-patcher"]
+	path = build-logic/morphe-patcher
+	url = https://github.com/MorpheApp/morphe-patcher.git
+[submodule "build-logic/morphe-patches-gradle-plugin"]
+	path = build-logic/morphe-patches-gradle-plugin
+	url = https://github.com/MorpheApp/morphe-patches-gradle-plugin.git

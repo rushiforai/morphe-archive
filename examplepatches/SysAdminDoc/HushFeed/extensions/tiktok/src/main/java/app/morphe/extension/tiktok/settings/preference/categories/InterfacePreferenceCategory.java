@@ -374,6 +374,12 @@ public final class InterfacePreferenceCategory extends ConditionalPreferenceCate
                     "Takes the view count and its play icon off each video on profile grids. Dates, lengths and the engagement rate you turned on move up in its place.",
                     Settings.HIDE_GRID_VIEW_COUNT
             ));
+            addPreference(new TogglePreference(
+                    context,
+                    "Round the corners on profile grids",
+                    "Gives each video on profile grids rounded corners, on your own profile and on Liked and Favorites too.",
+                    Settings.ROUNDED_GRID_CORNERS
+            ));
             if (SettingsStatus.gridSortEnabled) {
                 addPreference(new ChoicePreference(context, "Sort loaded videos on profile grids",
                         Settings.PROFILE_GRID_SORT,
@@ -596,6 +602,14 @@ public final class InterfacePreferenceCategory extends ConditionalPreferenceCate
                         "Hide the people you may know tag",
                         "Hide the small tag next to the creator's name that says you may know them. The video stays.",
                         Settings.HIDE_MAY_KNOW_TAG
+                ));
+            }
+            if (SettingsStatus.pauseIconEnabled) {
+                addPreference(new TogglePreference(
+                        context,
+                        "Hide the pause icon",
+                        "A tap still pauses and plays the video, but the big play icon doesn't show over it.",
+                        Settings.HIDE_PAUSE_ICON
                 ));
             }
             if (SettingsStatus.footnotesEnabled) {
@@ -1041,6 +1055,11 @@ public final class InterfacePreferenceCategory extends ConditionalPreferenceCate
                     "original_sound", "copy_link", "copy_sound_link", "youtube_music", "identify_song", "sleep_timer",
                     "save_frame",
                     "save_cover", "open_search"));
+            if (SettingsStatus.advancedDownloadsEnabled) {
+                // The save button's save, so it needs Advanced downloads (#463).
+                tapLabels.add("Save this video");
+                tapValues.add("save_video");
+            }
             if (SettingsStatus.liveSpeedEnabled) {
                 tapLabels.add("Speed up this video, double tap again to undo");
                 tapValues.add("speed_toggle");
@@ -1087,6 +1106,10 @@ public final class InterfacePreferenceCategory extends ConditionalPreferenceCate
                     "original_sound", "copy_link", "copy_sound_link", "youtube_music", "identify_song", "sleep_timer",
                     "save_frame",
                     "save_cover", "open_search"));
+            if (SettingsStatus.advancedDownloadsEnabled) {
+                pressLabels.add("Save this video");
+                pressValues.add("save_video");
+            }
             if (SettingsStatus.automaticClearDisplayEnabled) {
                 pressLabels.add("Turn Clear display on or off");
                 pressValues.add("clear_display");

@@ -1,6 +1,6 @@
 # Patchcatalogus
 
-**Patchbundel: 1.94.0**
+**Patchbundel: 1.101.0**
 
 Controleer per patch de ondersteunde app-versies en de standaardinstelling. De app-pagina legt uit wat de patch voor het gebruik verandert.
 
@@ -160,6 +160,7 @@ Controleer per patch de ondersteunde app-versies en de standaardinstelling. De a
 | Disable tracking | Aan | 7.4.8 |
 | Hide Premium banner | Aan | 7.4.8 |
 | Hide ads | Aan | 7.4.8 |
+| Hide update prompt | Aan | 7.4.8 |
 | Skip consent screens | Aan | 7.4.8 |
 
 ## Candy Crush Soda Saga
@@ -214,12 +215,19 @@ Controleer per patch de ondersteunde app-versies en de standaardinstelling. De a
 
 | Patch | Standaard | App-versies |
 | --- | --- | --- |
-| Allow any Android Auto host | Aan | 9.0.26.3 |
-| Disable tracking | Aan | 9.0.26.3 |
-| Enable full streaming | Aan | 9.0.26.3 |
-| Remove advertising | Aan | 9.0.26.3 |
-| Remove premium upsell UI | Aan | 9.0.26.3 |
-| Remove subscription paywalls | Aan | 9.0.26.3 |
+| Allow any Android Auto host | Aan | 9.0.27.3 |
+| Android Auto API 9 media surface | Aan | 9.0.27.3 |
+| Disable tracking | Aan | 9.0.27.3 |
+| Enable full streaming | Aan | 9.0.27.3 |
+| Enable lyrics | Aan | 9.0.27.3 |
+| Enable offline downloads | Aan | 9.0.27.3 |
+| Enable queue item selection | Aan | 9.0.27.3 |
+| Google sign-in through microG-RE | Aan | 9.0.27.3 |
+| Player queue shortcuts | Aan | 9.0.27.3 |
+| Remove advertising | Aan | 9.0.27.3 |
+| Remove premium upsell UI | Aan | 9.0.27.3 |
+| Remove subscription paywalls | Aan | 9.0.27.3 |
+| Search and sort playlists | Aan | 9.0.27.3 |
 
 ## DS Nieuws
 
@@ -266,6 +274,17 @@ Controleer per patch de ondersteunde app-versies en de standaardinstelling. De a
 | --- | --- | --- |
 | Add microG-RE support | Aan | 26.42.4 |
 | Allow custom Android Auto hosts | Aan | 26.42.4 |
+
+## Eclipse Music
+
+[Wat veranderen de patches?](../apps/eclipse-music.md)
+
+`com.eclipse.android`
+
+| Patch | Standaard | App-versies |
+| --- | --- | --- |
+| Android Auto browse upgrade | Aan | 0.6.75 |
+| Android Auto templated media app | Aan | 0.6.75 |
 
 ## ED
 
@@ -333,32 +352,38 @@ Controleer per patch de ondersteunde app-versies en de standaardinstelling. De a
 
 | Patch | Standaard | App-versies |
 | --- | --- | --- |
-| AI Writing Tools | Aan | 18.6.3.1002251336-release-armeabi-v7a, 18.6.3.1002251336-release-arm64-v8a |
-| AMOLED dark keyboard | Uit | 18.6.3.1002251336-release-armeabi-v7a, 18.6.3.1002251336-release-arm64-v8a |
-| Add Gboard Signature Bypass | Aan | 18.6.3.1002251336-release-armeabi-v7a, 18.6.3.1002251336-release-arm64-v8a |
-| Change package name | Aan | 18.6.3.1002251336-release-armeabi-v7a, 18.6.3.1002251336-release-arm64-v8a |
-| Clipboard Enhancements | Aan | 18.6.3.1002251336-release-armeabi-v7a, 18.6.3.1002251336-release-arm64-v8a |
-| Cursor trackpad mode | Aan | 18.6.3.1002251336-release-armeabi-v7a, 18.6.3.1002251336-release-arm64-v8a |
-| Custom Theme | Aan | 18.6.3.1002251336-release-armeabi-v7a, 18.6.3.1002251336-release-arm64-v8a |
-| Custom branding | Uit | 18.6.3.1002251336-release-armeabi-v7a, 18.6.3.1002251336-release-arm64-v8a |
-| Enable OCR / Scan Text | Aan | 18.6.3.1002251336-release-armeabi-v7a, 18.6.3.1002251336-release-arm64-v8a |
-| Frosted Glass | Aan | 18.6.3.1002251336-release-armeabi-v7a, 18.6.3.1002251336-release-arm64-v8a |
-| G Logo on Spacebar | Aan | 18.6.3.1002251336-release-armeabi-v7a, 18.6.3.1002251336-release-arm64-v8a |
-| Incognito Mode Toggle | Aan | 18.6.3.1002251336-release-armeabi-v7a, 18.6.3.1002251336-release-arm64-v8a |
-| Key Shape Selection | Aan | 18.6.3.1002251336-release-armeabi-v7a, 18.6.3.1002251336-release-arm64-v8a |
-| Parakeet personal dictionary | Aan | 18.6.3.1002251336-release-armeabi-v7a, 18.6.3.1002251336-release-arm64-v8a |
-| Parakeet voice typing | Aan | 18.6.3.1002251336-release-armeabi-v7a, 18.6.3.1002251336-release-arm64-v8a |
-| Rambler app context | Aan | 18.6.3.1002251336-release-armeabi-v7a, 18.6.3.1002251336-release-arm64-v8a |
-| Rambler contact names | Aan | 18.6.3.1002251336-release-armeabi-v7a, 18.6.3.1002251336-release-arm64-v8a |
-| Rambler cursor-aware editing | Aan | 18.6.3.1002251336-release-armeabi-v7a, 18.6.3.1002251336-release-arm64-v8a |
-| Rambler custom instructions | Aan | 18.6.3.1002251336-release-armeabi-v7a, 18.6.3.1002251336-release-arm64-v8a |
-| Rambler personal dictionary | Aan | 18.6.3.1002251336-release-armeabi-v7a, 18.6.3.1002251336-release-arm64-v8a |
-| Rambler stop after silence | Aan | 18.6.3.1002251336-release-armeabi-v7a, 18.6.3.1002251336-release-arm64-v8a |
-| Rambler voice typing | Aan | 18.6.3.1002251336-release-armeabi-v7a, 18.6.3.1002251336-release-arm64-v8a |
-| Rounded Keyboard Panel | Aan | 18.6.3.1002251336-release-armeabi-v7a, 18.6.3.1002251336-release-arm64-v8a |
-| Simple Calculator | Aan | 18.6.3.1002251336-release-armeabi-v7a, 18.6.3.1002251336-release-arm64-v8a |
-| Toolbar Editing Buttons | Aan | 18.6.3.1002251336-release-armeabi-v7a, 18.6.3.1002251336-release-arm64-v8a |
-| Web Clipboard | Aan | 18.6.3.1002251336-release-armeabi-v7a, 18.6.3.1002251336-release-arm64-v8a |
+| AI Writing Tools | Aan | 18.8.0.1022711984-beta-arm64-v8a, 18.8.0.1022711984-beta-armeabi-v7a |
+| AMOLED dark keyboard | Aan | 18.8.0.1022711984-beta-arm64-v8a, 18.8.0.1022711984-beta-armeabi-v7a |
+| Add Gboard Signature Bypass | Aan | 18.8.0.1022711984-beta-arm64-v8a, 18.8.0.1022711984-beta-armeabi-v7a |
+| Advanced voice typing (NGA) | Aan | 18.8.0.1022711984-beta-arm64-v8a, 18.8.0.1022711984-beta-armeabi-v7a |
+| Beta features (18.8) | Aan | 18.8.0.1022711984-beta-arm64-v8a, 18.8.0.1022711984-beta-armeabi-v7a |
+| Change package name | Aan | 18.8.0.1022711984-beta-arm64-v8a, 18.8.0.1022711984-beta-armeabi-v7a |
+| Clipboard Enhancements | Aan | 18.8.0.1022711984-beta-arm64-v8a, 18.8.0.1022711984-beta-armeabi-v7a |
+| Cursor trackpad mode | Aan | 18.8.0.1022711984-beta-arm64-v8a, 18.8.0.1022711984-beta-armeabi-v7a |
+| Custom Theme | Aan | 18.8.0.1022711984-beta-arm64-v8a, 18.8.0.1022711984-beta-armeabi-v7a |
+| Custom branding | Aan | 18.8.0.1022711984-beta-arm64-v8a, 18.8.0.1022711984-beta-armeabi-v7a |
+| Enable OCR / Scan Text | Aan | 18.8.0.1022711984-beta-arm64-v8a, 18.8.0.1022711984-beta-armeabi-v7a |
+| Frosted Glass | Aan | 18.8.0.1022711984-beta-arm64-v8a, 18.8.0.1022711984-beta-armeabi-v7a |
+| G Logo on Spacebar | Aan | 18.8.0.1022711984-beta-arm64-v8a, 18.8.0.1022711984-beta-armeabi-v7a |
+| Hidden flags (18.8) | Aan | 18.8.0.1022711984-beta-arm64-v8a, 18.8.0.1022711984-beta-armeabi-v7a |
+| Incognito Mode Toggle | Aan | 18.8.0.1022711984-beta-arm64-v8a, 18.8.0.1022711984-beta-armeabi-v7a |
+| Key Shape Selection | Aan | 18.8.0.1022711984-beta-arm64-v8a, 18.8.0.1022711984-beta-armeabi-v7a |
+| Parakeet personal dictionary | Aan | 18.8.0.1022711984-beta-arm64-v8a, 18.8.0.1022711984-beta-armeabi-v7a |
+| Parakeet voice typing | Aan | 18.8.0.1022711984-beta-arm64-v8a, 18.8.0.1022711984-beta-armeabi-v7a |
+| Rambler app context | Aan | 18.8.0.1022711984-beta-arm64-v8a, 18.8.0.1022711984-beta-armeabi-v7a |
+| Rambler automatic retry (18.8) | Aan | 18.8.0.1022711984-beta-arm64-v8a, 18.8.0.1022711984-beta-armeabi-v7a |
+| Rambler contact names | Aan | 18.8.0.1022711984-beta-arm64-v8a, 18.8.0.1022711984-beta-armeabi-v7a |
+| Rambler cursor-aware editing | Aan | 18.8.0.1022711984-beta-arm64-v8a, 18.8.0.1022711984-beta-armeabi-v7a |
+| Rambler custom instructions | Aan | 18.8.0.1022711984-beta-arm64-v8a, 18.8.0.1022711984-beta-armeabi-v7a |
+| Rambler personal dictionary | Aan | 18.8.0.1022711984-beta-arm64-v8a, 18.8.0.1022711984-beta-armeabi-v7a |
+| Rambler stop after silence | Aan | 18.8.0.1022711984-beta-arm64-v8a, 18.8.0.1022711984-beta-armeabi-v7a |
+| Rambler toolbar & revert extras (18.8) | Aan | 18.8.0.1022711984-beta-arm64-v8a, 18.8.0.1022711984-beta-armeabi-v7a |
+| Rambler voice typing | Aan | 18.8.0.1022711984-beta-arm64-v8a, 18.8.0.1022711984-beta-armeabi-v7a |
+| Rounded Keyboard Panel | Aan | 18.8.0.1022711984-beta-arm64-v8a, 18.8.0.1022711984-beta-armeabi-v7a |
+| Simple Calculator | Aan | 18.8.0.1022711984-beta-arm64-v8a, 18.8.0.1022711984-beta-armeabi-v7a |
+| Toolbar Editing Buttons | Aan | 18.8.0.1022711984-beta-arm64-v8a, 18.8.0.1022711984-beta-armeabi-v7a |
+| Use Bluetooth microphone | Aan | 18.8.0.1022711984-beta-arm64-v8a, 18.8.0.1022711984-beta-armeabi-v7a |
+| Web Clipboard | Aan | 18.8.0.1022711984-beta-arm64-v8a, 18.8.0.1022711984-beta-armeabi-v7a |
 
 ## Gearslip
 
@@ -380,38 +405,39 @@ Controleer per patch de ondersteunde app-versies en de standaardinstelling. De a
 
 | Patch | Standaard | App-versies |
 | --- | --- | --- |
-| 120 refresh rate | Aan | 26.44.06.1006895251 |
-| Account sheet cleanup | Aan | 26.44.06.1006895251 |
-| Add microG-RE support | Uit | 26.44.06.1006895251 |
-| Add original microG support | Uit | 26.44.06.1006895251 |
-| Any media app | Aan | 26.44.06.1006895251 |
-| Avoid Flock cameras | Aan | 26.44.06.1006895251 |
-| Better offline maps | Aan | 26.44.06.1006895251 |
-| Black theme | Aan | 26.44.06.1006895251 |
-| Blue pin | Aan | 26.44.06.1006895251 |
-| Bypass Play Services checks | Aan | 26.44.06.1006895251 |
-| Change app name | Aan | 26.44.06.1006895251 |
-| Change package name | Aan | 26.44.06.1006895251 |
-| Customization screen | Aan | 26.44.06.1006895251 |
-| Flock cameras | Aan | 26.44.06.1006895251 |
-| Follow playing media | Uit | 26.44.06.1006895251 |
-| Hide ads and clutter | Aan | 26.44.06.1006895251 |
-| Legacy icon | Aan | 26.44.06.1006895251 |
-| Location provider toggle | Aan | 26.44.06.1006895251 |
-| Native navigation for any Android Auto host | Aan | 26.44.06.1006895251 |
-| Offline saved places | Aan | 26.44.06.1006895251 |
-| Power saving mode | Aan | 26.44.06.1006895251 |
-| Proxy | Aan | 26.44.06.1006895251 |
-| Receive alerts from a third-party application | Aan | 26.44.06.1006895251 |
-| Rectangle shapes | Aan | 26.44.06.1006895251 |
-| Remove permissions | Aan | 26.44.06.1006895251 |
-| Remove sign-in prompts | Aan | 26.44.06.1006895251 |
-| Remove telemetry | Aan | 26.44.06.1006895251 |
-| Speed cameras | Aan | 26.44.06.1006895251 |
-| Speeding chime | Aan | 26.44.06.1006895251 |
-| Trim account menu | Aan | 26.44.06.1006895251 |
-| Use the system voice for navigation | Uit | 26.43.05.1002020710, 26.44.06.1006895251 |
-| Zoom controls in navigation | Aan | 26.44.06.1006895251 |
+| 120 refresh rate | Aan | 26.44.06.1006895251, 26.47.00.1022347503 |
+| Account sheet cleanup | Aan | 26.44.06.1006895251, 26.47.00.1022347503 |
+| Add microG-RE support | Uit | 26.44.06.1006895251, 26.47.00.1022347503 |
+| Add original microG support | Uit | 26.44.06.1006895251, 26.47.00.1022347503 |
+| Android Auto options | Aan | 26.44.06.1006895251, 26.47.00.1022347503 |
+| Any media app | Aan | 26.44.06.1006895251, 26.47.00.1022347503 |
+| Avoid Flock cameras | Aan | 26.44.06.1006895251, 26.47.00.1022347503 |
+| Better offline maps | Aan | 26.44.06.1006895251, 26.47.00.1022347503 |
+| Black theme | Aan | 26.44.06.1006895251, 26.47.00.1022347503 |
+| Blue pin | Aan | 26.44.06.1006895251, 26.47.00.1022347503 |
+| Bypass Play Services checks | Aan | 26.44.06.1006895251, 26.47.00.1022347503 |
+| Change app name | Aan | 26.44.06.1006895251, 26.47.00.1022347503 |
+| Change package name | Aan | 26.44.06.1006895251, 26.47.00.1022347503 |
+| Customization screen | Aan | 26.44.06.1006895251, 26.47.00.1022347503 |
+| Flock cameras | Aan | 26.44.06.1006895251, 26.47.00.1022347503 |
+| Follow playing media | Uit | 26.44.06.1006895251, 26.47.00.1022347503 |
+| Hide ads and clutter | Aan | 26.44.06.1006895251, 26.47.00.1022347503 |
+| Legacy icon | Aan | 26.44.06.1006895251, 26.47.00.1022347503 |
+| Location provider toggle | Aan | 26.44.06.1006895251, 26.47.00.1022347503 |
+| Native navigation for any Android Auto host | Aan | 26.44.06.1006895251, 26.47.00.1022347503 |
+| Offline saved places | Aan | 26.44.06.1006895251, 26.47.00.1022347503 |
+| Power saving mode | Aan | 26.44.06.1006895251, 26.47.00.1022347503 |
+| Proxy | Aan | 26.44.06.1006895251, 26.47.00.1022347503 |
+| Receive alerts from a third-party application | Aan | 26.44.06.1006895251, 26.47.00.1022347503 |
+| Rectangle shapes | Aan | 26.44.06.1006895251, 26.47.00.1022347503 |
+| Remove permissions | Aan | 26.44.06.1006895251, 26.47.00.1022347503 |
+| Remove sign-in prompts | Aan | 26.44.06.1006895251, 26.47.00.1022347503 |
+| Remove telemetry | Aan | 26.44.06.1006895251, 26.47.00.1022347503 |
+| Speed cameras | Aan | 26.44.06.1006895251, 26.47.00.1022347503 |
+| Speeding chime | Aan | 26.44.06.1006895251, 26.47.00.1022347503 |
+| Trim account menu | Aan | 26.44.06.1006895251, 26.47.00.1022347503 |
+| Use the system voice for navigation | Uit | 26.43.05.1002020710, 26.44.06.1006895251, 26.47.00.1022347503 |
+| Zoom controls in navigation | Aan | 26.44.06.1006895251, 26.47.00.1022347503 |
 
 ## GridCraft
 
@@ -905,6 +931,18 @@ Controleer per patch de ondersteunde app-versies en de standaardinstelling. De a
 | Disable tracking | Aan | 7.0.16 |
 | Hide ads | Aan | 7.0.16 |
 | Skip consent screens | Aan | 7.0.16 |
+
+## upflix
+
+[Wat veranderen de patches?](../apps/upflix.md)
+
+`com.douglas.upflix`
+
+| Patch | Standaard | App-versies |
+| --- | --- | --- |
+| Disable Crashlytics reporter | Aan | 5.12.10 |
+| Disable Play license check | Aan | 5.12.10 |
+| Disable ads and tracking | Aan | 5.12.10 |
 
 ## Vela Maps
 

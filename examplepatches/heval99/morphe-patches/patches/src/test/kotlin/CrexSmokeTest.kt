@@ -36,7 +36,7 @@ class CrexSmokeTest {
             apk = apk,
             workDir = workDir,
             pkg = PKG,
-            version = "26.11.01",
+            version = "26.11.07",
             patchNames = setOf("Enable Premium", "Disable ads"),
             allPatches = loadAllPatches(newestPatchBundle(root)),
         )
@@ -106,24 +106,25 @@ class CrexSmokeTest {
 
         // Ads 1: every GMA next-gen load entry point (static on the ad class, on its Companion,
         // and the banner AdView) returns immediately.
-        val gmaLoaders = mapOf(
-            "interstitial/InterstitialAd" to "common/AdLoadCallback",
-            "interstitial/InterstitialAd\$Companion" to "common/AdLoadCallback",
-            "rewarded/RewardedAd" to "common/AdLoadCallback",
-            "rewarded/RewardedAd\$Companion" to "common/AdLoadCallback",
-            "rewardedinterstitial/RewardedInterstitialAd\$Companion" to "common/AdLoadCallback",
-            "appopen/AppOpenAd" to "common/AdLoadCallback",
-            "appopen/AppOpenAd\$Companion" to "common/AdLoadCallback",
-            "nativead/NativeAdLoader" to "nativead/NativeAdLoaderCallback",
-            "nativead/NativeAdLoader\$Companion" to "nativead/NativeAdLoaderCallback",
-            "banner/AdView" to "common/AdLoadCallback",
+        // R8 dropped the interface-level static on InterstitialAd, AppOpenAd and NativeAdLoader in
+        // 26.11.04, so each format needs at least one load across its owners.
+        val gmaLoaders = listOf(
+            listOf("interstitial/InterstitialAd", "interstitial/InterstitialAd\$Companion") to "common/AdLoadCallback",
+            listOf("rewarded/RewardedAd", "rewarded/RewardedAd\$Companion") to "common/AdLoadCallback",
+            listOf("rewardedinterstitial/RewardedInterstitialAd\$Companion") to "common/AdLoadCallback",
+            listOf("appopen/AppOpenAd", "appopen/AppOpenAd\$Companion") to "common/AdLoadCallback",
+            listOf("nativead/NativeAdLoader", "nativead/NativeAdLoader\$Companion") to "nativead/NativeAdLoaderCallback",
+            listOf("banner/AdView") to "common/AdLoadCallback",
         )
-        gmaLoaders.forEach { (relative, callback) ->
-            val loads = klass("$GMA$relative;").methods.filter {
-                it.implementation != null && it.returnType == "V" && "$GMA$callback;" in it.params()
+        gmaLoaders.forEach { (owners, callback) ->
+            val loads = owners.flatMap { relative ->
+                val owner = classes.firstOrNull { it.type == "$GMA$relative;" }
+                owner?.methods?.toList().orEmpty().filter {
+                    it.implementation != null && it.returnType == "V" && "$GMA$callback;" in it.params()
+                }.map { relative to it }
             }
-            assertTrue(loads.isNotEmpty(), "no GMA load found on $relative")
-            loads.forEach { assertReturnsEarlyVoid(it, label = "$relative.${it.name} (GMA load)") }
+            assertTrue(loads.isNotEmpty(), "no GMA load found on $owners")
+            loads.forEach { (relative, m) -> assertReturnsEarlyVoid(m, label = "$relative.${m.name} (GMA load)") }
         }
 
         // Ads 2: every public Parth Ads load (banner, inline/native, interstitial, app-open,
@@ -133,8 +134,19 @@ class CrexSmokeTest {
                 AccessFlags.PUBLIC.isSet(it.accessFlags) && !AccessFlags.STATIC.isSet(it.accessFlags) &&
                 it.params().any { p -> p.endsWith("LoadCallback;") }
         }
-        assertTrue(parthLoads.size >= 10, "expected the Parth AdRequest load methods, found ${parthLoads.map { it.name }}")
+        assertTrue(parthLoads.size >= 9, "expected the Parth AdRequest load methods, found ${parthLoads.map { it.name }}")
         parthLoads.forEach { assertReturnsEarlyVoid(it, label = "Parth AdRequest.${it.name}") }
+
+        // Ads 2b: the integrated-prediction and prediction-polls loaders build their own
+        // com.parth.ads.a request and return immediately.
+        listOf("IntegratedPredictionAdLoader", "PredictionPollsAdLoader").forEach { name ->
+            val loads = klass("Lin/cricketexchange/app/cricketexchange/ads/$name;").methods.filter {
+                it.implementation != null && it.returnType == "V" &&
+                    it.params() == listOf("Landroid/app/Activity;", "Landroid/content/Context;", "Lorg/json/JSONObject;")
+            }
+            assertTrue(loads.size == 1, "expected one load method on $name, found ${loads.map { it.name }}")
+            assertReturnsEarlyVoid(loads.single(), label = "$name.${loads.single().name}")
+        }
 
         // Ads 3: Meta Audience Network AdView, both loadAd overloads.
         val fanAdView = klass("Lcom/facebook/ads/AdView;")

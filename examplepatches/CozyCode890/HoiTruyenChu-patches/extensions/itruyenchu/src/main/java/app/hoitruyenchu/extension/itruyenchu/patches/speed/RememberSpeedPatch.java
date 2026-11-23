@@ -1,0 +1,176 @@
+package app.hoitruyenchu.extension.itruyenchu.patches.speed;
+
+import app.hoitruyenchu.extension.itruyenchu.patches.shared.JsScripts;
+
+/**
+ * The listening speed went back to 1x every time the app was restarted.
+ * <p>
+ * Root cause (app 2.1.0): the voice bar store useTTSVoiceStore (zustand persist, AsyncStorage key
+ * {@code tts_voice_state}) keeps the speed in {@code speed}, but its partialize saves it under the
+ * misspelled key {@code spead}: {@code {"state":{"spead":1.5,"isVoiceBarOpen":true},"version":0}}.
+ * On start the store is hydrated with {@code spead}, nothing reads it, and {@code speed} keeps its
+ * initial value.
+ * <p>
+ * A JS script ({@link #SCRIPT}) evaluated right after the app's bundle waits for the store to be
+ * hydrated and calls {@code setSpeed(spead)}. The speed is one for all books, like the app intends,
+ * and the value saved by the unpatched app before is used as well. Plain ES5, everything inside
+ * try/catch: an exception escaping here would be a fatal JS error. Module id (app 2.1.0):
+ * 2766 = useTTSVoiceStore.
+ */
+@SuppressWarnings("unused")
+public final class RememberSpeedPatch {
+    private static final String TAG = "HTC-Speed";
+    private static final String FILE_NAME = "htc-remember-speed.js";
+
+    private RememberSpeedPatch() {
+    }
+
+    /** End of ReactInstance.loadJSBundle(loader): the app bundle is scheduled, queue the script after it. */
+    public static void afterMainBundle(Object reactInstance) {
+        JsScripts.load(reactInstance, FILE_NAME, SCRIPT, TAG);
+    }
+
+    static final String SCRIPT = ""
+            + "(function () {\n"
+            + "  var TAG = '[HTC-Speed] ';\n"
+            + "  function log(m) { try { var s0 = globalThis.__htcS; if (s0 && s0.debug === false) return; console.log(TAG + m); } catch (e) {} }\n"
+            + "  function S(k, d) { try { var s0 = globalThis.__htcS; var v = s0 ? s0[k] : undefined; return v === undefined || v === null ? d : v; } catch (e) { return d; } }\n"
+            + "  try {\n"
+            + "    var g = typeof globalThis !== 'undefined' ? globalThis : this;\n"
+            + "    if (typeof g.__r !== 'function') { log('no __r'); return; }\n"
+            + "    var M = g.__r(2766);\n"
+            + "    var V = M && M.useTTSVoiceStore;\n"
+            + "    if (!V || typeof V.getState !== 'function' || typeof V.getState().setSpeed !== 'function'\n"
+            + "        || !V.persist) { log('voice store not found'); return; }\n"
+            + "    var done = false;\n"
+            + "    function restore() {\n"
+            + "      if (done) return;\n"
+            + "      done = true;\n"
+            + "      if (!S('speed.enabled', true)) { log('turned off in the settings'); return; }\n"
+            + "      try {\n"
+            + "        var s = V.getState();\n"
+            + "        var saved = s.spead;\n"
+            + "        if (typeof saved !== 'number' || !(saved >= 0.25 && saved <= 4)) { log('no saved speed'); return; }\n"
+            + "        if (saved === s.speed) { log('speed ' + saved); return; }\n"
+            + "        s.setSpeed(saved);\n"
+            + "        log('speed restored ' + saved);\n"
+            + "      } catch (e) { log('restore failed ' + e); }\n"
+            + "    }\n"
+            + "    var hydrated = false;\n"
+            + "    try { hydrated = typeof V.persist.hasHydrated !== 'function' || V.persist.hasHydrated(); } catch (e) {}\n"
+            + "    if (hydrated) restore();\n"
+            + "    else if (typeof V.persist.onFinishHydration === 'function') {\n"
+            + "      var unsub = V.persist.onFinishHydration(function () {\n"
+            + "        restore();\n"
+            + "        try { if (typeof unsub === 'function') unsub(); } catch (e) {}\n"
+            + "      });\n"
+            + "      // Hydration may end between the check and the subscription.\n"
+            + "      try { if (V.persist.hasHydrated()) restore(); } catch (e) {}\n"
+            + "    } else log('no onFinishHydration');\n"
+            + "\n"
+            + "    // More levels in the speed picker of the voice bar (SpeedControl: a View with one\n"
+            + "    // TouchableOpacity per speed, key = speed, child Text [speed.toFixed(2), 'x']).\n"
+            + "    var EXTRA = [0.9, 1.1, 1.75, 2.5, 3];\n"
+            + "    var JSX = g.__r(288);\n"
+            + "    var RN = g.__r(74);\n"
+            + "    if (!JSX || typeof JSX.jsx !== 'function' || typeof JSX.jsxs !== 'function' || !RN || !RN.View) {\n"
+            + "      log('jsx not found, no extra speeds'); return;\n"
+            + "    }\n"
+            + "    var jsx0 = JSX.jsx, jsxs0 = JSX.jsxs;\n"
+            + "    var picker = null;   // props of the SpeedControl rendering, null outside\n"
+            + "    function wrapPicker(orig) {\n"
+            + "      var SpeedControl = function (props) {\n"
+            + "        var saved = picker;\n"
+            + "        picker = props || null;\n"
+            + "        try { return orig.apply(this, arguments); } finally { picker = saved; }\n"
+            + "      };\n"
+            + "      SpeedControl.__htcSpeed = true;\n"
+            + "      SpeedControl.__htcOrig = orig;\n"
+            + "      return SpeedControl;\n"
+            + "    }\n"
+            + "    var wrapped = null;\n"
+            + "    var lastActive = null;  // style of the selected item, kept for when an extra speed is selected\n"
+            + "    function items(children) {\n"
+            + "      if (!picker || !children || typeof children.length !== 'number' || children.length < 2) return null;\n"
+            + "      var first = children[0];\n"
+            + "      if (!first || !first.props || typeof first.props.onPress !== 'function' || first.key == null) return null;\n"
+            + "      var have = {}, speeds = [], activeStyle = null, baseStyle = null, textStyle = null, i;\n"
+            + "      for (i = 0; i < children.length; i++) {\n"
+            + "        var c = children[i];\n"
+            + "        var v = c && c.key != null ? parseFloat(c.key) : NaN;\n"
+            + "        if (isNaN(v)) return null;\n"
+            + "        have[v.toFixed(2)] = true;\n"
+            + "        var st = c.props && c.props.style;\n"
+            + "        if (st && typeof st.length === 'number') { baseStyle = st[0]; if (st[1]) activeStyle = st[1]; }\n"
+            + "        var t = c.props && c.props.children;\n"
+            + "        if (t && t.props) textStyle = t.props.style;\n"
+            + "      }\n"
+            + "      var current = Number(picker.currentSpeed);\n"
+            + "      var add = EXTRA.slice();\n"
+            + "      if (current > 0 && !have[current.toFixed(2)]) add.push(current);\n"
+            + "      var out = [];\n"
+            + "      for (i = 0; i < children.length; i++) out.push({ v: parseFloat(children[i].key), el: children[i] });\n"
+            + "      var onSelect = picker.onSelect, onClose = picker.onClose;\n"
+            + "      if (activeStyle) lastActive = activeStyle;\n"
+            + "      else activeStyle = lastActive || { backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: 12 };\n"
+            + "      var Text = RN.Text, Touch = RN.TouchableOpacity;\n"
+            + "      for (i = 0; i < add.length; i++) {\n"
+            + "        var sp = add[i];\n"
+            + "        if (have[sp.toFixed(2)]) continue;\n"
+            + "        have[sp.toFixed(2)] = true;\n"
+            + "        (function (speed) {\n"
+            + "          var label = jsxs0(Text, { style: textStyle, children: [speed.toFixed(2), 'x'] });\n"
+            + "          var el = jsx0(Touch, {\n"
+            + "            style: [baseStyle, speed === current && activeStyle],\n"
+            + "            // Like the app's items: onSelect(speed) then onClose().\n"
+            + "            onPress: function () {\n"
+            + "              try { if (typeof onSelect === 'function') onSelect(speed); } catch (e) { log('select failed ' + e); }\n"
+            + "              try { if (typeof onClose === 'function') onClose(); } catch (e) {}\n"
+            + "            },\n"
+            + "            children: label\n"
+            + "          }, String(speed));\n"
+            + "          out.push({ v: speed, el: el });\n"
+            + "        })(sp);\n"
+            + "      }\n"
+            + "      out.sort(function (a, b) { return a.v - b.v; });\n"
+            + "      var result = [];\n"
+            + "      for (i = 0; i < out.length; i++) result.push(out[i].el);\n"
+            + "      return result;\n"
+            + "    }\n"
+            + "    function wrapJsx(orig) {\n"
+            + "      return function (type, props) {\n"
+            + "        try {\n"
+            + "          if (type && typeof type === 'object' && typeof type.type === 'function'\n"
+            + "              && type.type.name === 'SpeedControl' && !type.type.__htcSpeed) {\n"
+            + "            // memo(SpeedControl): wrap the inner function once, in place.\n"
+            + "            type.type = wrapPicker(type.type);\n"
+            + "            log('speed picker hooked (memo)');\n"
+            + "          }\n"
+            + "          if (typeof type === 'function' && type.name === 'SpeedControl' && !type.__htcSpeed) {\n"
+            + "            if (!wrapped || wrapped.__htcOrig !== type) { wrapped = wrapPicker(type); log('speed picker hooked'); }\n"
+            + "            var a = Array.prototype.slice.call(arguments);\n"
+            + "            a[0] = wrapped;\n"
+            + "            return orig.apply(this, a);\n"
+            + "          }\n"
+            + "          if (picker && type === RN.View && props && S('speed.enabled', true) && S('speed.extraLevels', true)) {\n"
+            + "            var list = items(props.children);\n"
+            + "            if (list) {\n"
+            + "              var copy = {}, k;\n"
+            + "              for (k in props) copy[k] = props[k];\n"
+            + "              copy.children = list;\n"
+            + "              var b = Array.prototype.slice.call(arguments);\n"
+            + "              b[1] = copy;\n"
+            + "              return jsxs0.apply(this, b);\n"
+            + "            }\n"
+            + "          }\n"
+            + "        } catch (e) { log('picker failed ' + e); }\n"
+            + "        return orig.apply(this, arguments);\n"
+            + "      };\n"
+            + "    }\n"
+            + "    var jsx = wrapJsx(jsx0), jsxs = wrapJsx(jsxs0);\n"
+            + "    JSX.jsx = jsx;\n"
+            + "    JSX.jsxs = jsxs;\n"
+            + "    log('ready');\n"
+            + "  } catch (e) { log('error ' + e); }\n"
+            + "})();\n";
+}

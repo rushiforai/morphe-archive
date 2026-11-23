@@ -2,7 +2,6 @@ package app.template.patches.sofascore.misc.telemetry
 
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
-import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patcher.util.returnEarly
 import app.template.patches.shared.Constants.COMPATIBILITY_SOFASCORE
 import app.template.patches.shared.addInstructionsChecked
@@ -18,13 +17,9 @@ private val APPSFLYER_METHODS = setOf("start", "logEvent", "logSession", "logAdR
 // so it is located at patch time by the SharedPreferences key its settings class uses.
 private const val CRASHLYTICS_COLLECTION_KEY = "firebase_crashlytics_collection_enabled"
 
-/**
- * A fingerprint can match an abstract declaration (the AppsFlyer SDK ships one per
- * logEvent overload); calling returnEarly() on a method without a body crashes the
- * patcher, so only patch methods that actually have an implementation.
- */
-private fun MutableMethod?.returnEarlyIfImplemented() =
-    this?.takeIf { it.implementation != null }?.returnEarly()
+// Firebase Analytics: in this build FirebaseAnalytics no longer declares logEvent, so every event
+// funnels through the underlying Google Measurement SDK entry point (a stable library class).
+private const val GMS_MEASUREMENT_SDK = "Lcom/google/android/gms/measurement/api/AppMeasurementSdk;"
 
 // forceAnalyticsDeactivated() lives in shared/misc/telemetry/FirebaseAnalyticsDeactivated.kt
 // (shared with FotMob, 2026-10-22).
@@ -39,34 +34,47 @@ val disableTelemetryPatch = bytecodePatch(
     execute {
         // 1. AppsFlyer: start, every logEvent overload, logSession and logAdRevenue (the
         // Flashscore patch's approach), so the SDK never starts sending.
-        var appsFlyerStart = 0
+        val appsFlyerPatched = mutableMapOf<String, Int>()
         classDefForEach { classDef ->
             if (classDef.superclass != APPSFLYER_LIB) return@classDefForEach
             mutableClassDefBy(classDef).methods
                 .filter { it.name in APPSFLYER_METHODS && it.returnType == "V" && it.implementation != null }
                 .forEach {
-                    if (it.name == "start") appsFlyerStart++
+                    appsFlyerPatched.merge(it.name, 1, Int::plus)
                     it.returnEarly()
                 }
         }
-        if (appsFlyerStart == 0) throw PatchException("No AppsFlyerLib implementation of start() found")
+        APPSFLYER_METHODS.forEach { name ->
+            if ((appsFlyerPatched[name] ?: 0) == 0) throw PatchException("No AppsFlyerLib implementation of $name() found")
+        }
 
         // 2. Firebase Analytics: the manifest switch "firebase_analytics_collection_deactivated"
         // reads as true (see forceAnalyticsDeactivated), and every remaining app event funnels
         // through the Google Measurement SDK entry point.
         forceAnalyticsDeactivated()
-        GmsMeasurementLogEventFingerprint.method.returnEarlyIfImplemented()
+        // Every concrete logEvent overload (abstract declarations have no body, rule 2).
+        val measurementEvents = mutableClassDefBy(GMS_MEASUREMENT_SDK).methods
+            .filter { it.name == "logEvent" && it.returnType == "V" && it.implementation != null }
+        if (measurementEvents.isEmpty()) throw PatchException("No concrete AppMeasurementSdk.logEvent found")
+        measurementEvents.forEach { it.returnEarly() }
 
         // 3. Crashlytics: two classes reference the collection-enabled pref key - the
         // settings holder (boolean getter that decides whether anything is collected)
         // and the FirebaseCrashlytics instance itself (log/recordException methods).
         // Disable collection and neuter the non-fatal reporting entry points.
-        for (classDef in classDefByStrings(CRASHLYTICS_COLLECTION_KEY)) {
+        val crashlyticsClasses = classDefByStrings(CRASHLYTICS_COLLECTION_KEY)
+        if (crashlyticsClasses.isEmpty()) throw PatchException("No class references $CRASHLYTICS_COLLECTION_KEY")
+        var crashlyticsGetters = 0
+        var crashlyticsReports = 0
+        for (classDef in crashlyticsClasses) {
             val crashlytics = mutableClassDefBy(classDef)
             crashlytics.methods
                 .filter { it.implementation != null }
                 .filter { it.returnType == "Z" && it.parameterTypes.isEmpty() }
-                .forEach { it.returnEarly(false) }
+                .forEach {
+                    crashlyticsGetters++
+                    it.returnEarly(false)
+                }
             crashlytics.methods
                 .filter { it.implementation != null }
                 .filter {
@@ -74,8 +82,13 @@ val disableTelemetryPatch = bytecodePatch(
                         it.parameterTypes.size == 1 &&
                         it.parameterTypes.first().toString() == "Ljava/lang/Throwable;"
                 }
-                .forEach { it.returnEarly() }
+                .forEach {
+                    crashlyticsReports++
+                    it.returnEarly()
+                }
         }
+        if (crashlyticsGetters == 0) throw PatchException("Crashlytics collection-enabled getter not found")
+        if (crashlyticsReports == 0) throw PatchException("Crashlytics recordException(Throwable) not found")
 
         // 4. Sofascore NATS analytics: the app's own first-party event sender (every analytics
         // event, enriched with user_id, analytics_user_id, the account id, the advertising id,

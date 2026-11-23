@@ -395,6 +395,18 @@ public final class GlassTabBar {
         return Math.max(0, Math.min(nav, bottom - (window - nav)));
     }
 
+    /**
+     * {@link #intoTheNavigationBar} for the strip a reel's seek bar is kept out of ({@link ReelSeekRoom#strip}):
+     * the navigation bar [nav] or the system's gesture area [gestures], whichever is taller, or [unreported]
+     * where the phone reports neither. Lifted only past the navigation bar, a seek bar on a reel with the pill
+     * away still reached into the gesture area, and the seek bar's room put its own lift on top of the pill's.
+     * During a drag each took the other's for Instagram's and let go, and the bar was left over the caption
+     * (#450).
+     */
+    static int intoTheSeekBarsStrip(int bottom, int window, int nav, int gestures, int unreported) {
+        return intoTheNavigationBar(bottom, window, ReelSeekRoom.strip(nav, gestures, unreported));
+    }
+
     private static int liftReels(View view, View bar, int id, int wanted, java.util.Map<View, Integer> given,
             @Nullable java.util.Collection<View> seen, int depth) {
         if (view == bar || depth > 60) return 0;
@@ -2416,17 +2428,23 @@ public final class GlassTabBar {
         /**
          * Sends the window's insets round again when this floating pill shows or hides in front, or its
          * activity came back, so Instagram reads the navigation bar's height again ({@link #navBarHeight}).
-         * A bottom sheet coming up over it or going changes nothing Instagram reads (#222).
+         * A bottom sheet coming up over it or going changes nothing Instagram reads (#222). When the pill
+         * stops showing in front, as Instagram hides its bar for a story, the screens get the bar's real
+         * height at once ({@link FullScreenBars#giveNavBarHeightNow}). Told only after that pass, a story
+         * opening under the pill showed down to the bottom edge for a frame and then jumped up (#618).
+         * True when they were told now, so this frame waits for their new layout.
          */
-        private void askForInsetsWhenShownChanges() {
-            if (!floating) return;
+        private boolean askForInsetsWhenShownChanges() {
+            if (!floating) return false;
             Activity now = front.get();
             boolean shown = now != null && !HushgramPause.isPaused() && floatsShownIn(now);
-            if (insetsShown != null && insetsShown == shown) return;
+            if (insetsShown != null && insetsShown == shown) return false;
+            boolean wentAway = Boolean.TRUE.equals(insetsShown) && now != null;
             insetsShown = shown;
             View root = bar.getRootView();
             root.post(root::requestApplyInsets);
             HookStatus.counted(FamilyNames.GLASS_TAB_BAR, COUNT_INSETS_AGAIN);
+            return wentAway && FullScreenBars.giveNavBarHeightNow();
         }
 
         /** The clear space above and under the pill. */
@@ -2678,8 +2696,8 @@ public final class GlassTabBar {
         }
 
         /**
-         * How far [viewer] reaches into the navigation bar at its window's foot ({@link #intoTheNavigationBar}).
-         * The bar counts at its full height whether it shows or Full screen Reels hides it, since a swipe up
+         * How far [viewer] reaches into the navigation bar, or the taller gesture area, at its window's foot
+         * ({@link #intoTheSeekBarsStrip}). The bar counts at its full height whether it shows or Full screen Reels hides it, since a swipe up
          * from that strip still leaves the app. Measured on the viewer, since what Instagram was last told
          * about the bar says nothing once Full screen Reels hides it as the reel opens (#450). Without the
          * window's insets, the height Instagram was answered 0 for ({@link #navUnpadded}), and where the phone
@@ -2690,12 +2708,13 @@ public final class GlassTabBar {
             WindowInsets insets = viewer.getRootWindowInsets();
             View root = viewer.getRootView();
             if (insets == null || root == null) return navUnpadded();
-            int nav = Build.VERSION.SDK_INT >= Build.VERSION_CODES.R
-                    ? insets.getInsetsIgnoringVisibility(WindowInsets.Type.navigationBars()).bottom
+            boolean r = Build.VERSION.SDK_INT >= Build.VERSION_CODES.R;
+            int nav = r ? insets.getInsetsIgnoringVisibility(WindowInsets.Type.navigationBars()).bottom
                     : insets.getStableInsetBottom();
-            if (nav <= 0) nav = FullScreenBars.unreportedNavHeight();
+            int gestures = r ? insets.getInsetsIgnoringVisibility(WindowInsets.Type.mandatorySystemGestures()).bottom : 0;
             viewer.getLocationInWindow(viewerAt);
-            return intoTheNavigationBar(viewerAt[1] + viewer.getHeight(), root.getHeight(), nav);
+            return intoTheSeekBarsStrip(viewerAt[1] + viewer.getHeight(), root.getHeight(), nav, gestures,
+                    FullScreenBars.unreportedNavHeight());
         }
 
         /**
@@ -2891,7 +2910,8 @@ public final class GlassTabBar {
                 }
                 // A Reels viewer laid out at a size it's about to lose isn't shown at it either.
                 if (reelsMoved) layOutAgain = true;
-                askForInsetsWhenShownChanges();
+                // Screens given the navigation bar's height as the pill went hold the frame too (#618).
+                if (askForInsetsWhenShownChanges()) layOutAgain = true;
                 // Moved sheets hold the frame back for their new layout too, so a sheet never shows on the
                 // navigation bar first. They move once when the holder first turns up and when the room changes.
                 if (liftSheets()) layOutAgain = true;

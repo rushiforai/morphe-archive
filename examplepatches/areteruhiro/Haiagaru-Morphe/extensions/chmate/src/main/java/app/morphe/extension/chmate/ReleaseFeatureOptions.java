@@ -29,12 +29,15 @@ final class ReleaseFeatureOptions {
         WACCHOI_COPY_PARENS("1.47.0"), THREAD_REPORTER_COPY("1.47.0"), HIDDEN_NG_NEW_ARRIVAL_COUNT("1.47.0"),
         READING_POSITION_CARD_DEFAULT("1.47.0"), EXTRA_QUICK_FILTERS("1.47.0"), KYODEMO_TOOLBAR_PALETTE("1.49.0"),
         ANIMANCH_HEART("1.49.0"), CRASH_REPORTING("1.49.0"), GIGAFILE_BUTTON("1.49.0"), GIGAFILE_LINK_MODE("1.49.0"),
-        FUTABA_DIRECT_POSTING("1.49.0"), FUTABA_OFFICIAL_POSTING("1.49.0");
+        FUTABA_DIRECT_POSTING("1.49.0"), FUTABA_OFFICIAL_POSTING("1.49.0"), EXPERT_PERFORMANCE("1.49.2"), BACKGROUND_POSTING_OPT_IN("1.51.0"), HOME_INLINE_ORDER("1.51.0"),
+        SHORT_BOARD_THREADS("1.50.0");
 
         final String version;
         Option(String version) { this.version = version; }
         String category() {
             switch(this){
+                case BACKGROUND_POSTING_OPT_IN:case EXPERT_PERFORMANCE:return "エキスパート設定";
+                case HOME_INLINE_ORDER:case SHORT_BOARD_THREADS:return "表示・検索";
                 case FUTABA_DIRECT_POSTING:case FUTABA_OFFICIAL_POSTING:return "履歴・投稿";
                 case ANIMANCH_HEART:case CRASH_REPORTING:case SETTINGS_LINKS:case SITE_GROUPS:case EDGE:case ORG:case BAKUSAI:case FUTABA:case ANIMAN:return "アプリ・通信";
                 case WACCHOI_COPY_UPPER:case WACCHOI_COPY_LOWER:case WACCHOI_COPY_PARENS:
@@ -60,6 +63,8 @@ final class ReleaseFeatureOptions {
         }
         String description() {
             switch(this){
+                case HOME_INLINE_ORDER:return "HOMEの★とラベルの見出しをタップして開閉します。初期値はオンです。";
+                case BACKGROUND_POSTING_OPT_IN:return "今回の更新後は、以前オンにした場合も一度オフになります。再びオンにできます。";
                 case FUTABA_DIRECT_POSTING:return "ふたば img／may の鉛筆ボタンから公式投稿フォームだけを開きます。初期値はオンです。";
                 case FUTABA_OFFICIAL_POSTING:return "ふたば img／may の投稿に、広告を除いた公式フォームを使います。初期値はオンです。";
                 case ANIMANCH_HEART:return "あにまんのレスにハートボタンを表示します。";
@@ -117,6 +122,8 @@ final class ReleaseFeatureOptions {
                 case EXTERNAL_VIDEO_CACHE:return "専用ビューアを使わないとき、imgpile動画を一時取得して外部プレイヤーへ渡します。";
                 case POST_LIMIT_DISPLAY:return "投稿欄に板ごとのスレタイ・本文・行数・1行あたりの上限と超過位置を表示します。";
                 case FILTER_OPTIMIZATION:return "レスフィルター全体の抽出・位置保持などの処理を任意で最適化します。初期状態はOFFです。";
+                case EXPERT_PERFORMANCE:return "起動・スレ読込・投稿・Cookie・履歴・通知・フィルター・画像切替時の処理を個別に切り替えられます。今回追加した設定は初期ONです。";
+                case SHORT_BOARD_THREADS:return "板の一覧で指定以下のレス数のスレを隠します。初期OFFで、上限の初期値は1です。";
                 case DELAYED_POSITION_SNAPSHOT:return "エキスパート設定で遅延位置スナップショットを切り替えられます。初期状態はOFFです。";
                 case CONDITIONAL_REFRESH:return "初期OFFではChMate標準の条件付き・Range更新を使います。更新日時だけで新着を取りこぼす場合にONにすると条件付きヘッダーを省きます。通信量が増えることがあります。";
                 case NOTE_INDICATOR:return "メモ済みレスの右下にアイコンを表示します。タップしてメモを開き、編集できます。";

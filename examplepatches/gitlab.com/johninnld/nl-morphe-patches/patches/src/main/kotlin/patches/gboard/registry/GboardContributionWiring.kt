@@ -60,10 +60,10 @@ internal object GboardContributionWiring {
             unit("ai_writing_tools.flag") { arrayOf(gboardAiWritingToolsFlagValuePatch) },
             unit("ai_writing_tools.preference_observer") { arrayOf(gboardAiWritingTools1853PreferenceObserverPatch) },
         ),
-        "access_points_menu_style" to listOf(
-            unit("access_points_menu_style.flag") { arrayOf(gboardAccessPointsMenuFlagValuePatch) },
-            unit("access_points_menu_style.bytecode") { arrayOf(gboardAccessPointsMenu1853Patch) },
-        ),
+        // "access_points_menu_style" is intentionally not wired. The 18.5.x shim still binds
+        // `Laajh;->k(Lxno;)V` (18.8 takes `Laacw;`) and calls its helper on `Lnib;` though the
+        // helper is installed on `Laajh;`. It is outside the supported port until those contracts
+        // are resolved; the public Toolbar Editing Buttons path does not use it.
         "enable_cursor_trackpad_mode" to listOf(
             unit("enable_cursor_trackpad_mode.flag") { arrayOf(gboardCursorTrackpadFlagValuePatch) },
             unit("enable_cursor_trackpad_mode.preferences") { arrayOf(gboardCursorTrackpadPreferencePatch) },

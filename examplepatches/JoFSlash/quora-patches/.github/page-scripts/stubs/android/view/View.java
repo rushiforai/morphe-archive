@@ -33,6 +33,10 @@ public class View {
         return true;
     }
 
+    public boolean isAttachedToWindow() {
+        return false;
+    }
+
     public void setOnClickListener(OnClickListener listener) {
     }
 

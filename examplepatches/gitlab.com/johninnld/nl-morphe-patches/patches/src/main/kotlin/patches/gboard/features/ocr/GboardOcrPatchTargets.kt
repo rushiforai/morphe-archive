@@ -9,7 +9,7 @@ import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import com.android.tools.smali.dexlib2.AccessFlags
 
 internal object GboardOcrPatchTargets {
-    val taskCompletionListener = GboardMethodTarget("Llxk;", "l", listOf("Llxd;"), "V")
+    val taskCompletionListener = GboardMethodTarget("Lzdv;", "l", listOf("Lzdk;"), "V")
 
     internal fun requireTaskCompletionRegistration(owner: MutableClass): MutableMethod {
         val method = taskCompletionListener.resolve(owner)
@@ -21,46 +21,44 @@ internal object GboardOcrPatchTargets {
     fun preflight(context: BytecodePatchContext) {
         val methods = listOf(configLabel, languageHint, loggingLibrary, optionalModuleName, moduleId,
             moduleAvailability, optionalModuleBuilder, moduleManagerRequest, thinRecognizerInit) + listOf(
-            GboardMethodTarget("Lkzf;", "<init>", listOf("Ljava/lang/String;", "I", "J", "Z"), "V"),
-            GboardMethodTarget("Lzey;", "b", emptyList(), "Lzey;"),
-            GboardMethodTarget("Lzey;", "a", emptyList(), "Landroid/content/Context;"),
-            GboardMethodTarget("Lliv;", "a", listOf("Landroid/content/Context;", "Ljava/lang/String;"), "I"),
-            GboardMethodTarget("Lliv;", "d", listOf("Landroid/content/Context;", "Lliu;", "Ljava/lang/String;"), "Lliv;"),
-            GboardMethodTarget("Lliv;", "c", listOf("Ljava/lang/String;"), "Landroid/os/IBinder;"),
-            GboardMethodTarget("Llii;", "<init>", listOf("Ljava/lang/Object;"), "V"),
-            GboardMethodTarget("Laabe;", "<init>", listOf("Landroid/os/IBinder;"), "V"),
-            GboardMethodTarget("Laabd;", "<init>", listOf("Landroid/os/IBinder;"), "V"),
-            GboardMethodTarget("Lejy;", "a", emptyList(), "Landroid/os/Parcel;"),
-            GboardMethodTarget("Lejy;", "z", listOf("I", "Landroid/os/Parcel;"), "Landroid/os/Parcel;"),
-            GboardMethodTarget("Lejy;", "C", listOf("I", "Landroid/os/Parcel;"), "V"),
-            GboardMethodTarget("Leka;", "d", listOf("Landroid/os/Parcel;", "Landroid/os/IInterface;"), "V"),
-            GboardMethodTarget("Leka;", "c", listOf("Landroid/os/Parcel;", "Landroid/os/Parcelable;"), "V"),
-            GboardMethodTarget("Laabj;", "<init>", listOf("Ljava/lang/String;", "Ljava/lang/String;", "Ljava/lang/String;", "Z", "I", "Ljava/lang/String;", "Z"), "V"),
-            GboardMethodTarget("Laabn;", "b", emptyList(), "V"),
-            GboardMethodTarget("Llgl;", "<init>", listOf("Landroid/content/Context;"), "V"),
-            GboardMethodTarget("Llgl;", "a", listOf("[Llau;"), "Llxk;"),
-            GboardMethodTarget("Llgl;", "b", listOf("Llfv;"), "V"),
-            GboardMethodTarget("Llgl;", "c", listOf("Lquw;"), "Llxk;"),
-            GboardMethodTarget("Lquw;", "<init>", listOf("Ljava/util/List;", "Llfv;"), "V"),
-            GboardMethodTarget("Llfv;", "a", listOf("Llga;"), "V"),
-            GboardMethodTarget("Llxk;", "g", emptyList(), "Z"),
-            GboardMethodTarget("Llxk;", "e", emptyList(), "Ljava/lang/Object;"),
-            GboardMethodTarget("Llxk;", "d", emptyList(), "Ljava/lang/Exception;"),
+            GboardMethodTarget("Lxli;", "<init>", listOf("Ljava/lang/String;", "I", "J", "Z"), "V"),
+            GboardMethodTarget("Lazjo;", "b", emptyList(), "Lazjo;"),
+            GboardMethodTarget("Lazjo;", "a", emptyList(), "Landroid/content/Context;"),
+            GboardMethodTarget("Lyaz;", "a", listOf("Landroid/content/Context;", "Ljava/lang/String;"), "I"),
+            GboardMethodTarget("Lyaz;", "d", listOf("Landroid/content/Context;", "Lyay;", "Ljava/lang/String;"), "Lyaz;"),
+            GboardMethodTarget("Lyaz;", "c", listOf("Ljava/lang/String;"), "Landroid/os/IBinder;"),
+            GboardMethodTarget("Lyak;", "<init>", listOf("Ljava/lang/Object;"), "V"),
+            GboardMethodTarget("Lbajh;", "<init>", listOf("Landroid/os/IBinder;"), "V"),
+            GboardMethodTarget("Lbajg;", "<init>", listOf("Landroid/os/IBinder;"), "V"),
+            GboardMethodTarget("Lhrd;", "a", emptyList(), "Landroid/os/Parcel;"),
+            GboardMethodTarget("Lhrd;", "J", listOf("I", "Landroid/os/Parcel;"), "Landroid/os/Parcel;"),
+            GboardMethodTarget("Lhrd;", "L", listOf("I", "Landroid/os/Parcel;"), "V"),
+            GboardMethodTarget("Lhrf;", "d", listOf("Landroid/os/Parcel;", "Landroid/os/IInterface;"), "V"),
+            GboardMethodTarget("Lhrf;", "c", listOf("Landroid/os/Parcel;", "Landroid/os/Parcelable;"), "V"),
+            GboardMethodTarget("Lbajq;", "<init>", listOf("Ljava/lang/String;", "Ljava/lang/String;", "Ljava/lang/String;", "Z", "I", "Ljava/lang/String;", "Z"), "V"),
+            GboardMethodTarget("Lbajx;", "c", emptyList(), "V"),
+            GboardMethodTarget("Lxws;", "<init>", listOf("Landroid/content/Context;"), "V"),
+            GboardMethodTarget("Lxws;", "a", listOf("[Lxns;"), "Lzdv;"),
+            GboardMethodTarget("Lxws;", "c", listOf("Lxvo;"), "V"),
+            GboardMethodTarget("Lxvo;", "a", listOf("Lxvx;"), "V"),
+            GboardMethodTarget("Lzdv;", "g", emptyList(), "Z"),
+            GboardMethodTarget("Lzdv;", "e", emptyList(), "Ljava/lang/Object;"),
+            GboardMethodTarget("Lzdv;", "d", emptyList(), "Ljava/lang/Exception;"),
         )
         methods.forEach { it.resolve(context) }
-        requireTaskCompletionRegistration(context.mutableClass("Llxk;"))
+        requireTaskCompletionRegistration(context.mutableClass("Lzdv;"))
         listOf(
-            GboardFieldTarget("Laabn;", "a", "Landroid/content/Context;"),
-            GboardFieldTarget("Laabn;", "b", "Laabb;"),
-            GboardFieldTarget("Laabn;", "f", "Laabd;"),
-            GboardFieldTarget("Lliv;", "b", "Lliu;"),
-            GboardFieldTarget("Lkzf;", "a", "Ljava/lang/String;"),
-            GboardFieldTarget("Llga;", "b", "I"), GboardFieldTarget("Llga;", "e", "I"),
-            GboardFieldTarget("Llfz;", "a", "I"), GboardFieldTarget("Llfz;", "b", "Z"),
+            GboardFieldTarget("Lbajx;", "a", "Landroid/content/Context;"),
+            GboardFieldTarget("Lbajx;", "b", "Lbaje;"),
+            GboardFieldTarget("Lbajx;", "f", "Lbajg;"),
+            GboardFieldTarget("Lyaz;", "b", "Lyay;"),
+            GboardFieldTarget("Lxli;", "a", "Ljava/lang/String;"),
+            GboardFieldTarget("Lxvx;", "b", "I"), GboardFieldTarget("Lxvx;", "e", "I"),
+            GboardFieldTarget("Lxvv;", "a", "I"), GboardFieldTarget("Lxvv;", "b", "Z"),
         ).forEach { it.resolve(context) }
-        check(context.mutableClass("Laabe;").superclass == "Lejy;")
-        check(context.mutableClass("Laabd;").superclass == "Lejy;")
-        check("Laabb;" in context.mutableClass("Laaby;").interfaces)
+        check(context.mutableClass("Lbajh;").superclass == "Lhrd;")
+        check(context.mutableClass("Lbajg;").superclass == "Lhrd;")
+        check("Lbaje;" in context.mutableClass("Lbaks;").interfaces)
     }
     val configLabel = method("b", "Ljava/lang/String;")
     val languageHint = method("c", "Ljava/lang/String;")
@@ -70,26 +68,26 @@ internal object GboardOcrPatchTargets {
     val moduleAvailability = method("g", "Z")
 
     val optionalModuleBuilder = GboardMethodTarget(
-        classType = "Lzer;",
+        classType = "Lbaki;",
         name = "a",
-        parameterTypes = listOf("Laabb;"),
-        returnType = "[Lkzf;",
+        parameterTypes = listOf("Lbaje;"),
+        returnType = "[Lxli;",
     )
     val moduleManagerRequest = GboardMethodTarget(
-        classType = "Laabt;",
+        classType = "Lbakk;",
         name = "a",
         parameterTypes = emptyList(),
-        returnType = "[Lkzf;",
+        returnType = "[Lxli;",
     )
     val thinRecognizerInit = GboardMethodTarget(
-        classType = "Laabn;",
-        name = "a",
+        classType = "Lbajx;",
+        name = "b",
         parameterTypes = emptyList(),
         returnType = "V",
     )
 
     private fun method(name: String, returnType: String) = GboardMethodTarget(
-        classType = "Laaby;",
+        classType = "Lbaks;",
         name = name,
         parameterTypes = emptyList(),
         returnType = returnType,

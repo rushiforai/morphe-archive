@@ -20,10 +20,10 @@ import patches.gboard.shared.isFieldReference
 
 /** The V2 disambiguation gate: route in, ambiguity type out. */
 internal val autoFixAmbiguityGate1863 = GboardMethodTarget(
-    classType = "Lgzz;",
+    classType = "Lohu;",
     name = "a",
-    parameterTypes = listOf("Lhai;"),
-    returnType = "Lmcv;",
+    parameterTypes = listOf("Loht;"),
+    returnType = "Logs;",
 )
 
 internal val gboardAiWritingTools1863AutoFixAcceptancePatch = bytecodePatch(
@@ -32,6 +32,11 @@ internal val gboardAiWritingTools1863AutoFixAcceptancePatch = bytecodePatch(
     compatibleWith(COMPATIBILITY_GBOARD)
 
     execute {
+        // 18.8.0 rewrote the ambiguity manager (Lohu no longer carries the gate), so this
+        // 18.6.3 shim is skipped there; the flag-tuple unlock above still applies.
+        if (patches.gboard.shared.generated.GboardVersionBindings.targetVersion != "18.6.3") {
+            return@execute
+        }
         findMutableMethodOrThrow(autoFixAmbiguityGate1863).applyAutoFixAcceptance1863()
     }
 }
@@ -51,7 +56,7 @@ internal fun MutableMethod.applyAutoFixAcceptance1863() {
     // Stock reads Lhai;->a itself, so that field cannot mark our adapter. Stock never
     // mentions INTENT_AUTO_FIX, which makes it the reliable marker.
     val existing = instructions.count {
-        it.isFieldReference("Laail;->INTENT_AUTO_FIX:Laail;")
+        it.isFieldReference("Lbatv;->INTENT_AUTO_FIX:Laail;")
     }
     if (existing != 0) {
         check(existing == 1) { "Duplicate INTENT_AUTO_FIX ambiguity delegates" }

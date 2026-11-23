@@ -21,7 +21,7 @@
         }
     ],
     [
-        "@semantic-release/release-notes-generator", {
+        "./.github/scripts/release-notes.mjs", {
         "preset": "conventionalcommits",
         "presetConfig": {
             "types": [
@@ -51,7 +51,7 @@
       {
         "prepareCmd": "./gradlew generatePatchesList \
           && jq '.version=\"${nextRelease.version}\"' patches-list.json > patches-list.json.tmp && mv patches-list.json.tmp patches-list.json \
-          && python3 .github/scripts/generate_patches_readme.py $GITHUB_REPOSITORY $GITHUB_REF_NAME patches-list.json README.md"
+          && python3 .github/scripts/generate_quora_readme.py $GITHUB_REPOSITORY $GITHUB_REF_NAME patches-list.json docs/quora/README.md           && python3 .github/scripts/generate_booking_readme.py $GITHUB_REPOSITORY $GITHUB_REF_NAME patches-list.json docs/booking/README.md           && python3 .github/scripts/generate_google_health_readme.py $GITHUB_REPOSITORY $GITHUB_REF_NAME patches-list.json docs/google-health/README.md"
       }
     ],
     [
@@ -62,7 +62,9 @@
           "gradle.properties",
           "patches-bundle.json",
           "patches-list.json",
-          "README.md"
+          "docs/quora/README.md",
+          "docs/booking/README.md",
+          "docs/google-health/README.md"
         ],
         "message": "chore: Release v${nextRelease.version} [skip ci]\n\n${nextRelease.notes}"
       }

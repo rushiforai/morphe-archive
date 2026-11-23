@@ -100,13 +100,13 @@ val gmsCoreSupportPatch = bytecodePatch(
     description = "Makes Google sign-in and push notifications work through MicroG-RE instead of " +
             "Google Play services. A patched app can't sign in with Google through Play services, " +
             "because it is no longer signed by Quora. Needs MicroG-RE installed, with your Google " +
-            "account added to it.",
-    default = false
+            "account added to it; without it the app works as before, and says so once.",
+    default = true
 ) {
     category("App")
     compatibleWith(COMPATIBILITY_QUORA)
 
-    extendWith("extensions/extension.mpe")
+    extendWith("extensions/quora.mpe")
     // Push through MicroG-RE also needs a Firebase installation.
     dependsOn(gmsCoreSupportResourcePatch, fixPushNotificationsPatch)
 

@@ -1,3 +1,9 @@
+## [1.14.3](https://github.com/RashKash103/sync-up/compare/v1.14.2...v1.14.3) (2026-11-22)
+
+### 🐛 Bug Fixes
+
+* Keep a subreddit's banner out of the window it was not opened in ([e9edde9](https://github.com/RashKash103/sync-up/commit/e9edde9ce7967e5c4d3b3aa451eb422aadd50909))
+
 ## [1.14.2](https://github.com/RashKash103/sync-up/compare/v1.14.1...v1.14.2) (2026-11-15)
 
 ### 🐛 Bug Fixes

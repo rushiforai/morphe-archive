@@ -2002,11 +2002,9 @@ Show how many were filtered,Tampilkan jumlah yang disaring
 1 filtered out,1 disaring
 %1$d filtered out,%1$d disaring
 Account facts on profiles,Fakta akun di profil
-"A profile's share sheet gets an Account facts button. It shows what TikTok already sent about the account: when it joined, its region and language, when its username and display name last changed, whether it's private and whether its liked videos are public. Nothing extra is fetched.","Lembar bagikan profil mendapat tombol Fakta akun. Tombol ini menampilkan apa yang sudah dikirim TikTok tentang akun itu: kapan bergabung, wilayah dan bahasanya, kapan nama pengguna dan nama tampilannya terakhir diubah, apakah akunnya privat, dan apakah video yang disukainya publik. Tidak ada data tambahan yang diambil."
 Account facts,Fakta akun
 TikTok account facts,Fakta akun TikTok
 Account facts copied,Fakta akun disalin
-Not sent,Tidak dikirim
 Joined,Bergabung
 Account region,Wilayah akun
 Language,Bahasa
@@ -2886,7 +2884,7 @@ One isn't on TikTok anymore,Satu sudah tidak ada di TikTok
 The host can see you,Host bisa melihatmu
 Let the host see you,Biarkan host melihatmu
 Couldn't tell which LIVE this is. Open it again.,Tidak tahu LIVE mana ini. Buka lagi.
-The host can already see you in this LIVE,Host sudah bisa melihatmu di LIVE ini
+The host won't see you next time you open it,Host tidak akan melihatmu saat kamu membukanya lagi
 Letting the host see you,Membiarkan host melihatmu
 The host can see you now,Sekarang host bisa melihatmu
 The host sees you next time you open it,Host akan melihatmu saat kamu membukanya lagi
@@ -2977,3 +2975,53 @@ Always show the expand button in comments,Selalu tampilkan tombol perluas di kom
 Puts the button that stretches the comments over the whole screen on every video. TikTok only gives it to some accounts. Hide the expand button in comments wins if both are on.,"Menaruh tombol yang membentangkan komentar ke seluruh layar di setiap video. TikTok hanya memberikannya ke sebagian akun. Jika keduanya nyala, Sembunyikan tombol perluas di komentar yang berlaku."
 Keep the video full size under comments,Pertahankan ukuran penuh video di bawah komentar
 "The video keeps its size when you open the comments, and the comments cover its lower part instead of pushing it up into a smaller box.","Video tetap berukuran sama saat kamu membuka komentar, dan komentar menutupi bagian bawahnya, bukan mendorongnya ke atas ke kotak yang lebih kecil."
+Round the corners on profile grids,Bulatkan sudut di kisi profil
+"Gives each video on profile grids rounded corners, on your own profile and on Liked and Favorites too.","Membulatkan sudut setiap video di kisi profil, di profilmu sendiri dan juga di Disukai dan Favorit."
+Gifter level,Level pemberi hadiah
+SecUID,SecUID
+Unknown (TikTok didn't send it),Tidak diketahui (TikTok tidak mengirimnya)
+"A profile's share sheet gets an Account facts button. It shows what TikTok already sent about the account: when it joined, its region and language, its gifter level and SecUID, when its username and display name last changed, whether it's private and whether its liked videos are public. Nothing extra is fetched.","Lembar bagikan profil mendapat tombol Fakta akun. Tombol ini menampilkan apa yang sudah dikirim TikTok tentang akun itu: kapan bergabung, wilayah dan bahasanya, level pemberi hadiah dan SecUID-nya, kapan nama pengguna dan nama tampilannya terakhir diubah, apakah akunnya privat, dan apakah video yang disukainya publik. Tidak ada data tambahan yang diambil."
+Show the room ID and your connection,Tampilkan ID ruang dan koneksimu
+"Adds a small line to LIVE rooms with the room's ID and how your own connection to the stream is doing, as TikTok's player measures it: ping, latency and download speed. Tap the line to copy the room ID.","Menambahkan baris kecil di ruang LIVE berisi ID ruang dan kondisi koneksimu sendiri ke siaran, sesuai ukuran pemutar TikTok: ping, latensi, dan kecepatan unduh. Ketuk baris itu untuk menyalin ID ruang."
+Room ID %1$s,ID ruang %1$s
+Ping %1$s ms,Ping %1$s md
+Latency %1$s s,Latensi %1$s d
+Room ID copied,ID ruang disalin
+LIVE room ID,ID ruang LIVE
+Hide playable games,Sembunyikan game yang bisa dimainkan
+Hide the mini games you can play right in the For You feed.,Sembunyikan game mini yang bisa kamu mainkan langsung di feed Untuk Kamu.
+Playable games,Game yang bisa dimainkan
+Hide the pause icon,Sembunyikan ikon jeda
+"A tap still pauses and plays the video, but the big play icon doesn't show over it.","Ketukan tetap menjeda dan memutar video, tapi ikon putar yang besar tidak muncul di atasnya."
+Exit with one Back,Keluar dengan sekali Kembali
+"Back on Home leaves TikTok right away, with no ""Tap again to exit"" message. From another tab, Back still takes you to Home first, or to the tab Open TikTok on picks.","Kembali di Beranda langsung keluar dari TikTok, tanpa pesan ""Ketuk lagi untuk keluar"". Dari tab lain, Kembali tetap membawamu ke Beranda dulu, atau ke tab yang dipilih Buka TikTok di."
+LIVE profile card background,Latar kartu profil LIVE
+"Colors the card a tap on a name opens in a LIVE room. Chips, buttons and boxes on it keep their own colors, and while a color is picked the card skips Dark LIVE panels.","Mewarnai kartu yang terbuka saat nama diketuk di ruang LIVE. Label, tombol, dan kotak di dalamnya tetap memakai warnanya sendiri, dan selama warna dipilih kartu ini tidak memakai panel LIVE gelap."
+LIVE profile card text,Teks kartu profil LIVE
+"Colors the text drawn on the card itself. Automatic picks white or black, whichever stands out from the card.","Mewarnai teks yang ada di kartu itu sendiri. Otomatis memilih putih atau hitam, mana yang lebih menonjol di kartu."
+Hide rows on LIVE profile cards,Sembunyikan baris di kartu profil LIVE
+Pick the rows to take off the card a tap on a name opens in a LIVE room. The rest stay where they are.,Pilih baris yang mau dihapus dari kartu yang terbuka saat nama diketuk di ruang LIVE. Sisanya tetap di tempatnya.
+Upcoming LIVE events,Acara LIVE mendatang
+Products in the LIVE,Produk di LIVE
+Shop rating,Rating toko
+Group chat,Obrolan grup
+Bulletin board,Papan pengumuman
+Gift gallery,Galeri hadiah
+Festival honors,Penghargaan festival
+Smaller text sizes,Ukuran teks lebih kecil
+"Adds three stops below the smallest size on TikTok's own Text size slider, in Settings and privacy > Accessibility. Pick one there, then restart TikTok.","Menambahkan tiga tingkat di bawah ukuran terkecil pada penggeser Ukuran teks milik TikTok, di Pengaturan dan privasi > Aksesibilitas. Pilih salah satunya di sana, lalu mulai ulang TikTok."
+UI size,Ukuran antarmuka
+"Makes TikTok's whole interface smaller, text and buttons alike, so more fits on screen. 100 leaves it as it is. Restart TikTok to see the change.","Membuat seluruh antarmuka TikTok lebih kecil, teks maupun tombolnya, agar lebih banyak yang muat di layar. Nilai 100 membiarkannya seperti semula. Mulai ulang TikTok untuk melihat perubahannya."
+Show how long a LIVE has been on,Tampilkan sudah berapa lama LIVE berlangsung
+"Adds a small line to LIVE rooms with how long the host has been live, counted from when the room started. With the room ID on too, it goes under that.","Menambahkan baris kecil di ruang LIVE berisi sudah berapa lama host siaran langsung, dihitung sejak ruang dimulai. Jika ID ruang juga aktif, baris ini ada di bawahnya."
+LIVE for %1$s,LIVE selama %1$s
+Show exact LIVE battle scores,Tampilkan skor pertarungan LIVE yang tepat
+"In a LIVE battle, TikTok caps the big scores viewers see while the host sees the whole number. This shows the whole score in the battle bar and the co-host windows.","Dalam pertarungan LIVE, TikTok membatasi skor besar yang dilihat penonton, sementara host melihat angka lengkapnya. Ini menampilkan skor lengkap di bilah pertarungan dan jendela co-host."
+Start LIVEs at,Mulai LIVE dengan kualitas
+The quality you picked last,Kualitas yang terakhir kamu pilih
+"A LIVE room opens at this quality until you pick another one, and that pick carries to the next rooms until TikTok closes. A room whose stream doesn't have it opens at TikTok's choice.","Ruang LIVE dibuka dengan kualitas ini sampai kamu memilih yang lain, lalu pilihan itu berlaku untuk ruang berikutnya sampai TikTok ditutup. Ruang yang siarannya tidak punya kualitas ini dibuka dengan pilihan TikTok."
+Skip promo lines,Lewati baris promosi
+"Skips the part of a video where a caption line has a word from Promo words, like a casino or promo code plug, and shows Undo. It reads the video's own captions, so a video without any plays as usual.","Melewati bagian video yang baris teksnya berisi kata dari Kata promosi, seperti iklan kasino atau kode promo, lalu menampilkan Urungkan. Fitur ini membaca teks video itu sendiri, jadi video tanpa teks diputar seperti biasa."
+Promo words,Kata promosi
+"Separate words or phrases with commas, like casino, promo code. Capital letters don't matter, and ""a"" & ""b"" or ""a"" !& ""b"" work as they do for Blocked caption words.","Pisahkan kata atau frasa dengan koma, seperti casino, promo code. Huruf besar tidak berpengaruh, dan ""a"" & ""b"" atau ""a"" !& ""b"" berfungsi sama seperti di Kata yang diblokir di keterangan."
+Skipped a promo line,Baris promosi dilewati

@@ -1045,6 +1045,14 @@ Shows a handle at the right edge of Saved and your collections while they scroll
 Hide the New collection button	ซ่อนปุ่มคอลเลกชันใหม่
 # context: Profiles > summary of Hide the New collection button; Saved is Instagram's own Saved page (#762)
 Takes the + for a new collection off the top of Saved. Your collections stay.	นำปุ่ม + สำหรับคอลเลกชันใหม่ออกจากด้านบนของ "บันทึกแล้ว" คอลเลกชันของคุณยังอยู่
+# context: Profiles > switch right after Hide the New collection button; Reels is Instagram's own label for the Reels tab at the top of Saved, Saved is Instagram's own Saved page (#810)
+Hide the Reels tab in Saved	ซ่อนแท็บรีลส์ใน "บันทึกแล้ว"
+# context: Profiles > summary of Hide the Reels tab in Saved; saved reels still show under All (#810)
+Takes the Reels tab out of Saved. Your saved reels stay saved.	นำแท็บรีลส์ออกจาก "บันทึกแล้ว" รีลส์ที่คุณบันทึกไว้ยังคงอยู่
+# context: Profiles > switch right after Hide the Reels tab in Saved; Saved is Instagram's own label for the bookmark at the top right of the Search tab, beside the search bar (#810)
+Hide Saved on the Search tab	ซ่อน "บันทึกแล้ว" ในแท็บค้นหา
+# context: Profiles > summary of Hide Saved on the Search tab (#810)
+Takes the Saved bookmark off the top of the Search tab. Restart Instagram after changing it.	นำที่คั่นหน้า "บันทึกแล้ว" ออกจากด้านบนของแท็บค้นหา โปรดรีสตาร์ท Instagram หลังจากเปลี่ยนการตั้งค่านี้
 Battery	แบตเตอรี่
 Stop the background heartbeat	หยุดสัญญาณชีพในเบื้องหลัง
 Instagram wakes your phone every minute or two, screen off included, only to note that it is still running. This stops that. Messages, notifications and everything you see are unaffected.	Instagram ปลุกโทรศัพท์ของคุณทุกหนึ่งถึงสองนาที แม้กระทั่งในขณะปิดหน้าจอ เพียงเพื่อบันทึกว่าแอปยังคงทำงานอยู่ การตั้งค่านี้จะหยุดการทำงานดังกล่าว โดยข้อความ การแจ้งเตือน และทุกสิ่งที่คุณเห็นจะไม่ได้รับผลกระทบ
@@ -1890,6 +1898,10 @@ Glass top bar in chats	กระจกที่แถบด้านบนขอ
 Turn it off to leave a chat's top bar as Instagram draws it, with no frosted band behind it. The round glass buttons and the glass message bar stay.	ปิดเพื่อให้แถบด้านบนของแชทเป็นแบบที่ Instagram แสดงตามปกติ โดยไม่มีแถบกระจกฝ้าด้านหลัง ปุ่มกระจกทรงกลมและแถบข้อความกระจกยังคงอยู่
 Top bar tint in chats	โทนสีของแถบด้านบนในแชท
 Message bar tint	โทนสีของแถบข้อความ
+Glass buttons in chats	ปุ่มกระจกในแชท
+Turn it off for a plain blur with no round glass behind the buttons at the top of a chat.	ปิดเพื่อใช้เอฟเฟกต์เบลอธรรมดา โดยไม่มีกระจกทรงกลมหลังปุ่มที่ด้านบนของแชท
+Blur the chat behind a held message	เบลอแชทด้านหลังข้อความที่กดค้าง
+Hold a message and the rest of the chat blurs behind it and its reactions. Needs Android 12 or newer.	กดข้อความค้างไว้ แล้วส่วนที่เหลือของแชทจะเบลออยู่ด้านหลังข้อความนั้นและรีแอคชัน ต้องใช้ Android 12 ขึ้นไป
 # context: Reels switch Hide reels with few views, its summary, the Minimum views row, its dialog message and the row's summary, then the Minimum likes row, its dialog message, its summary and its summary at 0; %1$s is a number with thousands separators (#444)
 Hide reels with few views	ซ่อนรีลส์ที่มียอดดูน้อย
 Leaves out reels in the Reels tab outside the numbers below. Reels from accounts you follow, reels sent to you and reels that don't show a number still play.	ละเว้นรีลส์ในแท็บรีลส์ที่อยู่นอกจำนวนด้านล่างนี้ โดยรีลส์จากบัญชีที่คุณติดตาม รีลส์ที่ส่งถึงคุณ และรีลส์ที่ไม่แสดงจำนวนจะยังคงเล่นตามปกติ
@@ -2776,3 +2788,21 @@ Couldn't start recording this call	ไม่สามารถเริ่มบ
 Couldn't save the call recording	ไม่สามารถบันทึกไฟล์เสียงการโทรได้
 # context: a toast when a recording ends with no sound in it (#732)
 Nothing was recorded	ไม่มีเสียงที่บันทึกไว้
+# context: a toast when a save starts, naming the account the media is from (#792)
+Saving from @%1$s...	กำลังบันทึกจาก @%1$s...
+# context: a second toast after the one above, when notifications are off (#792)
+You can cancel from Downloads in HushGram settings.	คุณสามารถยกเลิกได้จากเมนูดาวน์โหลดในการตั้งค่า HushGram
+# context: a toast when a save waits for the ones already running, the account unknown (#792)
+Queued	เข้าคิวแล้ว
+# context: a toast when a save waits for the ones already running, naming the account (#792)
+Queued: @%1$s	เข้าคิวแล้ว: @%1$s
+# context: a toast when too many saves already wait their turn (#792)
+Not saved: %1$d saves are already waiting	ไม่ได้บันทึก: มี %1$d รายการรออยู่แล้ว
+# context: a waiting save's notification text and its line in Downloads (#792)
+Waiting for the saves before it	กำลังรอรายการก่อนหน้า
+# context: Feed settings: a switch under Start feed videos with sound that starts them with sound while the phone is on silent or vibrate too (#762)
+Even on silent	แม้อยู่ในโหมดเงียบ
+# context: Summary of Even on silent, a switch under Start feed videos with sound (#762)
+Feed videos start with sound with the phone on silent or vibrate too. Only the media volume counts.	วิดีโอในฟีดจะเริ่มพร้อมเสียงแม้โทรศัพท์อยู่ในโหมดเงียบหรือสั่น นับเฉพาะระดับเสียงสื่อ
+Also in search	ในการค้นหาด้วย
+Takes rows of the Explore grid and of search results out when a post in them holds a word or phrase from the list, or comes from an account the list names with @.	นำแถวในตาราง Explore และในผลการค้นหาออก เมื่อมีโพสต์ในแถวนั้นที่มีคำหรือวลีจากรายการ หรือมาจากบัญชีที่รายการระบุด้วย @

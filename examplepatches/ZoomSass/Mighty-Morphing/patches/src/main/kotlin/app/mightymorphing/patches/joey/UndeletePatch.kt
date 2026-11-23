@@ -41,9 +41,11 @@ private object LinkPreviewPickFingerprint : Fingerprint(
 @Suppress("unused")
 val undeletePatch = bytecodePatch(
     name = "Arctic Shift restore",
-    description = "[v1.4.5: Link preview fix.] Removed and deleted comments, and removed posts on the comments screen, get an Arctic Shift Restore button that brings back the archived text. Nothing is fetched until you tap it. Works with Modern UI or Classic. Turn it on in Joey Settings - Morphe Settings. Initial release, please report any issues or suggestions for improvements.",
+    description = "Removed and deleted comments, and removed posts on the comments screen, get an Arctic Shift Restore button that brings back the archived text. Nothing is fetched until you tap it. Works with Modern UI or Classic. Turn it on in Joey Settings - Morphe Settings. Initial release, please report any issues or suggestions for improvements.",
 ) {
     compatibleWith(JOEY)
+
+    dependsOn(problemReportPatch)
 
     extendWith("extensions/extension.mpe")
 

@@ -1,0 +1,132 @@
+name: Emulator test
+
+# Patches Quora with every patch, installs it on Android 15, 16 and 17 emulators and checks
+# that it starts without a crash or errors from the patches and loads Quora's sign-in page. When
+# a check fails, the original Quora is tried the same way, to tell a broken patch from an Android
+# version Quora itself doesn't work on. The feed needs a signed-in account; the weekly feed test
+# (feed-test.yml) signs in with a test account and checks the page patches there.
+#
+# Quora's APK can't be in this public repository. It comes from the private repository
+# JoFSlash/morphe-apks, read with the APKS_TOKEN secret (or QUORA_APKS_TOKEN, its old name; a fine-grained token with access
+# to that repository's contents only: read and write, since the Quora version workflow keeps new
+# APKMs there). Without the secret the test is skipped, except when the release (or the Morphe CLI
+# workflow) runs it: there a skipped test would let an untested bundle through, so it fails.
+
+on:
+  # Only for pull requests that change this app's patches, this test or the shared build.
+  pull_request:
+    paths:
+      - 'patches/src/main/kotlin/app/jofslash/patches/quora/**'
+      - 'extensions/quora/**'
+      - '.github/workflows/emulator.yml'
+      - '.github/scripts/check_quora_version.py'
+      - '.github/actions/install-emulator/**'
+      - '.github/morphe-cli-version'
+      - 'gradle/**'
+      - '*.gradle.kts'
+      - 'patches/build.gradle.kts'
+  workflow_dispatch:
+  workflow_call:
+    inputs:
+      required:
+        description: 'Fail instead of skipping when APKS_TOKEN is missing'
+        type: boolean
+        default: true
+      cli-version:
+        description: 'Morphe CLI release to use (empty: the one in .github/morphe-cli-version)'
+        type: string
+        default: ''
+
+permissions:
+  contents: read
+  packages: read
+
+jobs:
+  emulator:
+    name: Start on Android ${{ matrix.android }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    strategy:
+      fail-fast: false
+      matrix:
+        # The Android versions people run now, and the next one. Android 17's image is only in the
+        # SDK's canary channel so far.
+        # A pull request is tried on the oldest and the newest stable version; the release and a run
+        # by hand try all of them.
+        include: ${{ fromJSON(github.event_name == 'pull_request' && '[{"api":"35","android":"15","channel":"stable"},{"api":"36","android":"16","channel":"stable"}]' || '[{"api":"35","android":"15","channel":"stable"},{"api":"36","android":"16","channel":"stable"},{"api":"37.0","android":"17","channel":"canary"}]') }}
+    steps:
+      - name: Check for the APK token
+        id: token
+        env:
+          TOKEN: ${{ secrets.APKS_TOKEN || secrets.QUORA_APKS_TOKEN }}
+          REQUIRED: ${{ inputs.required }}
+        run: |
+          if [ -z "$TOKEN" ] && [ "$REQUIRED" = "true" ]; then
+            echo "::error::APKS_TOKEN isn't set, and this run needs the emulator test."
+            exit 1
+          fi
+          if [ -z "$TOKEN" ]; then
+            echo "::notice::APKS_TOKEN isn't set (or this is a pull request from a fork), so the emulator test is skipped."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Checkout
+        if: steps.token.outputs.skip != 'true'
+        uses: actions/checkout@v7
+
+      - name: Setup Java
+        if: steps.token.outputs.skip != 'true'
+        uses: actions/setup-java@v6
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Build
+        if: steps.token.outputs.skip != 'true'
+        env:
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: bash .github/scripts/gradle-retry.sh :patches:buildAndroid --no-daemon
+
+      - name: Download Quora and the Morphe CLI
+        if: steps.token.outputs.skip != 'true'
+        env:
+          APKS_TOKEN: ${{ secrets.APKS_TOKEN || secrets.QUORA_APKS_TOKEN }}
+          GH_TOKEN: ${{ github.token }}
+          CLI_VERSION: ${{ inputs.cli-version }}
+        run: |
+          MORPHE_CLI_VERSION="${CLI_VERSION:-$(cat .github/morphe-cli-version)}"
+          echo "Morphe CLI $MORPHE_CLI_VERSION"
+          # The newest version listed as supported in Constants.kt.
+          QUORA_VERSION=$(grep -oE 'AppTarget\(version = "[0-9.]+"' patches/src/main/kotlin/app/jofslash/patches/quora/shared/Constants.kt             | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | sort -V | tail -1)
+          echo "Quora $QUORA_VERSION"
+          GH_TOKEN="$APKS_TOKEN" gh release download "quora-$QUORA_VERSION" -R JoFSlash/morphe-apks \
+            -p "quora-$QUORA_VERSION.apkm" -O "$RUNNER_TEMP/quora.apkm"
+          gh release download "$MORPHE_CLI_VERSION" -R MorpheApp/morphe-cli -p 'morphe-desktop-*-all.jar' \
+            -O "$RUNNER_TEMP/morphe-cli.jar"
+          ls -l "$RUNNER_TEMP"
+
+      - name: Enable KVM
+        if: steps.token.outputs.skip != 'true'
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Install the emulator
+        if: steps.token.outputs.skip != 'true'
+        uses: ./.github/actions/install-emulator
+        with:
+          api-level: ${{ matrix.api }}
+          channel: ${{ matrix.channel }}
+
+      - name: Patch, install and start
+        if: steps.token.outputs.skip != 'true'
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: ${{ matrix.api }}
+          channel: ${{ matrix.channel }}
+          target: google_apis
+          arch: x86_64
+          disable-animations: true
+          script: python3 .github/scripts/check_quora_version.py "$RUNNER_TEMP/quora.apkm" --cli "$RUNNER_TEMP/morphe-cli.jar" --install --expect-login --compare-original --adb adb

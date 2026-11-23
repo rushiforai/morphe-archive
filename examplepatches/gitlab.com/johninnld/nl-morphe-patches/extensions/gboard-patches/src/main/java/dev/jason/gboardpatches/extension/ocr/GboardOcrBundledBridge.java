@@ -233,7 +233,7 @@ public final class GboardOcrBundledBridge {
          * is the box, a Point[] is the corner polygon and an array is the children.
          */
         private Object transcribe(Object[] blocks) throws Exception {
-            Class<?> textClass = Class.forName("zxo", false, gboard);
+            Class<?> textClass = Class.forName("bajd", false, gboard);
             Class<?> blockClass = Class.forName("aaba", false, gboard);
             Class<?> lineClass = Class.forName("aaay", false, gboard);
             // Elements are plain aaaz nodes; Gboard's jih walks a line's children at that type.

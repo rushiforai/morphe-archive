@@ -4,7 +4,7 @@
 
 Morphe 원격 소스: https://github.com/gomjirak0803/line-notification-patches
 
-[v0.1.11-dev 다운로드](https://github.com/gomjirak0803/line-notification-patches/releases/tag/v0.1.11-dev) · [배포 검증 결과](docs/PUBLICATION_STATUS.md) · [실기기 검증표](docs/DEVICE_TESTS.md)
+[v0.1.12-dev 다운로드](https://github.com/gomjirak0803/line-notification-patches/releases/tag/v0.1.12-dev) · [배포 검증 결과](docs/PUBLICATION_STATUS.md) · [실기기 검증표](docs/DEVICE_TESTS.md)
 
 [Morphe Manager에 소스 추가](https://morphe.software/add-source?github=gomjirak0803/line-notification-patches) · **Pre-release patches**와 **Experimental app versions**를 켜세요.
 
@@ -14,7 +14,7 @@ LINE `26.16.0` (`versionCode 261600106`, `minSdk 30`)용 **독립 실험 Morphe 
 
 | 패치 이름 | 기본 포함 | 현재 동작 / 제한 |
 | --- | --- | --- |
-| Notification settings | 예 | LINE 기본 설정의 프로필 아래 **알림 패치 설정** 전체 화면을 추가합니다. **모든 기능 스위치는 최초 꺼짐**입니다. |
+| Notification settings | 예 | LINE 기본 설정의 프로필 아래 **알림 패치 설정** 전체 화면을 추가합니다. **모든 기능 스위치는 최초 꺼짐**입니다. 모든 UI 문구는 앱·시스템 언어에 따라 7개 언어(영어 기본, 한국어, 일본어, 중국어 번체·간체, 태국어, 인도네시아어)로 표시됩니다(패치 고유명 4개는 영문 유지). |
 | Not Too Much Silent | 아니오 | 켜 두면 일반 채팅방 메뉴, **채팅 목록 길게 누르기 메뉴**, 알림창의 기존 **알림 끄기**가 로컬 조용히 받기로 작동합니다. 푸시 수신을 유지한 채 무음 채널(`IMPORTANCE_LOW`)로 표시하고 **알림 켜기**로 복귀합니다. 채팅방 메뉴의 **알림 완전히 숨기기**는 LINE 기본 알림 끄기 + 로컬 차단을 함께 적용합니다. OS에서 차단한 원래 채널은 우회하지 않습니다. |
 | More Chat Info | 아니오 | 최근 로컬 미확인 메시지 최대 25개를 시간순으로 Android `MessagingStyle` 대화형 알림에 전달합니다. 방 이름 옆 `[숫자]`는 전체 미확인 수입니다. 펼친 알림 프로필 사진은 1:1 원본 아이콘과 그룹 `contacts.picture_path` + LINE Glide 로컬 캐시 전용(`onlyRetrieveFromCache(true)`)으로만 읽습니다. |
 | No reply | 아니오 | 추천 답장과 시스템 자동 제안을 해제합니다. 직접 입력 답장 버튼과 기존 PendingIntent는 유지합니다. |

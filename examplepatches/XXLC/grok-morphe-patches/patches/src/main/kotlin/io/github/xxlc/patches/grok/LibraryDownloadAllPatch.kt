@@ -7,25 +7,32 @@ import app.morphe.patcher.util.addInstructionsAtControlFlowLabel
 import app.morphe.patcher.util.smali.ExternalLabel
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.builder.BuilderOffsetInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 
 private const val STATE_CLASS = "Lio/github/xxlc/extension/grok/DownloadAllState;"
+private const val LIBRARY_CONTEXT = "Le9/h;->l:Landroid/content/Context;"
 
 @Suppress("unused")
 val libraryDownloadAllPatch = bytecodePatch(
     name = "Download all (library)",
-    description = "Thêm nút tải tất cả media của các bài Imagine đã chọn, giữ nguyên nút Download.",
+    description = "Add a button that downloads all media of the selected Imagine posts, keeping the original Download button.",
     default = true,
 ) {
     compatibleWith(grokCompatibility)
     dependsOn(downloadResourcesPatch)
     extendWith("extensions/extension.mpe")
 
+    val enabled by enabledOption()
+
     execute {
+        if (enabled != true) return@execute
+
         LibraryClickFingerprint.method.apply {
-            requireRegisterCount(4) // .locals 3 và p0; tiền đề chỉ dùng v0, v1.
-            val downloadIndex = indexOfReference(Opcode.SGET_OBJECT, "La7/o0;->a:La7/o0;")
+            requireRegisterCount(4) // .locals 3 and p0; v2 only loaded with null after insertion; prelude only uses v0, v1.
+            val downloadIndex = indexOfReference(Opcode.SGET_OBJECT, GrokNames.LIBRARY_DOWNLOAD_SINGLETON)
             requireRegisters(downloadIndex, 0)
-            // Nhánh switch gốc phải chạy qua thao tác tắt cờ khi bấm Download.
+            // Original switch branch must execute flag-clearing operation when Download is pressed.
             addInstructionsAtControlFlowLabel(
                 downloadIndex,
                 """
@@ -33,18 +40,18 @@ val libraryDownloadAllPatch = bytecodePatch(
                     sput-boolean v0, $STATE_CLASS->all:Z
                 """,
             )
-            // 0x1d đã có nơi sử dụng; bắt riêng 0x7f trước packed-switch gốc.
-            // Đường đi thông thường khởi tạo lại v0, v1 trong phần mã gốc.
+            // 0x7f lies outside 0x0..0x1c range; intercept separately before original packed-switch.
+            // Normal path re-initializes v0, v1 in original code.
             addInstructionsWithLabels(
                 0,
                 """
-                    iget-byte v0, p0, Ldb/q1;->a:B
-                    const/16 v1, 0x7f
+                    iget-byte v0, p0, ${GrokNames.LIBRARY_CLICK_KIND}
+                    const/16 v1, ${GrokNames.LIBRARY_DOWNLOAD_ALL_DISCRIMINATOR}
                     if-ne v0, v1, :original_click
-                    iget-object v1, p0, Ldb/q1;->b:Lkotlin/jvm/functions/Function1;
+                    iget-object v1, p0, ${GrokNames.LIBRARY_CLICK_ACTION}
                     const/4 v0, 0x1
                     sput-boolean v0, $STATE_CLASS->all:Z
-                    sget-object v0, La7/o0;->a:La7/o0;
+                    sget-object v0, ${GrokNames.LIBRARY_DOWNLOAD_SINGLETON}
                     invoke-interface {v1, v0}, Lkotlin/jvm/functions/Function1;->invoke(Ljava/lang/Object;)Ljava/lang/Object;
                     sget-object v0, Lkotlin/Unit;->a:Lkotlin/Unit;
                     return-object v0
@@ -55,96 +62,141 @@ val libraryDownloadAllPatch = bytecodePatch(
         }
 
         LibraryButtonsFingerprint.method.apply {
-            requireRegisterCount(32)
-            val buttonIndex = LibraryButtonsFingerprint.instructionMatches.last().index
-            requireRegisters(buttonIndex, 14, 15, 16, 17, 18, 19, 20)
-            // Chèn sau lời gọi vẽ Download gốc, giữ cùng bố cục và trạng thái bật/tắt.
+            requireRegisterCount(34)
+            val instructions = implementation!!.instructions
+            val saveIndex = LibraryButtonsFingerprint.instructionMatches.first().index
+            requireRegisters(saveIndex, 0)
+            // Four calls share the same signature; pick the first call after save resource.
+            val buttonIndex = instructions.withIndex().first { (index, instruction) ->
+                index > saveIndex && instruction.opcode == Opcode.INVOKE_STATIC_RANGE &&
+                    (instruction as? ReferenceInstruction)?.reference?.toString() ==
+                    GrokNames.DRAW_LIBRARY_BUTTON
+            }.index
+            // Lock onto exact Download 0x13 callback between save and button draw call.
+            val callbackIndex = instructions.withIndex().single { (index, instruction) ->
+                index in (saveIndex + 1) until buttonIndex && instruction.opcode == Opcode.INVOKE_DIRECT &&
+                    (instruction as? ReferenceInstruction)?.reference?.toString() ==
+                    GrokNames.NEW_LIBRARY_CLICK
+            }.index
+            requireRegisters(callbackIndex, 3, 10, 0)
+            requireRegisters(callbackIndex - 1, 0)
+            check(instructions[callbackIndex - 1].opcode == Opcode.CONST_16 &&
+                (instructions[callbackIndex - 1] as? NarrowLiteralInstruction)?.narrowLiteral == GrokNames.LIBRARY_DOWNLOAD_DISCRIMINATOR) {
+                "Download button callback does not match original smali."
+            }
+            requireRegisters(buttonIndex, 16, 17, 18, 19, 20, 21, 22)
+            // Insert after original Download draw call, keeping same layout and enabled state.
             addInstructionsWithLabels(
                 buttonIndex + 1,
                 """
-                    sget-object v19, Lcg/q;->g0:Lzf0/b;
+                    sget-object v20, ${GrokNames.DOWNLOAD_ALL_ICON}
                     const v0, $downloadAllStringId
-                    invoke-static {v0, v6}, Lm10/a;->k0(ILum/i0;)Ljava/lang/String;
-                    move-result-object v15
-                    invoke-static {v3, v1}, Lpl/p2;->c(Lkn/p;F)Lkn/p;
-                    move-result-object v16
-                    invoke-virtual {v6, v9}, Lum/i0;->g(Ljava/lang/Object;)Z
+                    invoke-static {v0, v6}, ${GrokNames.GET_STRING}
+                    move-result-object v17
+                    invoke-static {v4, v1}, ${GrokNames.BUTTON_MODIFIER}
+                    move-result-object v19
+                    invoke-virtual {v6, v10}, ${GrokNames.COMPOSER_CHANGED}
                     move-result v0
-                    invoke-virtual {v6}, Lum/i0;->Q()Ljava/lang/Object;
-                    move-result-object v4
+                    invoke-virtual {v6}, ${GrokNames.COMPOSER_REMEMBERED}
+                    move-result-object v3
                     if-nez v0, :sd_all_a
-                    if-ne v4, v2, :sd_all_b
+                    if-ne v3, v5, :sd_all_b
                     :sd_all_a
-                    new-instance v4, Ldb/q1;
-                    const/16 v0, 0x7f
-                    invoke-direct {v4, v9, v0}, Ldb/q1;-><init>(Lkotlin/jvm/functions/Function1;B)V
-                    invoke-virtual {v6, v4}, Lum/i0;->p0(Ljava/lang/Object;)V
+                    new-instance v3, ${GrokNames.LIBRARY_CLICK}
+                    const/16 v0, ${GrokNames.LIBRARY_DOWNLOAD_ALL_DISCRIMINATOR}
+                    invoke-direct {v3, v10, v0}, ${GrokNames.NEW_LIBRARY_CLICK}
+                    invoke-virtual {v6, v3}, ${GrokNames.COMPOSER_UPDATE}
                     :sd_all_b
-                    move-object/from16 v17, v4
-                    check-cast v17, Lkotlin/jvm/functions/Function0;
-                    move-object/from16 v18, v6
-                    invoke-static/range {v14 .. v20}, Leb/e;->c(ILjava/lang/String;Lkn/p;Lkotlin/jvm/functions/Function0;Lum/i0;Lzf0/b;Z)V
+                    move-object/from16 v18, v3
+                    check-cast v18, Lkotlin/jvm/functions/Function0;
+                    move-object/from16 v21, v6
+                    invoke-static/range {v16 .. v22}, ${GrokNames.DRAW_LIBRARY_BUTTON}
                 """,
             )
         }
 
         LibrarySelectionFingerprint.method.apply {
-            requireRegisterCount(44) // .locals 42, giữ nguyên số thanh ghi.
-            val postIndex = indexOfReference(Opcode.IGET_OBJECT, "Le7/a;->a:Li7/i;")
-            val singleIndex = indexOfReference(Opcode.NEW_INSTANCE, "La7/b1;")
-            val resetIndex = indexOfReference(Opcode.IGET_OBJECT, "Lh8/i;->m:Lap0/d;")
-            requireRegisters(postIndex, 8, 8)
-            requireRegisters(singleIndex, 8)
-            requireRegisters(resetIndex, 7, 1)
-
-            // Lấy đích :cond_2f từ if-eqz v8 ngay sau constructor La7/b1.
-            val nextPostBranch = implementation!!.instructions[singleIndex + 2] as BuilderOffsetInstruction
-            check(nextPostBranch.opcode == Opcode.IF_EQZ) {
-                "Nhánh chuyển sang bài tiếp theo không khớp smali gốc."
+            requireRegisterCount(47) // .locals 45, preserve register count.
+            val postIndex = indexOfReference(Opcode.IGET_OBJECT, GrokNames.SELECTED_POST_VALUE)
+            val singleIndex = indexOfReference(Opcode.NEW_INSTANCE, GrokNames.LIBRARY_DOWNLOAD_REQUEST)
+            val resetIndex = indexOfReference(Opcode.IGET_OBJECT, GrokNames.LIBRARY_DOWNLOAD_PROCESSOR)
+            requireRegisters(postIndex, 6, 6)
+            requireRegisters(singleIndex, 6)
+            requireRegisters(resetIndex, 2, 1)
+            // v7 is overwritten immediately after processor; used temporarily to pass Context.
+            check(implementation!!.instructions[resetIndex + 1].opcode == Opcode.IGET_OBJECT) {
+                "Instruction overwriting v7 after processor does not match original smali."
             }
-            requireRegisters(singleIndex + 2, 8)
+            requireRegisters(resetIndex + 1, 7, 1)
+
+            // Obtain :cond_2f target from if-eqz v8 immediately after constructor Lw7/b1.
+            val nextPostBranch = implementation!!.instructions[singleIndex + 3] as BuilderOffsetInstruction
+            check(nextPostBranch.opcode == Opcode.IF_EQZ) {
+                "Branch advancing to next post does not match original smali."
+            }
+            requireRegisters(singleIndex + 3, 8)
             val nextPostIndex = nextPostBranch.target.location.index
 
-            // Chèn từ cuối về đầu để các chỉ số chưa dùng không bị dịch chuyển.
-            // :goto_e là đích nhảy nên phải giữ nhãn trên phần xoá cờ.
+            // Insert backwards from end to start so unused indices are not shifted.
+            // :goto_e is a jump target, so keep label on flag-clearing code.
             addInstructionsAtControlFlowLabel(
                 resetIndex,
                 """
-                    const/4 v7, 0x0
-                    sput-boolean v7, $STATE_CLASS->all:Z
+                    const/4 v2, 0x0
+                    sput-boolean v2, $STATE_CLASS->all:Z
                 """,
             )
-            // :cond_35 cũng là đích nhảy; vòng lặp phải chạy trước nhánh một media.
+            // Insert before newly added flag-clearing block: v3 is collected request list,
+            // v2/v7 are overwritten immediately after; v1 holds handler with public Context.
+            // Avoid touching coroutine loop or increasing register count.
+            addInstructionsAtControlFlowLabel(
+                resetIndex,
+                """
+                    sget-object v2, ${GrokNames.LIBRARY_DOWNLOAD_SINGLETON}
+                    if-ne v0, v2, :d2_library_notify_done
+                    sget-boolean v2, $STATE_CLASS->all:Z
+                    if-eqz v2, :d2_library_notify_done
+                    invoke-virtual {v3}, Ljava/util/ArrayList;->size()I
+                    move-result v2
+                    if-lez v2, :d2_library_notify_done
+                    iget-object v7, v1, $LIBRARY_CONTEXT
+                    invoke-static {v7, v2}, Lio/github/xxlc/extension/grok/Notify;->queued(Landroid/content/Context;I)V
+                    :d2_library_notify_done
+                    nop
+                """,
+            )
+            // :cond_35 is also a jump target; loop must run before single-media branch.
+            // v7, v10, v11 are dead at :cond_35; v8 (media), v9, and v12 remain live, so do not overwrite.
             addInstructionsAtControlFlowLabel(
                 singleIndex,
                 """
-                    check-cast v0, La7/d1;
-                    iget-object v13, v0, La7/d1;->a:La7/s0;
-                    sget-object v14, La7/o0;->a:La7/o0;
-                    if-ne v13, v14, :single_b1
-                    sget-boolean v13, $STATE_CLASS->all:Z
-                    if-eqz v13, :single_b1
-                    invoke-virtual/range {v32 .. v32}, Li7/i;->d()Ljava/util/List;
-                    move-result-object v13
-                    invoke-interface {v13}, Ljava/util/List;->iterator()Ljava/util/Iterator;
-                    move-result-object v13
+                    check-cast v0, ${GrokNames.LIBRARY_SELECTION_EVENT}
+                    iget-object v7, v0, ${GrokNames.SELECTION_ACTION}
+                    sget-object v10, ${GrokNames.LIBRARY_DOWNLOAD_SINGLETON}
+                    if-ne v7, v10, :single_b1
+                    sget-boolean v7, $STATE_CLASS->all:Z
+                    if-eqz v7, :single_b1
+                    invoke-virtual/range {v32 .. v32}, ${GrokNames.POST_MEDIA}
+                    move-result-object v7
+                    invoke-interface {v7}, Ljava/util/List;->iterator()Ljava/util/Iterator;
+                    move-result-object v7
                     :all_loop
-                    invoke-interface {v13}, Ljava/util/Iterator;->hasNext()Z
-                    move-result v14
-                    if-eqz v14, :next_post
-                    invoke-interface {v13}, Ljava/util/Iterator;->next()Ljava/lang/Object;
-                    move-result-object v14
-                    check-cast v14, Li7/o;
-                    new-instance v15, La7/b1;
-                    invoke-direct {v15, v7, v14}, La7/b1;-><init>(Lr7/j1;Li7/o;)V
-                    invoke-virtual {v5, v15}, Ljava/util/ArrayList;->add(Ljava/lang/Object;)Z
+                    invoke-interface {v7}, Ljava/util/Iterator;->hasNext()Z
+                    move-result v10
+                    if-eqz v10, :next_post
+                    invoke-interface {v7}, Ljava/util/Iterator;->next()Ljava/lang/Object;
+                    move-result-object v10
+                    check-cast v10, ${GrokNames.MEDIA}
+                    new-instance v11, ${GrokNames.LIBRARY_DOWNLOAD_REQUEST}
+                    invoke-direct {v11, v4, v10}, ${GrokNames.NEW_LIBRARY_DOWNLOAD_REQUEST}
+                    invoke-virtual {v3, v11}, Ljava/util/ArrayList;->add(Ljava/lang/Object;)Z
                     goto :all_loop
                     :single_b1
                     nop
                 """,
                 ExternalLabel("next_post", nextPostIndex),
             )
-            addInstruction(postIndex + 1, "move-object/from16 v32, v8")
+            addInstruction(postIndex + 1, "move-object/from16 v32, v6")
         }
     }
 }

@@ -96,29 +96,55 @@ val disableGoogleServicesPatch = bytecodePatch(
     dependsOn(disableGoogleServicesManifestPatch)
 
     execute {
-        // 1. Analytics gateway methods -> return-void
-        AnalyticsInitializeFingerprint.method.addInstructions(0, "return-void")
-        AnalyticsLogExceptionFingerprint.method.addInstructions(0, "return-void")
-        AnalyticsLogErrorFingerprint.method.addInstructions(0, "return-void")
-        AnalyticsSetUserIDFingerprint.method.addInstructions(0, "return-void")
-        AnalyticsClearUserIDFingerprint.method.addInstructions(0, "return-void")
-        AnalyticsSetConsentFingerprint.method.addInstructions(0, "return-void")
+        // 1. Analytics gateway methods -> return-void (4.10.5 Analytics or 4.11.2 FirebaseAnalyticsManager)
+        val analyticsInit = AnalyticsInitializeFingerprint.methodOrNull
+            ?: FirebaseAnalyticsInitializeFingerprint.method
+        analyticsInit.addInstructions(0, "return-void")
+
+        val analyticsLogEx = AnalyticsLogExceptionFingerprint.methodOrNull
+            ?: FirebaseAnalyticsLogExceptionFingerprint.method
+        analyticsLogEx.addInstructions(0, "return-void")
+
+        val analyticsLogErr = AnalyticsLogErrorFingerprint.methodOrNull
+            ?: FirebaseAnalyticsLogErrorFingerprint.method
+        analyticsLogErr.addInstructions(0, "return-void")
+
+        val analyticsSetUid = AnalyticsSetUserIDFingerprint.methodOrNull
+            ?: FirebaseAnalyticsSetUserIDFingerprint.method
+        analyticsSetUid.addInstructions(0, "return-void")
+
+        val analyticsClearUid = AnalyticsClearUserIDFingerprint.methodOrNull
+            ?: FirebaseAnalyticsClearUserIDFingerprint.method
+        analyticsClearUid.addInstructions(0, "return-void")
+
+        val analyticsSetConsent = AnalyticsSetConsentFingerprint.methodOrNull
+            ?: FirebaseAnalyticsSetConsentFingerprint.method
+        analyticsSetConsent.addInstructions(0, "return-void")
 
         // 2. HabiticaBaseApplication lifecycle initializations -> return-void
-        SetupNotificationsFingerprint.method.addInstructions(0, "return-void")
-        SetupAdHandlerFingerprint.method.addInstructions(0, "return-void")
+        SetupNotificationsFingerprint.methodOrNull?.addInstructions(0, "return-void")
+        SetupAdHandlerFingerprint.methodOrNull?.addInstructions(0, "return-void")
 
         // 3. setupRemoteConfig: initialize RemoteConfig and set local XML defaults, then return-void
-        SetupRemoteConfigFingerprint.method.addInstructions(
-            0,
-            """
-                invoke-static {}, Lcom/google/firebase/remoteconfig/a;->n()Lcom/google/firebase/remoteconfig/a;
-                move-result-object v0
-                const v1, 0x7f16000d
-                invoke-virtual {v0, v1}, Lcom/google/firebase/remoteconfig/a;->w(I)Lcom/google/android/gms/tasks/Task;
-                return-void
-            """
-        )
+        val is411OrNewer = FirebaseAnalyticsInitializeFingerprint.methodOrNull != null
+        if (!is411OrNewer) {
+            // 4.10.5: Call FirebaseRemoteConfig.getInstance() and setDefaultsAsync(0x7f16000d)
+            SetupRemoteConfigFingerprint.method.addInstructions(
+                0,
+                """
+                    invoke-static {}, Lcom/google/firebase/remoteconfig/a;->n()Lcom/google/firebase/remoteconfig/a;
+                    move-result-object v0
+                    const v1, 0x7f16000d
+                    invoke-virtual {v0, v1}, Lcom/google/firebase/remoteconfig/a;->w(I)Lcom/google/android/gms/tasks/Task;
+                    return-void
+                """
+            )
+        } else {
+            // 4.11.2+: RemoteConfig is obtained via Firebase component container (tp1) and defaults
+            // are loaded locally without fetch. Returning void directly completely prevents
+            // background fetch and realtime listener without affecting default feature flags.
+            SetupRemoteConfigFingerprint.method.addInstructions(0, "return-void")
+        }
 
         // 4. PrivacyPreferencesActivity: call super.onCreate, finish immediately, and return
         PrivacyPreferencesActivityOnCreateFingerprint.method.addInstructions(

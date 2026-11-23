@@ -6,10 +6,11 @@ package app.morphe.patches.facebook.coexist
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.PatchException
-import app.morphe.patcher.patch.resourcePatch
+import app.morphe.patcher.patch.patch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patches.facebook.misc.extension.patchLog
 import app.morphe.util.RegisterLiveness
+import app.morphe.util.onResources
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.builder.BuilderInstruction
 import com.android.tools.smali.dexlib2.iface.ClassDef
@@ -117,16 +118,19 @@ internal fun Document.putAppName(name: String, stringName: String = APP_NAME_STR
  * Writes the name [appName] answers into the labels. With no name picked, it opens no file, so
  * the manifest and the resources stay byte for byte as they were.
  */
-internal fun appLabelPatch(appName: () -> String?) = resourcePatch {
+internal fun appLabelPatch(appName: () -> String?) = patch {
+    // Built in a function, so the block is written here to carry this file's name (see PatchBodies.kt).
     execute {
-        val name = pickedAppName(appName()) ?: return@execute
-        // Checked before the manifest changes, so a build without it is refused untouched.
-        // Patcher 2.0 decodes only the files a patch asks for: an undecoded file does not exist yet.
-        decode(STRINGS)
-        if (!get(STRINGS, false).exists()) throw PatchException("$OPTION: Facebook has no $STRINGS to hold the name.")
-        val relabeled = document("AndroidManifest.xml").use { it.labelWith("@string/$APP_NAME_STRING") }
-        document(STRINGS).use { it.putAppName(name) }
-        patchLog.info("$OPTION: the app is called \"$name\" under its icon and in App info ($relabeled launcher entries and screens).")
+        onResources {
+            val name = pickedAppName(appName()) ?: return@onResources
+            // Checked before the manifest changes, so a build without it is refused untouched.
+            // Patcher 2.0 decodes only the files a patch asks for: an undecoded file does not exist yet.
+            decode(STRINGS)
+            if (!get(STRINGS, false).exists()) throw PatchException("$OPTION: Facebook has no $STRINGS to hold the name.")
+            val relabeled = document("AndroidManifest.xml").use { it.labelWith("@string/$APP_NAME_STRING") }
+            document(STRINGS).use { it.putAppName(name) }
+            patchLog.info("$OPTION: the app is called \"$name\" under its icon and in App info ($relabeled launcher entries and screens).")
+        }
     }
 }
 

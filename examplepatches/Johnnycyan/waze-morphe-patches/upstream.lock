@@ -1,8 +1,8 @@
 # The app versions this bundle targets, taken from the newest nl-morphe-patches release.
 # Updated by scripts/sync.sh in .github/workflows/pipeline.yml; edit by hand to pin.
 NL_REPO=https://gitlab.com/johninnld/nl-morphe-patches.git
-NL_TAG=v1.91.0
+NL_TAG=v1.98.0
 WAZE_VERSION=5.27.0.1
-MAPS_VERSION=26.44.06.1006895251
-MAPS_VERSION_CODE=1068856906
+MAPS_VERSION=26.47.00.1022347503
+MAPS_VERSION_CODE=1068892333
 MAPS_MIN_SDK=29

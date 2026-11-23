@@ -1,9 +1,9 @@
 package app.template.patches.mailcom.ads
 
 import app.morphe.patcher.patch.bytecodePatch
-import app.morphe.patcher.util.returnEarly
 import app.template.patches.mailcom.shared.forceGettersFalse
 import app.template.patches.shared.Constants.COMPATIBILITY_MAILCOM
+import app.template.patches.shared.addInstructionsChecked
 
 private const val PATCH = "Disable ads"
 
@@ -40,7 +40,14 @@ val disableAdsPatch = bytecodePatch(
         // 2. Interstitials stay off.
         InterstitialAdConfigToStringFingerprint.classDef.forceGettersFalse(PATCH, listOf("isEnabled"))
 
-        // 3. Ad pixels (display, read, delete and click beacons) are not sent.
-        AdTrackerSendFingerprint.method.returnEarly()
+        // 3. Ad pixels (display, read, delete and click beacons) are not sent: the sender returns
+        // Unit at once (it is a suspend method whose body never suspends).
+        AdTrackerSendFingerprint.method.addInstructionsChecked(
+            0,
+            """
+                sget-object v0, Lkotlin/Unit;->INSTANCE:Lkotlin/Unit;
+                return-object v0
+            """,
+        )
     }
 }

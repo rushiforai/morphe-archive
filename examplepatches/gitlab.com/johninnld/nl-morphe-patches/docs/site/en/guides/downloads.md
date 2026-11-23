@@ -14,7 +14,7 @@ Match the exact app version and build. Select the complete APKS or APKM archive 
 | [bol](../apps/bol.md) | 2026.23.1 / 430517 | [APKS](#local-original-inputs) |
 | [Bright](../apps/bright.md) | 10.181.0 / 2026072000 | [APKS](https://buzzheavier.com/a3m5bvvu9usp) |
 | [Buienalarm](../apps/buienalarm.md) | 4.32.0 / 3723 | [APKS](https://buzzheavier.com/9fl1lzedekqp) |
-| [Buienradar](../apps/buienradar.md) | 7.4.8 / 7897 | [APKM](https://buzzheavier.com/v4m79608e677) |
+| [Buienradar](../apps/buienradar.md) | 7.4.8 / 7915 | [APKM](https://www.apkmirror.com/apk/dpg-media/buienradar-weer/buienradar-weer-7-4-8-release/buienradar-weer-7-4-8-4-android-apk-download/) |
 | [Candy Crush Soda Saga](../apps/candy-crush-soda-saga.md) | 1.330.1 / 13300010 | [APKM](#local-original-inputs) |
 | [DS Nieuws](../apps/dsnieuws.md) | 22.0.0 / 2012316104 | [APKS](https://buzzheavier.com/xekgzljrg2lg) |
 | [De Morgen](../apps/demorgen.md) | 7.53.1 / 23136515 | [APKS](https://buzzheavier.com/ci8cm8ebuwf2) |
@@ -68,6 +68,7 @@ Match the exact app version and build. Select the complete APKS or APKM archive 
 | [Vela Maps](../apps/vela.md) | 0.5.2621 / 46210 | [APK](https://buzzheavier.com/64jger382td4) |
 | [Videoland Android](../apps/videoland.md) | 1.119.2 / 1637 | [APKM](#local-original-inputs) |
 | [Videoland Android TV](../apps/videoland-android-tv.md) | 1.119.2 / 1638 | [APKM](#local-original-inputs) |
+| [Upflix](../apps/upflix.md) | 5.12.10 / 423 | [APKS](#local-original-inputs) |
 | [WuPlay Mobile](../apps/wuplay-mobile.md) | 0.1.9-alpha / 9 | [APK](#local-original-inputs) |
 | [Wuplay Android TV](../apps/wuplay.md) | 0.9.4-beta / 49 | [APK](https://buzzheavier.com/03cd7t0bs8qt) |
 | [Monet Android TV](../apps/monet.md) | 1.1.1 / 135 | Use your own file |
@@ -78,12 +79,13 @@ Match the exact app version and build. Select the complete APKS or APKM archive 
 | [YouTube Music](../apps/youtube-music.md) | 9.30.53 / 93053240 | [APK](#local-original-inputs) |
 | [Apple Music](../apps/apple-music.md) | 7.0.0 / 1614 | [APKM](#local-original-inputs) |
 | [TIDAL](../apps/tidal.md) | 2.216.0 / 10020 | [APKM](#local-original-inputs) |
-| [Deezer](../apps/deezer.md) | 9.0.26.3 / 9002603 | [APKM](#local-original-inputs) |
+| [Deezer](../apps/deezer.md) | 9.0.27.3 / 9002703 | [APKM](#local-original-inputs) |
+| [Eclipse Music](../apps/eclipse-music.md) | 0.6.75 / 155 | [APK](#local-original-inputs) |
 | [Myspoti](../apps/myspoti.md) | 2.4.1 / 1175 | [APK](#local-original-inputs) |
 | [Orpheon](../apps/orpheon.md) | 1.0.0 / 1194 | [APK](#local-original-inputs) |
 | [SoundCloud](../apps/soundcloud.md) | 2026.11.02-release / 379060 | [APKM](#local-original-inputs) |
 | [Spotify](../apps/spotify.md) | 9.2.0.2053 / 148387875 | [APK](#local-original-inputs) |
-| [Gboard](../apps/gboard.md) | 18.6.3.1002251336-release-arm64-v8a / 176071766 | [APK](#local-original-inputs) |
+| [Gboard](../apps/gboard.md) | 18.8.0.1022711984-beta-arm64-v8a / 176124766 | [APK](#local-original-inputs) |
 | [Waze](../apps/waze.md) | 5.26.90.901 / 1030746 | [APKM](https://buzzheavier.com/cpwy7pirf997) |
 | [Weeronline](../apps/weeronline.md) | 3.61.0 / 2030006811 | [APKS](https://buzzheavier.com/mj9n1s9e3ihs) |
 | [Weerplaza](../apps/weerplaza.md) | 3.13.1 / 734 | [APKS](https://buzzheavier.com/cr9f6qs8tfsh) |

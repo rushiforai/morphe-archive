@@ -27,18 +27,18 @@ internal object AnalyticsDispatchFingerprint : Fingerprint(
     strings = listOf("SNOWPLOW failed to get page name", "Failed to send Usabilla event: ")
 )
 
-/** Shared coroutine class whose branch 28 sends `videoPlay` pings to Smartocto. */
+/** Shared coroutine class whose video-play branch sends pings to Smartocto. */
 internal object SmartoctoRequestFingerprint : Fingerprint(
     strings = listOf("https://ingestion.smartocto.com/")
 )
 
 /** Video player state listener that launches the Smartocto ping on first playback. */
-internal fun smartoctoListenerFingerprint(requestType: String) = Fingerprint(
+internal fun smartoctoListenerFingerprint(requestType: String, videoPlayBranch: Long) = Fingerprint(
     returnType = "V",
     parameters = listOf("L"),
     filters = listOf(
         newInstance(requestType),
-        literal(0x1c),
+        literal(videoPlayBranch),
         methodCall(definingClass = requestType, name = "<init>")
     )
 )

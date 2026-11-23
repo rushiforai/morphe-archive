@@ -48,14 +48,14 @@ through Shizuku-Next, KingInstaller and Android Auto's app list.
 ## App overview
 
 <!-- PATCHES_START SUMMARY -->
-**Patch bundle [v1.94.0](https://gitlab.com/johninnld/nl-morphe-patches/-/releases/v1.94.0)** · 80 apps · 386 patches
+**Patch bundle [v1.101.0](https://gitlab.com/johninnld/nl-morphe-patches/-/releases/v1.101.0)** · 82 apps · 406 patches
 
 ### Weather
 
 | App | Changes | Target app versions | Input | Patches |
 | --- | --- | --- | --- | --- |
 | [Buienalarm](docs/site/en/apps/buienalarm.md) | Ads · Tracking · Prompts · Compatibility | 4.32.0 | APKS | 5 |
-| [Buienradar](docs/site/en/apps/buienradar.md) | Ads · Tracking · Prompts | 7.4.8 | APKM | 5 |
+| [Buienradar](docs/site/en/apps/buienradar.md) | Ads · Tracking · Prompts | 7.4.8 | APKM | 6 |
 | [RainViewer](docs/site/en/apps/rainviewer.md) | Ads · Tracking · Prompts · Compatibility | 8.4.1 | APKM | 9 |
 | [Weeronline](docs/site/en/apps/weeronline.md) | Ads · Tracking · Prompts · Plus/Pro | 3.61.0 | APKS | 5 |
 | [Weerplaza](docs/site/en/apps/weerplaza.md) | Ads · Tracking · Prompts · Compatibility | 3.13.1 | APKS | 5 |
@@ -99,7 +99,7 @@ through Shizuku-Next, KingInstaller and Android Auto's app list.
 | [EasyPark NL](docs/site/en/apps/easypark-nl.md) | See guide | 26.42.4 | APKS | 2 |
 | [Flitsmeister](docs/site/en/apps/flitsmeister.md) | Ads · Tracking · Prompts · Plus/Pro · Compatibility · Partner services | 14.17, 15.0 | APKS | 10 |
 | [Gearslip](docs/site/en/apps/gearslip.md) | See guide | 0.3.12-alpha, 0.3.31-alpha | APK | 3 |
-| [Google Maps](docs/site/en/apps/google-maps.md) | See guide | 26.43.05.1002020710, 26.44.06.1006895251 | APK | 32 |
+| [Google Maps](docs/site/en/apps/google-maps.md) | See guide | 26.43.05.1002020710, 26.44.06.1006895251, 26.47.00.1022347503 | APK | 33 |
 | [Magic Earth](docs/site/en/apps/magic-earth.md) | See guide | 7.1.26.38.B4684D03.6207A61BA | APKM | 5 |
 | [Rollerbank](docs/site/en/apps/rollerbank.md) | Ads · Tracking · Prompts · Compatibility | 4.5.3.1 | APKS | 6 |
 | [Vela Maps](docs/site/en/apps/vela.md) | See guide | 0.5.2621 | APK | 1 |
@@ -112,8 +112,9 @@ through Shizuku-Next, KingInstaller and Android Auto's app list.
 | [Apple Music](docs/site/en/apps/apple-music.md) | See guide | 7.0.0 | APKM | 1 |
 | [Beach Buggy Racing](docs/site/en/apps/beach-buggy-racing.md) | Ads · Tracking | 2026.11.02 | APKM | 3 |
 | [Candy Crush Soda Saga](docs/site/en/apps/candy-crush-soda-saga.md) | Ads · Tracking | 1.330.1 | APKM | 3 |
-| [Deezer](docs/site/en/apps/deezer.md) | Tracking | 9.0.26.3 | APKM | 6 |
+| [Deezer](docs/site/en/apps/deezer.md) | Tracking | 9.0.27.3 | APKM | 13 |
 | [Dumpert](docs/site/en/apps/dumpert.md) | Ads · Tracking · Prompts | 5.8.0 | APKS | 3 |
+| [Eclipse Music](docs/site/en/apps/eclipse-music.md) | See guide | 0.6.75 | APK | 2 |
 | [KIJK Android](docs/site/en/apps/kijk.md) | Ads · Tracking · Prompts | 9.8.0 | APK | 3 |
 | [KIJK Android TV](docs/site/en/apps/kijk-android-tv.md) | Ads · Tracking | 7.2.7 | APKS | 3 |
 | [Myspoti](docs/site/en/apps/myspoti.md) | See guide | 2.3.0, 2.4.0, 2.4.1, Any | APK | 3 |
@@ -125,6 +126,7 @@ through Shizuku-Next, KingInstaller and Android Auto's app list.
 | [Spotify](docs/site/en/apps/spotify.md) | See guide | 9.2.0.2053 | APKS | 1 |
 | [TIDAL](docs/site/en/apps/tidal.md) | See guide | 2.216.0 | APKM | 1 |
 | [TVgids.nl](docs/site/en/apps/tvgids-nl.md) | Ads · Tracking · Prompts | 7.0.16 | APK | 3 |
+| [upflix](docs/site/en/apps/upflix.md) | Tracking | 5.12.10 | APKS | 3 |
 | [Videoland Android](docs/site/en/apps/videoland.md) | Ads · Tracking · Prompts | 1.119.2 | APKS | 4 |
 | [Videoland Android TV](docs/site/en/apps/videoland-android-tv.md) | Ads · Tracking | 1.119.2 | APKS | 4 |
 | [Wuplay Android TV](docs/site/en/apps/wuplay.md) | See guide | 0.9.4-beta | APK | 1 |
@@ -141,7 +143,7 @@ through Shizuku-Next, KingInstaller and Android Auto's app list.
 | [AT4K Launcher](docs/site/en/apps/at4k.md) | Plus/Pro | 1.3 | APK | 1 |
 | [bol](docs/site/en/apps/bol.md) | Tracking | 2026.23.1 | APKS | 5 |
 | [Fennec](docs/site/en/apps/fennec.md) | See guide | Any | APK | 1 |
-| [Gboard](docs/site/en/apps/gboard.md) | See guide | 18.6.3.1002251336-release-arm64-v8a, 18.6.3.1002251336-release-armeabi-v7a | APK | 26 |
+| [Gboard](docs/site/en/apps/gboard.md) | See guide | 18.8.0.1022711984-beta-arm64-v8a, 18.8.0.1022711984-beta-armeabi-v7a | APK | 32 |
 | [GridCraft](docs/site/en/apps/gridcraft.md) | See guide | Any | APK | 1 |
 | [Home Assistant](docs/site/en/apps/homeassistant.md) | See guide | 2026.10.1-full | APKS | 1 |
 | [LightCraft](docs/site/en/apps/lightcraft.md) | See guide | Any | APK | 1 |

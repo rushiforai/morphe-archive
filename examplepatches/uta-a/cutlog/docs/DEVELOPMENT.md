@@ -4,7 +4,7 @@
 
 ## 開発の流れ
 
-Phase 0 の静的調査は完了。Phase 1 のローカルインストール元チェックと録画完了時の動画差し替え PoC は実装済み。差し替えた動画を dev グループへ投稿し、別端末で再生できることはユーザー確認済みで、Phase 1 は Go。途中のロック問題は受信側の鍵再生成で解消した。Phase 2 の投稿前編集（F1〜F3）と Phase 3 のファイルから投稿（F4）は実装済みで、実機で編集・書き出し・本体の送信先画面への受け渡しまで確認した。編集済み動画と取り込み動画を dev グループへ投稿し、別端末で再生できることも確認した。Phase 4 の編集画面の作り込み（ツールバーとタイムライン、文字・スタンプ・効果・フレーム・反転・ズーム・速度・逆再生）は実装済みで、速さを変えて長さの変わった動画も投稿・別端末での再生を確認した。Phase 5 で設定画面（F6）を足し、F5（過去の時間帯に投稿）は実装しないことに決めた。バンドルは GitHub（`uta-a/cutlog`）で v0.1.0 として公開した。
+Phase 0 の静的調査は完了。Phase 1 のローカルインストール元チェックと録画完了時の動画差し替え PoC は実装済み。差し替えた動画を dev グループへ投稿し、別端末で再生できることはユーザー確認済みで、Phase 1 は Go。途中のロック問題は受信側の鍵再生成で解消した。Phase 2 の投稿前編集（F1〜F3）と Phase 3 のファイルから投稿（F4）は実装済みで、実機で編集・書き出し・本体の送信先画面への受け渡しまで確認した。編集済み動画と取り込み動画を dev グループへ投稿し、別端末で再生できることも確認した。Phase 4 の編集画面の作り込み（ツールバーとタイムライン、文字・スタンプ・効果・フレーム・反転・ズーム・速度・逆再生）は実装済みで、速さを変えて長さの変わった動画も投稿・別端末での再生を確認した。Phase 5 で設定画面（F6）を足し、F5（過去の時間帯に投稿）は実装しないことに決めた。バンドルは GitHub（`uta-a/cutlog`）で v0.1.0 として公開した。その後、対象を setlog 1.3 の versionCode 89 に移した（[versionCode 89 への追従](#versioncode-89-への追従)）。
 
 ## ドキュメント
 
@@ -12,6 +12,32 @@ Phase 0 の静的調査は完了。Phase 1 のローカルインストール元�
 - [analysis/phase0-recording-upload.md](analysis/phase0-recording-upload.md) — 録画完了点とアップロード経路の静的解析
 - [analysis/phase0-output-profile.md](analysis/phase0-output-profile.md) — 公式撮影分の出力仕様（OutputProfile の基準値）
 - [compatibility/pairip-integrity.md](compatibility/pairip-integrity.md) — PairIP / 改ざん検知・整合性保護の調査
+
+## versionCode 89 への追従
+
+対象を setlog 1.3 の versionCode 76 から 89 に移した（76 はもう対象にしない）。v89 は APKPure 配布の XAPK（`setlog_1.3_APKPure.xapk`、ユーザーが用意）を使い、署名証明書が v76 と同じ（SHA-256 `fd5c747c…f762`、Play の署名鍵）であることを確かめた。XAPK の分割 APK を `base.apk`・`split_config.*.apk` の名前で詰め直して APKM として使っている（分割は `arm64_v8a`・`en`・`hdpi`）。
+
+v89 では撮影画面にエフェクト（Skia のフィルム効果、MediaPipe の顔ランドマーク、TFLite のモデル。エフェクトに曲が付く）が入った。cutlog への影響と対応:
+
+- `CollectionCameraResult` のコンストラクタ引数の末尾に `effectData`（String、null 可）が増えた。中身はエフェクトの曲の `{"track_name","track_artist"}` の JSON で、投稿メディア（`MessageMedia.effectData`）としてサーバーへ送られる。編集した撮影（`cutlogWithReplacement`）は元の撮影の値を引き継ぎ、取り込んだ動画（`cutlogCreate`）は null にする。エフェクトの映像・音声は録画ファイルに焼き込まれる前提（`camera/c` の録画開始に Skia の録画系が組み込まれている）。受信側で `effectData` を表示以外に使うかは確かめていない
+- 撮影開始時に CaptureContext を作るメソッド（v89 の `C1`）が、同じ場所で `effectData` も field に代入するようになった。「ファイルから投稿」の CaptureContext の field は、String 以外の型で選ぶ。取り込みで `C1` を呼ぶと選択中のエフェクトの曲情報が field に入るが、結果には載せない
+- 撮影画面のシャッターの右（+106dp、シャッターの大きさから実行時に計算）に本体のエフェクトボタン（`log_effect_button`、`EffectUnreadView`、50dp）が増え、「ファイルから」ボタン（+89dp）と重なる。右側にはボタン 1 つ分しか残らないため、「ファイルから」ボタンをやめ、設定画面の先頭に「ファイルから選ぶ」を置いた。歯車ボタンはフラッシュと左右対称の位置（slot +1）に移し、同じ並びで見えている本体のボタンと重なるときはその外側へずらす（`CameraChrome.avoid`）。幅 375dp の端末では入りきらないので、最小 36dp まで縮める
+- 録画の長さ（`recordDurationMs` の読み取り）、カメラのバックエンド 2 つ（`o80` と `camera/c`）、予備タイマー 2 つ、`LicenseClient.performLocalInstallerCheck`、Google ログインの各 fingerprint は v76 と同じ構造で、変更は要らなかった。元の署名 SHA-1 も同じ
+
+難読化名の対応（v76 → v89）:
+
+| 役割 | v76 | v89 |
+| --- | --- | --- |
+| 撮影画面 | `vb0` | `com.newchat.setlog.feature.camera.i` |
+| 録画結果を返す | `G0(oc0)` | `N0(ri0)` |
+| キャンセル | `F0()` | `M0()` |
+| CaptureContext を作る | `j1()` | `C1()` |
+| onViewCreated（setupUi） | `g0(View, Bundle)` | `h0(View, Bundle)` |
+| `CollectionCameraResult` | `oc0` | `ri0` |
+
+確認したこと: 互換性チェック付き（`-f` なし）で 5 つのパッチがすべて v89 の APKM に当たること、署名の検証、パッチ後の APK を jadx で開いて `N0`・`cutlogWithReplacement`・`cutlogCreate`・`h0` のフックと録画開始の長さの置き換えを確認。`CameraChrome` の位置計算は単体テストで確認。未確認: 実機での撮影・編集・取り込み・投稿、エフェクトを使った撮影の編集、歯車ボタンの実際の位置と縮んだときの押しやすさ。プレビュー枠の下部中央に出る本体の曲の再生ボタン（`EffectsPlayButton`）とエフェクトの案内（`LensCTAView`）はシャッターと親が違い、`CameraChrome` の避ける対象に入らない。これらが出ている間に歯車・長さのボタンと重ならないかも未確認。
+
+解析には omp（`deepseek-v4.1-flash`）も使い、各 fingerprint の前提が v89 で成り立つかを dex を直接読んで確かめさせた。結果は上の確認と一致した。
 
 ## Phase 0 の到達点
 
@@ -26,7 +52,7 @@ Phase 0 の静的調査は完了。Phase 1 のローカルインストール元�
 
 ## インストール元チェックのパッチ
 
-- 対象: setlog v1.3 / versionCode 76 / arm64-v8a の APKM
+- 対象: setlog v1.3 / versionCode 89 / arm64-v8a の APKM（v0.1.3 までは versionCode 76）
 - `インストール元チェック` パッチ（v0.1.0 より前の名前は `cutlog`）は `LicenseClient.performLocalInstallerCheck(): boolean` の本体を `return true` に置換する
 - fingerprint は宣言クラス・メソッド名・signature・インストール元 API 呼び出し・判定文字列で照合。一致が一件でなければ適用を中止する
 - PackageManager API 全体や Firebase のインストール元収集は変更しない。Play ライセンス通信・応答検証・ペイウォールも残るため、起動成功を保証するものではない
@@ -39,7 +65,7 @@ java -jar <morphe-desktop-all.jar> patch \
   --patches patches/build/libs/patches-<version>.mpp \
   --out scratch/setlog-installer-check.apk \
   --keystore scratch/cutlog-dev.keystore \
-  setlog-apk/setlog-1.3-76.apkm
+  setlog-apk/setlog-1.3-89.apkm
 ```
 
 検証済み: バンドルのビルド、実 APKM への適用・既存開発鍵での署名、`apksigner verify`、生成 APK の jadx 再解析で `return true` を確認。署名済み検証 APK は `scratch/setlog-installer-check.apk`。Android 13 の実機（23043RP34G）へ `adb install -r` で上書きし、コールド起動でログイン画面への到達、40 秒後も同一プロセスが生存することを確認。観測中に「安全設定を完了」画面へ進んだ。暗号鍵の移行・新規作成と、過去動画へのアクセス・投稿は未確認。
@@ -83,12 +109,12 @@ Android 16 の XIG07 にインストールして起動を確認した。さら�
 
 ## ファイルから投稿のパッチ
 
-`ファイルから投稿` パッチは、撮影画面のシャッターの右（フラッシュと左右対称の位置）に「ファイルから」ボタンを足す。押すと写真選択画面（動画のみ）が開き、選んだ動画を編集画面で扱う。
+`ファイルから投稿` パッチは、歯車ボタンの設定画面の先頭に「ファイルから選ぶ」を足す。押すと写真選択画面（動画のみ）が開き、選んだ動画を編集画面で扱う。v0.1.3 までは撮影画面のシャッターの右に「ファイルから」ボタンを足していたが、v89 で本体のエフェクトボタンと重なるためやめた。
 
 - 取り込み用の編集画面には「トリム」ツールが加わり、公式と同じ 2.066 秒の区間を選ぶ。動画が短い場合は全体を使う
 - 書き出しは必ず公式撮影分の仕様へ揃える: HEVC、縦 720x1280 / 横 1280x720（はみ出しは切り落とし）、30fps 以下、AAC-LC 48kHz モノラル（音声が無ければ無音トラック）、HDR は SDR へ変換
 - 「そのまま投稿」は出さない。✕ は撮影画面へ戻るだけ
-- 書き出した動画は本体の録画と同じ `cacheDir/camera/collection_camera_<時刻>.mp4` に置き、本体の撮影開始処理（`vb0.j1`）で撮影時刻・UTC オフセット・国コードを作ってから `CollectionCameraResult` を組み立てて渡す。レンズ向きは背面として扱う
+- 書き出した動画は本体の録画と同じ `cacheDir/camera/collection_camera_<時刻>.mp4` に置き、本体の撮影開始処理（v89 の `C1`、v76 の `vb0.j1`）で撮影時刻・UTC オフセット・国コードを作ってから `CollectionCameraResult` を組み立てて渡す。レンズ向きは背面として扱う
 
 実機で確認したこと（Android 13）: ボタンの表示位置、写真選択画面からの選択、トリム、縦 1080x1920・60fps・H.264・ステレオ 44.1kHz・6 秒の動画を 720x1280・約 30fps・HEVC Main・AAC-LC 48kHz モノラル・約 2.08 秒へ変換して本体の送信先選択画面へ渡すところまで（本体の「保存」で書き出したファイルを ffprobe）。dev グループへの投稿と別端末での再生も確認済み。未確認: 横向き・回転付き・音声なし・HDR の動画、写真選択画面から戻る間に撮影画面が作り直された場合。
 
@@ -142,17 +168,17 @@ adb shell rm /sdcard/Android/data/com.newchat.setlog/files/cutlog/replacement.mp
 
 ## 設定画面（F6）
 
-`投稿前編集` パッチは、撮影画面の `SetlogCameraFragment#setupUi` の先頭で `CaptureInterceptor.onCameraSetup` を呼び、シャッターの並びの右端（長さのボタンと左右対称の slot 2）に歯車ボタンを足す。押すと設定のダイアログを開く（録画中は開かない）。
+`投稿前編集` パッチは、撮影画面の `SetlogCameraFragment#setupUi` の先頭で `CaptureInterceptor.onCameraSetup` を呼び、シャッターの右（フラッシュと左右対称の slot 1。本体のエフェクトボタンが出ているときはその右）に歯車ボタンを足す。押すと設定のダイアログを開く（録画中は開かない）。v0.1.3 までは slot 2 に置いていた。
 
 - 切り替えられるのは「投稿前の編集」「ファイルから投稿」「撮影する長さ」。初期値はすべて ON。値は cutlog 専用の SharedPreferences（`cutlog`）に `feature_<key>` で保存する
 - 当てていないパッチの機能は出さない。各パッチのフックが撮影画面を作るたびに `Feature.markAvailable()` を呼び、ダイアログはそれを見る
 - 投稿前の編集が OFF: `onCaptured` が false を返し、本体の送信先選択画面へそのまま進む。「ファイルから投稿」の取り込みは仕様への変換に編集画面を使うため、この設定に関係なく編集画面を開く
-- ファイルから投稿が OFF: 「ファイルから」ボタンを隠す
+- ファイルから投稿が OFF: 設定画面の「ファイルから選ぶ」を隠す
 - 撮影する長さが OFF: 長さのボタンを隠し、`RecordDuration.selectedMs()` が公式の 2000ms を返す。選んでいた長さは残り、ON に戻すと使われる
 - ボタンは OFF でも撮影画面に追加しておき、`CameraChrome` のレイアウト時に表示だけを切り替える。ダイアログを閉じると並びを合わせ直す
 - cutlog のボタンはフラッシュボタンが GONE のときだけ一緒に隠す。setlog 1.3 はフラッシュを GONE にしない（カメラの権限が無いときは INVISIBLE、フラッシュが使えないときは半透明）ため、歯車ボタンは常に出る
 
-実機で確認したこと（Android 16、XIG07）: 歯車ボタンの位置、ダイアログの表示、「ファイルから」と長さのボタンが閉じた直後に消えること、撮影画面を開き直しても設定が残ること。撮影する長さを 5 秒にしたまま OFF にすると 2067ms で録画されること。投稿前の編集を OFF にすると撮影後に本体の送信先選択画面が開くこと（投稿はせずに閉じた）。
+実機で確認したこと（Android 16、XIG07。v76、ボタンの配置を変える前）: 歯車ボタンの位置、ダイアログの表示、「ファイルから」と長さのボタンが閉じた直後に消えること、撮影画面を開き直しても設定が残ること。撮影する長さを 5 秒にしたまま OFF にすると 2067ms で録画されること。投稿前の編集を OFF にすると撮影後に本体の送信先選択画面が開くこと（投稿はせずに閉じた）。
 
 ## 第三者のライセンス
 

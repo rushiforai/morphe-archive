@@ -8,7 +8,7 @@
  * - anddea (https://github.com/anddea)
  *
  * Licensed under the GNU General Public License v3.0.
- * Modified by lavinhoque33, 2026-11-20.
+ * Modified by lavinhoque33, 2026-11-22.
  *
  * ------------------------------------------------------------------------
  * GPLv3 Section 7 – Additional Terms & Attribution Requirements
@@ -1091,7 +1091,8 @@ private val rvxPreferenceKey = mapOf(
     "morphe_navigation_bar_glass_button_spacing" to "revanced_navigation_bar_order",
     "morphe_notification_dot_color" to "revanced_enable_custom_seekbar_color",
     "morphe_center_playback_button_size" to "revanced_disable_resuming_miniplayer",
-    "morphe_player_control_buttons_background_opacity" to "revanced_swipe_overlay_background_opacity",
+    "morphe_player_transport_background_opacity" to "revanced_swipe_overlay_background_opacity",
+    "morphe_player_other_overlay_background_opacity" to "revanced_swipe_overlay_background_opacity",
     "morphe_post_image_download" to "revanced_overlay_button_external_downloader",
     "morphe_post_buttons_layout" to "morphe_post_buttons_screen",
     "morphe_hide_post_like_dislike_buttons" to "morphe_post_buttons_screen",

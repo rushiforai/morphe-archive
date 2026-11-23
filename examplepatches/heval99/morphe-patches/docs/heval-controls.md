@@ -313,6 +313,7 @@ never renamed.
 | `truecaller.hide_call_log_filters` | Hide call log filters | yes | filter row composable and filter setter (index 0) |
 | `truecaller.hide_frequent_contacts` | Hide frequently called contacts | no | LazyColumn item skip |
 | `truecaller.hide_important_senders` | Hide important senders | no | LazyColumn item skip |
+| `truecaller.hide_surveys` | Hide surveys | no | survey eligibility check at index 0 (answers false; covers details view, block and after-call surveys, 2026-11-18) |
 | `truecaller.hide_inbox_cards` | Hide inbox cards (off) | no | carousel skip in the Messages inbox builder |
 | `truecaller.tap_call_history_to_call` | Tap call history to call (off) | no | ItemClick case of the call log event dispatcher (gate before the selection branch) |
 | `truecaller.disable_call_button_haptics` | Disable call button haptics | no | haptic dispatch skips, drag progress (value helper) |
@@ -393,13 +394,15 @@ switches: each switch is registered only when its anchor exists in the app. Swit
 | `sofascore.disable_rating_prompts` | Disable rating prompts | on | no | its forced value |
 | `sofascore.animations_off` | Animation speed | off | yes | `AnimationSpeed.init` first in ReleaseApp.onCreate, every app call to `Settings.Global.getFloat` (`AnimationSpeed.getFloat`) |
 | `sofascore.animations_fast` | Animation speed | off | yes | the same sites |
-| `sofascore.slower_widget_refresh` | Slower widget refresh | off | yes | widget refresh interval (`widgetRefreshInterval`) |
+| `sofascore.slower_widget_refresh` | Slower widget refresh | off | yes | widget refresh interval, in minutes (`widgetRefreshMinutes`) |
 | `sofascore.hidden_countries` (list) | Hide countries | off | yes | SportCategoriesResponse.getCategories (`filterCategories`), CategoriesForDateResponse.getCategories (`filterCategoryWrappers`), SearchResponse.getResults (`filterSearchResults`), the sportLiveEvents and getIndexedEventsPage request returns (`filterEventList`), the categoryScheduledEvents request return (`filterCategoryEvents`), seeds by `CountryFilter.init` at the end of ReleaseApp.onCreate |
 | `sofascore.hidden_competitions` (list) | Hide competitions | off | yes | the same shared sites minus the leagues list, plus UniqueTournamentGroupResponse.getUniqueTournaments (`filterUniqueTournaments`); icons by `CompetitionFilter.init` (called from `CountryFilter.init`) |
-| `sofascore.spoiler_free` | Spoiler-free mode | on | no | EventActivity and LeagueActivity onCreateOptionsMenu (`addMatchItem`, `addCompetitionItem`) and their (Event)V / (UniqueTournament)V methods (`onMatch`, `onCompetition`); master of the five rows below |
-| `sofascore.spoiler_notifications` | Spoiler-free mode | on | no | FCMListenerService.onMessageReceived (`blocksPush`) |
+| `sofascore.spoiler_free` | Spoiler-free mode | on | no | EventActivity and LeagueActivity onCreateOptionsMenu (`addMatchItem`, `addCompetitionItem`) and their (Event)V / (UniqueTournament)V methods (`onMatch`, `onCompetition`); master of the seven rows below |
+| `sofascore.spoiler_notifications` | Spoiler-free mode | on | no | FCMListenerService.onMessageReceived (`blocksPush`; the full-time push passes unless `spoiler_keep_final`) |
 | `sofascore.spoiler_lists` | Spoiler-free mode | on | no | EventListScoreTextView.setText (`scoreText`), the match row binder's start (`markRow`) |
 | `sofascore.spoiler_widget` | Spoiler-free mode | on | no | the widget row builder's return (`maskWidgetRow`) |
+| `sofascore.spoiler_match_page` | Spoiler-free mode | on | no | read in Java: every match header setEvent start (`onHeader`), the header base's setResultView (`onResultView`), setFootballGoals (gate, `hidesHeaderGoals`), the Details module base's setVisibility (`moduleVisibility`), the period score tables' and points graph's binds (`maskModule`), the share header bind (`maskShareHeader`) (2026-11-22) |
+| `sofascore.spoiler_keep_final` | Spoiler-free mode | off | no | no gate of its own: read by the shared decision `SpoilerFree.hidesScore` (lists, Compose rows, widget, match page) and the push rule; off = a marked match shows its score (and its full-time push) once its status is `finished` (2026-11-22) |
 | `sofascore.spoiler_events` (list) | Spoiler-free mode | off | no | read by every spoiler hook; filled by the match page item |
 | `sofascore.spoiler_competitions` (list) | Spoiler-free mode | off | no | read by every spoiler hook; filled by the competition page item |
 | `sofascore.keep_screen_on` | Keep screen on | off | no | EventActivity `onResume()V` and `onPause()V` (index 0, `ScreenCalm.keepScreenOn` / `releaseScreen`) |
@@ -499,6 +502,26 @@ Not covered: the match page header and tabs, search, favourites' and featured ma
 and share card, team form, standings, the winner colour of team names, Wear, notifications the
 system shows on its own while the app is in the background, and old finished marks (they stay
 until the user un-marks them).
+
+Full time (owner 2026-11-22, Sofascore 26.11.09, smoke test and CLI run only, not run on a device):
+the list rows, the Compose rows and the widget ask one decision, `SpoilerFree.hidesScore`, which hides
+a marked match only while `Event.getStatusType()` is not `finished` (an unknown status hides), so the
+score shows again at the next redraw after full time; `sofascore.spoiler_keep_final` (off) keeps
+finished marked matches hidden until un-marked.
+
+Phase 2 (2026-11-22, Sofascore 26.11.09, smoke test and CLI run only, not run on a device; which
+screen each hook reaches is read from the code):
+- Pushes: a marked match's alerts are dropped except the full-time result (`icon` "finish") while
+  `sofascore.spoiler_keep_final` is off; a push without a readable icon is dropped. Alerts stored
+  before the match was marked can still reappear stacked under a later allowed one.
+- Match page (`sofascore.spoiler_match_page`): the header's result view (score, live minute, period
+  scores), the football goal scorers and the tennis/volleyball collapsed scores are INVISIBLE while
+  the match is live and marked (kickoff date stays before the start); the Details tab's period score
+  tables (generic, darts, cricket) and period points graph are GONE; the share modal's match header is
+  GONE. Full time shows them again at the next match update.
+- Not covered: the Incidents list, baseball and ice hockey period tables, football momentum,
+  statistics, lineups, commentary, featured players, the volleyball collapsed score while scrolling,
+  chat messages, and the rest listed above.
 
 Not converted: Disable ads,
 Enable Premium, Disable telemetry, Disable Facebook SDK, GmsCore support and Spoof signature.

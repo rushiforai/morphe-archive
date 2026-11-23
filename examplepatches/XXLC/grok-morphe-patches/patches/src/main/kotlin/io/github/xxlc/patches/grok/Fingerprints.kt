@@ -9,7 +9,7 @@ import app.morphe.patcher.resource.ResourceType
 import app.morphe.patcher.string
 import com.android.tools.smali.dexlib2.Opcode
 
-// Tên lớp bị làm rối được ghim theo đúng bản Grok đã đối chiếu smali.
+// Obfuscated class names are pinned to the exact Grok version matched against smali.
 internal object LicenseCheckFingerprint : Fingerprint(
     definingClass = "Lcom/pairip/licensecheck/LicenseClient;",
     name = "checkLicense",
@@ -20,23 +20,23 @@ internal object LicenseCheckFingerprint : Fingerprint(
 )
 
 internal object DownloadActionEqualsFingerprint : Fingerprint(
-    definingClass = "Le7/s0;",
+    definingClass = GrokNames.DOWNLOAD_ACTION,
     name = "equals",
     isStatic = false,
     returnType = "Z",
     parameters = listOf("Ljava/lang/Object;"),
     filters = listOf(
         opcode(Opcode.INSTANCE_OF),
-        fieldAccess(definingClass = "Le7/s0;", name = "a", type = "Le7/o2;", opcode = Opcode.IGET_OBJECT),
+        fieldAccess(definingClass = GrokNames.DOWNLOAD_ACTION, name = GrokNames.DOWNLOAD_ACTION_STATE_NAME, type = GrokNames.DOWNLOAD_STATE, opcode = Opcode.IGET_OBJECT),
     ),
 )
 
 internal object PostMenuFingerprint : Fingerprint(
-    definingClass = "Lf60/q;",
-    name = "u",
+    definingClass = GrokNames.POST_MENU,
+    name = GrokNames.POST_MENU_METHOD,
     isStatic = true,
     returnType = "Ljava/util/List;",
-    parameters = listOf("La7/tb;"),
+    parameters = listOf(GrokNames.POST_STATE),
     filters = listOf(
         methodCall(definingClass = "Lkotlin/collections/CollectionsKt;", name = "listOfNotNull"),
         opcode(Opcode.MOVE_RESULT_OBJECT),
@@ -45,59 +45,59 @@ internal object PostMenuFingerprint : Fingerprint(
 )
 
 internal object PostMenuLabelFingerprint : Fingerprint(
-    definingClass = "Lg60/me;",
-    name = "d",
+    definingClass = GrokNames.POST_MENU_LABEL,
+    name = GrokNames.POST_MENU_LABEL_METHOD,
     isStatic = true,
-    returnType = "Lfb/a;",
-    parameters = listOf("Le7/h1;"),
+    returnType = GrokNames.MENU_LABEL,
+    parameters = listOf(GrokNames.MENU_ACTION),
     filters = listOf(resourceLiteral(ResourceType.STRING, "grok_media_action_save")),
 )
 
 internal object PostActionFingerprint : Fingerprint(
-    definingClass = "Ly9/o2;",
-    name = "z0",
+    definingClass = GrokNames.POST_HANDLER,
+    name = GrokNames.POST_ACTION_METHOD,
     isStatic = false,
     returnType = "Ljava/lang/Object;",
-    parameters = listOf("Le7/h1;", "Lr7/u1;", "Ly2/de;"),
+    parameters = listOf(GrokNames.MENU_ACTION, GrokNames.MEDIA_ID, GrokNames.POST_CONTINUATION),
     filters = listOf(
         string("VideoDownload"),
-        fieldAccess(definingClass = "Le7/x;", name = "a", opcode = Opcode.SGET_OBJECT),
+        fieldAccess(definingClass = GrokNames.POST_DOWNLOAD_REQUEST, name = GrokNames.POST_DOWNLOAD_SINGLETON_NAME, opcode = Opcode.SGET_OBJECT),
     ),
 )
 
 internal object LibraryClickFingerprint : Fingerprint(
-    definingClass = "Ldb/q1;",
+    definingClass = GrokNames.LIBRARY_CLICK,
     name = "invoke",
     isStatic = false,
     returnType = "Ljava/lang/Object;",
     parameters = emptyList(),
     filters = listOf(
         opcode(Opcode.PACKED_SWITCH),
-        fieldAccess(definingClass = "La7/o0;", name = "a", opcode = Opcode.SGET_OBJECT),
+        fieldAccess(definingClass = GrokNames.LIBRARY_DOWNLOAD_ACTION, name = GrokNames.LIBRARY_DOWNLOAD_SINGLETON_NAME, opcode = Opcode.SGET_OBJECT),
     ),
 )
 
 internal object LibraryButtonsFingerprint : Fingerprint(
-    definingClass = "Leb/b;",
+    definingClass = GrokNames.LIBRARY_BUTTONS,
     name = "invoke",
     isStatic = false,
     returnType = "Ljava/lang/Object;",
     parameters = listOf("Ljava/lang/Object;", "Ljava/lang/Object;", "Ljava/lang/Object;"),
     filters = listOf(
         resourceLiteral(ResourceType.STRING, "grok_media_action_save"),
-        methodCall(definingClass = "Leb/e;", name = "c", returnType = "V"),
+        methodCall(definingClass = GrokNames.LIBRARY_BUTTON_RENDERER, name = GrokNames.LIBRARY_BUTTON_METHOD, returnType = "V"),
     ),
 )
 
 internal object LibrarySelectionFingerprint : Fingerprint(
-    definingClass = "Ln6/k;",
-    name = "y",
+    definingClass = GrokNames.LIBRARY_SELECTION,
+    name = GrokNames.LIBRARY_SELECTION_METHOD,
     isStatic = false,
     returnType = "Ljava/lang/Object;",
     parameters = listOf("Ljava/lang/Object;"),
     filters = listOf(
-        fieldAccess(definingClass = "Le7/a;", name = "a", type = "Li7/i;", opcode = Opcode.IGET_OBJECT),
-        methodCall(definingClass = "La7/b1;", name = "<init>", parameters = listOf("Lr7/j1;", "Li7/o;")),
-        fieldAccess(definingClass = "Lh8/i;", name = "m", type = "Lap0/d;", opcode = Opcode.IGET_OBJECT),
+        fieldAccess(definingClass = GrokNames.SELECTED_POST, name = GrokNames.SELECTED_POST_VALUE_NAME, type = GrokNames.POST, opcode = Opcode.IGET_OBJECT),
+        methodCall(definingClass = GrokNames.LIBRARY_DOWNLOAD_REQUEST, name = "<init>", parameters = listOf(GrokNames.POST_ID, GrokNames.MEDIA)),
+        fieldAccess(definingClass = GrokNames.LIBRARY_HANDLER, name = GrokNames.LIBRARY_DOWNLOAD_PROCESSOR_NAME, type = GrokNames.DOWNLOAD_PROCESSOR, opcode = Opcode.IGET_OBJECT),
     ),
 )

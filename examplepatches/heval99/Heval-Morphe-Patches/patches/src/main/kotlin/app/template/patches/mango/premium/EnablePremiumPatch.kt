@@ -35,8 +35,9 @@ private fun Instruction.methodRef() = (this as? ReferenceInstruction)?.reference
  * Play Billing, the purchase screen and the cached "billing_cached_is_pro" preference are
  * untouched.
  *
- * Verified 2026-10-27 against 1.64 (versionCode 64): see COMPATIBILITY_MANGO. Step 2 was added
- * 2026-11-09 and is verified by bytecode only (smoke test, CLI run, disassembly).
+ * Verified against 1.70 (versionCode 70) on 2026-11-22 (re-anchor, see COMPATIBILITY_MANGO): smoke
+ * test, Morphe CLI run without -f and a 3-method whole-APK diff against the stock APK. Step 2 was
+ * added 2026-11-09. Runtime was not run on a device.
  */
 @Suppress("unused")
 val enablePremiumPatch = bytecodePatch(
@@ -110,8 +111,11 @@ val enablePremiumPatch = bytecodePatch(
         for ((type, signature) in writers) {
             val method = mutableClassDefBy(type).methods.single { it.signature() == signature }
             val code = method.implementation!!.instructions.toList()
-            // Last site first, so the earlier indexes stay valid.
-            val sites = code.indices.mapNotNull { at -> forcedValueSite(code, at, flowField) }.asReversed()
+            // Dedupe the sites and apply them in descending insertAt order, so an insert never
+            // shifts the index of one still to come, even when two sites share a method.
+            val sites = code.indices.mapNotNull { at -> forcedValueSite(code, at, flowField) }
+                .distinctBy { it.insertAt }
+                .sortedByDescending { it.insertAt }
             for (site in sites) {
                 method.requireNoBranchTargetAt(site.insertAt, "Pro flow value")
                 method.addInstructionsChecked(
@@ -129,27 +133,41 @@ private fun com.android.tools.smali.dexlib2.iface.Method.signature() = "$name(${
 private class ForcedValue(val register: Int, val insertAt: Int)
 
 /**
- * If the instruction at [at] reads [flow] and the next few instructions compute a
- * `Boolean.valueOf(Z)` into a register that is then handed to the flow type's
- * `setValue`-shaped method (Object, Object) -> boolean as its new value, returns where that
- * register can be overwritten with `Boolean.TRUE`.
+ * If the instruction at [at] reads [flow] and a `Boolean.valueOf(Z)` within a few instructions on
+ * either side (1.68 read the field first, 1.70 computes the value first) is handed as the new value
+ * to the flow type's `setValue`-shaped method (Object, Object) -> boolean, returns where that
+ * register can be overwritten with `Boolean.TRUE`. The setter must come after the read, its receiver
+ * must be the register the read loaded (a sibling flow of the same type is not enough), and neither
+ * that register nor the value register may be rewritten before the setter.
  */
 private fun forcedValueSite(code: List<Instruction>, at: Int, flow: FieldReference): ForcedValue? {
     if (code[at].opcode != Opcode.IGET_OBJECT || code[at].fieldRef() != flow) return null
-    val valueOf = (at + 1..minOf(code.lastIndex, at + 8)).firstOrNull {
-        val call = code[it].methodRef()
-        code[it].opcode == Opcode.INVOKE_STATIC && call?.definingClass == "Ljava/lang/Boolean;" && call.name == "valueOf" &&
-            call.parameterTypes.map(CharSequence::toString) == listOf("Z")
-    } ?: return null
-    val move = code.getOrNull(valueOf + 1)
-    if (move?.opcode != Opcode.MOVE_RESULT_OBJECT) return null
-    val register = (move as OneRegisterInstruction).registerA
-    // The flow's compare-and-set: (expected, new) with the new value in the third register.
-    (valueOf + 2..minOf(code.lastIndex, valueOf + 6)).firstOrNull {
-        val call = code[it].methodRef()
-        code[it].opcode == Opcode.INVOKE_VIRTUAL && call?.definingClass == flow.type &&
-            call.parameterTypes.map(CharSequence::toString) == listOf("Ljava/lang/Object;", "Ljava/lang/Object;") &&
-            call.returnType == "Z" && (code[it] as FiveRegisterInstruction).registerE == register
-    } ?: return null
-    return ForcedValue(register, valueOf + 2)
+    // 1.70 computes the Boolean.valueOf before it reads the flow field (1.68 read the field first),
+    // so look a few instructions on both sides of the read.
+    for (valueOf in maxOf(0, at - 8)..minOf(code.lastIndex, at + 8)) {
+        val call = code[valueOf].methodRef()
+        if (code[valueOf].opcode != Opcode.INVOKE_STATIC || call?.definingClass != "Ljava/lang/Boolean;" ||
+            call.name != "valueOf" || call.parameterTypes.map(CharSequence::toString) != listOf("Z")
+        ) continue
+        val move = code.getOrNull(valueOf + 1)
+        if (move?.opcode != Opcode.MOVE_RESULT_OBJECT) continue
+        val register = (move as OneRegisterInstruction).registerA
+        // The flow's compare-and-set: (expected, new) with the new value in the third register.
+        val flowRegister = (code[at] as OneRegisterInstruction).registerA
+        val setAt = (maxOf(valueOf + 2, at + 1)..minOf(code.lastIndex, maxOf(valueOf, at) + 6)).firstOrNull {
+            val setCall = code[it].methodRef()
+            val invoke = code[it] as? FiveRegisterInstruction
+            invoke != null && code[it].opcode == Opcode.INVOKE_VIRTUAL && setCall?.definingClass == flow.type &&
+                setCall.parameterTypes.map(CharSequence::toString) == listOf("Ljava/lang/Object;", "Ljava/lang/Object;") &&
+                setCall.returnType == "Z" && invoke.registerC == flowRegister && invoke.registerE == register
+        } ?: continue
+        // Both the flow register and the value register must still hold their values at the setter.
+        fun rewritten(reg: Int, from: Int) = (from until setAt).any {
+            val instruction = code[it]
+            instruction.opcode.setsRegister() && instruction is OneRegisterInstruction && instruction.registerA == reg
+        }
+        if (rewritten(flowRegister, at + 1) || rewritten(register, valueOf + 2)) continue
+        return ForcedValue(register, valueOf + 2)
+    }
+    return null
 }

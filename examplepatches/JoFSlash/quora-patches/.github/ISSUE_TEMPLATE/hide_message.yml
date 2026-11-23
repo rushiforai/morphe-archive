@@ -1,0 +1,54 @@
+name: "Booking.com: message or offer still showing"
+description: A pressure message, ad, offer or pop-up that the patches don't hide yet.
+title: "hide: "
+labels: ["enhancement", "hide-message"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Booking.com's server decides most of what the results list and home screen show, and it differs by country,
+        account and Genius level, so we may never see your message on our test account. With your screenshot and a
+        quick test of the patched app, we can still hide it. Crop or blur your name, email and booking details first.
+  - type: textarea
+    id: screenshot
+    attributes:
+      label: Screenshot
+      description: The whole screen with the message on it. Drag the image in here.
+    validations:
+      required: true
+  - type: input
+    id: where
+    attributes:
+      label: Where it shows up
+      description: The screen, and how you get there.
+      placeholder: Search results for Vienna, on a hotel card
+    validations:
+      required: true
+  - type: input
+    id: text
+    attributes:
+      label: Text of the message
+      description: Word for word, with the app set to English if you can.
+      placeholder: "Only 2 rooms left on our site"
+    validations:
+      required: true
+  - type: input
+    id: country
+    attributes:
+      label: Country and Genius level
+      placeholder: "Slovakia, Genius level 2"
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Booking.com and patches versions
+      placeholder: "Booking.com 71.1, patches 1.10.0"
+    validations:
+      required: true
+  - type: checkboxes
+    id: test
+    attributes:
+      label: Testing
+      options:
+        - label: I can install a test build and tell you whether the message is gone.

@@ -18,6 +18,10 @@ updates:
       # version 10.x and later may not generate release notes correctly
       # https://github.com/conventional-changelog/conventional-changelog/issues/1495
       - dependency-name: "conventional-changelog-conventionalcommits"
+      # 26 needs Node 26.13+ and swaps in a new release engine; 25 works, the release is the
+      # most fragile part of the repository. Revisit once 26 has settled.
+      - dependency-name: "semantic-release"
+        update-types: ["version-update:semver-major"]
 
   - package-ecosystem: gradle
     labels: []

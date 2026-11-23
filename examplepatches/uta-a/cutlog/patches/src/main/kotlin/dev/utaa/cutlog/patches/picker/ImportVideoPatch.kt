@@ -35,7 +35,7 @@ private const val LENS_FACING_BACK = 1
 @Suppress("unused")
 val importVideoPatch = bytecodePatch(
     name = "ファイルから投稿",
-    description = "撮影画面に「ファイルから」ボタンを追加し、端末内の動画を今のログとして投稿できるようにします。",
+    description = "撮影画面の歯車ボタンの設定画面に「ファイルから選ぶ」を追加し、端末内の動画を今のログとして投稿できるようにします。",
 ) {
     compatibleWith(Constants.SETLOG_COMPATIBILITY)
     dependsOn(captureEditorPatch)
@@ -60,10 +60,11 @@ val importVideoPatch = bytecodePatch(
                 custom = { _, classDef -> classDef.type == cameraType },
             ),
         )
+        // 同じメソッドで撮影時のエフェクトの曲情報（effectData、String）も代入するため、String 以外の field を選ぶ。
         val contextField = captureContext.method.implementation!!.instructions
             .filter { it.opcode == Opcode.IPUT_OBJECT }
             .map { (it as ReferenceInstruction).reference as FieldReference }
-            .singleOrNull { it.definingClass == cameraType }
+            .singleOrNull { it.definingClass == cameraType && it.type != "Ljava/lang/String;" }
             ?: throw PatchException("Capture context field not found.")
         val contextType = contextField.type
         val contextClass = mutableClassDefBy(contextType)
@@ -79,14 +80,15 @@ val importVideoPatch = bytecodePatch(
         val countryCode = contextFieldOf("Ljava/lang/String;")
 
         // static Result cutlogCreate(CaptureContext, Uri, CaptureReplacement)
-        // v0〜v11 を range 呼び出しに使う。p0 は v12、p1 は v13、p2 は v14。
+        // v0〜v12 を range 呼び出しに使う。p0 は v13、p1 は v14、p2 は v15（iget の 4bit レジスタの上限）。
+        // 取り込んだ動画には撮影画面のエフェクトが入っていないため、effectData は null にする。
         resultClass.addMethod(
             staticMethod(
                 resultType,
                 CREATE_RESULT,
                 listOf(contextType, URI, REPLACEMENT),
                 resultType,
-                registerCount = 15,
+                registerCount = 16,
                 smali = """
                     new-instance v0, $resultType
                     move-object v1, p1
@@ -103,7 +105,8 @@ val importVideoPatch = bytecodePatch(
                     invoke-static {v10}, Ljava/lang/Integer;->valueOf(I)Ljava/lang/Integer;
                     move-result-object v10
                     iget-object v11, p0, ${fieldRef(contextType, countryCode)}
-                    invoke-direct/range {v0 .. v11}, $resultType-><init>(${RESULT_CONSTRUCTOR_PARAMETERS.joinToString("")})V
+                    const/4 v12, 0x0
+                    invoke-direct/range {v0 .. v12}, $resultType-><init>(${RESULT_CONSTRUCTOR_PARAMETERS.joinToString("")})V
                     return-object v0
                 """,
             ),
@@ -127,7 +130,7 @@ val importVideoPatch = bytecodePatch(
             ),
         )
 
-        // 撮影画面の View ができたら「ファイルから」ボタンを足す。
+        // 撮影画面の View ができたら、設定画面の「ファイルから選ぶ」が取り込んだ動画を返す先として覚えさせる。
         singleMatch(
             "camera view setup",
             Fingerprint(

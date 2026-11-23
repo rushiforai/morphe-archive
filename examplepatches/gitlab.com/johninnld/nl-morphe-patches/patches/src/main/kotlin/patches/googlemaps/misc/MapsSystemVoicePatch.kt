@@ -27,7 +27,7 @@ private const val TTS_CONSTRUCTOR =
     "Landroid/speech/tts/TextToSpeech;-><init>(Landroid/content/Context;Landroid/speech/tts/TextToSpeech\$OnInitListener;Ljava/lang/String;)V"
 private const val STRING_EQUALS = "Ljava/lang/String;->equals(Ljava/lang/Object;)Z"
 
-/** Stock Maps 26.43 and 26.44. */
+/** Stock Maps 26.43, 26.44 and 26.47. */
 private val COMPATIBILITY_MAPS_SYSTEM_VOICE = Compatibility(
     name = "Google Maps",
     packageName = "com.google.android.apps.maps",
@@ -42,6 +42,11 @@ private val COMPATIBILITY_MAPS_SYSTEM_VOICE = Compatibility(
         AppTarget(
             version = "26.44.06.1006895251",
             versionCodes = SupportedAbi.entries.associateWith { 1068856906 },
+            minSdk = 29,
+        ),
+        AppTarget(
+            version = "26.47.00.1022347503",
+            versionCodes = SupportedAbi.entries.associateWith { 1068892333 },
             minSdk = 29,
         ),
     ),
@@ -141,7 +146,8 @@ internal fun acceptMapsSystemEngine() {
                     } &&
                     (maxOf(0, index - 8) until index).any { at ->
                         val ref = (instructions[at] as? ReferenceInstruction)?.reference?.toString()
-                        ref == "Lbnak;->a()Ljava/lang/String;" || ref == "Lbmts;->a()Ljava/lang/String;"
+                        ref == "Lbnak;->a()Ljava/lang/String;" || ref == "Lbmts;->a()Ljava/lang/String;" ||
+                            ref == "Lbnib;->a()Ljava/lang/String;"
                     }
             }
             if (calls.isNotEmpty()) {
@@ -222,6 +228,8 @@ internal fun bindMapsSynthesis() {
     val shapes = mapOf(
         "Lbmci;->b(Lbmcg;Lbjis;Ljava/lang/String;)Z" to "Lbmcg;",
         "Lbmit;->b(Lbmir;Lbjpk;Ljava/lang/String;)Z" to "Lbmir;",
+        // 26.47: the queue hands the same holder (`bmpy.a`) and path to `bmqa.b`.
+        "Lbmqa;->b(Lbmpy;Lbjwm;Ljava/lang/String;)Z" to "Lbmpy;",
     )
     var patched = 0
     context.classDefForEach { cls ->

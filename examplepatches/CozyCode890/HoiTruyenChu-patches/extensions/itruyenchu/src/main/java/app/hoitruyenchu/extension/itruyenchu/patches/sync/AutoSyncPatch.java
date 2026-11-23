@@ -34,6 +34,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.zip.GZIPInputStream;
 
+import app.hoitruyenchu.extension.itruyenchu.patches.shared.HtcSettings;
 import okhttp3.OkHttpClient;
 
 /**
@@ -185,6 +186,7 @@ public final class AutoSyncPatch {
     /** Called by FreeChapterInterceptor after the app downloaded STATIC_URL/free/{slug}/chuong-{n}.txt. */
     static void onFreeChapterLoaded(final String slug, final int chapter) {
         if (token == null) return;
+        if (!HtcSettings.on(HtcSettings.SYNC_ENABLED, HtcSettings.SYNC_RECORD_FREE)) return;
         final String key = slug + "/" + chapter;
         synchronized (lock) {
             if (key.equals(lastRecorded)) return;
@@ -294,6 +296,10 @@ public final class AutoSyncPatch {
     private static void startupSync() {
         try {
             token = tokenFrom(readDb(KEY_AUTH));
+            if (!HtcSettings.on(HtcSettings.SYNC_ENABLED, HtcSettings.SYNC_ON_START)) {
+                Log.i(TAG, "sync at app start turned off in the settings");
+                return;
+            }
             String stored = readDb(KEY_READ);
             JSONArray local = recentReadsFrom(stored);
             JSONArray remote = null;

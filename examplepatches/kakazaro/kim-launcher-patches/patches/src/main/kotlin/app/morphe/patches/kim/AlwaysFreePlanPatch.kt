@@ -12,7 +12,7 @@ import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.util.ReferenceUtil
 
 /**
- * The subscription fetch (byd/le.i0 in 1.0.2789, see docs/entitlement-check.md):
+ * The subscription fetch (byd/mf.i0 in 1.0.2796, see docs/entitlement-check.md):
  * `i0(VehicleIdentity, String token, boolean force): EntitlementRecord`. It GETs
  * `.../vehicles/<id>/entitlement.json`, stores the parsed record in a static field, saves it and
  * tells Dart. Both strings below sit only in this method.
@@ -27,7 +27,7 @@ private object EntitlementFetchFingerprint : Fingerprint(
 /**
  * The answer every check stores instead of asking the server. It has the same shape as the
  * server's `vehicles/<id>/entitlement.json` record, and is read by the app's own parser
- * (byd/t8.t in 1.0.2789). **Keep it a free plan**: this patch only exists to stop the server
+ * (byd/Ze.d in 1.0.2796). **Keep it a free plan**: this patch only exists to stop the server
  * check, not to grant a plan.
  *
  * ## Fields (the parser reads these four; any other key is ignored)
@@ -139,7 +139,7 @@ val alwaysFreePlanPatch = bytecodePatch(
         // Same ending as the original success path (store, save, notify, return), minus the
         // request: v0/v1 = now, v2 = vehicle id, v3 = the fixed free-plan JSON object (v4 holds
         // its text). it has 11+ locals, so v0..v4 are free. p0 is copied with move-object/from16
-        // first: in 1.0.2789 i0 has 17 locals, so p0 is v17 and iget-object can't address it.
+        // first: in 1.0.2796 i0 has 17 locals, so p0 is v17 and iget-object can't address it.
         val freePlanJson = FREE_PLAN_JSON.replace("\"", "\\\"")
         fetch.addInstructions(
             0,

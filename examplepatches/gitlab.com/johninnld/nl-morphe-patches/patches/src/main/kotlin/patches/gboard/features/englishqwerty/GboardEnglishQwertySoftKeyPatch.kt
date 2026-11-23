@@ -399,7 +399,7 @@ private val PATCH_INCOMING_METADATA_BODY = """
 
     invoke-virtual {v4, p1}, Lqzf;->k(Lcom/google/android/libraries/inputmethod/metadata/SoftKeyDef;)V
 
-    new-instance v5, Lqll;
+    new-instance v5, Lahpe;
 
     invoke-direct {v5}, Lqwq;-><init>()V
 
@@ -421,7 +421,7 @@ private val PATCH_INCOMING_METADATA_BODY = """
 
     sget-object v8, Lqxk;->c:Lqxk;
 
-    invoke-virtual {v5, v7, v8, v3}, Lqll;->s(ILqbb;Ljava/lang/Object;)V
+    invoke-virtual {v5, v7, v8, v3}, Lahpe;->s(ILqbb;Ljava/lang/Object;)V
 
     invoke-virtual {v5}, Lqwq;->c()Lcom/google/android/libraries/inputmethod/metadata/ActionDef;
 

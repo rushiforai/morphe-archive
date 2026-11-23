@@ -1,3 +1,9 @@
+## [1.13.0](https://github.com/0x11DFE/morphe-patches/compare/v1.12.9...v1.13.0) (2026-11-22)
+
+### New Features
+
+* **scene:** locate the daemon gate by instruction signature ([579bc79](https://github.com/0x11DFE/morphe-patches/commit/579bc7906493e7ddce42cfaee506cb05715dadf6)), closes [#1](https://github.com/0x11DFE/morphe-patches/issues/1)
+
 ## [1.12.9](https://github.com/0x11DFE/morphe-patches/compare/v1.12.8...v1.12.9) (2026-11-21)
 
 ### Bug Fixes

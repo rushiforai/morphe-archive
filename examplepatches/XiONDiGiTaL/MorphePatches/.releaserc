@@ -52,7 +52,8 @@
           && BUNDLE=$(ls patches/build/libs/patches-*.mpp | grep -v -e sources -e javadoc | head -1) \
           && python3 .github/scripts/split_app_bundles.py $BUNDLE \
           && jq '.version=\"${nextRelease.version}\"' patches-list.json > patches-list.json.tmp && mv patches-list.json.tmp patches-list.json \
-          && python3 .github/scripts/generate_patches_readme.py $GITHUB_REPOSITORY $GITHUB_REF_NAME patches-list.json README.md"
+          && python3 .github/scripts/generate_patches_readme.py $GITHUB_REPOSITORY $GITHUB_REF_NAME patches-list.json README.md \
+          && node .github/scripts/release_summary.js"
       }
     ],
     [

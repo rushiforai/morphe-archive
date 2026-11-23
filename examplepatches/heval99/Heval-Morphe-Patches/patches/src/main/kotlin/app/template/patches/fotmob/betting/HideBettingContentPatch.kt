@@ -11,12 +11,16 @@ internal val HIDE_BETTING_CONTENT = HevalFeature(
     id = "fotmob.hide_betting_content",
     calm = true,
     name = "Hide betting content",
-    description = "Hides odds and betting content.",
+    description = "Hides odds the same way as turning odds off in FotMob's settings.",
     category = FotMobControlsCategory.BETTING,
 )
 
 // A Patch settings feature (2026-11-03): off, the odds gate runs its stock code. Off in Manager by
 // default, as before; on in Patch settings once the patch is selected.
+// Scope (2026-11-22 audit): only the odds gate is forced, the one FotMob's own "no odds" setting uses
+// (242: wl9.b, consulted by the match odds, odds tab, odds promo and betting offers paths). The other
+// odds readers (242: wl9.c/d/f/g/k and the tk9/mj9 config readers) are not gated, as with the stock
+// setting, so the description promises only what the setting does.
 @Suppress("unused")
 val hideBettingContentPatch = fotMobControls.featurePatch(
     HIDE_BETTING_CONTENT,

@@ -2,15 +2,15 @@ name: Quora version
 
 # Once a day, looks for a Quora version on APKMirror that this bundle doesn't support yet.
 # For a new version it:
-#   1. gets the APKM (from the private JoFSlash/quora-apks if it is there, else from APKMirror,
-#      checked to be Quora's own and then kept in quora-apks),
+#   1. gets the APKM (from the private JoFSlash/morphe-apks if it is there, else from APKMirror,
+#      checked to be Quora's own and then kept in morphe-apks),
 #   2. patches it with every patch and starts it on an emulator,
 #   3. opens a pull request that lists the version as supported, or an issue that says what failed.
 # A scheduled run tries APKMirror once per version: when an issue or pull request for the version
 # exists (open or closed), it leaves the version alone. Run the workflow by hand with the version
 # to try again, for example after uploading the APKM:
-#   gh release create quora-<version> -R JoFSlash/quora-apks --title "Quora <version>" quora-<version>.apkm
-# QUORA_APKS_TOKEN needs read and write access to the contents of JoFSlash/quora-apks.
+#   gh release create quora-<version> -R JoFSlash/morphe-apks --title "Quora <version>" quora-<version>.apkm
+# APKS_TOKEN needs read and write access to the contents of JoFSlash/morphe-apks.
 
 on:
   schedule:
@@ -66,8 +66,8 @@ jobs:
             "Quora $PLAY is on [Google Play](https://play.google.com/store/apps/details?id=com.quora.android), but not on [APKMirror](https://www.apkmirror.com/apk/quora-inc/quora/) yet. This bundle supports $SUPPORTED. Quora turns old versions away on its servers (it did with 3.2.30), so the supported version should not fall far behind." \
             "Nothing to do if APKMirror gets it soon: the Quora version workflow looks every day and opens a pull request that adds the version once every patch applies and the app starts." \
             "To add it sooner, get the APKM of $PLAY elsewhere, then upload it and run the workflow by hand with the version:" \
-            "gh release create quora-$PLAY -R JoFSlash/quora-apks --title \"Quora $PLAY\" quora-$PLAY.apkm
-          gh workflow run quora-version.yml -R JoFSlash/quora-patches -f version=$PLAY")
+            "gh release create quora-$PLAY -R JoFSlash/morphe-apks --title \"Quora $PLAY\" quora-$PLAY.apkm
+          gh workflow run quora-version.yml -R JoFSlash/morphe-patches -f version=$PLAY")
           gh issue create --title "$title" --label enhancement --body "$body"
 
       - name: Pick the version to try
@@ -112,21 +112,21 @@ jobs:
           distribution: 'temurin'
           java-version: '21'
 
-      # Writes result= ok (checked and kept in quora-apks), blocked, missing, bad (not Quora's own),
+      # Writes result= ok (checked and kept in morphe-apks), blocked, missing, bad (not Quora's own),
       # keepfail (checked, but couldn't be kept), error (a tool or the script failed), or notoken;
-      # and source= quora-apks or apkmirror.
+      # and source= morphe-apks or apkmirror.
       - name: Get the APKM
         id: apkm
         env:
-          APKS_TOKEN: ${{ secrets.QUORA_APKS_TOKEN }}
+          APKS_TOKEN: ${{ secrets.APKS_TOKEN || secrets.QUORA_APKS_TOKEN }}
         run: |
           tools="$ANDROID_HOME/build-tools/$(ls "$ANDROID_HOME/build-tools" | sort -V | tail -1)"
           check="--apksigner $tools/apksigner --aapt2 $tools/aapt2"
           out="$RUNNER_TEMP/quora.apkm"
           if [ -z "$APKS_TOKEN" ]; then echo "result=notoken" >> "$GITHUB_OUTPUT"; exit 0; fi
-          if GH_TOKEN="$APKS_TOKEN" gh release download "quora-$VERSION" -R JoFSlash/quora-apks -p "quora-$VERSION.apkm" -O "$out" 2>/dev/null; then
-            echo "Using the APKM from quora-apks."
-            echo "source=quora-apks" >> "$GITHUB_OUTPUT"
+          if GH_TOKEN="$APKS_TOKEN" gh release download "quora-$VERSION" -R JoFSlash/morphe-apks -p "quora-$VERSION.apkm" -O "$out" 2>/dev/null; then
+            echo "Using the APKM from morphe-apks."
+            echo "source=morphe-apks" >> "$GITHUB_OUTPUT"
             set +e; python3 .github/scripts/fetch_quora_apkm.py --verify-only "$out" "$VERSION" $check; code=$?; set -e
             case $code in
               0) echo "result=ok" >> "$GITHUB_OUTPUT" ;;
@@ -141,7 +141,7 @@ jobs:
             0)
               # The asset is named after the file, and later runs look for quora-<version>.apkm.
               cp "$out" "$RUNNER_TEMP/quora-$VERSION.apkm"
-              if GH_TOKEN="$APKS_TOKEN" gh release create "quora-$VERSION" -R JoFSlash/quora-apks --title "Quora $VERSION" \
+              if GH_TOKEN="$APKS_TOKEN" gh release create "quora-$VERSION" -R JoFSlash/morphe-apks --title "Quora $VERSION" \
                   --notes "Quora $VERSION APKM from APKMirror, checked to be signed by Quora. Added by the Quora version workflow." \
                   "$RUNNER_TEMP/quora-$VERSION.apkm"; then
                 echo "result=ok" >> "$GITHUB_OUTPUT"
@@ -159,7 +159,7 @@ jobs:
         env:
           GITHUB_ACTOR: ${{ github.actor }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: ./gradlew :patches:buildAndroid --no-daemon
+        run: bash .github/scripts/gradle-retry.sh :patches:buildAndroid --no-daemon
 
       - name: Get the Morphe CLI
         if: steps.apkm.outputs.result == 'ok'
@@ -211,7 +211,7 @@ jobs:
               git config user.name "github-actions[bot]"
               git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
               git checkout -b "$branch"
-              git commit -am "feat: Support Quora $VERSION"
+              git commit -am "bump: Support Quora $VERSION"
               body=$(printf '%s\n\n%s\n\n```\n%s\n```\n\n%s\n' \
                 "Quora $VERSION is on APKMirror. Every patch applies, and the patched app starts on an emulator and loads Quora's sign-in page ([run]($RUN_URL))." \
                 "Before merging, try the feed on a phone: the page patches can't be checked without a signed-in account." \
@@ -231,20 +231,20 @@ jobs:
             case "$RESULT" in
               blocked) why="APKMirror (or the network) turned the automatic download away. Download the APKM by hand and upload it, then run the Quora version workflow by hand with version $VERSION:
           \`\`\`
-          gh release create quora-$VERSION -R JoFSlash/quora-apks --title \"Quora $VERSION\" quora-$VERSION.apkm
+          gh release create quora-$VERSION -R JoFSlash/morphe-apks --title \"Quora $VERSION\" quora-$VERSION.apkm
           \`\`\`" ;;
               missing) why="APKMirror has no APK bundle (APKM) of $VERSION yet. Wait until it has, or upload one you have, then run the Quora version workflow by hand with version $VERSION:
           \`\`\`
-          gh release create quora-$VERSION -R JoFSlash/quora-apks --title \"Quora $VERSION\" quora-$VERSION.apkm
+          gh release create quora-$VERSION -R JoFSlash/morphe-apks --title \"Quora $VERSION\" quora-$VERSION.apkm
           \`\`\`" ;;
-              bad) if [ "$SOURCE" = "quora-apks" ]; then
-                     why="**The APKM in quora-apks isn't Quora's own** (wrong package, version or signature). Delete the release \`quora-$VERSION\` in JoFSlash/quora-apks: the emulator test on pull requests would use it."
+              bad) if [ "$SOURCE" = "morphe-apks" ]; then
+                     why="**The APKM in morphe-apks isn't Quora's own** (wrong package, version or signature). Delete the release \`quora-$VERSION\` in JoFSlash/morphe-apks: the emulator test on pull requests would use it."
                    else
                      why="**The APKM from APKMirror isn't Quora's own** (wrong package, version or signature). It wasn't used or kept. Check APKMirror by hand."
                    fi ;;
-              keepfail) why="The APKM from APKMirror is Quora's own, but keeping it in quora-apks failed. Check that QUORA_APKS_TOKEN can write to JoFSlash/quora-apks, then run the workflow by hand." ;;
+              keepfail) why="The APKM from APKMirror is Quora's own, but keeping it in morphe-apks failed. Check that APKS_TOKEN can write to JoFSlash/morphe-apks, then run the workflow by hand." ;;
               error) why="Getting or checking the APKM failed for another reason (a tool or the script). See the run log." ;;
-              notoken) why="The QUORA_APKS_TOKEN secret isn't set, so the APKM couldn't be fetched or kept." ;;
+              notoken) why="The APKS_TOKEN secret isn't set, so the APKM couldn't be fetched or kept." ;;
               *) why="Patching or starting the app failed:
           \`\`\`
           $report

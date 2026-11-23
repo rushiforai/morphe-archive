@@ -7,16 +7,18 @@ import app.plyrs1.patches.shared.Constants.COMPATIBILITY_HABITICA
 @Suppress("unused")
 val instantArmoireRewardPatch = bytecodePatch(
     name = "Instant Armoire Reward",
-    description = "Shows the Armoire ad button and instantly grants the reward without loading an ad. " +
-            "The existing per-session single-use guard is preserved.",
+    description = "Grants free daily Armoire rolls without viewing ads or requiring a paid subscription. " +
+            "In versions with rewarded ads (<= 4.10.5), bypasses video playback. In 4.11.2+, unlocks the subscriber free roll.",
     default = true
 ) {
     compatibleWith(COMPATIBILITY_HABITICA)
 
     execute {
-        // 1. Force AppConfigManager.enableArmoireAds() to return true
-        // This ensures ArmoireActivity reveals the ad button instead of hiding it (View.GONE).
-        EnableArmoireAdsFingerprint.method.addInstructions(
+        // ── 1. Universal / 4.11.2+: Unlock subscriber free Armoire roll ───────────
+        // By forcing User.isSubscribed() to return true, ArmoireActivity reveals the
+        // "Open again for free!" button (open_armoire_subscriber_wrapper) and allows
+        // claiming the extra free Armoire roll per session/day.
+        UserIsSubscribedFingerprint.methodOrNull?.addInstructions(
             0,
             """
                 const/4 v0, 0x1
@@ -24,9 +26,18 @@ val instantArmoireRewardPatch = bytecodePatch(
             """
         )
 
-        // 2. Replace AdHandler.show() with direct rewardAction callback invocation
-        // Directly calls rewardAction.invoke(Boolean.TRUE) which triggers ArmoireActivity.giveUserArmoire().
-        AdHandlerShowFingerprint.method.addInstructions(
+        // ── 2. <= 4.10.5 Rewarded Ads Handling ────────────────────────────────────
+        // Force AppConfigManager.enableArmoireAds() to return true if present
+        EnableArmoireAdsFingerprint.methodOrNull?.addInstructions(
+            0,
+            """
+                const/4 v0, 0x1
+                return v0
+            """
+        )
+
+        // Replace AdHandler.show() with direct rewardAction callback invocation
+        AdHandlerShowFingerprint.methodOrNull?.addInstructions(
             0,
             """
                 iget-object v0, p0, Lcom/habitrpg/android/habitica/helpers/AdHandler;->rewardAction:Lu7/l;
@@ -36,9 +47,8 @@ val instantArmoireRewardPatch = bytecodePatch(
             """
         )
 
-        // 3. Force AdHandler.Companion.nextAdAllowedDate() to return null
-        // Clears any residual cooldown date to ensure the button never shows a countdown timer.
-        NextAdAllowedDateFingerprint.method.addInstructions(
+        // Force AdHandler.Companion.nextAdAllowedDate() to return null
+        NextAdAllowedDateFingerprint.methodOrNull?.addInstructions(
             0,
             """
                 const/4 v0, 0x0

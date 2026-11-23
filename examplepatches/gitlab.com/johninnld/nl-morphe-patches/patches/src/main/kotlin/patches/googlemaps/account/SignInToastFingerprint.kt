@@ -30,3 +30,19 @@ internal object SignInClickFingerprint : Fingerprint(
         opcode(Opcode.RETURN_VOID, MatchAfterImmediately()),
     ),
 )
+
+/** 26.47 renamed the pill view class to `brjb`; the case lives in the shared switch lambda. */
+internal object SignInClickFingerprint2647 : Fingerprint(
+    name = "onClick",
+    parameters = listOf("Landroid/view/View;"),
+    filters = listOf(
+        checkCast("Lbrjb;"),
+        methodCall(
+            definingClass = "Lbrjb;",
+            name = "performClick",
+            opcode = Opcode.INVOKE_VIRTUAL,
+            location = MatchAfterImmediately(),
+        ),
+        opcode(Opcode.RETURN_VOID, MatchAfterImmediately()),
+    ),
+)

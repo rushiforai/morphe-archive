@@ -28,9 +28,12 @@ private const val PICKER = "Lorg/ungoogled/ui/OfflinePicker;"
 /** The picker's view model; c = the size cap, h = the selection in window coordinates, a = its Activity. */
 private const val MODEL = "Lapbb;"
 private const val MODEL_2644 = "Laphb;"
+/** 26.47 shifted the picker model's fields: d is the size cap, h the selection state. */
+private const val MODEL_2647 = "Laptd;"
 /** Compose MutableState.setValue. */
 private const val STATE_SET = "Ldyl;->b(Ljava/lang/Object;)V"
 private const val STATE_SET_2644 = "Ldzc;->b(Ljava/lang/Object;)V"
+private const val STATE_SET_2647 = "Ldtg;->b(Ljava/lang/Object;)V"
 
 /**
  * The live offline area picker's layout callback (a Compose lambda; the old
@@ -63,6 +66,23 @@ internal object OfflinePickerLayoutFingerprint2644 : Fingerprint(
     ),
 )
 
+/** 26.47's offline picker model, with the cap at d and the Compose state at h. */
+internal object OfflinePickerLayoutFingerprint2647 : Fingerprint(
+    name = "a",
+    returnType = "Ljava/lang/Object;",
+    parameters = listOf("Ljava/lang/Object;"),
+    filters = listOf(
+        fieldAccess(opcode = Opcode.IGET_WIDE, definingClass = MODEL_2647, name = "d", type = "J"),
+        methodCall(definingClass = "Ljava/lang/Math;", name = "sqrt"),
+        methodCall(
+            opcode = Opcode.INVOKE_VIRTUAL,
+            definingClass = MODEL_2647,
+            name = "f",
+            parameters = listOf("Landroid/graphics/RectF;"),
+        ),
+    ),
+)
+
 private fun BuilderInstruction.field(): FieldReference? = (this as? ReferenceInstruction)?.reference as? FieldReference
 
 private fun BuilderInstruction.isStateSet(stateSet: String): Boolean =
@@ -86,16 +106,101 @@ val betterOfflineMapsPatch = bytecodePatch(
         markPatched("betterOfflinePatched")
 
         val is2644 = packageMetadata.versionName == "26.44.06.1006895251"
-        val modelType = if (is2644) MODEL_2644 else MODEL
-        val stateSet = if (is2644) STATE_SET_2644 else STATE_SET
-        val pickerFingerprint = if (is2644) OfflinePickerLayoutFingerprint2644 else OfflinePickerLayoutFingerprint
+        val is2647 = packageMetadata.versionName == "26.47.00.1022347503"
+        val modelType = if (is2644) MODEL_2644 else if (is2647) MODEL_2647 else MODEL
+        val capField = if (is2647) "d" else "c"
+        val stateSet = if (is2644) STATE_SET_2644 else if (is2647) STATE_SET_2647 else STATE_SET
+        val pickerFingerprint = if (is2644) OfflinePickerLayoutFingerprint2644 else if (is2647) OfflinePickerLayoutFingerprint2647 else OfflinePickerLayoutFingerprint
 
+        if (is2647) {
+            // 26.47 keeps the same three beats but writes the window selection through
+            // `aptd.f(RectF)` instead of a state field, and the "not too big" path
+            // overwrites the test register on its second move rather than its first.
+            pickerFingerprint.method.apply {
+                val instructions = implementation!!.instructions
+                fun reg(i: Int) = (instructions[i] as OneRegisterInstruction).registerA
+
+                // Only the comparison after the cap read is the cap test; the lambda has an
+                // earlier "area > 0" comparison with the same shape.
+                val capRead = instructions.indices.filter { i ->
+                    instructions[i].field()?.let { f -> f.definingClass == modelType && f.name == capField } == true
+                }.singleOrNull() ?: throw PatchException("size cap is not read exactly once")
+                val test = (capRead + 1 until instructions.size - 1).firstOrNull { i ->
+                    instructions[i].opcode == Opcode.CMPG_DOUBLE &&
+                        instructions[i + 1].opcode == Opcode.IF_LEZ &&
+                        (instructions[i] as ThreeRegisterInstruction).registerA == reg(i + 1)
+                } ?: throw PatchException("area-vs-cap test not found")
+                val flag = (instructions[test] as ThreeRegisterInstruction).registerA
+                val notTooBig = (instructions[test + 1] as BuilderOffsetInstruction).target.location.instruction
+                    ?: throw PatchException("area-vs-cap branch has no target")
+                val target = instructions.indexOfFirst { it === notTooBig }
+                if (target < 0) throw PatchException("area-vs-cap branch target not found")
+                val overwrites = listOf(target, target + 1).any { k ->
+                    val insn = instructions.getOrNull(k) ?: return@any false
+                    (insn.opcode == Opcode.MOVE_OBJECT || insn.opcode == Opcode.MOVE_OBJECT_FROM16) &&
+                        (insn as TwoRegisterInstruction).registerA == flag && insn.registerB != flag
+                }
+                if (!overwrites) throw PatchException("the not-too-big path no longer overwrites the test register")
+
+                val localWrites = instructions.indices.filter { i ->
+                    i > 0 && instructions[i].isStateSet(stateSet) && instructions[i - 1].opcode == Opcode.IGET_OBJECT &&
+                        instructions[i - 1].field()?.let { f -> f.definingClass == definingClass && f.name == "c" } == true
+                }
+                val localWrite = localWrites.singleOrNull()
+                    ?: throw PatchException("local selection write found ${localWrites.size} times")
+                val local = instructions[localWrite] as Instruction35c
+
+                val windowWrites = instructions.indices.filter { i ->
+                    val ref = (instructions[i] as? ReferenceInstruction)?.reference as? MethodReference
+                    ref != null && ref.definingClass == modelType && ref.name == "f" &&
+                        ref.parameterTypes.map(CharSequence::toString) == listOf("Landroid/graphics/RectF;")
+                }
+                val windowWrite = windowWrites.singleOrNull()
+                    ?: throw PatchException("window selection write found ${windowWrites.size} times")
+                val window = instructions[windowWrite] as Instruction35c
+                val model = window.registerC
+                val rect = window.registerD
+                val state = local.registerC
+                if (state != (instructions[localWrite - 1] as OneRegisterInstruction).registerA) {
+                    throw PatchException("local selection write uses another state")
+                }
+                if (!(test < localWrite && localWrite < windowWrite)) throw PatchException("picker callback changed order")
+                val used = setOf(flag, model, rect, state)
+                val first = (0..15).firstOrNull { it !in used } ?: throw PatchException("no scratch register")
+                val second = (0..15).firstOrNull { it !in used && it != first } ?: throw PatchException("no second scratch register")
+
+                addInstructions(
+                    windowWrite + 1,
+                    """
+                        iget-object v$first, p0, $definingClass->c:Ljava/lang/Object;
+                        iget-object v$second, v$model, $modelType->a:Landroid/app/Activity;
+                        invoke-static { v$second, v$first, v$rect, v$model }, $PICKER->pickerOverlay(Landroid/app/Activity;Ljava/lang/Object;Landroid/graphics/RectF;Ljava/lang/Object;)V
+                    """,
+                )
+                addInstructions(
+                    localWrite,
+                    """
+                        invoke-static { v$state, v$rect }, $PICKER->pickerRect(Ljava/lang/Object;Landroid/graphics/RectF;)Landroid/graphics/RectF;
+                        move-result-object v$rect
+                    """,
+                )
+                addInstructionsWithLabels(
+                    test,
+                    """
+                        sget-boolean v$flag, $SHAPES->BETTER_OFFLINE:Z
+                        if-nez v$flag, :not_too_big
+                    """,
+                    ExternalLabel("not_too_big", notTooBig),
+                )
+            }
+            return@execute
+        }
         pickerFingerprint.method.apply {
             val instructions = implementation!!.instructions
             fun reg(i: Int) = (instructions[i] as OneRegisterInstruction).registerA
 
             val capReads = instructions.indices.filter {
-                instructions[it].field()?.let { f -> f.definingClass == modelType && f.name == "c" } == true
+                instructions[it].field()?.let { f -> f.definingClass == modelType && f.name == capField } == true
             }
             val capRead = capReads.singleOrNull() ?: throw PatchException("size cap is read ${capReads.size} times")
 

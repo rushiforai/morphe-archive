@@ -77,19 +77,7 @@ private val notificationSettingsResourcePatch = resourcePatch {
             """.trimIndent(),
         )
 
-        document("res/values/strings.xml").use { document ->
-            val resources = document.getElementsByTagName("resources").item(0) as Element
-            resources.appendChild(document.createElement("string").apply {
-                setAttribute("name", "line_notify_hide_chat")
-                textContent = "알림 완전히 숨기기"
-            })
-            resources.appendChild(
-                document.createElement("string").apply {
-                    setAttribute("name", "line_notify_settings")
-                    textContent = "알림 패치 설정"
-                },
-            )
-        }
+        applyNotificationStrings()
     }
 }
 

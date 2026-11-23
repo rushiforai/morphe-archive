@@ -15,8 +15,10 @@ object Constants {
         appIconColor = 0xEC0915,
         targets = listOf(
             AppTarget(
-                // Version as reported by the XAPK manifest.json (versionCode 72).
-                version = "1.9.0"
+                // Version as reported by the XAPK manifest.json (versionCode 73).
+                // 1.9.0 and older are blocked server-side by the force-update gate
+                // (versionRange "<1.11.0"), so only 1.11.0+ is usable.
+                version = "1.11.0"
             )
         )
     )

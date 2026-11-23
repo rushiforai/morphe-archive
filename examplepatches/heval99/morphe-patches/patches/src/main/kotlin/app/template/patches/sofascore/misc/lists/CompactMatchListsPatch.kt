@@ -15,7 +15,7 @@ private const val ROW_LAYOUT = "res/layout/list_event_row.xml"
 private class RowSize(val owner: String?, val attribute: String, val stock: Float, val compact: Float)
 
 /**
- * The only match row layout (list_event_row, inflated by the list adapter) with its sizes, as dp
+ * The match row layout list_event_row (on 26.11.09 only the Player and Manager lists inflate it) with its sizes, as dp
  * literals. [owner] is the android:id of the element (null for the root layout). Every stock value is
  * checked before anything is edited, so a layout rework fails the patch loudly. Unlisted values keep
  * their stock size: the time column (time_lower margin 4dp, kept so the time and status stay apart),
@@ -45,7 +45,7 @@ private fun dpValue(raw: String): Float? =
 private fun dpText(value: Float): String = "${value}dp"
 
 private val compactMatchListsLayoutPatch = resourcePatch(
-    description = "Tightens the spacing of the match rows.",
+    description = "Tightens the spacing of the player and manager match rows.",
 ) {
     compatibleWith(COMPATIBILITY_SOFASCORE)
 
@@ -95,7 +95,7 @@ internal val COMPACT_MATCH_LISTS = HevalFeature(
 val compactMatchListsPatch = sofascoreControls.featurePatch(
     COMPACT_MATCH_LISTS,
     name = "Compact match lists",
-    description = "Makes the match rows in lists shorter so more fit on screen.",
+    description = "Shortens the match rows in the player and manager lists.",
     default = false,
     dependencies = setOf(compactMatchListsLayoutPatch),
 ) {

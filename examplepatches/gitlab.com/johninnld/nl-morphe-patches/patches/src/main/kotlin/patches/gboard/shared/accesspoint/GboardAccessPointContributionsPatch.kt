@@ -39,6 +39,15 @@ internal fun MutableMethod.applyAccessPointOrderCatalogDelegate1803() {
         }
         return
     }
+    // The catalog delegate hands back the order set it was given, so the cast has to name the
+    // method's own parameter type. Hardcoding the 18.6.3 name broke 18.8: that build kept a class
+    // called `wim`, but the parameter was renamed to `auco`, and ART rejected the whole method
+    // (`register v3 has type Reference: wim but expected Reference: auco`), which took every
+    // access point (toolbar row, mic) down with it.
+    val orderType = parameterTypes[3]
+    require(orderType.startsWith("L") && orderType.endsWith(";")) {
+        "Expected the order-set parameter at p3, found $orderType"
+    }
     addInstructions(
         0,
         """
@@ -52,7 +61,7 @@ internal fun MutableMethod.applyAccessPointOrderCatalogDelegate1803() {
 
             move-object/from16 p3, v0
 
-            check-cast p3, Lwim;
+            check-cast p3, $orderType
         """.trimIndent(),
     )
 }

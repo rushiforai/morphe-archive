@@ -57,7 +57,7 @@ actually does:
 |---|---|
 | the README | the "🎯 Supported versions" table (`generate_patches_readme.py` over `patches-list.json`) |
 | Morphe Manager | each `AppTarget`'s description, compiled into the bundle |
-| **every release's notes** | a trailing **"📱 Supported app versions"** section — "This release patches **YouTube VR 1.91.10** and **1.90.05** (Meta Quest)…" |
+| **every release's notes** | a trailing **"📱 Supported app versions"** section — "This release patches **YouTube VR 1.92.11** and **1.91.10** (Meta Quest)…" |
 
 The release section is written by `.github/scripts/supported-versions-notes.mjs`, a
 semantic-release `generateNotes` plugin, so it lands in the GitHub release body, `CHANGELOG.md`,
@@ -109,7 +109,7 @@ nobody could download: the store page still offered 1.88.10, and step 1 of the c
 "obtain the APK". The verdict therefore comes from the **storefront**, and the channel answer is
 reported beside it as the early signal it is — *"uploaded but not released yet"*.
 
-Three consequences worth knowing before reporting a bug in that workflow:
+Four consequences worth knowing before reporting a bug in that workflow:
 
 - **The store page needs Meta's crawler UA** (`facebookexternalhit/...`). A browser UA gets HTTP 400,
   and anything else gets the cookie-consent shell with no app data in it. If Meta ever stops honouring
@@ -123,6 +123,15 @@ Three consequences worth knowing before reporting a bug in that workflow:
 - **The issue title is the dedupe key.** The workflow skips creating an issue whose title already
   exists, so a false-positive issue left open *masks* the real detection of that same version later.
   Close a spurious one rather than leaving it.
+- **Even the payload can lag actual downloadability — measured 2026-11-22.** A run read the storefront
+  as 1.91.10 while the channel already had 1.92.11, and its summary called the new build "not
+  downloadable yet"; it was in fact fetched the same day with the DownQuest extension. So "not on the
+  page" is not "not downloadable" — the payload says what the page advertises, nothing more. The
+  summary therefore no longer claims non-downloadability and no longer shows "Up to date" in this
+  state (it shows 🟡 "New build uploaded; the storefront page has not caught up"), while still
+  filing no issue off the channel answer alone — the channel answer is what filed #40. Treat
+  "channel ahead of page" as *unknown availability*: if you want the build early, DownQuest is the
+  documented route (step 1 of the checklist below).
 
 A storefront version **older** than the newest supported one is a rollback, and is reported in the run
 summary without filing anything.

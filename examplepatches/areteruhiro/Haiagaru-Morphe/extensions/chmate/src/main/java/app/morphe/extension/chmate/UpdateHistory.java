@@ -107,7 +107,7 @@ final class UpdateHistory {
         LinearLayout body=new LinearLayout(context);body.setOrientation(LinearLayout.VERTICAL);
         int pad=Math.round(16*context.getResources().getDisplayMetrics().density);body.setPadding(pad,pad,pad,pad);
         TextView help=new TextView(context);help.setText("追加された機能を目的別にまとめています。スイッチは変更すると自動保存され、通常の設定画面にも反映されます。詳しい説明は下にあります。");body.addView(help);
-        for(String category:new String[]{"アプリ・通信","表示・検索","画像・動画","NG・文字列置換","履歴・投稿"}) {
+        for(String category:new String[]{"アプリ・通信","表示・検索","画像・動画","NG・文字列置換","履歴・投稿","エキスパート設定"}) {
             section(body,activity,category);
             for(ReleaseFeatureOptions.Option option:ReleaseFeatureOptions.Option.values()) {
                 if(!category.equals(option.category()))continue;
@@ -348,6 +348,15 @@ final class UpdateHistory {
                 toggle(content,activity,FeatureSwitches.prefs(activity),"投稿欄に板ごとの上限・残量・超過位置を表示", "postEditorLimitDisplay",true,null); break;
             case FILTER_OPTIMIZATION:
                 toggle(content,activity,FeatureSwitches.prefs(activity),"フィルターの抽出・位置保持・件数集計を最適化",ExtraQuickFilters.OPTIMIZATION,false,null); break;
+            case HOME_INLINE_ORDER:
+                toggle(content,activity,SettingsProfiles.prefs(activity),"HOMEの★・ラベル見出しをタップして開閉",
+                        HomeThreadOrder.FOLD_ON_TAP,true,()->BrowsingHistory.refreshVisible(activity)); break;
+            case BACKGROUND_POSTING_OPT_IN:
+                ExpertSettings.addBackgroundPosting(content,activity,SettingsProfiles.prefs(activity)); break;
+            case EXPERT_PERFORMANCE:
+                ExpertSettings.addOptimizations(content,activity,SettingsProfiles.prefs(activity)); break;
+            case SHORT_BOARD_THREADS:
+                ShortThreadFilter.settings(content,activity,SettingsProfiles.prefs(activity)); break;
             case DELAYED_POSITION_SNAPSHOT:
                 toggle(content,activity,SettingsProfiles.prefs(activity),"エキスパート設定：遅延位置スナップショット",FilterPosition.DELAYED_SNAPSHOT,false,null); break;
             case NOTE_INDICATOR:

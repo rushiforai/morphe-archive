@@ -1,0 +1,212 @@
+name: Build Morphe MPP
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - patches-bundle.json
+      - patches-list.json
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: read
+
+concurrency:
+  group: morphe-mpp-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Verify sources and build local MPP
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      REALMELINK_RELEASE_VERSION: 0.3.${{ github.run_number }}
+    steps:
+      - name: Checkout RealmeLink Plus
+        uses: actions/checkout@v4
+
+      - name: Setup Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Verify Morphe release metadata contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/test_release_metadata.py
+
+      - name: Java mode-memory simulation
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/test_runtime_java.py
+
+      - name: Validate source tree
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s overlay/patches/src/main/kotlin/app/morphe/patches/realmelink/modes/ModeMemoryPatches.kt
+          test -s overlay/extensions/extension/src/main/java/app/hxreborn/extension/realmelink/ModeKeeper.java
+          grep -Fq 'Remember noise control mode' overlay/patches/src/main/kotlin/app/morphe/patches/realmelink/modes/ModeMemoryPatches.kt
+          grep -Fq 'Remember game mode' overlay/patches/src/main/kotlin/app/morphe/patches/realmelink/modes/ModeMemoryPatches.kt
+
+      - name: Validate home-screen patch source
+        shell: bash
+        run: |
+          set -euo pipefail
+          src=overlay/patches/src/main/kotlin/app/morphe/patches/realmelink/home/CleanHomeScreenPatch.kt
+          test -s "$src"
+          grep -Fq 'fragment_main.xml' "$src"
+          for target in MainAdvertiseView rl_virtual_device_title recycle_view_virtual_device; do
+            grep -Fq "$target" "$src"
+          done
+
+      - name: Checkout pinned hxreborn 1.80.0
+        shell: bash
+        run: |
+          set -euo pipefail
+          git clone --quiet --depth 1 --branch v1.80.0 https://github.com/hxreborn/morphe-patches.git upstream
+          actual="$(git -C upstream rev-parse HEAD)"
+          test "$actual" = "83839f596c9c7d8555c97809c34c2daabde03ec7" || { echo "Unexpected upstream revision $actual"; exit 1; }
+          test -f upstream/LICENSE
+          test -f upstream/NOTICE
+          test -f upstream/patches/src/main/kotlin/app/morphe/patches/realmelink/theme/AmoledThemePatch.kt
+          test -f upstream/patches/src/main/kotlin/app/morphe/patches/realmelink/session/BypassSessionExpiryPatch.kt
+
+      - name: Overlay local patch sources
+        shell: bash
+        run: |
+          set -euo pipefail
+          cp -a overlay/. upstream/
+
+      - name: Prepare branded realme-only bundle
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/prepare_upstream.py upstream
+
+      - name: Compile and bundle
+        working-directory: upstream
+        shell: bash
+        env:
+          GITHUB_ACTOR: ${{ github.repository_owner }}
+          GITHUB_TOKEN: ${{ secrets.MORPHE_PACKAGES_TOKEN || secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          chmod +x ./gradlew
+          set +e
+          ./gradlew :patches:buildAndroid --no-daemon --stacktrace 2>&1 | tee gradle-build.log
+          result=${PIPESTATUS[0]}
+          set -e
+          if (( result != 0 )); then
+            if grep -Fq "Plugin [id: 'app.morphe.patches'" gradle-build.log; then
+              echo "::error::Morphe plugin is not accessible through GitHub Packages. Create a classic PAT with read:packages and save it as repository Actions secret MORPHE_PACKAGES_TOKEN."
+            fi
+            exit "$result"
+          fi
+          ls -lah patches/build/libs/
+
+      - name: Verify MPP output
+        shell: bash
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          files=(upstream/patches/build/libs/*.mpp)
+          if (( ${#files[@]} != 1 )); then
+            echo "Expected one .mpp, found ${#files[@]}" >&2
+            exit 1
+          fi
+          mkdir -p dist
+          cp "${files[0]}" dist/RealmeLink-Plus_build${{ github.run_number }}.mpp
+          test -s dist/RealmeLink-Plus_build${{ github.run_number }}.mpp
+          python3 tools/verify_bundle.py dist/RealmeLink-Plus_build${{ github.run_number }}.mpp
+          sha256sum dist/RealmeLink-Plus_build${{ github.run_number }}.mpp
+
+      - name: Upload compiled Morphe patches
+        uses: actions/upload-artifact@v4
+        with:
+          name: RealmeLink-Plus_build${{ github.run_number }}_MPP
+          path: dist/RealmeLink-Plus_build${{ github.run_number }}.mpp
+          if-no-files-found: error
+          retention-days: 30
+
+
+  release:
+    name: Publish versioned remote patch source
+    needs: build
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      RELEASE_VERSION: 0.3.${{ github.run_number }}
+      RELEASE_TAG: v0.3.${{ github.run_number }}
+      BUNDLE_FILENAME: RealmeLink-Plus_build${{ github.run_number }}.mpp
+    steps:
+      - name: Checkout project
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Download verified MPP
+        uses: actions/download-artifact@v4
+        with:
+          name: RealmeLink-Plus_build${{ github.run_number }}_MPP
+          path: dist
+
+      - name: Check verified MPP
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s "dist/$BUNDLE_FILENAME"
+          REALMELINK_RELEASE_VERSION="$RELEASE_VERSION" python3 tools/verify_bundle.py "dist/$BUNDLE_FILENAME"
+          sha256sum "dist/$BUNDLE_FILENAME"
+
+      - name: Create GitHub Release
+        shell: bash
+        run: |
+          set -euo pipefail
+          if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
+            echo "Release $RELEASE_TAG already exists; verifying asset."
+            gh release view "$RELEASE_TAG" --json assets --jq '.assets[].name' | grep -Fx "$BUNDLE_FILENAME"
+          else
+            gh release create "$RELEASE_TAG" "dist/$BUNDLE_FILENAME" \
+              --title "RealmeLink Plus $RELEASE_TAG" \
+              --notes "RealmeLink Plus $RELEASE_TAG by RaFaeLL0. Five Morphe patches for realme Link 5.8.811.2814, including two preserved GPL-3.0-only patches from hxreborn. Import with Morphe Sources. This build has automated compilation and packaging tests; physical-device testing is separate." \
+              --latest
+          fi
+
+      - name: Generate remote metadata
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/write_release_metadata.py \
+            --version "$RELEASE_VERSION" \
+            --tag "$RELEASE_TAG" \
+            --asset "$BUNDLE_FILENAME" \
+            --out patches-bundle.json
+          python3 -m json.tool patches-bundle.json >/dev/null
+
+      - name: Commit source metadata without triggering a new build
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add patches-bundle.json
+          if git diff --cached --quiet; then
+            echo "No metadata changes"
+            exit 0
+          fi
+          git commit -m "chore: publish Morphe patch metadata $RELEASE_TAG"
+          git push origin "HEAD:main"

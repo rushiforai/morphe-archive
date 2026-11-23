@@ -1,6 +1,6 @@
 # AGENTS.md — how to work on this repo
 
-A Morphe/ReVanced patch bundle for **YouTube VR 1.91.10 and 1.90.05** on Quest 3 (`eureka`, Snapdragon XR2 Gen 2),
+A Morphe/ReVanced patch bundle for **YouTube VR 1.92.11 and 1.91.10** on Quest 3 (`eureka`, Snapdragon XR2 Gen 2),
 plus a Java extension injected into the app. Read this before touching anything; the traps in
 "Measured traps" have each cost a full build-install-device cycle.
 
@@ -358,8 +358,8 @@ gate before merging, and it shows on the pull request because the PR's head comm
 `generateNotes` plugin `.github/scripts/supported-versions-notes.mjs` reads the `AppTarget`s out of
 `Constants.kt` (via the shared reader `scripts/supported-versions.mjs`, which
 `scripts/check-upstream-version.mjs` also imports -- one JS parser, mirrored by
-`SupportedVersionsPolicyTest`) and renders "This release patches **YouTube VR 1.91.10** and
-**1.90.05** (Meta Quest)…". Because semantic-release concatenates `generateNotes` output, the
+`SupportedVersionsPolicyTest`) and renders "This release patches **YouTube VR 1.92.11** and
+**1.91.10** (Meta Quest)…". Because semantic-release concatenates `generateNotes` output, the
 section lands in the GitHub release body, `CHANGELOG.md`, the release commit message, and
 `patches-bundle.json`'s description -- which is what Morphe Desktop's "Patch notes" viewer shows.
 The per-release *change* ("support X added, Y dropped") still comes from the commit bullet; the

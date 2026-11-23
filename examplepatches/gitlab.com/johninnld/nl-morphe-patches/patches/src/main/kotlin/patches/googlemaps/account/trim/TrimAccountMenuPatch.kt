@@ -30,12 +30,12 @@ private const val ROW_SETUP_LENGTH = 2
  * earlier version of this patch shipped exactly that in the legacy builder,
  * where rows have no setup instructions and ROW_SETUP_LENGTH does not apply.
  */
-private fun MutableMethod.removeWholeRows(start: Int, end: Int, what: String) {
+private fun MutableMethod.removeWholeRows(start: Int, end: Int, what: String, listType: String) {
     if (end <= start) throw PatchException("$what span is empty or inverted ($start..$end)")
     val instructions = implementation!!.instructions
     fun call(i: Int) = ((instructions[i] as? ReferenceInstruction)?.reference as? MethodReference)
-    fun isRowAdd(i: Int) = call(i)?.let { it.definingClass == "Lbwpw;" && it.name == "i" } == true
-    fun isListCtor(i: Int) = call(i)?.let { it.definingClass == "Lbwpw;" && it.name == "<init>" } == true
+    fun isRowAdd(i: Int) = call(i)?.let { it.definingClass == listType && it.name == "i" } == true
+    fun isListCtor(i: Int) = call(i)?.let { it.definingClass == listType && it.name == "<init>" } == true
     if (!isRowAdd(start - 1) && !isListCtor(start - 1)) throw PatchException("$what span does not start at a row boundary")
     if (!isRowAdd(end - 1)) throw PatchException("$what span does not end with a whole row")
     removeInstructions(start, end - start)
@@ -47,7 +47,7 @@ private fun MutableMethod.removeWholeRows(start: Int, end: Int, what: String) {
  * the order patches run in it may already be there. A row runs from just after the previous
  * row's add to its own add on the same list; [start] must be right after Settings' own add.
  */
-private fun MutableMethod.removeRowsBuilt(start: Int, end: Int, expected: Int, what: String, builtBy: (MethodReference) -> Boolean) {
+private fun MutableMethod.removeRowsBuilt(start: Int, end: Int, expected: Int, what: String, listType: String, builtBy: (MethodReference) -> Boolean) {
     val instructions = implementation!!.instructions
     fun call(i: Int) = ((instructions[i] as? ReferenceInstruction)?.reference as? MethodReference)
     val list = (instructions[start - 1] as Instruction35c).registerC
@@ -55,7 +55,7 @@ private fun MutableMethod.removeRowsBuilt(start: Int, end: Int, expected: Int, w
     var rowStart = start
     for (i in start until end) {
         val c = call(i) ?: continue
-        if (c.definingClass == "Lbwpw;" && c.name == "i" && (instructions[i] as Instruction35c).registerC == list) {
+        if (c.definingClass == listType && c.name == "i" && (instructions[i] as Instruction35c).registerC == list) {
             rows += rowStart..i
             rowStart = i + 1
         }
@@ -63,12 +63,15 @@ private fun MutableMethod.removeRowsBuilt(start: Int, end: Int, expected: Int, w
     if (rowStart != end) throw PatchException("$what: code after the last row before the list is finished")
     val doomed = rows.filter { row -> row.any { i -> call(i)?.let(builtBy) == true } }
     if (doomed.size != expected) throw PatchException("$what: expected $expected rows to remove, found ${doomed.size}")
-    doomed.asReversed().forEach { removeWholeRows(it.first, it.last + 1, what) }
+    doomed.asReversed().forEach { removeWholeRows(it.first, it.last + 1, what, listType) }
 }
 
 private val HELP_AND_FEEDBACK: (MethodReference) -> Boolean = { it.definingClass == "Lbruq;" && it.name == "aa" }
+private val HELP_AND_FEEDBACK_2647: (MethodReference) -> Boolean = { it.definingClass == "Lbtto;" && it.name == "aD" }
 private val YOUR_DATA: (MethodReference) -> Boolean =
     { it.definingClass == "Lomf;" && it.name == "a" && it.parameterTypes.isEmpty() && it.returnType == "Lbrdm;" }
+private val YOUR_DATA_2647: (MethodReference) -> Boolean =
+    { it.definingClass == "Lool;" && it.name == "a" && it.parameterTypes.isEmpty() && it.returnType == "Lbrlr;" }
 
 @Suppress("unused")
 val trimAccountMenuPatch = bytecodePatch(
@@ -81,45 +84,50 @@ val trimAccountMenuPatch = bytecodePatch(
 
     execute {
         if (MicrogSelection.replaces(this, "Trim account menu")) return@execute
+        val is2647 = packageMetadata.versionName == "26.47.00.1022347503"
+        val listType = if (is2647) "Lbwzs;" else "Lbwpw;"
+        val help = if (is2647) HELP_AND_FEEDBACK_2647 else HELP_AND_FEEDBACK
+        val yourData = if (is2647) YOUR_DATA_2647 else YOUR_DATA
+        fun <T> pick(v2644: T, v2647: T): T = if (is2647) v2647 else v2644
         // Modern builder: three independent cuts, each a pure removal -- the
         // rows on both sides of every cut are left completely alone, so
         // nothing needs to be reconstructed.
-        CustomActionsListFingerprint.let { fp ->
+        pick(CustomActionsListFingerprint, CustomActionsListFingerprint2647).let { fp ->
             val m = fp.instructionMatches
             val start = m.first().index + 1
             val end = m.last().index - ROW_SETUP_LENGTH
-            fp.method.removeWholeRows(start, end, "custom-actions")
+            fp.method.removeWholeRows(start, end, "custom-actions", listType)
         }
-        CommonActionsListFingerprint.let { fp ->
+        pick(CommonActionsListFingerprint, CommonActionsListFingerprint2647).let { fp ->
             val m = fp.instructionMatches
             val start = m[1].index + 1 // right after the list's OWN constructor call, m[0]
             val end = m.last().index - ROW_SETUP_LENGTH
-            fp.method.removeWholeRows(start, end, "common-actions")
+            fp.method.removeWholeRows(start, end, "common-actions", listType)
         }
-        SettingsRowAddFingerprint.let { fp ->
+        pick(SettingsRowAddFingerprint, SettingsRowAddFingerprint2647).let { fp ->
             val m = fp.instructionMatches
             val start = m[2].index + 1 // right after Settings' own row-add
             val end = m.last().index   // right at the list finalize
-            fp.method.removeRowsBuilt(start, end, 1, "Help & feedback", HELP_AND_FEEDBACK)
+            fp.method.removeRowsBuilt(start, end, 1, "Help & feedback", listType, help)
         }
 
         // Legacy builder: neither span references the ambiguous constructor
         // call, so ordering between these two and the modern builder's three
         // above does not matter -- each computes its own indices fresh, in
         // its own class's method, right before applying its own mutation.
-        LegacySettingsRowAddFingerprint.let { fp ->
+        pick(LegacySettingsRowAddFingerprint, LegacySettingsRowAddFingerprint2647).let { fp ->
             val m = fp.instructionMatches
             val start = m[2].index + 1 // right after Settings' own row-add
             val end = m.last().index   // right at the list finalize
-            fp.method.removeRowsBuilt(start, end, 2, "legacy Settings") { HELP_AND_FEEDBACK(it) || YOUR_DATA(it) }
+            fp.method.removeRowsBuilt(start, end, 2, "legacy Settings", listType) { help(it) || yourData(it) }
         }
-        LegacyYourProfileFingerprint.let { fp ->
+        pick(LegacyYourProfileFingerprint, LegacyYourProfileFingerprint2647).let { fp ->
             val m = fp.instructionMatches
             val start = m[2].index + 1 // right after Your profile's own row-add
             // Legacy rows call straight through a typed register -- no setup
             // instructions -- so the kept row starts AT its own call.
             val end = m.last().index
-            fp.method.removeWholeRows(start, end, "legacy Your-profile")
+            fp.method.removeWholeRows(start, end, "legacy Your-profile", listType)
         }
     }
 }

@@ -187,7 +187,7 @@ https://github.com/areteruhiro/Haiagaru-Morphe/
 さらにご支援いただける場合は、以下から寄付を受け付けています。
 
 - [Amazon Gift Card](https://www.amazon.co.jp/gp/product/B004N3APGO) Send to (areteruhiro@gmail.com)
-- [PayPay](https://qr.paypay.ne.jp/p2p01_FSEj08sDQx0enogO)
+- [PayPay](https://qr.paypay.ne.jp/p2p01_oFitCfHYy04vRHVc)
 
 ## 謝辞
 

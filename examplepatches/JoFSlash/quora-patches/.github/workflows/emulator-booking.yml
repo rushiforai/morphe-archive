@@ -1,0 +1,129 @@
+name: Booking.com emulator test
+
+# Patches Booking.com with every patch, installs it on Android 12L to 17 emulators and checks that it
+# starts without a crash or errors from the patches and shows its own screen (the cookie consent or
+# the home screen). When a check fails, the original app is tried the same way, to tell a broken
+# patch from an Android version the app itself doesn't work on. Searching, the hotel page and the
+# patches' panels need Booking.com's servers and a person, so they are tried by hand on a phone.
+#
+# The APK can't be in this public repository. It comes from the private repository
+# JoFSlash/morphe-apks, read with the APKS_TOKEN secret (a fine-grained token
+# with access to that repository's contents only: read here, read and write for the Booking.com
+# version workflow, which keeps new APKMs there). Without the secret the test is skipped,
+# except when the release runs it: there a skipped test would let an untested bundle through, so
+# it fails.
+
+on:
+  # Only for pull requests that change this app's patches, this test or the shared build.
+  pull_request:
+    paths:
+      - 'patches/src/main/kotlin/app/jofslash/patches/booking/**'
+      - 'extensions/booking/**'
+      - '.github/workflows/emulator-booking.yml'
+      - '.github/scripts/check_booking.py'
+      - '.github/actions/install-emulator/**'
+      - '.github/morphe-cli-version'
+      - 'gradle/**'
+      - '*.gradle.kts'
+      - 'patches/build.gradle.kts'
+  workflow_dispatch:
+  workflow_call:
+    inputs:
+      required:
+        description: 'Fail instead of skipping when APKS_TOKEN is missing'
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+  packages: read
+
+jobs:
+  emulator:
+    name: Start on Android ${{ matrix.android }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    strategy:
+      fail-fast: false
+      matrix:
+        # Booking.com 71.1 needs Android 12L or newer: a few versions from there, and the next
+        # one, whose image is only in the SDK's canary channel so far.
+        # A pull request is tried on the oldest and the newest stable version; the release and a run
+        # by hand try all of them.
+        include: ${{ fromJSON(github.event_name == 'pull_request' && '[{"api":"32","android":"12L","channel":"stable"},{"api":"36","android":"16","channel":"stable"}]' || '[{"api":"32","android":"12L","channel":"stable"},{"api":"33","android":"13","channel":"stable"},{"api":"35","android":"15","channel":"stable"},{"api":"36","android":"16","channel":"stable"},{"api":"37.0","android":"17","channel":"canary"}]') }}
+    steps:
+      - name: Check for the APK token
+        id: token
+        env:
+          TOKEN: ${{ secrets.APKS_TOKEN || secrets.QUORA_APKS_TOKEN }}
+          REQUIRED: ${{ inputs.required }}
+        run: |
+          if [ -z "$TOKEN" ] && [ "$REQUIRED" = "true" ]; then
+            echo "::error::APKS_TOKEN isn't set, and this run needs the emulator test."
+            exit 1
+          fi
+          if [ -z "$TOKEN" ]; then
+            echo "::notice::APKS_TOKEN isn't set (or this is a pull request from a fork), so the emulator test is skipped."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Checkout
+        if: steps.token.outputs.skip != 'true'
+        uses: actions/checkout@v7
+
+      - name: Setup Java
+        if: steps.token.outputs.skip != 'true'
+        uses: actions/setup-java@v6
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Build
+        if: steps.token.outputs.skip != 'true'
+        env:
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: bash .github/scripts/gradle-retry.sh :patches:buildAndroid --no-daemon
+
+      - name: Download Booking.com and the Morphe CLI
+        if: steps.token.outputs.skip != 'true'
+        env:
+          APKS_TOKEN: ${{ secrets.APKS_TOKEN || secrets.QUORA_APKS_TOKEN }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          MORPHE_CLI_VERSION="$(cat .github/morphe-cli-version)"
+          echo "Morphe CLI $MORPHE_CLI_VERSION"
+          # The first version listed as supported in Constants.kt (the newest one is listed first).
+          APP_VERSION=$(grep -oE 'AppTarget\(version = "[^"]+"' patches/src/main/kotlin/app/jofslash/patches/booking/shared/Constants.kt \
+            | head -1 | sed -E 's/.*"([^"]+)"/\1/')
+          echo "Booking.com $APP_VERSION"
+          GH_TOKEN="$APKS_TOKEN" gh release download "booking-$APP_VERSION" -R JoFSlash/morphe-apks \
+            -p "*.apkm" -O "$RUNNER_TEMP/booking.apkm"
+          gh release download "$MORPHE_CLI_VERSION" -R MorpheApp/morphe-cli -p 'morphe-desktop-*-all.jar' \
+            -O "$RUNNER_TEMP/morphe-cli.jar"
+          ls -l "$RUNNER_TEMP"
+
+      - name: Enable KVM
+        if: steps.token.outputs.skip != 'true'
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Install the emulator
+        if: steps.token.outputs.skip != 'true'
+        uses: ./.github/actions/install-emulator
+        with:
+          api-level: ${{ matrix.api }}
+          channel: ${{ matrix.channel }}
+
+      - name: Patch, install and start
+        if: steps.token.outputs.skip != 'true'
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: ${{ matrix.api }}
+          channel: ${{ matrix.channel }}
+          target: google_apis
+          arch: x86_64
+          disable-animations: true
+          script: python3 .github/scripts/check_booking.py "$RUNNER_TEMP/booking.apkm" --cli "$RUNNER_TEMP/morphe-cli.jar" --install --expect-screen --compare-original --adb adb

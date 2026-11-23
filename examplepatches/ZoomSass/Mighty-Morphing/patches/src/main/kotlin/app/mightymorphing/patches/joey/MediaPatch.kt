@@ -214,10 +214,10 @@ internal val mediaHooksPatch = bytecodePatch {
 @Suppress("unused")
 val mediaEnhancementsPatch = bytecodePatch(
     name = "Media enhancements",
-    description = "[v1.5.0: New. The Modern UI media features, now as their own patch so Classic Joey can have them too. Nothing changes for existing users; Modern UI already includes all of this.] Downloads with your own file names and folder, full screen media, optionally opening without controls, an album viewer with thumbnails, grid and captions, and swiping albums closed. All on by default; each can be turned off in Joey Settings - Morphe Settings.",
+    description = "Downloads with your own file names and folder, full screen media, an album viewer with thumbnails, grid and captions, and swiping albums closed. Works with Classic Joey. Includes Dismiss without tearing. Each can be turned off in Joey Settings - Morphe Settings.",
     default = false,
 ) {
     compatibleWith(JOEY)
 
-    dependsOn(mediaHooksPatch)
+    dependsOn(problemReportPatch, mediaHooksPatch)
 }

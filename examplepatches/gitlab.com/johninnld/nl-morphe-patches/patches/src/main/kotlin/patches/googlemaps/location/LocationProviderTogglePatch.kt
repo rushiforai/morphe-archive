@@ -76,7 +76,11 @@ val locationProviderTogglePatch = bytecodePatch(
         //    inlines this into its provider dispatcher: k must exist AND playLocation must be true.
         //    Reuse the loaded object's register after the null test, where it serves only that test.
         //    Keep all later k reads intact so changing to Android still stops the old fused listener.
-        val availabilityFingerprint = if (packageMetadata.versionName == "26.44.06.1006895251") FusedLocationAvailabilityFingerprint2644 else FusedLocationAvailabilityFingerprint
+        val availabilityFingerprint = when (packageMetadata.versionName) {
+            "26.44.06.1006895251" -> FusedLocationAvailabilityFingerprint2644
+            "26.47.00.1022347503" -> FusedLocationAvailabilityFingerprint2647
+            else -> FusedLocationAvailabilityFingerprint
+        }
         availabilityFingerprint.let { fp ->
             val read = fp.instructionMatches.first().index
             val instructions = fp.method.implementation!!.instructions.toList()
@@ -100,7 +104,9 @@ val locationProviderTogglePatch = bytecodePatch(
         //    under the name it answers (MicroG-RE renamed the service). While the source
         //    is Android, to a package that does not exist, so nothing in Maps reaches a
         //    fused provider.
-        PlayServicesConnectionFingerprint.let { fp ->
+        val connectionFingerprint = if (packageMetadata.versionName == "26.47.00.1022347503")
+            PlayServicesConnectionFingerprint2647 else PlayServicesConnectionFingerprint
+        connectionFingerprint.let { fp ->
             val index = fp.instructionMatches.last().index
             val init = fp.method.implementation!!.instructions[index]
             // Inserting in front leaves any label on the constructor call, which would skip the redirect.

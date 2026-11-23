@@ -4,8 +4,21 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.instructions
 import app.morphe.patcher.patch.bytecodePatch
 import com.android.tools.smali.dexlib2.Opcode
-import com.android.tools.smali.dexlib2.builder.instruction.BuilderInstruction22t
-import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
+
+internal fun suppressNoFreemiumStartup2703(method: app.morphe.patcher.util.proxy.mutableTypes.MutableMethod) {
+    check(method.definingClass == "LlllllIlIIllIl;" && method.name == "llIIIIIIlIIIIll")
+    method.addInstructions(
+            0,
+            """
+                iget v0, p0, LlllllIlIIllIl;->IllIlIlIIlIllIll:I
+                const/16 v1, 0x8
+                if-ne v0, v1, :morphe_native_rule
+                const/4 v0, 0x0
+                return-object v0
+                :morphe_native_rule
+            """,
+        )
+}
 
 /**
  * Subscription surfaces open from the premium tab, the artist paywall, trial
@@ -24,7 +37,7 @@ val deezerRemovePaywalls = bytecodePatch(
     default = true,
 ) {
     compatibleWith(deezer)
-    dependsOn(originalInput, deezerKeepSessionOnColdStart)
+    dependsOn(deezerBase, deezerKeepSessionOnColdStart)
 
     execute {
         // Startup block page: every non-dialog activity re-runs the startup
@@ -37,37 +50,17 @@ val deezerRemovePaywalls = bytecodePatch(
         exact("Lcore/auth/module/UserAuthParsedResult;", "isWaitingforPayment", "Z")
             .method.addInstructions(0, "const/4 v0, 0x0\nreturn v0")
 
-        val noFreemiumRule = exact(
-            "LIlIIlIIIlIIlllll;",
-            "lllIlIIIlllIIII",
-            "LIIlIIIIIlIII;",
-            "Landroid/content/Context;",
-            "LIIIIIlIIIlllIlI;",
-        ).method
-        val noFreemiumImpl = noFreemiumRule.implementation
-            ?: error("Deezer no-freemium startup rule has no code")
-        // Status 1 normally branches to the no-freemium deeplink. Re-point that single
-        // branch at the rule's existing null return so a stale cached 1 is ignored.
-        val statusCheck = noFreemiumRule.instructions.indexOfFirst { it.opcode == Opcode.IF_EQ }
-        check(statusCheck >= 0) { "Deezer no-freemium startup rule changed" }
-        val branch = noFreemiumRule.instructions[statusCheck] as? TwoRegisterInstruction
-            ?: error("Deezer no-freemium status check changed")
-        val nullReturn = noFreemiumRule.instructions.indexOfFirst {
-            it.opcode == Opcode.RETURN_OBJECT
-        }
-        check(nullReturn > statusCheck + 1) { "Deezer no-freemium null return changed" }
-        val nullLabel = noFreemiumImpl.newLabelForIndex(nullReturn - 1)
-        noFreemiumImpl.replaceInstruction(
-            statusCheck,
-            BuilderInstruction22t(Opcode.IF_EQ, branch.registerA, branch.registerB, nullLabel),
-        )
+        // R8 merged this rule with consent/logout rules in 27. Only variant 8
+        // is the no-freemium redirect; all other variants must retain their code.
+        suppressNoFreemiumStartup2703(exact("LlllllIlIIllIl;", "llIIIIIIlIIIIll", "LIlllllIIllIllII;",
+            "Landroid/content/Context;", "LIllllllIllIllIII;").method)
 
         // Menu id 5 is the Premium tab. Consume it before NavigationUI builds the
         // PremiumTabActivity intent; finishing that activity instead removes the
         // whole task and exposes the launcher.
         exact(
             "Lcom/deezer/ui/tabbar/NavigationTabBarFragment;",
-            "IllllIllllllIlll",
+            "IIIlIlIlIIlllll",
             "Z",
             "Landroid/view/MenuItem;",
         ).method.addInstructions(
@@ -87,10 +80,10 @@ val deezerRemovePaywalls = bytecodePatch(
         // the tab is absent rather than only ignored when it is clicked.
         val tabMenu = exact(
             "Lcom/deezer/ui/tabbar/NavigationTabBarFragment;",
-            "IllIIllllIlll",
+            "IIIIllllIIIIIllI",
             "V",
             "Landroid/view/Menu;",
-            "LIlllIIlllIIlIll;",
+            "LIIIIlIIIlIlIIIIl;",
             "Z",
         ).method
         val tabMenuImpl = tabMenu.implementation ?: error("Tab menu builder has no code")
@@ -108,18 +101,18 @@ val deezerRemovePaywalls = bytecodePatch(
         // Block that starter before it creates the dialog.
         exact(
             "Lcom/deezer/android/ui/activity/WebViewDialogActivity;",
-            "IIIIllIIIlllIlI",
+            "IlllIlllllIIllll",
             "V",
             "Landroid/content/Context;",
             "Ljava/lang/String;",
-            "LIllIIIIIllIll;",
+            "LlIlllllllllIllI;",
         ).method.addInstructions(
             0,
             """
                 const-string v0, "premiumtab"
                 invoke-virtual {p1, v0}, Ljava/lang/String;->contains(Ljava/lang/CharSequence;)Z
                 move-result v0
-                if-nez v0, :morphe_not_premium_web
+                if-eqz v0, :morphe_not_premium_web
                 return-void
                 :morphe_not_premium_web
             """,
@@ -145,34 +138,10 @@ val deezerRemovePaywalls = bytecodePatch(
                 invoke-virtual {v0, v1}, Ljava/lang/String;->contains(Ljava/lang/CharSequence;)Z
                 move-result v0
                 if-eqz v0, :morphe_web_continue
-                invoke-super/range {p0 .. p1}, Landroidx/fragment/app/llIllIlIIlIIll;->onCreate(Landroid/os/Bundle;)V
+                invoke-super/range {p0 .. p1}, LIIlIIIlIIlIIlIII;->onCreate(Landroid/os/Bundle;)V
                 invoke-virtual/range {p0 .. p0}, Lcom/deezer/android/ui/activity/WebViewDialogActivity;->finish()V
                 return-void
                 :morphe_web_continue
-            """,
-        )
-
-        // The direct launcher in the deep-link action switch builds the same
-        // WebViewDialogActivity. Return before it starts for a premiumtab URL.
-        val webAction = exact(
-            "LllIIIllllIlIIII;",
-            "lIllllIIIIII",
-            "V",
-            "Landroid/content/Context;",
-        ).method
-        val webDialogClass = webAction.instructions.indexOfFirst { instruction ->
-            instruction.opcode == com.android.tools.smali.dexlib2.Opcode.CONST_CLASS
-        }
-        check(webDialogClass >= 0) { "Deezer WebViewDialogActivity launcher changed" }
-        webAction.addInstructions(
-            webDialogClass,
-            """
-                const-string v3, "premiumtab"
-                invoke-virtual {v2, v3}, Ljava/lang/String;->contains(Ljava/lang/CharSequence;)Z
-                move-result v3
-                if-eqz v3, :morphe_web_launcher_continue
-                return-void
-                :morphe_web_launcher_continue
             """,
         )
 

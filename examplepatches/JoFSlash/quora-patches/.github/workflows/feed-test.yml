@@ -11,12 +11,12 @@ name: Feed test
 # A run on main that doesn't pass (a failed check, or a skip because the session no longer works)
 # opens the issue "Feed test needs attention", or comments on it; the next run that passes closes it.
 # It needs these secrets:
-#   QUORA_APKS_TOKEN     read access to JoFSlash/quora-apks (see emulator.yml)
+#   APKS_TOKEN     read access to JoFSlash/morphe-apks (see emulator.yml)
 #   QUORA_TEST_EMAIL     a Quora account made only for this test
 #   QUORA_TEST_PASSWORD  its password
 #   QUORA_TEST_COOKIES   a signed-in session of that account (m-b=…; m-b_lax=…; …), used instead of
 #                        signing in: Quora asks every new device for a code sent by email, and each
-#                        run is a new emulator. See CONTRIBUTING.md for how to get it.
+#                        run is a new emulator. See docs/quora/CONTRIBUTING.md for how to get it.
 # Without a session or a password the test is skipped. When Quora clearly asks for more than a
 # password (a captcha or a code) the test is skipped with a warning; any other failure fails it.
 #
@@ -53,13 +53,13 @@ jobs:
       - name: Check the secrets
         id: secrets
         env:
-          TOKEN: ${{ secrets.QUORA_APKS_TOKEN }}
+          TOKEN: ${{ secrets.APKS_TOKEN || secrets.QUORA_APKS_TOKEN }}
           EMAIL: ${{ secrets.QUORA_TEST_EMAIL }}
           PASSWORD: ${{ secrets.QUORA_TEST_PASSWORD }}
           COOKIES: ${{ secrets.QUORA_TEST_COOKIES }}
         run: |
           if [ -z "$TOKEN" ] || { [ -z "$COOKIES" ] && { [ -z "$EMAIL" ] || [ -z "$PASSWORD" ]; }; }; then
-            echo "::notice::QUORA_APKS_TOKEN, or QUORA_TEST_COOKIES or QUORA_TEST_EMAIL and QUORA_TEST_PASSWORD, aren't set, so the feed test is skipped."
+            echo "::notice::APKS_TOKEN, or QUORA_TEST_COOKIES or QUORA_TEST_EMAIL and QUORA_TEST_PASSWORD, aren't set, so the feed test is skipped."
             echo "skip=true" >> "$GITHUB_OUTPUT"
           fi
 
@@ -83,7 +83,7 @@ jobs:
       - name: Turn on WebView debugging for this test build
         if: steps.secrets.outputs.skip != 'true'
         run: |
-          file=extensions/extension/src/main/java/app/jofslash/extension/quora/RemoveAdsPatch.java
+          file=extensions/quora/src/main/java/app/jofslash/extension/quora/RemoveAdsPatch.java
           line='    public static void onPageFinished(WebView webView) {'
           grep -qF "$line" "$file" || { echo "::error::onPageFinished not found in RemoveAdsPatch.java"; exit 1; }
           sed -i "s|^$line\$|&\n        WebView.setWebContentsDebuggingEnabled(true); // feed test build only|" "$file"
@@ -94,12 +94,12 @@ jobs:
         env:
           GITHUB_ACTOR: ${{ github.actor }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: ./gradlew :patches:buildAndroid --no-daemon
+        run: bash .github/scripts/gradle-retry.sh :patches:buildAndroid --no-daemon
 
       - name: Download Quora and the Morphe CLI
         if: steps.secrets.outputs.skip != 'true'
         env:
-          APKS_TOKEN: ${{ secrets.QUORA_APKS_TOKEN }}
+          APKS_TOKEN: ${{ secrets.APKS_TOKEN || secrets.QUORA_APKS_TOKEN }}
           GH_TOKEN: ${{ github.token }}
         run: |
           MORPHE_CLI_VERSION=$(cat .github/morphe-cli-version)
@@ -108,7 +108,7 @@ jobs:
           QUORA_VERSION=$(grep -oE 'AppTarget\(version = "[0-9.]+"' patches/src/main/kotlin/app/jofslash/patches/quora/shared/Constants.kt \
             | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | sort -V | tail -1)
           echo "Quora $QUORA_VERSION"
-          GH_TOKEN="$APKS_TOKEN" gh release download "quora-$QUORA_VERSION" -R JoFSlash/quora-apks \
+          GH_TOKEN="$APKS_TOKEN" gh release download "quora-$QUORA_VERSION" -R JoFSlash/morphe-apks \
             -p "quora-$QUORA_VERSION.apkm" -O "$RUNNER_TEMP/quora.apkm"
           gh release download "$MORPHE_CLI_VERSION" -R MorpheApp/morphe-cli -p 'morphe-desktop-*-all.jar' \
             -O "$RUNNER_TEMP/morphe-cli.jar"

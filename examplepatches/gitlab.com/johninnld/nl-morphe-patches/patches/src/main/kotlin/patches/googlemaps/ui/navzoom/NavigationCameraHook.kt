@@ -37,6 +37,24 @@ private object NavCameraUpdateFingerprint2644 : Fingerprint(
     custom = { method, _ -> method.definingClass == "Lbmly;" },
 )
 
+/** 26.47 moved the controller to bmtc and re-targets a cfxn (not an Optional). */
+private object NavCameraUpdateFingerprint2647 : Fingerprint(
+    returnType = "Lcfxn;",
+    filters = listOf(
+        string("NavigationCameraControllerImpl.updateSharedCameraMode"),
+        methodCall(opcode = Opcode.INVOKE_VIRTUAL, returnType = "Lcfxn;", parameters = listOf("Lcfym;", "Lbmnu;", "Z")),
+        opcode(Opcode.MOVE_RESULT_OBJECT, MatchAfterImmediately()),
+    ),
+    custom = { method, _ -> method.definingClass == "Lbmtc;" },
+)
+
+private object NavCameraTeardownFingerprint2647 : Fingerprint(
+    classFingerprint = NavCameraUpdateFingerprint2647,
+    name = "g",
+    returnType = "V",
+    parameters = emptyList(),
+)
+
 private object NavCameraTeardownFingerprint2644 : Fingerprint(
     classFingerprint = NavCameraUpdateFingerprint2644,
     name = "g",
@@ -65,8 +83,16 @@ internal val navigationCameraHookPatch = bytecodePatch(
     dependsOn(sharedExtensionPatch)
 
     execute {
-        val update = if (packageMetadata.versionName == "26.44.06.1006895251") NavCameraUpdateFingerprint2644 else NavCameraUpdateFingerprint
-        val teardown = if (packageMetadata.versionName == "26.44.06.1006895251") NavCameraTeardownFingerprint2644 else NavCameraTeardownFingerprint
+        val update = when (packageMetadata.versionName) {
+            "26.44.06.1006895251" -> NavCameraUpdateFingerprint2644
+            "26.47.00.1022347503" -> NavCameraUpdateFingerprint2647
+            else -> NavCameraUpdateFingerprint
+        }
+        val teardown = when (packageMetadata.versionName) {
+            "26.44.06.1006895251" -> NavCameraTeardownFingerprint2644
+            "26.47.00.1022347503" -> NavCameraTeardownFingerprint2647
+            else -> NavCameraTeardownFingerprint
+        }
         update.let { fp ->
             // Capture before editing: the entry hook below shifts every index by one.
             val afterRetarget = fp.instructionMatches.last().index + 1

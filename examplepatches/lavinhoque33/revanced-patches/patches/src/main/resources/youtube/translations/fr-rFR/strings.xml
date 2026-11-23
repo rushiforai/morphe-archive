@@ -290,8 +290,10 @@ Pour corriger cela, activez 'Falsifier les flux vidéo' et définissez 'Client p
     <string name="morphe_playback_in_feeds_entry_off">Désactivé</string>
     <string name="morphe_playback_in_feeds_entry_wifi_only">Wi-Fi uniquement</string>
     <string name="morphe_playback_in_feeds_title">Lecture dans les flux</string>
-    <string name="morphe_player_control_buttons_background_opacity_summary">Ajustez l\'opacité de l\'arrière-plan derrière les boutons de contrôle du lecteur et la barre de temps (0 est invisible, 100 est opaque)</string>
-    <string name="morphe_player_control_buttons_background_opacity_title">Opacité de l\'arrière-plan des boutons de contrôle</string>
+    <string name="morphe_player_transport_background_opacity_summary">Ajustez l\'opacité de l\'arrière-plan des boutons Lire, Pause, Relire, Suivant et Précédent</string>
+    <string name="morphe_player_transport_background_opacity_title">Opacité du fond des commandes de lecture</string>
+    <string name="morphe_player_other_overlay_background_opacity_summary">Ajustez l\'opacité de l\'arrière-plan des autres boutons du lecteur et de l\'indication du temps</string>
+    <string name="morphe_player_other_overlay_background_opacity_title">Opacité du fond des autres éléments de l\'overlay</string>
     <string name="morphe_playlist_hide_removal_snackbar_summary">La confirmation ne s\'affiche pas après la suppression d\'une vidéo d\'une playlist</string>
     <string name="morphe_playlist_hide_removal_snackbar_title">Masquer la snackbar de suppression de playlist</string>
     <string name="morphe_playlist_long_press_drag_summary">Appuyez longuement sur une vidéo de votre playlist pour la faire glisser vers une nouvelle position</string>

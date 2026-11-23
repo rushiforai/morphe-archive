@@ -87,7 +87,7 @@ val chatHeadsPatch = bytecodePatch(
         packageName = "com.zing.zalo",
         apkFileType = ApkFileType.APKM,
         appIconColor = 0x0068FF,
-        targets = listOf(AppTarget(version = "26.10.02")),
+        targets = listOf(AppTarget(version = "26.11.01")),
     ))
 
     dependsOn(nativeSignaturePatch)
@@ -130,16 +130,20 @@ val chatHeadsPatch = bytecodePatch(
             check(click.implementation!!.registerCount == 4)
             val dispatchIndex = click.implementation!!.instructions.indexOfLast { it.opcode == Opcode.INVOKE_VIRTUAL }
             val dispatch = click.implementation!!.instructions.elementAt(dispatchIndex) as FiveRegisterInstruction
-            check(dispatch.registerC == 3 && dispatch.registerD == 1 && dispatch.registerCount == 2)
+            check(dispatch.registerCount == 2)
+            val dispatchReceiver = dispatch.registerC
+            val dispatchOption = dispatch.registerD
+            // A parameter register that is neither operand; dead after the dispatch call.
+            val dispatchScratch = (0 until 4).first { it != dispatchReceiver && it != dispatchOption && it != 0 }
             val dispatchReference = (dispatch as ReferenceInstruction).reference
             val clickReturn = click.implementation!!.instructions.elementAt(dispatchIndex + 1)
             check(clickReturn.opcode == Opcode.RETURN_VOID)
             click.replaceInstruction(dispatchIndex,
-                "invoke-static {p3, p1}, Lapp/template/extension/extension/ChatHeadAction;->handleOption(Ljava/lang/Object;Ljava/lang/Object;)Z")
+                "invoke-static {v$dispatchReceiver, v$dispatchOption}, Lapp/template/extension/extension/ChatHeadAction;->handleOption(Ljava/lang/Object;Ljava/lang/Object;)Z")
             click.addInstructionsWithLabels(dispatchIndex + 1, """
-                move-result p2
-                if-nez p2, :zalo_chat_info_handled
-                invoke-virtual {p3, p1}, $dispatchReference
+                move-result v$dispatchScratch
+                if-nez v$dispatchScratch, :zalo_chat_info_handled
+                invoke-virtual {v$dispatchReceiver, v$dispatchOption}, $dispatchReference
             """.trimIndent(), ExternalLabel("zalo_chat_info_handled", clickReturn))
 
             check(MiniChatReceiverFingerprint.matchAll(1..1).size == 1)

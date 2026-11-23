@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.net.ConnectivityManager;
 import android.net.Uri;
 import android.util.Log;
 
@@ -42,6 +43,7 @@ import java.util.regex.Pattern;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
+import app.hoitruyenchu.extension.itruyenchu.patches.shared.HtcSettings;
 import okhttp3.OkHttpClient;
 
 /**
@@ -122,7 +124,7 @@ public final class ChapterTitlesPatch {
      */
     public static void beforeStorageGet(ReadableArray keys, Executor executor) {
         try {
-            if (keys == null || executor == null) return;
+            if (keys == null || executor == null || !enabled()) return;
             for (int i = 0; i < keys.size(); i++) {
                 if (keys.isNull(i)) continue;
                 final String key = keys.getString(i);
@@ -145,10 +147,11 @@ public final class ChapterTitlesPatch {
      * @return the list with the real titles (same format), or null to keep the original.
      */
     static byte[] onChapterList(String slug, byte[] raw) throws Exception {
+        if (!enabled()) return null;
         boolean gzip = isGzip(raw);
         JSONObject list = new JSONObject(new String(gzip ? gunzip(raw, false) : raw, StandardCharsets.UTF_8));
         Book book = book(slug);
-        List<String> missing = book.missing(list);
+        List<String> missing = networkAllowed() ? book.missing(list) : new ArrayList<>();
         if (!missing.isEmpty()) {
             CountDownLatch done = fetch(book, missing);
             if (!done.await(LIST_WAIT_MS, TimeUnit.MILLISECONDS)) {
@@ -172,7 +175,7 @@ public final class ChapterTitlesPatch {
             JSONObject list = stored.optJSONObject("data");
             if (list == null) return;
             Book book = book(slug);
-            List<String> missing = book.missing(list);
+            List<String> missing = networkAllowed() ? book.missing(list) : new ArrayList<>();
             if (!missing.isEmpty()) fetch(book, missing); // background, ready next time
             if (book.apply(list) > 0 && writeDb(key, stored.toString())) {
                 Log.i(TAG, slug + ": real titles written into the stored chapter list");
@@ -180,6 +183,58 @@ public final class ChapterTitlesPatch {
         } catch (Throwable t) {
             Log.w(TAG, "updating the stored chapter list failed: " + t);
         }
+    }
+
+    // ---------------------------------------------------------------------------------------------
+    // Settings
+
+    private static boolean enabled() {
+        return HtcSettings.bool(HtcSettings.TITLES_ENABLED);
+    }
+
+    /** "Fetch new titles on Wi-Fi only": no download on a metered network. */
+    @SuppressWarnings("deprecation")
+    private static boolean networkAllowed() {
+        if (!HtcSettings.bool(HtcSettings.TITLES_WIFI_ONLY)) return true;
+        try {
+            Context context = context();
+            ConnectivityManager cm = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+            return cm != null && !cm.isActiveNetworkMetered();
+        } catch (Throwable t) {
+            return true;
+        }
+    }
+
+    /**
+     * The title put into the list: only the name, the app itself shows "Chương 12: " in front of it.
+     * (A list with "Chương 12: Tên" in it, from a test build, is turned back into the name.)
+     */
+    private static String display(String key, String title) {
+        return title;
+    }
+
+    /** Size in bytes of the title cache. */
+    public static long cacheSize() {
+        Context context = context();
+        if (context == null) return 0;
+        File[] files = new File(context.getFilesDir(), CACHE_DIR).listFiles();
+        long size = 0;
+        if (files != null) for (File f : files) size += f.length();
+        return size;
+    }
+
+    /** Deletes the title cache. @return number of books removed. */
+    public static int clearCache() {
+        Context context = context();
+        int count = 0;
+        synchronized (books) {
+            books.clear();
+            if (context == null) return 0;
+            File[] files = new File(context.getFilesDir(), CACHE_DIR).listFiles();
+            if (files != null) for (File f : files) if (f.delete()) count++;
+        }
+        Log.i(TAG, "title cache cleared (" + count + " books)");
+        return count;
     }
 
     /** Title shown by the app for a chapter, or null if it is only the chapter number. */
@@ -219,15 +274,22 @@ public final class ChapterTitlesPatch {
             return prioritize(keys, readingChapter(slug));
         }
 
-        /** Replaces generic titles with the known ones. @return number of chapters with a real title. */
+        /**
+         * Replaces generic titles with the known ones (also titles put earlier in the other display
+         * format). @return number of chapters with a real title.
+         */
         synchronized int apply(JSONObject list) throws Exception {
             int count = 0;
             for (Iterator<String> it = list.keys(); it.hasNext(); ) {
                 String key = it.next();
                 String title = titles.get(key);
                 JSONObject chapter = list.optJSONObject(key);
-                if (title == null || chapter == null || !isGeneric(chapter.opt("title"))) continue;
-                chapter.put("title", title);
+                if (title == null || chapter == null) continue;
+                Object current = chapter.opt("title");
+                String shown = display(key, title);
+                boolean ours = title.equals(current) || ("Chương " + key + ": " + title).equals(current);
+                if (!isGeneric(current) && !ours) continue;
+                if (!shown.equals(current)) chapter.put("title", shown);
                 count++;
             }
             return count;

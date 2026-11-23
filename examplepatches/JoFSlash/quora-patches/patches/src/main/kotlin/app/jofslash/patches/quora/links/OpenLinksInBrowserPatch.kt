@@ -24,7 +24,7 @@ val openLinksInBrowserPatch = bytecodePatch(
     category("App")
     compatibleWith(COMPATIBILITY_QUORA)
 
-    extendWith("extensions/extension.mpe")
+    extendWith("extensions/quora.mpe")
 
     execute {
         registerSetting("openLinksInBrowser", "Open links in browser")

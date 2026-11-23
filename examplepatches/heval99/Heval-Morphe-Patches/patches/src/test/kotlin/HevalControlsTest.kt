@@ -215,7 +215,7 @@ class HevalControlsTest {
             "block_marketing_notifications", "disable_rating_prompts", "amoled_black", "slower_widget_refresh",
             "turn_off_video_autoplay", "compact_match_lists", "keep_screen_on", "clean_share_links", "disable_screenshot_prompt",
             "animations_off", "animations_fast", "spoiler_free", "spoiler_notifications", "spoiler_lists", "spoiler_widget",
-            "spoiler_events", "spoiler_competitions",
+            "spoiler_match_page", "spoiler_keep_final", "spoiler_events", "spoiler_competitions",
         ) + listOf("favorites", "feed", "fantasy", "featured").map { "hide_main_tab_$it" } +
             listOf("commentary", "crowdsourcing", "media", "graphs", "standings", "cup_tree", "matches").map { "hide_tab_$it" } +
             sports.map { "hide_sport_$it" } +
@@ -236,6 +236,42 @@ class HevalControlsTest {
             assertTrue(text.length <= 90, "${feature.id}: description too long (${text.length}): $text")
             assertTrue(feature.name.length <= 40, "${feature.id}: name too long: ${feature.name}")
             assertTrue(!technical.containsMatchIn(text) && !technical.containsMatchIn(feature.name), "${feature.id}: technical words: ${feature.name} / $text")
+        }
+    }
+
+    /**
+     * The FotMob spoiler-free rows (2026-11-22 rework): ids kept, every surface depends on the master
+     * switch, "Keep final scores hidden" is off by default and not in Calm mode, and each row is one
+     * short plain sentence.
+     */
+    @Test
+    fun fotmobSpoilerRowsArePlain() {
+        val master = app.template.patches.fotmob.spoiler.SPOILER_FREE_MODE
+        val rows = listOf(
+            app.template.patches.fotmob.spoiler.SPOILER_FREE_MATCHES,
+            app.template.patches.fotmob.spoiler.SPOILER_FREE_COMPETITIONS,
+            app.template.patches.fotmob.spoiler.SPOILER_FREE_NOTIFICATIONS,
+            app.template.patches.fotmob.spoiler.SPOILER_FREE_LISTS,
+            app.template.patches.fotmob.spoiler.SPOILER_FREE_MATCH_PAGE,
+            app.template.patches.fotmob.spoiler.SPOILER_FREE_WIDGET,
+            app.template.patches.fotmob.spoiler.SPOILER_FREE_KEEP_FINAL,
+        )
+        assertEquals(
+            listOf("spoiler_matches", "spoiler_competitions", "spoiler_notifications", "spoiler_lists", "spoiler_match_page",
+                "spoiler_widget", "spoiler_keep_final").map { "fotmob.$it" },
+            rows.map { it.id },
+        )
+        rows.forEach { assertEquals(listOf(master.id), it.dependencies, "${it.id}: dependencies") }
+        val keepFinal = app.template.patches.fotmob.spoiler.SPOILER_FREE_KEEP_FINAL
+        assertTrue(!keepFinal.default && !keepFinal.calm, "Keep final scores hidden must be off by default and outside Calm mode")
+
+        val technical = Regex("\\b(SDK|Firebase|FCM|R8|API|modal|flag|enum)\\b", RegexOption.IGNORE_CASE)
+        (rows + master).forEach { feature ->
+            val text = feature.description
+            assertTrue(text.endsWith('.') && ". " !in text && '\n' !in text, "${feature.id}: not one sentence: $text")
+            assertTrue(text.length <= 90, "${feature.id}: description too long (${text.length}): $text")
+            assertTrue(feature.name.length <= 40, "${feature.id}: name too long: ${feature.name}")
+            assertTrue(!technical.containsMatchIn(text), "${feature.id}: technical words: $text")
         }
     }
 

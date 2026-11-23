@@ -293,8 +293,10 @@ Lista jest pobierana z GitHuba, a filmy są filtrowane na Twoim urządzeniu"</st
     <string name="morphe_playback_in_feeds_entry_off">Wyłączone</string>
     <string name="morphe_playback_in_feeds_entry_wifi_only">Tylko Wi-Fi</string>
     <string name="morphe_playback_in_feeds_title">Odtwarzanie w kanałach</string>
-    <string name="morphe_player_control_buttons_background_opacity_summary">Dostosuj krycie tła za przyciskami sterowania odtwarzacza i paskiem czasu (0 to brak krycia, 100 to pełne krycie)</string>
-    <string name="morphe_player_control_buttons_background_opacity_title">Krycie tła przycisków sterowania</string>
+    <string name="morphe_player_transport_background_opacity_summary">Dostosuj krycie tła przycisków Odtwórz, Wstrzymaj, Odtwórz ponownie, Następny i Poprzedni</string>
+    <string name="morphe_player_transport_background_opacity_title">Krycie tła przycisków odtwarzania</string>
+    <string name="morphe_player_other_overlay_background_opacity_summary">Dostosuj krycie tła pozostałych przycisków odtwarzacza i wskaźnika czasu</string>
+    <string name="morphe_player_other_overlay_background_opacity_title">Krycie tła pozostałych elementów nakładki</string>
     <string name="morphe_playlist_hide_removal_snackbar_summary">Potwierdzenie nie jest wyświetlane po usunięciu filmu z playlisty</string>
     <string name="morphe_playlist_hide_removal_snackbar_title">Ukryj pasek powiadomienia o usunięciu z playlisty</string>
     <string name="morphe_playlist_long_press_drag_summary">Przytrzymaj film na swojej playliście, aby przeciągnąć go na nową pozycję</string>

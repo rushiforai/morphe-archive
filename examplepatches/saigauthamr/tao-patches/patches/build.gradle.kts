@@ -1,0 +1,38 @@
+group = "app.ffn"
+
+patches {
+    about {
+        name = "Tao Patches"
+        description = "Fewer server requests, no telemetry and a more responsive FanFiction.Net app"
+        source = "git@github.com:saigauthamr/tao-patches.git"
+        author = "saigauthamr"
+        contact = "https://github.com/saigauthamr/tao-patches/issues"
+        website = "https://github.com/saigauthamr/tao-patches"
+        license = "GPLv3"
+    }
+}
+
+// Separate configuration so gson is available at runtime for the
+// generatePatchesList task but never bundled into the APK.
+val patchListGeneratorClasspath = configurations.create("patchListGeneratorClasspath")
+
+dependencies {
+    compileOnly(libs.gson)
+    patchListGeneratorClasspath(libs.gson)
+}
+
+tasks {
+    register<JavaExec>("generatePatchesList") {
+        description = "Build patch with patch list"
+
+        dependsOn(build)
+
+        classpath = sourceSets["main"].runtimeClasspath + patchListGeneratorClasspath
+        mainClass.set("util.PatchListGeneratorKt")
+    }
+
+    // Used by gradle-semantic-release-plugin.
+    publish {
+        dependsOn("generatePatchesList")
+    }
+}

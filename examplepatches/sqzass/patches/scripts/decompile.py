@@ -6,8 +6,8 @@ Project: lusted-patches
 
 Purpose:
   Batch-decompiles Android app packages (.apk, .apks, .xapk, .apkm, .aab, .zip)
-  into unified readable Java/Kotlin sources (via JADX) and disassembled Smali
-  bytecode / decoded Android resources (via Apktool) for reverse engineering
+  into disassembled Smali bytecode / decoded Android resources (via Apktool) and
+  optionally readable Java/Kotlin sources (via JADX) for reverse engineering
   and authoring custom Morphe patches.
 
 Supported Formats:
@@ -22,11 +22,15 @@ Workflow:
   1. Scans 'apks/in/' for all supported app files and processes them all at once.
   2. Unpacks split bundles (.apks, .xapk, .apkm, .zip) to extract all APK splits.
   3. Identifies the base APK and all configuration/feature splits.
-  4. Feeds all code-bearing APKs to JADX for a unified Java source tree in 'apks/out/<app>/sources/'.
-  5. Decodes base & feature resources and Smali bytecode in 'apks/out/<app>/smali_res/'.
+  4. Decodes base & feature resources and Smali bytecode in 'apks/out/<app>/smali_res/'.
+  5. (Optional, --jadx) Feeds all code-bearing APKs to JADX for a unified Java source tree.
   6. Preserves extracted split APKs in 'apks/out/<app>/splits/' for patch inspection.
   7. Generates comprehensive metadata summary in 'apks/out/<app>/apk_info.json'.
   8. Upon successful decompilation and verification, deletes the input file from 'apks/in/'.
+
+Default Behavior:
+  By default, only Smali/Resources are decoded (Apktool). This is faster and uses less memory.
+  Use --jadx to also decompile Java/Kotlin sources (JADX). Use --zip to auto-zip output.
 """
 
 import argparse
@@ -186,10 +190,10 @@ def select_base_apk(apk_paths: list[Path]) -> Path:
 
 
 def decompile_app(input_path: Path, output_base: Path, keep_input: bool = False,
-                  java_only: bool = False, smali_only: bool = False) -> bool:
+                  run_jadx: bool = False, heap_size: str = "2g", create_zip: bool = False) -> bool:
     """
     Decompiles any supported app package (.apk, .apks, .xapk, .apkm, .aab, .zip)
-    into readable Java sources and Smali/resources, then removes input file upon finish.
+    into Smali/resources and optionally Java sources, then removes input file upon finish.
     """
     stem = input_path.stem
     ext = input_path.suffix.lower()
@@ -278,15 +282,61 @@ def decompile_app(input_path: Path, output_base: Path, keep_input: bool = False,
         java_success = False
         smali_success = False
 
-        # Step 2: Java Decompilation with JADX
-        if not smali_only:
-            print("[1/2] ☕ Decompiling Java/Kotlin source code with JADX...")
+        # Step 2: Resources & Smali Disassembly with Apktool (default behavior)
+        print("[1/2] 📱 Decoding resources & disassembling Smali bytecode with Apktool...")
+        if smali_res_out.exists():
+            shutil.rmtree(smali_res_out, ignore_errors=True)
+
+        # Decode Base APK
+        apktool_cmd = [
+            find_java(),
+            f"-Xmx{heap_size}",
+            "-jar", str(APKTOOL_JAR),
+            "d", "-f",
+            "-o", str(smali_res_out),
+            str(base_apk_path)
+        ]
+        try:
+            res = subprocess.run(apktool_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+            manifest = smali_res_out / "AndroidManifest.xml"
+            if res.returncode == 0 and manifest.exists():
+                smali_dirs = [p.name for p in smali_res_out.glob("smali*") if p.is_dir()]
+                print(f"   ✅ Base APK decoded! Manifest verified, found {len(smali_dirs)} smali root folder(s).")
+                smali_success = True
+            else:
+                print(f"   ❌ Apktool failed on base APK (code {res.returncode}): {res.stderr[:500]}")
+        except Exception as e:
+            print(f"   ❌ Error executing Apktool: {e}")
+
+        # Decode any feature splits that contain DEX bytecode
+        feature_splits = [a for a in all_apk_paths if a != base_apk_path and apk_has_dex(a)]
+        if smali_success and feature_splits:
+            splits_out = smali_res_out / "splits"
+            splits_out.mkdir(parents=True, exist_ok=True)
+            print(f"[*] Decoding {len(feature_splits)} feature split(s) containing DEX bytecode...")
+            for s_apk in feature_splits:
+                s_out = splits_out / s_apk.stem
+                sub_cmd = [
+                    find_java(),
+                    f"-Xmx{heap_size}",
+                    "-jar", str(APKTOOL_JAR),
+                    "d", "-f",
+                    "-o", str(s_out),
+                    str(s_apk)
+                ]
+                subprocess.run(sub_cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            print(f"   ✅ Feature split bytecode decoded into {splits_out.name}/.")
+
+        # Step 3: Java Decompilation with JADX (optional, opt-in)
+        if run_jadx:
+            print("[2/2] ☕ Decompiling Java/Kotlin source code with JADX...")
             sources_out.mkdir(parents=True, exist_ok=True)
 
             # Pass base and all splits containing DEX to JADX for complete unified sources
             code_apks = [a for a in all_apk_paths if a == base_apk_path or apk_has_dex(a)]
             jadx_cmd = [
                 str(JADX_BAT),
+                "-Xmx" + heap_size,
                 "-d", str(sources_out),
                 "--show-bad-code",
                 "--no-res",
@@ -306,58 +356,24 @@ def decompile_app(input_path: Path, output_base: Path, keep_input: bool = False,
             except Exception as e:
                 print(f"   ❌ Error executing JADX: {e}")
         else:
-            java_success = True
-
-        # Step 3: Resources & Smali Disassembly with Apktool
-        if not java_only:
-            print("[2/2] 📱 Decoding resources & disassembling Smali bytecode with Apktool...")
-            if smali_res_out.exists():
-                shutil.rmtree(smali_res_out, ignore_errors=True)
-
-            # Decode Base APK
-            apktool_cmd = [
-                find_java(),
-                "-jar", str(APKTOOL_JAR),
-                "d", "-f",
-                "-o", str(smali_res_out),
-                str(base_apk_path)
-            ]
-            try:
-                res = subprocess.run(apktool_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-                manifest = smali_res_out / "AndroidManifest.xml"
-                if res.returncode == 0 and manifest.exists():
-                    smali_dirs = [p.name for p in smali_res_out.glob("smali*") if p.is_dir()]
-                    print(f"   ✅ Base APK decoded! Manifest verified, found {len(smali_dirs)} smali root folder(s).")
-                    smali_success = True
-                else:
-                    print(f"   ❌ Apktool failed on base APK (code {res.returncode}): {res.stderr[:500]}")
-            except Exception as e:
-                print(f"   ❌ Error executing Apktool: {e}")
-
-            # Decode any feature splits that contain DEX bytecode
-            feature_splits = [a for a in all_apk_paths if a != base_apk_path and apk_has_dex(a)]
-            if smali_success and feature_splits:
-                splits_out = smali_res_out / "splits"
-                splits_out.mkdir(parents=True, exist_ok=True)
-                print(f"[*] Decoding {len(feature_splits)} feature split(s) containing DEX bytecode...")
-                for s_apk in feature_splits:
-                    s_out = splits_out / s_apk.stem
-                    sub_cmd = [
-                        find_java(),
-                        "-jar", str(APKTOOL_JAR),
-                        "d", "-f",
-                        "-o", str(s_out),
-                        str(s_apk)
-                    ]
-                    subprocess.run(sub_cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-                print(f"   ✅ Feature split bytecode decoded into {splits_out.name}/.")
-        else:
-            smali_success = True
+            java_success = True  # Skip JADX by default
+            print("[2/2] ⏭️  Skipping JADX (--jadx not specified, using Smali only)")
 
         elapsed = time.time() - start_time
 
         # Step 4: Verification and Metadata Extraction
         if java_success and smali_success:
+            # Use os.path.relpath instead of relative_to to handle output outside ROOT_DIR
+            try:
+                sources_rel = os.path.relpath(sources_out, ROOT_DIR) if sources_out.exists() else None
+                smali_rel = os.path.relpath(smali_res_out, ROOT_DIR) if smali_res_out.exists() else None
+                splits_rel = os.path.relpath(splits_storage_out, ROOT_DIR) if splits_storage_out.exists() else None
+            except ValueError:
+                # Fallback to absolute paths if outside repo
+                sources_rel = str(sources_out) if sources_out.exists() else None
+                smali_rel = str(smali_res_out) if smali_res_out.exists() else None
+                splits_rel = str(splits_storage_out) if splits_storage_out.exists() else None
+
             metadata = {
                 "input_file": input_path.name,
                 "input_format": ext.lstrip("."),
@@ -371,14 +387,15 @@ def decompile_app(input_path: Path, output_base: Path, keep_input: bool = False,
                     {"name": a.name, "size_bytes": a.stat().st_size, "has_dex": apk_has_dex(a)}
                     for a in all_apk_paths
                 ],
-                "paths": {
-                    "java_sources": str(sources_out.relative_to(ROOT_DIR)),
-                    "smali_and_resources": str(smali_res_out.relative_to(ROOT_DIR))
-                }
+                "paths": {}
             }
 
-            if splits_storage_out.exists():
-                metadata["paths"]["splits"] = str(splits_storage_out.relative_to(ROOT_DIR))
+            if sources_rel:
+                metadata["paths"]["java_sources"] = sources_rel
+            if smali_rel:
+                metadata["paths"]["smali_and_resources"] = smali_rel
+            if splits_rel:
+                metadata["paths"]["splits"] = splits_rel
 
             if smali_res_out.exists():
                 parsed_meta = extract_apktool_metadata(smali_res_out)
@@ -397,7 +414,22 @@ def decompile_app(input_path: Path, output_base: Path, keep_input: bool = False,
                 print(f"   🏷️  Version: {metadata.get('version_name')} (code: {metadata.get('version_code')})")
                 print(f"   🎯 Min SDK: {metadata.get('min_sdk')} | Target SDK: {metadata.get('target_sdk')}")
 
-            # Step 5: Delete input app file upon finish
+            # Step 5: Create zip archive if requested
+            if create_zip:
+                zip_path = output_base / f"{stem}.zip"
+                print(f"   📦 Creating zip archive: {zip_path.name}")
+                try:
+                    with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED) as zf:
+                        for root, dirs, files in os.walk(target_out):
+                            for file in files:
+                                file_path = Path(root) / file
+                                arcname = file_path.relative_to(target_out)
+                                zf.write(file_path, arcname)
+                    print(f"   ✅ Zip archive created: {zip_path.name}")
+                except Exception as e:
+                    print(f"   ⚠️  Could not create zip archive: {e}")
+
+            # Step 6: Delete input app file upon finish
             if not keep_input:
                 try:
                     input_path.unlink()
@@ -452,14 +484,20 @@ def main():
         help="Only verify/download tool binaries and exit"
     )
     parser.add_argument(
-        "--java-only",
+        "--jadx",
         action="store_true",
-        help="Only decompile Java/Kotlin source code (JADX)"
+        help="Also decompile Java/Kotlin source code with JADX (uses more memory)"
     )
     parser.add_argument(
-        "--smali-only",
+        "-xmx", "--heap",
+        type=str,
+        default="2g",
+        help="JVM heap size for Apktool/JADX (default: 2g). Use values like 1g, 2g, 4g."
+    )
+    parser.add_argument(
+        "--zip",
         action="store_true",
-        help="Only decode Smali & Android resources (Apktool)"
+        help="Create a zip archive of the decompiled output folder"
     )
 
     args = parser.parse_args()
@@ -513,8 +551,9 @@ def main():
             input_path=app_file,
             output_base=output_dir,
             keep_input=args.keep_input,
-            java_only=args.java_only,
-            smali_only=args.smali_only
+            run_jadx=args.jadx,
+            heap_size=args.heap,
+            create_zip=args.zip
         )
         if ok:
             success_count += 1

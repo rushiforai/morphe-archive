@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.0.7
+
+### Added
+
+- **GIF search providers** lets you switch the comment GIF picker between KLIPY, WebNovel's own provider, and GIPHY under **Patch controls > GIFs**. GIPHY needs your own free API key, which stays on your device. Tenor is not offered because Google shut its API down on June 30, 2026.
+
 ## 1.0.6
 
 ### Added

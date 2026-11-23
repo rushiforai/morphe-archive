@@ -66,6 +66,7 @@ jobs:
             --arg url "https://github.com/$GITHUB_REPOSITORY/releases/download/v$VERSION/patches-$VERSION.mpp" \
             '{created_at: (now | strftime("%Y-%m-%dT%H:%M:%S")),
               description: "Baseline release: one bundle carrying every patch for every supported app.",
+              summary: "One bundle carrying every patch for every supported app.",
               download_url: $url,
               signature_download_url: "",
               version: $v}' > patches-bundle.json

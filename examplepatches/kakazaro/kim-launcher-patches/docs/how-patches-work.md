@@ -73,7 +73,7 @@ its result, but the download and installer step is never reached.
 
 - Hook points are found by fingerprint, so a new app version often still works. If the code changed
   too much, the patch **stops with an error** instead of producing a broken APK.
-- Each patch declares which versions it was written for (`KimCompatibility.kt`: `1.0.2787`).
+- Each patch declares which versions it was written for (`KimCompatibility.kt`: `1.0.2796`).
 - Always test after patching. We verified the smali assembles, but nothing replaces a real run.
 
 ## 6. How I find where to hook (you can do this too)

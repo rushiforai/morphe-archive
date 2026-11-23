@@ -186,7 +186,7 @@ public final class MediaDownload {
 
     private static void attach(View item, Object submission, boolean modern) {
         if (item == null) return;
-        List<File> files = submission == null ? Collections.<File>emptyList() : files(submission);
+        List<File> files = submission == null ? Collections.<File>emptyList() : cachedFiles(submission);
         catalog(submission, files);
         View barView = find(item, "actionbar_layout");
         if (!(barView instanceof ViewGroup)) return;
@@ -576,6 +576,21 @@ public final class MediaDownload {
         return String.join("_", bits) + ".jpg";
     }
 
+    /**
+     * Runs on every post bind. Reading a post's fields and, for galleries, every image in it is done
+     * once per post. An empty answer is not kept, so a post that was not ready is read again.
+     */
+    private static final Map<Object, List<File>> FILE_CACHE =
+            Collections.synchronizedMap(new java.util.WeakHashMap<Object, List<File>>());
+
+    private static List<File> cachedFiles(Object submission) {
+        List<File> known = FILE_CACHE.get(submission);
+        if (known != null) return known;
+        List<File> made = files(submission);
+        if (!made.isEmpty()) FILE_CACHE.put(submission, made);
+        return made;
+    }
+
     private static List<File> files(Object submission) {
         List<File> list = new ArrayList<>();
         try {
@@ -715,6 +730,7 @@ public final class MediaDownload {
         ImageView star = (ImageView) save;
         int id = resId(item.getContext(), star.isSelected() ? "star" : "star_outline", "drawable");
         if (id == 0) return;
+        id = ModernIcons.swap(item.getContext(), id);
         // Joey puts its own star back on a bind. Only reload ours when the picture or state moved.
         Object applied = star.getTag(SAVE_ICON);
         if (applied instanceof SaveIcon && ((SaveIcon) applied).id == id

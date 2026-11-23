@@ -38,7 +38,7 @@ private const val ROUTED_ACTION = "$MICROG.auth.api.identity.service.signin.STAR
 private const val ROUTING_FIELD = "cutlogUseMicrog"
 private const val PROVIDER = "Landroidx/credentials/playservices/CredentialProviderPlayServicesImpl;"
 private const val PRE_U_VERSION = 252400000
-// APK signer, not the Play source stamp; verified from setlog 1.3 (76).
+// APK signer, not the Play source stamp; verified from setlog 1.3 (76) and 1.3 (89).
 private const val ORIGINAL_CERTIFICATE_SHA1 = "5e5253b605de7a5c9b2b03a36632ba3316288c8a"
 
 private val factoryFingerprint = Fingerprint(

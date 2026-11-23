@@ -15,15 +15,15 @@ Click here to add these patches to Morphe: https://morphe.software/add-source?gi
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.25.1](https://github.com/ahmedyarub/morphe-patches/releases/tag/v1.25.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;66 patches total
+> **[v1.27.0](https://github.com/ahmedyarub/morphe-patches/releases/tag/v1.27.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;68 patches total
 <details open>
 <summary>📦 X&nbsp;&nbsp;•&nbsp;&nbsp;44 patches</summary>
 <br>
 
 **🎯 Supported versions:**
 
-| 12.32.0-prod.01 | 12.33.0-prod.01 | 12.33.1-prod.01 | 12.34.0-prod.01 | 12.35.0-prod.01 | 12.36.1-prod.01 | 12.37.2-prod.01 | 12.38.0-prod.01 | 12.38.1-prod.01 | 12.39.0-prod.01 | 12.40.1-prod.01 | 12.41.0-prod.01 | 12.42.0-prod.01 | 12.43.0-prod.01 | 12.44.0-prod.01 |
-| :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| 12.32.0-prod.01 | 12.33.0-prod.01 | 12.33.1-prod.01 | 12.34.0-prod.01 | 12.35.0-prod.01 | 12.36.1-prod.01 | 12.37.2-prod.01 | 12.38.0-prod.01 | 12.38.1-prod.01 | 12.39.0-prod.01 | 12.40.1-prod.01 | 12.41.0-prod.01 | 12.42.0-prod.01 | 12.43.0-prod.01 | 12.44.0-prod.01 | 12.45.1-prod.01 |
+| :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
@@ -124,6 +124,22 @@ Click here to add these patches to Morphe: https://morphe.software/add-source?gi
 
 </details>
 
+<details open>
+<summary>📦 Claude&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 1.261120.19 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Show employee-only items](#show-employee-only-items) | Shows menu items the app keeps for Anthropic accounts that only work on your own data: Copy conversation ID in a chat's menu, and Copy session ID and Debug (session ID, app version and build, to copy or share) in the menu of a Claude Code session that runs in the cloud. Items that send anything to Anthropic (feedback, problem reports) stay hidden, and the app still treats you as a regular account everywhere else. |  |
+| [Show internal settings](#show-internal-settings) | Shows the Settings screen's "Internal settings" entry, normally only for Anthropic accounts: GrowthBook feature flag overrides, endpoint selection, network and usage simulation. |  |
+
+</details>
+
 <!-- PATCHES_END -->
 
 &nbsp;
@@ -147,7 +163,7 @@ The patches only mean something against the app builds they target, so the main 
 them to real APKs, which are not in the repository:
 
 ```sh
-./gradlew :patches:apkTest -Pmorphe.apks=instagram=<base.apk or .apkm>,reddit=<base.apk or .apkm>
+./gradlew :patches:apkTest -Pmorphe.apks=instagram=<base.apk or .apkm>,reddit=<base.apk or .apkm>,claude=<base.apk>
 ```
 
 This applies every patch for each app and fails when a patch throws, when a fingerprint

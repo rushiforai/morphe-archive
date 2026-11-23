@@ -33,7 +33,7 @@ How each app delivers ads, where our patches cut in, and what proves it worked. 
 | [mlbtv](#mlbtv) | Google IMA / DAI client SDK | 26.8.1.1 | 1 | 9 | yes (7 lines) | **no** |
 | [netflix](#netflix) | Proprietary native / JS ad engine | 13.0.1 build 25028, 13.2.1 build 27207, 13.2.2 build 27250 | 7 | 2 | **no** | **no** |
 | [paramount](#paramount) | Google IMA / DAI client SDK | 17.3.0, 16.19.0, 16.17.0, 16.12.0, 16.8.0 | 1 | 3 | **no** | **no** |
-| [peacock](#peacock) | Server-side stitching (SSAI) via manifest | 7.5.102, 7.6.100, 7.8.100, 7.10.102 | 3 | 10 | yes (6 lines) | **no** |
+| [peacock](#peacock) | Server-side stitching (SSAI) via manifest | 7.8.100, 7.10.102 | 3 | 10 | yes (6 lines) | **no** |
 | [pluto](#pluto) | Server-side stitching (SSAI) via manifest | 5.66.0-leanback, 17.2.0 | 6 | 20 | yes (48 lines) | yes |
 | [primevideo](#primevideo) | Proprietary native / JS ad engine | 6.23.23+v15.5.0.70-armv7a, 6.24.7+v16.0.0.332-allAbis, 6.24.13+v16.0.1.93-allAbis | 7 | 5 | yes (64 lines) | yes |
 | [raiplay](#raiplay) | ? | 5.0.1, 5.0.0 | 3 | 3 | **no** | **no** |
@@ -442,7 +442,7 @@ Runtime evidence (tags `MORPHE-MLB-ADBREAK`, `MORPHE-MLB-MANIFEST`; first 12 of 
 
 ## peacock
 
-**Package** `com.peacocktv.peacockandroid` · **Targets** `7.5.102`, `7.6.100`, `7.8.100`, `7.10.102` · **Engine** Server-side stitching (SSAI) via manifest
+**Package** `com.peacocktv.peacockandroid` · **Targets** `7.8.100`, `7.10.102` · **Engine** Server-side stitching (SSAI) via manifest
 
 | Layer | |
 |---|---|
@@ -554,7 +554,7 @@ Runtime evidence (tags `MORPHE-DASH-MF`, `MORPHE-PLUTO-SLATE`; first 12 of 48):
 | Patch action | Empty the ad playlist before the player sees it → the break is never scheduled. |
 | Patch evidence | `[rego] emptied playlist (~N ad(s), interior X bytes blanked)` + `PVKILL path=tv ads=N` at the moment each pod is fetched (2026-09-24 live: 1 pre-roll, 4 + 3 mid-roll ads emptied). |
 | Device signature | When an ad DOES play (6.24.7 capture): decoder reconfigure (`Discard frames from previous generation`, `VideoResolutionChange`) + crop switch (title-specific, e.g. letterbox 960 → ad 1080) + ~27 `I/f Successfully uploaded metrics` in ~2 s from the app process. With the patch working: none of these at the marker, 0 metrics uploads. |
-| Drift history | v16 loader never fired because onCreate became `public final` vs an exact accessFlags match; the recorded fix (drop accessFlags) sat unapplied for weeks while docs blamed the v16 native move instead, so APPLY recorded drift fixes, don't just record them. Applied 2026-11-07; 6.24.7 and 6.24.13 declared as experimental targets, device verification pending. High-ad-region mid-roll truncation (#120) fixed in v1.37.4. |
+| Drift history | v16 loader never fired because onCreate became `public final` vs an exact accessFlags match; the recorded fix (drop accessFlags) sat unapplied for weeks while docs blamed the v16 native move instead, so APPLY recorded drift fixes, don't just record them. Applied 2026-11-07; 6.24.7 device-confirmed and promoted to stable 2026-11-23; 6.24.13 still experimental, device verification pending. High-ad-region mid-roll truncation (#120) fixed in v1.37.4. |
 
 **Gaps:** Timeline-action native symbols unresolved (Native_StartTimelineAction not in NativeSymbol table).
 

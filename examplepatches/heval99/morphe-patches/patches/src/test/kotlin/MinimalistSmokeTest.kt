@@ -45,7 +45,7 @@ class MinimalistSmokeTest {
             apk = apk,
             workDir = workDir,
             pkg = PKG,
-            version = "1.22.8v236",
+            version = "1.22.10v238",
             patchNames = setOf("Enable Premium"),
             allPatches = loadAllPatches(newestPatchBundle(root)),
         )

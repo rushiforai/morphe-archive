@@ -23,7 +23,7 @@ val disableUpdatePromptsPatch = bytecodePatch(
     category("App")
     compatibleWith(COMPATIBILITY_QUORA)
 
-    extendWith("extensions/extension.mpe")
+    extendWith("extensions/quora.mpe")
 
     execute {
         // The feed also shows its own "Update Available" card.

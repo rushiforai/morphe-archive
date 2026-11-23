@@ -274,8 +274,10 @@ Bunu düzəltmək üçün 'Video yayımlarını saxtalaşdır'-ı aktivləşdir 
     <string name="morphe_playback_in_feeds_entry_off">Qapalı</string>
     <string name="morphe_playback_in_feeds_entry_wifi_only">Yalnız Wi-Fi</string>
     <string name="morphe_playback_in_feeds_title">Axınlarda oynatma</string>
-    <string name="morphe_player_control_buttons_background_opacity_summary">Oynadıcının idarəetmə düymələrinin və vaxt cizgisinin arxasındakı fonun çevrəsinin şəffaflığını tənzimlə (0 görünməzdir, 100 şəffaf olmayandır)</string>
-    <string name="morphe_player_control_buttons_background_opacity_title">İdarəetmə düymələrinin fon şəffaflığı</string>
+    <string name="morphe_player_transport_background_opacity_summary">Oynat, Fasilə, Təkrar oynat, Növbəti və Əvvəlki düymələrinin fonunun qeyri-şəffaflığını tənzimləyin</string>
+    <string name="morphe_player_transport_background_opacity_title">Oynatma düymələrinin fonunun qeyri-şəffaflığı</string>
+    <string name="morphe_player_other_overlay_background_opacity_summary">Oynadıcının digər düymələrinin və vaxt göstəricisinin fonunun qeyri-şəffaflığını tənzimləyin</string>
+    <string name="morphe_player_other_overlay_background_opacity_title">Digər örtük fonlarının qeyri-şəffaflığı</string>
     <string name="morphe_playlist_hide_removal_snackbar_summary">Video pleylistdən silindikdən sonra təsdiqləmə göstərilmir</string>
     <string name="morphe_playlist_hide_removal_snackbar_title">Pleylist silinmə bildirişini gizlət</string>
     <string name="morphe_playlist_long_press_drag_summary">Pleylistinizin videosunu yeni mövqeyə sürükləmək üçün toxunub saxla</string>

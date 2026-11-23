@@ -1,3 +1,15 @@
+## [1.32.0](https://github.com/commit-regrets/morphe-youtube-vr-patches/compare/v1.31.0...v1.32.0) (2026-11-22)
+
+### ✨ New Features
+
+* support YouTube VR 1.92.11, drop 1.90.05
+    re-anchor every fingerprint against the 1.92.11 dex (name map in ([6e7732f](https://github.com/commit-regrets/morphe-youtube-vr-patches/commit/6e7732f336ff27be013a8acc5d68aa5af3e70708))
+
+
+### 📱 Supported app versions
+
+This release patches **YouTube VR 1.92.11** and **1.91.10** (Meta Quest). Any other app version is skipped by the patcher, not failed -- see docs/VERSIONING.md in the repository.
+
 ## [1.31.0](https://github.com/commit-regrets/morphe-youtube-vr-patches/compare/v1.30.0...v1.31.0) (2026-11-10)
 
 ### ✨ New Features

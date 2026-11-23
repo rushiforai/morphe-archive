@@ -58,7 +58,7 @@ private val vrCoreNativePatch = resourcePatch {
 
 @Suppress("unused")
 val vrCorePatch = bytecodePatch(
-    name = "Daydream Everywhere (VR Services)",
+    name = "DuskDream (VR Services)",
     description = "Runs Google VR Services on any arm64 phone without root."
 ) {
     compatibleWith(VRCORE)

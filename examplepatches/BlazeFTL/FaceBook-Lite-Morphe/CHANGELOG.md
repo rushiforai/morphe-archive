@@ -1,3 +1,9 @@
+## [1.6.10](https://github.com/BlazeFTL/FaceBook-Lite-Morphe/compare/v1.6.9...v1.6.10) (2026-11-23)
+
+### 🐛 Bug Fixes
+
+* Download Button Position For Different Dpi ([5c1fd74](https://github.com/BlazeFTL/FaceBook-Lite-Morphe/commit/5c1fd749fbda5ee28bcf6b6a191140edf88e29a8))
+
 ## [1.6.9](https://github.com/BlazeFTL/FaceBook-Lite-Morphe/compare/v1.6.8...v1.6.9) (2026-11-21)
 
 ### 🐛 Bug Fixes

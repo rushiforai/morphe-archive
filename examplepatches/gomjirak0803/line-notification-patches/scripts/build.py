@@ -15,7 +15,7 @@ import zipfile
 ROOT = Path(__file__).resolve().parents[1]
 TOOLS = ROOT / ".tools"
 BUILD = ROOT / "build" / "standalone"
-VERSION = "0.1.11-dev"
+VERSION = "0.1.12-dev"
 
 
 def run(args):

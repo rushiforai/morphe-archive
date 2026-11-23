@@ -1,3 +1,9 @@
+## [1.9.0](https://github.com/TorbenStriegel/morphe-patches-custom/compare/v1.8.0...v1.9.0) (2026-11-22)
+
+### ✨ New Features
+
+* support Weather&Radar 2026.22 and ntv 8.6.0.2 ([099440b](https://github.com/TorbenStriegel/morphe-patches-custom/commit/099440b1ebefec74364a19bd611c435b77c93108))
+
 ## [1.8.0](https://github.com/TorbenStriegel/morphe-patches-custom/compare/v1.7.3...v1.8.0) (2026-11-04)
 
 ### ✨ New Features

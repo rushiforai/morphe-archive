@@ -101,7 +101,7 @@ internal object SearchRowsFingerprint : Fingerprint(
     name = "M",
     returnType = "Ljava/util/List;",
     parameters = emptyList(),
-    custom = { method, _ -> method.definingClass == "Lavuz;" },
+    custom = { method, _ -> method.definingClass == "Lavuz;" || method.definingClass == "Lawgw;" },
 )
 
 /**
@@ -123,4 +123,39 @@ internal object AdPinCalloutFingerprint : Fingerprint(
         methodCall(definingClass = "Ljava/util/List;", name = "isEmpty", opcode = Opcode.INVOKE_INTERFACE),
         opcode(Opcode.MOVE_RESULT, MatchAfterImmediately()),
     ),
+)
+
+/** 26.47 keeps the four ad paths under the new search-response types. */
+internal object AdsListBuilderFingerprint2647A : Fingerprint(
+    name = "h",
+    returnType = "V",
+    parameters = listOf("Lcfht;", "Llue;"),
+)
+
+internal object AdsListBuilderFingerprint2647B : Fingerprint(
+    name = "h",
+    returnType = "V",
+    parameters = listOf("Lcfht;", "Llue;", "Lbdiw;"),
+)
+
+internal object SearchAdPinsDrawerFingerprint2647 : Fingerprint(
+    name = "c",
+    returnType = "V",
+    parameters = listOf("Lcfhu;", "I", "Llue;"),
+)
+
+internal object AdPinCalloutFingerprint2647 : Fingerprint(
+    name = "b",
+    returnType = "Lbwqd;",
+    parameters = listOf("Lcfhu;"),
+    filters = listOf(
+        methodCall(definingClass = "Ljava/util/List;", name = "isEmpty", opcode = Opcode.INVOKE_INTERFACE),
+        opcode(Opcode.MOVE_RESULT, MatchAfterImmediately()),
+    ),
+)
+
+internal object AdPlacemarkFactoryFingerprint2647 : Fingerprint(
+    name = "c",
+    returnType = "Lantt;",
+    parameters = listOf("Lcfht;"),
 )

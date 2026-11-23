@@ -36,7 +36,7 @@ cutlog は、setlog（Android 版）を Morphe でパッチし、「撮った動
 
 公式の撮影画面と投稿処理はそのまま使い、その間の「録画完了」の1点だけをフックする。編集も任意動画も、この1点に別のファイルを渡すだけで成立する。
 
-フック点は Phase 0 で特定した `vb0.G0(oc0)`（録画完了の単一 choke point）。詳細は [analysis/phase0-recording-upload.md](analysis/phase0-recording-upload.md)。
+フック点は Phase 0 で特定した `vb0.G0(oc0)`（録画完了の単一 choke point。versionCode 89 では `camera.i.N0(ri0)`）。詳細は [analysis/phase0-recording-upload.md](analysis/phase0-recording-upload.md)。この文書の難読化名は v76 のもの。v89 との対応は [DEVELOPMENT.md](DEVELOPMENT.md#versioncode-89-への追従) にある。
 
 ## モジュール設計
 
@@ -49,7 +49,7 @@ cutlog/
 │   ├─ capture/CaptureEditorPatch.kt   # 録画結果の横取り・本体への返却・シェーダー resource の追加（F1〜F3）
 │   ├─ auth/GoogleSignInPatch.kt       # Google ID token の取得だけを MicroG-RE へ向ける
 │   ├─ capture/RecordDurationPatch.kt  # 撮影する長さの選択（録画設定と予備タイマーの置き換え）
-│   └─ picker/ImportVideoPatch.kt      # 「ファイルから」ボタン・動画選択結果の受け取り・取り込み動画の返却（F4）
+│   └─ picker/ImportVideoPatch.kt      # 取り込み先の撮影画面の登録・動画選択結果の受け取り・取り込み動画の返却（F4）
 ├─ patches/src/main/resources/cutlog/media3-shaders/  # media3-effect のシェーダー
 └─ extensions/cutlog/src/main/java/dev/utaa/cutlog/
     ├─ extension/hook/CaptureInterceptor.java  # パッチから呼ばれる入口、Activity の保持
@@ -58,8 +58,7 @@ cutlog/
     ├─ extension/hook/EditSession.java         # 編集画面が扱う 1 件分の入力と返し先
     ├─ extension/hook/CaptureSession.java      # 撮影した動画 1 件（完了・キャンセルを一度だけ返す）
     ├─ extension/hook/ImportSession.java       # 端末内から選んだ動画 1 件（F4）
-    ├─ extension/editor/CameraChrome.java      # 撮影画面のシャッターの並びにボタンを置く
-    ├─ extension/editor/ImportButton.java      # 撮影画面の「ファイルから」ボタン
+    ├─ extension/editor/CameraChrome.java      # 撮影画面のシャッターの並びにボタンを置く（本体のボタンを避ける）
     ├─ extension/editor/DurationButton.java    # 撮影画面の長さボタン
     ├─ extension/record/RecordDuration.java    # 選んだ撮影の長さを本体の録画設定へ渡す
     ├─ extension/editor/EditorDialog.java      # プレビュー＋編集 UI（全画面 Dialog）
@@ -69,7 +68,7 @@ cutlog/
     ├─ extension/render/Renderer.java          # Media3 Transformer で書き出し
     ├─ extension/render/OutputProfile.java     # 公式撮影分に合わせる出力仕様
     ├─ extension/editor/SettingsButton.java    # 撮影画面の歯車ボタン（F6）
-    ├─ extension/editor/SettingsDialog.java    # 機能ごとの ON/OFF（F6）
+    ├─ extension/editor/SettingsDialog.java    # 機能ごとの ON/OFF（F6）と「ファイルから選ぶ」（F4）
     ├─ extension/pref/Feature.java             # ON/OFF できる機能と、パッチが当たっているか
     ├─ extension/pref/Prefs.java               # 最後に使ったフィルター・撮影の長さ・機能の ON/OFF
     └─ shaded/androidx/media3/effect/R.java    # 付け替えた media3 が読む R.raw（実行時に ID を引く）
@@ -126,7 +125,7 @@ manifest には package visibility と元 APK 署名の SHA-1 を申告する me
 
 任意動画の流れ（Phase 3 で実装）:
 
-1. 撮影画面のシャッターの右（フラッシュと左右対称）に「ファイルから」ボタンを足す。撮影画面の `onViewCreated`（`vb0.g0`）でシャッターを探して追加し、レイアウトのたびにフラッシュの位置から合わせる
+1. 撮影画面の歯車ボタンの設定画面に「ファイルから選ぶ」を出す。撮影画面の `onViewCreated`（`vb0.g0`）で、取り込んだ動画を返す撮影画面を覚えておく（v0.1.3 まではシャッターの右に「ファイルから」ボタンを足していたが、versionCode 89 で本体のエフェクトボタンと重なるためやめた）
 2. Photo Picker（`MediaStore.ACTION_PICK_IMAGES`、`video/*`）で動画を選ぶ。ストレージ権限は不要。結果は MainActivity に足した `onActivityResult` で受け取る
 3. 編集画面で開始位置を選び、公式と同じ秒数にトリム＋フィルター＋テキスト
 4. `OutputProfile` に揃えて書き出し、本体の撮影開始処理 `vb0.j1()` で CaptureContext を作ってから `CollectionCameraResult` を組み立て、`vb0.G0` に渡す

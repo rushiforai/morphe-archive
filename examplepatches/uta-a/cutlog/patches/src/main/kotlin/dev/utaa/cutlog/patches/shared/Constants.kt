@@ -13,7 +13,7 @@ object Constants {
         targets = listOf(
             AppTarget(
                 version = "1.3",
-                versionCodes = mapOf(SupportedAbi.ARM64_V8A to 76),
+                versionCodes = mapOf(SupportedAbi.ARM64_V8A to 89),
             ),
         ),
     )

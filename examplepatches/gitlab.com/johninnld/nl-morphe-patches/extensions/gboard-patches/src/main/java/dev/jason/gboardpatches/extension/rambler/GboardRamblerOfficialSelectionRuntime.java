@@ -82,7 +82,7 @@ public final class GboardRamblerOfficialSelectionRuntime {
                 return null;
             }
             ClassLoader loader = application.getClass().getClassLoader();
-            Class<?> support = Class.forName("nng", false, loader);
+            Class<?> support = Class.forName("acbl", false, loader);
             Method selection = support.getDeclaredMethod("a", Context.class);
             selection.setAccessible(true);
             Object value = selection.invoke(null, application);

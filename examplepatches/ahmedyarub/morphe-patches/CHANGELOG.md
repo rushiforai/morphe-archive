@@ -1,3 +1,47 @@
+## [1.27.0](https://github.com/ahmedyarub/morphe-patches/compare/v1.26.0...v1.27.0) (2026-11-22)
+
+### 🐛 Bug Fixes
+
+* **Claude:** Show internal settings on non-employee accounts ([a0f8b03](https://github.com/ahmedyarub/morphe-patches/commit/a0f8b0336bee54c9a27e1a2a3fb3cf308f72139f))
+
+### ✨ New Features
+
+* **Claude:** Add Show employee-only items patch ([8ef9e79](https://github.com/ahmedyarub/morphe-patches/commit/8ef9e7958e2b628c595ddec4951460016c9c1187))
+* **Claude:** Add Show internal settings patch ([2b33ebf](https://github.com/ahmedyarub/morphe-patches/commit/2b33ebfef93ee42bb460becd41a64024d9ae90e3))
+* **Claude:** Show Copy session ID and Debug in cloud Code sessions ([ecb6ee4](https://github.com/ahmedyarub/morphe-patches/commit/ecb6ee4c02d3171883f32e0a2bd7d3241f61ab8e))
+
+## [1.26.0-dev.2](https://github.com/ahmedyarub/morphe-patches/compare/v1.26.0-dev.1...v1.26.0-dev.2) (2026-11-22)
+
+### 🐛 Bug Fixes
+
+* **Claude:** Show internal settings on non-employee accounts ([a0f8b03](https://github.com/ahmedyarub/morphe-patches/commit/a0f8b0336bee54c9a27e1a2a3fb3cf308f72139f))
+
+### ✨ New Features
+
+* **Claude:** Add Show employee-only items patch ([8ef9e79](https://github.com/ahmedyarub/morphe-patches/commit/8ef9e7958e2b628c595ddec4951460016c9c1187))
+* **Claude:** Add Show internal settings patch ([2b33ebf](https://github.com/ahmedyarub/morphe-patches/commit/2b33ebfef93ee42bb460becd41a64024d9ae90e3))
+* **Claude:** Show Copy session ID and Debug in cloud Code sessions ([ecb6ee4](https://github.com/ahmedyarub/morphe-patches/commit/ecb6ee4c02d3171883f32e0a2bd7d3241f61ab8e))
+
+## [1.26.0](https://github.com/ahmedyarub/morphe-patches/compare/v1.25.1...v1.26.0) (2026-11-22)
+
+### 🐛 Bug Fixes
+
+* **X:** Pass the follow button's 12.45 arguments ([c52fec2](https://github.com/ahmedyarub/morphe-patches/commit/c52fec2fdfd9aa25965b014fd0a4b78912dad01d))
+
+### ✨ New Features
+
+* **X:** Support 12.45.1 ([0575591](https://github.com/ahmedyarub/morphe-patches/commit/05755916790722c40dec7ab162b5f7e032703415))
+
+## [1.26.0-dev.1](https://github.com/ahmedyarub/morphe-patches/compare/v1.25.1...v1.26.0-dev.1) (2026-11-22)
+
+### 🐛 Bug Fixes
+
+* **X:** Pass the follow button's 12.45 arguments ([c52fec2](https://github.com/ahmedyarub/morphe-patches/commit/c52fec2fdfd9aa25965b014fd0a4b78912dad01d))
+
+### ✨ New Features
+
+* **X:** Support 12.45.1 ([0575591](https://github.com/ahmedyarub/morphe-patches/commit/05755916790722c40dec7ab162b5f7e032703415))
+
 ## [1.25.1](https://github.com/ahmedyarub/morphe-patches/compare/v1.25.0...v1.25.1) (2026-11-19)
 
 ### 🐛 Bug Fixes

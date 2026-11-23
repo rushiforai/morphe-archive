@@ -78,7 +78,7 @@ def main():
 
     new = [v for v in mirror if key(v) > key(newest_supported)]
     # A newer version that only Google Play has. The workflow says so in an issue; it is tried
-    # once APKMirror has it, or by hand once its APKM is uploaded to quora-apks.
+    # once APKMirror has it, or by hand once its APKM is uploaded to morphe-apks.
     play_only = play if play and key(play) > key(newest_supported) and play not in mirror else ""
     print(f"Supported: {', '.join(supported) or 'none'}")
     print(f"APKMirror: {', '.join(mirror[:5]) or 'none found'}")

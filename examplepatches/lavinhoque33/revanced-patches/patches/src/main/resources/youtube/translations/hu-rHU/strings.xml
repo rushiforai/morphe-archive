@@ -277,8 +277,10 @@ A javításhoz kapcsold be a 'Videóstreamek meghamisítása' opciót, és módo
     <string name="morphe_playback_in_feeds_entry_off">Ki</string>
     <string name="morphe_playback_in_feeds_entry_wifi_only">Csak Wi-Fi esetén</string>
     <string name="morphe_playback_in_feeds_title">Lejátszás a hírekben</string>
-    <string name="morphe_player_control_buttons_background_opacity_summary">A lejátszó vezérlőgombjai és az idővonal mögötti háttér átlátszatlanságának beállítása (0 láthatatlan, 100 átlátszatlan)</string>
-    <string name="morphe_player_control_buttons_background_opacity_title">Vezérlőgombok hátterének átlátszatlansága</string>
+    <string name="morphe_player_transport_background_opacity_summary">A lejátszás, szünet, újrajátszás, következő és előző gomb hátterének átlátszatlanságát állítja be</string>
+    <string name="morphe_player_transport_background_opacity_title">Lejátszásvezérlők hátterének átlátszatlansága</string>
+    <string name="morphe_player_other_overlay_background_opacity_summary">A lejátszó többi gombja és az időkijelzés mögötti háttér átlátszatlanságát állítja be</string>
+    <string name="morphe_player_other_overlay_background_opacity_title">Egyéb fedvényelemek hátterének átlátszatlansága</string>
     <string name="morphe_playlist_hide_removal_snackbar_summary">A videó lejátszási listából való törlése után nem jelenik meg a visszaigazolás</string>
     <string name="morphe_playlist_hide_removal_snackbar_title">Lejátszási lista törlésére vonatkozó snackbar elrejtése</string>
     <string name="morphe_playlist_long_press_drag_summary">Érintse hosszan és tartsa nyomva a lejátszalistájának egy videóját, hogy új pozícióba húzza</string>

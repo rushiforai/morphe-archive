@@ -245,7 +245,7 @@ private fun MutableMethod.requireSoftKeyTargetShape() {
 }
 
 private fun MutableMethod.requireSupportedSoftKeyStock() {
-    check(GboardVersionBindings.targetVersion in setOf("18.0.3", "18.6.3", "18.6.3")) {
+    check(GboardVersionBindings.targetVersion in setOf("18.0.3", "18.6.3", "18.8.0-beta")) {
         "Unsupported Gboard SoftKey stock contract for ${GboardVersionBindings.targetVersion}"
     }
     requireExact1803SoftKeyStockShape()
@@ -257,8 +257,8 @@ private fun MutableMethod.requireExact1803SoftKeyStockShape() {
     check(accessFlags == (AccessFlags.PUBLIC.value or AccessFlags.FINAL.value)) {
         "18.0.3 SoftKey bind access drift in $definingClass->$name"
     }
-    if (GboardVersionBindings.targetVersion == "18.6.3") {
-        // 18.6.3 keeps one bind return; the try/catch boundary is still present.
+    if (GboardVersionBindings.targetVersion in setOf("18.6.3", "18.8.0-beta")) {
+        // 18.6.3/18.8.0-beta keep one bind return; the try/catch boundary is still present.
         check(implementation!!.registerCount == 8 && returnInstructionIndices().size == 1 &&
             implementation!!.tryBlocks.isNotEmpty()) {
             "18.6.3 SoftKey bind register/return/exception boundary drift"

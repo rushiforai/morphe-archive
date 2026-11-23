@@ -88,6 +88,7 @@ public final class ThreadCommands {
             // must use its native thread permalink, or a reply becomes a new thread.
             String stockTarget = thread ? url : (String) target.getClass().getMethod(
                     fragment.getClass().getName().equals("o.p9ExternalSyntheticLambda6") ? "o" : urlMethod).invoke(target);
+            BackgroundPostingUi.bind(fragment, model, thread ? null : stockTarget, body, stockTarget);
             if (!thread) FilterPosition.dismissPostingPopups(stockTarget, root);
             StockChmatePosting.target(fragment, stockTarget, body);
             EditText name = (EditText) field(binding, nameName);

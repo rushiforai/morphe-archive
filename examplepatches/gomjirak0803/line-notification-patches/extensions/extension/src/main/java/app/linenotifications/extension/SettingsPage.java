@@ -172,37 +172,52 @@ final class SettingsPage extends Dialog {
     }
 
     private void feature(String title, String detail, String key, boolean included) {
-        toggle(title, detail + (included ? "" : " · 패치 미포함"), Settings.enabled(key), included, value -> {
+        String suffix = included ? "" : " · " + Strings.get(getContext(), "line_notify_patch_not_included", "Patch not included");
+        toggle(title, detail + suffix, Settings.enabled(key), included, value -> {
             Settings.setEnabled(key, value);
             return true;
         });
     }
 
+    private String str(String name, String fallback) {
+        return Strings.get(getContext(), name, fallback);
+    }
+
     private void showMain() {
         mutedPage = false;
-        heading.setText("알림 패치 설정");
+        heading.setText(str("line_notify_settings", "Notification patch settings"));
         rows.removeAllViews();
         scroll.scrollTo(0, 0);
-        group("알림 표시");
-        feature("Not Too Much Silent", "채팅방의 ‘알림 끄기’를 조용히 받기로 바꿉니다.", Settings.SILENT, Settings.silentIncluded());
+        group(str("line_notify_group_display", "Notification display"));
+        feature("Not Too Much Silent",
+                str("line_notify_desc_silent", "Turns a chat’s “Mute” toggle into quiet local delivery."),
+                Settings.SILENT, Settings.silentIncluded());
         View hidden = inflate("line_user_settings_text_item_view");
-        text(hidden, "setting_title", "완전히 숨긴 채팅방");
-        text(hidden, "setting_description", "조용한 알림도 표시하지 않을 채팅방을 관리합니다.");
+        text(hidden, "setting_title", str("line_notify_hidden_chats_title", "Completely hidden chats"));
+        text(hidden, "setting_description",
+                str("line_notify_hidden_chats_desc", "Manage chats that should not show even silent notifications."));
         hidden.findViewById(id("id", "setting_item_container")).setOnClickListener(v -> showMuted());
-        feature("More Chat Info", "최근 메시지를 대화 형식으로 펼쳐 보고 읽지 않은 메시지 수를 표시합니다.", Settings.INFO, Settings.infoIncluded());
-        group("알림 버튼");
-        feature("No reply", "추천 답장을 숨기고 직접 입력하는 답장은 유지합니다.", Settings.NO_REPLY, Settings.noReplyIncluded());
-        feature("Mark as read", "채팅방 전체를 읽음 처리하고 알림을 지웁니다.", Settings.READ, Settings.readIncluded());
-        group("적용 범위");
-        description("일반 채팅방에 적용됩니다. OpenChat 알림은 기존 설정을 따릅니다.");
+        feature("More Chat Info",
+                str("line_notify_desc_info", "Expands recent unread messages in conversation style and shows the total unread count."),
+                Settings.INFO, Settings.infoIncluded());
+        group(str("line_notify_group_actions", "Notification actions"));
+        feature("No reply",
+                str("line_notify_desc_no_reply", "Hides suggested replies while keeping manual inline reply."),
+                Settings.NO_REPLY, Settings.noReplyIncluded());
+        feature("Mark as read",
+                str("line_notify_desc_read", "Marks the entire chat as read and clears its notification."),
+                Settings.READ, Settings.readIncluded());
+        group(str("line_notify_group_scope", "Scope"));
+        description(str("line_notify_scope_desc", "Applies to regular chats. OpenChat notifications follow LINE’s original settings."));
     }
 
     private void showMuted() {
         mutedPage = true;
-        heading.setText("완전히 숨긴 채팅방");
+        heading.setText(str("line_notify_hidden_chats_title", "Completely hidden chats"));
         rows.removeAllViews();
         scroll.scrollTo(0, 0);
-        description("채팅방 메뉴의 ‘알림 완전히 숨기기’에서 추가할 수 있습니다. 스위치를 끄면 숨김이 해제됩니다.");
+        description(str("line_notify_hidden_chats_guide",
+                "Add chats via “Hide notifications completely” in the chat menu. Turn a switch off to unhide."));
         try {
             String account = NativeLine.account();
             String prefix = Settings.mutePrefix(account);
@@ -211,12 +226,19 @@ final class SettingsPage extends Dialog {
                 if (entry.getKey().startsWith(prefix) && entry.getValue() instanceof String) entries.add(entry);
             }
             entries.sort(Comparator.comparing(e -> (String)e.getValue()));
-            if (!Settings.enabled(Settings.SILENT)) description("완전히 숨긴 방은 LINE 기본 알림도 꺼져 있습니다.");
-            if (entries.isEmpty()) { description("완전히 숨긴 채팅방이 없습니다."); return; }
+            if (!Settings.enabled(Settings.SILENT)) {
+                description(str("line_notify_hidden_chats_silent_off_note",
+                        "Completely hidden chats also have LINE’s native notifications turned off."));
+            }
+            if (entries.isEmpty()) {
+                description(str("line_notify_hidden_chats_empty", "No completely hidden chats."));
+                return;
+            }
+            String hideLabel = str("line_notify_hide_chat", "Hide notifications completely");
             for (Map.Entry<String, ?> entry : entries) {
                 String name = (String)entry.getValue();
                 String chat = new String(Base64.decode(entry.getKey().substring(prefix.length()), Base64.URL_SAFE), StandardCharsets.UTF_8);
-                toggle(name, "알림 완전히 숨기기", true, true, value -> {
+                toggle(name, hideLabel, true, true, value -> {
                     try {
                         if (!account.equals(NativeLine.account())) return false;
                         ChatNotifications.change(getContext(), chat,
@@ -227,7 +249,7 @@ final class SettingsPage extends Dialog {
                 });
             }
         } catch (ReflectiveOperationException | RuntimeException ignored) {
-            description("현재 계정의 채팅방 정보를 확인할 수 없습니다.");
+            description(str("line_notify_account_unavailable", "Could not read chat information for the current account."));
         }
     }
 }

@@ -96,6 +96,7 @@ private const val HIDE_PREMIUM_TAB = "truecaller.hide_premium_tab"
 private const val RESTORE_CLASSIC_CALL_LOG = "truecaller.restore_classic_call_log"
 private const val HIDE_CALL_LOG_FILTERS = "truecaller.hide_call_log_filters"
 private const val HIDE_FREQUENT_CONTACTS = "truecaller.hide_frequent_contacts"
+private const val HIDE_SURVEYS = "truecaller.hide_surveys"
 private const val HIDE_IMPORTANT_SENDERS = "truecaller.hide_important_senders"
 private const val DISABLE_CALL_HAPTICS = "truecaller.disable_call_button_haptics"
 private const val HIDE_POOR_NETWORK_WARNING = "truecaller.hide_poor_network_warning"
@@ -134,6 +135,7 @@ private val HEVAL_FEATURES = listOf(
     Triple("Hide call log filters", HIDE_CALL_LOG_FILTERS, "Call log & search" to true),
     Triple("Hide frequently called contacts", HIDE_FREQUENT_CONTACTS, "Call log & search" to false),
     Triple("Hide important senders", HIDE_IMPORTANT_SENDERS, "Contacts & business" to false),
+    Triple("Hide surveys", HIDE_SURVEYS, "Contacts & business" to false),
     Triple("Disable call button haptics", DISABLE_CALL_HAPTICS, "Call screen" to false),
     Triple("Swap call answer and decline buttons", SWAP_CALL_BUTTONS, "Call screen" to false),
     // On once the patch is selected, like the others (2026-11-07; it was off in Patch settings too).
@@ -367,7 +369,7 @@ class TruecallerSmokeTest {
             apk = apk,
             workDir = workDir,
             pkg = PKG,
-            version = "26.44.6",
+            version = "26.45.5",
             patchNames = setOf(
                 "Enable Premium",
                 "Disable ads",
@@ -395,6 +397,7 @@ class TruecallerSmokeTest {
                 "Hide call log filters",
                 "Hide frequently called contacts",
                 "Hide important senders",
+                "Hide surveys",
                 "Swap call answer and decline buttons",
                 "Disable call button haptics",
                 "Hide poor network warning",
@@ -420,6 +423,7 @@ class TruecallerSmokeTest {
         assertFeatureToggles(classes)
         assertReferralGate(classes)
         assertFeedbackCardGates(classes)
+        assertSurveyGate(classes)
         assertHiddenTabs(classes)
         assertHideMessagesTab(classes)
         assertHiddenSettingsRows(classes)
@@ -1105,6 +1109,24 @@ class TruecallerSmokeTest {
         }
         val feedback = cls.methods.single { it.name == "shouldShowFeedback" }
         check(feedback.instructions().none { it.call()?.definingClass == HEVAL_SETTINGS_CLASS }) { "shouldShowFeedback must stay stock" }
+    }
+
+    private fun assertSurveyGate(classes: List<ClassDef>) {
+        // Hide surveys: the survey eligibility check (Z, (R8 state, ContactSurveyEntity, SurveyConfig)),
+        // found by its kept parameter types as the patch finds it, starts with the feature's gate whose
+        // patched path answers false, then keeps its stock code (the frequency and cooldown checks).
+        val (cls, gate) = classes.singleMethod("survey eligibility check") { _, m ->
+            m.returnType == "Z" && m.implementation != null && m.params().size == 3 &&
+                m.params()[1] == "Lcom/truecaller/contact/entity/model/ContactSurveyEntity;" &&
+                m.params()[2] == "Lcom/truecaller/surveys/data/domain/SurveyConfig;"
+        }
+        val label = "${cls.type}.${gate.name} (survey eligibility check)"
+        val stock = assertGate(gate, HIDE_SURVEYS, label)
+        val insns = gate.instructions()
+        check(stock == 6 && insns.subList(4, stock).isReturnZero()) { "$label does not answer false after the Hide surveys gate" }
+        check(insns.drop(stock).any { it.call()?.name == "getPerNumberCooldown" } &&
+            insns.drop(stock).any { it.call()?.name == "getLastTimeAnswered" }) { "$label lost its stock code" }
+        check(insns.count { it.call()?.definingClass == HEVAL_SETTINGS_CLASS } == 1) { "$label has more than one Heval Controls gate" }
     }
 
     private fun assertHiddenTabs(classes: List<ClassDef>) {
@@ -2027,10 +2049,10 @@ class TruecallerSmokeTest {
     }
 
     private fun assertHideCallLogFilters(classes: List<ClassDef>, byType: Map<String, ClassDef>) {
-        // 1. The filter row composable (static, void, 11 parameters, "filtersStartPadding") returns at
-        // once while the feature is on.
+        // 1. The filter row composable (static, void, 14 parameters since 26.45.5, "filtersStartPadding")
+        // returns at once while the feature is on.
         val (rowClass, row) = classes.singleMethod("call log filter row") { _, m ->
-            AccessFlags.STATIC.isSet(m.accessFlags) && m.returnType == "V" && m.params().size == 11 &&
+            AccessFlags.STATIC.isSet(m.accessFlags) && m.returnType == "V" && m.params().size == 14 &&
                 m.params()[2] == "Lkotlin/jvm/functions/Function1;" && m.params()[4] == "I" &&
                 m.params()[6] == "Lkotlin/jvm/functions/Function0;" && m.params()[7] == "Z" &&
                 "filtersStartPadding" in m.strings()

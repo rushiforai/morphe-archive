@@ -86,7 +86,7 @@ private val splashResourcePatch: ResourcePatch = resourcePatch {
 @Suppress("unused")
 val splashScreenPatch: BytecodePatch = bytecodePatch(
     name = "Splash Screen",
-    description = "[v1.4.0: Match theme keeps your chosen animation.] Logo inspired by u/otheast. Logo, colours and animation can be customised, follow your theme, or the animation can be turned off, in Joey Settings - Morphe Settings.",
+    description = "Logo inspired by u/otheast. Change the logo, colours and animation, follow your theme, or turn the splash off, in Joey Settings - Morphe Settings.",
     default = true,
 ) {
     compatibleWith(JOEY)

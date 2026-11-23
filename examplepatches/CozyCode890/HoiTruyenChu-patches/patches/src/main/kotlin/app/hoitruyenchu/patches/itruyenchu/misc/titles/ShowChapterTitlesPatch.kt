@@ -1,5 +1,7 @@
 package app.hoitruyenchu.patches.itruyenchu.misc.titles
 
+import app.hoitruyenchu.patches.itruyenchu.misc.settings.enablePatchFlag
+import app.hoitruyenchu.patches.itruyenchu.misc.settings.settingsPatch
 import app.hoitruyenchu.patches.itruyenchu.misc.extension.sharedExtensionPatch
 import app.hoitruyenchu.patches.itruyenchu.shared.ASYNC_STORAGE_MODULE
 import app.hoitruyenchu.patches.itruyenchu.shared.AsyncStorageMultiGetFingerprint
@@ -25,9 +27,11 @@ val showChapterTitlesPatch = patch(
 ) {
     compatibleWith(COMPATIBILITY_ITRUYENCHU)
 
-    dependsOn(sharedExtensionPatch)
+    dependsOn(sharedExtensionPatch, settingsPatch)
 
     execute {
+        enablePatchFlag("chapterTitles")
+
         // 1. The chapter list downloaded by the app gets the real titles.
         CreateClientBuilderFingerprint.method.apply {
             val instructions = implementation!!.instructions.toList()

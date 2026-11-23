@@ -122,7 +122,9 @@ private object LiteralColourSpecFingerprint : Fingerprint(
         fieldAccess(opcode = Opcode.IGET, definingClass = "this", type = "I", location = MatchAfterImmediately()),
         opcode(Opcode.RETURN, MatchAfterImmediately()),
     ),
-    custom = { _, classDef -> classDef.superclass == "Lbhns;" },
+    custom = { _, classDef ->
+        classDef.superclass == "Lbhns;" || classDef.superclass == "Lbiai;"
+    },
 )
 
 /** An @color resource. */
@@ -135,7 +137,9 @@ private object ResourceColourSpecFingerprint : Fingerprint(
         fieldAccess(opcode = Opcode.IGET, type = "I", location = MatchAfterImmediately()),
         methodCall(definingClass = "Landroid/content/Context;", name = "getColor", location = MatchAfterImmediately()),
     ),
-    custom = { _, classDef -> classDef.superclass == "Lbhns;" },
+    custom = { _, classDef ->
+        classDef.superclass == "Lbhns;" || classDef.superclass == "Lbiai;"
+    },
 )
 
 /** A ?attr theme attribute -- the route Material You / system dynamic colours take. */
@@ -144,7 +148,9 @@ private object AttributeColourSpecFingerprint : Fingerprint(
     returnType = "I",
     parameters = listOf("Landroid/content/Context;"),
     filters = listOf(string("%s holds an unexpected type: %s (TypedValue.type = %d)")),
-    custom = { _, classDef -> classDef.superclass == "Lbhns;" },
+    custom = { _, classDef ->
+        classDef.superclass == "Lbhns;" || classDef.superclass == "Lbiai;"
+    },
 )
 
 /**

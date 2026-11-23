@@ -5,8 +5,9 @@
 package app.morphe.patches.facebook.misc.appicons
 
 import app.morphe.patcher.patch.PatchException
-import app.morphe.patcher.patch.resourcePatch
+import app.morphe.patcher.patch.patch
 import app.morphe.patches.facebook.misc.extension.patchLog
+import app.morphe.util.onResources
 import org.w3c.dom.Document
 import org.w3c.dom.Element
 import javax.xml.parsers.DocumentBuilderFactory
@@ -183,28 +184,31 @@ private fun Element.drawInline(drawable: Element) {
  * Restyles the launcher icon with the style [iconStyle] answers. With Facebook's own icon picked,
  * it opens no file, so the resources stay byte for byte as they were.
  */
-internal fun launcherIconPatch(iconStyle: () -> String?) = resourcePatch {
+internal fun launcherIconPatch(iconStyle: () -> String?) = patch {
+    // Built in a function, so the block is written here to carry this file's name (see PatchBodies.kt).
     execute {
-        val style = pickedIconStyle(iconStyle()) ?: return@execute
-        // Read with a plain parser: a document() closes by writing its file back.
-        val read = { path: String -> DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(get(path)) }
-        val icon = appResource(applicationIcon(read("AndroidManifest.xml")))
-            ?: refuse("Facebook's icon isn't one of its own resources")
-        // Patcher 2.0 decodes only the files a patch asks for: an undecoded file does not exist yet.
-        val iconPath = singleXml(decode(resourceGlob(icon)), icon, ADAPTIVE_ICON, read)
-        if (style == LauncherIconStyle.HUSHFACEBOOK) {
-            // Its own artwork: Facebook's themed-icon vector isn't needed. Dry run first, as below.
-            drawHushfacebookIcon(read(iconPath))
-            document(iconPath).use { drawHushfacebookIcon(it) }
-            patchLog.info("$OPTION: the home screen icon is Hushfacebook's logo ($iconPath).")
-            return@execute
+        onResources {
+            val style = pickedIconStyle(iconStyle()) ?: return@onResources
+            // Read with a plain parser: a document() closes by writing its file back.
+            val read = { path: String -> DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(get(path)) }
+            val icon = appResource(applicationIcon(read("AndroidManifest.xml")))
+                ?: refuse("Facebook's icon isn't one of its own resources")
+            // Patcher 2.0 decodes only the files a patch asks for: an undecoded file does not exist yet.
+            val iconPath = singleXml(decode(resourceGlob(icon)), icon, ADAPTIVE_ICON, read)
+            if (style == LauncherIconStyle.HUSHFACEBOOK) {
+                // Its own artwork: Facebook's themed-icon vector isn't needed. Dry run first, as below.
+                drawHushfacebookIcon(read(iconPath))
+                document(iconPath).use { drawHushfacebookIcon(it) }
+                patchLog.info("$OPTION: the home screen icon is Hushfacebook's logo ($iconPath).")
+                return@onResources
+            }
+            val glyph = monochromeReference(read(iconPath))
+            val glyphPath = singleXml(decode(resourceGlob(glyph)), glyph, VECTOR, read)
+            val vector = read(glyphPath)
+            // A dry run on a throwaway copy first: a refusal leaves the icon file as it was.
+            restyleLauncherIcon(read(iconPath), vector, style)
+            document(iconPath).use { restyleLauncherIcon(it, vector, style) }
+            patchLog.info("$OPTION: the home screen icon is ${style.label.lowercase()} ($iconPath).")
         }
-        val glyph = monochromeReference(read(iconPath))
-        val glyphPath = singleXml(decode(resourceGlob(glyph)), glyph, VECTOR, read)
-        val vector = read(glyphPath)
-        // A dry run on a throwaway copy first: a refusal leaves the icon file as it was.
-        restyleLauncherIcon(read(iconPath), vector, style)
-        document(iconPath).use { restyleLauncherIcon(it, vector, style) }
-        patchLog.info("$OPTION: the home screen icon is ${style.label.lowercase()} ($iconPath).")
     }
 }

@@ -5,43 +5,43 @@ import patches.gboard.shared.GboardMethodTarget
 import patches.gboard.shared.generated.GboardVersionBindings
 
 internal object GboardSplitKeyboardTargets {
-    const val ORDER_RETURN_TYPE = "Lwhe;"
+    const val ORDER_RETURN_TYPE = "Lauaz;"
 
     val splitEligibility get() = GboardVersionBindings.splitEligibility
     val splitDeviceEligibility get() = GboardVersionBindings.splitDeviceEligibility
     val splitWidthEligibility get() = GboardVersionBindings.splitWidthEligibility
 
     val accessPointName = GboardFieldTarget(
-        classType = "Lsze;",
+        classType = "Laadv;",
         name = "d",
         type = "Ljava/lang/Object;",
     )
     val accessPointState = GboardMethodTarget(
-        classType = "Lsze;",
-        name = "e",
+        classType = "Laadv;",
+        name = "b",
         parameterTypes = listOf("I"),
         returnType = "V",
     )
     val accessPointOrder = GboardMethodTarget(
-        classType = "Lmpb;",
+        classType = "Laaia;",
         name = "c",
         parameterTypes = emptyList(),
         returnType = ORDER_RETURN_TYPE,
     )
     val modeAttach = GboardMethodTarget(
-        classType = "Lpks;",
-        name = "F",
-        parameterTypes = listOf("Lpjq;", "Loyq;", "Lpdr;", "Z"),
+        classType = "Lafri;",
+        name = "T",
+        parameterTypes = listOf("Lafoo;", "Laeuj;", "Lafdi;", "Z"),
         returnType = "V",
     )
     val modeEnvironmentReload = GboardMethodTarget(
-        classType = "Lpks;",
-        name = "R",
+        classType = "Lafri;",
+        name = "ai",
         parameterTypes = emptyList(),
         returnType = "V",
     )
     val splitAction = GboardMethodTarget(
-        classType = "Lpks;",
+        classType = "Lafri;",
         name = "X",
         parameterTypes = emptyList(),
         returnType = "V",

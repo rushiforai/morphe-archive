@@ -107,7 +107,7 @@ public final class ProjectionRenderer {
                 if (controller == null) throw new IllegalStateException("Maps native projection controller is unavailable");
                 // This private connection is entirely inside Maps. The exported adapter validates
                 // the external host first; the original service remains restricted to our own UID.
-                controller.getClass().getField("H").setInt(controller, Process.myUid());
+                member(controller, "H").setInt(controller, Process.myUid());
                 Parcel request = Parcel.obtain(), reply = Parcel.obtain();
                 try {
                     request.writeInterfaceToken(PROJECTION);
@@ -206,10 +206,10 @@ public final class ProjectionRenderer {
     }
     public void configurationChanged(Configuration value) {
         if (value == null) return;
-        configuration = created ? canvasConfiguration(value,nativeWidth,nativeHeight,nativeDpi) : new Configuration(value);
+        configuration = created ? canvasConfiguration(value,nativeWidth,nativeHeight,nativeDpi) : themed(new Configuration(value));
         guard(() -> {
             if (created) {
-                controller.getClass().getField("o").set(controller, configuration);
+                member(controller, "o").set(controller, configuration);
                 call(controller, "v", new Class<?>[0]);
                 call(controller, "t", new Class<?>[]{android.content.res.Resources.class}, service.getResources());
                 Object activity = field(controller, "J");
@@ -352,9 +352,9 @@ public final class ProjectionRenderer {
         if (insets.equals(appliedInsets)) return;
         Object presentation = field(controller, "k");
         if (presentation == null) return;
-        ((Rect) controller.getClass().getField("v").get(controller)).set(insets);
+        ((Rect) member(controller, "v").get(controller)).set(insets);
         call(presentation, "A", new Class<?>[]{Rect.class}, insets);
-        if (surface != null && surface.isValid()) controller.getClass().getField("C").set(controller, drawing(nativeWidth, nativeHeight, nativeDpi));
+        if (surface != null && surface.isValid()) member(controller, "C").set(controller, drawing(nativeWidth, nativeHeight, nativeDpi));
         appliedInsets = new Rect(insets);
     }
     /**
@@ -385,12 +385,11 @@ public final class ProjectionRenderer {
 
     private void resizeCanvas(int w,int h,int density) throws Exception {
         finishTouch();
-        Object holder=displayHolder();
-        Object target=field(holder,"b");
-        if(!(target instanceof VirtualDisplay))throw new IllegalStateException("Maps virtual display ABI changed");
+        Object holder=displayHolder(controller);
+        VirtualDisplay target=virtualDisplay(holder);
         // Resize the existing display/window, including while a host keyboard is
         // open. Recreating the activity would invalidate its native editor.
-        controller.getClass().getField("C").set(controller,drawing(w,h,density));
+        member(controller, "C").set(controller,drawing(w,h,density));
         ((VirtualDisplay)target).resize(w,h,density);
         nativeWidth=w;nativeHeight=h;nativeDpi=density;
         Configuration updated=canvasConfiguration(configuration,w,h,density);
@@ -415,7 +414,31 @@ public final class ProjectionRenderer {
         value.screenHeightDp=Math.round(h*160f/density);
         value.smallestScreenWidthDp=Math.min(value.screenWidthDp,value.screenHeightDp);
         value.orientation=w>=h?Configuration.ORIENTATION_LANDSCAPE:Configuration.ORIENTATION_PORTRAIT;
+        return themed(value);
+    }
+    /**
+     * Carry the app's own theme qualifiers onto the car surface.
+     *
+     * "Black theme" and "Rectangle shapes" ship -mcc9999 / -mnc9999 resource variants and the phone
+     * gets them because the patch wraps each Activity's configuration. The car UI is drawn in a
+     * Presentation inside our VirtualDisplay, which never goes through that Activity hook, and the
+     * configuration we hand it comes from the host - so the car resolved the light, rounded resources
+     * even with both toggles on. mcc/mnc are Morphe's reserved 9999 codes; the host's own day/night is
+     * left alone unless the user enabled the black theme.
+     */
+    static Configuration themed(Configuration value) {
+        if (!toggle("RECT") && !toggle("BLACK")) return value;
+        if (toggle("RECT")) value.mnc = 9999;
+        if (toggle("BLACK")) {
+            value.mcc = 9999;
+            value.uiMode = (value.uiMode & ~Configuration.UI_MODE_NIGHT_MASK) | Configuration.UI_MODE_NIGHT_YES;
+        }
         return value;
+    }
+    /** Read one Shapes toggle without a compile-time dependency on the other extension module. */
+    static boolean toggle(String name) {
+        try { return Class.forName("org.ungoogled.ui.Shapes").getField(name).getBoolean(null); }
+        catch (Throwable absent) { return false; }
     }
     /** Ends a drag the host stopped feeding (for example on leaving pan mode). */
     public void endGesture() { guard(this::finishTouch); }
@@ -532,9 +555,9 @@ public final class ProjectionRenderer {
     private void showSurface() throws Exception {
         if (controller == null || surface == null || !surface.isValid() || intent == null) return;
         if (created) {
-            Object holder = displayHolder();
-            call(holder, "f", new Class<?>[]{Surface.class}, surface);
-            controller.getClass().getField("C").set(controller, drawing(nativeWidth, nativeHeight, nativeDpi));
+            Object holder = displayHolder(controller);
+            setSurface(holder, surface);
+            member(controller, "C").set(controller, drawing(nativeWidth, nativeHeight, nativeDpi));
             applyAreas();
             watchOccupied();
             if(resumed)telemetrySurface(decor());
@@ -549,8 +572,8 @@ public final class ProjectionRenderer {
         initialUiState = null;
         nativeWidth = width; nativeHeight = height; nativeDpi = dpi;
         created = true;
-        Object target=field(displayHolder(),"b");
-        if(target instanceof VirtualDisplay)NativeCarScopes.display(this,((VirtualDisplay)target).getDisplay().getDisplayId());
+        VirtualDisplay target=virtualDisplay(displayHolder(controller));
+        NativeCarScopes.display(this,target.getDisplay().getDisplayId());
         appliedInsets = null; applyAreas();
         watchOccupied();
         if (resumed) { lifecycle(5); telemetrySession(true); telemetrySurface(decor()); }
@@ -573,8 +596,8 @@ public final class ProjectionRenderer {
         if (controller != null && created) {
             // Maps' original VirtualDisplay holder can change its output without destroying
             // the Presentation/window. Destroying it here invalidates IProxyInputConnection.
-            Object holder = displayHolder();
-            call(holder, "f", new Class<?>[]{Surface.class}, new Object[]{null});
+            Object holder = displayHolder(controller);
+            setSurface(holder, null);
         }
         if (surface != null) surface.release();
         surface = null;
@@ -617,7 +640,7 @@ public final class ProjectionRenderer {
         if (!created || controller == null) return null;
         Object presentation = field(controller, "k");
         if (presentation == null) return null;
-        Method method = presentation.getClass().getMethod("f");
+        Method method = method(presentation, "f");
         Window window = (Window) method.invoke(presentation);
         return window == null ? null : window.getDecorView();
     }
@@ -645,9 +668,92 @@ public final class ProjectionRenderer {
         try { view.dispatchTouchEvent(event); } finally { event.recycle(); }
     }
     private Class<?> type(String name) throws ClassNotFoundException { return service.getClassLoader().loadClass(name); }
-    private Object displayHolder() throws Exception { return field(field(controller, "k"), "j"); }
-    private static Object field(Object target, String name) throws Exception {
-        Field member = target.getClass().getDeclaredField(name); member.setAccessible(true); return member.get(target);
+    /**
+     * Maps keeps the car VirtualDisplay in a small holder under the projection controller, but both
+     * the holder's location and its member names move between releases (26.44 presentation.j -> b/f,
+     * 26.47 bfgv.a -> bfdp.a with setter e). Find it by the types it must contain instead.
+     */
+    private static Object displayHolder(Object controller) throws Exception {
+        java.util.IdentityHashMap<Object, Boolean> seen = new java.util.IdentityHashMap<>();
+        java.util.ArrayDeque<Object[]> queue = new java.util.ArrayDeque<>();
+        queue.add(new Object[]{controller, 0});
+        Object surfaceSetter = null;
+        while (!queue.isEmpty()) {
+            Object[] item = queue.poll();
+            Object value = item[0];
+            int depth = (Integer) item[1];
+            if (value == null || seen.put(value, Boolean.TRUE) != null) continue;
+            // The holder is the object carrying the VirtualDisplay; the surface setter is the fallback
+            // signal, because that is what a holder must expose in every version we support.
+            if (hasVirtualDisplay(value)) return value;
+            if (surfaceSetter == null && hasSurfaceSetter(value)) surfaceSetter = value;
+            if (depth >= 3) continue;
+            for (Class<?> type = value.getClass(); type != null && type != Object.class; type = type.getSuperclass()) {
+                for (Field candidate : type.getDeclaredFields()) {
+                    if (java.lang.reflect.Modifier.isStatic(candidate.getModifiers())) continue;
+                    candidate.setAccessible(true);
+                    Object child = candidate.get(value);
+                    // Decide on the runtime class: a field declared Object still holds a Maps type,
+                    // and that type is the one whose graph we may walk.
+                    if (child != null && traverse(child.getClass())) queue.add(new Object[]{child, depth + 1});
+                }
+            }
+        }
+        if (surfaceSetter != null) return surfaceSetter;
+        throw new IllegalStateException("Maps virtual display ABI changed");
+    }
+    /** Maps' own obfuscated classes and our extension types; never framework or JDK graphs. */
+    private static boolean traverse(Class<?> type) {
+        if (type.isPrimitive() || type.isArray()) return false;
+        String name = type.getName();
+        for (String skip : new String[]{"java.", "javax.", "android.", "androidx.", "dalvik.", "kotlin.",
+                "j$.", "com.google.android.gms.", "org.robolectric.", "org.junit."}) {
+            if (name.startsWith(skip)) return false;
+        }
+        return true;
+    }
+    private static boolean hasVirtualDisplay(Object value) {
+        for (Class<?> type = value.getClass(); type != null; type = type.getSuperclass())
+            for (Field candidate : type.getDeclaredFields())
+                if (VirtualDisplay.class.isAssignableFrom(candidate.getType())) return true;
+        return false;
+    }
+    private static boolean hasSurfaceSetter(Object value) {
+        for (Class<?> type = value.getClass(); type != null; type = type.getSuperclass())
+            for (Method candidate : type.getDeclaredMethods())
+                if (candidate.getParameterCount() == 1 && candidate.getParameterTypes()[0] == Surface.class) return true;
+        return false;
+    }
+    private static VirtualDisplay virtualDisplay(Object holder) throws Exception {
+        for (Class<?> type = holder.getClass(); type != null; type = type.getSuperclass())
+            for (Field candidate : type.getDeclaredFields()) {
+                if (!VirtualDisplay.class.isAssignableFrom(candidate.getType())) continue;
+                candidate.setAccessible(true);
+                Object found = candidate.get(holder);
+                if (found instanceof VirtualDisplay) return (VirtualDisplay) found;
+            }
+        throw new IllegalStateException("Maps virtual display ABI changed");
+    }
+    private static void setSurface(Object holder, Surface surface) throws Exception {
+        for (Class<?> type = holder.getClass(); type != null; type = type.getSuperclass())
+            for (Method candidate : type.getDeclaredMethods()) {
+                if (candidate.getParameterCount() != 1 || candidate.getParameterTypes()[0] != Surface.class) continue;
+                candidate.setAccessible(true);
+                candidate.invoke(holder, surface);
+                return;
+            }
+        throw new IllegalStateException("Maps virtual display surface setter changed");
+    }
+    private static Field member(Object target, String name) throws Exception {
+        for (Class<?> type = target.getClass(); type != null; type = type.getSuperclass())
+            try { Field found = type.getDeclaredField(name); found.setAccessible(true); return found; } catch (NoSuchFieldException absent) {}
+        throw new NoSuchFieldException(name);
+    }
+    private static Object field(Object target, String name) throws Exception { return member(target, name).get(target); }
+    private static Method method(Object target, String name, Class<?>... parameters) throws Exception {
+        for (Class<?> type = target.getClass(); type != null; type = type.getSuperclass())
+            try { Method found = type.getDeclaredMethod(name, parameters); found.setAccessible(true); return found; } catch (NoSuchMethodException absent) {}
+        throw new NoSuchMethodException(name);
     }
     private static Object call(Object target, String name, Class<?>[] parameters, Object... values) throws Exception {
         try { return target.getClass().getMethod(name, parameters).invoke(target, values); }

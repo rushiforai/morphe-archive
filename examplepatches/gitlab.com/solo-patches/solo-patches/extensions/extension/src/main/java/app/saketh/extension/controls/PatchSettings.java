@@ -13,7 +13,7 @@ public final class PatchSettings {
     public static volatile Context context;
     private static Bundle features = Bundle.EMPTY;
     private static volatile boolean ads = true, popups = true, featuredWorks = true, materialYou, readerColors;
-    private static volatile boolean disableRewardTimer, amoled;
+    private static volatile boolean disableRewardTimer, amoled, giphy;
     private static final SharedPreferences.OnSharedPreferenceChangeListener CHANGED = (prefs, key) -> refresh();
 
     private PatchSettings() {}
@@ -41,6 +41,7 @@ public final class PatchSettings {
         readerColors = installed("reader_material_you") && preferences.getBoolean("reader_material_you", true);
         disableRewardTimer = installed("disable_reward_timer") && preferences.getBoolean("disable_reward_timer", false);
         amoled = installed("amoled") && preferences.getBoolean("amoled", true);
+        giphy = installed("gif_providers") && "giphy".equals(preferences.getString("gif_provider", "klipy"));
     }
 
     public static boolean hideAds() { return ads; }
@@ -50,6 +51,7 @@ public final class PatchSettings {
     public static boolean readerMaterialYou() { return materialYou && readerColors && android.os.Build.VERSION.SDK_INT >= 31; }
     public static boolean disableRewardTimer() { return disableRewardTimer; }
     public static boolean amoled() { return amoled; }
+    public static boolean giphy() { return giphy; }
     public static SharedPreferences preferences() { return preferences; }
     public static boolean installed(String name) { return features.getBoolean("saketh.patch." + name, false); }
 

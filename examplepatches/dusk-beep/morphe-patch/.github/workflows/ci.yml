@@ -1,0 +1,43 @@
+name: Validate and build patches
+
+on:
+  push:
+    branches: [main, dev]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Set up Java
+        uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v6
+        with:
+          gradle-version: "9.8.2"
+
+      - name: Build Morphe patch bundle
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+          GITHUB_ACTOR: ${{ github.actor }}
+        run: gradle :patches:buildAndroid --no-daemon
+
+      - name: Upload .mpp bundle
+        uses: actions/upload-artifact@v7
+        with:
+          name: focus-guard-patches-mpp
+          path: patches/build/libs/*.mpp
+          if-no-files-found: error
+          retention-days: 14

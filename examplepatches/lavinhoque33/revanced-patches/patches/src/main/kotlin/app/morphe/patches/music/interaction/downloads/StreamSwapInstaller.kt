@@ -2,15 +2,20 @@
  * Copyright (C) 2026 lavinhoque33
  * Licensed under the GNU General Public License v3.0.
  * Modified by lavinhoque33, 2026-11-14.
+ * Modified by lavinhoque33, 2026-11-22.
  * Written by lavinhoque33, 2026-11-07.
  */
 package app.morphe.patches.music.interaction.downloads
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.util.getReference
+import app.morphe.patcher.util.proxy.mutableTypes.MutableClass
+import app.morphe.patcher.util.proxy.mutableTypes.MutableField.Companion.toMutable
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patches.shared.misc.fix.proto.parseByteArrayMethodRef
+import app.morphe.patches.shared.misc.spoof.SPOOF_STREAM_OVERRIDE_METHOD
 import app.morphe.util.Utils.printInfo
 import app.morphe.util.Utils.printWarn
 import app.morphe.util.fingerprint.matchSingle
@@ -20,10 +25,12 @@ import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Method
+import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+import com.android.tools.smali.dexlib2.immutable.ImmutableField
 
 private const val SWAP = "Lapp/morphe/extension/music/patches/downloads/StreamSwap;"
 private const val RESPONSE = $$"Lapp/morphe/extension/music/patches/downloads/StreamSwap$Response;"
@@ -37,12 +44,13 @@ private const val REQUEST = "$SWAP->swap(Ljava/lang/Object;)Ljava/lang/Object;"
  * Producer transform coverage is 4 / 4 / 4 / 5 sites, including legacy Labri.f on 9.45.
  * Resolve every dependency before mutation; an unfamiliar ABI only warns and leaves playback online.
  */
-internal fun BytecodePatchContext.installStreamSwap() {
+internal fun BytecodePatchContext.installStreamSwap(): (() -> Unit)? {
     if (packageMetadata.versionName !in setOf("9.45.51", "9.40.51", "9.15.51", "8.30.54", "8.28.54", "8.12.54")) {
         printWarn("Play downloads locally is unavailable on this Music version; online playback unchanged.")
-        return
+        printWarn("Playback source inspector unavailable: no verified Music playback-source hooks for this version.")
+        return null
     }
-    try {
+    return try {
         val installGuard = prepareStreamSwapGuard()
         val installLocalSource = prepareStreamSwapLocalSource()
         val supported = mutableClassDefBy(SWAP).methods.single { it.name == "supported" }
@@ -103,6 +111,9 @@ internal fun BytecodePatchContext.installStreamSwap() {
             it.getReference<MethodReference>()
         }.single { it.name == "<init>" && it.parameterTypes == listOf(proto) }
         val builder = mutableClassDefBy(builderConstructor.definingClass)
+        val nativeBuilderConstructor = builder.methods.single {
+            it.name == "<init>" && it.parameterTypes == listOf(proto)
+        }
         val offlineWrite = factoryInstructions.indices.single { index ->
             index > 0 && factoryInstructions[index].opcode == Opcode.IPUT_BOOLEAN &&
                 factoryInstructions[index - 1].opcode == Opcode.IGET_BOOLEAN &&
@@ -196,6 +207,9 @@ internal fun BytecodePatchContext.installStreamSwap() {
             :unchanged
             return-object p0
         """)
+        val rebuild = wrapper.methods.single {
+            it.name == "rvxWithBytes" && it.parameterTypes == listOf("[B", "Z")
+        }
         wrapper.interfaces.add(RESPONSE)
         producerSites.asReversed().forEach { site ->
             site.method.addInstructions(site.index, """
@@ -210,12 +224,71 @@ internal fun BytecodePatchContext.installStreamSwap() {
             check-cast p1, ${caller.returnType}
         """)
         installGuard()
-        installLocalSource()
-        supported.returnEarly(true)
+        val inspectorSupported = installLocalSource()
         printInfo("StreamSwap: response adapter installed ${wrapper.type}; producers=${producerSites.size}")
+        if (inspectorSupported) registerPlaybackSourceInspector()
+
+        // Spoof streams is optional and can execute before or after Downloads.
+        val finishSwap = {
+            try {
+                guardLocalStreamFromSpoof(protoClass, builder, nativeBuilderConstructor, rebuild)
+                supported.returnEarly(true)
+            } catch (ex: Exception) {
+                printWarn("StreamSwap: client spoof handoff unavailable; online playback unchanged: ${ex.message}")
+            }
+        }
+        finishSwap
     } catch (ex: Exception) {
         printWarn("StreamSwap: hook unavailable; online playback unchanged: ${ex.message}")
+        null
     }
+}
+
+/**
+ * Spoof streams hooks the same constructor used to build a local response. Its streaming data override would
+ * replace the RVX token before the player sees it. Keep the stock constructor, but skip that override only
+ * during construction from the freshly parsed local response. No other response, including the original
+ * online fallback for the same song, can carry this marker.
+ */
+private fun guardLocalStreamFromSpoof(
+    proto: MutableClass,
+    builder: MutableClass,
+    constructor: MutableMethod,
+    rebuild: MutableMethod,
+) {
+    val helperCall = constructor.implementation!!.instructions.firstNotNullOfOrNull {
+        it.getReference<MethodReference>()?.takeIf { call ->
+            call.definingClass == builder.type && call.name == SPOOF_STREAM_OVERRIDE_METHOD
+        }
+    } ?: return
+    val helper = builder.methods.single {
+        it.name == helperCall.name && it.parameterTypes == helperCall.parameterTypes && it.returnType == "V"
+    }
+    val code = rebuild.implementation!!.instructions
+    val create = code.indices.single { code[it].getReference<MethodReference>() == constructor }
+    val call = code[create] as FiveRegisterInstruction
+    val localFlag = rebuild.implementation!!.registerCount - 1
+    check(call.opcode == Opcode.INVOKE_DIRECT && call.registerCount == 2 &&
+        call.registerD in 0..15 && call.registerD != 4 && localFlag in 0..15 &&
+        helper.parameterTypes.size == 2 && helper.parameterTypes.last() == proto.type &&
+        helper.implementation!!.registerCount in 4..16) { "Local stream spoof handoff changed" }
+
+    val marker = ImmutableField(proto.type, "rvxLocalStreamBuild", "Z",
+        AccessFlags.PUBLIC.value or AccessFlags.TRANSIENT.value, null, null, null)
+    proto.instanceFields.add(marker.toMutable())
+    helper.addInstructionsWithLabels(0, """
+        iget-boolean v0, p2, $marker
+        if-eqz v0, :allow_stream_spoof
+        return-void
+        :allow_stream_spoof
+        nop
+    """)
+    rebuild.addInstructions(create + 1, """
+        const/4 v4, 0x0
+        iput-boolean v4, v${call.registerD}, $marker
+    """)
+    rebuild.addInstructions(create, "iput-boolean v$localFlag, v${call.registerD}, $marker")
+    printInfo("StreamSwap: preserved locally issued streaming data through the client spoof constructor.")
 }
 
 /** Bind each retained value to the field that actually receives that constructor argument. */

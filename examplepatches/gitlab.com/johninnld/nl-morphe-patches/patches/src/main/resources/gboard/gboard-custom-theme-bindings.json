@@ -1,32 +1,32 @@
 {
   "format": "gboard-version-bindings.v1",
-  "target_version": "18.6.3",
-  "profile_version": "1.8.0",
+  "target_version": "18.8.0-beta",
+  "profile_version": "1.9.0",
   "bindings": {
     "custom_theme_fragment_peer_field": {
       "kind": "field",
       "class_type": "Lcom/google/android/apps/inputmethod/libs/theme/listing/ThemeListingFragment;",
       "field_name": "a",
-      "field_type": "Lkbf;",
+      "field_type": "Lvmb;",
       "confidence": 1.0
     },
     "custom_theme_peer_context_field": {
       "kind": "field",
-      "class_type": "Lkbf;",
+      "class_type": "Lvmb;",
       "field_name": "b",
       "field_type": "Landroid/content/Context;",
       "confidence": 1.0
     },
     "custom_theme_peer_launcher_field": {
       "kind": "field",
-      "class_type": "Lkbf;",
+      "class_type": "Lvmb;",
       "field_name": "t",
-      "field_type": "Lquw;",
+      "field_type": "Lvku;",
       "confidence": 1.0
     },
     "custom_theme_peer_result_handler": {
       "kind": "method",
-      "class_type": "Lkbf;",
+      "class_type": "Lvmb;",
       "method_name": "j",
       "parameter_types": ["Landroid/content/Intent;"],
       "return_type": "V",
@@ -34,23 +34,24 @@
     },
     "custom_theme_plus_handler": {
       "kind": "method",
-      "class_type": "Lkbl;",
-      "method_name": "f",
-      "parameter_types": ["Lkbf;", "Lkbo;", "I"],
+      "class_type": "Lvmj;",
+      "method_name": "c",
+      "peer_class": "Lvmb;",
+      "parameter_types": ["Lvmh;", "Lvmn;", "I"],
       "return_type": "V",
       "confidence": 1.0
     },
     "custom_theme_result_handler": {
       "kind": "method",
       "class_type": "Lcom/google/android/apps/inputmethod/libs/theme/listing/ThemeListingFragment;",
-      "method_name": "W",
+      "method_name": "X",
       "parameter_types": ["I", "I", "Landroid/content/Intent;"],
       "return_type": "V",
       "confidence": 1.0
     },
     "custom_theme_validator": {
       "kind": "method",
-      "class_type": "Lrhw;",
+      "class_type": "Lajgb;",
       "method_name": "h",
       "parameter_types": ["Ljava/io/File;"],
       "return_type": "Z",
@@ -58,8 +59,8 @@
     },
     "custom_theme_launcher_launch": {
       "kind": "method",
-      "class_type": "Lquw;",
-      "method_name": "E",
+      "class_type": "Lvku;",
+      "method_name": "b",
       "parameter_types": ["Landroid/content/Intent;", "I", "Landroid/os/Bundle;"],
       "return_type": "V",
       "confidence": 1.0

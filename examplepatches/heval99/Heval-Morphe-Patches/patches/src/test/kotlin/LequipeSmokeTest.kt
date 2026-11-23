@@ -49,7 +49,7 @@ class LequipeSmokeTest {
             apk = apk,
             workDir = workDir,
             pkg = PKG,
-            version = "10.71.1",
+            version = "10.72.0",
             patchNames = setOf("Disable ads"),
             allPatches = loadAllPatches(newestPatchBundle(root)),
         )

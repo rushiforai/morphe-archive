@@ -2124,15 +2124,15 @@ public final class GboardAddSymbolsRuntime {
         final Method gridLayoutManagerSetSpanCountMethod;
 
         Handles(ClassLoader classLoader) throws Throwable {
-            Class<?> keyboardTypeClass = Class.forName("qnm", false, classLoader);
-            keyboardProviderReceiverInterfaceClass = Class.forName("pwg", false, classLoader);
+            Class<?> keyboardTypeClass = Class.forName("ahsz", false, classLoader);
+            keyboardProviderReceiverInterfaceClass = Class.forName("agoq", false, classLoader);
             supportRecyclerViewClass = Class.forName(
                     "android.support.v7.widget.RecyclerView", false, classLoader);
             recyclerViewViewHolderClass = Class.forName("kr", false, classLoader);
             gridLayoutManagerClass = Class.forName(
                     "android.support.v7.widget.GridLayoutManager", false, classLoader);
-            Class<?> immutableMapBuilderClass = Class.forName("wyz", false, classLoader);
-            Class<?> immutableListClass = Class.forName("wyw", false, classLoader);
+            Class<?> immutableMapBuilderClass = Class.forName("auzc", false, classLoader);
+            Class<?> immutableListClass = Class.forName("auys", false, classLoader);
             Class<?> integerStringMapClass = Class.forName("xea", false, classLoader);
             emoticonKeyboardClass = Class.forName(
                     "com.google.android.apps.inputmethod.libs.search.emoticon.EmoticonKeyboardM2",
@@ -2165,7 +2165,7 @@ public final class GboardAddSymbolsRuntime {
             Class<?> extensionManagerClass = Class.forName("otc", false, classLoader);
             expressionCorpusItemClass = Class.forName("oss", false, classLoader);
             Class<?> expressionCorpusItemBuilderClass = Class.forName("osq", false, classLoader);
-            Class<?> richSymbolCorpusProviderClass = Class.forName("kbd", false, classLoader);
+            Class<?> richSymbolCorpusProviderClass = Class.forName("vlv", false, classLoader);
 
             immutableMapBuilderConstructor = immutableMapBuilderClass.getDeclaredConstructor(int.class);
             immutableMapBuilderConstructor.setAccessible(true);
@@ -2174,7 +2174,7 @@ public final class GboardAddSymbolsRuntime {
             immutableMapBuilderBuildMethod = immutableMapBuilderClass.getDeclaredMethod("m");
             immutableMapBuilderBuildMethod.setAccessible(true);
 
-            keyboardTypeFromStringMethod = Class.forName("qaz", false, classLoader).getDeclaredMethod("ag", Object.class);
+            keyboardTypeFromStringMethod = Class.forName("agwf", false, classLoader).getDeclaredMethod("ag", Object.class);
             keyboardTypeFromStringMethod.setAccessible(true);
             keyboardTypeNameField = keyboardTypeClass.getDeclaredField("m");
             keyboardTypeNameField.setAccessible(true);

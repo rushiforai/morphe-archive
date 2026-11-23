@@ -15,6 +15,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewParent;
+import android.view.ViewTreeObserver;
 import android.view.WindowInsets;
 import android.widget.FrameLayout;
 import android.widget.MediaController;
@@ -126,6 +127,7 @@ final class ShortControls {
     static void hide() {
         VideoFeatures.MAIN.removeCallbacks(TICK);
         ticking = false;
+        releaseReelBar();
         if (bar != null) {
             bar.setVisibility(View.GONE);
             back.setVisibility(View.GONE);
@@ -154,6 +156,8 @@ final class ShortControls {
     static void forget(Activity activity) {
         if (owner.get() != activity) return;
         hideNow();
+        ViewTreeObserver observer = activity.getWindow().getDecorView().getViewTreeObserver();
+        if (observer.isAlive()) observer.removeOnPreDrawListener(KEEP_HELD);
         owner = new WeakReference<>(null);
         target = new WeakReference<>(null);
         bar = null;
@@ -196,6 +200,9 @@ final class ShortControls {
     private static String lastLogged = "";
     private static WeakReference<View> cornerPausedFor = new WeakReference<>(null);
     private static WeakReference<View> lastSeekLogFor = new WeakReference<>(null);
+    private static WeakReference<View> lastMismatchFor = new WeakReference<>(null);
+    private static WeakReference<View> lastHiddenBarFor = new WeakReference<>(null);
+    private static long diagAt;
 
     private static MediaController.MediaPlayerControl playerOf(View video) {
         Object player = VideoFeatures.playerOf(video);
@@ -306,6 +313,158 @@ final class ShortControls {
         return null;
     }
 
+    // ---------------------------------------------------------------- the app's own reel bar
+
+    /**
+     * Reels carry their own thin progress bar: a SeekBar that is a sibling of the video view inside the reel's item
+     * (not a child of the video, so the lookups above never see it), laid over the video's bottom edge. When it draws
+     * its track and thumb while our bar is shown, the reel has two seek bars. While our bar is visible this bar is
+     * held at alpha 0, and its alpha is given back as soon as ours is hidden. Touches still reach it.
+     */
+    private static WeakReference<View> reelBar = new WeakReference<>(null);
+    private static float reelBarAlpha = 1f;
+    private static boolean reelBarHeld;
+    private static long reelBarSearchedAt;
+    private static WeakReference<View> reelBarLoggedFor = new WeakReference<>(null);
+    private static final long REEL_BAR_SEARCH_MS = 300;
+
+    /** Runs before every frame: the app may fade its bar in again, and the frame must not show it. */
+    private static final ViewTreeObserver.OnPreDrawListener KEEP_HELD = new ViewTreeObserver.OnPreDrawListener() {
+        @Override
+        public boolean onPreDraw() {
+            if (reelBarHeld) {
+                View v = reelBar.get();
+                if (v != null && v.getAlpha() != 0f) v.setAlpha(0f);
+            }
+            return true;
+        }
+    };
+
+    private static boolean isInside(View view, View ancestor) {
+        ViewParent p = view.getParent();
+        while (p != null) {
+            if (p == ancestor) return true;
+            p = p.getParent();
+        }
+        return false;
+    }
+
+    /** A visible SeekBar outside the video, at least half as wide, that lies over the video's bottom edge. */
+    private static boolean fitsReelBar(View video, View v) {
+        if (!(v instanceof SeekBar) || !v.isAttachedToWindow() || v.getVisibility() != View.VISIBLE) return false;
+        if (v == video || isInside(v, video) || v.getWidth() < video.getWidth() * 0.5f || v.getHeight() <= 0) return false;
+        int[] at = new int[2];
+        v.getLocationInWindow(at);
+        int[] vat = new int[2];
+        video.getLocationInWindow(vat);
+        float center = at[1] + v.getHeight() / 2f;
+        float edge = vat[1] + video.getHeight();
+        float reach = 48 * v.getResources().getDisplayMetrics().density;
+        return Math.abs(center - edge) <= reach;
+    }
+
+    private static View findReelBar(View view, View video, int[] budget) {
+        if (budget[0]-- <= 0 || view == video || view.getVisibility() == View.GONE) return null;
+        if (fitsReelBar(video, view)) return view;
+        if (!(view instanceof ViewGroup)) return null;
+        ViewGroup group = (ViewGroup) view;
+        for (int i = 0; i < group.getChildCount(); i++) {
+            View found = findReelBar(group.getChildAt(i), video, budget);
+            if (found != null) return found;
+        }
+        return null;
+    }
+
+    private static View reelBarOf(View video) {
+        View cached = reelBar.get();
+        if (cached != null && fitsReelBar(video, cached)) return cached;
+        long now = SystemClock.uptimeMillis();
+        if (now - reelBarSearchedAt < REEL_BAR_SEARCH_MS) return null;
+        reelBarSearchedAt = now;
+        View scope = null;
+        View pager = FeedItems.pagerOf(video);
+        if (pager != null) scope = FeedItems.childOf(pager, video);
+        if (scope == null) {
+            ViewParent parent = video.getParent();
+            scope = parent instanceof View ? (View) parent : null;
+        }
+        return scope == null ? null : findReelBar(scope, video, new int[] {400});
+    }
+
+    /** Holds the app's reel bar hidden (hold) or gives it back. */
+    private static void holdReelBar(View video, boolean hold) {
+        View found = hold ? reelBarOf(video) : null;
+        View current = reelBar.get();
+        if (reelBarHeld && current != null && current != found) releaseReelBar();
+        if (found == null) return;
+        if (!reelBarHeld) {
+            reelBar = new WeakReference<>(found);
+            reelBarAlpha = found.getAlpha();
+            reelBarHeld = true;
+            if (MorpheLog.enabled("controls") && reelBarLoggedFor.get() != video) {
+                reelBarLoggedFor = new WeakReference<>(video);
+                int[] at = new int[2];
+                found.getLocationInWindow(at);
+                MorpheLog.log("controls", "App reel bar held hidden under our bar: " + Overlay.describe(found) + " id=" + idName(found)
+                        + " at " + at[0] + "," + at[1] + " alpha was " + reelBarAlpha);
+            }
+        }
+        if (found.getAlpha() != 0f) found.setAlpha(0f);
+    }
+
+    private static void releaseReelBar() {
+        if (!reelBarHeld) return;
+        reelBarHeld = false;
+        View v = reelBar.get();
+        if (v != null) v.setAlpha(reelBarAlpha);
+    }
+
+    /**
+     * The app's seek bar that is on screen now, or null. The one found at lookup is tried first. The video's views are
+     * searched as well, because the bar may be created after the lookup or be another view than the one found, and a
+     * stale lookup must never leave our own bar drawn under the app's.
+     */
+    private static View appBarShowing(View video, Native app) {
+        if (showing(app.seek)) return app.seek;
+        int[] budget = {250};
+        return findShowingBar(video, video.getWidth() * 0.5f, 0, budget);
+    }
+
+    private static View findShowingBar(View view, float minWidth, int depth, int[] budget) {
+        if (budget[0]-- <= 0 || depth > 10 || view.getVisibility() == View.GONE) return null;
+        if (view instanceof SeekBar && view.getWidth() >= minWidth && showing(view)) return view;
+        if (!(view instanceof ViewGroup)) return null;
+        ViewGroup group = (ViewGroup) view;
+        for (int i = 0; i < group.getChildCount(); i++) {
+            View found = findShowingBar(group.getChildAt(i), minWidth, depth + 1, budget);
+            if (found != null) return found;
+        }
+        return null;
+    }
+
+    private static View findShownBar(View view, float minWidth, int depth, int[] budget) {
+        if (budget[0]-- <= 0 || depth > 10 || view.getVisibility() == View.GONE) return null;
+        if (view instanceof SeekBar && view.getWidth() >= minWidth && view.isShown()) return view;
+        if (!(view instanceof ViewGroup)) return null;
+        ViewGroup group = (ViewGroup) view;
+        for (int i = 0; i < group.getChildCount(); i++) {
+            View found = findShownBar(group.getChildAt(i), minWidth, depth + 1, budget);
+            if (found != null) return found;
+        }
+        return null;
+    }
+
+    private static float alphaOf(View view) {
+        float alpha = 1f;
+        View v = view;
+        while (v != null) {
+            alpha *= v.getAlpha();
+            ViewParent parent = v.getParent();
+            v = parent instanceof View ? (View) parent : null;
+        }
+        return alpha;
+    }
+
     /** Finds the app's controls that belong to this video (looked up again when they are gone). */
     private static Native nativeOf(Activity activity, View video) {
         long now = SystemClock.uptimeMillis();
@@ -394,7 +553,18 @@ final class ShortControls {
 
         boolean appPlay = showing(app.play);
         boolean appSkip = showing(app.back) || showing(app.forward);
-        boolean appSeek = showing(app.seek);
+        View appBar = appBarShowing(video, app);
+        boolean appSeek = appBar != null;
+        if (appBar != null && appBar != app.seek) {
+            if (lastMismatchFor.get() != video && MorpheLog.enabled("controls")) {
+                lastMismatchFor = new WeakReference<>(video);
+                MorpheLog.log("controls", "App seek bar is not the one found at lookup: cached="
+                        + (app.seek == null ? "null" : idName(app.seek) + " showing=" + showing(app.seek)
+                        + " attached=" + app.seek.isAttachedToWindow()) + ", showing now " + Overlay.describe(appBar)
+                        + " id=" + idName(appBar));
+            }
+            if (appBar instanceof SeekBar) app.seek = (SeekBar) appBar;
+        }
 
         long now = SystemClock.uptimeMillis();
         if (playing) pausedSince = 0;
@@ -416,17 +586,30 @@ final class ShortControls {
         bar.setTranslationY(barTop);
         if (!bar.dragging) bar.set(position, duration);
         bar.invalidate();
-        if (appSeek && MorpheLog.enabled() && lastSeekLogFor.get() != video) {
+        if (appSeek && MorpheLog.enabled("controls") && lastSeekLogFor.get() != video) {
             lastSeekLogFor = new WeakReference<>(video);
-            app.seek.getLocationInWindow(LOCATION);
+            appBar.getLocationInWindow(LOCATION);
             MorpheLog.log("controls", "Own bar hidden: the app's seek bar is showing at " + LOCATION[0] + "," + LOCATION[1]
-                    + " " + app.seek.getWidth() + "x" + app.seek.getHeight() + " alpha " + app.seek.getAlpha()
+                    + " " + appBar.getWidth() + "x" + appBar.getHeight() + " alpha " + appBar.getAlpha()
                     + ", video " + (duration / 1000) + " s");
         }
         int barVisibility = (!appSeek || bar.dragging) ? View.VISIBLE : View.GONE;
         if (bar.getVisibility() != barVisibility) {
             bar.setVisibility(barVisibility);
             if (barVisibility == View.VISIBLE) bar.bringToFront();
+        }
+        holdReelBar(video, barVisibility == View.VISIBLE);
+
+        if (!appSeek && now - diagAt >= 500 && lastHiddenBarFor.get() != video && MorpheLog.enabled("controls")) {
+            diagAt = now;
+            View shownBar = findShownBar(video, vw * 0.5f, 0, new int[]{250});
+            if (shownBar != null) {
+                lastHiddenBarFor = new WeakReference<>(video);
+                shownBar.getLocationInWindow(LOCATION);
+                MorpheLog.log("controls", "Own bar is visible while a seek bar is shown but not counted: "
+                        + Overlay.describe(shownBar) + " id=" + idName(shownBar) + " at " + LOCATION[0] + "," + LOCATION[1]
+                        + " alpha chain " + alphaOf(shownBar) + " visibleRect " + shownBar.getGlobalVisibleRect(new Rect()));
+            }
         }
 
         // Same size and spacing as the app's own buttons: 40 dp and 59 dp, 65.5 dp from the middle.
@@ -583,6 +766,11 @@ final class ShortControls {
         }
         owner = new WeakReference<>(activity);
         shown = false;
+        ViewTreeObserver observer = decor.getViewTreeObserver();
+        if (observer.isAlive()) {
+            observer.removeOnPreDrawListener(KEEP_HELD);
+            observer.addOnPreDrawListener(KEEP_HELD);
+        }
     }
 
     private static int dp(Context context, int value) {

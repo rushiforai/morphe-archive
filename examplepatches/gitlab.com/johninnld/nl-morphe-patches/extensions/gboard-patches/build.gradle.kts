@@ -555,7 +555,9 @@ val generateCustomThemeVersionBindings = tasks.register("generateCustomThemeVers
             plus["return_type"] == "V") {
             "Custom Theme plus binding has an unexpected method shape"
         }
-        val peerDescriptor = plusParameters[0]
+        // 18.8.0 declares the plus handler against the two interfaces the peer and the
+        // adapter implement, while field access still goes through the concrete peer.
+        val peerDescriptor = (plus["peer_class"] as String?) ?: plusParameters[0]
         require(fragmentPeer["class_type"] == result["class_type"] &&
             fragmentPeer["field_type"] == peerDescriptor) {
             "Custom Theme fragment peer binding is inconsistent with the patched handlers"
@@ -594,6 +596,8 @@ val generateCustomThemeVersionBindings = tasks.register("generateCustomThemeVers
                 static final String PLUS_CLASS = "${javaString(binaryClass(plus))}";
                 static final String PLUS_METHOD = "${javaString(plus.getValue("method_name") as String)}";
                 static final String ADAPTER_CLASS = "${javaString(binaryDescriptor(plusParameters[1]))}";
+                static final String PLUS_PARAM0 = "${javaString(binaryDescriptor(plusParameters[0]))}";
+                static final String PLUS_PARAM1 = "${javaString(binaryDescriptor(plusParameters[1]))}";
                 static final String RESULT_CLASS = "${javaString(binaryClass(result))}";
                 static final String RESULT_METHOD = "${javaString(result.getValue("method_name") as String)}";
                 static final String FRAGMENT_PEER_FIELD = "${javaString(fragmentPeer.getValue("field_name") as String)}";

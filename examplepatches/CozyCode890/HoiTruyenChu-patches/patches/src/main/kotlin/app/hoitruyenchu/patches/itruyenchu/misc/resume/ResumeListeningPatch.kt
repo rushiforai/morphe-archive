@@ -1,5 +1,7 @@
 package app.hoitruyenchu.patches.itruyenchu.misc.resume
 
+import app.hoitruyenchu.patches.itruyenchu.misc.settings.enablePatchFlag
+import app.hoitruyenchu.patches.itruyenchu.misc.settings.settingsPatch
 import app.hoitruyenchu.patches.itruyenchu.audio.tts.ttsReliabilityPatch
 import app.hoitruyenchu.patches.itruyenchu.shared.Constants.COMPATIBILITY_ITRUYENCHU
 import app.hoitruyenchu.patches.itruyenchu.shared.Constants.EXTENSION_RESUME_LISTENING
@@ -19,9 +21,11 @@ val resumeListeningPatch = patch(
     compatibleWith(COMPATIBILITY_ITRUYENCHU)
 
     // Also needs the TTS fix that drops the stray "Hết chương" of a re-opened reader.
-    dependsOn(ttsReliabilityPatch)
+    dependsOn(ttsReliabilityPatch, settingsPatch)
 
     execute {
+        enablePatchFlag("resumeListening")
+
         ReactInstanceLoadJSBundleFingerprint.method.apply {
             val instructions = implementation!!.instructions.toList()
             instructions.indices.reversed()

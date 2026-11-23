@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gboard_Pro — Material 3 Expressive README Preview</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Roboto:wght@400;500;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #ffffff;
+      --surface: #f9f9fb;
+      --surface-border: #e2e2e8;
+      --text: #1d1b20;
+      --text-secondary: #49454f;
+      --code-bg: #f3f3f6;
+      --accent: #6750a4;
+    }
+    [data-theme="dark"] {
+      --bg: #0e0d11;
+      --surface: #17151c;
+      --surface-border: #2c2834;
+      --text: #e6e0e9;
+      --text-secondary: #cac4d0;
+      --code-bg: #1e1b24;
+      --accent: #d0bcff;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Roboto', system-ui, -apple-system, sans-serif;
+      line-height: 1.6;
+      padding: 32px 16px;
+      transition: background 0.25s, color 0.25s;
+    }
+    .top-controls {
+      position: sticky;
+      top: 16px;
+      z-index: 100;
+      max-width: 980px;
+      margin: 0 auto 24px auto;
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+    }
+    .toggle-btn {
+      background: var(--surface);
+      color: var(--text);
+      border: 1px solid var(--surface-border);
+      border-radius: 999px;
+      padding: 8px 18px;
+      font-family: 'Google Sans', sans-serif;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      transition: all 0.2s;
+    }
+    .toggle-btn:hover {
+      transform: translateY(-1px);
+      border-color: var(--accent);
+    }
+    .container {
+      max-width: 980px;
+      margin: 0 auto;
+      background: var(--surface);
+      border: 1px solid var(--surface-border);
+      border-radius: 32px;
+      padding: 48px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.06);
+    }
+    @media (max-width: 768px) {
+      .container { padding: 24px 16px; border-radius: 20px; }
+      body { padding: 16px 8px; }
+    }
+    h1, h2, h3, h4 { font-family: 'Google Sans', sans-serif; color: var(--text); margin: 28px 0 16px 0; }
+    p { margin-bottom: 16px; color: var(--text-secondary); font-size: 15px; }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    table { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 14px; }
+    th, td { padding: 12px 16px; text-align: left; border-bottom: 1px solid var(--surface-border); }
+    th { font-family: 'Google Sans', sans-serif; font-weight: 700; color: var(--text); background: rgba(0,0,0,0.02); }
+    pre, code { font-family: 'JetBrains Mono', monospace; font-size: 13px; }
+    pre { background: var(--code-bg); padding: 16px; border-radius: 16px; overflow-x: auto; margin: 16px 0; border: 1px solid var(--surface-border); }
+    code { background: var(--code-bg); padding: 2px 6px; border-radius: 6px; }
+    pre code { background: none; padding: 0; }
+    picture img { display: block; max-width: 100%; height: auto; }
+    .badge-bar { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin: 16px 0; }
+    .btn-bar { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin: 24px 0; }
+    .bento-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 16px; margin: 24px 0; }
+    .stack-bar { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin: 20px 0; }
+  </style>
+</head>
+<body data-theme="dark">
+  <div class="top-controls">
+    <button class="toggle-btn" id="themeToggle" onclick="toggleTheme()">
+      <span id="themeIcon">☀️</span> <span id="themeLabel">Light Mode</span>
+    </button>
+  </div>
+
+  <div class="container" id="content">
+    <div align="center">
+      <img src="../docs/images/showcase.png" alt="Gboard_Pro Material 3 Expressive Showcase" width="100%" style="border-radius: 24px; box-shadow: 0 12px 36px rgba(0,0,0,0.25);" />
+      <br><br>
+
+      <div class="btn-bar">
+        <a href="https://github.com/smartworldarafath/Gboard_Pro/releases/download/v18.4.1-Stable-V7/Gboard_Pro-18.4.1-V7.apk">
+          <picture>
+            <source media="(prefers-color-scheme: dark)" srcset="assets/readme/dark/btn-download.svg">
+            <img class="theme-img" data-dark="assets/readme/dark/btn-download.svg" data-light="assets/readme/light/btn-download.svg" src="assets/readme/dark/btn-download.svg" alt="Download APK" height="50">
+          </picture>
+        </a>
+        <a href="https://github.com/smartworldarafath/Gboard_Pro/releases/download/v18.4.1-Stable-V7/patches-1.2.0.mpp">
+          <picture>
+            <source media="(prefers-color-scheme: dark)" srcset="assets/readme/dark/btn-mpp.svg">
+            <img class="theme-img" data-dark="assets/readme/dark/btn-mpp.svg" data-light="assets/readme/light/btn-mpp.svg" src="assets/readme/dark/btn-mpp.svg" alt="Download .mpp" height="50">
+          </picture>
+        </a>
+        <a href="https://github.com/smartworldarafath/Gboard_Pro">
+          <picture>
+            <source media="(prefers-color-scheme: dark)" srcset="assets/readme/dark/btn-github.svg">
+            <img class="theme-img" data-dark="assets/readme/dark/btn-github.svg" data-light="assets/readme/light/btn-github.svg" src="assets/readme/dark/btn-github.svg" alt="Source Code" height="50">
+          </picture>
+        </a>
+        <a href="#support">
+          <picture>
+            <source media="(prefers-color-scheme: dark)" srcset="assets/readme/dark/btn-sponsor.svg">
+            <img class="theme-img" data-dark="assets/readme/dark/btn-sponsor.svg" data-light="assets/readme/light/btn-sponsor.svg" src="assets/readme/dark/btn-sponsor.svg" alt="Support Project" height="50">
+          </picture>
+        </a>
+      </div>
+
+      <div class="badge-bar">
+        <picture><source media="(prefers-color-scheme: dark)" srcset="assets/readme/dark/badge-nonroot.svg"><img class="theme-img" data-dark="assets/readme/dark/badge-nonroot.svg" data-light="assets/readme/light/badge-nonroot.svg" src="assets/readme/dark/badge-nonroot.svg" alt="Zero Root Needed" height="28"></picture>
+        <picture><source media="(prefers-color-scheme: dark)" srcset="assets/readme/dark/badge-version.svg"><img class="theme-img" data-dark="assets/readme/dark/badge-version.svg" data-light="assets/readme/light/badge-version.svg" src="assets/readme/dark/badge-version.svg" alt="v18.4.1-V7" height="28"></picture>
+        <picture><source media="(prefers-color-scheme: dark)" srcset="assets/readme/dark/badge-android.svg"><img class="theme-img" data-dark="assets/readme/dark/badge-android.svg" data-light="assets/readme/light/badge-android.svg" src="assets/readme/dark/badge-android.svg" alt="Android 10 - 16" height="28"></picture>
+        <picture><source media="(prefers-color-scheme: dark)" srcset="assets/readme/dark/badge-arm64.svg"><img class="theme-img" data-dark="assets/readme/dark/badge-arm64.svg" data-light="assets/readme/light/badge-arm64.svg" src="assets/readme/dark/badge-arm64.svg" alt="arm64-v8a" height="28"></picture>
+        <picture><source media="(prefers-color-scheme: dark)" srcset="assets/readme/dark/badge-rambler.svg"><img class="theme-img" data-dark="assets/readme/dark/badge-rambler.svg" data-light="assets/readme/light/badge-rambler.svg" src="assets/readme/dark/badge-rambler.svg" alt="Gemini Rambler" height="28"></picture>
+        <picture><source media="(prefers-color-scheme: dark)" srcset="assets/readme/dark/badge-ai.svg"><img class="theme-img" data-dark="assets/readme/dark/badge-ai.svg" data-light="assets/readme/light/badge-ai.svg" src="assets/readme/dark/badge-ai.svg" alt="AI Writing Tools" height="28"></picture>
+        <picture><source media="(prefers-color-scheme: dark)" srcset="assets/readme/dark/badge-m3e.svg"><img class="theme-img" data-dark="assets/readme/dark/badge-m3e.svg" data-light="assets/readme/light/badge-m3e.svg" src="assets/readme/dark/badge-m3e.svg" alt="Material 3 Belka" height="28"></picture>
+        <picture><source media="(prefers-color-scheme: dark)" srcset="assets/readme/dark/badge-coexist.svg"><img class="theme-img" data-dark="assets/readme/dark/badge-coexist.svg" data-light="assets/readme/light/badge-coexist.svg" src="assets/readme/dark/badge-coexist.svg" alt="Side-by-Side Coexist" height="28"></picture>
+        <picture><source media="(prefers-color-scheme: dark)" srcset="assets/readme/dark/badge-gpl.svg"><img class="theme-img" data-dark="assets/readme/dark/badge-gpl.svg" data-light="assets/readme/light/badge-gpl.svg" src="assets/readme/dark/badge-gpl.svg" alt="GPL-3.0" height="28"></picture>
+      </div>
+    </div>
+
+    <!-- Overview Header -->
+    <h3 id="overview">
+      <picture>
+        <source media="(prefers-color-scheme: dark) and (max-width: 640px)" srcset="assets/readme/dark/hm-overview.svg">
+        <source media="(prefers-color-scheme: dark)" srcset="assets/readme/dark/h-overview.svg">
+        <source media="(max-width: 640px)" srcset="assets/readme/light/hm-overview.svg">
+        <img class="theme-img" data-dark="assets/readme/dark/h-overview.svg" data-light="assets/readme/light/h-overview.svg" src="assets/readme/dark/h-overview.svg" alt="Overview" width="100%">
+      </picture>
+    </h3>
+
+    <p><strong>Gboard_Pro</strong> is an open-source enhancement of Google's flagship Android keyboard, re-engineered for discerning typists who demand cutting-edge intelligence, tactile aesthetics, and zero ecosystem friction.</p>
+    <p>By decoupling Google's flagship features from carrier restrictions, geographical flags, and server-side A/B rollouts, Gboard_Pro unlocks <strong>Pixel Gemini Rambler Conversational Dictation</strong>, <strong>On-Device AI Writing Tools & Tone Rewriting</strong>, <strong>Material 3 Expressive Belka Pill Keycaps</strong>, <strong>Android 12+ Inline Spell Check Chips</strong>, <strong>CameraX OCR Scanner</strong>, and <strong>OEM Clipboard Persistence</strong>—out of the box, with <strong>zero root access required</strong>.</p>
+
+    <!-- Bento Grid Features -->
+    <h3 id="features">
+      <picture>
+        <source media="(prefers-color-scheme: dark) and (max-width: 640px)" srcset="assets/readme/dark/hm-features.svg">
+        <source media="(prefers-color-scheme: dark)" srcset="assets/readme/dark/h-features.svg">
+        <source media="(max-width: 640px)" srcset="assets/readme/light/hm-features.svg">
+        <img class="theme-img" data-dark="assets/readme/dark/h-features.svg" data-light="assets/readme/light/h-features.svg" src="assets/readme/dark/h-features.svg" alt="Features" width="100%">
+      </picture>
+    </h3>
+
+    <div class="bento-grid">
+      <picture><source media="(prefers-color-scheme: dark)" srcset="assets/readme/dark/card-rambler.svg"><img class="theme-img" data-dark="assets/readme/dark/card-rambler.svg" data-light="assets/readme/light/card-rambler.svg" src="assets/readme/dark/card-rambler.svg" alt="Gemini Rambler" width="100%"></picture>
+      <picture><source media="(prefers-color-scheme: dark)" srcset="assets/readme/dark/card-ai.svg"><img class="theme-img" data-dark="assets/readme/dark/card-ai.svg" data-light="assets/readme/light/card-ai.svg" src="assets/readme/dark/card-ai.svg" alt="AI Writing Tools" width="100%"></picture>
+      <picture><source media="(prefers-color-scheme: dark)" srcset="assets/readme/dark/card-spellcheck.svg"><img class="theme-img" data-dark="assets/readme/dark/card-spellcheck.svg" data-light="assets/readme/light/card-spellcheck.svg" src="assets/readme/dark/card-spellcheck.svg" alt="Spell Checker Chips" width="100%"></picture>
+      <picture><source media="(prefers-color-scheme: dark)" srcset="assets/readme/dark/card-camera.svg"><img class="theme-img" data-dark="assets/readme/dark/card-camera.svg" data-light="assets/readme/light/card-camera.svg" src="assets/readme/dark/card-camera.svg" alt="Camera OCR" width="100%"></picture>
+      <picture><source media="(prefers-color-scheme: dark)" srcset="assets/readme/dark/card-belka.svg"><img class="theme-img" data-dark="assets/readme/dark/card-belka.svg" data-light="assets/readme/light/card-belka.svg" src="assets/readme/dark/card-belka.svg" alt="Belka Keys" width="100%"></picture>
+      <picture><source media="(prefers-color-scheme: dark)" srcset="assets/readme/dark/card-emoji.svg"><img class="theme-img" data-dark="assets/readme/dark/card-emoji.svg" data-light="assets/readme/light/card-emoji.svg" src="assets/readme/dark/card-emoji.svg" alt="Emoji Palette V2" width="100%"></picture>
+      <picture><source media="(prefers-color-scheme: dark)" srcset="assets/readme/dark/card-superinsert.svg"><img class="theme-img" data-dark="assets/readme/dark/card-superinsert.svg" data-light="assets/readme/light/card-superinsert.svg" src="assets/readme/dark/card-superinsert.svg" alt="Super Insert" width="100%"></picture>
+      <picture><source media="(prefers-color-scheme: dark)" srcset="assets/readme/dark/card-clipboard.svg"><img class="theme-img" data-dark="assets/readme/dark/card-clipboard.svg" data-light="assets/readme/light/card-clipboard.svg" src="assets/readme/dark/card-clipboard.svg" alt="OEM Clipboard" width="100%"></picture>
+    </div>
+
+    <!-- Tech Stack -->
+    <h3 id="stack">
+      <picture>
+        <source media="(prefers-color-scheme: dark) and (max-width: 640px)" srcset="assets/readme/dark/hm-stack.svg">
+        <source media="(prefers-color-scheme: dark)" srcset="assets/readme/dark/h-stack.svg">
+        <source media="(max-width: 640px)" srcset="assets/readme/light/hm-stack.svg">
+        <img class="theme-img" data-dark="assets/readme/dark/h-stack.svg" data-light="assets/readme/light/h-stack.svg" src="assets/readme/dark/h-stack.svg" alt="Tech Stack" width="100%">
+      </picture>
+    </h3>
+
+    <div class="stack-bar">
+      <picture><source media="(prefers-color-scheme: dark)" srcset="assets/readme/dark/pill-kotlin.svg"><img class="theme-img" data-dark="assets/readme/dark/pill-kotlin.svg" data-light="assets/readme/light/pill-kotlin.svg" src="assets/readme/dark/pill-kotlin.svg" alt="Kotlin 2.0" height="34"></picture>
+      <picture><source media="(prefers-color-scheme: dark)" srcset="assets/readme/dark/pill-java.svg"><img class="theme-img" data-dark="assets/readme/dark/pill-java.svg" data-light="assets/readme/light/pill-java.svg" src="assets/readme/dark/pill-java.svg" alt="Java 21" height="34"></picture>
+      <picture><source media="(prefers-color-scheme: dark)" srcset="assets/readme/dark/pill-android.svg"><img class="theme-img" data-dark="assets/readme/dark/pill-android.svg" data-light="assets/readme/light/pill-android.svg" src="assets/readme/dark/pill-android.svg" alt="Android SDK" height="34"></picture>
+      <picture><source media="(prefers-color-scheme: dark)" srcset="assets/readme/dark/pill-smali.svg"><img class="theme-img" data-dark="assets/readme/dark/pill-smali.svg" data-light="assets/readme/light/pill-smali.svg" src="assets/readme/dark/pill-smali.svg" alt="Smali" height="34"></picture>
+      <picture><source media="(prefers-color-scheme: dark)" srcset="assets/readme/dark/pill-morphe.svg"><img class="theme-img" data-dark="assets/readme/dark/pill-morphe.svg" data-light="assets/readme/light/pill-morphe.svg" src="assets/readme/dark/pill-morphe.svg" alt="Morphe Engine" height="34"></picture>
+      <picture><source media="(prefers-color-scheme: dark)" srcset="assets/readme/dark/pill-gradle.svg"><img class="theme-img" data-dark="assets/readme/dark/pill-gradle.svg" data-light="assets/readme/light/pill-gradle.svg" src="assets/readme/dark/pill-gradle.svg" alt="Gradle" height="34"></picture>
+      <picture><source media="(prefers-color-scheme: dark)" srcset="assets/readme/dark/pill-camerax.svg"><img class="theme-img" data-dark="assets/readme/dark/pill-camerax.svg" data-light="assets/readme/light/pill-camerax.svg" src="assets/readme/dark/pill-camerax.svg" alt="CameraX" height="34"></picture>
+      <picture><source media="(prefers-color-scheme: dark)" srcset="assets/readme/dark/pill-m3e.svg"><img class="theme-img" data-dark="assets/readme/dark/pill-m3e.svg" data-light="assets/readme/light/pill-m3e.svg" src="assets/readme/dark/pill-m3e.svg" alt="Material 3 Expressive" height="34"></picture>
+      <picture><source media="(prefers-color-scheme: dark)" srcset="assets/readme/dark/pill-de.svg"><img class="theme-img" data-dark="assets/readme/dark/pill-de.svg" data-light="assets/readme/light/pill-de.svg" src="assets/readme/dark/pill-de.svg" alt="Device Protected Storage" height="34"></picture>
+    </div>
+  </div>
+
+  <script>
+    function toggleTheme() {
+      const body = document.body;
+      const current = body.getAttribute('data-theme') || 'dark';
+      const next = current === 'dark' ? 'light' : 'dark';
+      body.setAttribute('data-theme', next);
+      document.getElementById('themeIcon').textContent = next === 'dark' ? '☀️' : '🌙';
+      document.getElementById('themeLabel').textContent = next === 'dark' ? 'Light Mode' : 'Dark Mode';
+      
+      // Update fallback images
+      document.querySelectorAll('.theme-img').forEach(img => {
+        const src = img.getAttribute('data-' + next);
+        if (src) img.src = src;
+      });
+    }
+  </script>
+</body>
+</html>

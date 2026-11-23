@@ -141,6 +141,7 @@ file first, then ask for a fresh debug log ([DEBUG_LOG.md](DEBUG_LOG.md)).
 
 - Positioned on the video's own bounds by translation, updated every frame (`postOnAnimation`). The old version used the clipped visible
   rectangle, so the button slid down from the top while a Reel slid in.
+- In Reels the button is placed above the real Like group, measured at runtime, not from the video's size (section 14).
 - A story photo uses the same button, downloading to `Pictures/Facebook Lite`.
 
 ## 7. Debugging method
@@ -262,3 +263,86 @@ file first, then ask for a fresh debug log ([DEBUG_LOG.md](DEBUG_LOG.md)).
   sections; they come from the `DEEP` dumps (`<class>.<field>=value`) and have to be re-read from a new build's dump.
 - To verify: open a multi-photo post from Saved; the photos and text show. The log has `KEEP permalink post` (up to 5 lines) and no
   `HIDDEN by rule` for a 59-node item. Feed ads must still be hidden.
+
+## 14. Download button over the Like button (issue #37, log 2026-11-22, build 536.0.0.11.107)
+
+- Report: on the reporter's phone the download button covers the Like button in Reels. It never did on the author's phone
+  (Xiaomi M2102J20SG, 1080x2400).
+- Cause: the author's phone runs at **density 2.05 (328 dpi), 527 dp wide, font scale 0.8**; a normal phone is about 2.6 and 360 to 411 dp.
+  Facebook Lite sizes the Reels action column in **dp**: each group is 111x131 px here (54x64 dp), the groups sit 148 px (72 dp)
+  apart, the last one is 99 px (48 dp), icons 67x69 px (33 dp). The old placement scaled fixed offsets by the video's width
+  (a 702 px reference), so it was only right at the author's density; at about 2.6 the column is 1.28 times taller next to the same width.
+  The reporter's screenshot agrees: Like sits about 256 dp above the video's bottom edge (525 px here, 672 px at density 2.625), within 1 to 2% of the estimate from the picture.
+- Layout of a reel in this build (Reels tab, window 1080x2302): list `X.12u<RecyclerView` (1080x2211 from y 91), item `X.13n<...` , the
+  video `X.1L2<FbVideoView` (1080x1920, **centred in the item**, y 237 to 2157), the column on the right at x 969: four
+  `X.0jp<X.0jo<ViewGroup` (clickable; the first, Like, is also long-clickable) with `X.1Go<View` icon and count children, bottom at 2174,
+  5 px above the comment bar `X.0jp<X.0jo<ViewGroup` 1080x123 at y 2179. The column hangs from the item's bottom, not from the video's,
+  so the gap between the video's bottom and the column changes with the screen's aspect ratio too.
+- Fix (`DownloadButton.likeOf` / `findLike`): no obfuscated name is used. In the video's item, take clickable views in the right quarter
+  of the video, 24 dp or wider (up to a quarter of the video), 28 to 110 dp tall, with their top inside the video. Chain the ones with
+  the same left edge and width (2 dp apart at most) and a gap of 24 dp at most; a chain of 3 or more is the column, its first view is Like.
+  The button is centred on the column and 19 dp above Like's top, 37.5 dp wide (77 px at the author's density, as before). The view is
+  looked up again when it is detached or hidden, at most every 400 ms. Without a column: 256 dp above the video's bottom, 26.3 dp from the side edge, all in dp.
+  Story photos and videos outside a list keep the old width-based placement.
+- Confirmed by the reporter on 2026-11-22: "The placement of the download button has been corrected".
+- How to find it again in a new build: Debug logging > Views and layout, open a reel. The `layout` `SUMMARY` has `column chain: n=4 ... measured/assumed height=`
+  and the right-zone candidates with their id names; if it says `column chain: none found`, read the `TREE` for four clickable groups of equal width stacked at the
+  right edge. The `video` tag has `Like column found: ...` or `Like column not found, using the dp fallback`.
+
+## 15. A second seek bar under the app's own (issue #37 follow-up, 2026-11-22)
+
+- Report: after the placement fix, some reels show two seek bars (the app's thin one with a thumb at the video's bottom edge, ours
+  below it). Random, not every video. The author has not seen it for some time.
+- The app's own bar in this build, all inside the video view `X.1L2<FbVideoView`, plain Android classes with unobfuscated ids:
+  `inline_seek_bar_layout` (LinearLayout, 1080x64 at the video's bottom, invisible while a reel plays) holding `inline_seek_bar`
+  (SeekBar 1064x8, padding 33 px) and `inline_seek_bar_duration`; `inline_progress_bar_layout` with `inline_progress_bar` (ProgressBar,
+  1080x33, invisible); `video_player_controls` with `skip_backward_icon`, `video_play_icon`, `skip_forward_icon`, also invisible until a tap.
+- Suspected cause, **not confirmed**: `ShortControls.nativeOf` looks the app's controls up once per video and repeats only when the play icon
+  and the seek bar are both missing. A lookup that runs before the seek bar exists, or that finds another `SeekBar`, leaves `appSeek` false
+  for the whole video, so our bar stays under the app's when the app's bar shows. Whether the lookup lands before or after the app builds its bar is a race, which fits "random".
+- Change: `appBarShowing` tries the cached seek bar, then scans the video's views for any `SeekBar` at least half the video's width that is showing
+  (visible, in the window, effective alpha above 0.3). A bar found that way becomes the cached one.
+- Log lines (tag `controls`, Player buttons): `App seek bar is not the one found at lookup: cached=... showing now ...` confirms the cause above.
+  `Own bar is visible while a seek bar is shown but not counted: ... alpha chain ... visibleRect ...` marks the other possible cause:
+  a bar that is visible but fails the `showing` test (alpha, or clipped).
+- To verify: play many short reels and tap them; our bar must hide whenever the app's thin bar with the thumb shows. If a second bar still
+  appears, send the log with Player buttons and Views and layout on: the two lines above say which cause it is.
+
+## 16. Button at the top center, and the app's reel bar (issue #37, second report, 2026-11-23)
+
+Device: OnePlus PJZ110, 1440x3168, density 3.5, Facebook Lite 536.0.0.11.107. Log: `fblite-morphe-log-20261123-010513.txt`.
+
+### 16.1 Download button at the top center of the Reels screen
+- Report: the reporter's screenshot shows the button in the top bar, horizontally centered, not above Like. The earlier "placement corrected"
+  (section 14) was true for the reels he tried then; this one is a stale lookup.
+- Log proof: `layout SUMMARY` at 01:04:43.5 lists `DownloadButton$Icon 131x131@665,137` (center 730,202) while the real column chain is
+  `X.0jp 189x224` at x 1251, tops 1982 / 2234 / 2486 / 2738 (Like, Comment, Share, 3 dot). The same dump holds two clickable `X.0jp<X.0jo<ViewGroup`
+  of 17x18 and 18x18 at y 335 and x 703 / 721: the 18x18 view at (721, 335) is exactly where the old formula puts the button
+  (center x 730 = 721 + 18 / 2, top 137 = 335 - 19 dp - 131). A later dump (01:04:57.7) of another reel has the button at 1280,1784, correct.
+- Cause: `likeOf` cached the Like view per video and trusted it while it was attached, shown and had a width. The app builds a reel from a pool of
+  views and, when the next reel is bound, gives a pooled group another job. The group that was Like became a small button at the top of the
+  video. It is still the same Java object, so the cache never noticed.
+- Fix (`DownloadButton.likeOf`): the cached view must keep the size it had at lookup and must still pass the column test (`qualifies`:
+  clickable, 24 dp or wider, 28 to 110 dp tall, in the right quarter, top inside the video). The column is looked up again every 600 ms
+  even when the cached view passes (a pooled group can become Comment, which passes the test). A failed rescan keeps a view that still passes.
+  Log: `Like column changed: <old> -> <new>` (tag `video`, Views and layout is not needed).
+- The button now takes the slot above Like exactly: center x = the column's center, center y = Like's top - the column's pitch (top of Like
+  to top of Comment, 252 px here) + the icon's center inside its group (29 + 55 px here). That gives 1814 here, the same step as Like to Comment.
+  Without a column: 256 dp above the video's bottom, minus one pitch of 72 dp (fallback, dp only).
+
+### 16.2 Two seek bars
+- Screenshot: a thin bar with a thumb at the video's bottom edge (full video width) and our thicker bar below the video (inset). Same progress.
+- The thin one is the app's own reel bar: `X.1py<SeekBar id=#a|#c 1440x87@0,2871`, a **sibling** of the video view `X.1L2<FbVideoView`
+  inside the reel's item, visible in the tree of every reel (34 s and 262 s alike). The video's own `inline_seek_bar`,
+  `inline_seek_bar_layout`, `inline_progress_bar` (inside the view, 1412x63 / 1440x56) are invisible while a reel plays.
+- Cause: `ShortControls` looked for the app's seek bar only in the video view's subtree (`nativeOf`, `appBarShowing`, `findShownBar`),
+  so the bar outside it was never seen and neither of the two diagnostic lines of section 15 fired. The log shows
+  `Native controls: back=true play=true forward=true seek=true` (the `seek` is `inline_seek_bar`) and `Shown for X.1L2`, with no `App seek bar is not the one found`.
+  Section 15's suspicion (lookup too early) was not the cause here.
+- Fix (`ShortControls.holdReelBar`): while our bar is visible, the app's reel bar is held at alpha 0 (found by type, not by name: a visible `SeekBar`
+  outside the video, at least half the video's width, whose center is within 48 dp of the video's bottom edge, looked up in the reel's item).
+  A pre draw listener on the decor view keeps it at 0 if the app fades it in again, and its alpha is given back when our bar hides
+  (comment sheet, paused off screen, next reel, 60 s or longer). Touches still reach it. Log (tag `controls`): `App reel bar held hidden under our bar: ...`, once per video.
+- If a thin bar with a thumb still shows: send the log with Player buttons on; check that line is present for that video. If it is missing,
+  the app's bar is not a `SeekBar` of that size: read its class in the `layout` `TREE` (Views and layout on).
+- Not verified on a device: built from the log, no APK was run.

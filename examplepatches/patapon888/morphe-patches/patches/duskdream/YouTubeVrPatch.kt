@@ -21,7 +21,7 @@ private val youTubeVrShaderPatch = resourcePatch {
 
 @Suppress("unused")
 val youTubeVrPatch = bytecodePatch(
-    name = "Daydream Everywhere (YouTube VR)",
+    name = "DuskDream (YouTube VR)",
     description = "Runs YouTube VR edge to edge with its background, signed in through MicroG RE."
 ) {
     compatibleWith(YOUTUBE_VR)

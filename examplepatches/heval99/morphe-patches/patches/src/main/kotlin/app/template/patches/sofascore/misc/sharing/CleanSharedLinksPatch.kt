@@ -23,7 +23,7 @@ import com.android.tools.smali.dexlib2.immutable.reference.ImmutableMethodRefere
 internal val CLEAN_SHARE_LINKS = HevalFeature(
     id = "sofascore.clean_share_links",
     name = "Clean shared links",
-    description = "Shares plain Sofascore links without tracking codes.",
+    description = "Removes tracking codes from image-share text and highlight links.",
     category = SofascoreControlsCategory.BETTING,
     icon = "shield",
 )
@@ -105,7 +105,7 @@ private fun MethodReference.isAppendQueryParameter() =
 val cleanSharedLinksPatch = sofascoreControls.featurePatch(
     CLEAN_SHARE_LINKS,
     name = "Clean shared links",
-    description = "Removes tracking codes from shared links.",
+    description = "Removes tracking codes from image-share text and highlight links.",
 ) {
     classDefBy(SOFASCORE_SHARE_LINKS)
 

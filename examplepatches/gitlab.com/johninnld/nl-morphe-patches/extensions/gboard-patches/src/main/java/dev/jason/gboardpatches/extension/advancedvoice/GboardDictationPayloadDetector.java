@@ -14,7 +14,7 @@ import java.util.zip.ZipFile;
 
 public final class GboardDictationPayloadDetector {
     private static final Pattern DICTATION_LIBRARY_ENTRY =
-            Pattern.compile("^lib/[^/]+/libdictation_jni\\.so$");
+            Pattern.compile("^(lib/[^/]+|assets/dictation/[^/]+)/libdictation_jni\\.so$");
 
     private GboardDictationPayloadDetector() {
     }

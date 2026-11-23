@@ -81,7 +81,7 @@ internal val OPENXR_APP_REDIRECTS = listOf(
 
 @Suppress("unused")
 val homePatch = bytecodePatch(
-    name = "Daydream Everywhere (Daydream)",
+    name = "DuskDream (Daydream)",
     description = "Runs Daydream on any arm64 phone without root."
 ) {
     compatibleWith(VR_HOME)
@@ -111,7 +111,7 @@ val homePatch = bytecodePatch(
 
 @Suppress("unused")
 val keyboardPatch = bytecodePatch(
-    name = "Daydream Everywhere (Keyboard)",
+    name = "DuskDream (Keyboard)",
     description = "Lets the Daydream keyboard run re-signed, and adds Swiss layouts."
 ) {
     compatibleWith(VR_KEYBOARD)

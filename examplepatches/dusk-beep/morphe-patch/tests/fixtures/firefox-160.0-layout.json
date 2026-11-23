@@ -1,0 +1,49 @@
+{
+  "package": "org.mozilla.firefox",
+  "versionName": "160.0",
+  "versionCode": 2016194410,
+  "apk_sha256": "0d0c677a87633f9dd14b3dd1bcd7530874d59c7e2d042d1cd340f4fe215f692d",
+  "dex_files": [
+    "classes.dex",
+    "classes2.dex",
+    "classes3.dex"
+  ],
+  "targets": {
+    "disableWebExtension": {
+      "dex": "classes2.dex",
+      "descriptor": "Lmozilla/components/browser/engine/gecko/GeckoEngine;->disableWebExtension(Lmozilla/components/concept/engine/webextension/WebExtension;Lmozilla/components/concept/engine/webextension/EnableSource;Lmozilla/components/feature/addons/AddonManager$$ExternalSyntheticLambda4;Lmozilla/components/feature/addons/AddonManager$$ExternalSyntheticLambda5;)V",
+      "registers": 6,
+      "incoming_registers": 5,
+      "failure_callback_parameter": "p4: Function1.invoke(Throwable)"
+    },
+    "uninstallWebExtension": {
+      "dex": "classes2.dex",
+      "descriptor": "Lmozilla/components/browser/engine/gecko/GeckoEngine;->uninstallWebExtension(Lmozilla/components/concept/engine/webextension/WebExtension;Lmozilla/components/feature/addons/AddonManager$$ExternalSyntheticLambda10;Lmozilla/components/feature/addons/AddonManager$$ExternalSyntheticLambda11;)V",
+      "registers": 5,
+      "incoming_registers": 4,
+      "failure_callback_parameter": "p3: Function2.invoke(extensionId: String, error: Throwable)"
+    },
+    "uninstall_error_adapter": {
+      "class": "Lmozilla/components/browser/engine/gecko/GeckoEngine$$ExternalSyntheticLambda1;",
+      "reads": "Lmozilla/components/concept/engine/webextension/WebExtension;->id:Ljava/lang/String;",
+      "calls": "Lmozilla/components/feature/addons/AddonManager$$ExternalSyntheticLambda11;->invoke(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;",
+      "callback_registers": [
+        1,
+        0,
+        2
+      ],
+      "callback_argument_order": [
+        "receiver",
+        "extension_id",
+        "throwable"
+      ],
+      "callback_interface": "Lkotlin/jvm/functions/Function2;"
+    },
+    "disable_error_adapter": {
+      "class": "Lmozilla/components/feature/addons/AddonManager$$ExternalSyntheticLambda5;",
+      "invoke": "Lmozilla/components/feature/addons/AddonManager$$ExternalSyntheticLambda5;->invoke(Ljava/lang/Object;)Ljava/lang/Object;",
+      "callback_interface": "Lkotlin/jvm/functions/Function1;"
+    },
+    "web_extension_id_field": "Lmozilla/components/concept/engine/webextension/WebExtension;->id:Ljava/lang/String;"
+  }
+}

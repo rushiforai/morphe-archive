@@ -1,5 +1,5 @@
 {
-  "version": "v0.83.0",
+  "version": "v0.84.0",
   "appNames": {
     "com.zhiliaoapp.musically": "TikTok",
     "com.zhiliaoapp.musically.go": "TikTok Lite"
@@ -860,6 +860,15 @@
         {
           "key": "hide_grid_view_count",
           "title": "Default: hide grid view count",
+          "description": null,
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": false,
+          "values": null
+        },
+        {
+          "key": "rounded_grid_corners",
+          "title": "Default: rounded grid corners",
           "description": null,
           "required": false,
           "type": "kotlin.Boolean",
@@ -4191,6 +4200,15 @@
           "values": null
         },
         {
+          "key": "hide_playable_games",
+          "title": "Default: hide playable games",
+          "description": null,
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": false,
+          "values": null
+        },
+        {
           "key": "live_feed_filter",
           "title": "Default: live feed filter",
           "description": null,
@@ -4546,6 +4564,15 @@
           "values": null
         },
         {
+          "key": "exit_with_one_back",
+          "title": "Default: exit with one back",
+          "description": null,
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": false,
+          "values": null
+        },
+        {
           "key": "show_feed_buttons",
           "title": "Default: show feed buttons",
           "description": null,
@@ -4798,6 +4825,45 @@
       "use": true,
       "dependencies": [
         "Patch"
+      ],
+      "compatiblePackages": {
+        "com.zhiliaoapp.musically": [
+          "47.9.3"
+        ]
+      },
+      "compatibility": [
+        {
+          "name": "TikTok",
+          "packageName": "com.zhiliaoapp.musically",
+          "description": null,
+          "appIconColor": 16657493,
+          "signatures": [
+            "9041803e91bcb814b4b4399fb5c85a91640b755e5e8ba76813814bf4cf2ab5ba"
+          ],
+          "targets": [
+            {
+              "version": "47.9.3",
+              "experimental": false,
+              "versionCodes": {
+                "ARM64_V8A": 2024709030,
+                "ARMEABI_V7A": 2024709030,
+                "X86": 2024709030,
+                "X86_64": 2024709030
+              }
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Fix notifications on OPPO, OnePlus and realme",
+      "description": "On OPPO, OnePlus and realme phones TikTok can send its notifications through OPPO's push service, which only delivers to TikTok as TikTok signed it, not to a patched copy. This has TikTok use Google's push service on those phones, like it does on other phones. Other phones don't change. Works as soon as you patch it in, with no switch.",
+      "category": "Inbox",
+      "use": true,
+      "dependencies": [
+        "Patch",
+        "Settings"
       ],
       "compatiblePackages": {
         "com.zhiliaoapp.musically": [
@@ -6531,6 +6597,15 @@
           "values": null
         },
         {
+          "key": "hide_pause_icon",
+          "title": "Default: hide pause icon",
+          "description": null,
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": false,
+          "values": null
+        },
+        {
           "key": "hide_following_live_row",
           "title": "Default: hide following live row",
           "description": null,
@@ -7702,7 +7777,7 @@
     },
     {
       "name": "LIVE controls",
-      "description": "Stops a LIVE in the feed from opening by itself after a countdown. It can show a LIVE's exact viewer count instead of a rounded one, offer a quality choice and clear screen in more LIVE rooms, and keep your quality pick after TikTok restarts. Starts off. Turn it on in Hushfeed settings > Playback. It also keeps a LIVE in the feed from showing the Service+ row of the LIVE before it (or hides that row altogether), can hide the AI summary on LIVE previews, and can add a Record button to a LIVE room that saves what you watch from when you tap it.",
+      "description": "Stops a LIVE in the feed from opening by itself after a countdown. It can show a LIVE's exact viewer count and battle scores instead of rounded ones, offer a quality choice and clear screen in more LIVE rooms, and keep your quality pick after TikTok restarts. Starts off. Turn it on in Hushfeed settings > Playback. It also keeps a LIVE in the feed from showing the Service+ row of the LIVE before it (or hides that row altogether), can hide the AI summary on LIVE previews, and can add a Record button to a LIVE room that saves what you watch from when you tap it.",
       "category": "Playback",
       "use": true,
       "dependencies": [
@@ -7775,6 +7850,33 @@
           "values": null
         },
         {
+          "key": "show_exact_battle_scores",
+          "title": "Default: show exact battle scores",
+          "description": null,
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": false,
+          "values": null
+        },
+        {
+          "key": "live_room_info",
+          "title": "Default: live room info",
+          "description": null,
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": false,
+          "values": null
+        },
+        {
+          "key": "live_running_time",
+          "title": "Default: live running time",
+          "description": null,
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": false,
+          "values": null
+        },
+        {
           "key": "offer_live_quality",
           "title": "Default: offer live quality",
           "description": null,
@@ -7790,6 +7892,15 @@
           "required": false,
           "type": "kotlin.Boolean",
           "default": true,
+          "values": null
+        },
+        {
+          "key": "live_start_quality",
+          "title": "Default: live start quality",
+          "description": null,
+          "required": false,
+          "type": "kotlin.String",
+          "default": "last",
           "values": null
         },
         {
@@ -7822,6 +7933,96 @@
         {
           "key": "dark_live_panels",
           "title": "Default: dark live panels",
+          "description": null,
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": false,
+          "values": null
+        },
+        {
+          "key": "live_card_background",
+          "title": "Default: live card background",
+          "description": null,
+          "required": false,
+          "type": "kotlin.String",
+          "default": "off",
+          "values": null
+        },
+        {
+          "key": "live_card_text",
+          "title": "Default: live card text",
+          "description": null,
+          "required": false,
+          "type": "kotlin.String",
+          "default": "off",
+          "values": null
+        },
+        {
+          "key": "hide_live_card_events",
+          "title": "Default: hide live card events",
+          "description": null,
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": false,
+          "values": null
+        },
+        {
+          "key": "hide_live_card_products",
+          "title": "Default: hide live card products",
+          "description": null,
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": false,
+          "values": null
+        },
+        {
+          "key": "hide_live_card_shop",
+          "title": "Default: hide live card shop",
+          "description": null,
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": false,
+          "values": null
+        },
+        {
+          "key": "hide_live_card_shop_rating",
+          "title": "Default: hide live card shop rating",
+          "description": null,
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": false,
+          "values": null
+        },
+        {
+          "key": "hide_live_card_group_chat",
+          "title": "Default: hide live card group chat",
+          "description": null,
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": false,
+          "values": null
+        },
+        {
+          "key": "hide_live_card_bulletin_board",
+          "title": "Default: hide live card bulletin board",
+          "description": null,
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": false,
+          "values": null
+        },
+        {
+          "key": "hide_live_card_gift_gallery",
+          "title": "Default: hide live card gift gallery",
+          "description": null,
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": false,
+          "values": null
+        },
+        {
+          "key": "hide_live_card_fest_honors",
+          "title": "Default: hide live card fest honors",
           "description": null,
           "required": false,
           "type": "kotlin.Boolean",
@@ -11440,6 +11641,64 @@
       ]
     },
     {
+      "name": "Smaller text sizes",
+      "description": "Adds three stops below the smallest size on TikTok's own Text size slider, for smaller text and more on screen. Starts off. Turn it on in Hushfeed settings > App, then pick a stop in Settings and privacy > Accessibility > Text size and restart TikTok.",
+      "category": "Interface",
+      "use": true,
+      "dependencies": [
+        "Patch",
+        "Settings"
+      ],
+      "compatiblePackages": {
+        "com.zhiliaoapp.musically": [
+          "47.9.3"
+        ]
+      },
+      "compatibility": [
+        {
+          "name": "TikTok",
+          "packageName": "com.zhiliaoapp.musically",
+          "description": null,
+          "appIconColor": 16657493,
+          "signatures": [
+            "9041803e91bcb814b4b4399fb5c85a91640b755e5e8ba76813814bf4cf2ab5ba"
+          ],
+          "targets": [
+            {
+              "version": "47.9.3",
+              "experimental": false,
+              "versionCodes": {
+                "ARM64_V8A": 2024709030,
+                "ARMEABI_V7A": 2024709030,
+                "X86": 2024709030,
+                "X86_64": 2024709030
+              }
+            }
+          ]
+        }
+      ],
+      "options": [
+        {
+          "key": "smaller_text_sizes",
+          "title": "Default: smaller text sizes",
+          "description": null,
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": false,
+          "values": null
+        },
+        {
+          "key": "smaller_text_size_level",
+          "title": "Default: smaller text size level",
+          "description": null,
+          "required": false,
+          "type": "kotlin.Int",
+          "default": 0,
+          "values": null
+        }
+      ]
+    },
+    {
       "name": "Split activity list",
       "description": "Shows the Inbox's Activity page as two lists, your newest comments on top and likes below, each scrolling on its own, with a bar between them that swaps them or hides the lower one. Starts off. Turn it on in Hushfeed settings > Inbox.",
       "category": "Inbox",
@@ -11842,7 +12101,7 @@
     },
     {
       "name": "Subtitle tools",
-      "description": "Lets you make captions bigger, change their background and keep them in clear display, bring back TikTok's captions switch where it's missing, and save subtitle files with downloaded videos. Starts off. Turn it on in Hushfeed settings > Feed screen, and Downloads for subtitle files.",
+      "description": "Lets you make captions bigger, change their background and keep them in clear display, bring back TikTok's captions switch where it's missing, skip the part of a video whose caption has a promo word you list, and save subtitle files with downloaded videos. Starts off. Turn it on in Hushfeed settings > Feed screen, Feed filter for promo words, and Downloads for subtitle files.",
       "category": "Playback",
       "use": true,
       "dependencies": [
@@ -11977,6 +12236,24 @@
           "required": false,
           "type": "kotlin.Boolean",
           "default": false,
+          "values": null
+        },
+        {
+          "key": "skip_promo_lines",
+          "title": "Default: skip promo lines",
+          "description": null,
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": false,
+          "values": null
+        },
+        {
+          "key": "skip_promo_words",
+          "title": "Default: skip promo words",
+          "description": null,
+          "required": false,
+          "type": "kotlin.String",
+          "default": "",
           "values": null
         }
       ]
@@ -12300,6 +12577,94 @@
           "required": false,
           "type": "kotlin.Boolean",
           "default": false,
+          "values": null
+        }
+      ]
+    },
+    {
+      "name": "Turn profiles and comment pictures on tablets",
+      "description": "On a tablet where TikTok lets its main screen turn, a profile opened from search and a comment's picture turn with it instead of flipping the screen to portrait. Works as soon as you patch it in, with no switch.",
+      "category": "Interface",
+      "use": true,
+      "dependencies": [
+        "Patch",
+        "Settings"
+      ],
+      "compatiblePackages": {
+        "com.zhiliaoapp.musically": [
+          "47.9.3"
+        ]
+      },
+      "compatibility": [
+        {
+          "name": "TikTok",
+          "packageName": "com.zhiliaoapp.musically",
+          "description": null,
+          "appIconColor": 16657493,
+          "signatures": [
+            "9041803e91bcb814b4b4399fb5c85a91640b755e5e8ba76813814bf4cf2ab5ba"
+          ],
+          "targets": [
+            {
+              "version": "47.9.3",
+              "experimental": false,
+              "versionCodes": {
+                "ARM64_V8A": 2024709030,
+                "ARMEABI_V7A": 2024709030,
+                "X86": 2024709030,
+                "X86_64": 2024709030
+              }
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "UI scale",
+      "description": "Makes TikTok's whole interface smaller, text and buttons alike, so more fits on screen. Starts at 100%, which changes nothing. Pick a size in Hushfeed settings > App, then restart TikTok.",
+      "category": "Interface",
+      "use": true,
+      "dependencies": [
+        "Patch",
+        "Settings"
+      ],
+      "compatiblePackages": {
+        "com.zhiliaoapp.musically": [
+          "47.9.3"
+        ]
+      },
+      "compatibility": [
+        {
+          "name": "TikTok",
+          "packageName": "com.zhiliaoapp.musically",
+          "description": null,
+          "appIconColor": 16657493,
+          "signatures": [
+            "9041803e91bcb814b4b4399fb5c85a91640b755e5e8ba76813814bf4cf2ab5ba"
+          ],
+          "targets": [
+            {
+              "version": "47.9.3",
+              "experimental": false,
+              "versionCodes": {
+                "ARM64_V8A": 2024709030,
+                "ARMEABI_V7A": 2024709030,
+                "X86": 2024709030,
+                "X86_64": 2024709030
+              }
+            }
+          ]
+        }
+      ],
+      "options": [
+        {
+          "key": "ui_scale_percent",
+          "title": "Default: ui scale percent",
+          "description": null,
+          "required": false,
+          "type": "kotlin.Int",
+          "default": 100,
           "values": null
         }
       ]

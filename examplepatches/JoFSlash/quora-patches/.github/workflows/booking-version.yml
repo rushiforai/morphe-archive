@@ -1,0 +1,240 @@
+name: Booking.com version
+
+# Once a day, looks for a Booking.com version on APKMirror that this bundle doesn't support yet.
+# For a new version it:
+#   1. gets the APKM (from the private JoFSlash/morphe-apks if it is there, else from
+#      APKMirror, checked to be Booking.com's own and then kept in morphe-apks),
+#   2. patches it with every patch and starts it on an emulator,
+#   3. opens a pull request that lists the version as supported, or an issue that says what failed.
+# A scheduled run tries APKMirror once per version: when an issue or pull request for the version
+# exists (open or closed), it leaves the version alone. Run the workflow by hand with the version
+# to try again, for example after uploading the APKM:
+#   gh release create booking-<version> -R JoFSlash/morphe-apks --title "Booking.com <version>" booking-<version>.apkm
+# APKS_TOKEN needs read and write access to the contents of
+# JoFSlash/morphe-apks.
+
+on:
+  schedule:
+    - cron: '45 5 * * *'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Booking.com version to try (empty: the newest on APKMirror)'
+        required: false
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+  packages: read
+
+jobs:
+  check:
+    name: Look for a new version
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.pick.outputs.version }}
+      supported: ${{ steps.check.outputs.supported }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Check
+        id: check
+        # A version asked for by hand is tried even when APKMirror can't be read right now.
+        continue-on-error: ${{ inputs.version != '' }}
+        run: python3 .github/scripts/watch_booking_version.py --github-output "$GITHUB_OUTPUT"
+
+      - name: Pick the version to try
+        id: pick
+        env:
+          GH_TOKEN: ${{ github.token }}
+          NEW: ${{ steps.check.outputs.new }}
+          ASKED: ${{ inputs.version }}
+          EVENT: ${{ github.event_name }}
+        run: |
+          version="${ASKED:-$NEW}"
+          if [ -z "$version" ]; then echo "Nothing new."; exit 0; fi
+          if ! echo "$version" | grep -qE '^[0-9]+(\.[0-9]+)+$'; then
+            echo "::error::Not a Booking.com version: $version"; exit 1
+          fi
+          title="Support Booking.com $version"
+          if gh pr list --state all --search "\"$title\" in:title" --json title --jq '.[].title' | grep -qxF "bump: $title"; then
+            echo "A pull request for $version already exists."; exit 0
+          fi
+          if [ "$EVENT" = "schedule" ] && gh issue list --state all --search "\"Booking.com $version is out\" in:title" --json title --jq '.[].title' | grep -qxF "Booking.com $version is out"; then
+            echo "An issue for $version exists; run the workflow by hand with the version to try again."; exit 0
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+  support:
+    name: Try Booking.com ${{ needs.check.outputs.version }}
+    needs: check
+    if: needs.check.outputs.version != ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+    env:
+      VERSION: ${{ needs.check.outputs.version }}
+      SUPPORTED: ${{ needs.check.outputs.supported }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Java
+        uses: actions/setup-java@v6
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      # Writes result= ok (checked and kept in morphe-apks), blocked, missing, bad (not
+      # Booking.com's own), keepfail (checked, but couldn't be kept), error (a tool or the script
+      # failed), or notoken; and source= morphe-apks or apkmirror.
+      - name: Get the APKM
+        id: apkm
+        env:
+          APKS_TOKEN: ${{ secrets.APKS_TOKEN || secrets.QUORA_APKS_TOKEN }}
+        run: |
+          tools="$ANDROID_HOME/build-tools/$(ls "$ANDROID_HOME/build-tools" | sort -V | tail -1)"
+          check="--apksigner $tools/apksigner --aapt2 $tools/aapt2"
+          out="$RUNNER_TEMP/booking.apkm"
+          asset="booking-$VERSION.apkm"
+          if [ -z "$APKS_TOKEN" ]; then echo "result=notoken" >> "$GITHUB_OUTPUT"; exit 0; fi
+          if GH_TOKEN="$APKS_TOKEN" gh release download "booking-$VERSION" -R JoFSlash/morphe-apks -p "*.apkm" -O "$out" 2>/dev/null; then
+            echo "Using the APKM from morphe-apks."
+            echo "source=morphe-apks" >> "$GITHUB_OUTPUT"
+            set +e; python3 .github/scripts/fetch_booking_apkm.py --verify-only "$out" "$VERSION" $check; code=$?; set -e
+            case $code in
+              0) echo "result=ok" >> "$GITHUB_OUTPUT" ;;
+              6) echo "result=bad" >> "$GITHUB_OUTPUT" ;;
+              *) echo "result=error" >> "$GITHUB_OUTPUT" ;;
+            esac
+            exit 0
+          fi
+          echo "source=apkmirror" >> "$GITHUB_OUTPUT"
+          set +e; python3 .github/scripts/fetch_booking_apkm.py "$VERSION" "$out" $check; code=$?; set -e
+          case $code in
+            0)
+              # The asset is named after the file.
+              cp "$out" "$RUNNER_TEMP/$asset"
+              if GH_TOKEN="$APKS_TOKEN" gh release create "booking-$VERSION" -R JoFSlash/morphe-apks \
+                  --title "Booking.com $VERSION" \
+                  --notes "Booking.com $VERSION APKM from APKMirror, checked to be signed by Booking.com. Added by the Booking.com version workflow." \
+                  "$RUNNER_TEMP/$asset"; then
+                echo "result=ok" >> "$GITHUB_OUTPUT"
+              else
+                echo "result=keepfail" >> "$GITHUB_OUTPUT"
+              fi ;;
+            4) echo "result=blocked" >> "$GITHUB_OUTPUT" ;;
+            5) echo "result=missing" >> "$GITHUB_OUTPUT" ;;
+            6) echo "result=bad" >> "$GITHUB_OUTPUT" ;;
+            *) echo "result=error" >> "$GITHUB_OUTPUT" ;;
+          esac
+
+      - name: Build
+        if: steps.apkm.outputs.result == 'ok'
+        env:
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: bash .github/scripts/gradle-retry.sh :patches:buildAndroid --no-daemon
+
+      - name: Get the Morphe CLI
+        if: steps.apkm.outputs.result == 'ok'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release download "$(cat .github/morphe-cli-version)" -R MorpheApp/morphe-cli -p 'morphe-desktop-*-all.jar' -O "$RUNNER_TEMP/morphe-cli.jar"
+
+      - name: Enable KVM
+        if: steps.apkm.outputs.result == 'ok'
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Install the emulator
+        if: steps.apkm.outputs.result == 'ok'
+        uses: ./.github/actions/install-emulator
+        with:
+          api-level: '35'
+          channel: 'stable'
+
+      - name: Patch, install and start
+        if: steps.apkm.outputs.result == 'ok'
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 35
+          channel: stable
+          target: google_apis
+          arch: x86_64
+          disable-animations: true
+          script: python3 .github/scripts/check_booking.py "$RUNNER_TEMP/booking.apkm" --cli "$RUNNER_TEMP/morphe-cli.jar" --install --expect-screen --adb adb > "$RUNNER_TEMP/check.txt" 2>&1 || touch "$RUNNER_TEMP/check.failed"
+
+      - name: Open a pull request or an issue
+        if: always() && steps.apkm.outputs.result != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RESULT: ${{ steps.apkm.outputs.result }}
+          SOURCE: ${{ steps.apkm.outputs.source }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          [ -f "$RUNNER_TEMP/check.txt" ] && cat "$RUNNER_TEMP/check.txt"
+          report=$(tail -n 40 "$RUNNER_TEMP/check.txt" 2>/dev/null || true)
+          upload="gh release create booking-$VERSION -R JoFSlash/morphe-apks --title \"Booking.com $VERSION\" booking-$VERSION.apkm"
+          why=""
+          if [ "$RESULT" = "ok" ] && [ -f "$RUNNER_TEMP/check.txt" ] && [ ! -f "$RUNNER_TEMP/check.failed" ]; then
+            set +e; python3 .github/scripts/add_booking_version.py "$VERSION"; code=$?; set -e
+            if [ $code -eq 3 ]; then echo "$VERSION is already listed."; exit 0; fi
+            if [ $code -ne 0 ]; then
+              why="Every patch applies and the app starts, but listing the version in Constants.kt failed (add_booking_version.py exited with $code). Add \`AppTarget(version = \"$VERSION\")\` by hand."
+            else
+              branch="support/booking-$VERSION"
+              title="bump: Support Booking.com $VERSION"
+              git config user.name "github-actions[bot]"
+              git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+              git checkout -b "$branch"
+              git commit -am "$title"
+              body=$(printf '%s\n\n%s\n\n```\n%s\n```\n\n%s\n' \
+                "Booking.com $VERSION is on APKMirror. Every patch applies, and the patched app starts on an emulator and shows its own screen ([run]($RUN_URL))." \
+                "Before merging, try a search and a hotel page on a phone: the emulator test only starts the app." \
+                "$report" \
+                "Opened by the Booking.com version workflow. Checks don't run on pull requests it opens; this run tested it, and the release tests it again.")
+              if git push -f origin "$branch" && gh pr create --base main --head "$branch" --title "$title" --body "$body"; then
+                exit 0
+              fi
+              why="Every patch applies and the app starts, but opening the pull request failed. The change is on the branch \`$branch\` if it was pushed; see the run log."
+            fi
+          fi
+          if [ -z "$why" ]; then
+            case "$RESULT" in
+              blocked) why="APKMirror (or the network) turned the automatic download away. Download the APKM by hand and upload it, then run the Booking.com version workflow by hand with version $VERSION:
+          \`\`\`
+          $upload
+          \`\`\`" ;;
+              missing) why="APKMirror has no APK bundle (APKM) of $VERSION yet. Wait until it has, or upload one you have, then run the Booking.com version workflow by hand with version $VERSION:
+          \`\`\`
+          $upload
+          \`\`\`" ;;
+              bad) if [ "$SOURCE" = "morphe-apks" ]; then
+                     why="**The APKM in morphe-apks isn't Booking.com's own** (wrong package, version or signature). Delete the release \`booking-$VERSION\` in JoFSlash/morphe-apks: the emulator test would use it."
+                   else
+                     why="**The APKM from APKMirror isn't Booking.com's own** (wrong package, version or signature). It wasn't used or kept. Check APKMirror by hand."
+                   fi ;;
+              keepfail) why="The APKM from APKMirror is Booking.com's own, but keeping it in morphe-apks failed. Check that APKS_TOKEN can write to the contents of JoFSlash/morphe-apks, then run the workflow by hand." ;;
+              error) why="Getting or checking the APKM failed for another reason (a tool or the script). See the run log." ;;
+              notoken) why="The APKS_TOKEN secret isn't set, so the APKM couldn't be fetched or kept." ;;
+              *) why="Patching or starting the app failed. Fix the patches that no longer apply, then run the workflow by hand with version $VERSION:
+          \`\`\`
+          $report
+          \`\`\`" ;;
+            esac
+          fi
+          title="Booking.com $VERSION is out"
+          body=$(printf '%s\n\n%s\n\n%s\n' \
+            "Booking.com $VERSION is on [APKMirror](https://www.apkmirror.com/apk/booking-com-hotel-reservations/booking-com-hotel-reservations/). This bundle supports $SUPPORTED." \
+            "$why" \
+            "[Workflow run]($RUN_URL)")
+          existing=$(gh issue list --state open --search "\"$title\" in:title" --json number,title --jq ".[] | select(.title == \"$title\") | .number" | head -1)
+          if [ -n "$existing" ]; then
+            gh issue comment "$existing" --body "$body"
+          else
+            gh issue create --title "$title" --label enhancement --body "$body"
+          fi

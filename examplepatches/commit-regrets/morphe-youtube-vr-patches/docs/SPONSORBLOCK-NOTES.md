@@ -15,7 +15,10 @@ accessor, seek result) were answered while building, by the bridge methods the p
 the player wrapper and by the `onSeeked` hook respectively. `git log` has the removed text if a
 design question it debated ever comes back.*
 
-*Measured against YouTube VR 1.88.10 and re-verified against 1.90.05 on the device (the class names this document cites are per-version -- `pwe`/`pwd`/`ablw` are `pyg`/`pyf`/`abnu` on 1.90.05; see the name map in FINGERPRINTS.md).*
+*Measured against YouTube VR 1.88.10 and re-verified on the device at each supported pair since,
+most recently against 1.92.11 (2026-11-22; the class names this document cites are per-version --
+`pwe`/`pwd`/`ablw` are `pyg`/`pyf`/`abnu` on 1.90.05 and `pyk`/`pyj`/`abvg` on 1.92.11, with the
+backend interface `qhg`→`qjr`; see the name map in FINGERPRINTS.md).*
 
 ## 1. The feature and its API contract
 
@@ -1222,4 +1225,18 @@ playback, and each is something a user is likely to notice or to file as a bug:
 - a category set to `ignore` does **nothing at all**, silently — and a category set to `manual-skip`
   offers its button for 3.8 s when the playhead enters one of its segments; a video whose only segments
   are `preview`/`hook`/`filler` still looks like SponsorBlock is broken until that category is switched
-  on in Patch settings (see Addendum 19: those three are `ignore` by upstream's own default map).
+  on in Patch settings (see Addendum 19: those three are `ignore` by upstream's own default map);
+- **a seek can hit a 403 storm that only an app restart cures** (observed once, 2026-11-22, on the
+  1.92.11 build): the viewer tapped Skip, the seek's media request came back `403`
+  (`ExoPlayerImplInternal: Playback error ... Caused by: axz: Response code: 403`), and the player
+  re-prepared the video every ~150 ms -- each prepare re-running the spoof augment, which re-assigned
+  the *cached* spoofed streamingData and cleared/re-offered the Skip card, so the card flickered
+  shown/hidden and the video never left the buffering spinner. `SpoofStreams`' cache never re-fetches
+  mid-process, so no retry inside the process can mint fresh URLs; restarting the app process (a
+  reinstall did it here) wiped the cache, the next `/player` fetch succeeded, and the same skip
+  confirmed immediately. One occurrence, so the cause is not pinned: cached URLs gone stale
+  server-side and a transient googlevideo refusal are both consistent with these logs, and both are
+  cured by the fresh fetch a restart forces. The fetch-failure machinery (immediate retry, cooldown,
+  fail-open) covers the `/player` fetch being refused; it does not cover a URL going bad *after* it
+  was cached. If it recurs, the `-Diagnostics` build's media-request log (`media #N ... c= ... ump=`)
+  is the tool that tells the stale-URL case from the refused-shape case.

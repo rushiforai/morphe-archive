@@ -88,7 +88,9 @@ val disableTrackingPatch = bytecodePatch(
 
         // Smartocto "videoPlay" ping on first playback of each video.
         val smartoctoRequest = SmartoctoRequestFingerprint.originalClassDef.type
-        smartoctoListenerFingerprint(smartoctoRequest).method.addInstructions(0, "return-void")
+        // R8 assigned the same coroutine action a new switch case in build 7915.
+        val videoPlayBranch = if (packageMetadata.versionCode == "7915") 0x1dL else 0x1cL
+        smartoctoListenerFingerprint(smartoctoRequest, videoPlayBranch).method.addInstructions(0, "return-void")
 
         // Bitmovin Analytics: return the player/source without attaching a collector.
         BitmovinPlayerAnalyticsFingerprint.method.addInstructions(0, "return-object p0")

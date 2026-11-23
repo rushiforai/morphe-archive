@@ -1,24 +1,22 @@
-# #!/usr/bin/env bash
-# set -euo pipefail
-# cd "$(dirname "$0")/.."
+#!/usr/bin/env bash
+set -euo pipefail
+cd "$(dirname "$0")/.."
 
-# fix=false
-# [[ "${1:-}" == "--fix" ]] && fix=true
+echo "==> [1/4] ktlintFormat (auto-fix style)"
+./gradlew :patches:ktlintFormat
 
-# if $fix; then
-#   ./gradlew :patches:ktlintFormat
-# fi
+echo "==> [2/4] ktlintCheck + test + build (JVM side, CI parity)"
+./gradlew :patches:ktlintCheck :patches:test :patches:build
 
-# ./gradlew :patches:ktlintCheck
-# ./gradlew :patches:generatePatchesList :patches:buildAndroid
+echo "==> [3/4] generatePatchesList + buildAndroid (artifact - MUST be last)"
+rm -f patches/build/libs/*.mpp   # no stale bundles in the transfer dir
+./gradlew :patches:generatePatchesList :patches:buildAndroid
 
-# python3 - <<'PY'
-# import json
-# d = json.load(open("patches-list.json", encoding="utf-8"))
-# print("patches:", len(d["patches"]))
-# print("apps:", sorted({c["name"] for p in d["patches"] for c in (p.get("compatiblePackages") or [])}))
-# PY
-
-# python3 .github/scripts/generate_patches_readme.py sqzass/lustx-patches dev patches-list.json README.md
-rm patches/build/libs/patches-1.24.0.mpp
-./gradlew :patches:ktlintFormat :patches:buildAndroid
+echo "==> [4/4] summary"
+python3 - <<'PY'
+import json
+d = json.load(open("patches-list.json", encoding="utf-8"))
+print("patches:", len(d["patches"]))
+print("apps:", sorted({c["name"] for p in d["patches"] for c in (p.get("compatiblePackages") or [])}))
+PY
+ls -lh patches/build/libs/*.mpp

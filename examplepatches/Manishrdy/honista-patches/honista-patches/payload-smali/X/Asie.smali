@@ -1,4 +1,4 @@
-.class public LX/Asie;
+.class public LX/dپΡΩ丯乍乡ظ乣丿丳э丟юΓЧгب世Λ乗乊乛专;
 .super Ljava/lang/Object;
 
 .method public static a(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)Ljava/io/InputStream;
@@ -9,7 +9,7 @@
     move-result-object p2
 
     :try_start_0
-    const-class v0, LX/Asie;
+    const-class v0, LX/dپΡΩ丯乍乡ظ乣丿丳э丟юΓЧгب世Λ乗乊乛专;
 
     invoke-virtual {v0}, Ljava/lang/Class;->getClassLoader()Ljava/lang/ClassLoader;
 

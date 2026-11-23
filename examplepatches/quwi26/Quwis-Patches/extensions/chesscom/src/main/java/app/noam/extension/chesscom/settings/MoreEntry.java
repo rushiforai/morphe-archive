@@ -1,8 +1,6 @@
 package app.noam.extension.chesscom.settings;
 
-import android.app.Activity;
 import android.content.Context;
-import android.content.Intent;
 
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
@@ -131,9 +129,7 @@ public final class MoreEntry {
         Context context = Utils.resumedActivity();
         if (context == null) context = Utils.context();
         if (context == null) return true;
-        Intent intent = new Intent(context, MorpheSettingsActivity.class);
-        if (!(context instanceof Activity)) intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        context.startActivity(intent);
+        MorpheSettingsActivity.show(context, null);
         return true;
     }
 }

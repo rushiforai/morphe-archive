@@ -73,15 +73,15 @@ public final class MorpheSettingsActivity extends Activity {
             sheet.setLayoutParams(cardLayoutParams(activity, density));
             sheet.addView(sectionTitle(activity, "Comments"));
             profileRow = toggleRow(activity, "Profile comment previews",
-                    "Pictures, GIFs and video previews show on profile comments. Applies to your profile and other's.",
+                    "Previews on profile comments",
                     MorpheSettings.profileCommentsEnabled(activity),
                     (button, checked) -> MorpheSettings.saveProfile(activity, checked));
             youtubeRow = toggleRow(activity, "YouTube inline preview",
-                    "Show YouTube links in the comment. Off shows link, alternative is to use Joey's default link preview option in settings.",
+                    "Play YouTube links in the comment",
                     MorpheSettings.youtubeInline(activity),
                     (button, checked) -> MorpheSettings.saveYoutubeInline(activity, checked));
             autoplayRow = toggleRow(activity, "Autoplay GIFs",
-                    "Autoplay or show gifs paused by default.",
+                    "Play GIFs automatically, or start them paused",
                     MorpheSettings.autoplay(activity),
                     (button, checked) -> {
                         MorpheSettings.saveAutoplay(activity, checked);
@@ -89,17 +89,17 @@ public final class MorpheSettingsActivity extends Activity {
                     });
             sizeRow = sizeRow(activity);
             limitRow = limitRow(activity);
-            handleRow = toggleRow(activity, "Invisible handle", "Hides the corner handle. Dragging still resizes.",
+            handleRow = toggleRow(activity, "Invisible handle", "Hide the corner handle. Dragging still resizes",
                     MorpheSettings.invisibleHand(activity),
                     (button, checked) -> MorpheSettings.saveInvisibleHand(activity, checked));
-            dragRow = toggleRow(activity, "Drag to resize", "Drag a comment image (to the right) to change its size.",
+            dragRow = toggleRow(activity, "Drag to resize", "Drag a comment image to change its size",
                     MorpheSettings.resizeEnabled(activity),
                     (button, checked) -> {
                         MorpheSettings.saveResize(activity, checked);
                         applyCommentRows(activity);
                     });
             sheet.addView(toggleRow(activity, "Inline previews",
-                    "Show pictures, GIFs and reddit video previews in comments.",
+                    "Pictures, GIFs and Reddit videos in comments",
                     MorpheSettings.inlineComments(activity),
                     (button, checked) -> {
                         MorpheSettings.saveInline(activity, checked);
@@ -122,7 +122,7 @@ public final class MorpheSettingsActivity extends Activity {
             removed.setLayoutParams(cardLayoutParams(activity, density));
             removed.addView(sectionTitle(activity, "Removed content"));
             removed.addView(toggleRow(activity, "Restore via Arctic Shift",
-                    "Removed and deleted comments and posts get an Arctic Shift Restore button. Nothing is fetched until you tap it.",
+                    "Adds a Restore button to removed posts and comments",
                     MorpheSettings.undelete(activity),
                     (button, checked) -> MorpheSettings.saveUndelete(activity, checked)));
             column.addView(removed);
@@ -135,15 +135,15 @@ public final class MorpheSettingsActivity extends Activity {
             media.setLayoutParams(cardLayoutParams(activity, density));
             media.addView(sectionTitle(activity, "Media"));
             media.addView(actionRow(activity, "Downloads",
-                    "A picture, GIF, or video saves straight away. Set the file name and the folder.",
+                    "File name and folder for saved media",
                     () -> MediaDownload.show(activity)));
             View controlsOnOpen = toggleRow(activity, "Hide controls on open",
-                    "Pictures, GIFs and videos open without icons or the seekbar. Tap to show them.",
+                    "Open media without icons or the seekbar",
                     ModernUi.hideControlsOnOpen(activity),
                     (btn, checked) -> ModernUi.setHideControlsOnOpen(activity, checked));
             controlsOnOpen.setVisibility(ModernUi.fullscreenMedia(activity) ? View.VISIBLE : View.GONE);
             media.addView(toggleRow(activity, "Full screen media",
-                    "Media fills the whole screen, including the camera area.",
+                    "Media fills the screen, camera area included",
                     ModernUi.fullscreenMedia(activity),
                     (btn, checked) -> {
                         ModernUi.setFullscreenMedia(activity, checked);
@@ -151,11 +151,11 @@ public final class MorpheSettingsActivity extends Activity {
                     }));
             media.addView(controlsOnOpen);
             media.addView(toggleRow(activity, "Album viewer",
-                    "Albums show a counter, captions, a strip of thumbnails and a full screen grid, and remember your place. Off uses Joey's album screen.",
+                    "Counter, captions and a thumbnail strip",
                     ModernUi.albumViewer(activity),
                     (btn, checked) -> ModernUi.setAlbumViewer(activity, checked)));
             media.addView(toggleRow(activity, "Swipe albums closed",
-                    "A diagonal swipe leaves an album, the same way a picture closes. Straight up and down still move between pictures.",
+                    "Swipe diagonally to leave an album",
                     ModernUi.albumSwipe(activity),
                     (btn, checked) -> ModernUi.setAlbumSwipe(activity, checked)));
             column.addView(media);
@@ -168,42 +168,60 @@ public final class MorpheSettingsActivity extends Activity {
             themeCard.addView(sectionTitle(activity, "Appearance"));
             boolean classic = ModernUi.isClassic(activity);
             themeCard.addView(confirmToggle(activity, "Classic Joey",
-                    "Joey's own theme, fonts, and post style.",
+                    "Joey's own theme, fonts and post style",
                     classic,
                     "Enable classic UI?",
                     "Use the Modern look?",
                     checked -> ModernUi.setClassicUi(activity, checked)));
             View theme = materialAccentRow(activity);
             View fonts = fontsRow(activity);
-            View posts = groupLabel(activity, "Posts");
-            View image = choiceRow(activity, "Image style", PostLayout.imageBlurb(),
-                    value -> PostLayout.showImage(activity, value));
-            View details = postDetailsRow(activity);
-            View chips = subredditChipsRow(activity);
             View bird = confirmToggle(activity, "Sidebar bird",
-                    "Joey's bird in the account header.",
+                    "Joey's bird in the account header",
                     ModernUi.sidebarBird(activity),
                     "Show the Joey bird?",
                     "Hide the Joey bird?",
                     checked -> ModernUi.setSidebarBird(activity, checked));
             greyRow(theme, !classic);
             greyRow(fonts, !classic);
-            greyRow(posts, !classic);
-            greyRow(image, !classic);
-            greyRow(details, !classic);
-            greyRow(chips, !classic);
             themeCard.addView(theme);
             themeCard.addView(fonts);
-            themeCard.addView(posts);
-            themeCard.addView(image);
-            if (!MorpheSettings.showHideControls()) {
-                themeCard.addView(details);
-                themeCard.addView(chips);
-            }
             if (SeasonalBanner.isEnabled()) themeCard.addView(seasonalRow(activity));
             else if (!classic) themeCard.addView(bird);
             if (MorpheSplash.isEnabled()) themeCard.addView(splashRow(activity));
             column.addView(themeCard);
+
+            // Posts: Modern UI's own settings, always here whatever else is patched.
+            LinearLayout postCard = new LinearLayout(activity);
+            postCard.setOrientation(LinearLayout.VERTICAL);
+            applyCardContainer(postCard, activity, density);
+            postCard.setLayoutParams(cardLayoutParams(activity, density));
+            postCard.addView(sectionTitle(activity, "Posts"));
+            View layout = choiceRow(activity, "Post layout", "Flat list, or a card for each post",
+                    PostLayout.layoutBlurb(), value -> PostLayout.showLayout(activity, value));
+            View image = choiceRow(activity, "Image style", "Picture, or a thumbnail beside the title",
+                    PostLayout.imageBlurb(), value -> PostLayout.showImage(activity, value));
+            View details = postDetailsRow(activity);
+            View chips = subredditChipsRow(activity);
+            greyRow(layout, !classic);
+            greyRow(image, !classic);
+            greyRow(details, !classic);
+            greyRow(chips, !classic);
+            postCard.addView(layout);
+            postCard.addView(image);
+            postCard.addView(details);
+            postCard.addView(chips);
+            if (!classic) {
+                postCard.addView(actionRow(activity, "Reset layout settings",
+                        "Resets Joey's layout settings, but only while Modern UI is on. Turning Classic Joey on "
+                                + "above, or patching without Modern UI, uses your normal layout settings.",
+                        () -> confirmLayoutReset(activity)));
+                if (ModernSettings.canUndo(activity)) {
+                    postCard.addView(actionRow(activity, "Undo layout reset",
+                            "Restores your layout settings from before the reset",
+                            () -> ModernSettings.undo(activity)));
+                }
+            }
+            column.addView(postCard);
         } else {
             if (MorpheSplash.isEnabled() || SeasonalBanner.isEnabled()) {
                 LinearLayout appearance = new LinearLayout(activity);
@@ -222,22 +240,14 @@ public final class MorpheSettingsActivity extends Activity {
             applyCardContainer(showHide, activity, density);
             showHide.setLayoutParams(cardLayoutParams(activity, density));
             showHide.addView(sectionTitle(activity, "Show and hide"));
-            showHide.addView(actionRow(activity, "Text formatting bar", "Which buttons show when you write a post or comment.",
+            showHide.addView(actionRow(activity, "Text formatting bar", "Buttons shown when you write a post or comment",
                     () -> EditorBar.show(activity)));
             showHide.addView(actionRow(activity, "Sidebar",
-                    "Which entries show in the left menu. Some items can't be turned on or off.",
+                    "Entries shown in the left menu",
                     () -> Sidebar.show(activity)));
-            showHide.addView(actionRow(activity, "Subreddit bar", "What sits on the subreddit bar, and the order.",
+            showHide.addView(actionRow(activity, "Subreddit bar", "Icons on the top bar, and their order",
                     () -> SubredditToolbar.show(activity)));
-            if (MorpheSettings.modernUiControls()) {
-                View chipOrder = subredditChipsRow(activity);
-                View detailOrder = postDetailsRow(activity);
-                greyRow(chipOrder, ModernUi.isModernUiEnabled(activity));
-                greyRow(detailOrder, ModernUi.isModernUiEnabled(activity));
-                showHide.addView(chipOrder);
-                showHide.addView(detailOrder);
-            }
-            View postBar = actionRow(activity, "Post buttons & menu", "The buttons under each post, what goes in its \u22ee menu, and how the menu opens.",
+            View postBar = actionRow(activity, "Post buttons & menu", "Buttons under each post and in its \u22ee menu",
                     () -> PostLayout.showActions(activity));
             if (MorpheSettings.modernUiControls()) greyRow(postBar, ModernUi.isModernUiEnabled(activity));
             showHide.addView(postBar);
@@ -250,12 +260,22 @@ public final class MorpheSettingsActivity extends Activity {
             applyCardContainer(backup, activity, density);
             backup.setLayoutParams(cardLayoutParams(activity, density));
             backup.addView(sectionTitle(activity, "Backup"));
-            backup.addView(actionRow(activity, "Backup settings", "Save the settings you pick to a file.",
+            backup.addView(actionRow(activity, "Backup settings", "Save the settings you pick to a file",
                     () -> MorpheBackup.backup(activity)));
-            backup.addView(actionRow(activity, "Restore settings", "Load settings from a backup file.",
+            backup.addView(actionRow(activity, "Restore settings", "Load settings from a backup file",
                     () -> MorpheBackup.restore(activity)));
             column.addView(backup);
         }
+
+        LinearLayout help = new LinearLayout(activity);
+        help.setOrientation(LinearLayout.VERTICAL);
+        applyCardContainer(help, activity, density);
+        help.setLayoutParams(cardLayoutParams(activity, density));
+        help.addView(sectionTitle(activity, "Help"));
+        help.addView(actionRow(activity, "Report a problem",
+                "Build a report you can read, then send",
+                () -> ProblemReport.show(activity)));
+        column.addView(help);
 
         ScrollView scroll = new ScrollView(activity);
         scroll.setFillViewport(true);
@@ -266,25 +286,16 @@ public final class MorpheSettingsActivity extends Activity {
         return root;
     }
 
-    private View groupLabel(Activity activity, String text) {
-        TextView label = new TextView(activity);
-        label.setText(text);
-        label.setTextColor(sub);
-        label.setTextSize(12);
-        int side = Math.round(16 * activity.getResources().getDisplayMetrics().density);
-        label.setPadding(side, Math.round(8 * activity.getResources().getDisplayMetrics().density), side, 0);
-        return label;
-    }
-
     private View sectionTitle(Activity activity, String text) {
+        float density = activity.getResources().getDisplayMetrics().density;
         TextView heading = new TextView(activity);
         heading.setText(text);
-        heading.setTextColor(sub);
-        heading.setTextSize(16);
-        heading.setGravity(Gravity.CENTER);
+        heading.setTextColor(title);
+        heading.setTextSize(13);
+        heading.setAllCaps(false);
         heading.setTypeface(heading.getTypeface(), android.graphics.Typeface.BOLD);
-        int pad = Math.round(16 * activity.getResources().getDisplayMetrics().density);
-        heading.setPadding(pad, pad, pad, pad);
+        heading.setPadding(Math.round(16 * density), Math.round(8 * density), Math.round(16 * density),
+                Math.round(2 * density));
         return heading;
     }
 
@@ -292,12 +303,35 @@ public final class MorpheSettingsActivity extends Activity {
         void run(TextView value);
     }
 
-    private View choiceRow(Activity activity, String titleText, String subtitle, ValueAction action) {
+    private void confirmLayoutReset(Activity activity) {
+        LinearLayout page = MorpheDialog.page(activity, "Reset layout settings?",
+                "Joey's post style, thumbnail, tab, comment and link display settings go back to their defaults "
+                        + "in Modern, with the thumbnail on the right. Immersive and bottom navigation stay as they are. "
+                        + "Classic keeps your settings. Undo is offered afterwards. Joey restarts.");
+        android.app.AlertDialog[] shown = new android.app.AlertDialog[1];
+        TextView cancel = MorpheDialog.action(activity, "Cancel", MorpheDialog.SUB);
+        cancel.setOnClickListener(v -> shown[0].dismiss());
+        TextView reset = MorpheDialog.action(activity, "Reset and restart", MorpheDialog.GOLD);
+        reset.setOnClickListener(v -> {
+            shown[0].dismiss();
+            ModernSettings.reset(activity);
+        });
+        page.addView(MorpheDialog.actions(activity, cancel, reset));
+        shown[0] = MorpheDialog.show(activity, page);
+    }
+
+    private View choiceRow(Activity activity, String titleText, String subtitle, String valueText,
+                           ValueAction action) {
         LinearLayout row = rowShell(activity);
-        LinearLayout text = labels(titleText, subtitle);
-        TextView value = (TextView) text.getChildAt(1);
-        row.addView(text, new LinearLayout.LayoutParams(
+        row.addView(labels(titleText, subtitle), new LinearLayout.LayoutParams(
                 0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
+        TextView value = new TextView(activity);
+        value.setTextColor(title);
+        value.setTextSize(15);
+        value.setGravity(Gravity.CENTER_VERTICAL);
+        value.setText(valueText);
+        value.setPadding(0, 0, Math.round(16 * activity.getResources().getDisplayMetrics().density), 0);
+        row.addView(value);
         row.addView(chevron(activity));
         row.setOnClickListener(v -> action.run(value));
         return row;
@@ -401,7 +435,7 @@ public final class MorpheSettingsActivity extends Activity {
         value.setText(MorpheSettings.sizeLabel(MorpheSettings.sizeIndex(activity)));
         int pad = Math.round(16 * activity.getResources().getDisplayMetrics().density);
         value.setPadding(0, 0, pad, 0);
-        row.addView(labels("Default size", "Starting size for pictures in comments."),
+        row.addView(labels("Default size", "Starting size for pictures in comments"),
                 new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
         row.addView(value);
         row.addView(chevron(activity));
@@ -483,11 +517,12 @@ public final class MorpheSettingsActivity extends Activity {
         TextView main = new TextView(this);
         main.setText(titleText);
         main.setTextColor(textColor);
-        main.setTextSize(15);
+        main.setTextSize(14);
         TextView subView = new TextView(this);
         subView.setText(subtitle);
         subView.setTextColor(sub);
-        subView.setTextSize(12);
+        subView.setTextSize(11.5f);
+        subView.setPadding(0, Math.round(1 * density), 0, 0);
         text.addView(main);
         text.addView(subView);
         return text;
@@ -497,7 +532,9 @@ public final class MorpheSettingsActivity extends Activity {
         LinearLayout row = new LinearLayout(activity);
         row.setOrientation(LinearLayout.HORIZONTAL);
         row.setGravity(Gravity.CENTER_VERTICAL);
-        row.setMinimumHeight(Math.round(52 * activity.getResources().getDisplayMetrics().density));
+        float density = activity.getResources().getDisplayMetrics().density;
+        row.setMinimumHeight(Math.round(42 * density));
+        row.setPadding(0, Math.round(4 * density), 0, Math.round(4 * density));
         row.setLayoutParams(new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
         TypedValue background = new TypedValue();
@@ -578,6 +615,9 @@ public final class MorpheSettingsActivity extends Activity {
     }
 
     private void applyCardContainer(View view, Activity activity, float density) {
+        // Room under the last row, so its text does not sit on the card's edge.
+        view.setPadding(view.getPaddingLeft(), view.getPaddingTop(), view.getPaddingRight(),
+                Math.round(6 * density));
         if (modernTheme(activity)) {
             ModernUi.Palette palette = ModernUi.getPalette(activity);
             GradientDrawable gd = new GradientDrawable();
@@ -682,7 +722,7 @@ public final class MorpheSettingsActivity extends Activity {
         value.setText(accentLabel(active));
         int pad = Math.round(16 * activity.getResources().getDisplayMetrics().density);
         value.setPadding(0, 0, pad, 0);
-        row.addView(labels("Theme", "Colour for the feed, bars, and buttons."),
+        row.addView(labels("Theme Manager", "Colour for the feed, bars, and buttons."),
                 new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
         row.addView(value);
         row.addView(chevron(activity));
@@ -691,21 +731,12 @@ public final class MorpheSettingsActivity extends Activity {
     }
 
     private String accentLabel(String accent) {
-        if (ModernUi.ACCENT_TEAL.equalsIgnoreCase(accent)) return "Aqua";
-        if (ModernUi.ACCENT_PURPLE.equalsIgnoreCase(accent)) return "Purple";
-        if (ModernUi.ACCENT_CORAL.equalsIgnoreCase(accent)) return "Coral";
-        if (ModernUi.ACCENT_MINT.equalsIgnoreCase(accent)) return "Mint";
-        if (ModernUi.ACCENT_GOLD.equalsIgnoreCase(accent)) return "Gold";
-        if (ModernUi.ACCENT_AMBER.equalsIgnoreCase(accent)) return "Amber";
-        if (ModernUi.ACCENT_BLACK.equalsIgnoreCase(accent)) return "Black";
-        if (ModernUi.ACCENT_MONET.equalsIgnoreCase(accent)) return "Sky";
-        if (ModernUi.ACCENT_AMOLED.equalsIgnoreCase(accent)) return "AMOLED black";
-        return "Blue";
+        return ModernTheme.name(this, accent);
     }
 
     private View subredditChipsRow(Activity activity) {
-        return actionRow(activity, "Subreddit chips",
-                "Sort, Join, and Community info. Hide takes a chip off the row.",
+        return actionRow(activity, "Subreddit buttons",
+                "Sort, Join and Community info, and their order",
                 () -> ModernUi.showChips(activity));
     }
 
@@ -716,7 +747,7 @@ public final class MorpheSettingsActivity extends Activity {
     }
 
     private void pickMaterialAccent(Activity activity, TextView value) {
-        ModernUi.showSettingsThemePicker(activity, () -> {
+        ThemeStudio.show(activity, () -> {
             String active = ModernUi.getMaterialAccent(activity);
             if (ModernUi.isPureAmoled(activity) && !ModernUi.ACCENT_AMOLED.equalsIgnoreCase(active)) {
                 active = ModernUi.ACCENT_AMOLED;

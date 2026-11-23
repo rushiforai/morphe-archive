@@ -16,7 +16,7 @@ import java.io.File
 import javax.xml.parsers.DocumentBuilderFactory
 
 private const val PKG = "dk.tv2.tv2play"
-private const val VERSION = "2026.10-1"
+private const val VERSION = "2026.11"
 private const val ANALYTICS_DEACTIVATED_KEY = "firebase_analytics_collection_deactivated"
 
 private val TELEMETRY_META = mapOf(

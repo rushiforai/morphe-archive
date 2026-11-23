@@ -40,7 +40,7 @@ internal val AMOLED_BLACK = HevalFeature(
 val amoledBlackPatch = sofascoreControls.featurePatch(
     AMOLED_BLACK,
     name = "AMOLED black",
-    description = "Makes the dark theme pure black on OLED screens.",
+    description = "Makes the dark theme darker.",
     default = false,
     dependencies = setOf(amoledColorsPatch),
 ) {

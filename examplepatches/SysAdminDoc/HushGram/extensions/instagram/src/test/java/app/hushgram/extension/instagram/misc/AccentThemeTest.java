@@ -11,6 +11,7 @@ import static org.junit.Assert.assertTrue;
 
 import android.content.Context;
 import android.content.ContextWrapper;
+import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.graphics.Canvas;
 import android.graphics.ColorFilter;
@@ -18,9 +19,15 @@ import android.graphics.Paint;
 import android.graphics.PixelFormat;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffColorFilter;
+import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
+import android.graphics.drawable.GradientDrawable;
+import android.graphics.drawable.LayerDrawable;
+import android.graphics.drawable.ShapeDrawable;
+import android.graphics.drawable.shapes.RectShape;
 import android.util.TypedValue;
 import android.view.ContextThemeWrapper;
+import android.view.View;
 
 import org.junit.After;
 import org.junit.Before;
@@ -491,6 +498,65 @@ public class AccentThemeTest {
     }
 
     /**
+     * Instagram builds its Compose palettes on a thread of its own as it starts, before the first
+     * screen's theme is styled, so with Classic colors on the grays come straight from the classic
+     * style for the kind of screen Instagram's Dark mode choice will show, and the other kind's stay
+     * (#528).
+     */
+    @Test
+    public void composeReadsTheClassicStyleBeforeAnyScreenIsStyled() {
+        Settings.CLASSIC_COLORS.save(true);
+        AccentTheme.darkSurfacesForTests(null);
+        AccentTheme.lightSurfacesForTests(null);
+        String pkg = THEMED + ".classic.early";
+        SharedPreferences prefs = RuntimeEnvironment.getApplication().getSharedPreferences(pkg + "_preferences", Context.MODE_PRIVATE);
+        try {
+            Context app = themed(pkg, (name, type) -> {
+                if (type.equals("style") && name.equals("HushGramClassicBackgrounds_dark")) return android.R.style.Theme_Material;
+                if (type.equals("style") && name.equals("HushGramClassicBackgrounds_light")) return android.R.style.Theme_Material_Light;
+                return type.equals("attr") && name.startsWith("igds_color_") ? android.R.attr.colorBackground : 0;
+            });
+            long black = (long) 0xff000000 << 32;
+            long white = (long) 0xffffffff << 32;
+            long darkPage = (long) (0xff000000 | page(app, android.R.style.Theme_Material)) << 32;
+            long lightPage = (long) (0xff000000 | page(app, android.R.style.Theme_Material_Light)) << 32;
+            assertTrue("page colors unlike Compose's own", darkPage != black && lightPage != white);
+
+            prefs.edit().putInt(AccentTheme.DARK_MODE_KEY, AccentTheme.DARK_MODE_ON).commit();
+            assertEquals("Dark mode on", darkPage, AccentTheme.composeSurface(black, app));
+            assertEquals("a light screen's white with Dark mode on", white, AccentTheme.composeSurface(white, app));
+            AccentTheme.darkSurfacesForTests(null);
+
+            prefs.edit().putInt(AccentTheme.DARK_MODE_KEY, AccentTheme.DARK_MODE_OFF).commit();
+            assertEquals("a light screen's black text with Dark mode off", black, AccentTheme.composeSurface(black, app));
+            assertEquals("Dark mode off", lightPage, AccentTheme.composeSurface(white, app));
+            AccentTheme.lightSurfacesForTests(null);
+
+            prefs.edit().clear().commit();
+            assertEquals("the system's light mode", black, AccentTheme.composeSurface(black, app));
+            assertEquals("the system's light mode", lightPage, AccentTheme.composeSurface(white, app));
+            AccentTheme.lightSurfacesForTests(null);
+
+            Settings.CLASSIC_COLORS.save(false);
+            prefs.edit().putInt(AccentTheme.DARK_MODE_KEY, AccentTheme.DARK_MODE_ON).commit();
+            assertEquals("Classic colors off", black, AccentTheme.composeSurface(black, app));
+        } finally {
+            prefs.edit().clear().commit();
+            AccentTheme.darkSurfacesForTests(null);
+            AccentTheme.lightSurfacesForTests(null);
+        }
+    }
+
+    /** The RGB of the window background [style] gives a theme of [context]'s resources. */
+    private static int page(Context context, int style) {
+        Resources.Theme theme = context.getResources().newTheme();
+        theme.applyStyle(style, true);
+        TypedValue value = new TypedValue();
+        assertTrue(theme.resolveAttribute(android.R.attr.colorBackground, value, true));
+        return value.data & 0xffffff;
+    }
+
+    /**
      * Meta's own menus, the account switcher among them: its blues take the picked fill on either
      * screen, its dark grays the dark theme's shades with the accent backgrounds on, its white page and
      * wash the light theme's with Classic colors on, and its text grays stay (#187).
@@ -533,6 +599,124 @@ public class AccentThemeTest {
             AccentTheme.darkSurfacesForTests(null);
             AccentTheme.lightSurfacesForTests(null);
         }
+    }
+
+    /**
+     * An opened chat's default background, a bottom layer of Instagram's page black (or white on a light
+     * screen) and a strip of the header's black behind the status bar, takes the painted page shade, the
+     * strip as a copy of its shape, and a chat theme of its own keeps its look (#528).
+     */
+    @Test
+    public void aChatsPageBlackBackgroundTakesThePageShade() {
+        int[] dark = {0xff101b2d, 0xff182030, 0xff203040};
+        int[] light = {0xfffafafa, 0xfff0f0f0, 0xffe8e8e8};
+        AccentTheme.darkSurfacesForTests(dark);
+        AccentTheme.lightSurfacesForTests(light);
+        try {
+            LayerDrawable off = chat(0xff000000);
+            AccentTheme.chatBackground(off);
+            assertEquals("the switches off", List.of(0xff000000, 0xff000000), colors(off));
+
+            Settings.CLASSIC_COLORS.save(true);
+            LayerDrawable black = chat(0xff000000);
+            ShapeDrawable strip = (ShapeDrawable) black.getDrawable(1);
+            Drawable above = black.getDrawable(2);
+            AccentTheme.chatBackground(black);
+            assertEquals(List.of(dark[0], dark[0]), colors(black));
+            assertEquals("the strip kept for the next chat", 0xff000000, strip.getPaint().getColor());
+            // Android 9 clones the shape with the copy and later versions share it.
+            assertEquals("the strip's shape", strip.getShape().getClass(), ((ShapeDrawable) black.getDrawable(1)).getShape().getClass());
+            assertEquals("the chat's own layer above them", above, black.getDrawable(2));
+            LayerDrawable instagramsBlack = chat(0xff0c1014);
+            AccentTheme.chatBackground(instagramsBlack);
+            assertEquals(List.of(dark[0], dark[0]), colors(instagramsBlack));
+            LayerDrawable white = chat(0xffffffff);
+            AccentTheme.chatBackground(white);
+            assertEquals(List.of(light[0], light[0]), colors(white));
+            for (int own : new int[] {0xff3a1f5d, 0x80000000, 0xff191c1f}) {
+                LayerDrawable themed = chat(own);
+                AccentTheme.chatBackground(themed);
+                assertEquals("a chat theme's own color", List.of(own, own), colors(themed));
+            }
+            Drawable gradient = new GradientDrawable(GradientDrawable.Orientation.TOP_BOTTOM, new int[] {0xff000000, 0xff3a1f5d});
+            LayerDrawable pictured = new LayerDrawable(new Drawable[] {gradient});
+            AccentTheme.chatBackground(pictured);
+            assertEquals("a gradient", gradient, pictured.getDrawable(0));
+            AccentTheme.chatBackground(new ColorDrawable(0xff000000));
+            AccentTheme.chatBackground(new LayerDrawable(new Drawable[0]));
+            AccentTheme.chatBackground(null);
+
+            Settings.CLASSIC_COLORS.save(false);
+            Settings.ACCENT_COLOR.save(true);
+            Settings.ACCENT_HUE.save(AccentHue.PINK);
+            Settings.ACCENT_BACKGROUNDS.save(true);
+            LayerDrawable accent = chat(0xff000000);
+            AccentTheme.chatBackground(accent);
+            assertEquals("the accent's backgrounds", List.of(dark[0], dark[0]), colors(accent));
+            LayerDrawable lightAccent = chat(0xffffffff);
+            AccentTheme.chatBackground(lightAccent);
+            assertEquals("a light page without Classic colors", List.of(0xffffffff, 0xffffffff), colors(lightAccent));
+
+            BaseSettings.PAUSED.save(true);
+            PauseForTests.pause(HushgramPause.Reason.SWITCH);
+            LayerDrawable paused = chat(0xff000000);
+            AccentTheme.chatBackground(paused);
+            assertEquals("paused", List.of(0xff000000, 0xff000000), colors(paused));
+        } finally {
+            AccentTheme.darkSurfacesForTests(null);
+            AccentTheme.lightSurfacesForTests(null);
+        }
+    }
+
+    /**
+     * An opened chat's header row, given the default theme's plain black or white, takes the page shade
+     * after Instagram sets it, and a theme's own header color stays (#528).
+     */
+    @Test
+    public void aChatsPageBlackHeaderTakesThePageShade() {
+        int[] dark = {0xff101b2d, 0xff182030, 0xff203040};
+        int[] light = {0xfffafafa, 0xfff0f0f0, 0xffe8e8e8};
+        AccentTheme.darkSurfacesForTests(dark);
+        AccentTheme.lightSurfacesForTests(light);
+        try {
+            View header = new View(RuntimeEnvironment.getApplication());
+            header.setBackgroundColor(0xff000000);
+            AccentTheme.chatHeader(header);
+            assertEquals("the switches off", 0xff000000, ((ColorDrawable) header.getBackground()).getColor());
+
+            Settings.CLASSIC_COLORS.save(true);
+            AccentTheme.chatHeader(header);
+            assertEquals(dark[0], ((ColorDrawable) header.getBackground()).getColor());
+            header.setBackgroundColor(0xffffffff);
+            AccentTheme.chatHeader(header);
+            assertEquals(light[0], ((ColorDrawable) header.getBackground()).getColor());
+            header.setBackgroundColor(0xff3a1f5d);
+            AccentTheme.chatHeader(header);
+            assertEquals("a chat theme's own header", 0xff3a1f5d, ((ColorDrawable) header.getBackground()).getColor());
+            Drawable gradient = new GradientDrawable();
+            header.setBackground(gradient);
+            AccentTheme.chatHeader(header);
+            assertEquals("a gradient", gradient, header.getBackground());
+            AccentTheme.chatHeader(null);
+        } finally {
+            AccentTheme.darkSurfacesForTests(null);
+            AccentTheme.lightSurfacesForTests(null);
+        }
+    }
+
+    /**
+     * A chat's background the way Instagram builds it: the theme's color, a strip of the header's color
+     * behind the status bar, and a layer of the chat's own.
+     */
+    private static LayerDrawable chat(int color) {
+        ShapeDrawable strip = new ShapeDrawable(new RectShape());
+        strip.getPaint().setColor(color);
+        return new LayerDrawable(new Drawable[] {new ColorDrawable(color), strip, new GradientDrawable()});
+    }
+
+    /** The colors of a chat's page and of its strip. */
+    private static List<Integer> colors(LayerDrawable layers) {
+        return List.of(((ColorDrawable) layers.getDrawable(0)).getColor(), ((ShapeDrawable) layers.getDrawable(1)).getPaint().getColor());
     }
 
     /** An attribute the theme doesn't hold, one holding a size or one that isn't opaque isn't a background of its own (#187). */

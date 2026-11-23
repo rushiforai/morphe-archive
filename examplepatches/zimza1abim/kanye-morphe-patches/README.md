@@ -35,7 +35,7 @@
 | 🗒️ | **Joplin** | `net.cozic.joplin` | Flash-free custom font · Blush Pink theme |
 | 🧩 | **Anytype** | `io.anytype.app` | App-wide custom font |
 | 🤖 | **OpenBot** | `run.openbot.mobile` | App-wide custom font · System default · Installed fonts |
-| 🐋 | **Orca** | `dev.orca.app` | App-wide font · Installed fonts · TTF import |
+| 🐋 | **Orca** | `dev.orca.app` | App-wide font · Installed fonts · TTF import · Bot pictures on Home |
 | 🔐 | **Bitwarden** | `com.x8bit.bitwarden` | Passphrase length · Custom special characters · Passkeys in patched browsers |
 
 Get the original APKs from each app's official GitHub releases.
@@ -88,7 +88,7 @@ Get the original APKs from each app's official GitHub releases.
 - Adds a **Font** row to the settings
 - Anytype: pick a TTF or OTF file
 - OpenBot: follow the phone font, or use an installed **font APK** or a **TTF file**
-- Orca: the phone font, bundled Pretendard, an installed **font APK**, a system font or a **TTF file**, applied to every screen including chats, code and the terminal; each row previews its own face
+- Orca: the phone font, bundled Pretendard, an installed **font APK**, a system font or a **TTF file**, applied to every screen including chats, code and the terminal; each row previews its own face; the Feed tab's bots and the Bots tab draw each bot's own picture
 - The chosen file is validated and copied into the app's private storage
 
 </td>
@@ -177,7 +177,7 @@ Each listed version passed patching and verification. Other versions may fail to
 |---|---|---|
 | Anytype | `io.anytype.app` | `0.48.10` `0.49.0` `0.50.4` |
 | Titanium Browser | `io.github.jqssun.helium` | `157.0.8103.50` `157.0.8103.78` `158.0.8127.42` |
-| Bare Browser | `org.barebrowser` | `2.0.4` `2.0.5` `2.0.7` |
+| Bare Browser | `org.barebrowser` | `2.0.5` `2.0.7` `2.0.8` |
 | Bitwarden | `com.x8bit.bitwarden` | `2026.10.1` `2026.11.1` |
 | Brave Browser | `com.brave.browser` | `1.99.55` `1.100.56` `1.100.58` |
 | Joplin | `net.cozic.joplin` | `3.7.10` `3.7.11` `3.7.12` |
@@ -192,7 +192,7 @@ Each listed version passed patching and verification. Other versions may fail to
 ## 🩹 Patches
 
 <!-- PATCHES_START -->
-> **[v0.2.0](../../releases/tag/v0.2.0)**&nbsp;&nbsp;•&nbsp;&nbsp;19 patches total
+> **[v0.3.1](../../releases/tag/v0.3.1)**&nbsp;&nbsp;•&nbsp;&nbsp;19 patches total
 <details>
 <summary>📦 Anytype&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
@@ -232,7 +232,7 @@ Each listed version passed patching and verification. Other versions may fail to
 
 **🎯 Supported versions:**
 
-| 2.0.4 | 2.0.5 | 2.0.7 |
+| 2.0.5 | 2.0.7 | 2.0.8 |
 | :---: | :---: | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
@@ -334,7 +334,7 @@ Each listed version passed patching and verification. Other versions may fail to
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
-| [Orca custom font](#orca-custom-font) | Choose a system, installed or imported font in Settings > Appearance > Font. Code and icon fonts keep their faces. |  |
+| [Orca font and bot pictures](#orca-font-and-bot-pictures) | Choose a system, installed or imported font in Settings > Appearance > Font, and see each bot's picture on Home. Code and icon fonts keep their faces. |  |
 
 </details>
 

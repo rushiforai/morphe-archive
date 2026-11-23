@@ -7,6 +7,7 @@ import android.app.Activity;
 import android.os.Looper;
 import android.view.View;
 import android.widget.FrameLayout;
+import app.morphe.extension.shared.diagnostics.FeedFilterCounters;
 import app.morphe.extension.shared.diagnostics.HookStatus;
 import app.morphe.extension.shared.settings.PausedProcess;
 import app.morphe.extension.tiktok.SettingsContextRule;
@@ -109,6 +110,35 @@ public class FeedOverlayControlsTest {
     }
 
     /**
+     * #489: the pause icon's alpha goes to zero only with its own switch, TikTok's alpha comes
+     * back untouched otherwise, and Pause brings the icon back. The switch is read on every
+     * pause, so it needs no restart.
+     */
+    @Test public void thePauseIconFadesToNothingOnlyWithItsOwnSwitchAndHonoursPause() {
+        try {
+            assertEquals(Boolean.FALSE, Settings.HIDE_PAUSE_ICON.defaultValue);
+            assertFalse(Settings.HIDE_PAUSE_ICON.rebootApp);
+            Settings.HIDE_MAY_KNOW_TAG.save(true);
+            assertEquals("another overlay switch hid the icon", 0.5f, FeedOverlayControls.pauseIconAlpha(0.5f), 0f);
+            assertEquals(0.3f, FeedOverlayControls.pauseIconAlpha(0.3f), 0f);
+            Settings.HIDE_MAY_KNOW_TAG.save(false);
+            Settings.HIDE_PAUSE_ICON.save(true);
+            assertEquals(0f, FeedOverlayControls.pauseIconAlpha(0.5f), 0f);
+            assertEquals(0f, FeedOverlayControls.pauseIconAlpha(1f), 0f);
+            assertFalse("this switch closed the may know gate", FeedOverlayControls.shouldHideMayKnowTag());
+            PausedProcess.set(true);
+            assertEquals("a paused Hushfeed still hid the icon", 0.3f, FeedOverlayControls.pauseIconAlpha(0.3f), 0f);
+            PausedProcess.set(false);
+            assertTrue(String.join(" ", HookStatus.report()).contains("pause icon"));
+        } finally {
+            PausedProcess.set(false);
+            HookStatus.clear();
+            Settings.HIDE_PAUSE_ICON.resetToDefault();
+            Settings.HIDE_MAY_KNOW_TAG.resetToDefault();
+        }
+    }
+
+    /**
      * Issue #262: the Following tab's LIVE row is kept folded only by its own switch. A fold
      * TikTok asked for stays a fold, and Pause hands TikTok's answer back.
      */
@@ -178,6 +208,44 @@ public class FeedOverlayControlsTest {
             PausedProcess.set(false);
             HookStatus.clear();
             Settings.HIDE_FEED_SURVEYS.resetToDefault();
+        }
+    }
+
+    /**
+     * Issue #484: a search for "wildwood" opened on a brand zone, the "Ad" banner TikTok builds
+     * from a hybrid template with the advertiser's videos and a Follow button. Its search card
+     * carries no ad field, so only the component factory sees it. With Remove feed ads on, a
+     * component whose type or container type names a brand zone gets an empty container type
+     * back, which the factory skips. The switch off, Pause and other search components leave
+     * TikTok's name as it was.
+     */
+    @Test public void searchBrandZonesAreSkippedWithFeedAds() {
+        try {
+            HookStatus.clear();
+            FeedFilterCounters.clear();
+            Settings.REMOVE_ADS.save(false);
+            assertEquals("the switch off still skipped the brand zone", "hybrid",
+                    FeedOverlayControls.feedComponent("search_regular_brand_zone", "hybrid"));
+            Settings.REMOVE_ADS.save(true);
+            assertEquals("", FeedOverlayControls.feedComponent("search_regular_brand_zone", "hybrid"));
+            assertEquals("", FeedOverlayControls.feedComponent("Search_Premium_Brand_Zone", "ugen"));
+            assertEquals("", FeedOverlayControls.feedComponent(null, "search_brand_zone"));
+            assertEquals("a search component that isn't an ad was skipped", "hybrid",
+                    FeedOverlayControls.feedComponent("search_regular_user_card", "hybrid"));
+            assertNull(FeedOverlayControls.feedComponent("search_regular_brand_zone", null));
+            PausedProcess.set(true);
+            assertEquals("a paused Hushfeed still skipped the brand zone", "hybrid",
+                    FeedOverlayControls.feedComponent("search_regular_brand_zone", "hybrid"));
+            PausedProcess.set(false);
+            String report = String.join("\n", HookStatus.report());
+            assertTrue(report, report.contains("search brand zone"));
+            String counters = String.join("\n", FeedFilterCounters.report());
+            assertTrue(counters, counters.contains("SearchBrandZone"));
+        } finally {
+            PausedProcess.set(false);
+            HookStatus.clear();
+            FeedFilterCounters.clear();
+            Settings.REMOVE_ADS.resetToDefault();
         }
     }
 

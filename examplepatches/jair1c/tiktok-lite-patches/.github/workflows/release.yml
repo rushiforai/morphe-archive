@@ -28,7 +28,7 @@ jobs:
           grep -Fx "version = $version" gradle.properties
           bash gradlew :patches:buildAndroid :patches:generatePatchesList
           test -s "patches/build/libs/patches-$version.mpp"
-          jq -e --arg version "$version" '.version == $version and (.patches | length == 2)' patches-list.json
+          jq -e --arg version "$version" '.version == $version and (.patches | length == 3)' patches-list.json
       - name: Publish release and refresh catalog
         env:
           GH_TOKEN: ${{ github.token }}
@@ -37,7 +37,7 @@ jobs:
           tag="$GITHUB_REF_NAME"
           version="${tag#v}"
           bundle="patches-$version.mpp"
-          jq -n --arg version "$version" --arg date "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+          jq -n --arg version "$version" --arg date "$(date -u +%Y-%m-%dT%H:%M:%S)" \
             --arg url "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/releases/download/$tag/$bundle" \
             --arg key "$(cat morphe-signing.pub)" \
             '{version:$version,created_at:$date,description:"See the GitHub release notes.",download_url:$url,signature_download_url:"",public_key:$key}' > patches-bundle.json

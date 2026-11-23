@@ -1,6 +1,8 @@
 # 👋🧩 Plyrs1 Morphe Patches
 
-Repository for custom Morphe patches by Plyrs1.
+This repo contains patches that either I personally use, or I find interesting to patch. Because of that, I cannot guarantee if it works properly, as I only patch things I need. But feel free to leave feature/pull request, I will check on my free time.
+
+Note that most of the patches are done by AI, but I monitor the process and check the results, and verify it works at least in emulator.
 
 ## ❓ About
 
@@ -17,134 +19,18 @@ Click the button below, or manually add this repo url to Morphe Manager: https:/
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.5.0-dev.3](https://github.com/Plyrs1/morphe-patches/releases/tag/v1.5.0-dev.3)**&nbsp;&nbsp;•&nbsp;&nbsp;`dev`&nbsp;&nbsp;•&nbsp;&nbsp;31 patches total
-<details open>
-<summary>📦 E-Ujian Browser&nbsp;&nbsp;•&nbsp;&nbsp;18 patches</summary>
-<br>
+> **[v1.6.0-dev.6](https://github.com/Plyrs1/morphe-patches/releases/tag/v1.6.0-dev.6)**&nbsp;&nbsp;&middot;&nbsp;&nbsp;`dev`&nbsp;&nbsp;&middot;&nbsp;&nbsp;**36 patches** across **8 apps**&nbsp;&nbsp;&middot;&nbsp;&nbsp;[Full details](PATCHES.md)
 
-**Package name:** `com.doovera.eujianbrowser`
-
-**🎯 Supported versions:**
-
-| 3.1.3 |
-| :---: |
-
-| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
-|----------|----------------|-----------|
-| [Allow System UI](#allow-system-ui) | Allows the status bar and navigation bar to remain visible during the exam. |  |
-| [Background Persistence (WakeLock + Foreground Service)](#background-persistence-wakelock-foreground-service) | Keeps the exam process alive in the background using a WakeLock-backed foreground Service. Prevents OS from killing the exam when backgrounded or screen turns off. Service restarts automatically via START_STICKY if killed. |  |
-| [Bypass App Blacklist Scan](#bypass-app-blacklist-scan) | Skips the pre-exam scan that blocks exam start if blacklisted apps (AnyDesk, TeamViewer, screen recorders, floating apps) are installed, and launches the exam directly without overlay/DND/ringer prompts. |  |
-| [Bypass DND Detection](#bypass-dnd-detection) | Allows the exam to run with Do Not Disturb mode enabled. |  |
-| [Bypass Multi-Window Detection](#bypass-multi-window-detection) | Disables split-screen detection so the exam continues normally in split-screen mode. |  |
-| [Bypass PiP Detection](#bypass-pip-detection) | Allows the exam to continue when entered into Picture-in-Picture mode. |  |
-| [Bypass Silent Mode Detection](#bypass-silent-mode-detection) | Allows the exam to run with the device on silent or vibrate. |  |
-| [Bypass Startup Security Checks](#bypass-startup-security-checks) | Skips environment, VM, emulator, hook, and cloner detection in SplashActivity. Allows the app to run on emulators, rooted devices, and virtual environments. |  |
-| [Disable Clipboard Guard](#disable-clipboard-guard) | Prevents the app from wiping the clipboard on exam start and when copying text. |  |
-| [Disable Focus Loss Alarm](#disable-focus-loss-alarm) | Prevents the delayed alarm triggered when the exam window loses focus. |  |
-| [Disable Overlay Guard](#disable-overlay-guard) | Stops the OverlayGuard system window and foreground-recovery loop on focus loss. |  |
-| [Disable Touch Obscurity Detection](#disable-touch-obscurity-detection) | Removes the overlay-touch detection that fires an alarm when another window partially covers the exam. |  |
-| [Disable Violation Alarm](#disable-violation-alarm) | Suppresses the max-volume alarm tone and vibration triggered on any exam security violation. |  |
-| [Disable onPause Alarm](#disable-onpause-alarm) | Prevents the alarm from triggering when the exam activity is paused or backgrounded. |  |
-| [Manifest: Background Persistence Permissions](#manifest-background-persistence-permissions) | Adds WAKE_LOCK, FOREGROUND_SERVICE, and FOREGROUND_SERVICE_SPECIAL_USE permissions, registers ExamKeepAliveService, and removes lockTaskMode/excludeFromRecents from ExamActivity. |  |
-| [Remove Auto-Pin App](#remove-auto-pin-app) | Disables automatic screen pinning / lock task mode so the app is not pinned to the screen. |  |
-| [Remove Screenshot Protection](#remove-screenshot-protection) | Removes FLAG_SECURE so screenshots and screen recording work normally during the exam. |  |
-| [Suppress WebView Exam Events](#suppress-webview-exam-events) | Injects a JavaScript monkeypatch into the exam WebView on every page load that freezes the Page Visibility API (document.hidden, document.visibilityState, document.hasFocus) and silently drops blur/visibilitychange/focusout event listeners. This prevents the web-side exam platform from detecting when the browser loses focus or is backgrounded. |  |
-
-</details>
-
-<details open>
-<summary>📦 Nusuk&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
-<br>
-
-**Package name:** `com.moh.nusukapp`
-
-**🎯 Supported versions:**
-
-| 17.6.2 |
-| :---: |
-
-| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
-|----------|----------------|-----------|
-| [Bypass Integrity Check](#bypass-integrity-check) | Removes the device integrity block that shows "For security reasons,<br>Nusuk can't run on this device." and kills the process. Neutralizes<br>the AppProtectionGuard lifecycle callbacks and the environment<br>scanner. The app will then run on rooted devices, with USB debugging<br>active, and with Developer Options enabled. |  |
-
-</details>
-
-<details open>
-<summary>📦 Struk Pom / SPBU&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
-<br>
-
-**Package name:** `com.ogestudio.strukpertamini`
-
-**🎯 Supported versions:**
-
-| 1.2.7 |
-| :---: |
-
-| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
-|----------|----------------|-----------|
-| [Bypass Review Dialog](#bypass-review-dialog) | Bypasses the in-app review confirmation dialog when pressing Back on the Home screen, allowing immediate exit. |  |
-| [Hide Premium Button](#hide-premium-button) | Hides the Premium upgrade button from both the top action bar on the Home screen and the Settings menu. |  |
-| [Remove Ads](#remove-ads) | Removes all banner and interstitial ads by unlocking ad-free premium status and disabling AdMob loaders. |  |
-
-</details>
-
-<details open>
-<summary>📦 Habitica&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
-<br>
-
-**Package name:** `com.habitrpg.android.habitica`
-
-**🎯 Supported versions:**
-
-| 4.10.5 |
-| :---: |
-
-| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
-|----------|----------------|-----------|
-| [Disable Google Services](#disable-google-services) | Disables Firebase Crashlytics, Performance Monitoring, Sessions, Installations, Remote Config network fetch, DataTransport telemetry pipeline, FCM push notifications, AdMob stub, and bypasses the privacy preferences dialog. Retains local Remote Config defaults for feature flags and preserves all Habitica API traffic. |  |
-| [Instant Armoire Reward](#instant-armoire-reward) | Shows the Armoire ad button and instantly grants the reward without loading an ad. The existing per-session single-use guard is preserved. |  |
-| [Self-Hosted Server Support](#self-hosted-server-support) | Always shows the custom server settings button on the login screen, enabling connection to self-hosted Habitica backends without a secret gesture. |  |
-
-</details>
-
-<details open>
-<summary>📦 Pertaminiku&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
-<br>
-
-**Package name:** `com.pertaminiku`
-
-**🎯 Supported versions:**
-
-| 1.0.2 |
-| :---: |
-
-| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
-|----------|----------------|-----------|
-| [Disable Licensing](#disable-licensing) | Bypasses PairIP license verification to prevent 'Something went wrong' errors on emulators and devices without Google Play. |  |
-| [First Launch Credit](#first-launch-credit) | Shows a one-time 'Patched with ❤️ by Plyrs' notification on first launch. |  |
-| [Lifetime Premium](#lifetime-premium) | Unlocks lifetime premium: removes watermark forever, disables ads, unlocks all templates. |  |
-
-</details>
-
-<details open>
-<summary>📦 Struk POM&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
-<br>
-
-**Package name:** `com.garnesapps.strukpom`
-
-**🎯 Supported versions:**
-
-| 1.17.057 |
-| :---: |
-
-| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
-|----------|----------------|-----------|
-| [Disable Startup Permissions](#disable-startup-permissions) | Suppresses indiscriminate startup requests for camera and storage permissions, and configures manifest for direct system camera capture. |  |
-| [Hide Gift Button](#hide-gift-button) | Hides the gift / donation button in the top action bar of the main menu. |  |
-| [Remove All Ads](#remove-all-ads) | Disables all AdMob preloading, bypasses interstitial ads, and auto-removes the watermark on receipt screens without user interaction. |  |
-
-</details>
-
+| # | App | Patches | Version | Package |
+|---|---|---|---|---|
+| 1 | [**Android Auto**](PATCHES.md#android-auto-comgoogleandroidprojectiongearhead) | 1 | `17.7.663654-release` | [`com.google.android.projection.gearhead`](https://play.google.com/store/apps/details?id=com.google.android.projection.gearhead) |
+| 2 | [**E-Ujian Browser**](PATCHES.md#e-ujian-browser-comdooveraeujianbrowser) | 18 | `3.1.3` | [`com.doovera.eujianbrowser`](https://play.google.com/store/apps/details?id=com.doovera.eujianbrowser) |
+| 3 | [**GajiHub**](PATCHES.md#gajihub-comgajihubapp) | 4 | `2.0.14`, `2.0.4` | [`com.gajihub.app`](https://play.google.com/store/apps/details?id=com.gajihub.app) |
+| 4 | [**Habitica**](PATCHES.md#habitica-comhabitrpgandroidhabitica) | 3 | `4.10.5`, `4.11.2` | [`com.habitrpg.android.habitica`](https://play.google.com/store/apps/details?id=com.habitrpg.android.habitica) |
+| 5 | [**Nusuk**](PATCHES.md#nusuk-commohnusukapp) | 1 | `17.6.2` | [`com.moh.nusukapp`](https://play.google.com/store/apps/details?id=com.moh.nusukapp) |
+| 6 | [**Pertaminiku**](PATCHES.md#pertaminiku-compertaminiku) | 3 | `1.0.2` | [`com.pertaminiku`](https://play.google.com/store/apps/details?id=com.pertaminiku) |
+| 7 | [**Struk POM**](PATCHES.md#struk-pom-comgarnesappsstrukpom) | 3 | `1.17.057` | [`com.garnesapps.strukpom`](https://play.google.com/store/apps/details?id=com.garnesapps.strukpom) |
+| 8 | [**Struk Pom / SPBU**](PATCHES.md#struk-pom-spbu-comogestudiostrukpertamini) | 3 | `1.2.7` | [`com.ogestudio.strukpertamini`](https://play.google.com/store/apps/details?id=com.ogestudio.strukpertamini) |
 <!-- PATCHES_END -->
 
 ### 🛠️ Building locally

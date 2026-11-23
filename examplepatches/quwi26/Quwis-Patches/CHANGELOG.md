@@ -1,3 +1,33 @@
+# [1.14.0](https://github.com/quwi26/Quwis-Patches/compare/v1.13.4...v1.14.0) (2026-11-22)
+
+### New Features
+
+* **Quwi's Patches settings:** Quwi's Patches and the Lichess login open on a root mount too. Android keeps the stock app's manifest there, so the activity this bundle adds is never declared and the settings row used to close chess.com. The screens are a plain view tree now: the activity hosts them on a normally installed patched app, and a dialog hosts them where the activity cannot start. Pages open their own windows again, and Back goes a page back instead of closing. The app log, crash, Discord login and Lichess's review in the app's own browser are separate screens and still need a normal install, which the patch descriptions now say
+
+# [1.13.4](https://github.com/quwi26/Quwis-Patches/compare/v1.13.3...v1.13.4) (2026-11-22)
+
+### Bug Fixes
+
+* **Stockfish analysis:** when the engine can't be downloaded, the message now lists every source with the error it gave, instead of only the last one, so a phone whose DNS blocks the names can be told apart from a mirror that answered with an error. One more GitHub mirror is tried, and the message names the source that failed rather than the download server it redirected to
+
+# [1.13.3](https://github.com/quwi26/Quwis-Patches/compare/v1.13.2...v1.13.3) (2026-11-22)
+
+### Bug Fixes
+
+* **Quwi's Patches settings:** tapping the row before Android has picked up the patched app (a mounted install that has not been restarted yet) now says to restart the phone instead of closing chess.com. The welcome screens, Lichess puzzles and the Lichess review screens handle that case the same way
+
+# [1.13.2](https://github.com/quwi26/Quwis-Patches/compare/v1.13.1...v1.13.2) (2026-11-22)
+
+### Bug Fixes
+
+* **Stockfish analysis:** a phone whose Android is 32-bit now gets Stockfish's 32-bit ARM engine, so the local analysis boards and a Game Review on the phone start instead of saying "Stockfish could not start on this phone". The engine matches the phone's own ABI when patching on the phone; a new "32-bit engine" option covers patching on a computer for such a phone
+
+# [1.13.1](https://github.com/quwi26/Quwis-Patches/compare/v1.13.0...v1.13.1) (2026-11-22)
+
+### Bug Fixes
+
+* **Lichess puzzles:** replaying a puzzle with Retry no longer changes the rating, its graph or the counters again. As on Lichess, only a puzzle's first attempt counts
+
 # [1.13.0](https://github.com/quwi26/Quwis-Patches/compare/v1.12.3...v1.13.0) (2026-11-21)
 
 ### New Features

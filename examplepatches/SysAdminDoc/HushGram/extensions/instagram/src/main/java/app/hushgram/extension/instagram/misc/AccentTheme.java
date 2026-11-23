@@ -13,8 +13,12 @@ import android.graphics.Paint;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffColorFilter;
 import android.graphics.Rect;
+import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
+import android.graphics.drawable.LayerDrawable;
+import android.graphics.drawable.ShapeDrawable;
 import android.util.TypedValue;
+import android.view.View;
 
 import androidx.annotation.Nullable;
 
@@ -213,6 +217,15 @@ public final class AccentTheme {
 
     /** What's counted each time a gray secondary button, Edit profile and Share profile among them, takes an accent background's shade (#187). */
     static final String SECONDARY_BUTTONS = "Secondary buttons given accent backgrounds";
+
+    /** What's counted each time an opened chat's black or white background or header takes the page shade (#528). */
+    static final String CHAT_BACKGROUNDS = "Chat backgrounds and headers given the page shade";
+
+    /** The key Instagram keeps its Dark mode choice under in its default preferences, -1 for the system's. */
+    static final String DARK_MODE_KEY = "dark_mode_toggle_setting";
+
+    /** {@link #DARK_MODE_KEY}'s value for Dark mode on, and for off. */
+    static final int DARK_MODE_ON = 2, DARK_MODE_OFF = 1;
 
     /** The theme attribute Instagram's other secondary buttons read their fill from, the first of the patch's SECONDARY_BUTTONS. */
     static final String SECONDARY_BUTTON_ATTRIBUTE = "igds_color_secondary_button_panavision";
@@ -458,23 +471,76 @@ public final class AccentTheme {
      * either. Answers [value] itself for any other color. Never throws.
      */
     public static long composeSurface(long value) {
+        return composeSurface(value, null);
+    }
+
+    /**
+     * {@link #composeSurface(long)}, reading the shades from the styles through [context] (the app's when
+     * null) when no theme has been styled yet. See {@link #styledSurfaces}.
+     */
+    static long composeSurface(long value, @Nullable Context context) {
         try {
             HookStatus.invoked(FamilyNames.ACCENT_COLOR);
             if ((value & 0xffffffffL) != 0) return value;
             int argb = (int) (value >>> 32);
             int step = surfaceStep(argb & 0xffffff);
-            int[] surfaces = paintedSurfaces();
-            if (step < 0) {
-                step = lightStep(argb & 0xffffff);
-                surfaces = paintedLightSurfaces();
-            }
-            if (step < 0 || surfaces == null) return value;
+            boolean dark = step >= 0;
+            if (!dark) step = lightStep(argb & 0xffffff);
+            if (step < 0) return value;
+            int[] surfaces = dark ? paintedSurfaces() : paintedLightSurfaces();
+            if (surfaces == null) surfaces = styledSurfaces(context, dark);
+            if (surfaces == null) return value;
             HookStatus.counted(FamilyNames.ACCENT_COLOR, SURFACES);
             return (long) (argb & 0xff000000 | surfaces[step] & 0xffffff) << 32;
         } catch (Throwable failure) {
             HookStatus.threw(FamilyNames.ACCENT_COLOR, "Compose surface", failure);
             return value;
         }
+    }
+
+    /**
+     * The shades a [dark] theme or a light one takes from Classic colors' style, or from the picked
+     * color's backgrounds, read from the style alone through [context] (the app's when null) and kept as
+     * {@link #rememberSurfaces} keeps a styled theme's. Instagram builds its Compose palettes on a thread
+     * of its own as it starts, while the first screen's theme is still being styled, so the first grays
+     * they asked for were answered as Instagram's own and the Messages rows stayed black all session
+     * (#528). Only for the kind of screen the app will show, since a light screen writes its text in
+     * the dark grays, and not for Material You's or a typed color, whose shades load with the first
+     * screen. Null when none of that holds or the style can't be read.
+     */
+    @Nullable
+    static int[] styledSurfaces(@Nullable Context context, boolean dark) {
+        if (!Utils.settingsReady()) return null;
+        Context app = context != null ? context : Utils.getContext();
+        if (app == null || showsDark(app) != dark) return null;
+        Resources resources = app.getResources();
+        String style = null;
+        if (Settings.CLASSIC_COLORS.get()) {
+            style = classicStyle(dark);
+        } else if (dark && Settings.ACCENT_BACKGROUNDS.get()) {
+            AccentHue hue = AccentColor.picked();
+            if (hue != null && hue != AccentHue.WALLPAPER && hue != AccentHue.CUSTOM) style = backgroundStyle(hue, true);
+        }
+        if (style == null) return null;
+        String pkg = Utils.resourcePackage(app);
+        int id = id(resources, style, "style", pkg);
+        if (id == 0) return null;
+        Resources.Theme theme = resources.newTheme();
+        theme.applyStyle(id, true);
+        rememberSurfaces(resources, theme, pkg, dark);
+        return dark ? paintedSurfaces() : paintedLightSurfaces();
+    }
+
+    /**
+     * Instagram's own Dark mode choice, kept in its default preferences under {@link #DARK_MODE_KEY}:
+     * {@link #DARK_MODE_ON} or {@link #DARK_MODE_OFF}, else the system's. Each screen lays it on as it
+     * opens, so the app's configuration still holds the system's while the palettes are built.
+     */
+    static boolean showsDark(Context app) {
+        int mode = app.getSharedPreferences(app.getPackageName() + "_preferences", Context.MODE_PRIVATE).getInt(DARK_MODE_KEY, -1);
+        if (mode == DARK_MODE_ON) return true;
+        if (mode == DARK_MODE_OFF) return false;
+        return (app.getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES;
     }
 
     /**
@@ -521,6 +587,87 @@ public final class AccentTheme {
 
     /** Meta's blue on a light screen and on a dark one. */
     private static final int META_BLUE_ON_LIGHT = 0x0064e0, META_BLUE_ON_DARK = 0x0082fb;
+
+    /**
+     * Injected where an opened chat hands its background to the view behind the messages, with the
+     * layers Instagram built from the chat's theme (#528). The default theme paints the page a plain
+     * black, or white on a light screen, and the strip behind the status bar the header's black, both
+     * taken from the chat theme and not from Instagram's theme, so Classic colors and Backgrounds in the
+     * accent color left the chat black under a colored page. With either painting, each plain layer of
+     * Instagram's page black takes the dark page shade, and with Classic colors on, each white one takes
+     * the light page shade, the way {@link #composeSurface} answers Compose's. The strip's shape is
+     * copied, not changed, since Instagram keeps it for the next chat. A chat theme of its own (a
+     * gradient, a picture or another color) keeps its look. Changes nothing with the switches off,
+     * HushGram paused or anything thrown.
+     */
+    public static void chatBackground(@Nullable Drawable background) {
+        try {
+            HookStatus.invoked(FamilyNames.ACCENT_COLOR);
+            if (!(background instanceof LayerDrawable)) return;
+            LayerDrawable layers = (LayerDrawable) background;
+            boolean painted = false;
+            for (int i = 0; i < layers.getNumberOfLayers(); i++) {
+                Drawable shaded = shaded(layers.getDrawable(i));
+                if (shaded == null) continue;
+                layers.setDrawable(i, shaded);
+                painted = true;
+            }
+            if (painted) HookStatus.counted(FamilyNames.ACCENT_COLOR, CHAT_BACKGROUNDS);
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.ACCENT_COLOR, "chat background", failure);
+        }
+    }
+
+    /** A copy of a plain color or a solid shape in [layer] holding the page shade {@link #chatShade} gives its color, or null for none. */
+    @Nullable
+    private static Drawable shaded(@Nullable Drawable layer) {
+        if (layer instanceof ColorDrawable) {
+            int color = ((ColorDrawable) layer).getColor();
+            int shade = chatShade(color);
+            return shade == color ? null : new ColorDrawable(shade);
+        }
+        if (!(layer instanceof ShapeDrawable)) return null;
+        Paint paint = ((ShapeDrawable) layer).getPaint();
+        int shade = chatShade(paint.getColor());
+        Drawable.ConstantState state = layer.getConstantState();
+        if (shade == paint.getColor() || paint.getShader() != null || state == null) return null;
+        Drawable copy = state.newDrawable().mutate();
+        if (!(copy instanceof ShapeDrawable) || copy == layer) return null;
+        ((ShapeDrawable) copy).getPaint().setColor(shade);
+        return copy;
+    }
+
+    /**
+     * Injected right after an opened chat's header row takes the header color of the chat's theme, with
+     * the header (#528). The default theme's header is a plain black, or white on a light screen, so
+     * it stayed black over a colored page. Gives a plain background of Instagram's page black or white
+     * the page shade, as {@link #chatBackground} does the strip above it. Changes nothing with the
+     * switches off, HushGram paused or anything thrown.
+     */
+    public static void chatHeader(@Nullable View header) {
+        try {
+            HookStatus.invoked(FamilyNames.ACCENT_COLOR);
+            if (header == null || !(header.getBackground() instanceof ColorDrawable)) return;
+            int color = ((ColorDrawable) header.getBackground()).getColor();
+            int shade = chatShade(color);
+            if (shade == color) return;
+            header.setBackgroundColor(shade);
+            HookStatus.counted(FamilyNames.ACCENT_COLOR, CHAT_BACKGROUNDS);
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.ACCENT_COLOR, "chat header", failure);
+        }
+    }
+
+    /**
+     * The opaque page shade an opaque chat background of Instagram's page black or white takes while
+     * the backgrounds are painted, or [color] itself.
+     */
+    static int chatShade(int color) {
+        if (color >>> 24 != 0xff) return color;
+        int rgb = color & 0xffffff;
+        int[] surfaces = surfaceStep(rgb) == 0 ? paintedSurfaces() : lightStep(rgb) == 0 ? paintedLightSurfaces() : null;
+        return surfaces == null ? color : 0xff000000 | surfaces[0] & 0xffffff;
+    }
 
     /**
      * Which of {@link #SURFACE_ATTRIBUTES} a dark gray of Meta's stands for, or -1: its menus' surface

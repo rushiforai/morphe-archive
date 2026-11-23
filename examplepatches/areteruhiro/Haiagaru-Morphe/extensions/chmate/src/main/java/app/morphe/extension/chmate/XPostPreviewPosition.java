@@ -28,7 +28,8 @@ final class XPostPreviewPosition {
         INTERACTIONS.remove(list);
     }
     private static boolean enabled(View view){
-        return view.getContext().getSharedPreferences(WacchoiSearchOptions.PREFS,0).getBoolean(ENABLED,true);
+        android.content.SharedPreferences prefs = FeatureSwitches.prefs(view.getContext());
+        return prefs.getBoolean(ENABLED, true) && ReadingPosition.defaultEnabled(prefs);
     }
     static boolean hasUserInteraction(View list){return INTERACTIONS.containsKey(list);}
     static void onTouch(View body,android.view.MotionEvent event){
@@ -52,7 +53,7 @@ final class XPostPreviewPosition {
 
     static void beforeChange(View body) {
         // Initial binding/refresh belongs to native restoration, not preview resizing.
-        if(!enabled(body)||body.getHeight()==0||!body.isShown())return;
+        if(body.getHeight()==0||!body.isShown())return;
         for (ViewParent parent = body.getParent(); parent instanceof View; parent = parent.getParent()) {
             View view = (View) parent;
             boolean recycler = false;
@@ -66,7 +67,7 @@ final class XPostPreviewPosition {
 
     /** All display-only resizes share one anchor, including native thumbnail rebinds. */
     static void beforeListChange(View view) {
-        if(!(view instanceof ViewGroup)||!view.isShown()||interacting(view)||ReadingPosition.nativeRestoring(view)||FilterPosition.changing(view))return;
+        if(!(view instanceof ViewGroup)||!view.isShown()||!enabled(view)||interacting(view)||ReadingPosition.nativeRestoring(view)||FilterPosition.changing(view))return;
         Anchor existing=PENDING.get(view);
         if(existing!=null){existing.changed();return;}
         try{
@@ -153,6 +154,7 @@ final class XPostPreviewPosition {
         }
         @Override public boolean onPreDraw() {
             if (closed) return true;
+            if (!enabled(list)) { close(); return true; }
             long now=android.os.SystemClock.uptimeMillis();
             if(now>=deadline){close();return true;}
             if(list.isLayoutRequested())return !correcting;

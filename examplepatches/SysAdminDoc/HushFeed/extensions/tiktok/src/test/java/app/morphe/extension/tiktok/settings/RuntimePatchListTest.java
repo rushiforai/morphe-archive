@@ -198,9 +198,9 @@ public class RuntimePatchListTest {
         assertEquals(new TreeSet<>(Arrays.asList("enableCommentPublishDiagnostics", "enableCommentSendFix",
                 "enableFeatureGateLab", "enableFollowDiagnostics", "enableGoogleLoginFix",
                 "enableNetworkRequestReport", "enableNoLoginRequirement", "enableNoScreenCaptureDetection",
-                "enableRepostDiagnostics", "enableRiskControlCaptcha", "enableRunBesideStoreApp",
+                "enableOppoPushFix", "enableRepostDiagnostics", "enableRiskControlCaptcha", "enableRunBesideStoreApp",
                 "enableSavedStickers", "enableSettings", "enableSpotifyLoginFix", "enableStickerCreator",
-                "enableStickerRecents")), registered);
+                "enableStickerRecents", "enableTabletRotation")), registered);
     }
 
     private static List<Path> patchSources() throws Exception {

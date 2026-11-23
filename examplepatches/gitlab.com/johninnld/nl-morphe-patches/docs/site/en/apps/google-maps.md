@@ -55,6 +55,7 @@ Select Maps patches from **Dutch App Patches only** for a patching attempt. Our 
 | Patch | Default | What it does |
 | --- | --- | --- |
 | **Native navigation for any Android Auto host** | On | Adds a navigation entry that runs this patched app's original Android Auto map UI, including under its separate package name. The adapter owns its car UI resources; see the acceptance limits above. |
+| **Android Auto options** | On | Adds an Android Auto page to Customization: satellite view in the car, restoring satellite view on startup, and keeping your navatar on car screens. Change them in the app; a setting you pick in Maps still wins. |
 | **Use the system voice for navigation** | Off | Reads navigation directions with the phone's selected text-to-speech engine instead of Google TTS, including DriveDeck when it is selected. |
 
 ### Extended by this project

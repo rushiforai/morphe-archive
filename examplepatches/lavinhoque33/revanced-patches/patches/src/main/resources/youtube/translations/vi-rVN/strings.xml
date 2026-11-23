@@ -282,8 +282,10 @@ Danh sách được tải xuống từ GitHub và video được lọc trên thi
     <string name="morphe_playback_in_feeds_entry_off">Tắt</string>
     <string name="morphe_playback_in_feeds_entry_wifi_only">Chỉ Wi-Fi</string>
     <string name="morphe_playback_in_feeds_title">Phát trong trang video</string>
-    <string name="morphe_player_control_buttons_background_opacity_summary">Điều chỉnh độ mờ của nền phía sau các nút điều khiển trình phát và thanh thời gian (0 là vô hình, 100 là đặc)</string>
-    <string name="morphe_player_control_buttons_background_opacity_title">Độ mờ nền của các nút điều khiển</string>
+    <string name="morphe_player_transport_background_opacity_summary">Điều chỉnh độ đục của nền các nút Phát, Tạm dừng, Phát lại, Tiếp theo và Trước đó</string>
+    <string name="morphe_player_transport_background_opacity_title">Độ đục nền của các nút phát</string>
+    <string name="morphe_player_other_overlay_background_opacity_summary">Điều chỉnh độ đục của nền các nút còn lại trên trình phát và chỉ báo thời gian</string>
+    <string name="morphe_player_other_overlay_background_opacity_title">Độ đục nền của các thành phần lớp phủ khác</string>
     <string name="morphe_playlist_hide_removal_snackbar_summary">Thông báo xác nhận sẽ không hiển thị sau khi một video bị xóa khỏi danh sách phát</string>
     <string name="morphe_playlist_hide_removal_snackbar_title">Ẩn snackbar thông báo xóa danh sách phát</string>
     <string name="morphe_playlist_long_press_drag_summary">Chạm và giữ một video trong danh sách phát của bạn để kéo đến vị trí mới</string>

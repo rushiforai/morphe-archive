@@ -306,13 +306,10 @@ class PlayerControlButton(
     ) {
         imageView.visibility = View.GONE
 
-        val background = imageView.background
-        if (background != null) {
-            if (Settings.HIDE_PLAYER_CONTROL_BUTTONS_BACKGROUND.get()) {
-                imageView.background = null
-            } else {
-                imageView.background = PlayerPatch.applyControlButtonsBackgroundOpacity(background)
-            }
+        if (Settings.HIDE_PLAYER_CONTROL_BUTTONS_BACKGROUND.get()) {
+            imageView.background = null
+        } else {
+            PlayerPatch.styleOverlayButtonBackground(imageView)
         }
         applyIconShadow(imageView)
         imageView.setOnClickListener(onClickListener)

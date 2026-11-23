@@ -41,7 +41,7 @@ val hideTabsPatch = bytecodePatch(
     category("App")
     compatibleWith(COMPATIBILITY_QUORA)
 
-    extendWith("extensions/extension.mpe")
+    extendWith("extensions/quora.mpe")
 
     // QTab names in the app, with the label the tab shows.
     val tabs = mapOf(
@@ -97,7 +97,7 @@ val startTabPatch = bytecodePatch(
     category("App")
     compatibleWith(COMPATIBILITY_QUORA)
 
-    extendWith("extensions/extension.mpe")
+    extendWith("extensions/quora.mpe")
 
     val startTab = stringOption(
         key = "startTab",

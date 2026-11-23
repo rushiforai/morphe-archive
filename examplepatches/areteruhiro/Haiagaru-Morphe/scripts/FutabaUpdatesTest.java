@@ -1,10 +1,31 @@
 package app.morphe.extension.chmate;
 import java.nio.file.*;
+import java.net.URI;
 import java.util.*;
 public final class FutabaUpdatesTest {
     static int checks;
     static void ok(boolean value,String label){if(!value)throw new AssertionError(label);checks++;}
     public static void main(String[] args)throws Exception{
+        String browserCookies="session=fixture; cxyl=14x6x4x1x1";
+        for(String board:List.of("img","may")){
+            for(String query:List.of("mode=cat","mode=cat&sort=3")){
+                String url="https://"+board+".2chan.net/b/futaba.php?"+query;
+                ok(SiteBoardProtocol.catalogueCookies(URI.create(url),browserCookies)
+                        .equals("cxyl=14x6x100x0x0; session=fixture"),board+" catalogue requests longer titles and keeps session cookies");
+            }
+        }
+        for(String url:List.of("https://img.2chan.net/b/res/123.htm",
+                "https://may.2chan.net/b/res/123.htm","https://may.2chan.net/b/futaba.php?mode=catset")){
+            ok(SiteBoardProtocol.catalogueCookies(URI.create(url),browserCookies).equals(browserCookies),
+                    "catalogue preference is scoped to list requests");
+        }
+        var may=SiteBoardProtocol.address("https://may.2chan.net/b/");
+        String fullTitle="カタログの長いタイトルを一覧に表示する";
+        String popular="<table id=cattable><tr><td><a href='res/123.htm'>img</a><small>"
+                +fullTitle+"</small><font>412</font></td></tr></table>";
+        var popularTopic=SiteBoardProtocol.topics(may,popular).get(0);
+        ok(popularTopic.title.equals(fullTitle)&&popularTopic.count==413,
+                "popular catalogue keeps the long title and the reply count");
         String html="<table id=cattable><tr><td><a href='res/123.htm'>img</a><small>catalogue text</small><font>2</font></td></tr></table>";
         for(String host:new String[]{"may","img"}){
             var board=SiteBoardProtocol.address("https://"+host+".2chan.net/b/");

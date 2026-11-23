@@ -4,7 +4,8 @@ final class BridgePolicy {
     private BridgePolicy() {}
 
     static boolean supportsVersion(String versionName) {
-        return "2.8.5".equals(versionName) || "2.8.7".equals(versionName);
+        return "2.8.5".equals(versionName) || "2.8.7".equals(versionName)
+                || "2.8.8".equals(versionName);
     }
 
     static boolean acceptsSender(int senderUid, int imeUid) {

@@ -1,7 +1,11 @@
 package app.hoitruyenchu.extension.itruyenchu.patches.tts;
 
+import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.media.AudioManager;
+import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.PowerManager;
@@ -16,6 +20,7 @@ import com.facebook.react.bridge.ReadableArray;
 import org.json.JSONObject;
 
 import java.lang.ref.WeakReference;
+import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -23,6 +28,11 @@ import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Pattern;
+
+import app.hoitruyenchu.extension.itruyenchu.patches.shared.HtcPatches;
+import app.hoitruyenchu.extension.itruyenchu.patches.shared.HtcSettings;
+import app.hoitruyenchu.extension.itruyenchu.patches.shared.JsBridge;
 
 /**
  * Replaces the TextToSpeech lifecycle of expo-speech (expo.modules.speech.SpeechModule).
@@ -58,8 +68,9 @@ public final class TtsController {
     private static final int STALL_TICKS = 20;
     /** Ticks (1 s) of normal audio mode needed before resuming after a call. */
     private static final int RESUME_TICKS = 2;
-    private static final int MAX_RETRIES_PER_UTTERANCE = 2;
     private static final long INIT_WAIT_MS = 6_000;
+    /** A line started this soon after the previous one ended belongs to a reading going on by itself. */
+    private static final long CONTINUOUS_MS = 20_000;
     private static final long WAKELOCK_TIMEOUT_MS = 10 * 60_000;
 
     private static final Object lock = new Object();
@@ -144,7 +155,117 @@ public final class TtsController {
     private static boolean appInBackground;
     private static boolean selfResuming;
 
+    /** Engine package the current engine was created with ("" = system default). */
+    private static String engineInUse = "";
+    private static boolean settingsListening;
+    private static boolean noisyRegistered;
+
     private TtsController() {
+    }
+
+    // ---------------------------------------------------------------------------------------------
+    // Settings (see HtcSettings)
+
+    private static boolean enabled() {
+        return HtcSettings.bool(HtcSettings.TTS_ENABLED);
+    }
+
+    private static int maxRetries() {
+        if (!enabled()) return 0;
+        return Math.max(0, Math.min(5, HtcSettings.integer(HtcSettings.TTS_RETRIES)));
+    }
+
+    /** "resume" (pause, read on after the call), "pause" (pause only) or "none". */
+    private static String callMode() {
+        return enabled() ? HtcSettings.string(HtcSettings.TTS_CALL) : "none";
+    }
+
+    private static boolean applySpeedNow() {
+        return HtcSettings.on(HtcSettings.TTS_ENABLED, HtcSettings.TTS_APPLY_SPEED);
+    }
+
+    private static String chosenEngine() {
+        return enabled() ? HtcSettings.string(HtcSettings.TTS_ENGINE) : "";
+    }
+
+    private static String chosenVoice() {
+        return enabled() ? HtcSettings.string(HtcSettings.TTS_VOICE) : "";
+    }
+
+    private static void listenToSettingsLocked() {
+        if (settingsListening) return;
+        settingsListening = true;
+        HtcSettings.addListener(() -> {
+            synchronized (lock) {
+                appliedVoice = null;
+                if (tts != null && !chosenEngine().equals(engineInUse)) {
+                    createLocked("engine changed in the settings");
+                }
+            }
+        });
+    }
+
+    /** Headphones unplugged / Bluetooth audio disconnected: pause like the app's pause button. */
+    private static void registerNoisyLocked() {
+        if (noisyRegistered || appContext == null) return;
+        noisyRegistered = true;
+        try {
+            BroadcastReceiver receiver = new BroadcastReceiver() {
+                @Override
+                public void onReceive(Context context, Intent intent) {
+                    if (!AudioManager.ACTION_AUDIO_BECOMING_NOISY.equals(intent.getAction())) return;
+                    if (!HtcSettings.on(HtcSettings.TTS_ENABLED, HtcSettings.TTS_NOISY) || !isReading()) return;
+                    Log.i(TAG, "headphones / Bluetooth disconnected, pausing");
+                    requestPause();
+                }
+            };
+            IntentFilter filter = new IntentFilter(AudioManager.ACTION_AUDIO_BECOMING_NOISY);
+            if (Build.VERSION.SDK_INT >= 33) {
+                appContext.registerReceiver(receiver, filter, Context.RECEIVER_EXPORTED);
+            } else {
+                appContext.registerReceiver(receiver, filter);
+            }
+        } catch (Throwable t) {
+            Log.w(TAG, "could not watch headphones", t);
+        }
+    }
+
+    /**
+     * Pauses the reading the way the app's pause button does: the engine stops at once (the line is
+     * kept), and the scripts are asked to press the voice bar's pause button so the app shows it.
+     */
+    public static void requestPause() {
+        pauseByUser();
+        try {
+            JSONObject command = new JSONObject().put("cmd", "pause").put("id", SystemClock.elapsedRealtime());
+            JsBridge.emit(JsBridge.EVENT_COMMAND, command.toString());
+        } catch (Throwable ignored) {
+        }
+    }
+
+    static boolean isEndOfChapter(String text) {
+        return END_OF_CHAPTER.equals(text);
+    }
+
+    /** "Chương 12: Tên chương", the first line of a chapter text. */
+    private static final Pattern CHAPTER_HEADER = Pattern.compile(
+            "^\\s*ch(?:ươ|uo|ư)ng\\s*\\d+(?:[.,]\\d+)?\\b.{0,200}$",
+            Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE);
+
+    private static boolean skipLine(String text) {
+        if (text == null || !HtcPatches.chapterTitles()) return false;
+        if (!HtcSettings.on(HtcSettings.TITLES_ENABLED, HtcSettings.TITLES_SKIP_HEADER)) return false;
+        return CHAPTER_HEADER.matcher(Normalizer.normalize(text, Normalizer.Form.NFC)).matches();
+    }
+
+    /** The line is not spoken: the app gets its start / done events as if it had been. */
+    private static void fakeSpoken(final String id) {
+        main.post(() -> {
+            UtteranceProgressListener l = appListener;
+            if (l == null) return;
+            l.onStart(id);
+            l.onDone(id);
+        });
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -161,6 +282,8 @@ public final class TtsController {
                 appContext = app != null ? app : context;
             }
             if (listener != null) appListener = listener;
+            listenToSettingsLocked();
+            registerNoisyLocked();
             if (tts == null) createLocked("first use");
             return tts;
         }
@@ -177,6 +300,25 @@ public final class TtsController {
                 // reading: it stops the speech and reads its still empty text, i.e. says "Hết chương"
                 // and then opens the NEXT chapter. Drop it; the chapter text arriving restarts the reading.
                 Log.i(TAG, "dropping end-of-chapter spoken right after stop (reader just opened)");
+                return;
+            }
+            if (skipLine(text)) {
+                Log.i(TAG, "chapter title line not read aloud");
+                spokeSinceStop = true;
+                lastDoneAt = SystemClock.elapsedRealtime();
+                touchLocked();
+                fakeSpoken(id);
+                return;
+            }
+            // A line ended a moment ago: the reading goes on (the app stops the speech itself when it
+            // changes chapter, so a stop in between does not count).
+            boolean continuous = !userPaused && lastDoneAt > 0
+                    && SystemClock.elapsedRealtime() - lastDoneAt < CONTINUOUS_MS;
+            if (HtcPatches.backgroundReading() && SleepTimer.shouldStop(continuous)) {
+                // Sleep timer over: keep the line, stop here and let the app show "paused".
+                spokeSinceStop = true;
+                pending.put(id, new Utterance(id, text, language, pitch, rate, voice));
+                stopForSleepLocked();
                 return;
             }
             spokeSinceStop = true;
@@ -201,6 +343,20 @@ public final class TtsController {
             }
         }
         notifyMedia();
+    }
+
+    /** Sleep timer over before a new line: the line stays queued, the app is asked to show "paused". */
+    private static void stopForSleepLocked() {
+        userPaused = true;
+        final long id = SystemClock.elapsedRealtime();
+        main.post(() -> {
+            notifyMedia();
+            try {
+                JSONObject command = new JSONObject().put("cmd", "pause").put("id", id).put("sleep", true);
+                JsBridge.emit(JsBridge.EVENT_COMMAND, command.toString());
+            } catch (Throwable ignored) {
+            }
+        });
     }
 
     /** Replaces textToSpeech.stop() called by JS Speech.stop(). */
@@ -259,6 +415,7 @@ public final class TtsController {
             chosenRate = rate;
             if (previous == null || previous == rate) return;
             Log.i(TAG, "speed changed to " + rate);
+            if (!applySpeedNow()) return; // used from the next play, like the original app
             if (tts == null || !ready || blockedLocked()) return;
             // Speak the current line again at the new speed (the engine cannot change it mid-line).
             boolean restart = false;
@@ -345,6 +502,7 @@ public final class TtsController {
         synchronized (lock) {
             if (bypassTimerDefer || timerManager == null) return false;
             appInBackground = true;
+            if (!HtcSettings.bool(HtcSettings.BG_ENABLED)) return false;
             if (!sessionActiveLocked()) return false;
             Log.i(TAG, "app paused while reading, keeping JS timers running");
             deferredTimerManager = new WeakReference<>(timerManager);
@@ -427,9 +585,14 @@ public final class TtsController {
             }
         }
 
-        Log.i(TAG, "creating engine #" + gen + " (" + reason + ")");
+        String engine = chosenEngine();
+        engineInUse = engine;
+        Log.i(TAG, "creating engine #" + gen + " (" + reason + ")" + (engine.isEmpty() ? "" : " " + engine));
         try {
-            tts = new TextToSpeech(appContext, status -> main.post(() -> onInit(gen, status)));
+            TextToSpeech.OnInitListener onInit = status -> main.post(() -> onInit(gen, status));
+            tts = engine.isEmpty()
+                    ? new TextToSpeech(appContext, onInit)
+                    : new TextToSpeech(appContext, onInit, engine);
         } catch (Throwable t) {
             Log.e(TAG, "engine constructor failed", t);
             tts = null;
@@ -529,7 +692,7 @@ public final class TtsController {
             tts.setPitch(u.pitch);
             appliedPitch = u.pitch;
         }
-        Float rate = chosenRate != null ? chosenRate : u.rate;
+        Float rate = chosenRate != null && applySpeedNow() ? chosenRate : u.rate;
         if (rate != null && !rate.equals(appliedRate)) {
             tts.setSpeechRate(rate);
             appliedRate = rate;
@@ -541,9 +704,23 @@ public final class TtsController {
             appliedLocale = locale;
             appliedVoice = null;
         }
-        if (u.voice != null && !u.voice.equals(appliedVoice)) {
+        // The voice picked in the settings wins over the one the app asks for.
+        String wanted = chosenVoice();
+        if (wanted.isEmpty()) wanted = u.voice;
+        if (wanted != null && !wanted.equals(appliedVoice)) {
             Set<Voice> voices = tts.getVoices();
+            boolean found = false;
             if (voices != null) {
+                for (Voice v : voices) {
+                    if (wanted.equals(v.getName())) {
+                        tts.setVoice(v);
+                        found = true;
+                        break;
+                    }
+                }
+            }
+            if (!found && u.voice != null && !u.voice.equals(wanted) && voices != null) {
+                // The chosen voice is not in this engine: use the app's.
                 for (Voice v : voices) {
                     if (u.voice.equals(v.getName())) {
                         tts.setVoice(v);
@@ -551,7 +728,7 @@ public final class TtsController {
                     }
                 }
             }
-            appliedVoice = u.voice;
+            appliedVoice = wanted;
         }
     }
 
@@ -618,13 +795,16 @@ public final class TtsController {
         @Override
         public void onDone(String id) {
             if (stale()) return;
+            String text;
             synchronized (lock) {
-                pending.remove(id);
+                Utterance u = pending.remove(id);
+                text = u != null ? u.text : null;
                 suppressStop.remove(id);
                 respoken.remove(id);
                 touchLocked();
                 lastDoneAt = SystemClock.elapsedRealtime();
             }
+            if (HtcPatches.backgroundReading()) SleepTimer.onLineDone(text);
             ReadingProgress.onLineDone();
             notifyMedia();
             notifyMediaLater(PLAYING_GRACE_MS + 200);
@@ -673,7 +853,7 @@ public final class TtsController {
                     u.sent = false;
                     return;
                 }
-                if (u.retries < MAX_RETRIES_PER_UTTERANCE) {
+                if (u.retries < maxRetries()) {
                     u.retries++;
                     u.sent = false;
                     Log.w(TAG, "utterance " + id + " failed (" + code + "), retry " + u.retries);
@@ -836,6 +1016,8 @@ public final class TtsController {
             return;
         }
         boolean inCall = mode != AudioManager.MODE_NORMAL;
+        String callMode = callMode();
+        if ("none".equals(callMode) && !interrupted) return;
         if (inCall) {
             normalModeTicks = 0;
             if (!interrupted && !pending.isEmpty()) {
@@ -854,10 +1036,24 @@ public final class TtsController {
             }
         } else if (interrupted) {
             if (++normalModeTicks >= RESUME_TICKS) {
-                Log.i(TAG, "call ended, resuming " + pending.size() + " utterance(s)");
                 interrupted = false;
                 normalModeTicks = 0;
                 lastActivity = SystemClock.elapsedRealtime();
+                if ("pause".equals(callMode) && !userPaused && !pending.isEmpty()) {
+                    // Stay paused: play (app, widget) reads the interrupted line again.
+                    Log.i(TAG, "call ended, staying paused");
+                    userPaused = true;
+                    final long id = SystemClock.elapsedRealtime();
+                    main.post(() -> {
+                        try {
+                            JSONObject command = new JSONObject().put("cmd", "pause").put("id", id);
+                            JsBridge.emit(JsBridge.EVENT_COMMAND, command.toString());
+                        } catch (Throwable ignored) {
+                        }
+                    });
+                } else {
+                    Log.i(TAG, "call ended, resuming " + pending.size() + " utterance(s)");
+                }
                 if (!userPaused) {
                     if (tts == null) createLocked("resume after call");
                     else if (ready) flushLocked();

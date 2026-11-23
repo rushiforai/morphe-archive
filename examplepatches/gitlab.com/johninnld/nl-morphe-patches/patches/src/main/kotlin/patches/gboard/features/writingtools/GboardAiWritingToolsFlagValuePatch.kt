@@ -28,31 +28,31 @@ internal val gboardAiWritingToolsFlagValuePatch = gboardFlagFamilyFeaturePatch(
 )
 
 internal val autoFixRouteBuilder = GboardMethodTarget(
-    classType = "Lydb;",
+    classType = "Laxep;",
     name = "v",
     parameterTypes = emptyList(),
-    returnType = "Lvph;",
+    returnType = "Laswi;",
 )
 
 internal val autoFixAmbiguityGate = GboardMethodTarget(
     classType = "Lhhj;",
     name = "a",
-    parameterTypes = listOf("Lgta;"),
+    parameterTypes = listOf("Lnuw;"),
     returnType = "Llrj;",
 )
 
 internal val genAiVoiceEditInit = GboardMethodTarget(
-    classType = "Lica;",
+    classType = "Lqvy;",
     name = "c",
     parameterTypes = listOf(
         "Lcom/google/android/apps/inputmethod/libs/nga/impl/input/NgaInputManager;",
-        "Lhiw;",
+        "Lpau;",
     ),
     returnType = "V",
 )
 
 internal val smartEditInit = GboardMethodTarget(
-    classType = "Lica;",
+    classType = "Lqvy;",
     name = "d",
     parameterTypes = emptyList(),
     returnType = "V",
@@ -138,7 +138,7 @@ internal fun MutableMethod.applyAutoFixRoute() {
         "18.0.3 Writing Tools v2 route builder register drift"
     }
 
-    val existing = instructions.count { it.isFieldReference("Lzqk;->c:Laaim;") }
+    val existing = instructions.count { it.isFieldReference("Lazwl;->c:Laaim;") }
     if (existing != 0) {
         check(existing == 1) { "Duplicate INTENT_AUTO_FIX route entries" }
         return
@@ -156,17 +156,17 @@ internal fun MutableMethod.applyAutoFixRoute() {
         "18.0.3 Writing Tools v2 route-set builder register drift"
     }
 
-    val freezeCalls = instructions.count { it.isMethodReference("Lvpc;->g()Lvph;") }
+    val freezeCalls = instructions.count { it.isMethodReference("Laswb;->g()Laswi;") }
     check(freezeCalls == 1) {
         "Expected one exact Writing Tools v2 route-set freeze call"
     }
-    addInstructions(
-        builderInitIndices.single() + 1,
-        """
-            sget-object v1, Laaim;->c:Laaim;
-            invoke-virtual {v0, v1}, Lwgv;->h(Ljava/lang/Object;)V
-        """.trimIndent(),
-    )
+    // 18.8 has no counterpart for the 18.6.3 route-set builder call (`wgv.h(Object)`): the class
+    // is gone and the 18.8 constructor's class (`vow`) does not take an Object. Injecting the old
+    // call put a reference to a class absent from the APK into a shipped method, so the route entry
+    // is not added. The rest of the patch is unaffected; revisit if the 18.8 route API is mapped.
+    check(builderInitIndices.size == 1) {
+        "Expected one exact Writing Tools v2 route-set builder initialization"
+    }
 }
 
 internal fun MutableMethod.applyAutoFixAcceptance() {
@@ -176,7 +176,7 @@ internal fun MutableMethod.applyAutoFixAcceptance() {
         "18.0.3 Writing Tools ambiguity register drift"
     }
 
-    val existing = instructions.count { it.isFieldReference("Lzqk;->c:Laaim;") }
+    val existing = instructions.count { it.isFieldReference("Lazwl;->c:Laaim;") }
     if (existing != 0) {
         check(existing == 1) { "Duplicate INTENT_AUTO_FIX ambiguity delegates" }
         return
@@ -215,7 +215,7 @@ internal fun MutableMethod.applyGenAiInitClientTypeCompatibility() {
     }
 
     val predicateIndices = instructions.indices.filter {
-        instructions[it].isMethodReference("Lugw;->cH(Lkhn;)Z")
+        instructions[it].isMethodReference("Laqcl;->cH(Lvye;)Z")
     }
     check(predicateIndices.size == 1) {
         "Expected one exact 18.0.3 GenAI client-type predicate"
@@ -233,7 +233,7 @@ internal fun MutableMethod.applyGenAiInitClientTypeCompatibility() {
 
     val clientProducerIndices = instructions.indices.filter { index ->
         index < predicateIndex &&
-            instructions[index].isFieldReference("Lipa;->j:Lkyu;") &&
+            instructions[index].isFieldReference("Lrxm;->j:Lkyu;") &&
             (instructions[index] as? TwoRegisterInstruction)?.let { producer ->
                 producer.opcode == Opcode.IGET_OBJECT && producer.registerA == 0
             } == true
@@ -276,7 +276,7 @@ internal fun MutableMethod.applyGenAiClientRefreshRetry() {
     }
 
     val predicateIndices = instructions.indices.filter {
-        instructions[it].isMethodReference("Lugw;->cH(Lkhn;)Z")
+        instructions[it].isMethodReference("Laqcl;->cH(Lvye;)Z")
     }
     check(predicateIndices.size == 1) {
         "Expected one exact 18.0.3 refresh client-type predicate"
@@ -288,7 +288,7 @@ internal fun MutableMethod.applyGenAiClientRefreshRetry() {
     }
     val clientProducerIndices = instructions.indices.filter { index ->
         index < predicateIndex &&
-            instructions[index].isFieldReference("Lipa;->j:Lkyu;") &&
+            instructions[index].isFieldReference("Lrxm;->j:Lkyu;") &&
             (instructions[index] as? TwoRegisterInstruction)?.let { producer ->
                 producer.opcode == Opcode.IGET_OBJECT && producer.registerA == 0
             } == true
@@ -325,7 +325,7 @@ internal fun MutableMethod.applySmartEditInitClientTypeCompatibility() {
     }
 
     val predicateIndices = instructions.indices.filter {
-        instructions[it].isMethodReference("Lugw;->cG(Lkhn;)Z")
+        instructions[it].isMethodReference("Laqcl;->cG(Lvye;)Z")
     }
     check(predicateIndices.size == 1) {
         "Expected one exact 18.0.3 SmartEdit client-type predicate"
@@ -343,7 +343,7 @@ internal fun MutableMethod.applySmartEditInitClientTypeCompatibility() {
 
     val clientProducerIndices = instructions.indices.filter { index ->
         index < predicateIndex &&
-            instructions[index].isFieldReference("Lipa;->j:Lkyu;") &&
+            instructions[index].isFieldReference("Lrxm;->j:Lkyu;") &&
             (instructions[index] as? TwoRegisterInstruction)?.let { producer ->
                 producer.opcode == Opcode.IGET_OBJECT && producer.registerA == 10
             } == true

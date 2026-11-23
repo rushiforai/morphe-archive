@@ -1,7 +1,11 @@
 package app.morphe.extension.syncforreddit.ui.banner;
 
+import android.app.Activity;
+import android.content.Context;
+import android.content.ContextWrapper;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.view.View;
 
 import androidx.annotation.Nullable;
 
@@ -16,6 +20,7 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.WeakHashMap;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
@@ -67,8 +72,20 @@ public final class SubredditBanners {
 
     private static volatile String userAgent;
 
-    /** What the feed showing now is about, recorded where Sync hands it over. */
-    private static volatile String showing;
+    /**
+     * What each window's feed is about, recorded where Sync hands it over.
+     *
+     * <p>Kept per window rather than as one value for the app. A subreddit opened in a new window
+     * is a second activity laid over the first, and Sync makes it translucent so the reader can
+     * swipe it away — which leaves the feed underneath still drawing. One value for the app was
+     * therefore read by both feeds, and the subreddit just opened was drawn over the one the
+     * reader had left behind as well as over its own.
+     *
+     * <p>The window is the activity the view belongs to, held weakly so a window that has gone
+     * takes its entry with it.
+     */
+    private static final Map<Object, String> showing =
+            Collections.synchronizedMap(new WeakHashMap<Object, String>());
 
     /**
      * What to run when a banner becomes known.
@@ -101,14 +118,19 @@ public final class SubredditBanners {
         }
     }
 
-    /** Called where Sync settles what the feed is about. */
-    public static void showing(String subreddit) {
+    /**
+     * Called where Sync settles what the feed is about, with the view it settled it on, which is
+     * what says which window is meant.
+     */
+    public static void showing(View where, String subreddit) {
         String named = normalise(subreddit);
-        if (named == null || named.equals(showing)) {
+        Object window = windowOf(where);
+        if (named == null || window == null || named.equals(showing.get(window))) {
             return;
         }
-        showing = named;
-        Logger.printDebug(() -> "banner: the feed is showing r/" + named);
+        showing.put(window, named);
+        Logger.printDebug(() -> "banner: the feed in " + window.getClass().getSimpleName()
+                + " is showing r/" + named);
 
         // The feed's view is made before this is said, so whatever is hanging there belongs to
         // the subreddit before it and nothing else would ever ask again.
@@ -119,9 +141,32 @@ public final class SubredditBanners {
         }
     }
 
+    /** @return What the feed in this view's window is about, or null where nothing has said. */
     @Nullable
-    public static String showing() {
-        return showing;
+    public static String showingIn(@Nullable Context context) {
+        Object window = windowOf(context);
+        return window == null ? null : showing.get(window);
+    }
+
+    @Nullable
+    private static Object windowOf(@Nullable View view) {
+        return view == null ? null : windowOf(view.getContext());
+    }
+
+    /**
+     * @return The activity a view belongs to, which is what a window is here. A view is given the
+     *         activity to build itself from, sometimes wrapped in a theme, so it is unwrapped
+     *         rather than cast.
+     */
+    @Nullable
+    private static Object windowOf(@Nullable Context context) {
+        while (context instanceof ContextWrapper) {
+            if (context instanceof Activity) {
+                return context;
+            }
+            context = ((ContextWrapper) context).getBaseContext();
+        }
+        return null;
     }
 
     /** @return The address of this subreddit's banner, for opening it as a picture. */
@@ -153,7 +198,7 @@ public final class SubredditBanners {
                     + (found == null ? "no banner" : "a banner at " + found));
 
             // Whoever asked, the feed showing this subreddit now wants to look again.
-            if (found != null && !found.equals(before) && named.equals(showing)) {
+            if (found != null && !found.equals(before) && showing.containsValue(named)) {
                 Runnable again = lookAgain;
                 if (again != null) {
                     Logger.printDebug(() -> "banner: telling the feed to look again at r/" + named);

@@ -5,6 +5,7 @@
 package app.morphe.extension.facebook.comments;
 
 import android.app.Activity;
+import android.app.Application;
 import android.content.ActivityNotFoundException;
 import android.content.ComponentName;
 import android.content.Context;
@@ -12,6 +13,7 @@ import android.content.Intent;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.LayerDrawable;
 import android.net.Uri;
+import android.os.Bundle;
 import android.view.View;
 import android.view.ViewTreeObserver;
 
@@ -64,9 +66,9 @@ import app.morphe.extension.shared.settings.BooleanSetting;
  * returns before anything opens. A comment keeps whether its reply thread is open in its state,
  * which starts closed until a tap on View replies opens it. The patch hands
  * {@link #openReplyThreads} that flag as the state is first set up and writes back the answer.
- * Once an open thread's replies are fetched, it builds a list over them that either pages on by
- * itself or draws View more replies; the patch asks {@link #loadWholeReplyThreads} which, just
- * before Facebook sets it. A View more replies row reads a flag that makes only its words take a
+ * An open thread's replies draw a View more replies pager while there's another page, and the
+ * patch hands {@link #loadRestOfThread} that pager as it's laid out, which may run the loader its
+ * tap runs. A View more replies row reads a flag that makes only its words take a
  * tap, and the patch hands {@link #viewMoreRepliesTextOnly} that flag right after. Each comment is drawn by a section that the patch asks {@link #hidesComment} first, with the
  * comment it draws; a yes draws nothing for it. Facebook has no way to close a thread once it's
  * open, so the patch asks {@link #drawsHideRepliesRow} as one is drawn and on a yes draws a row over
@@ -171,8 +173,8 @@ public final class CommentSheetOptions {
     /** Counted each time a comment starts with its reply thread open. */
     static final String THREAD_OPENED = "Reply thread opened";
 
-    /** Counted each time an open reply thread's list is set to load the rest of its replies as it's scrolled. */
-    static final String THREAD_LOADS_IN_FULL = "Reply thread loads in full";
+    /** Counted each time a reply thread's next page is loaded without a tap on View more replies. */
+    static final String THREAD_LOADS_IN_FULL = "Reply page loaded without a tap";
 
     /** Counted each time a View more replies row is built to take a tap anywhere on it. */
     static final String WHOLE_ROW_TAPS = "View more replies row takes a tap anywhere";
@@ -249,6 +251,31 @@ public final class CommentSheetOptions {
     /** Counted each time that video keeps the height the comment bar's band took off it. */
     static final String FULL_HEIGHT = "Video kept its full height";
 
+    /** Counted each time that video and its seek bar take only part of the band, leaving room for a reel's time. */
+    static final String TIME_ROOM = "Video left room for the reel's time";
+
+    /**
+     * How much of the band, in dp, a Shorts viewer video and its seek bar both take while a reel's
+     * time stays up (Keep the progress bar with Show a reel's time). Facebook rests the caption on
+     * the video's bottom edge less 34 px or on the seek bar's bottom, whichever is higher, and lifts
+     * it 35 dp from there while the seek bar shows. The seek bar goes up by its band, and by the nav
+     * bar's inset too while the video runs to the bottom edge (S22 588, 2026-11-23). At the full
+     * height the seek bar held the caption, and the time row, which Facebook shows only during a drag
+     * when the caption is cleared, sat 63 px into the caption's last line. The video alone at 32 dp
+     * cleared the caption but dropped the seek bar onto the gesture handle. The band is the nav bar's
+     * inset plus 44 dp, so taking 28 dp of it keeps the seek bar 16 dp higher than at the full height
+     * on any phone, where it was before.
+     */
+    static final int TIME_ROOM_BAND_TAKEN_DP = 28;
+
+    /**
+     * How much more of the band, in dp, the video keeps than its seek bar while a reel's time stays
+     * up. At the same band the time came 13 px into the caption's box, Facebook's spacing under the
+     * comment bar, where its featured-comment line pads the gap, but a plain caption's last line
+     * touched the time's digits (S22 588, 2026-11-23). The caption moves with the video's edge alone.
+     */
+    static final int TIME_ROOM_GAP_DP = 8;
+
     /** The member the report names once the Shorts viewer has placed its seek bar through the hook (#375). */
     static final String SEEK_BAR = "Shorts viewer seek bar";
 
@@ -262,13 +289,36 @@ public final class CommentSheetOptions {
     static final int NO_BAR_SEEK_BAR_DP = 3;
 
     /**
-     * Whether the Shorts viewer root rendering on this thread had its pick of a bottom bar hand back
-     * nothing while Hide the video comment box was on (#375): the comment bar it dropped, or no bar at
-     * all, where its list gives the video its full height just the same. Each root render starts it
-     * over. Its other bars, such as the reply bar under a reel shared in a chat, stay, and so does their
-     * band, so the seek bar follows this, not the switch alone.
+     * Whether the Shorts viewer root rendering on this thread dropped its comment bar while Hide the
+     * video comment box was on (#375). Each root render starts it over. Its other bars, such as the
+     * reply bar under a reel shared in a chat, stay, and so does their band, so the seek bar follows
+     * this, not the switch alone.
+     *
+     * <p>A pick with no bar to begin with leaves it unset. That's the scroller a video tapped in Home
+     * opens, whose list gives the video its full height all the same, but on 588 its caption stays
+     * where it was as the video grows (S22, 2026-11-23: "Suckers!" at 1937 to 1978 either way). Taken
+     * down to {@link #NO_BAR_SEEK_BAR_DP} there, the seek bar only went under the Up next bar and into
+     * the gesture strip (#552), so it keeps Facebook's band. In the viewer a reel from Home's shelf
+     * opens, where the comment bar is dropped, the caption does come down with the video.
      */
     private static final ThreadLocal<Boolean> shortsBarDropped = new ThreadLocal<>();
+
+    /**
+     * Facebook's full-screen player screens, where the Shorts viewer a reel from Home's shelf opens
+     * runs. The scroller a video tapped in Home opens runs in the main screen, and on 588 its root
+     * drops the comment bar too when the video is a reel's (S22, 2026-11-23: "Reel by Elisha Elle",
+     * caption at 1663 to 1764 with the bar or without), so a drop alone doesn't say the caption came
+     * down (#552).
+     */
+    static final Set<String> SHORTS_SCREENS = Set.of(
+            "com.facebook.katana.immersiveactivity.ImmersiveActivity",
+            "com.facebook.katana.immersiveactivity.ImmersivePortraitActivity");
+
+    /** The class of the screen created or resumed last, or null before the first. */
+    @Nullable
+    private static volatile String screenInFront;
+
+    private static boolean watchingScreens;
 
     /**
      * The Shorts viewer configs whose root last got a bar back from its pick (#375): the reply bar
@@ -310,8 +360,8 @@ public final class CommentSheetOptions {
     /** The member the report names once a comment's state has been set up. */
     static final String REPLY_THREADS = "reply threads";
 
-    /** The member the report names once an open reply thread has built the list of its replies. */
-    static final String REPLY_LISTS = "reply lists";
+    /** The member the report names once a View more replies pager under an open thread has been laid out. */
+    static final String REPLY_PAGERS = "reply pagers";
 
     /** The member the report names once a View more replies row has been drawn through the hook. */
     static final String REPLY_ROWS = "View more replies rows";
@@ -696,6 +746,7 @@ public final class CommentSheetOptions {
             HookStatus.bound(FAMILY, SHORTS_BAR);
             if (!Utils.settingsReady() || !Settings.HIDE_VIDEO_COMMENT_COMPOSER.get()) return false;
             HookStatus.counted(FAMILY, COMPOSER_HIDDEN);
+            shortsBarDropped.set(Boolean.TRUE);
             return true;
         } catch (Throwable failure) {
             HookStatus.threw(FAMILY, SHORTS_BAR, failure);
@@ -707,36 +758,125 @@ public final class CommentSheetOptions {
      * The hook right after the Shorts viewer's root gets its bottom bar back from the pick (#375),
      * with that bar, null where it shows none or the comment bar was dropped, and the viewer's config.
      * A bar marks the config, so the viewer's videos keep Facebook's band from their next layout on;
-     * no bar clears the mark, and while Hide the video comment box is on this render's seek bar then
-     * goes down with the full-height video instead of staying where the caption now ends.
+     * no bar clears the mark. Whether the seek bar goes down is up to {@link #dropsShortsCommentBar}.
      */
     public static void keptShortsBar(@Nullable Object bar, @Nullable Object config) {
         try {
             HookStatus.invoked(FAMILY);
             HookStatus.bound(FAMILY, PICKED_BAR);
             if (config != null) markKeepsBar(config, bar != null);
-            if (bar == null && Utils.settingsReady() && Settings.HIDE_VIDEO_COMMENT_COMPOSER.get()) {
-                shortsBarDropped.set(Boolean.TRUE);
-            }
         } catch (Throwable failure) {
             HookStatus.threw(FAMILY, PICKED_BAR, failure);
         }
     }
 
     /**
+     * Called once per Facebook start, from the settings entry's onApplicationCreate, with Comment
+     * sheet options in the build: from then on each screen that's created or resumed is the one in
+     * front, for {@link #shortsSeekBarBand}.
+     */
+    public static synchronized void watch(Context context) {
+        try {
+            if (watchingScreens || !(context instanceof Application)) return;
+            ((Application) context).registerActivityLifecycleCallbacks(new Screens());
+            watchingScreens = true;
+        } catch (Throwable failure) {
+            HookStatus.threw(FAMILY, SEEK_BAR, failure);
+        }
+    }
+
+    /** Records the class of the screen in front. */
+    static void inFront(@Nullable String screen) {
+        screenInFront = screen;
+    }
+
+    /** Whether the screen in front is a full-screen player, where the Shorts viewer runs. */
+    static boolean shortsScreenInFront() {
+        String screen = screenInFront;
+        return screen != null && SHORTS_SCREENS.contains(screen);
+    }
+
+    /**
+     * Whether the band stays Facebook's for the UP NEXT pill: in the Shorts viewer, while Hide Up
+     * next is off. Facebook lays that pill over the comment bar, in its band (S22 588, 2026-11-23:
+     * "Add a comment" at 2105 to 2274 under "UP NEXT:" at 2147, the seek bar at 2048 to 2166 above
+     * both). Given to the video, the band took the caption down and the seek bar under the pill
+     * (#552), so the video, its caption and its seek bar stay where Facebook puts them, with the
+     * pill where the comment bar was.
+     */
+    private static boolean bandKeptForUpNext() {
+        return shortsScreenInFront() && !Settings.HIDE_UP_NEXT.get();
+    }
+
+    /**
+     * Whether a reel's time stays up over the seek bar in the Shorts viewer, which needs part of the
+     * band ({@link #TIME_ROOM_BAND_TAKEN_DP}). The scroller a video tapped in Home opens keeps its
+     * caption where it was whatever the video's height, so there the video takes the whole band.
+     */
+    private static boolean timeRowKept() {
+        return shortsScreenInFront() && Settings.KEEP_PROGRESS_BAR.get() && Settings.KEEP_PROGRESS_BAR_TIME.get();
+    }
+
+    /** The band, in dp, the seek bar keeps while {@link #timeRowKept}. */
+    static int timeRoomBand(int band) {
+        return Math.max(NO_BAR_SEEK_BAR_DP, band - TIME_ROOM_BAND_TAKEN_DP);
+    }
+
+    /** The band, in dp, the video keeps while {@link #timeRowKept}: its seek bar's and the gap, at most Facebook's. */
+    static int timeRoomVideoBand(int band) {
+        return Math.min(band, timeRoomBand(band) + TIME_ROOM_GAP_DP);
+    }
+
+    /** Keeps the screen in front up to date. */
+    static final class Screens implements Application.ActivityLifecycleCallbacks {
+        @Override
+        public void onActivityCreated(Activity activity, @Nullable Bundle state) {
+            inFront(activity.getClass().getName());
+        }
+
+        @Override
+        public void onActivityResumed(Activity activity) {
+            inFront(activity.getClass().getName());
+        }
+
+        @Override
+        public void onActivityStarted(Activity activity) {
+        }
+
+        @Override
+        public void onActivityPaused(Activity activity) {
+        }
+
+        @Override
+        public void onActivityStopped(Activity activity) {
+        }
+
+        @Override
+        public void onActivitySaveInstanceState(Activity activity, Bundle state) {
+        }
+
+        @Override
+        public void onActivityDestroyed(Activity activity) {
+        }
+    }
+
+    /**
      * The hook on each band height, in dp, the Shorts viewer's root places its seek bar and time
-     * above (#375). Once this render's pick came back with no bar while the switch is on they go down
-     * with the video to {@link #NO_BAR_SEEK_BAR_DP}, where Facebook puts them with no bar, instead of
-     * staying over the caption; otherwise the band is Facebook's.
+     * above (#375). Once this render dropped the comment bar while the switch is on and a full-screen
+     * player is in front they go down with the video to {@link #NO_BAR_SEEK_BAR_DP}, where Facebook
+     * puts them with no bar, instead of staying over the caption, or to the band the video keeps while
+     * a reel's time stays up ({@link #timeRoomBand}). Otherwise the band is Facebook's: a
+     * pick with no bar of its own, the scroller a video tapped in Home opens, whose caption stays put
+     * with the bar gone or not, and a viewer whose band the UP NEXT pill keeps (#552).
      */
     public static int shortsSeekBarBand(int band) {
         try {
             HookStatus.invoked(FAMILY);
             HookStatus.bound(FAMILY, SEEK_BAR);
-            if (!Boolean.TRUE.equals(shortsBarDropped.get()) || !Utils.settingsReady()
-                    || !Settings.HIDE_VIDEO_COMMENT_COMPOSER.get()) return band;
+            if (!Boolean.TRUE.equals(shortsBarDropped.get()) || !shortsScreenInFront() || !Utils.settingsReady()
+                    || !Settings.HIDE_VIDEO_COMMENT_COMPOSER.get() || bandKeptForUpNext()) return band;
             HookStatus.counted(FAMILY, SEEK_BAR_LOWERED);
-            return NO_BAR_SEEK_BAR_DP;
+            return timeRowKept() ? timeRoomBand(band) : NO_BAR_SEEK_BAR_DP;
         } catch (Throwable failure) {
             HookStatus.threw(FAMILY, SEEK_BAR, failure);
             return band;
@@ -747,15 +887,20 @@ public final class CommentSheetOptions {
      * The hook on the band height, in dp, the Shorts viewer's list takes off each video's full height
      * (#375), with the viewer's config. It sizes the videos before any of their roots has picked a
      * bar, so while Hide the video comment box is on the video keeps its full height and 0 comes back,
-     * unless the config's root kept a bar ({@link #keptShortsBar}). A list handed no config keeps
-     * Facebook's band.
+     * unless the config's root kept a bar ({@link #keptShortsBar}) or the UP NEXT pill keeps the band
+     * ({@link #bandKeptForUpNext}). While a reel's time stays up the video takes only part of it
+     * ({@link #timeRowKept}). A list handed no config keeps Facebook's band.
      */
     public static int shortsVideoBand(int band, @Nullable Object config) {
         try {
             HookStatus.invoked(FAMILY);
             HookStatus.bound(FAMILY, VIDEO_HEIGHT);
             if (config == null || !Utils.settingsReady() || !Settings.HIDE_VIDEO_COMMENT_COMPOSER.get()
-                    || keepsBar(config)) return band;
+                    || keepsBar(config) || bandKeptForUpNext()) return band;
+            if (timeRowKept()) {
+                HookStatus.counted(FAMILY, TIME_ROOM);
+                return timeRoomVideoBand(band);
+            }
             HookStatus.counted(FAMILY, FULL_HEIGHT);
             return 0;
         } catch (Throwable failure) {
@@ -961,24 +1106,84 @@ public final class CommentSheetOptions {
     }
 
     /**
-     * The hook, as an open reply thread builds the list of its fetched replies, handed whether that
-     * list pages on by itself, which Facebook leaves false for replies: it draws View more replies
-     * under them, and each tap loads one more page. True, while Load whole reply threads is on,
-     * makes the list load its next page each time its end comes into view, the way Facebook's own
-     * comment lists do, so the rest of the thread follows as it's scrolled with no more taps. It
-     * goes a page at a time and only as far as the reader scrolls, so a huge thread can't hold the
-     * sheet up. Otherwise Facebook's own value comes back.
+     * The hook, first thing as the View more replies pager under an open reply thread is laid out,
+     * which Facebook does as the pager comes near the screen. The pager keeps the loader its tap
+     * runs. While Load whole reply threads is on, that loader runs on the main thread, the way a
+     * tap would, so the thread's next page comes in with no tap, and the next pager does the same
+     * as the reader scrolls on (#140). It runs once per page, however often the pager is laid out
+     * again before the page arrives, and never for a pager under a post's own comments, which
+     * stays a tap away. Off, paused or cold, the pager is left to Facebook.
+     *
+     * <p>Up to 0.24.0 this switch made the list page on by itself instead, but on Facebook 588 a
+     * reply list told to do that drops the pager and never loads its next page, so a long thread
+     * stopped after its first page with nothing to tap (#536).
      */
-    public static boolean loadWholeReplyThreads(boolean pagesOnScroll) {
+    public static void loadRestOfThread(Object pager) {
         try {
             HookStatus.invoked(FAMILY);
-            HookStatus.bound(FAMILY, REPLY_LISTS);
-            if (pagesOnScroll || !Utils.settingsReady() || !Settings.LOAD_WHOLE_REPLY_THREADS.get()) return pagesOnScroll;
+            HookStatus.bound(FAMILY, REPLY_PAGERS);
+            if (pager == null || !Utils.settingsReady() || !Settings.LOAD_WHOLE_REPLY_THREADS.get()) return;
+            Runnable nextPage = nextPage(pager);
+            if (nextPage == null) return;
             HookStatus.counted(FAMILY, THREAD_LOADS_IN_FULL);
-            return true;
+            Utils.runOnMainThread(nextPage);
         } catch (Throwable failure) {
-            HookStatus.threw(FAMILY, "reply list", failure);
-            return pagesOnScroll;
+            HookStatus.threw(FAMILY, "reply pager", failure);
+        }
+    }
+
+    /** The pages whose loader already ran, each by the list it loads on from. */
+    private static final Set<Object> pagesAsked = Collections.newSetFromMap(new WeakHashMap<>());
+
+    /**
+     * The run of {@code pager}'s loader for a thread's next page, or null. The loader is the value
+     * of one of the pager's fields: a lambda whose captures keep their names, the list it pages on
+     * from in {@code $paginableList}, how deep it sits in {@code $depth} and what it loads the page
+     * through in {@code $modelAdapter}, with an {@code invoke()} that loads one page. The pager's
+     * other lambda, which logs that it was seen (588 {@code LX/0Vm6}), names the list and depth
+     * too but loads nothing, so it has no model adapter. Depth 0 is a post's own comments, which are left to
+     * the pager. Null too once that list's page was asked for, so a pager laid out again before
+     * its page arrives asks nothing more.
+     */
+    @Nullable
+    static Runnable nextPage(Object pager) throws ReflectiveOperationException {
+        for (Class<?> type = pager.getClass(); type != null && type != Object.class; type = type.getSuperclass()) {
+            for (java.lang.reflect.Field field : type.getDeclaredFields()) {
+                if (field.getType().isPrimitive() || java.lang.reflect.Modifier.isStatic(field.getModifiers())) continue;
+                field.setAccessible(true);
+                Object loader = field.get(pager);
+                if (loader == null) continue;
+                java.lang.reflect.Field list = capture(loader.getClass(), "$paginableList");
+                java.lang.reflect.Field depth = capture(loader.getClass(), "$depth");
+                if (list == null || depth == null || depth.getType() != int.class) continue;
+                if (capture(loader.getClass(), "$modelAdapter") == null) continue;
+                java.lang.reflect.Method invoke = loader.getClass().getMethod("invoke");
+                if (depth.getInt(loader) < 1) return null;
+                Object page = list.get(loader);
+                synchronized (pagesAsked) {
+                    if (!pagesAsked.add(page == null ? loader : page)) return null;
+                }
+                return () -> {
+                    try {
+                        invoke.invoke(loader);
+                    } catch (Throwable failure) {
+                        HookStatus.threw(FAMILY, "reply page", failure);
+                    }
+                };
+            }
+        }
+        return null;
+    }
+
+    /** The field {@code name} that {@code type} declares, opened for reading, or null. */
+    @Nullable
+    private static java.lang.reflect.Field capture(Class<?> type, String name) {
+        try {
+            java.lang.reflect.Field field = type.getDeclaredField(name);
+            field.setAccessible(true);
+            return field;
+        } catch (NoSuchFieldException absent) {
+            return null;
         }
     }
 

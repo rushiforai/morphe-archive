@@ -30,14 +30,17 @@ internal val hideNavigationTabsPatch = bytecodePatch(
         // label: the branch kept its snippet-relative address (0xb), landed in the
         // middle of an instruction, and the verifier rejected the home screen's
         // whole class, so Maps crashed on launch.
-        val method = BottomTabStripBindFingerprint.method
-        val insertAt = BottomTabStripBindFingerprint.instructionMatches.last().index + 1
+        val is2647 = packageMetadata.versionName == "26.47.00.1022347503"
+        val bind = if (is2647) BottomTabStripBindFingerprint2647 else BottomTabStripBindFingerprint
+        val holderType = if (is2647) "Lbzsx;" else "Lbvgo;"
+        val method = bind.method
+        val insertAt = bind.instructionMatches.last().index + 1
         method.addInstructionsWithLabels(
             insertAt,
             """
                 sget-boolean v2, $SHAPES->HIDE_TABS:Z
                 if-eqz v2, :tabs_done
-                invoke-virtual {v1}, Lbvgo;->a()Landroid/view/View;
+                invoke-virtual {v1}, $holderType->a()Landroid/view/View;
                 move-result-object v2
                 if-eqz v2, :tabs_done
                 const/16 v1, 0x8

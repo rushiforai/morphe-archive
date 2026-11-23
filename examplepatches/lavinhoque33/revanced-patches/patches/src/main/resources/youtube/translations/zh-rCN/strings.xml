@@ -277,8 +277,10 @@
     <string name="morphe_playback_in_feeds_entry_off">关闭</string>
     <string name="morphe_playback_in_feeds_entry_wifi_only">仅限 Wi-Fi</string>
     <string name="morphe_playback_in_feeds_title">在信息流中播放</string>
-    <string name="morphe_player_control_buttons_background_opacity_summary">调整播放器控制按钮和时间栏后面背景的不透明度（0为不可见，100为完全不透明）</string>
-    <string name="morphe_player_control_buttons_background_opacity_title">控制按钮背景不透明度</string>
+    <string name="morphe_player_transport_background_opacity_summary">调整播放、暂停、重播、下一个和上一个按钮的背景不透明度</string>
+    <string name="morphe_player_transport_background_opacity_title">播放控制按钮背景不透明度</string>
+    <string name="morphe_player_other_overlay_background_opacity_summary">调整播放器其他按钮和时间显示的背景不透明度</string>
+    <string name="morphe_player_other_overlay_background_opacity_title">其他叠加层元素背景不透明度</string>
     <string name="morphe_playlist_hide_removal_snackbar_summary">从播放列表中移除视频后不再显示确认提示</string>
     <string name="morphe_playlist_hide_removal_snackbar_title">隐藏播放列表移除提示栏</string>
     <string name="morphe_playlist_long_press_drag_summary">触摸并按住播放列表中的视频，将其拖动到新位置</string>

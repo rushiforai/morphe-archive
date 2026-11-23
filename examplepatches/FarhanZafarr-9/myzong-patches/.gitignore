@@ -1,0 +1,21 @@
+# Local signing material, proprietary inputs and generated artifacts
+/private/
+/inputs/
+/work/
+/builds/
+/tools/
+/docs/
+# Machine-specific Gradle and Android files
+patches/.gradle/
+patches/**/build/
+patches/local.properties
+**/.idea/
+*.idsig
+*.apk
+*.xapk
+*.mpp
+*.p12
+*.jks
+*.keystore
+.env
+.env.*

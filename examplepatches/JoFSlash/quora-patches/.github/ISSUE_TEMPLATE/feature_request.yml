@@ -6,12 +6,23 @@ body:
   - type: markdown
     attributes:
       value: |
-        Please [search the existing ideas](https://github.com/JoFSlash/quora-patches/issues?q=label%3Aenhancement) first.
+        Please [search the existing ideas](https://github.com/JoFSlash/morphe-patches/issues?q=label%3Aenhancement) first.
+  - type: dropdown
+    id: app
+    attributes:
+      label: App
+      options:
+        - Quora
+        - Booking.com
+        - Google Health (Fitbit)
+        - Another app
+    validations:
+      required: true
   - type: textarea
     id: idea
     attributes:
       label: What should the patch do
-      description: What you want hidden, changed or stopped, and where it appears in the app. Screenshots help.
+      description: What you want added, hidden, changed or stopped, and where it appears in the app. Screenshots help.
     validations:
       required: true
   - type: textarea
@@ -28,5 +39,5 @@ body:
       options:
         - label: I searched the open and closed issues and this is not a duplicate.
           required: true
-        - label: None of the current patches already does this (see the README).
+        - label: None of the current patches already does this (see the app's README).
           required: true

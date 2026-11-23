@@ -141,7 +141,8 @@ val gameReviewPatch = bytecodePatch(
         "leaves unmarked Best, Excellent or Good, as chess.com does. Finished games only; a live game on " +
         "screen is never analysed. Two more patches in this bundle add Stockfish on your computer and Great " +
         "(!) and Brilliant (!!) marks. Select Unlimited Game Review from this bundle only: a second one from " +
-        "another source cannot be applied to the same app.",
+        "another source cannot be applied to the same app. Lichess's review in the app's own browser does not " +
+        "work with root mounting.",
 ) {
     compatibleWith(Constants.COMPATIBILITY)
 

@@ -699,6 +699,64 @@ public class GlassTabBarTest {
         }
     }
 
+    /**
+     * #618: Instagram hides its tab bar as a story opens under a floating pill. Its screens still had the
+     * pill's 0 for the navigation bar and heard the real height a turn of the main loop after the next
+     * insets pass, so the story showed down to the bottom edge for a frame and then jumped up. In the
+     * frame the pill goes, the screens hear the real height at once and that frame waits for their new
+     * layout. The insets pass that follows tells nobody again, and the next frame draws.
+     */
+    @Test
+    @Config(sdk = 29, qualifiers = "en-rUS-w411dp-h891dp-xhdpi")
+    public void screensHearTheNavigationBarsHeightInTheFrameThePillGoes() throws Exception {
+        GlassTabBar.resetForTests();
+        java.util.List<String> told = new java.util.ArrayList<>();
+        Class<?> teller = Class.forName("app.hushgram.extension.instagram.reels.FullScreenBars$Teller");
+        Object recorder = java.lang.reflect.Proxy.newProxyInstance(teller.getClassLoader(), new Class<?>[] {teller},
+                (proxy, method, args) -> {
+                    switch (method.getName()) {
+                        case "tell": told.add(args[0] + " " + args[1] + " " + args[2]); return null;
+                        case "hashCode": return System.identityHashCode(proxy);
+                        case "equals": return proxy == args[0];
+                        default: return "recorder";
+                    }
+                });
+        ReflectionHelpers.callStaticMethod(FullScreenBars.class, "resetHeightsForTests",
+                ReflectionHelpers.ClassParameter.from(teller, recorder));
+        ReflectionHelpers.callStaticMethod(FullScreenBars.class, "registeredForTests",
+                ReflectionHelpers.ClassParameter.from(boolean.class, true));
+        try (GlassHost host = new GlassHost(Color.BLACK, true, GlassHeight.STANDARD, false, false)) {
+            int nav = host.dp(24);
+            int status = host.dp(28);
+            navBarAtTheFoot(nav);
+            host.controller.pause().resume();
+            ReflectionHelpers.callStaticMethod(FullScreenBars.class, "nowResumed",
+                    ReflectionHelpers.ClassParameter.from(Activity.class, host.activity));
+            host.frame();
+            FullScreenBars.heightsAsked(host.activity, "story screen");
+            assertEquals(status, FullScreenBars.barHeight(status));
+            assertEquals("shown in front", 0, FullScreenBars.navBarHeight(nav));
+            host.frame();
+            told.clear();
+
+            host.bar.setVisibility(View.GONE);
+            boolean held = host.bar.getViewTreeObserver().dispatchOnPreDraw();
+            assertEquals("told in the frame the pill went", java.util.Collections.singletonList("story screen " + status + " " + nav), told);
+            assertTrue("that frame waits for the new layout", held);
+            assertEquals("the pill is out of the way", nav, GlassTabBar.navBarHeight(nav));
+
+            assertEquals(status, FullScreenBars.barHeight(status));
+            assertEquals("the insets pass after it", nav, FullScreenBars.navBarHeight(nav));
+            org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idleFor(java.time.Duration.ofMillis(200));
+            assertEquals("nobody is told twice", 1, told.size());
+            assertFalse("the next frame draws", host.bar.getViewTreeObserver().dispatchOnPreDraw());
+        } finally {
+            ReflectionHelpers.callStaticMethod(FullScreenBars.class, "registeredForTests",
+                    ReflectionHelpers.ClassParameter.from(boolean.class, false));
+            resetFullScreenHeights();
+        }
+    }
+
     /** FullScreenBars starts and ends with nothing offered, taken or kept, telling the patch's listeners. */
     private static void resetFullScreenHeights() throws Exception {
         Class<?> teller = Class.forName("app.hushgram.extension.instagram.reels.FullScreenBars$Teller");
@@ -4016,6 +4074,36 @@ public class GlassTabBarTest {
         assertEquals("no window yet", 0, GlassTabBar.intoTheNavigationBar(1600, 0, 48));
         assertEquals(48, GlassTabBar.reelsBandLift(false, false, 126, GlassTabBar.intoTheNavigationBar(1600, 1600, 48), 8));
         assertEquals(0, GlassTabBar.reelsBandLift(false, false, 126, GlassTabBar.intoTheNavigationBar(1552, 1600, 48), 8));
+    }
+
+    /**
+     * #450: with the pill away, a reel's seek bar on a gesture navigation phone (a 48 pixel bar under a 64
+     * pixel gesture area, as the API 36 emulator reports) goes up past the whole gesture area, so the seek
+     * bar's room finds it clear and adds no lift of its own. Lifted 48, the room put 16 on top; a drag made
+     * the pill and the room each take the other's for Instagram's, and the bar was left over the caption.
+     * The taller of the two counts, and a phone reporting neither falls back to the bar it's taken to have.
+     */
+    @Test
+    public void aReelWithThePillAwayClearsTheGestureAreaSoTheRoomAddsNothing() {
+        int lift = GlassTabBar.intoTheSeekBarsStrip(1600, 1600, 48, 64, 63);
+        assertEquals("past the gesture area", 64, lift);
+        int room = ReflectionHelpers.callStaticMethod(ReelSeekRoom.class, "liftFor",
+                ReflectionHelpers.ClassParameter.from(int.class, 1600 - lift),
+                ReflectionHelpers.ClassParameter.from(int.class, 1600),
+                ReflectionHelpers.ClassParameter.from(int.class, ReelSeekRoom.strip(48, 64, 63)));
+        assertEquals("the room has nothing to add", 0, room);
+        int navOnly = GlassTabBar.intoTheNavigationBar(1600, 1600, 48);
+        int under = ReflectionHelpers.callStaticMethod(ReelSeekRoom.class, "liftFor",
+                ReflectionHelpers.ClassParameter.from(int.class, 1600 - navOnly),
+                ReflectionHelpers.ClassParameter.from(int.class, 1600),
+                ReflectionHelpers.ClassParameter.from(int.class, ReelSeekRoom.strip(48, 64, 63)));
+        assertEquals("past the bar alone the room still lifted", 16, under);
+
+        assertEquals("a taller bar counts", 126, GlassTabBar.intoTheSeekBarsStrip(1600, 1600, 126, 0, 63));
+        assertEquals("nothing reported", 63, GlassTabBar.intoTheSeekBarsStrip(1600, 1600, 0, 0, 63));
+        assertEquals("stopped above the strip", 0, GlassTabBar.intoTheSeekBarsStrip(1536, 1600, 48, 64, 63));
+        assertEquals("part way in", 30, GlassTabBar.intoTheSeekBarsStrip(1566, 1600, 48, 64, 63));
+        assertEquals("no window yet", 0, GlassTabBar.intoTheSeekBarsStrip(1600, 0, 48, 64, 63));
     }
 
     /**

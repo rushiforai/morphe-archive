@@ -1,6 +1,8 @@
 package app.template.patches.sofascore.sports
 
 import app.morphe.patcher.Fingerprint
+import app.morphe.patcher.fieldAccess
+import app.morphe.patcher.methodCall
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.instructions
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
@@ -19,8 +21,10 @@ import app.template.patches.sofascore.controls.sofascoreControls
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import com.android.tools.smali.dexlib2.iface.reference.TypeReference
@@ -40,6 +44,21 @@ internal object HomeSportFingerprint : Fingerprint(
     returnType = "Ljava/lang/String;",
     parameters = listOf("Landroid/content/Context;"),
     filters = listOf(string("PREF_HOME_SPORT_V2")),
+)
+
+// The selected-sport setter of the main screen's ViewModel (final (String, boolean)V): returns
+// unless Sports.getEntries contains the slug, then stores it in the static home-sport cache (the
+// String field HomeSportFingerprint's getter reads first; checked at patch time) and loads it.
+// MainActivity calls it for a deep link or notification of a sport (26.11.09: d5e.M).
+internal object SelectSportFingerprint : Fingerprint(
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
+    returnType = "V",
+    parameters = listOf("Ljava/lang/String;", "Z"),
+    filters = listOf(
+        methodCall(definingClass = SPORTS, name = "getEntries"),
+        methodCall(definingClass = "Ljava/util/List;", name = "contains"),
+        fieldAccess(opcode = Opcode.SPUT_OBJECT, type = "Ljava/lang/String;"),
+    ),
 )
 
 /** Sofascore's sports (Sports.getEntries order) with their row titles. */
@@ -88,6 +107,41 @@ private fun MutableMethod.queryListReturn(load: Int, query: String): Int {
         throw PatchException("\"$query\" in $definingClass->$name does not return its ArrayList")
     }
     return ret
+}
+
+/**
+ * The return-object of every [prepare] call that takes the SQL loaded by [load] (the nearest
+ * const-string into that register before the call is [load]); each is checked to return the
+ * ArrayList that is built between the call and the return.
+ */
+private fun MutableMethod.preparedListReturns(load: Int, query: String, prepare: MethodReference): List<Int> {
+    val sqlRegister = (getInstruction(load) as OneRegisterInstruction).registerA
+    fun lastSqlLoad(before: Int): Int? = (before - 1 downTo 0).firstOrNull { j ->
+        val ins = getInstruction(j)
+        (ins.opcode == Opcode.CONST_STRING || ins.opcode == Opcode.CONST_STRING_JUMBO) &&
+            (ins as OneRegisterInstruction).registerA == sqlRegister
+    }
+    val calls = (load + 1 until instructions.size).filter { i ->
+        val call = getInstruction(i)
+        lastSqlLoad(i) == load && call is FiveRegisterInstruction && call.registerCount == 2 &&
+            call.registerD == sqlRegister &&
+            ((call as ReferenceInstruction).reference as? MethodReference)?.let {
+                it.name == prepare.name && it.definingClass == prepare.definingClass
+            } == true
+    }
+    if (calls.isEmpty()) throw PatchException("\"$query\" is never prepared in $definingClass")
+    return calls.map { call ->
+        val ret = (call until instructions.size).firstOrNull { instructions[it].opcode == Opcode.RETURN_OBJECT }
+            ?: throw PatchException("\"$query\" in $definingClass->$name has no return-object")
+        val list = (call until ret).firstOrNull { i ->
+            instructions[i].opcode == Opcode.NEW_INSTANCE &&
+                ((instructions[i] as ReferenceInstruction).reference as TypeReference).type == "Ljava/util/ArrayList;"
+        } ?: throw PatchException("\"$query\" in $definingClass->$name builds no ArrayList before its return")
+        if ((instructions[ret] as OneRegisterInstruction).registerA != (instructions[list] as OneRegisterInstruction).registerA) {
+            throw PatchException("\"$query\" in $definingClass->$name does not return its ArrayList")
+        }
+        ret
+    }
 }
 
 /** Before the return-object at [ret]: `vX = SofascoreControls.<helper>(vX)`. */
@@ -146,9 +200,15 @@ val hideSportsPatch = bytecodePatch(
             ?: throw PatchException("\"$SPORT_ORDER_ROWS_QUERY\" is not prepared right after its load")
 
         // 2. The names (List<String>): the sport repository's list (feed, favourites, start screen,
-        //    notification settings). Two lambda classes hold the same query.
+        //    notification settings). Up to 26.11.03 two lambda classes held the same query.
+        //    Up to 26.11.03 each lambda loaded the SQL right before its ArrayList; in 26.11.09 one
+        //    lambda class loads it once at the top and two switch cases prepare it, so the sites are
+        //    the prepare calls whose SQL register was last loaded with the names SQL (each is checked
+        //    to return the ArrayList built after the call).
         val namesSites = methodsHolding(SPORT_NAMES_QUERY).map { method ->
-            method to method.stringIndices(SPORT_NAMES_QUERY).map { method.queryListReturn(it, SPORT_NAMES_QUERY) }
+            method to method.stringIndices(SPORT_NAMES_QUERY).flatMap { load ->
+                method.preparedListReturns(load, SPORT_NAMES_QUERY, prepare)
+            }
         }
 
         // 3. The selected sport query. Its sites are the prepare calls taking the register its SQL is
@@ -189,6 +249,23 @@ val hideSportsPatch = bytecodePatch(
         val homeSport = HomeSportFingerprint.method
         val homeReturns = homeSport.instructions.indices.filter { homeSport.getInstruction(it).opcode == Opcode.RETURN_OBJECT }
 
+        // 5. The selected-sport setter (2026-11-22): a deep link or notification of a hidden sport
+        //    selected it. It must store into the home-sport cache, the one static String the home
+        //    sport getter reads.
+        fun Instruction.stringField() = ((this as? ReferenceInstruction)?.reference as? FieldReference)
+            ?.takeIf { it.type == "Ljava/lang/String;" }?.let { "${it.definingClass}->${it.name}" }
+        val homeCache = homeSport.instructions.filter { it.opcode == Opcode.SGET_OBJECT }.mapNotNull { it.stringField() }
+            .distinct().singleOrNull()
+            ?: throw PatchException("${homeSport.definingClass}->${homeSport.name} does not read one static String cache")
+        val selectSport = SelectSportFingerprint.method
+        if (selectSport.instructions.none { it.opcode == Opcode.SPUT_OBJECT && it.stringField() == homeCache }) {
+            throw PatchException("${selectSport.definingClass}->${selectSport.name} does not store the home sport cache $homeCache")
+        }
+        // Instance (String, boolean): p0, p1, p2 are the last three registers, so p1 is the second last.
+        val selectSlug = (selectSport.implementation?.registerCount ?: 0) - 2
+        if (selectSlug < 0) throw PatchException("${selectSport.definingClass}->${selectSport.name} has no code")
+        selectSport.requireNoBranchTargetAt(0, "selected sport hook")
+
         // Edits. Several sites can sit in one method (two queries share a lambda class in 26.11.03),
         // so every insert of a method is made from its last index to its first, which keeps the
         // earlier indices valid.
@@ -214,6 +291,15 @@ val hideSportsPatch = bytecodePatch(
             )
             homeSport.addInstructionsChecked(ret + 1, "move-result-object v$register\nreturn-object v$register")
         }
+        // The setter's slug: p1 = visibleSport(p1) first, so a hidden sport becomes the first
+        // visible one before the Sports.getEntries check (getClass right after keeps the null check).
+        selectSport.addInstructionsChecked(
+            0,
+            """
+                invoke-static/range { v$selectSlug .. v$selectSlug }, $SOFASCORE_CONTROLS->visibleSport(Ljava/lang/String;)Ljava/lang/String;
+                move-result-object v$selectSlug
+            """.trimIndent(),
+        )
 
         features.forEach { (_, feature) -> sofascoreControls.register(feature) }
     }

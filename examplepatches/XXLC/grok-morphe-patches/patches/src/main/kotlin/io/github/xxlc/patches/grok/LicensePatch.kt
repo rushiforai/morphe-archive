@@ -6,7 +6,7 @@ import app.morphe.patcher.util.returnEarly
 @Suppress("unused")
 val bypassLicenseCheckPatch = bytecodePatch(
     name = "Bypass license check",
-    description = "Bỏ qua kiểm tra giấy phép Pairip khi khởi động Grok.",
+    description = "Skip the Pairip license check when Grok starts.",
     default = true,
 ) {
     compatibleWith(grokCompatibility)

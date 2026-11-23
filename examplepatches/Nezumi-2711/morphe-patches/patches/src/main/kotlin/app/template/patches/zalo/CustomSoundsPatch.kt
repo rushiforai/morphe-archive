@@ -41,7 +41,7 @@ private object NotificationChannelBuilderFingerprint : Fingerprint(
 
 private object IncomingRingtoneFingerprint : Fingerprint(
     returnType = "V",
-    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
+    accessFlags = listOf(AccessFlags.PUBLIC),
     parameters = listOf("Ljava/lang/String;"),
     filters = listOf(
         methodCall(definingClass = "Landroid/net/Uri;", name = "parse"),
@@ -76,7 +76,7 @@ val customSoundsPatch = bytecodePatch(
         packageName = "com.zing.zalo",
         apkFileType = ApkFileType.APKM,
         appIconColor = 0x0068FF,
-        targets = listOf(AppTarget(version = "26.10.02")),
+        targets = listOf(AppTarget(version = "26.11.01")),
     ))
     dependsOn(nativeSignaturePatch, soundProviderPatch)
     extendWith("extensions/extension.mpe")

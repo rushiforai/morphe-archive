@@ -16,6 +16,7 @@ import okhttp3.Response;
 import okhttp3.ResponseBody;
 import okio.Buffer;
 
+import app.hoitruyenchu.extension.itruyenchu.patches.shared.HtcSettings;
 import okhttp3.Interceptor;
 
 /**
@@ -39,7 +40,8 @@ final class FreeChapterInterceptor implements Interceptor {
     public Response intercept(Chain chain) throws IOException {
         Request request = chain.request();
         String path = request.url().encodedPath();
-        if ("POST".equals(request.method()) && SYNC_BUTTON_PATH.equals(path)) {
+        if ("POST".equals(request.method()) && SYNC_BUTTON_PATH.equals(path)
+                && HtcSettings.bool(HtcSettings.SYNC_ENABLED)) {
             Response replaced = syncButton(chain, request);
             if (replaced != null) return replaced;
         }

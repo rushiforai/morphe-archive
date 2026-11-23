@@ -1,5 +1,5 @@
 {
-  "version": "1.60.0",
+  "version": "1.61.0",
   "appNames": {
     "com.discovery.dplay": "discovery+ Android TV",
     "com.disney.disneyplus": "Disney+ Android TV",
@@ -86,7 +86,8 @@
       "dependencies": [],
       "compatiblePackages": {
         "com.amazon.amazonvideo.livingroom": [
-          "6.23.23+v15.5.0.70-armv7a"
+          "6.23.23+v15.5.0.70-armv7a",
+          "6.24.7+v16.0.0.332-allAbis"
         ]
       },
       "compatibility": [
@@ -102,7 +103,7 @@
             },
             {
               "version": "6.24.7+v16.0.0.332-allAbis",
-              "experimental": true
+              "experimental": false
             },
             {
               "version": "6.24.13+v16.0.1.93-allAbis",
@@ -211,8 +212,6 @@
       "dependencies": [],
       "compatiblePackages": {
         "com.peacocktv.peacockandroid": [
-          "7.5.102",
-          "7.6.100",
           "7.8.100",
           "7.10.102"
         ]
@@ -224,14 +223,6 @@
           "description": null,
           "appIconColor": 0,
           "targets": [
-            {
-              "version": "7.5.102",
-              "experimental": false
-            },
-            {
-              "version": "7.6.100",
-              "experimental": false
-            },
             {
               "version": "7.8.100",
               "experimental": false
@@ -278,7 +269,8 @@
       "dependencies": [],
       "compatiblePackages": {
         "com.amazon.amazonvideo.livingroom": [
-          "6.23.23+v15.5.0.70-armv7a"
+          "6.23.23+v15.5.0.70-armv7a",
+          "6.24.7+v16.0.0.332-allAbis"
         ]
       },
       "compatibility": [
@@ -294,7 +286,7 @@
             },
             {
               "version": "6.24.7+v16.0.0.332-allAbis",
-              "experimental": true
+              "experimental": false
             },
             {
               "version": "6.24.13+v16.0.1.93-allAbis",
@@ -403,8 +395,6 @@
       "dependencies": [],
       "compatiblePackages": {
         "com.peacocktv.peacockandroid": [
-          "7.5.102",
-          "7.6.100",
           "7.8.100",
           "7.10.102"
         ]
@@ -416,14 +406,6 @@
           "description": null,
           "appIconColor": 0,
           "targets": [
-            {
-              "version": "7.5.102",
-              "experimental": false
-            },
-            {
-              "version": "7.6.100",
-              "experimental": false
-            },
             {
               "version": "7.8.100",
               "experimental": false
@@ -470,7 +452,8 @@
       "dependencies": [],
       "compatiblePackages": {
         "com.amazon.amazonvideo.livingroom": [
-          "6.23.23+v15.5.0.70-armv7a"
+          "6.23.23+v15.5.0.70-armv7a",
+          "6.24.7+v16.0.0.332-allAbis"
         ]
       },
       "compatibility": [
@@ -486,7 +469,7 @@
             },
             {
               "version": "6.24.7+v16.0.0.332-allAbis",
-              "experimental": true
+              "experimental": false
             },
             {
               "version": "6.24.13+v16.0.1.93-allAbis",
@@ -945,7 +928,8 @@
       ],
       "compatiblePackages": {
         "com.amazon.amazonvideo.livingroom": [
-          "6.23.23+v15.5.0.70-armv7a"
+          "6.23.23+v15.5.0.70-armv7a",
+          "6.24.7+v16.0.0.332-allAbis"
         ]
       },
       "compatibility": [
@@ -961,7 +945,7 @@
             },
             {
               "version": "6.24.7+v16.0.0.332-allAbis",
-              "experimental": true
+              "experimental": false
             },
             {
               "version": "6.24.13+v16.0.1.93-allAbis",
@@ -1139,7 +1123,8 @@
       "dependencies": [],
       "compatiblePackages": {
         "com.amazon.amazonvideo.livingroom": [
-          "6.23.23+v15.5.0.70-armv7a"
+          "6.23.23+v15.5.0.70-armv7a",
+          "6.24.7+v16.0.0.332-allAbis"
         ]
       },
       "compatibility": [
@@ -1155,7 +1140,7 @@
             },
             {
               "version": "6.24.7+v16.0.0.332-allAbis",
-              "experimental": true
+              "experimental": false
             },
             {
               "version": "6.24.13+v16.0.1.93-allAbis",
@@ -1292,7 +1277,8 @@
       "dependencies": [],
       "compatiblePackages": {
         "com.amazon.amazonvideo.livingroom": [
-          "6.23.23+v15.5.0.70-armv7a"
+          "6.23.23+v15.5.0.70-armv7a",
+          "6.24.7+v16.0.0.332-allAbis"
         ]
       },
       "compatibility": [
@@ -1308,7 +1294,7 @@
             },
             {
               "version": "6.24.7+v16.0.0.332-allAbis",
-              "experimental": true
+              "experimental": false
             },
             {
               "version": "6.24.13+v16.0.1.93-allAbis",
@@ -1541,8 +1527,6 @@
       "dependencies": [],
       "compatiblePackages": {
         "com.peacocktv.peacockandroid": [
-          "7.5.102",
-          "7.6.100",
           "7.8.100",
           "7.10.102"
         ]
@@ -1554,14 +1538,6 @@
           "description": null,
           "appIconColor": 0,
           "targets": [
-            {
-              "version": "7.5.102",
-              "experimental": false
-            },
-            {
-              "version": "7.6.100",
-              "experimental": false
-            },
             {
               "version": "7.8.100",
               "experimental": false
@@ -1610,7 +1586,8 @@
       ],
       "compatiblePackages": {
         "com.amazon.amazonvideo.livingroom": [
-          "6.23.23+v15.5.0.70-armv7a"
+          "6.23.23+v15.5.0.70-armv7a",
+          "6.24.7+v16.0.0.332-allAbis"
         ]
       },
       "compatibility": [
@@ -1626,7 +1603,7 @@
             },
             {
               "version": "6.24.7+v16.0.0.332-allAbis",
-              "experimental": true
+              "experimental": false
             },
             {
               "version": "6.24.13+v16.0.1.93-allAbis",

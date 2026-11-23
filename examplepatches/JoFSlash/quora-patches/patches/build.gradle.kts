@@ -3,11 +3,11 @@ group = "app.jofslash"
 patches {
     about {
         name = "JoFSlash Patches"
-        description = "Patches for Quora"
-        source = "git@github.com:JoFSlash/quora-patches.git"
+        description = "Patches for Quora, Booking.com and Google Health (Fitbit)"
+        source = "git@github.com:JoFSlash/morphe-patches.git"
         author = "JoFSlash"
-        contact = "https://github.com/JoFSlash/quora-patches/issues"
-        website = "https://github.com/JoFSlash/quora-patches"
+        contact = "https://github.com/JoFSlash/morphe-patches/issues"
+        website = "https://github.com/JoFSlash/morphe-patches"
         license = "GPLv3"
     }
 }

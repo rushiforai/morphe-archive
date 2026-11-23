@@ -116,7 +116,7 @@
     "locator": null,
     "versionsFile": "patches/src/main/kotlin/app/template/patches/orca/Compatibility.kt",
     "patches": [
-      "Orca custom font"
+      "Orca font and bot pictures"
     ],
     "adapterPath": "patches/src/main/resources/orca/adapters/{version}.bundle"
   }

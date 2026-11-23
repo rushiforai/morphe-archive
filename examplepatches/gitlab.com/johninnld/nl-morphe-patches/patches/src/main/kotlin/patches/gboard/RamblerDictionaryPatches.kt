@@ -58,6 +58,9 @@ internal class CorrectionListImport(
     val statsClass: String,
     val addWords: MethodReference,
     val update: MethodReference,
+    /** 18.8.0: the update takes a per-word transformer instead of an AddWords value. */
+    val transformerClass: String? = null,
+    val transformerInterface: String? = null,
 )
 
 /**
@@ -95,17 +98,28 @@ internal fun correctionListImport(instructions: List<Instruction>): CorrectionLi
     } ?: throw PatchException("Voice correction list import no longer builds its word update")
     val addWords = ref(instructions[construct]) as MethodReference
     val allocation = lastWrite(construct, call.registerF)
-    val modeLoad = lastWrite(construct, (instructions[construct] as FiveRegisterInstruction).registerE)
-    if (addWords.parameterTypes.map(CharSequence::toString) != listOf("Ljava/lang/Object;", "I") ||
-        allocation?.opcode != Opcode.NEW_INSTANCE || (ref(allocation) as? TypeReference)?.type != addWords.definingClass ||
-        modeLoad?.opcode != Opcode.CONST_4 || (modeLoad as NarrowLiteralInstruction).narrowLiteral != 0
-    ) throw PatchException("Voice correction list import no longer adds words in mode 0")
+    if (allocation?.opcode != Opcode.NEW_INSTANCE ||
+        (ref(allocation) as? TypeReference)?.type != addWords.definingClass
+    ) throw PatchException("Voice correction list import no longer builds its word update")
+    // 18.6.3 built an AddWords(Object,int) value in mode 0; 18.8.0 builds a per-word transformer
+    // as (word, phrases, maxCount). Both are the third argument of the same update call.
+    val legacyWords = addWords.parameterTypes.map(CharSequence::toString) == listOf("Ljava/lang/Object;", "I")
+    if (legacyWords) {
+        val modeLoad = lastWrite(construct, (instructions[construct] as FiveRegisterInstruction).registerE)
+        if (modeLoad?.opcode != Opcode.CONST_4 || (modeLoad as NarrowLiteralInstruction).narrowLiteral != 0) {
+            throw PatchException("Voice correction list import no longer adds words in mode 0")
+        }
+    }
 
     val lookup = (index - 1 downTo 0).map { ref(instructions[it]) as? MethodReference }.firstOrNull {
         it != null && it.definingClass == MODULE_MANAGER && it.returnType != MODULE_MANAGER &&
             it.parameterTypes.map(CharSequence::toString) == listOf(CLASS_TYPE)
     } ?: throw PatchException("Voice correction list import no longer looks up the stats store")
-    return CorrectionListImport(lookup, update.definingClass, kind, statsClass, addWords, update)
+    return CorrectionListImport(
+        lookup, update.definingClass, kind, statsClass, addWords, update,
+        transformerClass = if (legacyWords) null else addWords.definingClass,
+        transformerInterface = if (legacyWords) null else update.parameterTypes[2].toString(),
+    )
 }
 
 context(context: BytecodePatchContext)
@@ -120,16 +134,30 @@ internal fun resolveCorrectionListImport(): CorrectionListImport {
                 val field = (it as? ReferenceInstruction)?.reference as? FieldReference
                 it.opcode == Opcode.SGET_OBJECT && field?.definingClass == CORRECTION_LIST_FRAGMENT
             }
-            val usesModules = readsSplitter && instructions.any {
+            val usesModules = instructions.any {
                 ((it as? ReferenceInstruction)?.reference as? MethodReference)?.let { m ->
                     m.definingClass == MODULE_MANAGER && m.name == "getInstance"
                 } == true
             }
-            if (usesModules) matches.add(instructions)
+            // 18.8.0 moved the import into an anonymous listener that no longer reads the list's
+            // splitter, so the store update call itself is the second accepted anchor.
+            val writesWordList = instructions.any { instruction ->
+                val update = (instruction as? ReferenceInstruction)?.reference as? MethodReference
+                instruction.opcode == Opcode.INVOKE_INTERFACE && update != null && update.returnType == "V" &&
+                    update.parameterTypes.size == 3 && update.parameterTypes[1].toString() == CLASS_TYPE
+            }
+            if (usesModules && (readsSplitter || writesWordList)) matches.add(instructions)
         }
     }
     val resolved = matches.mapNotNull { runCatching { correctionListImport(it) }.getOrNull() }.distinctBy { it.update.toString() }
-    val site = resolved.singleOrNull()
+    // Several paths update MUSE_STATS (single-word add, set add/delete, dcontext). The single-word
+    // adder is the one whose transformer takes (word, phrases, maxCount) and tags the entry
+    // USER_ADDED; the extension chains exactly that per contact name.
+    val singleWordAdders = resolved.filter { site ->
+        site.addWords.parameterTypes.map(CharSequence::toString) ==
+            listOf("Ljava/lang/String;", "Ljava/util/List;", "I")
+    }
+    val site = singleWordAdders.singleOrNull() ?: resolved.singleOrNull()
         ?: throw PatchException("Expected one voice correction list import, found ${resolved.size}")
     verifyMuseStats(site.statsKind)
     return site
@@ -193,8 +221,29 @@ val ramblerContactNames = bytecodePatch(
         runtime.methods.remove(placeholder)
         runtime.methods.add(ImmutableMethod(
             runtime.type, placeholder.name, placeholder.parameterTypes.map { ImmutableMethodParameter(it.toString(), null, null) },
-            "Z", placeholder.accessFlags, null, null, MutableMethodImplementation(7),
+            "Z", placeholder.accessFlags, null, null,
+            MutableMethodImplementation(if (site.transformerClass == null) 7 else 10),
         ).toMutable().apply {
+            // 18.6.3 hands the store one AddWords value; 18.8.0 hands it a per-word transformer, so
+            // the extension builds a transformer that appends the whole contact set through
+            // Gboard's own word builder.
+            val wordUpdate = if (site.transformerClass == null) {
+                """
+                    new-instance v3, ${site.addWords.definingClass}
+                    const/4 v4, 0x0
+                    invoke-direct {v3, p1, v4}, ${site.addWords.smali()}
+                """.trimIndent()
+            } else {
+                val transformer = site.transformerClass.substring(1, site.transformerClass.length - 1)
+                val iface = site.transformerInterface!!.substring(1, site.transformerInterface.length - 1)
+                """
+                    const-string v4, "$transformer"
+                    const-string v5, "$iface"
+                    const v6, 0x7fffffff
+                    invoke-static {p1, v4, v5, v6}, $CONTACTS_RUNTIME->appendWords(Ljava/util/Set;Ljava/lang/String;Ljava/lang/String;I)Ljava/lang/Object;
+                    move-result-object v3
+                """.trimIndent()
+            }
             addInstructionsWithLabels(0, """
                 invoke-static {p0}, $MODULE_MANAGER->getInstance($CONTEXT_TYPE)$MODULE_MANAGER
                 move-result-object v0
@@ -208,9 +257,7 @@ val ramblerContactNames = bytecodePatch(
                 invoke-interface {v0, v1, v2}, ${read.smali()}
                 move-result-object v3
                 if-eqz v3, :unavailable
-                new-instance v3, ${site.addWords.definingClass}
-                const/4 v4, 0x0
-                invoke-direct {v3, p1, v4}, ${site.addWords.smali()}
+                $wordUpdate
                 invoke-interface {v0, v1, v2, v3}, ${site.update.smali()}
                 const/4 v0, 0x1
                 return v0

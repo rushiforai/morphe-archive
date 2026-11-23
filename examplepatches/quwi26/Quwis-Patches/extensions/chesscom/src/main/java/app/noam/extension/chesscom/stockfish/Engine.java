@@ -9,6 +9,7 @@ package app.noam.extension.chesscom.stockfish;
 
 import android.app.ActivityManager;
 import android.content.Context;
+import android.os.Build;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -17,14 +18,16 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
 import app.noam.extension.chesscom.Utils;
 
 /**
- * Stockfish as a child process spoken to over UCI. The binary ships as lib/arm64-v8a/libstockfish.so
- * so Android extracts it into the native library folder, the one place an app may run a program from.
+ * Stockfish as a child process spoken to over UCI. The binary ships as lib/arm64-v8a/libstockfish.so,
+ * or lib/armeabi-v7a/libstockfish.so on a phone whose Android is 32-bit, so Android extracts it into
+ * the native library folder, the one place an app may run a program from.
  */
 /**
  * Game Review (in the {@code gamereview} package) runs its own Engine instance rather than
@@ -96,7 +99,9 @@ public class Engine {
     public boolean start(Context context) {
         File binary = new File(context.getApplicationInfo().nativeLibraryDir, "libstockfish.so");
         if (!binary.canExecute()) {
-            Utils.log("Stockfish is not in " + binary.getParent());
+            // Which folder the app runs from, and the phone's own ABIs: a patch run for another ABI
+            // leaves the engine in a folder Android never extracts.
+            Utils.log("Stockfish is not in " + binary.getParent() + " (ABIs: " + Arrays.toString(Build.SUPPORTED_ABIS) + ")");
             return false;
         }
         try {

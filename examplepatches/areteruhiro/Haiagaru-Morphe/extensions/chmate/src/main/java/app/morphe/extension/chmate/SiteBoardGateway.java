@@ -19,6 +19,18 @@ import org.jsoup.nodes.Element;
 final class SiteBoardGateway {
     static final String PREFS="haiagaru.site-boards";
     static final String KEY_PATTERN="h(?:[bfa])?[a-f0-9]{32}";
+    private static final class RoutePatterns {
+        private static final Pattern CHARSET=Pattern.compile("(?i)charset\\s*=\\s*[\"']?([A-Za-z0-9_-]+)");
+        private static final Pattern LOCAL_THREAD=Pattern.compile("/test/read\\.cgi/("+KEY_PATTERN+")/([0-9]{1,12})/([0-9ln-]*)");
+        private static final Pattern OPEN_THREAD=Pattern.compile("/test/read\\.cgi/("+KEY_PATTERN+")/([0-9]{1,12})(?:/([0-9ln-]*))?");
+        private static final Pattern ATTACH_THREAD=Pattern.compile("/test/read\\.cgi/("+KEY_PATTERN+")/([0-9]{1,12})/(?:[0-9ln-]*)?");
+        private static final Pattern LOCAL_BOARD=Pattern.compile("/("+KEY_PATTERN+")/");
+        private static final Pattern MEDIA_PATH=Pattern.compile("/m/("+KEY_PATTERN+")/((?:arc/)?img)/([1-9][0-9]{0,11})/([1-9][0-9]{0,11})\\.jpg");
+        private static final Pattern STORED_MEDIA=Pattern.compile("/m/([a-f0-9]{64})\\.jpg");
+        private static final Pattern BOARD_ROUTE=Pattern.compile("/("+KEY_PATTERN+")/(subject\\.txt|SETTING\\.TXT|dat/([0-9]{1,12})\\.dat)");
+        private static final Pattern MENU_CATALOGUE=Pattern.compile("/haiagaru-menu-(edge|bakusai|futaba|animanch)/");
+        private static final Pattern QUOTE_REFERENCE=Pattern.compile(">>[1-9][0-9]{0,5}");
+    }
     private static SiteBoardGateway instance;
     final SharedPreferences prefs;final Transport transport;
     final Map<String,SiteBoardProtocol.Board> boards=new ConcurrentHashMap<>();
@@ -89,9 +101,9 @@ final class SiteBoardGateway {
             this.status=status;this.bytes=bytes;this.type=type;this.location=location;this.retryAfter=retryAfter;
         }
         String text()throws IOException{
-            String charset="UTF-8";Matcher header=Pattern.compile("(?i)charset\\s*=\\s*[\"']?([A-Za-z0-9_-]+)").matcher(type);
+            String charset="UTF-8";Matcher header=RoutePatterns.CHARSET.matcher(type);
             if(header.find())charset=header.group(1);else{
-                Matcher meta=Pattern.compile("(?i)charset\\s*=\\s*[\"']?([A-Za-z0-9_-]+)").matcher(new String(bytes,0,Math.min(bytes.length,8192),"ISO-8859-1"));
+                Matcher meta=RoutePatterns.CHARSET.matcher(new String(bytes,0,Math.min(bytes.length,8192),"ISO-8859-1"));
                 if(meta.find())charset=meta.group(1);
             }
             if(charset.equalsIgnoreCase("Shift_JIS"))charset="windows-31j";
@@ -152,26 +164,40 @@ final class SiteBoardGateway {
         java.io.File file = context.getDatabasePath("roidon.sqlite");
         if (!file.isFile()) return;
         String server = "127.0.0.1:" + port;
-        for (Map.Entry<String, SiteBoardProtocol.Board> entry : boards.entrySet()) {
-            if (!isAnimanchGamesBoard(entry.getValue())&&SiteBoardProtocol.futabaTag(entry.getValue()).isEmpty()) continue;
-            String key = entry.getKey();
-            String title = names.get(key);
-            if (title == null) continue;
-            android.content.ContentValues values = new android.content.ContentValues();
-            values.put("title", title);
-            try (android.database.sqlite.SQLiteDatabase db = android.database.sqlite.SQLiteDatabase.openDatabase(
-                    file.getPath(), null, android.database.sqlite.SQLiteDatabase.OPEN_READWRITE)) {
-                db.update("boards", values, "server=? AND name IN (?,?) AND (title IN (?,?,?) OR title LIKE 'http%')",
-                        new String[]{server, android.net.Uri.encode(server + "/" + key), key,
-                                entry.getValue().host, "", "追加掲示板"});
-                SiteBoardProtocol.Board source=entry.getValue();
-                if(!SiteBoardProtocol.futabaTag(source).isEmpty())
-                    db.update("boards",values,"server=? AND name IN (?,?) AND (title IN (?,?,?,?) OR title LIKE 'http%')",
-                            new String[]{source.host,android.net.Uri.encode(source.host+"/"+source.path),source.path,
-                                    source.host,"","追加掲示板",source.host+"/"+source.path+"/"});
-            } catch (RuntimeException unavailable) {
-                android.util.Log.w("Haiagaru", "Saved Animanch board title repair unavailable", unavailable);
+        boolean reuse = FeatureSwitches.prefs(context).getBoolean(ExpertSettings.BOARD_DB, true);
+        android.database.sqlite.SQLiteDatabase db = null;
+        try {
+            for (Map.Entry<String, SiteBoardProtocol.Board> entry : boards.entrySet()) {
+                if (!isAnimanchGamesBoard(entry.getValue())&&SiteBoardProtocol.futabaTag(entry.getValue()).isEmpty()) continue;
+                String key = entry.getKey();
+                String title = names.get(key);
+                if (title == null) continue;
+                android.content.ContentValues values = new android.content.ContentValues();
+                values.put("title", title);
+                try {
+                    if (db == null) db = android.database.sqlite.SQLiteDatabase.openDatabase(
+                            file.getPath(), null, android.database.sqlite.SQLiteDatabase.OPEN_READWRITE);
+                    db.update("boards", values, "server=? AND name IN (?,?) AND (title IN (?,?,?) OR title LIKE 'http%')",
+                            new String[]{server, android.net.Uri.encode(server + "/" + key), key,
+                                    entry.getValue().host, "", "追加掲示板"});
+                    SiteBoardProtocol.Board source=entry.getValue();
+                    if(!SiteBoardProtocol.futabaTag(source).isEmpty())
+                        db.update("boards",values,"server=? AND name IN (?,?) AND (title IN (?,?,?,?) OR title LIKE 'http%')",
+                                new String[]{source.host,android.net.Uri.encode(source.host+"/"+source.path),source.path,
+                                        source.host,"","追加掲示板",source.host+"/"+source.path+"/"});
+                } catch (RuntimeException unavailable) {
+                    android.util.Log.w("Haiagaru", "Saved Animanch board title repair unavailable", unavailable);
+                    if (reuse && db != null) {
+                        try { db.close(); }
+                        catch (RuntimeException ignored) { }
+                        finally { db = null; }
+                    }
+                } finally {
+                    if (!reuse && db != null) { db.close(); db = null; }
+                }
             }
+        } finally {
+            if (db != null) db.close();
         }
     }
 
@@ -264,8 +290,8 @@ final class SiteBoardGateway {
         URI uri;try{uri=URI.create(address);}catch(RuntimeException invalid){return null;}
         if("127.0.0.1".equals(uri.getHost())&&uri.getUserInfo()==null&&uri.getRawQuery()==null
                 &&("http".equalsIgnoreCase(uri.getScheme())||"https".equalsIgnoreCase(uri.getScheme()))&&(uri.getPort()==-1||uri.getPort()==port)){
-            Matcher thread=Pattern.compile("/test/read\\.cgi/("+KEY_PATTERN+")/([0-9]{1,12})/([0-9ln-]*)").matcher(uri.getRawPath());
-            Matcher board=Pattern.compile("/("+KEY_PATTERN+")/").matcher(uri.getRawPath());
+            Matcher thread=RoutePatterns.LOCAL_THREAD.matcher(uri.getRawPath());
+            Matcher board=RoutePatterns.LOCAL_BOARD.matcher(uri.getRawPath());
             if(thread.matches()&&boards.containsKey(thread.group(1)))return nativeUrl(thread.group(1),sourceThread(thread.group(2)))+thread.group(3);
             if(board.matches()&&boards.containsKey(board.group(1)))return nativeUrl(board.group(1),null);
             return null;
@@ -359,9 +385,9 @@ final class SiteBoardGateway {
     /** Copy/share conversion does not activate a disabled board or start the gateway. */
     synchronized String originalUrl(String address){
         try{URI uri=URI.create(address);if(!"127.0.0.1".equals(uri.getHost())||uri.getUserInfo()!=null||uri.getRawQuery()!=null||!("http".equals(uri.getScheme())||"https".equals(uri.getScheme())))return address;
-            Matcher thread=Pattern.compile("/test/read\\.cgi/("+KEY_PATTERN+")/([0-9]{1,12})(?:/([0-9ln-]*))?").matcher(uri.getRawPath());
-            Matcher board=Pattern.compile("/("+KEY_PATTERN+")/").matcher(uri.getRawPath());
-             Matcher image=Pattern.compile("/m/("+KEY_PATTERN+")/((?:arc/)?img)/([1-9][0-9]{0,11})/([1-9][0-9]{0,11})\\.jpg").matcher(uri.getRawPath());
+            Matcher thread=RoutePatterns.OPEN_THREAD.matcher(uri.getRawPath());
+            Matcher board=RoutePatterns.LOCAL_BOARD.matcher(uri.getRawPath());
+             Matcher image=RoutePatterns.MEDIA_PATH.matcher(uri.getRawPath());
             if(image.matches()){
                 SiteBoardProtocol.Board source=boards.get(image.group(1));
                  if(source!=null&&source.kind.equals("animanch"))return AnimanchProtocol.ORIGIN+"/"+image.group(2)+"/"+image.group(3)+"/"+image.group(4);
@@ -398,8 +424,8 @@ final class SiteBoardGateway {
     }
     String attachmentTarget(String address)throws IOException{
         try{URI u=URI.create(address);if(!"http".equals(u.getScheme())||!"127.0.0.1".equals(u.getHost())||u.getPort()!=port||u.getUserInfo()!=null)throw new IOException("追加掲示板の投稿先ではありません");
-            Matcher thread=Pattern.compile("/test/read\\.cgi/("+KEY_PATTERN+")/([0-9]{1,12})/(?:[0-9ln-]*)?").matcher(u.getPath());
-            Matcher board=Pattern.compile("/("+KEY_PATTERN+")/").matcher(u.getPath());String key,id;
+            Matcher thread=RoutePatterns.ATTACH_THREAD.matcher(u.getPath());
+            Matcher board=RoutePatterns.LOCAL_BOARD.matcher(u.getPath());String key,id;
             if(thread.matches()){key=thread.group(1);id=sourceThread(thread.group(2));}else if(board.matches()){key=board.group(1);id="new";}else throw new IOException("投稿先を確認できません");
             if(!boardEnabled(key))throw new IOException("この板の「使用する」をオンにしてください");return key+":"+id;
         }catch(IllegalArgumentException error){throw new IOException("投稿先が不正です");}
@@ -464,14 +490,14 @@ final class SiteBoardGateway {
             }
             if(!enabled()){send(client,503,"text/plain; charset=UTF-8","追加掲示板の「使用する」がオフです".getBytes("UTF-8"));return;}
             String path=target.getRawPath();
-            Matcher catalogue=Pattern.compile("/haiagaru-menu-(edge|bakusai|futaba|animanch)/").matcher(path);
+            Matcher catalogue=RoutePatterns.MENU_CATALOGUE.matcher(path);
             if(request[0].equals("GET")&&catalogue.matches()){
                 String kind=catalogue.group(1);if(!siteEnabled(kind)){send(client,403,"text/plain",new byte[0]);return;}
                 List<SiteBoardMenuProtocol.Choice> entries=SiteBoardCatalog.load(kind,(service,region)->{if(!enabled()||!siteEnabled(kind))throw new IOException("掲示板の使用がオフです");return menu(service,region);});
                 String html=kind.equals("edge")?directCatalogue(entries):importCatalogue(kind,entries);
                 send(client,200,"text/html; charset=Shift_JIS",SiteNativeData.wire(html));return;
             }
-            Matcher menu=Pattern.compile("/("+KEY_PATTERN+")/").matcher(path);
+            Matcher menu=RoutePatterns.LOCAL_BOARD.matcher(path);
             if(request[0].equals("GET")&&menu.matches()&&boardEnabled(menu.group(1))){
                 String key=menu.group(1);
                 org.jsoup.nodes.Document.OutputSettings escaping=new org.jsoup.nodes.Document.OutputSettings().charset("windows-31j");
@@ -489,7 +515,7 @@ final class SiteBoardGateway {
                 post(client,board,form);return;
             }
             // The source coordinates remain in the URL so cached DAT images survive restart.
-            Matcher stableMedia=Pattern.compile("/m/("+KEY_PATTERN+")/((?:arc/)?img)/([1-9][0-9]{0,11})/([1-9][0-9]{0,11})\\.jpg").matcher(path);
+            Matcher stableMedia=RoutePatterns.MEDIA_PATH.matcher(path);
             if(stableMedia.matches()){
                 String key=stableMedia.group(1);SiteBoardProtocol.Board sourceBoard=boards.get(key);
                 if(!boardEnabled(key)||sourceBoard==null||!sourceBoard.kind.equals("animanch")){send(client,403,"text/plain",new byte[0]);return;}
@@ -503,7 +529,7 @@ final class SiteBoardGateway {
                     throw new IOException("画像を取得できません");
                 send(client,200,r.type,r.bytes);return;
             }
-            Matcher media=Pattern.compile("/m/([a-f0-9]{64})\\.jpg").matcher(path);
+            Matcher media=RoutePatterns.STORED_MEDIA.matcher(path);
             if(media.matches()){
                 String stored=images.get(media.group(1));if(stored==null){send(client,404,"text/plain",new byte[0]);return;}
                 int split=stored.indexOf('\n');if(split<0||!boardEnabled(stored.substring(0,split))){send(client,403,"text/plain",new byte[0]);return;}String source=stored.substring(split+1);
@@ -511,7 +537,7 @@ final class SiteBoardGateway {
                     throw new IOException("画像を取得できません");
                 send(client,200,r.type,r.bytes);return;
             }
-            Matcher route=Pattern.compile("/("+KEY_PATTERN+")/(subject\\.txt|SETTING\\.TXT|dat/([0-9]{1,12})\\.dat)").matcher(path);
+            Matcher route=RoutePatterns.BOARD_ROUTE.matcher(path);
             if(!route.matches()||!boards.containsKey(route.group(1))){send(client,404,"text/plain",new byte[0]);return;}
             String key=route.group(1);SiteBoardProtocol.Board board=boards.get(key);byte[] data;
             if(!boardEnabled(key)){send(client,403,"text/plain; charset=UTF-8","この板の「使用する」がオフです".getBytes("UTF-8"));return;}
@@ -840,7 +866,7 @@ final class SiteBoardGateway {
                 else{
                     // Validate the current form before fetching older pages for quote translation.
                     SitePostProtocol.Plan reply=SitePostProtocol.reply(board,id,html,name,email,body,password);
-                    if(Pattern.compile(">>[1-9][0-9]{0,5}").matcher(body).find()){
+                    if(RoutePatterns.QUOTE_REFERENCE.matcher(body).find()){
                         body=SiteNativeData.originalQuotes(body,thread(board,id,html));reply=SitePostProtocol.reply(board,id,html,name,email,body,password);
                     }
                     plan=SitePostProtocol.attach(reply,board,html,image);
@@ -955,6 +981,11 @@ final class SiteBoardGateway {
             String ua=overrideUa!=null?overrideUa:SiteAuthenticationPolicy.userAgent(host,useCookies,prefs.getString("browserUa",System.getProperty("http.agent","Haiagaru")));c.setRequestProperty("User-Agent",ua);
             if(useCookies){String cookie=CookieManager.getInstance().getCookie(address);if(cookie!=null&&!cookie.isEmpty())c.setRequestProperty("Cookie",cookie);}
             if((host.endsWith(".2chan.net")||host.equals("bakusai.com"))&&c.getRequestProperty("Cookie")==null){String cookie=sessionCookies.header(uri);if(!cookie.isEmpty())c.setRequestProperty("Cookie",cookie);}
+            if(body==null){
+                String cookie=c.getRequestProperty("Cookie");
+                String catalogueCookies=SiteBoardProtocol.catalogueCookies(uri,cookie);
+                if(catalogueCookies!=cookie)c.setRequestProperty("Cookie",catalogueCookies);
+            }
             try{
                 if(body!=null){c.setRequestMethod("POST");c.setDoOutput(true);c.setRequestProperty("Referer",referer);c.setRequestProperty("Origin","https://"+host);if("bbs.animanch.com".equals(host))c.setRequestProperty("X-Requested-With","XMLHttpRequest");c.setRequestProperty("Content-Type",contentType);c.setFixedLengthStreamingMode(body.length);try(OutputStream output=c.getOutputStream()){output.write(body);}}
                 int status=c.getResponseCode();String type=c.getContentType();if(type==null)type="application/octet-stream";

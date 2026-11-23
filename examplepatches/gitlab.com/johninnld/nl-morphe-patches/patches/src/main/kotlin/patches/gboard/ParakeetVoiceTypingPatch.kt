@@ -14,6 +14,10 @@ import app.morphe.patcher.util.smali.ExternalLabel
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.builder.MutableMethodImplementation
+import com.android.tools.smali.dexlib2.builder.instruction.BuilderInstruction10x
+import com.android.tools.smali.dexlib2.builder.instruction.BuilderInstruction11n
+import com.android.tools.smali.dexlib2.builder.instruction.BuilderInstruction11x
+import com.android.tools.smali.dexlib2.builder.instruction.BuilderInstruction21s
 import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
@@ -25,6 +29,9 @@ import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
+import com.android.tools.smali.dexlib2.immutable.reference.ImmutableFieldReference
+import com.android.tools.smali.dexlib2.immutable.reference.ImmutableMethodReference
+import patches.gboard.shared.generated.GboardVersionBindings
 import org.w3c.dom.Element
 
 private const val RECOGNIZER = "Lnl/johninnl/gboard/ParakeetRecognizer;"
@@ -101,6 +108,8 @@ private class Contract(
     val recognizer: String,
     val methods: Map<Role, Method>,
     val inherited: List<Method>,
+    /** Inherited methods emitted as default-value stubs because their Lite body uses that engine. */
+    val stubbed: Set<String>,
     val typeField: FieldReference,
     val callback: String,
     val callbackMethods: Map<String, Method>,
@@ -108,7 +117,9 @@ private class Contract(
     val resultMethod: Method,
     val errorMethod: Method,
     val errorFields: Map<String, FieldReference>,
-    val result: ResultBuilder,
+    val result: ResultBuilder?,
+    /** Non-null on builds whose callback takes a transcription proto (18.8.0+). */
+    val transcription: TranscriptionBundle?,
 )
 
 /** How Gboard builds the recognition-result protos its RecognizerCallback receives. */
@@ -125,6 +136,30 @@ private class ResultBuilder(
     val presence: FieldReference,
     val text: FieldReference,
     val isFinal: FieldReference,
+)
+
+/**
+ * 18.8.0 delivers a finished utterance as a protobuf transcription instead of a hypothesis List:
+ * `RecognizerCallback.onTranscriptionUpdate(Bbhl)` where Bbhl holds repeated Bbht hypotheses.
+ * Field names and builder entry points are asserted on the target classes before use.
+ */
+private class TranscriptionBundle(
+    val hypothesisDefault: FieldReference,
+    val hypothesisType: String,
+    /** `GeneratedMessageLite.newBuilder()`, declared on the shared message base. */
+    val newBuilder: MethodReference,
+    val builderType: String,
+    /** `GeneratedMessageLite.Builder` helpers: ensure-mutable, message field, build. */
+    val copyOnWrite: MethodReference,
+    val builderInstance: FieldReference,
+    val buildMessage: MethodReference,
+    val presence: FieldReference,
+    val text: FieldReference,
+    val isFinal: FieldReference,
+    val transcriptDefault: FieldReference,
+    val transcriptType: String,
+    val transcriptBuilderType: String,
+    val addHypothesis: MethodReference,
 )
 
 context(context: BytecodePatchContext)
@@ -191,6 +226,7 @@ private fun resolveContract(): Contract {
     }
     // Methods inherited from the recognizer's super-interfaces are copied from the Lite
     // recognizer; they must not touch that class's own state.
+    val stubbedInherited = mutableSetOf<String>()
     val inherited = inheritedAbstract.map { abstract ->
         val implementation = template.methods.singleOrNull { it.name == abstract.name && it.params() == abstract.params() }
             ?: throw PatchException("Lite recognizer does not implement ${abstract.sig()}")
@@ -201,8 +237,15 @@ private fun resolveContract(): Contract {
                 else -> false
             }
         }
-        if (touchesTemplate) throw PatchException("${abstract.sig()} depends on the Lite recognizer")
-        implementation
+        // 18.8.0 delegates these to the Lite engine instance (krv.m), so the body cannot be copied
+        // into the generated fallback recognizer. Emit a default-value stub: the fallback path never
+        // asks the on-device Lite engine for its model bytes.
+        if (touchesTemplate) {
+            stubbedInherited += abstract.sig()
+            abstract
+        } else {
+            implementation
+        }
     }
 
     val typeEnum = context.classDefBy(roles.getValue(Role.TYPE).returnType)
@@ -235,9 +278,14 @@ private fun resolveContract(): Contract {
     val levelMethod = abstractCallbacks.singleOrNull { it.params() == listOf("I") }
         ?: throw PatchException("Callback level method not found")
     val errorEnum = errorMethod.params().singleOrNull() ?: throw PatchException("Callback error signature changed")
-    val resultMethod = abstractCallbacks.singleOrNull {
-        it.params().size == 1 && it.params()[0].startsWith("L") && it.params()[0] != errorEnum
-    } ?: throw PatchException("Callback result method not found")
+    val resultMethod = if (GboardVersionBindings.targetVersion == "18.8.0-beta") {
+        // 18.8.0 replaced the hypothesis-list result with onTranscriptionUpdate(Bbhl).
+        callbackFor("onTranscriptionUpdate")
+    } else {
+        abstractCallbacks.singleOrNull {
+            it.params().size == 1 && it.params()[0].startsWith("L") && it.params()[0] != errorEnum
+        } ?: throw PatchException("Callback result method not found")
+    }
     if (callbackMethods.values.any { it.params().isNotEmpty() || it.returnType != "V" }) {
         throw PatchException("Callback signatures changed")
     }
@@ -246,10 +294,13 @@ private fun resolveContract(): Contract {
         if (name !in errorFields) throw PatchException("Recognition error $name missing")
     }
 
-    val result = resolveResultBuilder(resultMethod.params()[0], callback)
+    val transcriptResult = GboardVersionBindings.targetVersion == "18.8.0-beta"
+    val result = if (transcriptResult) null else resolveResultBuilder(resultMethod.params()[0], callback)
+    val transcription = if (transcriptResult) resolveTranscriptionBundle() else null
     return Contract(
-        factory, ramblerSessionField, holderField, contextField, recognizer, roles, inherited, typeField, callback,
-        callbackMethods, levelMethod, resultMethod, errorMethod, errorFields, result,
+        factory, ramblerSessionField, holderField, contextField, recognizer, roles, inherited, stubbedInherited,
+        typeField, callback,
+        callbackMethods, levelMethod, resultMethod, errorMethod, errorFields, result, transcription,
     )
 }
 
@@ -348,6 +399,46 @@ private fun MutableClass.replaceStatic(name: String, params: List<String>, regis
     ).toMutable().apply { addInstructions(0, smali) })
 }
 
+private fun parakeetStubRegisters(method: Method): Int {
+    // Instance method: the receiver plus every parameter are the incoming registers, and the
+    // stub needs at least one scratch register above them. A dex whose ins_size exceeds
+    // registers_size is rejected wholesale by ART, which hides every class in that file.
+    val incoming = method.parameterTypes.size + 1
+    val scratch = if (method.returnType == "J" || method.returnType == "D") 2 else 1
+    return incoming + scratch
+}
+
+/**
+ * Stub body for an inherited recognizer method. Built programmatically because morphe's inline
+ * smali compiler emits its fragment inside a void synthetic method, so `return-object` fragments
+ * cannot be parsed.
+ */
+private fun MutableClass.addStub(method: Method) {
+    if (methods.any { it.name == method.name && it.params() == method.params() }) {
+        throw PatchException("Parakeet recognizer already implements ${method.sig()}")
+    }
+    val implementation = MutableMethodImplementation(parakeetStubRegisters(method))
+    when {
+        method.returnType == "V" -> implementation.addInstruction(BuilderInstruction10x(Opcode.RETURN_VOID))
+        method.returnType == "J" || method.returnType == "D" -> {
+            implementation.addInstruction(BuilderInstruction21s(Opcode.CONST_WIDE_16, 0, 0))
+            implementation.addInstruction(BuilderInstruction11x(Opcode.RETURN_WIDE, 0))
+        }
+        method.returnType.startsWith("L") || method.returnType.startsWith("[") -> {
+            implementation.addInstruction(BuilderInstruction11n(Opcode.CONST_4, 0, 0))
+            implementation.addInstruction(BuilderInstruction11x(Opcode.RETURN_OBJECT, 0))
+        }
+        else -> {
+            implementation.addInstruction(BuilderInstruction11n(Opcode.CONST_4, 0, 0))
+            implementation.addInstruction(BuilderInstruction11x(Opcode.RETURN, 0))
+        }
+    }
+    methods.add(ImmutableMethod(
+        type, method.name, method.parameters, method.returnType,
+        AccessFlags.PUBLIC.value or AccessFlags.FINAL.value, null, null, implementation,
+    ).toMutable())
+}
+
 private fun MutableClass.addInstance(method: Method, registers: Int, smali: String) {
     if (methods.any { it.name == method.name && it.params() == method.params() }) {
         throw PatchException("Parakeet recognizer already implements ${method.sig()}")
@@ -356,6 +447,46 @@ private fun MutableClass.addInstance(method: Method, registers: Int, smali: Stri
         type, method.name, method.params().map { ImmutableMethodParameter(it, null, null) }, method.returnType,
         AccessFlags.PUBLIC.value or AccessFlags.FINAL.value, null, null, MutableMethodImplementation(registers),
     ).toMutable().apply { addInstructions(0, smali) })
+}
+
+/**
+ * 18.8.0 transcript contract. Every lookup asserts the exact member before it is used, so a future
+ * build fails here instead of emitting a class that throws at runtime.
+ */
+context(context: BytecodePatchContext)
+private fun resolveTranscriptionBundle(): TranscriptionBundle {
+    fun classDef(type: String) = context.classDefBy(type)
+    fun field(type: String, name: String, fieldType: String): FieldReference {
+        classDef(type).fields.singleOrNull { it.name == name && it.type == fieldType }
+            ?: throw PatchException("Transcript contract field $type->$name:$fieldType missing")
+        return ImmutableFieldReference(type, name, fieldType)
+    }
+
+    fun method(type: String, name: String, params: List<String>, returnType: String): MethodReference {
+        classDef(type).methods.singleOrNull {
+            it.name == name && it.params() == params && it.returnType == returnType
+        } ?: throw PatchException("Transcript contract method $type->$name(${params.joinToString("")})$returnType missing")
+        return ImmutableMethodReference(type, name, params, returnType)
+    }
+
+    // 18.8.0 hypothesis (bbht) and transcription (bbhl) messages share protobuf-lite's generated
+    // base types: newBuilder()/build()/ensureMutable live on banv / banp, not on the message class.
+    return TranscriptionBundle(
+        hypothesisDefault = field("Lbbht;", "a", "Lbbht;"),
+        hypothesisType = "Lbbht;",
+        newBuilder = method("Lbanv;", "n", emptyList(), "Lbanp;"),
+        builderType = "Lbbhq;",
+        copyOnWrite = method("Lbanp;", "w", emptyList(), "V"),
+        builderInstance = field("Lbanp;", "b", "Lbanv;"),
+        buildMessage = method("Lbanp;", "t", emptyList(), "Lbapd;"),
+        presence = field("Lbbht;", "b", "I"),
+        text = field("Lbbht;", "c", "Ljava/lang/String;"),
+        isFinal = field("Lbbht;", "d", "Z"),
+        transcriptDefault = field("Lbbhl;", "a", "Lbbhl;"),
+        transcriptType = "Lbbhl;",
+        transcriptBuilderType = "Lbbhk;",
+        addHypothesis = method("Lbbhk;", "b", listOf("Lbbht;"), "V"),
+    )
 }
 
 @Suppress("unused")
@@ -438,11 +569,21 @@ val parakeetVoiceTyping = bytecodePatch(
                             ?: throw PatchException("Expected one Standard voice typing choice, found ${selectors.size}")
                         standard.setAttributeNS(ANDROID, "android:title", "@string/morphe_parakeet_selector_title")
                         standard.setAttributeNS(ANDROID, "android:summary", "@string/morphe_parakeet_selector_summary")
+                        standard.removeAttributeNS(ANDROID, "fragment")
                     }
                 }
                 screens++
             }
             if (screens == 0) throw PatchException("Gboard voice typing settings screens not found")
+
+            // The stock fragment also installs a gear listener when this screen contains rows.
+            // Leave the selector usable and direct configuration to the existing Parakeet entry.
+            document("res/xml/setting_traditional_voice.xml").use { xml ->
+                val screen = xml.documentElement
+                while (screen.firstChild != null) {
+                    screen.removeChild(screen.firstChild)
+                }
+            }
         }
     }
     dependsOn(originalInput, settings, gboardParakeetIconPatch)
@@ -479,11 +620,15 @@ val parakeetVoiceTyping = bytecodePatch(
             return-void
         """)
         for (implementation in contract.inherited) {
-            owner.methods.add(ImmutableMethod(
-                owner.type, implementation.name, implementation.parameters, implementation.returnType,
-                AccessFlags.PUBLIC.value or AccessFlags.FINAL.value, null, null,
-                MutableMethodImplementation(implementation.implementation!!),
-            ).toMutable())
+            if (implementation.sig() in contract.stubbed) {
+                owner.addStub(implementation)
+            } else {
+                owner.methods.add(ImmutableMethod(
+                    owner.type, implementation.name, implementation.parameters, implementation.returnType,
+                    AccessFlags.PUBLIC.value or AccessFlags.FINAL.value, null, null,
+                    MutableMethodImplementation(implementation.implementation!!),
+                ).toMutable())
+            }
         }
 
         val cb = contract.callback
@@ -513,35 +658,68 @@ val parakeetVoiceTyping = bytecodePatch(
             invoke-interface {p0, v0}, ${contract.errorMethod.smaliRef()}
             return-void
         """)
-        val r = contract.result
-        // Presence bits 1 and 2 belong to the hypothesis text and final flag, as in Gboard's own builder.
-        owner.replaceStatic("cbResult", listOf(OBJECT, STRING, "Z"), 6, """
-            sget-object v0, ${r.hypothesisDefault.smali()}
-            invoke-virtual {v0}, ${r.newBuilder.smali()}
-            move-result-object v0
-            invoke-virtual {v0}, ${r.copyOnWrite.smali()}
-            iget-object v1, v0, ${r.instance.smali()}
-            check-cast v1, ${r.hypothesisType}
-            iget v2, v1, ${r.presence.smali()}
-            or-int/lit8 v2, v2, 0x3
-            iput v2, v1, ${r.presence.smali()}
-            iput-object p1, v1, ${r.text.smali()}
-            iput-boolean p2, v1, ${r.isFinal.smali()}
-            invoke-virtual {v0}, ${r.build.smali()}
-            move-result-object v1
-            invoke-static {v1}, Ljava/util/Collections;->singletonList(Ljava/lang/Object;)Ljava/util/List;
-            move-result-object v1
-            sget-object v0, ${r.listDefault.smali()}
-            invoke-virtual {v0}, ${r.newBuilder.smali()}
-            move-result-object v0
-            invoke-virtual {v0, v1}, ${r.addAll.smali()}
-            invoke-virtual {v0}, ${r.build.smali()}
-            move-result-object v0
-            check-cast v0, ${r.listType}
-            check-cast p0, $cb
-            invoke-interface {p0, v0}, ${contract.resultMethod.smaliRef()}
-            return-void
-        """)
+        val transcription = contract.transcription
+        if (transcription != null) {
+            // 18.8.0: build one final hypothesis (presence bits 1|2 = text + final flag) and wrap it
+            // in the transcription proto that onTranscriptionUpdate consumes.
+            owner.replaceStatic("cbResult", listOf(OBJECT, STRING, "Z"), 6, """
+                sget-object v0, ${transcription.hypothesisDefault.smali()}
+                invoke-virtual {v0}, ${transcription.newBuilder.smali()}
+                move-result-object v0
+                invoke-virtual {v0}, ${transcription.copyOnWrite.smali()}
+                iget-object v1, v0, ${transcription.builderInstance.smali()}
+                check-cast v1, ${transcription.hypothesisType}
+                iget v2, v1, ${transcription.presence.smali()}
+                or-int/lit8 v2, v2, 0x3
+                iput v2, v1, ${transcription.presence.smali()}
+                iput-object p1, v1, ${transcription.text.smali()}
+                iput-boolean p2, v1, ${transcription.isFinal.smali()}
+                invoke-virtual {v0}, ${transcription.buildMessage.smali()}
+                move-result-object v1
+                check-cast v1, ${transcription.hypothesisType}
+                sget-object v0, ${transcription.transcriptDefault.smali()}
+                invoke-virtual {v0}, ${transcription.newBuilder.smali()}
+                move-result-object v0
+                check-cast v0, ${transcription.transcriptBuilderType}
+                invoke-virtual {v0, v1}, ${transcription.addHypothesis.smali()}
+                invoke-virtual {v0}, ${transcription.buildMessage.smali()}
+                move-result-object v0
+                check-cast v0, ${transcription.transcriptType}
+                check-cast p0, $cb
+                invoke-interface {p0, v0}, ${contract.resultMethod.smaliRef()}
+                return-void
+            """)
+        } else {
+            val r = checkNotNull(contract.result) { "Parakeet result contract missing" }
+            // Presence bits 1 and 2 belong to the hypothesis text and final flag, as in Gboard's own builder.
+            owner.replaceStatic("cbResult", listOf(OBJECT, STRING, "Z"), 6, """
+                sget-object v0, ${r.hypothesisDefault.smali()}
+                invoke-virtual {v0}, ${r.newBuilder.smali()}
+                move-result-object v0
+                invoke-virtual {v0}, ${r.copyOnWrite.smali()}
+                iget-object v1, v0, ${r.instance.smali()}
+                check-cast v1, ${r.hypothesisType}
+                iget v2, v1, ${r.presence.smali()}
+                or-int/lit8 v2, v2, 0x3
+                iput v2, v1, ${r.presence.smali()}
+                iput-object p1, v1, ${r.text.smali()}
+                iput-boolean p2, v1, ${r.isFinal.smali()}
+                invoke-virtual {v0}, ${r.build.smali()}
+                move-result-object v1
+                invoke-static {v1}, Ljava/util/Collections;->singletonList(Ljava/lang/Object;)Ljava/util/List;
+                move-result-object v1
+                sget-object v0, ${r.listDefault.smali()}
+                invoke-virtual {v0}, ${r.newBuilder.smali()}
+                move-result-object v0
+                invoke-virtual {v0, v1}, ${r.addAll.smali()}
+                invoke-virtual {v0}, ${r.build.smali()}
+                move-result-object v0
+                check-cast v0, ${r.listType}
+                check-cast p0, $cb
+                invoke-interface {p0, v0}, ${contract.resultMethod.smaliRef()}
+                return-void
+            """)
+        }
 
         // Gboard's keyboard service (its manifest name is stable): let the recognizer reach the
         // text field to restore capitals Gboard drops from later sentences.

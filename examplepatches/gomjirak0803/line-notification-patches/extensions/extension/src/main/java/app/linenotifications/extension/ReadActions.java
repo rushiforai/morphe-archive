@@ -45,7 +45,8 @@ final class ReadActions {
         Bundle extras = new Bundle();
         extras.putBoolean(ACTION_MARKER, true);
         return new Notification.Action.Builder(
-                Icon.createWithResource("android", android.R.drawable.checkbox_on_background), "읽음", pending)
+                Icon.createWithResource("android", android.R.drawable.checkbox_on_background),
+                Strings.get(context, "line_notify_action_mark_read", "Mark as read"), pending)
                 .setSemanticAction(Notification.Action.SEMANTIC_ACTION_MARK_AS_READ)
                 .setAllowGeneratedReplies(false).addExtras(extras).build();
     }
@@ -145,7 +146,8 @@ final class ReadActions {
         MAIN.post(() -> {
             try {
                 if (account.equals(NativeLine.account())) {
-                    Toast.makeText(context, "읽음 처리 결과를 확인하지 못했습니다. LINE에서 확인해 주세요.", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(context, Strings.get(context, "line_notify_toast_read_failed",
+                            "Could not confirm mark-as-read result. Please check in LINE."), Toast.LENGTH_SHORT).show();
                 }
             } catch (ReflectiveOperationException | RuntimeException ignored) { }
         });

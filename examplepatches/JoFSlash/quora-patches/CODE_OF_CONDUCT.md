@@ -15,13 +15,13 @@ taking part should be able to do that without being put down.
 - Insults, harassment, threats, or comments about someone's person, background or identity.
 - Posting someone's private information, including account details from logs or screenshots.
 - Spam, advertising, and links to modified APKs or other files that aren't from this repository.
-- Requests to get around Quora+ payments or to access paid content. The patches hide Quora+
-  content; they don't unlock it.
+- Requests to get around Quora+ payments, Google Health Premium or other paid features, or to
+  access paid content. The Quora patches hide Quora+ content; they don't unlock it.
 
 ## Enforcement
 
 The maintainer may edit, hide or delete comments, lock or close issues, and block accounts that
 don't follow this code. To report something, use **Report content** in the comment's menu on GitHub,
-or for a private matter the [private reporting form](https://github.com/JoFSlash/quora-patches/security/advisories/new).
+or for a private matter the [private reporting form](https://github.com/JoFSlash/morphe-patches/security/advisories/new).
 
 This code applies in the repository's issues, pull requests and anything else posted here.

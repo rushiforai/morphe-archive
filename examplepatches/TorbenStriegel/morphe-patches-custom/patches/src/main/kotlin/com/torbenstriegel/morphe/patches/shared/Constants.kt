@@ -17,6 +17,10 @@ object Constants {
             AppTarget(
                 version = "2026.21",
                 versionCode = 2324828
+            ),
+            AppTarget(
+                version = "2026.22",
+                versionCode = 2333573
             )
         )
     )
@@ -76,6 +80,10 @@ object Constants {
             AppTarget(
                 version = "8.6.0.1",
                 versionCode = 589
+            ),
+            AppTarget(
+                version = "8.6.0.2",
+                versionCode = 590
             )
         )
     )

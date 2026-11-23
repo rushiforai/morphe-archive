@@ -12,14 +12,18 @@ public final class HomeThreadOrder {
     public static final int DRAG_TAG=0x48690135;
     public interface DragOrder { boolean move(int from,int to); void togglePin(int position); boolean pinned(int position); }
     static final String PREFS="haiagaru.home-thread-order";
+    static final String FOLD_ON_TAP="homeCategoryFoldOnTap";
     static final String ENABLED="homeThreadCustomOrderEnabled";
     static final String KEYWORD_MENU="homeKeywordDisplayNameMenu";
     static boolean enabled(){Context c=Haiagaru.applicationContextForExtension();return c==null||SettingsProfiles.prefs(c).getBoolean(ENABLED,true);}
+    private static final String FAVORITE_BOARDS_SECTION="\u0000favoriteBoards";
     private static final int MENU=0x48690133;
     private static final int KEYWORD_DISPLAY_MENU=0x48690139;
     private static final Map<Integer,List<?>> latest=new HashMap<>();
+    private static final Map<Integer,List<?>> presented=new HashMap<>();
     private static final Map<Object,Integer> modes=new WeakHashMap<>();
     private static final ThreadLocal<Integer> sortingMode=new ThreadLocal<>();
+    private static final Set<Object> labelRows=Collections.newSetFromMap(new WeakHashMap<>());
     private static final Map<Integer,RankOrder> rankCache=new HashMap<>();
     private static final class RankOrder {
         final String json;final Map<String,Integer> ranks;
@@ -60,7 +64,7 @@ public final class HomeThreadOrder {
         return 0;
     }
     private static SharedPreferences prefs(){return Haiagaru.applicationContextForExtension().getSharedPreferences(PREFS,0);}
-    private static boolean target(int mode){int m=Math.abs(mode);return m==100||m==101||m==102||m==103||m==107||m==108||m==109;}
+    private static boolean target(int mode){int m=Math.abs(mode);return m==100||m==101||m==102||m==103||m==104||m==107||m==108||m==109;}
     static String key(Object row){
         if(row==null)return null;String type=row.getClass().getName(),board,id;
         if(type.equals("o.onAdDisplayed$setIcon")){board="g";id="h";}
@@ -74,27 +78,443 @@ public final class HomeThreadOrder {
         try{Object b=NativeFields.find(row.getClass(),board).get(row);long thread=NativeFields.find(row.getClass(),id).getLong(row);return b==null||thread<=0?null:b.toString()+"\n"+thread;}catch(Exception unavailable){return null;}
     }
     static List<?> apply(List<?> source,int mode){
-        if(source==null||!enabled()||!target(mode)||Haiagaru.applicationContextForExtension()==null)return source;
+        List<?> rows=apply(source,mode,true);
+        if(target(mode))synchronized(presented){presented.put(mode,rows);}
+        return rows;
+    }
+
+    static List<?> presented(int mode){
+        synchronized(presented){return presented.get(mode);}
+    }
+    private static List<?> apply(List<?> source,int mode,boolean respectFolds){
+        if(source==null||!target(mode)||Haiagaru.applicationContextForExtension()==null)return source;
+
+        ArrayList<Object> clean=new ArrayList<>();
+        Set<String> seen=new HashSet<>();
+        for(Object row:source){
+            if(labelRows.contains(row))continue;
+            String id=key(row);
+            if(id==null||seen.add(id))clean.add(row);
+        }
+        source=clean;
         synchronized(latest){latest.put(mode,new ArrayList<>(source));}
         Map<String,Integer> ranks=ranks(mode);
-        Set<String> pinned=prefs().getStringSet("pins:"+Math.abs(mode),Collections.emptySet());if(ranks.isEmpty()&&pinned.isEmpty())return source;
-        ArrayList<Object> movable=new ArrayList<>();
-        Map<Object,String> keys=new IdentityHashMap<>();
-        for(Object row:source){String key=key(row);if(key!=null){movable.add(row);keys.put(row,key);}}
-        if(movable.isEmpty())return source;
-        movable.sort(Comparator.comparingInt((Object row)->pinned.contains(keys.get(row))?0:1)
-                .thenComparingInt(row->ranks.getOrDefault(keys.get(row),Integer.MAX_VALUE)));
-
-        // Keep native action rows (including the "板一覧へ" row) at their
-        // original slots. Only omit group headings that would now mislabel rows.
-        ArrayList<Object> result=new ArrayList<>(source.size());
-        Iterator<Object> sorted=movable.iterator();
+        Set<String> pinned=prefs().getStringSet("pins:"+Math.abs(mode),Collections.emptySet());JSONObject labels=visibleLabels(mode);
+        Set<String> folded=respectFolds?foldedCategories(mode):Collections.emptySet();
+        if(ranks.isEmpty()&&pinned.isEmpty()&&labels.length()==0&&folded.isEmpty())return source;
+        Map<String,String> labelForThread=new HashMap<>();
+        Map<String,Object> labelHeadings=new LinkedHashMap<>();
+        for(String name:orderedLabels(labels,mode)){
+            Object heading=labelHeading(source,name);
+            if(heading==null)continue;
+            labelHeadings.put(categoryKey(heading),heading);
+            JSONArray members=labels.optJSONArray(name);
+            if(members!=null)for(int i=0;i<members.length();i++)labelForThread.putIfAbsent(members.optString(i),categoryKey(heading));
+        }
+        // Keep native category headings while allowing explicit display placement across them.
+        Map<String,String> placements=new HashMap<>();
+        try{JSONObject saved=new JSONObject(prefs().getString("categories:"+Math.abs(mode),"{}"));
+            Iterator<String> savedKeys=saved.keys();while(savedKeys.hasNext()){String name=savedKeys.next();placements.put(name,saved.getString(name));}
+        }catch(JSONException ignored){}
+        Set<String> categories=new HashSet<>();categories.add("");
+        for(Object row:source)if(key(row)==null)categories.add(categoryKey(row));
+        Map<String,List<Object>> buckets=new HashMap<>();String category="";
         for(Object row:source){
-            if(keys.containsKey(row))result.add(sorted.next());
-            else if(!HiddenDroppedThreads.timeHeading(row))result.add(row);
+            if(isFavoriteBoardsRow(row))continue;
+            String id=key(row);
+            if(id==null){
+                category=categoryKey(row);
+                continue;
+            }
+            String target=labelForThread.get(id);
+            if(id.startsWith("board\n"))continue;
+            if(target==null){target=placements.get(id);if(target==null||!categories.contains(target))target=category;}
+            buckets.computeIfAbsent(target,k->new ArrayList<>()).add(row);
+        }
+        Comparator<Object> comparator=Comparator.comparingInt(row->ranks.getOrDefault(key(row),Integer.MAX_VALUE));
+        for(Map.Entry<String,List<Object>> bucket:buckets.entrySet())
+            if(!labelHeadings.containsKey(bucket.getKey()))bucket.getValue().sort(comparator);
+        ArrayList<Object> result=new ArrayList<>(source.size());
+        List<Object> favoriteBoards=new ArrayList<>();
+        Map<String,Object> sections=new LinkedHashMap<>(labelHeadings);
+        for(Object row:source){
+            String id=key(row);
+            if(isFavoriteBoardsRow(row)||isBoard(id)) {
+                favoriteBoards.add(row);
+            } else if(row!=null&&id==null) {
+                sections.putIfAbsent(categoryKey(row),row);
+            }
+        }
+        if(!favoriteBoards.isEmpty())sections.put(FAVORITE_BOARDS_SECTION,null);
+        for(String categoryKey:sectionOrder(mode,sections.keySet())){
+            if(FAVORITE_BOARDS_SECTION.equals(categoryKey)){
+                result.addAll(favoriteBoards);
+                continue;
+            }
+            Object heading=sections.get(categoryKey);
+            result.add(heading);
+            if(!folded.contains(categoryKey))result.addAll(buckets.getOrDefault(categoryKey,Collections.emptyList()));
+        }
+        result.addAll(buckets.getOrDefault("",Collections.emptyList()));
+        return result;
+    }
+
+    private static Set<String> foldedCategories(int mode){
+        Context context=Haiagaru.applicationContextForExtension();
+        if(context==null||!SettingsProfiles.prefs(context).getBoolean(FOLD_ON_TAP,true))return Collections.emptySet();
+        return prefs().getStringSet("foldedCategories:"+Math.abs(mode),Collections.emptySet());
+    }
+
+    static boolean toggleCategory(Object fragment,Object row){
+        Activity activity=Haiagaru.toolbarActivity(fragment);
+        if(activity==null||row==null||isFavoriteBoardsRow(row)||key(row)!=null)return false;
+        int mode=mode(fragment);
+        if(!target(mode)||mode==107)return false;
+        String title=label(row);
+        boolean custom=customLabel(row,mode)!=null;
+        if(!custom&&!hasCategoryThreads(mode,row))return false;
+        if(!SettingsProfiles.prefs(activity).getBoolean(FOLD_ON_TAP,true))return custom;
+        String key=categoryKey(row),setting="foldedCategories:"+Math.abs(mode);
+        Set<String> folded=new HashSet<>(foldedCategories(mode));
+        if(!folded.remove(key))folded.add(key);
+        prefs().edit().putStringSet(setting,folded).apply();
+        BrowsingHistory.refreshVisible(activity);
+        return true;
+    }
+
+    private static boolean hasCategoryThreads(int mode,Object heading){
+        List<?> rows;
+        synchronized(latest){rows=latest.get(mode);}
+        if(rows==null)return false;
+        String group=categoryKey(heading);
+        if(foldedCategories(mode).contains(group))return true;
+        for(int i=0;i+1<rows.size();i++){
+            Object item=rows.get(i);
+            String next=key(rows.get(i+1));
+            if(item!=null&&key(item)==null&&group.equals(categoryKey(item))
+                    &&next!=null&&!next.startsWith("board\n"))return true;
+        }
+        return false;
+    }
+
+    private static List<String> sectionOrder(int mode,Collection<String> sections){
+        Set<String> remaining=new LinkedHashSet<>(sections);
+        List<String> result=new ArrayList<>();
+        try{
+            JSONArray saved=new JSONArray(prefs().getString("sectionOrder:"+mode,"[]"));
+            for(int i=0;i<saved.length();i++){
+                String key=saved.optString(i);
+                if(remaining.remove(key))result.add(key);
+            }
+        }catch(JSONException ignored){}
+        // New custom labels appear above the existing categories.
+        JSONObject labels=visibleLabels(mode);
+        List<String> added=new ArrayList<>();
+        for(String key:new ArrayList<>(remaining)){
+            if(labels.has(key.substring(key.indexOf('\n')+1))){
+                added.add(key);remaining.remove(key);
+            }
+        }
+        result.addAll(0,added);
+        if(remaining.remove(FAVORITE_BOARDS_SECTION))result.add(added.size(),FAVORITE_BOARDS_SECTION);
+        result.addAll(remaining);
+        return result;
+    }
+
+    public static boolean legacyLabelLongClick(Object owner,android.widget.AdapterView<?> list,int position){
+        if(list==null||position<0||position>=list.getCount())return false;
+        Object fragment=owner;
+        if(owner.getClass().getName().endsWith("$9")){
+            try{fragment=NativeFields.find(owner.getClass(),"c").get(owner);}
+            catch(ReflectiveOperationException error){return false;}
+        }
+        return labelLongClick(fragment,list.getItemAtPosition(position));
+    }
+
+    public static boolean labelLongClick(Object fragment,Object row){
+        if(HomeThreadDrag.active(fragment))return true;
+        int mode=mode(fragment);
+        String oldName=customLabel(row,mode);
+        Activity activity=Haiagaru.toolbarActivity(fragment);
+        if(oldName==null||activity==null)return false;
+        EditText input=new EditText(activity);input.setSingleLine(true);input.setText(oldName);
+        input.setFilters(new android.text.InputFilter[]{new android.text.InputFilter.LengthFilter(60)});
+        new HaiagaruDialog.Builder(activity).setTitle("ラベル名を変更").setView(input)
+            .setNegativeButton("キャンセル",null).setPositiveButton("保存",(dialog,which)->{
+                String name=input.getText().toString().trim();
+                JSONObject labels=readLabels(mode);
+                if(name.isEmpty()||name.equals(oldName))return;
+                if(labels.has(name)){Toast.makeText(activity,"同じ名前のラベルがあります",Toast.LENGTH_SHORT).show();return;}
+                JSONArray members=labels.optJSONArray(oldName);
+                if(members==null)return;
+                ArrayList<String> order=orderedLabels(labels,mode);
+                int at=order.indexOf(oldName);
+                if(at<0)return;
+                try{labels.put(name,members);}
+                catch(JSONException error){return;}
+                labels.remove(oldName);
+                order.set(at,name);
+                String setting="foldedCategories:"+Math.abs(mode);
+                Set<String> folded=new HashSet<>(prefs().getStringSet(setting,Collections.emptySet()));
+                if(folded.remove(categoryKey(row)))folded.add(row.getClass().getName()+"\n"+name);
+                prefs().edit().putString("labels:"+mode,labels.toString())
+                    .putString("labelOrder:"+mode,new JSONArray(order).toString()).putStringSet(setting,folded).apply();
+                BrowsingHistory.refreshVisible(activity);
+            }).show();
+        return true;
+    }
+
+    private static JSONObject visibleLabels(int mode){
+        JSONObject result=new JSONObject();
+        for(int origin:new int[]{100,101,102,103,104,108,109}){
+            JSONObject labels=readLabels(origin);
+            Iterator<String> names=labels.keys();
+            while(names.hasNext()){
+                String name=names.next();
+                Set<String> defaults=Collections.singleton(Integer.toString(origin));
+                Set<String> targets=prefs().getStringSet("labelTargets:"+origin+":"+name,defaults);
+                if(origin!=mode&&!targets.contains(Integer.toString(mode)))continue;
+                if(origin==mode&&!targets.contains(Integer.toString(mode)))continue;
+                try{if(!result.has(name))result.put(name,labels.getJSONArray(name));}
+                catch(JSONException ignored){}
+            }
         }
         return result;
     }
+
+    private static JSONObject readLabels(int mode){
+        try{return new JSONObject(prefs().getString("labels:"+mode,"{}"));}
+        catch(JSONException invalid){return new JSONObject();}
+    }
+
+    static String customLabel(Object row,int mode){
+        if(row==null||isFavoriteBoardsRow(row)||key(row)!=null)return null;
+        String name=label(row);
+        if(!visibleLabels(mode).has(name))return null;
+        Object heading=labelHeading(Collections.singletonList(row),name);
+        return sameHeading(row,heading)?name:null;
+    }
+
+    private static boolean isBoard(String key){
+        return key!=null&&key.startsWith("board\n");
+    }
+
+    private static boolean isFavoriteBoardsRow(Object row){
+        return row!=null&&row.getClass().getName().equals("o.getAvailabilityStatus$write");
+    }
+
+    static String sectionKey(Object row){
+        if(row==null)return null;
+        if(isFavoriteBoardsRow(row))return FAVORITE_BOARDS_SECTION;
+        String id=key(row);
+        return id==null?categoryKey(row):isBoard(id)?FAVORITE_BOARDS_SECTION:null;
+    }
+
+    static boolean moveLabel(Object source,Object target,int mode){
+        List<?> rows=displayed(mode);
+        if(rows==null)return false;
+        List<String> order=displayedSections(rows,mode);
+        int from=order.indexOf(sectionKey(source)),to=order.indexOf(sectionKey(target));
+        if(from<0||to<0||from==to)return false;
+        order.add(to,order.remove(from));
+        prefs().edit().putString("sectionOrder:"+mode,new JSONArray(order).toString()).apply();
+        return true;
+    }
+
+    private static ArrayList<String> displayedSections(List<?> rows,int mode){
+        Set<String> sections=new LinkedHashSet<>();
+        if(rows!=null)for(Object row:rows){
+            String section=sectionKey(row);
+            if(section!=null)sections.add(section);
+        }
+        return new ArrayList<>(sections);
+    }
+
+    private static ArrayList<String> orderedLabels(JSONObject labels,int mode){
+        LinkedHashSet<String> names=new LinkedHashSet<>();
+        try{
+            JSONArray saved=new JSONArray(prefs().getString("labelOrder:"+mode,"[]"));
+            for(int i=0;i<saved.length();i++){
+                String name=saved.optString(i);
+                if(labels.has(name))names.add(name);
+            }
+        }catch(JSONException ignored){}
+        Iterator<String> remaining=labels.keys();
+        while(remaining.hasNext())names.add(remaining.next());
+        return new ArrayList<>(names);
+    }
+
+    private static void labelActions(Activity activity,int mode,List<?> rows,JSONObject labels,String name){
+        editLabel(activity,mode,rows,labels,name);
+    }
+
+    private static void confirmDeleteLabel(Activity activity,int mode,String name){
+        new HaiagaruDialog.Builder(activity).setTitle("ラベルを削除")
+            .setMessage("「"+name+"」を削除します。所属スレは元のカテゴリに戻ります。")
+            .setNegativeButton("キャンセル",null).setPositiveButton("削除",(dialog,which)->{
+                JSONObject labels=readLabels(mode);
+                if(!labels.has(name))return;
+                labels.remove(name);
+                prefs().edit().putString("labels:"+mode,labels.toString())
+                    .putString("labelOrder:"+mode,new JSONArray(orderedLabels(labels,mode)).toString()).apply();
+                BrowsingHistory.refreshVisible(activity);
+            }).show();
+    }
+
+    private static LinearLayout labelMoveButtons(Activity activity,int mode,ArrayList<String> order,int index){
+        LinearLayout controls=new LinearLayout(activity);
+        TextView position=new TextView(activity);
+        Button up=new Button(activity);up.setText("上のラベルに移動する");
+        Button down=new Button(activity);down.setText("下のラベルに移動する");
+        controls.setOrientation(LinearLayout.VERTICAL);
+        controls.addView(position);controls.addView(up);controls.addView(down);
+        String name=order.get(index);
+        Runnable update=()->{
+            int current=order.indexOf(name);
+            position.setText((current+1)+" / "+order.size());
+            up.setEnabled(current>0);
+            down.setEnabled(current<order.size()-1);
+        };
+        View.OnClickListener move=view->{
+            int current=order.indexOf(name),destination=current+(view==up?-1:1);
+            if(destination<0||destination>=order.size())return;
+            Collections.swap(order,current,destination);
+            prefs().edit().putString("sectionOrder:"+mode,new JSONArray(order).toString()).apply();
+            BrowsingHistory.refreshVisible(activity);
+            update.run();
+        };
+        up.setOnClickListener(move);down.setOnClickListener(move);update.run();
+        return controls;
+    }
+
+    private static Object labelHeading(List<?> source,String title){
+        for(Object row:source){
+            if(row==null)continue;
+            String name=row.getClass().getName();
+            String heading=name.startsWith("o.onAdDisplayed$")?"o.onAdDisplayed$read":
+                name.startsWith("o.Yy2$")?"o.Yy2$ComponentActivity":
+                name.startsWith("o.getAvailabilityStatus$")?"o.getAvailabilityStatus$IconCompatParcelizer":null;
+            if(heading==null)continue;
+            try{
+                Class<?> type=Class.forName(heading,false,row.getClass().getClassLoader());
+                java.lang.reflect.Constructor<?> ctor=type.getDeclaredConstructor(String.class);
+                ctor.setAccessible(true);
+                Object headingRow=ctor.newInstance(title);
+                labelRows.add(headingRow);
+                return headingRow;
+            }catch(ReflectiveOperationException error){return null;}
+        }
+        return null;
+    }
+
+    static void labels(Activity activity,int mode){
+        if(activity==null)return;
+        List<?> rows; synchronized(latest){rows=latest.get(mode);}
+        if(rows==null)rows=Collections.emptyList();
+        final List<?> availableRows=rows;
+        JSONObject labels=readLabels(mode);
+        ArrayList<String> names=new ArrayList<>();
+        names.add("ラベルを新規作成");
+        LinkedHashSet<String> editable=new LinkedHashSet<>(orderedLabels(labels,mode));
+        editable.addAll(orderedLabels(visibleLabels(mode),mode));
+        names.addAll(editable);
+        new HaiagaruDialog.Builder(activity).setTitle("スレのラベル")
+            .setItems(names.toArray(new String[0]),(dialog,index)->{
+                if(index>0){
+                    String name=names.get(index);
+                    if(labels.has(name)){labelActions(activity,mode,availableRows,labels,name);return;}
+                    for(int origin:new int[]{100,101,102,103,104,108,109}){
+                        JSONObject original=readLabels(origin);
+                        if(!original.has(name)||!prefs().getStringSet("labelTargets:"+origin+":"+name,
+                                Collections.singleton(Integer.toString(origin))).contains(Integer.toString(mode)))continue;
+                        List<?> originalRows;
+                        synchronized(latest){originalRows=latest.get(origin);}
+                        editLabel(activity,origin,originalRows==null?availableRows:originalRows,original,name,mode);
+                        return;
+                    }
+                }
+                EditText input=new EditText(activity);input.setSingleLine(true);input.setHint("ラベル名");
+                input.setFilters(new android.text.InputFilter[]{new android.text.InputFilter.LengthFilter(60)});
+                new HaiagaruDialog.Builder(activity).setTitle("ラベルを新規作成").setView(input)
+                    .setNegativeButton("キャンセル",null).setPositiveButton("次へ",(d,w)->{
+                        String name=input.getText().toString().trim();
+                        if(!name.isEmpty())editLabel(activity,mode,availableRows,labels,name);
+                    }).show();
+            }).setNegativeButton("閉じる",null).show();
+    }
+
+    private static void labelTargets(Activity activity,int origin,String name){
+        int[] modes={103,104,102,101};
+        String[] titles={"閲覧履歴","書き込み履歴","スレ","未読"};
+        String setting="labelTargets:"+origin+":"+name;
+        Set<String> selected=new HashSet<>(prefs().getStringSet(setting,Collections.singleton(Integer.toString(origin))));
+        boolean[] checked=new boolean[modes.length];
+        for(int i=0;i<modes.length;i++)checked[i]=selected.contains(Integer.toString(modes[i]));
+        new HaiagaruDialog.Builder(activity).setTitle("ラベルの表示先")
+            .setMultiChoiceItems(titles,checked,(dialog,index,on)->{
+                String target=Integer.toString(modes[index]);
+                if(on)selected.add(target);else selected.remove(target);
+            }).setNegativeButton("キャンセル",null).setPositiveButton("保存",(dialog,which)->{
+                prefs().edit().putStringSet(setting,selected).apply();
+                BrowsingHistory.refreshVisible(activity);
+            }).show();
+    }
+
+    private static void editLabel(Activity activity,int mode,List<?> rows,JSONObject labels,String name){
+        editLabel(activity,mode,rows,labels,name,mode);
+    }
+
+    private static void editLabel(Activity activity,int mode,List<?> rows,JSONObject labels,String name,int displayMode){
+        LinkedHashMap<String,String> threads=new LinkedHashMap<>();
+        for(Object row:rows){
+            String id=key(row);
+            if(id!=null&&!id.startsWith("board\n"))threads.putIfAbsent(id,label(row));
+        }
+        ArrayList<String> ids=new ArrayList<>(threads.keySet());
+        Set<String> members=new LinkedHashSet<>();
+        JSONArray saved=labels.optJSONArray(name);
+        if(saved!=null)for(int i=0;i<saved.length();i++)members.add(saved.optString(i));
+        boolean[] checked=new boolean[ids.size()];
+        for(int i=0;i<ids.size();i++)checked[i]=members.contains(ids.get(i));
+        LinearLayout title=new LinearLayout(activity);
+        title.setOrientation(LinearLayout.VERTICAL);
+        TextView heading=new TextView(activity);
+        heading.setText("所属スレを編集："+name);
+        heading.setTextSize(18);
+        title.addView(heading);
+        Button destinations=new Button(activity);
+        destinations.setText("ラベルの表示先");
+        destinations.setOnClickListener(view->labelTargets(activity,mode,name));
+        title.addView(destinations);
+        Object editedHeading=labelHeading(rows,name);
+        if(editedHeading!=null&&readLabels(mode).has(name)){
+            String editedKey=categoryKey(editedHeading);
+            ArrayList<String> ordering=displayedSections(displayed(displayMode),displayMode);
+            int position=ordering.indexOf(editedKey);
+            if(position>=0)title.addView(labelMoveButtons(activity,displayMode,ordering,position));
+        }
+        new HaiagaruDialog.Builder(activity).setCustomTitle(title)
+            .setNeutralButton("ラベルを削除",(dialog,which)->confirmDeleteLabel(activity,mode,name))
+            .setMultiChoiceItems(threads.values().toArray(new String[0]),checked,(d,i,on)->{
+                if(on)members.add(ids.get(i));else members.remove(ids.get(i));
+            }).setPositiveButton("保存",(d,w)->{
+                try{
+                    JSONObject updated=readLabels(mode);
+                    boolean created=!updated.has(name);
+                    updated.put(name,new JSONArray(members));
+                    SharedPreferences.Editor editor=prefs().edit().putString("labels:"+mode,updated.toString());
+                    if(created){
+                        ArrayList<String> order=orderedLabels(updated,mode);
+                        order.remove(name);order.add(0,name);
+                        editor.putString("labelOrder:"+mode,new JSONArray(order).toString());
+                    }
+                    editor.apply();
+                    BrowsingHistory.refreshVisible(activity);
+                }
+                catch(JSONException error){android.util.Log.w("Haiagaru","Could not save HOME label",error);}
+            }).setNegativeButton("キャンセル",null).show();
+    }
+
     public static void menu(Object fragment,Menu menu){
         ResponseNotes.homeMenu(fragment,menu);
         GlobalSearchHome.menu(fragment,menu);
@@ -106,28 +526,90 @@ public final class HomeThreadOrder {
             Context context=Haiagaru.applicationContextForExtension();
             menu.findItem(KEYWORD_DISPLAY_MENU).setVisible(context!=null&&SettingsProfiles.prefs(context).getBoolean(KEYWORD_MENU,false));
         }
-        if(menu==null)return;MenuItem item=menu.findItem(MENU);if(item==null){item=menu.add(Menu.NONE,MENU,Menu.NONE,"並び替える");item.setShowAsAction(MenuItem.SHOW_AS_ACTION_NEVER);item.setOnMenuItemClickListener(v->{show(Haiagaru.toolbarActivity(fragment),mode(fragment));return true;});}item.setVisible(enabled()&&target(mode(fragment)));
+        if(menu==null)return;
+        MenuItem item=menu.findItem(MENU);if(item==null){item=menu.add(Menu.NONE,MENU,Menu.NONE,"並び替える");item.setShowAsAction(MenuItem.SHOW_AS_ACTION_NEVER);item.setOnMenuItemClickListener(v->{showInline(fragment);return true;});}item.setTitle(HomeThreadDrag.active(fragment)?"並び替えを終了":"並び替える");item.setVisible(enabled()&&target(mode(fragment)));
     }
-    static void show(Activity activity,final int mode){
-        if(activity==null||activity.isFinishing())return;List<?> source;synchronized(latest){source=latest.get(mode);}
-        if(source==null){Toast.makeText(activity,"HOMEの対象タブを表示してから開いてください",Toast.LENGTH_LONG).show();return;}
-        List<?> sorted=apply(source,mode);ArrayList<Object> rows=new ArrayList<>();HashSet<String> seen=new HashSet<>();for(Object row:sorted){String key=key(row);if(key!=null&&seen.add(key))rows.add(row);}
-        if(rows.isEmpty()){Toast.makeText(activity,mode==107?"並び替える板がありません":"並び替えるスレがありません",Toast.LENGTH_LONG).show();return;}
-        ArrayList<String> order=new ArrayList<>();for(Object row:rows)order.add(key(row));Map<String,String> titles=new HashMap<>();for(Object row:rows){String key=key(row);try{String type=row.getClass().getName();titles.put(key,String.valueOf(NativeFields.find(row.getClass(),type.equals("o.onAdDisplayed$setIcon")?"e":type.equals("o.Yy2$open")?"k":type.equals("o.getAvailabilityStatus$r8lambdawJ5MHcSJed_CjC7r4OWD0UxyJsQ")?"m":type.equals("o.Yy2$RemoteActionCompatParcelizer")?"e":type.equals("o.getAvailabilityStatus$ComponentActivity")?"d":"e").get(row)));}catch(Exception ignored){titles.put(key,key);}}Set<String> pinned=new HashSet<>(prefs().getStringSet("pins:"+Math.abs(mode),Collections.emptySet()));
-        LinearLayout box=new LinearLayout(activity);box.setOrientation(1);TextView help=new TextView(activity);help.setText("右のつまみを上下へドラッグして並び替えます。ピンのボタンでピン留めできます。ピン留めした項目は先頭へ表示します。変更は保存で確定します。");box.addView(help);
-        ListView list=new ListView(activity);box.addView(list,new LinearLayout.LayoutParams(-1,(int)(420*activity.getResources().getDisplayMetrics().density)));
-        Runnable refresh=()->{ArrayList<String> labels=new ArrayList<>();for(String key:order){String title=titles.get(key);labels.add((pinned.contains(key)?"📌 ":"")+title);}list.setAdapter(new ArrayAdapter<>(activity,android.R.layout.simple_list_item_1,labels));};
-        HaiagaruDialog dialog=new HaiagaruDialog.Builder(activity).setTitle(mode==107?"HOMEの板を並び替える":"HOMEのスレを並び替える").setView(box).setNegativeButton("キャンセル",null).setNeutralButton("標準の並び替えに戻す",(d,w)->{prefs().edit().remove("order:"+Math.abs(mode)).remove("pins:"+Math.abs(mode)).apply();BrowsingHistory.refreshVisible(activity);}).setPositiveButton("保存",(d,w)->{prefs().edit().putString("order:"+Math.abs(mode),new JSONArray(order).toString()).putStringSet("pins:"+Math.abs(mode),pinned).apply();BrowsingHistory.refreshVisible(activity);}).create();
-        list.setTag(DRAG_TAG,new DragOrder(){
-            public boolean move(int from,int to){
-                if(from<0||to<0||from>=order.size()||to>=order.size()||from==to)return false;
-                if(pinned(from)!=pinned(to))return false;
-                order.add(to,order.remove(from));refresh.run();dialog.refresh();return true;
+    private static void showInline(Object fragment){
+        Activity activity=Haiagaru.toolbarActivity(fragment);if(activity==null)return;
+        try{View root=(View)fragment.getClass().getMethod("getView").invoke(fragment);
+            int selected=mode(fragment);
+            HomeThreadDrag.toggle(activity,fragment,root,selected);
+        }catch(Exception error){android.util.Log.w("Haiagaru","HOME drag unavailable",error);}
+    }
+    static List<?> displayed(int mode){synchronized(latest){List<?> rows=latest.get(mode);return rows==null?null:new ArrayList<>(apply(rows,mode));}}
+    static void confirmResetOrder(Activity activity,int mode){
+        new HaiagaruDialog.Builder(activity).setTitle("元の並び順に戻す")
+            .setMessage("この一覧のスレとカテゴリを、手動で並び替える前の順序に戻します。ラベルと所属スレは残ります。")
+            .setNegativeButton("キャンセル",null).setPositiveButton("戻す",(dialog,which)->{
+                int key=Math.abs(mode);
+                prefs().edit().remove("order:"+key).remove("categories:"+key)
+                    .remove("labelOrder:"+key).remove("sectionOrder:"+key).apply();
+                BrowsingHistory.refreshVisible(activity);
+            }).show();
+    }
+
+    static Set<String> pins(int mode){return prefs().getStringSet("pins:"+Math.abs(mode),Collections.emptySet());}
+    static boolean pinned(String key,int mode){return pins(mode).contains(key);}
+    static void togglePin(String key,int mode){
+        if(key==null)return;Set<String> pins=new HashSet<>(prefs().getStringSet("pins:"+Math.abs(mode),Collections.emptySet()));
+        if(!pins.remove(key))pins.add(key);prefs().edit().putStringSet("pins:"+Math.abs(mode),pins).apply();
+    }
+    static boolean dropThread(Object thread,Object destination,int mode,boolean downward){
+        List<?> source;
+        synchronized(latest){source=latest.get(mode);}
+        if(source==null)return false;
+        ArrayList<Object> rows=new ArrayList<>(apply(source,mode,false));
+        int from=rows.indexOf(thread);
+        if(from<0)return false;
+        rows.remove(from);
+        for(int i=0;i<rows.size();i++){
+            Object row=rows.get(i);
+            if(row!=destination&&!sameHeading(row,destination))continue;
+            boolean heading=key(row)==null;
+            int insertion=i+(heading||downward?1:0);
+            rows.add(insertion,thread);
+            saveDisplay(rows,mode);
+            return true;
+        }
+        return false;
+    }
+
+    private static void saveDisplay(List<?> rows,int mode){
+        ArrayList<String> order=new ArrayList<>();JSONObject categories=new JSONObject();String category="";
+        for(Object row:rows){String id=key(row);if(id==null){category=categoryKey(row);continue;}order.add(id);try{categories.put(id,category);}catch(JSONException ignored){}}
+        JSONObject labels=readLabels(mode);
+        Iterator<String> names=labels.keys();
+        while(names.hasNext()){
+            String name=names.next();
+            Object heading=labelHeading(rows,name);
+            if(heading==null)continue;
+            String target=categoryKey(heading);
+            Set<String> members=new LinkedHashSet<>();
+            JSONArray previous=labels.optJSONArray(name);
+            if(previous!=null)for(int i=0;i<previous.length();i++)members.add(previous.optString(i));
+            for(String id:order){
+                if(target.equals(categories.optString(id)))members.add(id);
+                else members.remove(id);
             }
-            public boolean pinned(int position){return position>=0&&position<order.size()&&pinned.contains(order.get(position));}
-            public void togglePin(int position){if(position<0||position>=order.size())return;String key=order.get(position);if(!pinned.remove(key))pinned.add(key);order.sort(Comparator.comparingInt(k->pinned.contains(k)?0:1));refresh.run();dialog.refresh();}
-        });
-        list.setOnItemLongClickListener((parent,view,position,id)->{String key=order.get(position);new HaiagaruDialog.Builder(activity).setTitle("位置を変更").setItems(new String[]{"一つ上へ","一つ下へ",pinned.contains(key)?"ピン留めを解除":"ピン留め"},(d,action)->{int at=order.indexOf(key);if(action==0&&at>0)Collections.swap(order,at,at-1);if(action==1&&at<order.size()-1)Collections.swap(order,at,at+1);if(action==2){if(!pinned.remove(key))pinned.add(key);}order.sort(Comparator.comparingInt(k->pinned.contains(k)?0:1));refresh.run();dialog.refresh();}).setNegativeButton("閉じる",null).show();return true;});refresh.run();dialog.show();
+            try{labels.put(name,new JSONArray(members));}
+            catch(JSONException error){android.util.Log.w("Haiagaru","Could not update HOME label",error);}
+        }
+        prefs().edit().putString("order:"+Math.abs(mode),new JSONArray(order).toString())
+            .putString("categories:"+Math.abs(mode),categories.toString())
+            .putString("labels:"+mode,labels.toString()).apply();
+    }
+    static boolean sameHeading(Object first,Object second){
+        return first!=null&&second!=null&&first.getClass()==second.getClass()
+            &&key(first)==null&&key(second)==null&&categoryKey(first).equals(categoryKey(second));
+    }
+
+    private static String categoryKey(Object row){return row.getClass().getName()+"\n"+label(row);}
+    private static String label(Object row){
+        if(row==null)return "";
+        String type=row.getClass().getName();String field=type.equals("o.onAdDisplayed$setIcon")?"e":type.equals("o.Yy2$open")?"k":type.equals("o.getAvailabilityStatus$r8lambdawJ5MHcSJed_CjC7r4OWD0UxyJsQ")?"m":type.equals("o.Yy2$RemoteActionCompatParcelizer")?"e":type.equals("o.getAvailabilityStatus$ComponentActivity")?"d":null;
+        try{if(field!=null)return String.valueOf(NativeFields.find(row.getClass(),field).get(row));
+            for(java.lang.reflect.Field f:NativeFields.all(row.getClass()))if(f.getType()==String.class){f.setAccessible(true);Object value=f.get(row);if(value!=null)return value.toString();}
+        }catch(Exception ignored){}return row.toString();
     }
     public static boolean click(Object fragment,int action){
         if(action==KEYWORD_DISPLAY_MENU){
@@ -138,7 +620,7 @@ public final class HomeThreadOrder {
         }
         if(action!=MENU)return false;
         Activity activity=Haiagaru.toolbarActivity(fragment);
-        if(activity!=null)show(activity,mode(fragment));
+        if(activity!=null)showInline(fragment);
         return true;
     }
     private HomeThreadOrder(){}

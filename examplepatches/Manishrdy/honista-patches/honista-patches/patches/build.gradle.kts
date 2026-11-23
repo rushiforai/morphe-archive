@@ -31,9 +31,9 @@ val verifyBundle by tasks.registering(JavaExec::class) {
     classpath = sourceSets["test"].runtimeClasspath
     mainClass.set("local.honista.VerifyBundleKt")
     maxHeapSize = "6g"
-    args(file("build/libs/patches-1.0.0.mpp").absolutePath,
-        rootProject.file("../Honista_v13.0__x64.apk").absolutePath,
-        rootProject.file("../output/Honista-v13.0-sponsored-filter-fixed.apk").absolutePath,
+    args(file("build/libs/patches-${project.version}.mpp").absolutePath,
+        rootProject.file("../apk/Honista_v13.1__x64.apk").absolutePath,
+        rootProject.file("../output/Honista-v13.1-sponsored-filter-fixed.apk").absolutePath,
         rootProject.file("../analysis/morphe-verified").absolutePath,
         "accept", rootProject.file("audit/classes.txt").absolutePath)
 }
@@ -42,9 +42,9 @@ val verifyRejection by tasks.registering(JavaExec::class) {
     classpath = sourceSets["test"].runtimeClasspath
     mainClass.set("local.honista.VerifyBundleKt")
     maxHeapSize = "6g"
-    args(file("build/libs/patches-1.0.0.mpp").absolutePath,
-        rootProject.file("../output/Honista-v13.0-sponsored-filter-fixed.apk").absolutePath,
-        rootProject.file("../output/Honista-v13.0-sponsored-filter-fixed.apk").absolutePath,
+    args(file("build/libs/patches-${project.version}.mpp").absolutePath,
+        rootProject.file("../output/Honista-v13.1-sponsored-filter-fixed.apk").absolutePath,
+        rootProject.file("../output/Honista-v13.1-sponsored-filter-fixed.apk").absolutePath,
         rootProject.file("../analysis/morphe-rejected").absolutePath,
         "reject")
 }
@@ -55,7 +55,7 @@ val exportBaseline by tasks.registering(JavaExec::class) {
     dependsOn("testClasses")
     classpath = sourceSets["test"].runtimeClasspath
     mainClass.set("local.honista.ExportBaselineKt")
-    args(rootProject.file("../Honista_v13.0__x64.apk").absolutePath,
+    args(rootProject.file("../apk/Honista_v13.1__x64.apk").absolutePath,
         rootProject.file("audit/classes.txt").absolutePath,
         file("src/main/resources/honista/baseline.tsv").absolutePath)
 }
@@ -114,7 +114,7 @@ val compareCurrentOutput by tasks.registering(JavaExec::class) {
     classpath = sourceSets["test"].runtimeClasspath
     mainClass.set("local.honista.CompareApkKt")
     maxHeapSize = "6g"
-    args(rootProject.file("../output/Honista-v13.0-morphe-default-unsigned.apk").absolutePath,
-        rootProject.file("../output/Honista-v13.0-sponsored-filter-fixed.apk").absolutePath,
+    args(rootProject.file("../output/Honista-v13.1-morphe-default-unsigned.apk").absolutePath,
+        rootProject.file("../output/Honista-v13.1-sponsored-filter-fixed.apk").absolutePath,
         rootProject.file("audit/classes.txt").absolutePath)
 }

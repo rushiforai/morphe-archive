@@ -3,12 +3,15 @@ package patches.deezer
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.resourcePatch
+import app.morphe.patcher.extensions.InstructionExtensions.instructions
+import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
+import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import org.w3c.dom.Element
 
 private const val ANDROID = "http://schemas.android.com/apk/res/android"
 
 private val trackingResources = resourcePatch {
-    dependsOn(originalInput)
+    dependsOn(deezerBase)
     execute {
         document("AndroidManifest.xml").use { doc ->
             val applications = doc.getElementsByTagName("application")
@@ -45,7 +48,6 @@ private val trackingResources = resourcePatch {
 
             // Facebook is used for login; keep the provider, stop automatic event and
             // advertising-ID collection.
-            meta("com.facebook.sdk.AutoInitEnabled", "false")
             meta("com.facebook.sdk.AutoLogAppEventsEnabled", "false")
             meta("com.facebook.sdk.AdvertiserIDCollectionEnabled", "false")
 
@@ -67,10 +69,9 @@ private val trackingResources = resourcePatch {
             }
             removed.forEach { it.parentNode.removeChild(it) }
 
-            // The Facebook and Adjust manifest providers initialize their SDKs before
-            // Application.onCreate; disable them so the patched initializers are final.
+            // Disable only Adjust's attribution lifecycle provider. Facebook's native
+            // initializer remains available for login; event/ad-ID flags above opt out.
             listOf(
-                "com.facebook.internal.FacebookInitProvider",
                 "com.adjust.sdk.SystemLifecycleContentProvider",
             ).forEach { name ->
                 val providers = doc.getElementsByTagName("provider")
@@ -93,64 +94,47 @@ val deezerDisableTracking = bytecodePatch(
     default = true,
 ) {
     compatibleWith(deezer)
-    dependsOn(originalInput, trackingResources, deezerKeepSessionOnColdStart)
+    dependsOn(deezerBase, trackingResources, deezerKeepSessionOnColdStart)
 
     execute {
-        // Adjust is never configured, so its lifecycle provider and event calls are inert.
-        exact("LIIlIIIIIIIllIIII;", "lllIlllIlllIl", "V", "Landroid/content/Context;").method
-            .addInstructions(0, "return-void")
-        exact(
-            "LIlllIlIlIIIIIIlI;",
-            "lIllllIIIIII",
-            "V",
-            "Ljava/lang/String;",
-            "Ljava/lang/String;",
-            "Z",
-            "Z",
-            "Z",
-        ).method.addInstructions(0, "return-void")
-
-        // Segment's public event entry points and the central delivery method.
-        exact(
-            "LlllIIIllIll;",
-            "IIllIIIlIIIllII",
-            "V",
-            "LlllIIIllIll;",
-            "Ljava/lang/String;",
-            "Lkotlinx/serialization/json/llIIlllIIlIlIII;",
-            "I",
-        ).method.addInstructions(0, "return-void")
-        exact(
-            "LlllIIIllIll;",
-            "lIllIIIlIlIlll",
-            "V",
-            "Lcom/segment/analytics/kotlin/core/lIllllIIIIII;",
-            "LIlIIlIIIlIlIllII;",
-        ).method.addInstructions(0, "return-void")
-
-        // Segment's Braze destination must not configure the Braze SDK.
-        exact(
-            "LIIlIlIlllIlllIl;",
-            "lllIlIIIlllIIII",
-            "V",
-            "Lcom/segment/analytics/kotlin/core/Settings;",
-            "I",
-        ).method.addInstructions(0, "return-void")
-
-        // Firebase Sessions records foreground/background sessions separately from
-        // Analytics. Remove its lifecycle callbacks and the session begin/end paths.
-        listOf(
-            "llIIlllIIlIlIII",
-            "lllIlIIIlllIIII",
-        ).forEach { name ->
-            exact("LIllIIllIlllIllIl;", name, "V").method.addInstructions(0, "return-void")
+        trackingMethods2703.forEach { binding ->
+            disableTracking2703(exact(binding.owner, binding.name, "V", *binding.parameters.toTypedArray()).method, binding)
         }
-        listOf(
-            "IllIIIlIIII",
-            "lIllIIIlIlIlll",
-        ).forEach { name ->
-            exact("LIllIIllIlllIllIl;", name, "Z", "LIllIlllIlllIlII;").method
-                .addInstructions(0, "const/4 v0, 0x0\nreturn v0")
-        }
+        // 9.0.27.3 Sessions uses LocalOverrideSettings, not the old lifecycle client.
+        // Its native policy honors firebase_sessions_enabled=false before remote fallback.
+        val local = exact("LIIlIlllIIIlllIII;", "llIIIIIIlIIIIll", "Ljava/lang/Boolean;").method
+        check(local.instructions.any {
+            (it as? ReferenceInstruction)?.reference?.toString() == "firebase_sessions_enabled"
+        }) { "Deezer Firebase Sessions local opt-out contract changed" }
     }
+}
+
+internal data class TrackingMethod2703(
+    val owner: String, val name: String, val parameters: List<String>, val anchor: String,
+)
+
+internal val trackingMethods2703 = listOf(
+    TrackingMethod2703("LIllllIllIIIlI;", "IIIlIIllIlIllIll", listOf("Landroid/content/Context;"),
+        "Lcom/adjust/sdk/Adjust;->initSdk(Lcom/adjust/sdk/AdjustConfig;)V"),
+    TrackingMethod2703("LIIlIllIIlIlIIIll;", "IllIlIlIIlIllIll",
+        listOf("Ljava/lang/String;", "Ljava/lang/String;", "Z", "Z", "Z"),
+        "Lcom/adjust/sdk/Adjust;->trackEvent(Lcom/adjust/sdk/AdjustEvent;)V"),
+    TrackingMethod2703("LlIlIlIIIllIIIlI;", "IIlllIlIIlIlII",
+        listOf("LlIlIlIIIllIIIlI;", "Ljava/lang/String;", "Lkotlinx/serialization/json/IIIIIllIlIIllll;", "I"),
+        "Lcom/segment/analytics/kotlin/core/TrackEvent;"),
+    TrackingMethod2703("LlIlIlIIIllIIIlI;", "IIllllIIIIIlIIl",
+        listOf("Lcom/segment/analytics/kotlin/core/IllIlIlIIlIllIll;", "LlIIlllIIlIIIll;"),
+        "applying base attributes on "),
+    TrackingMethod2703("LIIIIIlIIIIIIlllI;", "llIIIIIIlIIIIll",
+        listOf("Lcom/segment/analytics/kotlin/core/Settings;", "I"),
+        "Lcom/braze/Braze\$Companion;->configure(Landroid/content/Context;Lcom/braze/configuration/BrazeConfig;)Z"),
+)
+
+/** Fail on a changed native sink, rather than silently returning from an unrelated overload. */
+internal fun disableTracking2703(method: MutableMethod, binding: TrackingMethod2703) {
+    check(method.definingClass == binding.owner && method.name == binding.name && method.returnType == "V" &&
+        method.parameterTypes.map(CharSequence::toString) == binding.parameters && method.instructions.any {
+            (it as? ReferenceInstruction)?.reference?.toString()?.contains(binding.anchor) == true
+        }) { "Deezer 9.0.27.3 tracking sink changed: ${binding.owner}->${binding.name}" }
+    method.addInstructions(0, "return-void")
 }

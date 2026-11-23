@@ -2,7 +2,7 @@
 
 Gebruik de volledige catalogus van Deezer, verwijder advertenties en abonnementsprompts, en houd de auto-mediabrowser bruikbaar met DriveDeck, Gearslip of een andere geschikte Android Auto-host.
 
-**Appversie:** 9.0.26.3 · **Build:** 9002603 · **Origineel bestand:** APKM
+**Appversie:** 9.0.27.3 · **Build:** 9002703 · **Origineel bestand:** APKM
 
 [Gebruik je originele APKM](../guides/downloads.md#local-original-inputs){ .md-button .md-button--primary }
 
@@ -12,12 +12,21 @@ Selecteer het volledige originele archief voor deze versie in Morphe Manager, in
 
 | Patch | Standaard | Wat verandert er? |
 | --- | --- | --- |
-| **Allow any Android Auto host** | Aan | Laat de auto-mediabrowser van Deezer elke Android Auto-host accepteren via de ingebouwde Android Auto-structuur, met Home, Library, Recent en Explore plus de eigen Up next-wachtrij van Deezer. |
-| **Enable full streaming** | Aan | Houdt volledige nummers speelbaar voor het aangemelde account: verwijdert preview- en apparaatlimiet-oordelen, behoudt offline- en radiorechten, wist de streamingtijdslimiet en laat catalogusitems via Deezer's eigen mediaservice afspelen. |
 | **Remove advertising** | Aan | Schakelt banner-, native-, audio- en preroll-advertenties uit. Weergave gaat verder zonder advertentiepauze en de audio-advertentielancering krijgt nooit zijn advertentiedata. |
 | **Disable tracking** | Aan | Schakelt Adjust-initialisatie en -events, Segment-eventlevering en de Braze-bestemming, de Firebase Analytics/Crashlytics/Performance/Sessions-verzamelaars, automatische Facebook-app-events en advertentie-ID's uit. |
-| **Remove premium upsell UI** | Aan | Verwijdert de Premium-tab uit de onderste navigatiebalk, de Get Premium-knop op het gebruikersprofiel, de conversiebanner en de Plan management-rij in Instellingen, en toont het gratis accountabonnement als Deezer Premium. De rest van Instellingen, profiel, account en weergave blijft intact. |
-| **Remove subscription paywalls** | Aan | Slaat de abonnementenpagina bij het opstarten over (behandelt het account als niet wachtend op betaling en negeert de no-freemium-startdoorverwijzing), verbruikt de Premium-tab voordat die start, leidt de Premium-startactiviteit naar Home in plaats van naar de launcher, blokkeert de premiumtab-webviewpaywall na het aanmelden en sluit de artiestenpaywall, trial-start en aanbiedingsdialoogvensters na hun normale lifecycle. |
+| **Search and sort playlists** | Aan | Toont de oorspronkelijke zoekfunctie boven de afspeellijst en Sorteren, met behoud van eigendoms- en hitlijstcontroles. |
+| **Player queue shortcuts** | Aan | Toont de bestaande opties voor toevoegen aan de wachtrij en hierna afspelen in het volledige spelermenu wanneer deze beschikbaar zijn voor het gekozen nummer. |
+| **Enable queue item selection** | Aan | Laat de autohost een specifieke vermelding in de huidige Deezer-wachtrij kiezen. Keuzes uit een vervangen wachtrij vervallen en het actieve wachtrij-item volgt de huidige vermelding. |
+| **Android Auto API 9 media surface** | Aan | Voegt een autobrowser en speler toe. Laat geschikte aangepaste hosts toe en gebruikt de API 9-weergave alleen als de host API 9 onderhandelt; lagere niveaus behouden de terugvalweergave. |
+| **Google sign-in through microG-RE** | Aan | Leidt Google-accountkeuze en autorisatie via de geïnstalleerde microG-RE, met Deezer’s oorspronkelijke OAuth-identiteit en standaard pakketnaam. |
+| **Remove premium upsell UI** | Aan | Verwijdert de Premium-tab, profielpromotie, conversiebanner en Plan management-rij in Instellingen, abonnementsbanner bij Gedownloade muziek en menuoptie Luisteren zonder advertenties. Toont het gratis abonnement als Deezer Premium; account en afspelen blijven intact. |
+| **Enable lyrics** | Aan | Gebruikt eerst Deezers songteksten en anders passende gewone of gesynchroniseerde teksten van LRCLIB. De knop volgt bruikbare data. LRCLIB ontvangt trackmetadata; Deezer- en Google-tokens worden nooit naar LRCLIB gestuurd. |
+| **Enable offline downloads** | Aan | Schakelt de oorspronkelijke downloads van albums, afspeellijsten en favoriete nummers in en verwijdert het upgrade-aanbod. Deezer beheert opslag, bibliotheekregistratie en offline afspelen. Afzonderlijke nummers volgen Deezers normale werkwijze via de bibliotheek of een afspeellijst. |
+| **Enable full streaming** | Aan | Herstelt de afspeelcontroles voor volledige nummers, zonder het account of de mediadienst te veranderen. |
+| **Remove subscription paywalls** | Aan | Slaat de land-/abonnementspagina bij opstarten over en sluit abonnementsprompts. |
+| **Allow any Android Auto host** | Aan | Laat de oorspronkelijke mediabrowser en de template-autoservice van Deezer geschikte aangepaste hosts toelaten. |
+
+Deze port is uitsluitend bedoeld voor 9.0.27.3. Alle dertien patches zijn standaard geselecteerd.
 
 ## Weergave
 
@@ -35,6 +44,6 @@ De mediabrowserservice van Deezer controleert pakket en ondertekeningscertificaa
 
 ## Voor gebruik
 
-Meld je eerst op de telefoon aan bij Deezer. Een gepatchte APK heeft een nieuw certificaat en kan niet in-place via de Play Store worden bijgewerkt.
+Gebruik de standaardinstallatie `deezer.android.app` en meld je eerst op de telefoon aan. Kies die Deezer-vermelding in de autohost als er ook nog een oudere gekloonde kopie is geïnstalleerd. Een gepatchte APK heeft een nieuw certificaat en kan niet in-place via de Play Store worden bijgewerkt.
 
-[Installatie](../guides/install.md) · [Patches kiezen](../guides/choose-patches.md) · [Compatibiliteit en standaardkeuzes](../reference/catalogue.md)
+[Installatie](../guides/install.md) · [Patches kiezen](../guides/choose-patches.md) · [Compatibiliteit en standaardkeuzes](../reference/catalogue.md) · [Dekking en vergelijking](../guides/deezer-patches.md)

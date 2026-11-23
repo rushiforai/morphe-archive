@@ -20,10 +20,19 @@ jobs:
           ref: dev
           fetch-depth: 0
 
+      - name: Setup Java
+        uses: actions/setup-java@v6
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+
+      - name: Make gradlew executable
+        run: chmod +x ./gradlew
 
       - name: Check for new MyGate version
         id: check_version

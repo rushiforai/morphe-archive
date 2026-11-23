@@ -220,13 +220,10 @@ public final class MorpheSettings {
         return prefs(context).getBoolean(KEY_PROFILE, true);
     }
 
+    /** Asked on every comment bind, so the application context comes from ModernUi's kept reference. */
     public static boolean inlineComments() {
-        try {
-            Object app = Class.forName("o.o.joey.MyApplication").getMethod("p").invoke(null);
-            if (app instanceof Context) return inlineComments((Context) app);
-        } catch (Throwable ignored) {
-        }
-        return true;
+        Context app = ModernUi.getContext();
+        return app == null || inlineComments(app);
     }
 
     public static boolean autoplay(Context context) {
@@ -239,11 +236,8 @@ public final class MorpheSettings {
     }
 
     public static boolean youtubeInline() {
-        try {
-            Object app = Class.forName("o.o.joey.MyApplication").getMethod("p").invoke(null);
-            if (app instanceof Context) return youtubeInline((Context) app);
-        } catch (Throwable ignored) {
-        }
+        Context app = ModernUi.getContext();
+        if (app != null) return youtubeInline(app);
         return false;
     }
 
@@ -273,11 +267,8 @@ public final class MorpheSettings {
     }
 
     public static boolean tooltipsDisabled() {
-        try {
-            Object app = Class.forName("o.o.joey.MyApplication").getMethod("p").invoke(null);
-            if (app instanceof Context) return tooltipsDisabled((Context) app);
-        } catch (Throwable ignored) {
-        }
+        Context app = ModernUi.getContext();
+        if (app != null) return tooltipsDisabled(app);
         return false;
     }
 

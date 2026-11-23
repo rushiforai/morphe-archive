@@ -26,6 +26,10 @@ import app.ckzorigins.patches.shared.ByteEdit
  * AMMO_REFILL_POPUP nops InventoryShopItem.OnPurchase's ShowInfoPopup after a
  * Glu-credit weapon buy. The AddConsumable("AmmoRefill") grant stays. It is not
  * in the extracted list; disableAmmoRefillPopupPatch applies it.
+ * HUD_RELOAD rewrites HudController.Update so the ammo label reads 0 while
+ * Human.get_IsReloading, which trips the stock ReloadLabel (< 40% of clip).
+ * Firearm._ammo is not written. It is not in the extracted list;
+ * reloadHudPatch applies it.
  */
 internal object DllEdits {
     const val PATH = "assets/bin/Data/Managed/Assembly-CSharp.dll"
@@ -272,5 +276,15 @@ internal object DllEdits {
             "28701000067bcd170004728240017028ca0d00066f4420000626",
             "0000000000000000000000000000000000000000000000000000",
         ), // InventoryShopItem::OnPurchase ShowInfoPopup
+    )
+
+    val HUD_RELOAD = listOf(
+        ByteEdit(
+            0x9BE55,
+            "027b45150004066f911400064011000000027b46150004066f8f1400063b63000000",
+            "02027b341500046f771200062c03162b06066f911400067d45150004380100000000",
+        ), // HudController::Update
+        ByteEdit(0x9BE82, "066f91140006", "027b45150004"), // HudController::Update
+        ByteEdit(0x9BEC2, "02066f911400067d45150004", "000000000000000000000000"), // HudController::Update
     )
 }

@@ -1,3 +1,13 @@
+## 2.1.8 (2026-11-22)
+
+### 🐛 Bug Fixes
+
+* **nicoid:** Fix the central play/pause button disappearing when switching between normal and fullscreen playback while the video is paused
+
+### 🔧 Improvements
+
+* **nicoid:** Improve paused fullscreen transitions by keeping playback controls available without waiting for another decoded video frame
+
 ## 2.1.7 (2026-11-22)
 
 ### 🐛 Bug Fixes

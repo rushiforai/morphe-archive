@@ -277,8 +277,10 @@
     <string name="morphe_playback_in_feeds_entry_off">כבוי</string>
     <string name="morphe_playback_in_feeds_entry_wifi_only">רק Wi-Fi</string>
     <string name="morphe_playback_in_feeds_title">השמעה בפידים</string>
-    <string name="morphe_player_control_buttons_background_opacity_summary">כוונן את אטימות הרקע מאחורי כפתורי בקרת הנגן ופס הזמן (0 בלתי נראה, 100 אטום)</string>
-    <string name="morphe_player_control_buttons_background_opacity_title">אטימות הרקע של כפתורי השליטה</string>
+    <string name="morphe_player_transport_background_opacity_summary">כוונון אטימות הרקע של כפתורי ההפעלה, ההשהיה, ההפעלה מחדש, הבא והקודם</string>
+    <string name="morphe_player_transport_background_opacity_title">אטימות הרקע של כפתורי ההפעלה</string>
+    <string name="morphe_player_other_overlay_background_opacity_summary">כוונון אטימות הרקע של שאר כפתורי הנגן ותצוגת הזמן</string>
+    <string name="morphe_player_other_overlay_background_opacity_title">אטימות הרקע של שאר רכיבי השכבה</string>
     <string name="morphe_playlist_hide_removal_snackbar_summary">האישור לא יוצג לאחר הסרת סרטון מרשימת השמעה</string>
     <string name="morphe_playlist_hide_removal_snackbar_title">הסתרת הודעת ה-snackbar על הסרת רשימת השמעה</string>
     <string name="morphe_playlist_long_press_drag_summary">גע והחזק סרטון בפלייליסט שלך כדי לגרור אותו למיקום חדש</string>

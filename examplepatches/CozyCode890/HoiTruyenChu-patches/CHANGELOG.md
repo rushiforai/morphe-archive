@@ -1,3 +1,28 @@
+## [2.0.0](https://github.com/CozyCode890/HoiTruyenChu-patches/compare/v1.3.0...v2.0.0) (2026-11-23)
+
+### ⚠ BREAKING CHANGES
+
+* every patch now depends on the settings patch, and the
+settings decide at run time what each patch does.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
+### ✨ New Features
+
+* settings screen for all patches ([68ef7b6](https://github.com/CozyCode890/HoiTruyenChu-patches/commit/68ef7b69912b1a159f0e960d2c916a718905617f))
+
+## [1.3.0](https://github.com/CozyCode890/HoiTruyenChu-patches/compare/v1.2.0...v1.3.0) (2026-11-23)
+
+### ✨ New Features
+
+* remember the listening speed ([2baaa8d](https://github.com/CozyCode890/HoiTruyenChu-patches/commit/2baaa8d72c6a323cc7a80a9b8b614b0d984e2254))
+
+## [1.2.0](https://github.com/CozyCode890/HoiTruyenChu-patches/compare/v1.1.2...v1.2.0) (2026-11-22)
+
+### ✨ New Features
+
+* tap a line to listen from it ([d97b088](https://github.com/CozyCode890/HoiTruyenChu-patches/commit/d97b0880f80b90fc127b98d72e7cef60cbef020e))
+
 ## [1.1.2](https://github.com/CozyCode890/HoiTruyenChu-patches/compare/v1.1.1...v1.1.2) (2026-11-14)
 
 ### 🐛 Bug Fixes

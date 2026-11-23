@@ -3,7 +3,6 @@ package app.noam.extension.chesscom.lichesspuzzle;
 import android.app.Activity;
 import android.app.Application;
 import android.content.Context;
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
@@ -148,11 +147,9 @@ public final class LichessPuzzles {
             Context context = Utils.topActivity();
             if (context == null) context = app;
             if (context == null) return HANDLED;
-            Intent intent = new Intent(context, MorpheSettingsActivity.class)
-                .putExtra(MorpheSettingsActivity.EXTRA_PAGE, Features.PAGE_PUZZLES);
-            if (!(context instanceof Activity)) intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            context.startActivity(intent);
-            Utils.toast("Download Lichess puzzles to play them offline");
+            if (MorpheSettingsActivity.show(context, Features.PAGE_PUZZLES)) {
+                Utils.toast("Download Lichess puzzles to play them offline");
+            }
             return HANDLED;
         }
         frozenPath = lastPath;
@@ -705,7 +702,7 @@ public final class LichessPuzzles {
         }
     }
 
-    /** Scores Lichess puzzles locally; null lets chess.com score others. */
+    /** Scores Lichess puzzles locally, once per puzzle; null lets chess.com score others. */
     public static Object solved(Object repository, Object solution) {
         if (!active || solution == null) return null;
         try {
@@ -724,14 +721,18 @@ public final class LichessPuzzles {
             int puzzleRating = store.rating(number);
             boolean correct = "CORRECT".equals(String.valueOf(fieldOfType(solution, "Outcome")));
 
+            // Lichess rates a puzzle's first attempt only. Retry scores the same puzzle again,
+            // and the rating must not move for that; the replay still gets a result to show.
             Glicko before = glicko();
-            Glicko after = before.after(puzzleRating > 0 ? puzzleRating : before.rating, correct ? 1 : 0);
-            record(before.rating);
-            record(after.rating);
-            save(after);
-            count(correct ? SOLVED : FAILED);
-            store.solved(number);
-            give(repository, store, 1);
+            Glicko after = before;
+            if (store.claim(number)) {
+                after = before.after(puzzleRating > 0 ? puzzleRating : before.rating, correct ? 1 : 0);
+                record(before.rating);
+                record(after.rating);
+                save(after);
+                count(correct ? SOLVED : FAILED);
+                give(repository, store, 1);
+            }
 
             int newRating = (int) Math.round(after.rating);
             int oldRating = (int) Math.round(before.rating);

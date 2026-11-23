@@ -3,11 +3,11 @@ package patches.deezer
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.bytecodePatch
 
-private const val POLICY = "Lcom/deezer/core/data/model/policy/lIllllIIIIII;"
-private const val FEATURE = "LIlIIIlIIlIlllIII;"
-private const val AD_KIND = "LIIIIIIllIllIIIl;"
-private const val TRACK = "LIIlllIIIlIlIIlll;"
-private const val RIGHTS_HELPER = "LIIIlllIIIllIIIl;"
+private const val POLICY = "Lcom/deezer/core/data/model/policy/IllIlIlIIlIllIll;"
+private const val FEATURE = "LlIlIIIllIlIlll;"
+private const val AD_KIND = "LllIIIllIIIIlIll;"
+private const val TRACK = "LlllIIllIIllIlII;"
+private const val RIGHTS_HELPER = "LIIlIIlIllllIIllI;"
 
 /**
  * Deezer's effective licence is a set of feature bits, not the raw gateway JSON:
@@ -28,15 +28,15 @@ val deezerEnableFullStreaming = bytecodePatch(
     default = true,
 ) {
     compatibleWith(deezer)
-    dependsOn(originalInput, deezerKeepSessionOnColdStart)
+    dependsOn(deezerBase, deezerKeepSessionOnColdStart)
 
     execute {
         // Only PREVIEW (0x20) and DEVICE_LIMITATION (0x40) stay denied. MOD,
         // OFFLINE, CHROMECAST, RADIO and QUEUELIST_EDITION remain available.
-        exact(POLICY, "IIIIlIIIIIIIIlll", "Z", FEATURE).method.addInstructions(
+        exact(POLICY, "lIIIIlllIlllll", "Z", FEATURE).method.addInstructions(
             0,
             """
-                iget v0, p1, $FEATURE->IlllIIlIIIlll:I
+                iget v0, p1, $FEATURE->IIllllllllIlll:I
                 const/16 v1, 0x20
                 if-eq v0, v1, :deny
                 const/16 v1, 0x40
@@ -50,16 +50,16 @@ val deezerEnableFullStreaming = bytecodePatch(
         )
 
         // Audio and display advertising are not an entitlement requirement here.
-        exact(POLICY, "llIIIllIlIllIII", "Z", AD_KIND).method.addInstructions(
+        exact(POLICY, "IlIIlIlIlllIII", "Z", AD_KIND).method.addInstructions(
             0,
             "const/4 v0, 0x0\nreturn v0",
         )
 
         // A zero duration is the "no streaming limit" value the licence exposes.
-        exact(POLICY, "IllIIIlIIII", "I").method.addInstructions(0, "const/4 v0, 0x0\nreturn v0")
+        exact(POLICY, "IIlIlIlIlIllllll", "I").method.addInstructions(0, "const/4 v0, 0x0\nreturn v0")
 
         // The licence stays active; the app rechecks it through the gateway itself.
-        exact(POLICY, "IIlIIIIIlllIIIII", "Z").method.addInstructions(0, "const/4 v0, 0x1\nreturn v0")
+        exact(POLICY, "llIllllIllIIlIl", "Z").method.addInstructions(0, "const/4 v0, 0x1\nreturn v0")
 
         // Per-track rights: the native player uses the same helper for the old and
         // new catalogue entries. A signed-in free account still receives a track
@@ -67,10 +67,10 @@ val deezerEnableFullStreaming = bytecodePatch(
         // what has to stop rejecting the track before playback starts.
         exact(
             RIGHTS_HELPER,
-            "IIIlIIlIIlllIl",
+            "IIIIlIllIllIlIII",
             "Z",
             TRACK,
-            "Lcom/deezer/core/data/model/policy/lIllllIIIIII;",
+            "Lcom/deezer/core/data/model/policy/IllIlIlIIlIllIll;",
             "J",
         ).method.addInstructions(0, "const/4 v0, 0x1\nreturn v0")
     }

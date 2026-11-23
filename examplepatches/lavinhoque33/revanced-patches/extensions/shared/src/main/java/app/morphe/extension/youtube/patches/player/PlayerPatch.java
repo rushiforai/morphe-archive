@@ -9,11 +9,11 @@ import static app.morphe.extension.shared.utils.Utils.validateValue;
 
 import android.content.Context;
 import android.content.res.ColorStateList;
-import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.DrawableWrapper;
 import android.graphics.drawable.GradientDrawable;
 import android.graphics.drawable.LayerDrawable;
+import android.graphics.drawable.RippleDrawable;
 import android.os.VibrationEffect;
 import android.os.Vibrator;
 import android.support.v7.widget.RecyclerView;
@@ -32,8 +32,6 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.coordinatorlayout.widget.CoordinatorLayout;
-
-import java.util.function.Consumer;
 
 import com.google.android.libraries.youtube.innertube.model.media.VideoQuality;
 
@@ -75,13 +73,7 @@ public class PlayerPatch {
 
     private static final IntegerSetting quickActionsMarginTopSetting = Settings.QUICK_ACTIONS_TOP_MARGIN;
 
-    private static final int CONTROL_BUTTONS_BACKGROUND_OPACITY =
-            SeekBarPreference.clampToRange(Settings.PLAYER_CONTROL_BUTTONS_BACKGROUND_OPACITY);
-
-    /** At the app default the drawables are left untouched, so the stock look stays exact. */
-    private static final boolean CONTROL_BUTTONS_BACKGROUND_OPACITY_CHANGED =
-            CONTROL_BUTTONS_BACKGROUND_OPACITY
-                    != Settings.PLAYER_CONTROL_BUTTONS_BACKGROUND_OPACITY.defaultValue;
+    private static final int STOCK_CONTROL_BACKGROUND = -1;
 
     private static final int PLAYER_OVERLAY_OPACITY_LEVEL;
     private static final int QUICK_ACTIONS_MARGIN_TOP;
@@ -461,16 +453,13 @@ public class PlayerPatch {
                 return null;
             }
 
-            // The other buttons are handled by styleControlButtonsBackground.
+            // The fullscreen button belongs to the other overlay controls, not the center transport buttons.
             if (Settings.HIDE_PLAYER_CONTROL_BUTTONS_BACKGROUND.get()) {
                 keepBackgroundHidden(imageView);
                 return imageView;
             }
 
-            Drawable background = imageView.getBackground();
-            if (background != null) {
-                imageView.setBackground(applyControlButtonsBackgroundOpacity(background));
-            }
+            styleOverlayButtonBackground(imageView);
             return imageView;
         }
 
@@ -567,11 +556,15 @@ public class PlayerPatch {
         return Settings.HIDE_PLAYER_YOUTUBE_MUSIC_BUTTON.get();
     }
 
-    /**
-     * Injection point.
-     */
-    public static void hidePlayerControlButtonsBackground(View rootView) {
-        styleControlButtonsBackground(rootView);
+    private static final class TransportButtonIds {
+        private static final int PLAY_PAUSE_REPLAY = ResourceUtils.getIdIdentifier(
+                "player_control_play_pause_replay_button");
+        private static final int PREVIOUS = ResourceUtils.getIdIdentifier("player_control_previous_button");
+        private static final int NEXT = ResourceUtils.getIdIdentifier("player_control_next_button");
+
+        static boolean contains(int id) {
+            return id > 0 && (id == PLAY_PAUSE_REPLAY || id == PREVIOUS || id == NEXT);
+        }
     }
 
     /**
@@ -579,24 +572,19 @@ public class PlayerPatch {
      */
     public static void styleControlButtonsBackground(View rootView) {
         try {
-            // Each button is an ImageView with a background set to another drawable.
-            if (Settings.HIDE_PLAYER_CONTROL_BUTTONS_BACKGROUND.get()) {
-                forEachImageViewRecursive(rootView, imageView -> imageView.setBackground(null));
-                stylePillBackgrounds(rootView);
-            } else if (CONTROL_BUTTONS_BACKGROUND_OPACITY_CHANGED) {
-                forEachImageViewRecursive(rootView, imageView -> {
-                    Drawable background = imageView.getBackground();
-                    if (background != null) {
-                        imageView.setBackground(applyControlButtonsBackgroundOpacity(background));
-                    }
-                });
+            boolean hide = Settings.HIDE_PLAYER_CONTROL_BUTTONS_BACKGROUND.get();
+            int transportAlpha = controlBackgroundAlpha(Settings.PLAYER_TRANSPORT_BACKGROUND_OPACITY);
+            int overlayAlpha = controlBackgroundAlpha(Settings.PLAYER_OTHER_OVERLAY_BACKGROUND_OPACITY);
 
-                stylePillBackgrounds(rootView);
+            if (hide || transportAlpha != STOCK_CONTROL_BACKGROUND || overlayAlpha != STOCK_CONTROL_BACKGROUND) {
+                styleControlButtons(rootView, hide, transportAlpha, overlayAlpha);
+            }
+            if (hide || overlayAlpha != STOCK_CONTROL_BACKGROUND) {
+                stylePillBackgrounds(rootView, hide, overlayAlpha);
             }
         } catch (Exception ex) {
             Logger.printException(() -> "styleControlButtonsBackground failure", ex);
         }
-
     }
 
     /**
@@ -634,7 +622,7 @@ public class PlayerPatch {
             return view;
         }
 
-        void update(View rootView) {
+        void update(View rootView, boolean hide, int alpha) {
             if (id == 0) return;
 
             View pill = viewRef.get();
@@ -650,7 +638,7 @@ public class PlayerPatch {
             Drawable background = pill.getBackground();
             if (background == null) return;
 
-            if (Settings.HIDE_PLAYER_CONTROL_BUTTONS_BACKGROUND.get()) {
+            if (hide) {
                 pill.setBackground(null);
                 backgroundSnapshot = null;
                 return;
@@ -660,7 +648,7 @@ public class PlayerPatch {
             Drawable.ConstantState state = background.getConstantState();
             if (state != null && state == backgroundSnapshot) return;
 
-            Drawable styled = applyControlButtonsBackgroundOpacity(background);
+            Drawable styled = applyControlBackgroundAlpha(background, alpha);
             if (styled != background) {
                 pill.setBackground(styled);
             }
@@ -672,7 +660,7 @@ public class PlayerPatch {
      * The pills live in the bottom overlay container, which is inflated from a stub of its own
      * and can appear after the control buttons, so they are resolved on a draw pass instead.
      */
-    private static void stylePillBackgrounds(View controlsView) {
+    private static void stylePillBackgrounds(View controlsView, boolean hide, int alpha) {
         // The buttons and the bottom overlay are inflated into the same controls layout,
         // so the pills are searched for from the shared parent and not from the buttons.
         if (!(controlsView.getParent() instanceof ViewGroup controlsLayout)) {
@@ -688,7 +676,7 @@ public class PlayerPatch {
         controlsView.getViewTreeObserver().addOnPreDrawListener(() -> {
             try {
                 for (PillBackground pill : pills) {
-                    pill.update(controlsLayout);
+                    pill.update(controlsLayout, hide, alpha);
                 }
             } catch (Exception ex) {
                 Logger.printDebug(() -> "Could not style player overlay pill background", ex);
@@ -698,58 +686,82 @@ public class PlayerPatch {
     }
 
     /**
-     * Also used for the bottom overlay buttons, which copy their background from the
-     * fullscreen button instead of declaring one in a layout.
-     *
-     * @return the drawable to use, unchanged if the opacity is left at the app default.
+     * Styles the fullscreen button and added overlay buttons. The native fullscreen
+     * button can replace its background when switching player layouts.
      */
-    public static Drawable applyControlButtonsBackgroundOpacity(Drawable background) {
-        if (background != null
-                && CONTROL_BUTTONS_BACKGROUND_OPACITY_CHANGED
-                && !Settings.HIDE_PLAYER_CONTROL_BUTTONS_BACKGROUND.get()) {
-            // Mutate so the color does not leak into the same drawable used elsewhere.
-            background = background.mutate();
-            setSolidColorOpacityRecursive(background);
-        }
+    public static void styleOverlayButtonBackground(ImageView button) {
+        if (Settings.HIDE_PLAYER_CONTROL_BUTTONS_BACKGROUND.get()) return;
 
-        return background;
+        int alpha = controlBackgroundAlpha(Settings.PLAYER_OTHER_OVERLAY_BACKGROUND_OPACITY);
+        if (alpha != STOCK_CONTROL_BACKGROUND) {
+            styleControlButton(button, alpha);
+        }
+    }
+
+    private static int controlBackgroundAlpha(IntegerSetting setting) {
+        int percent = SeekBarPreference.clampToRange(setting);
+        return percent == setting.defaultValue ? STOCK_CONTROL_BACKGROUND : percent * 255 / 100;
+    }
+
+    private static Drawable applyControlBackgroundAlpha(Drawable background, int alpha) {
+        // Mutate so the color does not leak into the same drawable used elsewhere.
+        Drawable styled = background.mutate();
+        setSolidColorOpacityRecursive(styled, alpha);
+        return styled;
     }
 
     /**
      * The circle's transparency is baked into its solid color, so the color is replaced.
      * setAlpha() only scales what is already there and can never exceed the app default.
      */
-    private static void setSolidColorOpacityRecursive(Drawable drawable) {
+    private static void setSolidColorOpacityRecursive(Drawable drawable, int alpha) {
         if (drawable instanceof GradientDrawable gradient) {
             ColorStateList color = gradient.getColor();
             if (color != null) {
-                final int rgb = color.getDefaultColor();
                 // Replacing the alpha rather than scaling it keeps this safe to apply twice.
-                gradient.setColor(Color.argb(
-                        CONTROL_BUTTONS_BACKGROUND_OPACITY * 255 / 100,
-                        Color.red(rgb),
-                        Color.green(rgb),
-                        Color.blue(rgb)));
+                if (color.isStateful()) {
+                    gradient.setColor(color.withAlpha(alpha));
+                } else {
+                    gradient.setColor((color.getDefaultColor() & 0x00ffffff) | (alpha << 24));
+                }
             }
         } else if (drawable instanceof LayerDrawable layers) {
             for (int i = 0, count = layers.getNumberOfLayers(); i < count; i++) {
-                setSolidColorOpacityRecursive(layers.getDrawable(i));
+                if (!(layers instanceof RippleDrawable) || layers.getId(i) != android.R.id.mask) {
+                    setSolidColorOpacityRecursive(layers.getDrawable(i), alpha);
+                }
             }
         } else if (drawable instanceof DrawableWrapper wrapper) {
             // The bottom buttons get the circle wrapped in an InsetDrawable, which is not a
             // LayerDrawable and would otherwise be skipped.
-            setSolidColorOpacityRecursive(wrapper.getDrawable());
+            setSolidColorOpacityRecursive(wrapper.getDrawable(), alpha);
         }
     }
 
-    private static void forEachImageViewRecursive(View currentView, Consumer<ImageView> action) {
-        if (currentView instanceof ImageView imageView) {
-            action.accept(imageView);
+    private static void styleControlButton(ImageView imageView, int alpha) {
+        Drawable background = imageView.getBackground();
+        if (background != null) {
+            Drawable styled = applyControlBackgroundAlpha(background, alpha);
+            if (styled != background) {
+                imageView.setBackground(styled);
+            }
         }
+    }
 
-        if (currentView instanceof ViewGroup viewGroup) {
-            for (int i = 0; i < viewGroup.getChildCount(); i++) {
-                forEachImageViewRecursive(viewGroup.getChildAt(i), action);
+    private static void styleControlButtons(View view, boolean hide, int transportAlpha, int overlayAlpha) {
+        if (view instanceof ImageView imageView) {
+            if (hide) {
+                imageView.setBackground(null);
+            } else {
+                int alpha = transportAlpha == overlayAlpha || !TransportButtonIds.contains(imageView.getId())
+                        ? overlayAlpha : transportAlpha;
+                if (alpha != STOCK_CONTROL_BACKGROUND) {
+                    styleControlButton(imageView, alpha);
+                }
+            }
+        } else if (view instanceof ViewGroup group) {
+            for (int index = 0, count = group.getChildCount(); index < count; index++) {
+                styleControlButtons(group.getChildAt(index), hide, transportAlpha, overlayAlpha);
             }
         }
     }

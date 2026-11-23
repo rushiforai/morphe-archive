@@ -1,12 +1,12 @@
 # Patches
 
-> Generated from `patches-list.json` — **v1.1.1** (`dev`) · **5 patches** across **1 apps** · back to [README](README.md)
+> Generated from `patches-list.json` — **v1.2.0** (`dev`) · **5 patches** across **1 apps** · back to [README](README.md)
 
 ---
 
 ## MyGate (com.mygate.user)
 
-**Supported versions:** `7.38.2` `7.39.0` `7.40.1`
+**Supported versions:** `7.38.2` `7.39.0` `7.40.1` `7.41.0`
 
 | Patch | Details |
 |---|---|

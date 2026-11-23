@@ -1,3 +1,43 @@
+## [1.5.0](https://github.com/Nich87/nich87-patches/compare/v1.4.0...v1.5.0) (2026-11-22)
+
+### ✨ New Features
+
+* Add custom font patch for Apple Music ([4bef5cc](https://github.com/Nich87/nich87-patches/commit/4bef5ccd5fcbec59e379b475077c98ee3775799b))
+* Add LRCLIB lyrics patch for Apple Music ([70edb64](https://github.com/Nich87/nich87-patches/commit/70edb64727fef2c7b782857743412ae0b4df736f))
+* Add Twitter/X Spaces local mute patch ([1852f16](https://github.com/Nich87/nich87-patches/commit/1852f1664cc376047048f4cf22e085745c7156c7))
+* Support Apple Music 7.0.3 ([ccbe0c8](https://github.com/Nich87/nich87-patches/commit/ccbe0c8ce02f426ddefccdecb4a8f00e8b914fc3))
+
+## [1.5.0-dev.4](https://github.com/Nich87/nich87-patches/compare/v1.5.0-dev.3...v1.5.0-dev.4) (2026-11-22)
+
+### ✨ New Features
+
+* Support Apple Music 7.0.3 ([ccbe0c8](https://github.com/Nich87/nich87-patches/commit/ccbe0c8ce02f426ddefccdecb4a8f00e8b914fc3))
+
+## [1.5.0-dev.3](https://github.com/Nich87/nich87-patches/compare/v1.5.0-dev.2...v1.5.0-dev.3) (2026-11-22)
+
+### ✨ New Features
+
+* Add custom font patch for Apple Music ([4bef5cc](https://github.com/Nich87/nich87-patches/commit/4bef5ccd5fcbec59e379b475077c98ee3775799b))
+* Support Apple Music 7.0.3 ([ccbe0c8](https://github.com/Nich87/nich87-patches/commit/ccbe0c8ce02f426ddefccdecb4a8f00e8b914fc3))
+
+## [1.5.0-dev.3](https://github.com/Nich87/nich87-patches/compare/v1.5.0-dev.2...v1.5.0-dev.3) (2026-11-22)
+
+### ✨ New Features
+
+* Add custom font patch for Apple Music ([4bef5cc](https://github.com/Nich87/nich87-patches/commit/4bef5ccd5fcbec59e379b475077c98ee3775799b))
+
+## [1.5.0-dev.2](https://github.com/Nich87/nich87-patches/compare/v1.5.0-dev.1...v1.5.0-dev.2) (2026-11-22)
+
+### ✨ New Features
+
+* Add LRCLIB lyrics patch for Apple Music ([70edb64](https://github.com/Nich87/nich87-patches/commit/70edb64727fef2c7b782857743412ae0b4df736f))
+
+## [1.5.0-dev.1](https://github.com/Nich87/nich87-patches/compare/v1.4.0...v1.5.0-dev.1) (2026-11-22)
+
+### ✨ New Features
+
+* Add Twitter/X Spaces local mute patch ([1852f16](https://github.com/Nich87/nich87-patches/commit/1852f1664cc376047048f4cf22e085745c7156c7))
+
 ## [1.4.0](https://github.com/Nich87/nich87-patches/compare/v1.3.0...v1.4.0) (2026-11-22)
 
 ### ✨ New Features

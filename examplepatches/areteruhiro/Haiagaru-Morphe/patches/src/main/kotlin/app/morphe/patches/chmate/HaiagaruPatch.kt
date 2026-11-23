@@ -1586,6 +1586,11 @@ private fun BytecodePatchContext.patchNgThreadGroupVisibility(version: String) {
         move-result-object p1
         ${if (legacy191) "check-cast p1, Ljava/util/ArrayList;" else ""}
     """.trimIndent())
+    if (version != "0.8.10.241") method.addInstructions(0, """
+        invoke-static/range {p0 .. p0}, $EXTENSION->shortThreadsForDisplay(Ljava/util/List;)Ljava/util/List;
+        move-result-object p0
+        ${if (legacy191) "check-cast p0, Ljava/util/ArrayList;" else ""}
+    """.trimIndent())
     println("NG thread group visibility: $version -> $owner")
 }
 
@@ -3468,14 +3473,16 @@ private fun BytecodePatchContext.patchPostingIpWarning(version: String) {
     val old = version == "0.8.10.191 dev"
     val middle = version == "0.8.10.226 dev"
     if (!old && !middle && version != "0.8.10.242 dev") return
-    val type = if (old) "Lo/p9ExternalSyntheticLambda6;" else if (middle)
-        "Ljp/syoboi/a2chMate/feature/resedit/ResEditFragment;" else
-        "Ljp/syoboi/a2chMate/feature/resedit/ResEditFragmentViewModel;"
+    // The 242 send button enters ResEditFragment.a(ResEditFragment); ViewModel.h()
+    // is an unrelated editor command and must not be wrapped as a submit.
+    val type = if (old) "Lo/p9ExternalSyntheticLambda6;"
+        else "Ljp/syoboi/a2chMate/feature/resedit/ResEditFragment;"
+    val submitName = if (old) "b" else if (middle) "n" else "a"
     val owner = mutableClassDefBy(type)
     val submit = owner.methods.single {
-        it.name == (if (old) "b" else if (middle) "n" else "h") && it.returnType == "V" &&
-            it.parameterTypes == (if (middle) listOf(type) else emptyList<String>()) &&
-            (it.accessFlags and 8 != 0) == middle
+        it.name == submitName && it.returnType == "V" &&
+            it.parameterTypes == (if (old) emptyList<String>() else listOf(type)) &&
+            (it.accessFlags and 8 != 0) == !old
     }
     check(submit.implementation!!.instructions.count() > 8) { "Native submit body changed: $type" }
     val delegate = MutableMethod(com.android.tools.smali.dexlib2.immutable.ImmutableMethod(type,
@@ -3485,21 +3492,122 @@ private fun BytecodePatchContext.patchPostingIpWarning(version: String) {
         submit.name, submit.parameters, submit.returnType, submit.accessFlags, submit.annotations,
         submit.hiddenApiRestrictions, com.android.tools.smali.dexlib2.immutable.ImmutableMethodImplementation(
             2, emptyList(), emptyList(), emptyList())))
-    val invoke = if (middle) "invoke-static" else "invoke-virtual"
+    val invoke = if (old) "invoke-virtual" else "invoke-static"
     wrapper.addInstructions(0, """
         invoke-static {p0}, Lapp/morphe/extension/chmate/PostingIpWarning;->intercept(Ljava/lang/Object;)Z
         move-result v0
         if-nez v0, :ip_warning_wait
+        invoke-static {p0}, Lapp/morphe/extension/chmate/BackgroundPostingUi;->beforeNativeSubmit(Ljava/lang/Object;)V
         $invoke {p0}, $delegate
+        invoke-static {p0}, Lapp/morphe/extension/chmate/BackgroundPostingUi;->afterNativeSubmit(Ljava/lang/Object;)V
         :ip_warning_wait
         return-void
     """.trimIndent())
     val bridge = MutableMethod(com.android.tools.smali.dexlib2.immutable.ImmutableMethod(type,
         "haiagaruIpConfirmed", emptyList(), "V", 1, emptySet(), emptySet(),
         com.android.tools.smali.dexlib2.immutable.ImmutableMethodImplementation(1, emptyList(), emptyList(), emptyList())))
-    bridge.addInstructions(0, "$invoke {p0}, $delegate\nreturn-void")
+    bridge.addInstructions(0, """
+        invoke-static {p0}, Lapp/morphe/extension/chmate/BackgroundPostingUi;->beforeNativeSubmit(Ljava/lang/Object;)V
+        $invoke {p0}, $delegate
+        invoke-static {p0}, Lapp/morphe/extension/chmate/BackgroundPostingUi;->afterNativeSubmit(Ljava/lang/Object;)V
+        return-void
+    """.trimIndent())
     owner.methods.remove(submit);owner.methods.add(delegate);owner.methods.add(wrapper);owner.methods.add(bridge)
+    patchPostingErrorCallbacks(version)
+    patchBackgroundPostingReload(version)
     println("IP posting confirmation: $type -> ${submit.name}; native body preserved")
+}
+
+private fun BytecodePatchContext.patchBackgroundPostingReload(version: String) {
+    val old = version == "0.8.10.191 dev"
+    val middle = version == "0.8.10.226 dev"
+    val callbackType = if (old) "Lo/p9ExternalSyntheticLambda6\$26;"
+        else "Ljp/syoboi/a2chMate/feature/resedit/ResEditFragment\$" +
+            (if (middle) "setContentView;" else "read;")
+    val callback = mutableClassDefBy(callbackType).methods.single {
+        it.name == (if (old || middle) "e" else "d") &&
+            it.parameterTypes == listOf("Ljava/lang/Object;") && it.returnType == "V"
+    }
+    val result = callback.implementation!!.instructions.withIndex().single { (_, instruction) ->
+        (instruction as? ReferenceInstruction)?.reference.toString() == "Landroid/app/Activity;->setResult(I)V"
+    }
+    callback.addInstructions(result.index + 1, """
+        invoke-static/range {p0 .. p0}, Lapp/morphe/extension/chmate/BackgroundPostingUi;->nativePosted(Ljava/lang/Object;)V
+    """.trimIndent())
+
+    val thread = mutableClassDefBy(if (old) "Lo/pa;" else "Ljp/syoboi/a2chMate/ui/reslist/ResListFragment;")
+    val resume = thread.methods.single { it.name == "onResume" && it.parameterTypes.isEmpty() }
+    // Only a resume-triggered network refresh supersedes our pending refresh.
+    // 191/226's result handler dispatches a post-position command that can finish
+    // without fetching DAT when the reader is already resumed.
+    val reloadMethod = resume
+    val nativeReload = reloadMethod.implementation!!.instructions.withIndex().single { (_, instruction) ->
+        val reference = (instruction as? ReferenceInstruction)?.reference as? MethodReference
+        reference != null && reference.returnType == "Z" &&
+            (reference.name == "haiagaruResumeReload" ||
+                (reference.name == (if (middle) "d" else "e") &&
+                    reference.parameterTypes == listOf("I", "Ljava/lang/Object;")))
+    }
+    reloadMethod.addInstructions(nativeReload.index, """
+        invoke-static/range {p0 .. p0}, Lapp/morphe/extension/chmate/BackgroundPostingUi;->nativeReload(Ljava/lang/Object;)V
+    """.trimIndent())
+    resume.addInstructions(0, """
+        invoke-static/range {p0 .. p0}, Lapp/morphe/extension/chmate/BackgroundPostingUi;->readerResumed(Ljava/lang/Object;)V
+    """.trimIndent())
+}
+
+/** Restore the backgrounded writer only from native error callbacks; success keeps the standard result path. */
+private fun BytecodePatchContext.patchPostingErrorCallbacks(version: String) {
+    val old = version == "0.8.10.191 dev"
+    val editor = mutableClassDefBy(if (old) "Lo/p9ExternalSyntheticLambda6;"
+        else "Ljp/syoboi/a2chMate/feature/resedit/ResEditFragment;")
+    val confirmParameters = if (old) listOf("Ljava/lang/String;", "I")
+        else listOf("Ljava/lang/String;", "I", "Ljava/lang/String;")
+    val confirmation = editor.methods.single {
+        it.name == "e" && it.returnType == "Z" && it.parameterTypes == confirmParameters
+    }
+    val prompt = confirmation.implementation!!.instructions.withIndex().single { (_, instruction) ->
+        instruction.opcode == Opcode.NEW_INSTANCE &&
+            (instruction as? ReferenceInstruction)?.reference.toString() == "Ljava/util/concurrent/CountDownLatch;"
+    }
+    // Keep the native branch target on the hook so direct jumps into the prompt cannot skip it.
+    val latch = (prompt.value as OneRegisterInstruction).registerA
+    confirmation.replaceInstruction(prompt.index,
+        "invoke-static/range {p0 .. p0}, Lapp/morphe/extension/chmate/BackgroundPostingUi;->beforeCookiePrompt(Ljava/lang/Object;)V")
+    confirmation.addInstructions(prompt.index + 1, "new-instance v$latch, Ljava/util/concurrent/CountDownLatch;")
+    fun hookResult(ownerType: String, methodName: String, parameter: String) {
+        val owner = mutableClassDefBy(ownerType)
+        val method = owner.methods.single {
+            it.name == methodName && it.returnType == "V" && it.parameterTypes == listOf(parameter)
+        }
+        method.addInstructions(0, """
+            invoke-static {p0, p1}, Lapp/morphe/extension/chmate/BackgroundPostingUi;->nativeResult(Ljava/lang/Object;Ljava/lang/Object;)V
+        """.trimIndent())
+    }
+    when (version) {
+        "0.8.10.191 dev" -> {
+            hookResult("Lo/p9ExternalSyntheticLambda6\$26;", "e", "Ljava/lang/Object;")
+            hookResult("Lo/p9ExternalSyntheticLambda6\$29;", "e", "Ljava/lang/Object;")
+        }
+        "0.8.10.226 dev" -> {
+            val prefix = "Ljp/syoboi/a2chMate/feature/resedit/ResEditFragment\$"
+            hookResult(prefix + "ActivityResult;", "e", "Ljava/lang/Object;")
+            hookResult(prefix + "setContentView;", "e", "Ljava/lang/Object;")
+        }
+        "0.8.10.242 dev" -> {
+            val prefix = "Ljp/syoboi/a2chMate/feature/resedit/ResEditFragment\$"
+            hookResult(prefix + "read;", "d", "Ljava/lang/Object;")
+            val owner = mutableClassDefBy("Ljp/syoboi/a2chMate/feature/resedit/ResEditFragment;")
+            val method = owner.methods.single {
+                it.name == "a" && it.parameterTypes == listOf(owner.type, "Ljava/lang/Throwable;")
+                    && it.returnType == "Lo/zzbwq;"
+            }
+            method.addInstructions(0, """
+                invoke-static {p0, p1}, Lapp/morphe/extension/chmate/BackgroundPostingUi;->nativeFailure(Ljava/lang/Object;Ljava/lang/Object;)V
+            """.trimIndent())
+        }
+    }
+    println("Background posting error restore hooks: $version")
 }
 
 /** Only tint the two native auto-scroll icons; preserve click/hold callbacks and timing. */
@@ -3890,7 +3998,8 @@ private fun app.morphe.patcher.patch.BytecodePatchContext.patchHissiExternalInte
                 val checkerHook = if (launchName == "startActivity")
                     "invoke-static/range {v$register .. v$register}, " +
                         "Lapp/morphe/extension/chmate/HissiMenuCompatibility;->prepareExternalIntent(Landroid/content/Intent;)V\n"
-                    else ""
+                    else "invoke-static/range {v$register .. v$register}, " +
+                        "Lapp/morphe/extension/chmate/HissiMenuCompatibility;->prepareTaisakuResultIntent(Landroid/content/Intent;)V"
                 val mutable = mutableClass.findMutableMethodOf(method)
                 val instruction = instructions[index]
                 val reference = (instruction as ReferenceInstruction).reference as MethodReference

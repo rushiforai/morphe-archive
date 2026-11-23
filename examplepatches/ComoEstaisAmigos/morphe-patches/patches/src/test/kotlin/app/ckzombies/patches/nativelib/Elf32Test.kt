@@ -191,13 +191,16 @@ class Elf32Test {
     fun `generated tables are well formed`() {
         val tables = listOf(
             "TEXT_RELOCATION" to NativeEdits.TEXT_RELOCATION,
-            "GSERVE_STALL" to NativeEdits.GSERVE_STALL,
+            "IS_AVAILABLE" to NativeEdits.IS_AVAILABLE,
+            "UNLIMITED_AMMO" to NativeEdits.UNLIMITED_AMMO,
+            "HUD_RELOAD" to NativeEdits.HUD_RELOAD.mapValues { (_, plan) -> plan.edits },
             "DEAD_SERVERS" to NativeEdits.DEAD_SERVERS,
             "JNI_GUARDS" to NativeEdits.JNI_GUARDS,
             "JNI_ARGUMENTS" to NativeEdits.JNI_ARGUMENTS,
             "SOUND_CACHE_MODE" to NativeEdits.SOUND_CACHE_MODE,
             "DAILY_DEAL" to NativeEdits.DAILY_DEAL,
             "HIDDEN_WEAPONS" to NativeEdits.HIDDEN_WEAPONS,
+            "EXPLOSION_SHAKE" to NativeEdits.EXPLOSION_SHAKE,
             "CURRENCY" to NativeEdits.CURRENCY.mapValues { (_, plan) -> plan.edits },
             "CIVILIAN_IMMUNITY" to NativeEdits.CIVILIAN_IMMUNITY.mapValues { (_, plan) -> plan.edits },
         )
@@ -238,9 +241,99 @@ class Elf32Test {
             }
             assertTrue(civ.blastCave + civ.blastCaveBytes.length / 2 <= civ.fragCave,
                 "$abi: blast stub does not overlap the frag stub")
+
+            val hud = NativeEdits.HUD_RELOAD.getValue(abi)
+            val hudSize = hud.caveBytes.length / 2
+            assertTrue(hudSize % 4 == 0 && hudSize > 0, "$abi: HUD cave is whole words")
+            assertEquals(1, hud.edits.size, "$abi: one HUD hook word")
+            assertTrue(hud.cave >= currencyEnd, "$abi: HUD cave sits after currency")
+            assertTrue(hud.cave + hudSize <= civ.blastCave, "$abi: HUD cave ends before the civilian caves")
+            assertTrue(hud.cave + hudSize <= pad.load1End, "$abi: HUD cave fits in the padding")
+            assertTrue(hud.edits.none { it.vaddr >= hud.cave && it.vaddr < hud.cave + hudSize },
+                "$abi: no word edit lands inside the HUD cave")
         }
         assertEquals(0x1000, NativeEdits.CURRENCY.getValue("armeabi").spliceSize, "armeabi splices one page")
         assertEquals(null, NativeEdits.CURRENCY.getValue("armeabi-v7a").spliceAtOffset, "v7a has room already")
+    }
+
+    @Test
+    fun `the network check is stubbed to return false instead of the caller's r0`() {
+        for (abi in ABIS) {
+            val edits = NativeEdits.IS_AVAILABLE.getValue(abi).sortedBy { it.vaddr }
+            assertEquals(2, edits.size, "$abi: two words")
+            assertEquals(4L, edits[1].vaddr - edits[0].vaddr, "$abi: the prologue is two words")
+            val (setResult, returnNow) = edits
+            assertEquals(0xE3A00000L, setResult.new, "$abi: mov r0, #0")
+            assertEquals(0xE12FFF1EL, returnNow.new, "$abi: bx lr")
+            assertTrue(
+                setResult.old == 0xE92D4010L || returnNow.old == 0xE92D4010L,
+                "$abi: one word of the prologue is push {r4, lr}",
+            )
+            val literalLoad = if (setResult.old == 0xE92D4010L) returnNow.old else setResult.old
+            assertEquals(
+                0xE59F3000L,
+                literalLoad and 0xFFFFF000L,
+                "$abi: the other is the literal load that set up the platform call",
+            )
+        }
+    }
+
+    @Test
+    fun `unlimited ammo nops both clip subtractions and the full-clip reload gate`() {
+        for (abi in ABIS) {
+            val edits = NativeEdits.UNLIMITED_AMMO.getValue(abi)
+            assertEquals(3, edits.size, "$abi: three words")
+            val subtractions = edits.filter { it.old == 0xE2433001L }
+            assertEquals(2, subtractions.size, "$abi: two sub r3, r3, #1")
+            assertTrue(subtractions.all { it.new == 0xE1A00000L }, "$abi: both become mov r0, r0")
+
+            val gate = edits.single { it.old ushr 28 == 0xAL }
+            assertEquals(0xE1A00000L, gate.new, "$abi: the full-clip bge becomes a nop")
+            val offset = gate.old and 0xFFFFFFL
+            val signed = if (offset and 0x800000L != 0L) offset - 0x1000000L else offset
+            assertTrue(signed < 0, "$abi: it returned above the forced reload instead of falling into it")
+        }
+    }
+
+    @Test
+    fun `the reload HUD cave swaps the clip for zero while reloading`() {
+        fun target(at: Long, word: Long): Long {
+            val imm = word and 0xFFFFFFL
+            return at + 8 + 4 * (if (imm and 0x800000L != 0L) imm - 0x1000000L else imm)
+        }
+        fun words(hex: String) = hex.chunked(8).map { chunk ->
+            chunk.chunked(2).map { it.toInt(16) }.foldIndexed(0L) { i, acc, b ->
+                acc or (b.toLong() shl (8 * i))
+            }
+        }
+        val clipLoad = mapOf("armeabi" to 0xE593219CL, "armeabi-v7a" to 0xE590119CL)
+        val reloadFlag = mapOf("armeabi" to 0xE5D30090L, "armeabi-v7a" to 0xE5D02090L)
+        val stateLoad = mapOf("armeabi" to 0xE5930088L, "armeabi-v7a" to 0xE5902088L)
+        val zeroClip = mapOf("armeabi" to 0xE3A02000L, "armeabi-v7a" to 0xE3A01000L)
+        val cmpZero = mapOf("armeabi" to 0xE3500000L, "armeabi-v7a" to 0xE3520000L)
+        val cmpThree = mapOf("armeabi" to 0xE3500003L, "armeabi-v7a" to 0xE3520003L)
+        for (abi in ABIS) {
+            val plan = NativeEdits.HUD_RELOAD.getValue(abi)
+            val edit = plan.edits.single()
+            val at = "$abi at 0x%X".format(edit.vaddr)
+            assertEquals(clipLoad.getValue(abi), edit.old, "$at: the HUD's clip load")
+            assertEquals(0xEBL, edit.new ushr 24, "$at: the clip load becomes a bl")
+            assertEquals(plan.cave, target(edit.vaddr, edit.new), "$at: the bl reaches the cave")
+
+            val cave = words(plan.caveBytes)
+            assertEquals(9, cave.size, "$abi: nine instructions")
+            assertEquals(clipLoad.getValue(abi), cave[0], "$abi: the cave loads the real clip")
+            assertEquals(reloadFlag.getValue(abi), cave[1], "$abi: ldrb of the reload flag at +0x90")
+            assertEquals(cmpZero.getValue(abi), cave[2], "$abi: cmp #0")
+            assertEquals(0x1A000002L, cave[3], "$abi: bne to the zero write")
+            assertEquals(stateLoad.getValue(abi), cave[4], "$abi: ldr of the state at +0x88")
+            assertEquals(cmpThree.getValue(abi), cave[5], "$abi: cmp #3")
+            assertEquals(0x1A000000L, cave[6], "$abi: bne to the return")
+            assertEquals(zeroClip.getValue(abi), cave[7], "$abi: mov the display clip to 0")
+            assertEquals(0xE12FFF1EL, cave[8], "$abi: bx lr")
+            assertEquals(plan.cave + 0x1C, target(plan.cave + 12, cave[3]), "$abi: the zero write")
+            assertEquals(plan.cave + 0x20, target(plan.cave + 24, cave[6]), "$abi: the return")
+        }
     }
 
     @Test
@@ -266,6 +359,22 @@ class Elf32Test {
             val menu = edits.single { it.old and 0xFFFFFF00L == 0xE2853000L }
             assertEquals(0xE2853000L or 8L + 4 * 0x14, menu.old, "$abi: the table end covers four entries")
             assertEquals(0xE2853000L or 8L + 2 * 0x14, menu.new, "$abi: and then two")
+        }
+    }
+
+    @Test
+    fun `the explosion shake edits nop both Blast calls to SetShake`() {
+        fun target(at: Long, word: Long): Long {
+            val imm = word and 0xFFFFFFL
+            return at + 8 + 4 * (if (imm and 0x800000L != 0L) imm - 0x1000000L else imm)
+        }
+        for (abi in ABIS) {
+            val edits = NativeEdits.EXPLOSION_SHAKE.getValue(abi)
+            assertEquals(2, edits.size, "$abi: one bl in each Blast clone")
+            val dest = edits.map { target(it.vaddr, it.old) }.toSet()
+            assertEquals(1, dest.size, "$abi: both bls reach the same SetShake")
+            assertTrue(edits.all { it.old ushr 24 == 0xEBL }, "$abi: both were bl")
+            assertTrue(edits.all { it.new == 0xE1A00000L }, "$abi: both become mov r0, r0")
         }
     }
 

@@ -381,16 +381,17 @@ final class FeedPages {
                 feed.addPreference(toggle(context, Settings.SHOW_FULL_POST_TEXT,
                         L10n.t("Posts in the feed show all of their text, so there's no See more to tap. Tap the text to fold "
                                 + "it back. Reel captions have their own switch under Reels and Watch.")));
-                // Read as each header's name is laid out (#533).
-                if (VideoPages.fullNamesInBuild()) {
-                    feed.addPreference(toggle(context, Settings.SHOW_FULL_NAMES,
-                            L10n.t("A long name at the top of a post wraps onto the next line instead of ending in \"...\". "
-                                    + "A name that fits still takes one line.")));
-                }
             }
             if (build.contains(PatchFamily.FOLD_LONG_TEXT)) {
-                // Read as each post's text is cut, so a change shows on the posts drawn after it.
+                // Read as each post's text is cut, so a change shows on the posts drawn after it. Right under
+                // Show full post text, which its summary says comes first (#497).
                 feed.addPreference(foldPostsRow(context));
+            }
+            // Read as each header's name is laid out (#533).
+            if (build.contains(PatchFamily.FULL_POST_TEXT) && VideoPages.fullNamesInBuild()) {
+                feed.addPreference(toggle(context, Settings.SHOW_FULL_NAMES,
+                        L10n.t("A long name at the top of a post wraps onto the next line instead of ending in \"...\". "
+                                + "A name that fits still takes one line.")));
             }
             if (build.contains(PatchFamily.TRANSLATE_POSTS)) {
                 feed.addPreference(toggle(context, Settings.TRANSLATE_POST_LINK,
@@ -498,8 +499,8 @@ final class FeedPages {
                         Settings.POST_WORDS_ON_REELS, Settings.POST_WORDS_IN_GROUPS, Settings.POST_WORDS_ON_TIMELINES,
                         Settings.POST_WORDS_IN_SEARCH);
                 feed.addPreference(toggle(context, Settings.HIDE_POSTS_FROM_SOURCES,
-                        L10n.t("Hides posts by people or Pages on your list below, or linking to sites on it, including shares. "
-                                + "Your list stays on this phone unless you export it.")));
+                        L10n.t("Hides posts by people or Pages on your list below, posted in a group on it, or linking to sites "
+                                + "on it, including shares. Your list stays on this phone unless you export it.")));
                 feed.addPreference(page.sourcesRow(context));
                 feed.addPreference(toggle(context, Settings.HIDE_PHOTO_POSTS,
                         L10n.t("Hides posts with a photo or album, including shares.")));

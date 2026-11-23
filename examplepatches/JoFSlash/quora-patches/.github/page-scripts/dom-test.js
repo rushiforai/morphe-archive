@@ -203,6 +203,77 @@ expect('blockAuthors-0.js', `
   ['#hers', true], ['#upvoted', false],
 ]);
 
+// Hide anonymous answers. Markup trimmed from a question page: the author is the first bold
+// q-text; an anonymous one is plain text, a named one a profile link. An anonymous commenter
+// further down doesn't hide the named author's answer.
+const author = (name) => `
+  <div class="q-box qu-flex--auto"><div class="q-box"><span class="q-box">
+    <span class="q-text qu-dynamicFontSize--small qu-bold qu-color--gray_dark qu-passColorToLinks">
+      <div class="q-inlineFlex qu-alignItems--center"><div class="q-inlineFlex qu-alignItems--center qu-wordBreak--break-word">
+      ${name}</div></div></span></span></div></div>`;
+expect('hideAnonymousAnswers-0.js', `
+  <div class="q-box dom_annotate_question_answer_item_0" id="anon">
+    ${author('<span><span>Anonymous</span></span>')}
+    <div class="puppeteer_test_answer_content"><p class="q-text">A secret.</p></div></div>
+  <div class="q-box dom_annotate_question_answer_item_1" id="named">
+    ${author('<span><a class="puppeteer_test_link" href="https://www.quora.com/profile/Jake-Williams-65">Jake Williams</a></span>')}
+    <div class="puppeteer_test_answer_content"><p class="q-text">His answer.</p></div>
+    <div class="q-box comment">${author('<span><span>Anonymous</span></span>')}<p class="q-text">A comment.</p></div></div>
+  <div class="q-box dom_annotate_multifeed_bundle_AnswersBundle" id="feed-anon">
+    ${author('<span><span>Anonymous</span></span>')}
+    <div class="puppeteer_test_answer_content"><p class="q-text">In the feed.</p></div></div>`, [
+  ['#anon', true], ['#named', false], ['#feed-anon', true],
+]);
+
+// Word count: the editor opens as its own page whose params name the modal. Markup trimmed from
+// Quora's answer editor: each paragraph is a [data-kind=section].
+function editorPage(modal, html) {
+  const params = Buffer.from(JSON.stringify({ initialModalProps: { name: modal } })).toString('base64');
+  const dom = new JSDOM(`<!doctype html><html><head></head><body>${html}</body></html>`, {
+    url: `https://www.quora.com/ans_frontend/modalflow?params=${encodeURIComponent(params)}&chunkName=component-Modals-Editor`,
+    runScripts: 'outside-only',
+    pretendToBeVisual: true,
+  });
+  dom.window.eval(fs.readFileSync(path.join(dir, 'wordCount-0.js'), 'utf8'));
+  return dom.window.document;
+}
+
+const editorBox = (...paragraphs) => `<div class="doc dark_mode" contenteditable="true" data-kind="doc">${
+  paragraphs.map((p) => `<div class="section" data-kind="section"><div class="span" data-kind="span"><div class="content">${p}</div></div></div>`).join('')}</div>`;
+
+function expectCount(what, doc, want) {
+  checks++;
+  const label = doc.getElementById('jofslash-word-count');
+  const got = label && label.style.display !== 'none' ? label.textContent : null;
+  if (got !== want) fail(`wordCount-0.js: ${what} should show ${JSON.stringify(want)}, shows ${JSON.stringify(got)}`);
+}
+
+{
+  // Two paragraphs: their words don't run together, extra spaces don't count as words.
+  const doc = editorPage('AnswerEditorModal', editorBox('Hello world.', 'Second   paragraph here'));
+  expectCount('the answer editor', doc, 'Words: 5 · Characters: 35');
+  // Typing updates the count at once.
+  doc.querySelector('.content').textContent = 'One two three';
+  doc.querySelector('[data-kind="doc"]').dispatchEvent(new doc.defaultView.Event('input', { bubbles: true }));
+  expectCount('the answer editor after typing', doc, 'Words: 6 · Characters: 36');
+}
+expectCount('an empty answer editor', editorPage('AnswerEditorModal', editorBox('')), 'Words: 0 · Characters: 0');
+expectCount('the post editor', editorPage('AskQuestion', editorBox('A post.')), 'Words: 2 · Characters: 7');
+// The comment sheet has its Post button where the label would go.
+expectCount('the comment sheet', editorPage('CommentAddModal', editorBox('A comment.')), null);
+expectCount('a comment modal on an answer', editorPage('AnswerCommentModal', editorBox('A comment.')), null);
+// Quora reuses the comment sheet's page for the next modal without loading it again.
+{
+  const doc = editorPage('CommentAddModal', editorBox('A comment.'));
+  const w = doc.defaultView;
+  const params = Buffer.from(JSON.stringify({ initialModalProps: { name: 'AskQuestion' } })).toString('base64');
+  w.history.pushState({}, '', `/ans_frontend/modalflow?params=${encodeURIComponent(params)}`);
+  doc.querySelector('[data-kind="doc"]').dispatchEvent(new w.Event('input', { bubbles: true }));
+  expectCount('a page reused for the post editor', doc, 'Words: 2 · Characters: 10');
+}
+// An editor that isn't shown, such as the post tab while Add Question is open.
+expectCount('a hidden editor', editorPage('AskQuestion', `<div style="display:none">${editorBox('Hidden.')}</div>`), null);
+
 // Bookmarks in an open answer: the button is added next to Share, and added again when Quora
 // redraws the action bar and drops it.
 async function bookmarkCheck() {

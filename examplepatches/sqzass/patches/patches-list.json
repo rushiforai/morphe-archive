@@ -1,6 +1,6 @@
 {
   "NOTE": "Do NOT manually edit this file. This file is automatically updated when semantic release (release.yml) runs. Manually editing this file can break your releases and break third party tools that use this file.",
-  "version": "1.26.0",
+  "version": "1.29.0",
   "patches": [
     {
       "name": "Allow screen recording",
@@ -91,6 +91,18 @@
                 "ARMEABI_V7A": 113,
                 "X86_64": 113,
                 "X86": 113
+              },
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            },
+            {
+              "version": "1.3.0",
+              "versionCodes": {
+                "ARM64_V8A": 140,
+                "ARMEABI_V7A": 140,
+                "X86_64": 140,
+                "X86": 140
               },
               "isExperimental": false,
               "minSdk": null,
@@ -869,8 +881,104 @@
       ]
     },
     {
+      "name": "Unlock Donor Status",
+      "description": "Unlocks SD Maid SE Pro/Donor features for FOSS build by forcing isPro checks to true",
+      "default": true,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "eu.darken.sdmse",
+          "name": "SD Maid 2/SE",
+          "description": null,
+          "apkFileType": null,
+          "appIconColor": null,
+          "signatures": null,
+          "formFactor": "MOBILE",
+          "targets": [
+            {
+              "version": "2.2.3-rc0",
+              "versionCodes": {
+                "ARM64_V8A": 20203000,
+                "ARMEABI_V7A": 20203000,
+                "X86_64": 20203000,
+                "X86": 20203000
+              },
+              "isExperimental": false,
+              "minSdk": null,
+              "description": "apk MUST be from GITHUB, NOT APKMirror."
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Unlock Premium",
+      "description": "Forces Ninja VPN's premium mode state to PREMIUM at every server/cache write site.",
+      "default": true,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "app.ninjavpn.android",
+          "name": "Ninja VPN",
+          "description": null,
+          "apkFileType": null,
+          "appIconColor": null,
+          "signatures": null,
+          "formFactor": "MOBILE",
+          "targets": [
+            {
+              "version": "1.4.13",
+              "versionCodes": {
+                "ARM64_V8A": 50,
+                "ARMEABI_V7A": 50,
+                "X86_64": 50,
+                "X86": 50
+              },
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Unlock Premium",
+      "description": "Forces Turbo VPN's local VIP/premium state checks to true.",
+      "default": true,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "free.vpn.unblock.proxy.turbovpn",
+          "name": "Turbo VPN - Secure VPN Proxy",
+          "description": null,
+          "apkFileType": null,
+          "appIconColor": null,
+          "signatures": null,
+          "formFactor": "MOBILE",
+          "targets": [
+            {
+              "version": "4.3.2.2",
+              "versionCodes": {
+                "ARM64_V8A": 2026102111,
+                "ARMEABI_V7A": 2026102111,
+                "X86_64": 2026102111,
+                "X86": 2026102111
+              },
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
       "name": "Unlock Pro",
-      "description": "Unlocks all MEGA Pro features and removes ads.",
+      "description": "Unlocks all MEGA Pro features and removes ads. i'm actually not entirely sure it works - think it's jst cosmetic lol.",
       "default": true,
       "category": null,
       "compatiblePackages": [
@@ -916,6 +1024,82 @@
           }
         }
       ]
+    },
+    {
+      "name": "Unlock Pro",
+      "description": "Unlocks PortDroid Pro features (forces the pro gate and billing status).",
+      "default": true,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "com.stealthcopter.portdroid",
+          "name": "PortDroid - Network Analysis",
+          "description": null,
+          "apkFileType": null,
+          "appIconColor": null,
+          "signatures": null,
+          "formFactor": "MOBILE",
+          "targets": [
+            {
+              "version": "1.0.7",
+              "versionCodes": {
+                "ARM64_V8A": 113,
+                "ARMEABI_V7A": 113,
+                "X86_64": 113,
+                "X86": 113
+              },
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            },
+            {
+              "version": "1.3.0",
+              "versionCodes": {
+                "ARM64_V8A": 140,
+                "ARMEABI_V7A": 140,
+                "X86_64": 140,
+                "X86": 140
+              },
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Unlock VIP Model",
+      "description": "Forces Turbo VPN's VipInfo/VpnServer entitlement checks to premium values.",
+      "default": true,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "free.vpn.unblock.proxy.turbovpn",
+          "name": "Turbo VPN - Secure VPN Proxy",
+          "description": null,
+          "apkFileType": null,
+          "appIconColor": null,
+          "signatures": null,
+          "formFactor": "MOBILE",
+          "targets": [
+            {
+              "version": "4.3.2.2",
+              "versionCodes": {
+                "ARM64_V8A": 2026102111,
+                "ARMEABI_V7A": 2026102111,
+                "X86_64": 2026102111,
+                "X86": 2026102111
+              },
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
     },
     {
       "name": "Unlock premium",

@@ -1,0 +1,1 @@
+-keep class nl.johninnl.deezer.auth.** { *; }

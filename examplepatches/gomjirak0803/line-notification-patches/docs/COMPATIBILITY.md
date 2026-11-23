@@ -50,6 +50,7 @@ Both original `base.apk` files passed APK signature verification: lineage-root c
 | Post-read room notification cleanup | `a78.b` completion callback → `fw3.h.c(...)` with `fw3.l.a(chat)` and `fw3.l.c(chat)` |
 | Push registration (optional) | FIS `X-Android-Cert` / `URLConnection.addRequestProperty` |
 | Expanded notification sender avatars | 1:1 reuses original `largeIcon`/`sender_person`; group reads `contacts.picture_path` + LINE Glide local cache only (`e80.l0`, `ao.a.s(true)`=`onlyRetrieveFromCache(true)`, `kn.l.b`, `ao.a.d()`) |
+| Localized UI strings (`0.1.12+`) | `NotificationStrings.kt` writes 39 `line_notify_*` keys into LINE's `res/values/strings.xml` and 6 locale directories (`values-ko`, `values-ja`, `values-zh-rTW`, `values-zh-rCN`, `values-th`, `values-in`); the extension resolves them via `Strings.get(...)` using `getIdentifier`, falling back to English literals. Canonical patch names (`Not Too Much Silent`, `More Chat Info`, `No reply`, `Mark as read`) stay in English. |
 
 ## Architecture highlights
 

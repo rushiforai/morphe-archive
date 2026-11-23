@@ -1,3 +1,17 @@
+## [0.3.1](https://github.com/zimza1abim/kanye-morphe-patches/compare/v0.3.0...v0.3.1) (2026-11-23)
+
+### 🚀 Updated App Support
+
+* support Bare 2.0.8
+
+
+## [0.3.0](https://github.com/zimza1abim/kanye-morphe-patches/compare/v0.2.0...v0.3.0) (2026-11-22)
+
+### ✨ New Features
+
+* Orca bot pictures on Home
+
+
 ## [0.2.0](https://github.com/zimza1abim/kanye-morphe-patches/compare/v0.1.6...v0.2.0) (2026-11-21)
 
 ### ✨ New Features

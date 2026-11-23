@@ -134,6 +134,25 @@ public final class LiveControls {
         return offerQualityEverywhere() && Settings.REMEMBER_LIVE_QUALITY.get();
     }
 
+    /**
+     * The settings row's choices for the quality LIVE rooms start at (#57). "last" keeps the
+     * last pick (the kept one after a restart, while Keep the LIVE quality is on), the way rooms
+     * started before the choice; the rest are TikTok's own quality keys.
+     */
+    public static final String[] START_QUALITY_LABELS = {
+            "The quality you picked last", "Original", "1080p", "720p", "540p", "360p"};
+    public static final String[] START_QUALITY_VALUES = {"last", "origin", "uhd", "hd", "sd", "ld"};
+
+    /** The start quality picked in settings, or null for the last pick. Off with Offer LIVE quality. */
+    static String startQuality() {
+        if (!offerQualityEverywhere()) return null;
+        String start = Settings.LIVE_START_QUALITY.get();
+        for (int i = 1; i < START_QUALITY_VALUES.length; i++) {
+            if (START_QUALITY_VALUES[i].equals(start)) return start;
+        }
+        return null;
+    }
+
     private static volatile boolean restoredLogged;
     private static volatile String lastQualityPick;
     /** The last pick this run made while Offer LIVE quality was on, from either picker, or null. */
@@ -163,7 +182,12 @@ public final class LiveControls {
         // this run carries instead, and TikTok's own is only the newer picker's.
         String runPick = pickThisRun;
         if (runPick != null && offerQualityEverywhere()) return runPick;
-        if (picked != null || !rememberQuality()) return picked;
+        if (picked != null) return picked;
+        // A start quality picked in settings comes ahead of the kept pick, and a pick in a room
+        // this run comes ahead of it (#57).
+        String start = startQuality();
+        if (start != null) return start;
+        if (!rememberQuality()) return null;
         String saved = Settings.REMEMBERED_LIVE_QUALITY.get();
         if (saved == null || saved.isEmpty()) return null;
         if (!restoredLogged) {
@@ -358,5 +382,32 @@ public final class LiveControls {
             return tiktokText;
         }
         return NumberFormat.getIntegerInstance().format(count);
+    }
+
+    /**
+     * True while a LIVE battle's scores should show whole past the server's high score cap
+     * (#495). Paused, the switch answers off.
+     */
+    static boolean exactBattleScores() {
+        return SettingsStatus.liveControlsEnabled && Settings.SHOW_EXACT_BATTLE_SCORES.get();
+    }
+
+    /**
+     * Called with TikTok's answer to whether a battle's high score cap applies, non-zero for yes:
+     * as the cap every score view reads is built, and as the high score notice picks its text.
+     * Capped, a viewer sees "1M+" (or the cap with a + after it) where the host sees the number.
+     * While the switch is on the answer is no, so the score is written whole; otherwise TikTok's
+     * answer stands.
+     */
+    public static boolean battleScoreCap(int capped) {
+        return capped != 0 && !exactBattleScores();
+    }
+
+    /**
+     * Called with a score writer's own answer to whether the score shows whole, non-zero for yes
+     * (TikTok says yes for the host). While the switch is on the answer is yes for everyone.
+     */
+    public static boolean battleScoreWhole(int whole) {
+        return whole != 0 || exactBattleScores();
     }
 }

@@ -11,7 +11,6 @@ import app.morphe.patcher.patch.AppTarget
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.Compatibility
 import app.morphe.patcher.patch.bytecodePatch
-import app.morphe.patcher.string
 import app.morphe.patcher.util.smali.ExternalLabel
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
@@ -28,7 +27,8 @@ private object ChatReactionEntitlementFingerprint : Fingerprint(
     parameters = emptyList(),
     filters = listOf(
         fieldAccess(opcode = Opcode.IGET_BOOLEAN, definingClass = "this", type = "Z"),
-        string("subscribePackageIdConfig"),
+        methodCall(definingClass = "Ljava/lang/Integer;", name = "valueOf"),
+        methodCall(definingClass = "Ljava/util/ArrayList;", name = "contains"),
     ),
 )
 
@@ -55,7 +55,7 @@ val chatReactionPickerPatch = bytecodePatch(
         packageName = "com.zing.zalo",
         apkFileType = ApkFileType.APKM,
         appIconColor = 0x0068FF,
-        targets = listOf(AppTarget(version = "26.10.02")),
+        targets = listOf(AppTarget(version = "26.11.01")),
     ))
 
     dependsOn(nativeSignaturePatch)

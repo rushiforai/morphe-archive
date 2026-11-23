@@ -23,7 +23,7 @@ public final class GboardEditingAccessPointsContribution {
             prepare(context.getClassLoader());
             List<String> result = extend(stock,
                     action -> GboardEditingAccessPointsRuntime.enabled(context, action));
-            Class<?> catalog = Class.forName("wim", false, original.getClass().getClassLoader());
+            Class<?> catalog = Class.forName("auco", false, original.getClass().getClassLoader());
             Method copy = catalog.getDeclaredMethod("n", Collection.class);
             copy.setAccessible(true);
             return copy.invoke(null, result);
@@ -91,13 +91,17 @@ public final class GboardEditingAccessPointsContribution {
 
         Handles(ClassLoader loader) throws ReflectiveOperationException {
             this.loader = loader;
-            Class<?> descriptor = Class.forName("mmm", false, loader);
-            Class<?> builder = Class.forName("mmh", false, loader);
-            Class<?> controller = Class.forName("mpq", false, loader);
-            factory = method(descriptor, "c", builder, true);
-            token = method(builder, "l", void.class, false, String.class);
-            icon = method(builder, "i", void.class, false, int.class);
-            runnable = method(builder, "q", void.class, false, Runnable.class);
+            // 18.8.0 API: AccessPoint.m() is the static factory (returns the abstract builder),
+            // the concrete AutoValue builder declares q(String)/l(int)/a():AccessPoint,
+            // the click action setter is the base-class v(Runnable), and the label is field d.
+            Class<?> descriptor = Class.forName("aadr", false, loader);
+            Class<?> builder = Class.forName("aaej", false, loader);
+            Class<?> builderBase = Class.forName("aadm", false, loader);
+            Class<?> controller = Class.forName("aajh", false, loader);
+            factory = method(descriptor, "m", builderBase, true);
+            token = method(builder, "q", void.class, false, String.class);
+            icon = method(builder, "l", void.class, false, int.class);
+            runnable = method(builderBase, "v", void.class, false, Runnable.class);
             build = method(builder, "a", descriptor, false);
             register = method(controller, "g", void.class, false, descriptor, boolean.class);
             title = field(builder, "d");

@@ -210,10 +210,11 @@ Run only when agy's version changes or something looks wrong. Never read credent
 10. Check `git log`: agy made no commits.
 11. **Apply, install, verify** yourself (section 8) before asking Joe anything.
 12. Commit with a conventional message (`feat(<app>): hide shorts shelf`, `fix(<app>): update fingerprint for 19.x`), squash WIP commits, rebase on the latest `dev`.
-13. Run `gates.sh --pr`, write the PR draft in `tasks/pr/NNN.md` with screenshot placeholders (`<!-- 1_name.png -->` + caption). Save screenshots in `~/Downloads/pr-<n>-<short-name>/` named to match.
-14. Ask Joe to test (emulator / side-by-side patched build on his phone), then ask "Open the PR?" Only on his explicit yes: push and `gh pr create` against `dev`. Split refactors into their own PRs.
-15. When CI is green, ask Joe to approve the merge. On yes: squash-merge, delete branch, remove worktree, update `status.md` and `architecture.md`. Releases (dev → main) only on his go-ahead.
-16. **Report** in 5 lines max: what the patch does; target method and why; versions tested; confidence and known risks (e.g. fragile fingerprint); suggested next step.
+13. **README (Joe's rule, 2026-11-22):** every PR to `dev` that changes patch behaviour also updates `README.md` in the same branch: the Highlights list (new feature, changed behaviour), the Settings note, and "Tested on" versions. Never edit the generated table between `PATCHES_START`/`PATCHES_END`. Claude writes these few lines directly. `gates.sh --pr` fails (`readme` gate) when patch/extension code changed without README.md, unless the spec says `README: no change needed` (pure refactors/internal fixes only). Specs list one `Gate-APK:` line per supported version so `apply-pr` covers them all.
+14. Run `gates.sh --pr`, write the PR draft in `tasks/pr/NNN.md` with screenshot placeholders (`<!-- 1_name.png -->` + caption). Save screenshots in `~/Downloads/pr-<n>-<short-name>/` named to match.
+15. Ask Joe to test (emulator / side-by-side patched build on his phone), then ask "Open the PR?" Only on his explicit yes: push and `gh pr create` against `dev`. Split refactors into their own PRs.
+16. When CI is green, ask Joe to approve the merge. On yes: squash-merge, delete branch, remove worktree, update `status.md` and `architecture.md`. Releases (dev → main) only on his go-ahead.
+17. **Report** in 5 lines max: what the patch does; target method and why; versions tested; confidence and known risks (e.g. fragile fingerprint); suggested next step.
 
 ### Updating for a new app version
 1. Decompile the new APK into a new `work/<app>/<newver>/`.

@@ -1,5 +1,7 @@
 package app.hoitruyenchu.patches.itruyenchu.misc.login
 
+import app.hoitruyenchu.patches.itruyenchu.misc.settings.enablePatchFlag
+import app.hoitruyenchu.patches.itruyenchu.misc.settings.settingsPatch
 import app.hoitruyenchu.patches.itruyenchu.misc.extension.sharedExtensionPatch
 import app.hoitruyenchu.patches.itruyenchu.shared.Constants.COMPATIBILITY_ITRUYENCHU
 import app.hoitruyenchu.patches.itruyenchu.shared.Constants.EXTENSION_FIX_GOOGLE_LOGIN
@@ -20,9 +22,11 @@ val fixGoogleLoginPatch = patch(
 ) {
     compatibleWith(COMPATIBILITY_ITRUYENCHU)
 
-    dependsOn(sharedExtensionPatch)
+    dependsOn(sharedExtensionPatch, settingsPatch)
 
     execute {
+        enablePatchFlag("googleLogin")
+
         CreateClientBuilderFingerprint.method.apply {
             val instructions = implementation!!.instructions.toList()
             // Every return of the builder gets the interceptor.

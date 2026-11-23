@@ -51,6 +51,18 @@ public final class ThreadWatchRulesTest {
         String raw="1<>name<>mail<>date<>old<>title<>id\n3<>name<>mail<>date<>&gt;&gt;1 reply<>title<>id\n5<>name<>mail<>date<>unrelated<>title<>id\n";
         java.util.Map<Integer,String> fresh=ThreadWatchRules.newBodies(shita,raw,1,5);
         check(fresh.size()==2&&fresh.get(3).equals("&gt;&gt;1 reply")&&fresh.containsKey(5)&&!fresh.containsKey(2));
+        String fiveChDat="one<>mail<>date<>old<>title\r\n"+
+                "two<>mail<>date<>new <b>2</b><>title\r\n"+
+                "broken\r\n"+
+                "four<>mail<>date<>new four<>title";
+        for(int before:new int[]{0,1,2,3,4})for(int count:new int[]{1,2,3,4,5})
+            check(ThreadWatchRules.newBodies(edge,fiveChDat,before,count,true)
+                    .equals(ThreadWatchRules.newBodies(edge,fiveChDat,before,count,false)));
+        check(ThreadWatchRules.newBodies(edge,fiveChDat,4,4,true).isEmpty());
+        check(ThreadWatchRules.newBodies(edge,fiveChDat,0,1,true).get(1).equals("old"));
+        check(ThreadWatchRules.newBodies(edge,fiveChDat,1,2,true).get(2).equals("new <b>2</b>"));
+        check(ThreadWatchRules.newBodies(edge,fiveChDat,3,4,true).get(4).equals("new four"));
+        check(ThreadWatchRules.newBodies(shita,raw,1,5,true).equals(ThreadWatchRules.newBodies(shita,raw,1,5,false)));
         check(ThreadWatchRules.newBodies(shita,raw,-1,5).isEmpty());
         check(ThreadWatchRules.newBodies(shita,"<html>challenge",1,5).isEmpty());
         check(ThreadWatchRules.newBodies(edge,dat,1,3).size()==2);

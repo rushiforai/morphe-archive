@@ -14,7 +14,9 @@ import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstructio
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
+import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 import java.util.logging.Logger
 
 // The staff-account check holds these unique addresses.
@@ -30,7 +32,7 @@ private fun MutableMethod?.returnEarlyIfImplemented(value: Boolean) =
 @Suppress("unused")
 val enablePlusPatch = bytecodePatch(
     name = "Enable FotMob+",
-    description = "Unlocks FotMob+ and removes ads."
+    description = "Unlocks FotMob+ features and its ad-free mode in the app, without a real subscription."
 ) {
     compatibleWith(COMPATIBILITY_FOTMOB)
 
@@ -75,11 +77,12 @@ val enablePlusPatch = bytecodePatch(
         // newer, where the description promises the icons) a picker or branch shape that no
         // longer matches fails the patch instead of shipping it without the icons
         // (238.17794 and 238.17666 are checked; 237/236 had no APK at hand).
-        val screen = MembershipScreenFingerprint.methodOrNull
-        if (screen == null) {
-            logger.info("Enable FotMob+: no \"$NO_SUBSCRIPTION_TEXT\" screen, skipping the app-icon step")
+        // (2026-11-22) Optional only for builds without MembershipActivity: when the activity is
+        // there the literal must be too (.method fails loudly), else the icons would silently drop.
+        if (classDefByOrNull(MEMBERSHIP_ACTIVITY) == null) {
+            logger.info("Enable FotMob+: no MembershipActivity, skipping the app-icon step")
         } else {
-            unlockAppIcons(screen)
+            unlockAppIcons(MembershipScreenFingerprint.method)
         }
     }
 }
@@ -145,21 +148,41 @@ private fun unlockAppIcons(screen: MutableMethod) {
         )
     }
     val activityRegs = pickerCalls.map { (it as FiveRegisterInstruction).registerC }.toSet()
-    val activityReg = activityRegs.singleOrNull()
-        ?: throw PatchException("$where: $picker is called on different registers $activityRegs")
+
+    // R8 may keep the activity in different registers per branch (242: v0 in two branches, v5
+    // after a `move-object v5, v0` in the others), so the register is tracked into this branch:
+    // it starts as the one the screen lambda's check-cast to MembershipActivity wrote, a move-object
+    // from a holder adds the destination, and any other write drops a register. Whatever still
+    // holds the activity at the insertion point, and is also used by a picker call, is used.
+    val castIndex = (textIndex downTo 0).firstOrNull { index ->
+        insns[index].opcode == Opcode.CHECK_CAST &&
+            ((insns[index] as ReferenceInstruction).reference as? TypeReference)?.type == MEMBERSHIP_ACTIVITY
+    } ?: throw PatchException("$where: no check-cast to MembershipActivity before the Text call")
+    val holders = mutableSetOf((insns[castIndex] as OneRegisterInstruction).registerA)
+
+    // The NoEntitlement branch starts after the previous branch's goto.
+    val branchStart = (textIndex downTo 0).firstOrNull { insns[it].opcode in GOTOS }
+        ?: throw PatchException("$where: NoEntitlement branch start not found")
+    if (branchStart < castIndex) {
+        throw PatchException("$where: the NoEntitlement branch starts before the MembershipActivity cast")
+    }
+    for (index in branchStart + 1..textCall + 1) {
+        val insn = insns[index]
+        if (insn.opcode in MOVE_OBJECTS) {
+            val move = insn as TwoRegisterInstruction
+            if (move.registerB in holders) holders += move.registerA else holders -= move.registerA
+        } else {
+            holders.removeAll { insn.writes(it) }
+        }
+    }
+    val activityReg = holders.filter { it in activityRegs }.minOrNull()
+        ?: throw PatchException(
+            "$where: no register holds the activity at the insertion point (holders $holders, $picker calls use $activityRegs)"
+        )
 
     // invoke-virtual takes 4-bit registers only.
     if (listOf(activityReg, zeroReg, composerReg).any { it >= 16 }) {
         throw PatchException("$where: registers v$activityReg/v$zeroReg/v$composerReg do not fit invoke-virtual")
-    }
-
-    // The NoEntitlement branch starts after the previous branch's goto; nothing in it may
-    // overwrite the activity register before the insertion point.
-    val branchStart = (textIndex downTo 0).firstOrNull { insns[it].opcode in GOTOS }
-        ?: throw PatchException("$where: NoEntitlement branch start not found")
-    val clobber = (branchStart + 1..textCall + 1).firstOrNull { insns[it].writes(activityReg) }
-    if (clobber != null) {
-        throw PatchException("$where: v$activityReg is overwritten at index $clobber in the NoEntitlement branch")
     }
 
     screen.addInstructionChecked(
@@ -170,6 +193,7 @@ private fun unlockAppIcons(screen: MutableMethod) {
 }
 
 private val GOTOS = setOf(Opcode.GOTO, Opcode.GOTO_16, Opcode.GOTO_32)
+private val MOVE_OBJECTS = setOf(Opcode.MOVE_OBJECT, Opcode.MOVE_OBJECT_FROM16, Opcode.MOVE_OBJECT_16)
 
 private fun Instruction.stringOrNull(): String? =
     ((this as? ReferenceInstruction)?.reference as? StringReference)?.string

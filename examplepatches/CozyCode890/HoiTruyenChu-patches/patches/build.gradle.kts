@@ -21,6 +21,20 @@ dependencies {
     patchListGeneratorClasspath(libs.gson)
 }
 
+// The version of the patches, shown by the settings screen in the app (see SettingsPatch.kt).
+val generateVersionResource = tasks.register("generateVersionResource") {
+    val version = project.version.toString()
+    val output = layout.buildDirectory.dir("generated/htc-version")
+    inputs.property("version", version)
+    outputs.dir(output)
+    doLast {
+        val file = output.get().file("app/hoitruyenchu/patches/version.txt").asFile
+        file.parentFile.mkdirs()
+        file.writeText(version)
+    }
+}
+sourceSets["main"].resources.srcDir(generateVersionResource)
+
 tasks {
     register<JavaExec>("generatePatchesList") {
         description = "Build patch with patch list"

@@ -56,7 +56,7 @@ final class NativeGuidance implements AutoCloseable {
     private boolean closed;
 
     NativeGuidance(Context context,Handler main,Consumer<Snapshot> callback,Consumer<Throwable> failure)throws Exception{
-        this(acquire(context.getApplicationContext()),context.getClassLoader().loadClass("blra"),context.getClassLoader().loadClass("blrb"),
+        this(acquire(context.getApplicationContext()),type(context.getClassLoader(),"blxx","blra"),type(context.getClassLoader(),"blxy","blrb"),
                 command->main.post(command),callback,failure,acquireDistanceUtil(context.getApplicationContext()));
     }
     NativeGuidance(Object source,Class<?> listenerType,Class<?> marker,Executor executor,Consumer<Snapshot> callback,Consumer<Throwable> failure)throws Exception{
@@ -70,7 +70,7 @@ final class NativeGuidance implements AutoCloseable {
                 if("equals".equals(method.getName()))return proxy==args[0];
                 return "Maps CAL guidance listener";
             }
-            if("se".equals(method.getName())&&!closed){
+            if(("se".equals(method.getName())||"qk".equals(method.getName()))&&!closed){
                 try{callback.accept(snapshot(args[0],this.distanceUtil));}catch(Exception error){failure.accept(error);}
             }
             return null;
@@ -79,18 +79,60 @@ final class NativeGuidance implements AutoCloseable {
         try{callback.accept(snapshot(field(source,"b"),distanceUtil));}
         catch(Exception error){close();throw error;}
     }
+    /** Maps renames obfuscated types every release; take the first name this build has. */
+    static Class<?> type(ClassLoader loader,String... names)throws ClassNotFoundException{
+        for(String name:names)try{return Class.forName(name,false,loader);}catch(ClassNotFoundException ignored){}
+        throw new ClassNotFoundException(java.util.Arrays.toString(names));
+    }
+    /**
+     * The cached application component. 26.44 inherits it as rS() from nsm; 26.47 inherits pY()
+     * from nup. Never the protected factory e(), which creates another application manager.
+     */
+    static Object component(Object app)throws Exception{
+        try{return method(app,"rS").invoke(app);}
+        catch(NoSuchMethodException older){return method(app,"pY").invoke(app);}
+    }
+    /** A shape test for a provider's value. Maps renumbers its dependency slots every release. */
+    interface Shape{boolean matches(Object value)throws Exception;}
+    static boolean hasMethod(Object value,String name,int arguments){
+        for(Class<?> type=value.getClass();type!=null;type=type.getSuperclass())
+            for(java.lang.reflect.Method candidate:type.getDeclaredMethods())
+                if(candidate.getName().equals(name)&&candidate.getParameterCount()==arguments)return true;
+        return false;
+    }
+    /** The first slot whose value has the expected shape: 26.44 and 26.47 put them in different slots. */
+    static Object provider(Object component,String[] slots,Shape shape)throws Exception{
+        Exception last=null;
+        for(String slot:slots)try{
+            Object provider=field(component,slot);
+            Object value=method(provider,"a").invoke(provider);
+            if(value!=null&&shape.matches(value))return value;
+        }catch(ReflectiveOperationException|RuntimeException ignored){last=ignored;}
+        throw new IllegalStateException("Maps guidance provider changed: "+java.util.Arrays.toString(slots),last);
+    }
     static Object acquire(Object app)throws Exception{
-        // 26.44 inherits this cached component accessor from nsm. Do not call
-        // the protected e() factory, which creates another application manager.
-        Object component=method(app,"rS").invoke(app);
-        Object provider=field(component,"bR");
-        return method(provider,"a").invoke(provider);
+        Object component=component(app);
+        // The guidance source takes (marker, Executor); 26.44 slot bR, 26.47 slot bS.
+        return provider(component,new String[]{"bS","bR"},value->hasMethod(value,"a",2));
     }
     static Object acquireDistanceUtil(Object app)throws Exception{
-        Object component=method(app,"rS").invoke(app),provider=field(component,"hN");
-        Object util=method(provider,"a").invoke(provider);
-        if(!util.getClass().getName().equals("awxs"))throw new IllegalStateException("Maps distance utility changed");
-        return util;
+        Object component=component(app);
+        // The unit converter is the class whose c(unit) returns the same unit type:
+        // 26.44 awxs.c(cizm)cizm, 26.47 axju.c(cjkl)cjkl, in slots hN and hQ.
+        return provider(component,new String[]{"hQ","hN"},value->{
+            for(Class<?> owner=value.getClass();owner!=null;owner=owner.getSuperclass())
+                for(java.lang.reflect.Method candidate:owner.getDeclaredMethods())
+                    if(candidate.getName().equals("c")&&candidate.getParameterCount()==1&&
+                        candidate.getParameterTypes()[0]==candidate.getReturnType())return true;
+            return false;
+        });
+    }
+    /** The distance unit is whatever the utility converts through its one-argument c(...). */
+    static Class<?> unitParameter(Object util)throws Exception{
+        for(Class<?> owner=util.getClass();owner!=null;owner=owner.getSuperclass())
+            for(java.lang.reflect.Method candidate:owner.getDeclaredMethods())
+                if(candidate.getName().equals("c")&&candidate.getParameterCount()==1)return candidate.getParameterTypes()[0];
+        throw new NoSuchMethodException("distance utility has no one-argument c");
     }
     static Snapshot snapshot(Object value)throws Exception{
         return snapshot(value,null);
@@ -105,7 +147,7 @@ final class NativeGuidance implements AutoCloseable {
         if(model==null)return new Snapshot(true,null,0,0);
         Object progress=method(model,"e").invoke(model);
         Object path=field(progress,"b"),routeUnits=path==null?null:field(path,"N");
-        Class<?> unitType=distanceUtil==null?null:path==null?distanceUtil.getClass().getClassLoader().loadClass("cizm"):fieldType(path,"N");
+        Class<?> unitType=distanceUtil==null?null:path==null?unitParameter(distanceUtil):fieldType(path,"N");
         Object resolved=distanceUtil==null?routeUnits:method(distanceUtil,"c",unitType).invoke(distanceUtil,routeUnits);
         String units=resolved==null?null:enumName(resolved);
         Object step=field(progress,"d");
@@ -150,7 +192,22 @@ final class NativeGuidance implements AutoCloseable {
     @Override public void close()throws Exception{
         if(closed)return;closed=true;method(source,"c",marker).invoke(source,listener);
     }
-    private static Object field(Object value,String name)throws Exception{Field field=value.getClass().getField(name);field.setAccessible(true);return field.get(value);}
-    private static Class<?> fieldType(Object value,String name)throws Exception{return value.getClass().getField(name).getType();}
-    private static Method method(Object value,String name,Class<?>...parameters)throws Exception{Method method=value.getClass().getMethod(name,parameters);method.setAccessible(true);return method;}
+    /**
+     * Maps releases change a member's visibility as freely as its class name: 26.47's component has a
+     * public bR and a package-private hN. getField() only sees public members, so walk the declared
+     * fields of the whole hierarchy instead.
+     */
+    static Field declaredField(Class<?> type,String name)throws NoSuchFieldException{
+        for(Class<?> owner=type;owner!=null;owner=owner.getSuperclass())
+            try{Field found=owner.getDeclaredField(name);found.setAccessible(true);return found;}catch(NoSuchFieldException absent){}
+        throw new NoSuchFieldException(name);
+    }
+    private static Object field(Object value,String name)throws Exception{return declaredField(value.getClass(),name).get(value);}
+    private static Class<?> fieldType(Object value,String name)throws Exception{return declaredField(value.getClass(),name).getType();}
+    private static Method method(Object value,String name,Class<?>...parameters)throws Exception{return declaredMethod(value.getClass(),name,parameters);}
+    static Method declaredMethod(Class<?> type,String name,Class<?>...parameters)throws NoSuchMethodException{
+        for(Class<?> owner=type;owner!=null;owner=owner.getSuperclass())
+            try{Method found=owner.getDeclaredMethod(name,parameters);found.setAccessible(true);return found;}catch(NoSuchMethodException absent){}
+        throw new NoSuchMethodException(name);
+    }
 }

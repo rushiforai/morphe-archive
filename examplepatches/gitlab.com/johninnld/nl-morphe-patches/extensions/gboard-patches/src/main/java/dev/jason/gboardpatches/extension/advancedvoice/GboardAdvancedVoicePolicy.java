@@ -10,8 +10,6 @@ public final class GboardAdvancedVoicePolicy {
             "enable_dictation_feature_split_install";
     public static final String HANDLE_FALLBACK_INSIDE_SD_STACK_FLAG =
             "handle_fallback_inside_sd_stack";
-    public static final String ENABLE_STICKY_MIC_BACKGROUND_FLAG =
-            "enable_sticky_mic_background";
     public static final String ENABLE_SODA_LONGFORM_EXPERIMENT_FLAG =
             "enable_soda_longform_experiment";
 
@@ -51,7 +49,6 @@ public final class GboardAdvancedVoicePolicy {
                 || ENABLE_ADVANCED_FEATURES_FLAG.equals(flagName)
                 || ENABLE_DICTATION_SPLIT_INSTALL_FLAG.equals(flagName)
                 || HANDLE_FALLBACK_INSIDE_SD_STACK_FLAG.equals(flagName)
-                || ENABLE_STICKY_MIC_BACKGROUND_FLAG.equals(flagName)
                 || ENABLE_SODA_LONGFORM_EXPERIMENT_FLAG.equals(flagName);
     }
 }

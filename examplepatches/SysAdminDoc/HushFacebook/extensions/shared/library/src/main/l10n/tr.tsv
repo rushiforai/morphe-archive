@@ -687,9 +687,9 @@ Hides ads and boosted listings in Marketplace's feed and search results. Regular
 # context: switch title under News feed; hides posts whose text holds a word or phrase the person listed
 Hide posts with words you choose	Seçtiğin kelimeleri içeren gönderileri gizle
 Hide posts from people, Pages and sites	Kişilerden, sayfalardan ve sitelerden gelen gönderileri gizle
-Hides posts by people or Pages on your list below, or linking to sites on it, including shares. Your list stays on this phone unless you export it.	Aşağıdaki listenizdeki kişilerin veya Sayfaların gönderilerini ve listedeki sitelere bağlantı veren gönderileri, paylaşımlar dahil, gizler. Listeniz dışa aktarmadıkça bu telefonda kalır.
+Hides posts by people or Pages on your list below, posted in a group on it, or linking to sites on it, including shares. Your list stays on this phone unless you export it.	Aşağıdaki listenizdeki kişilerin veya Sayfaların gönderilerini, listedeki bir grupta paylaşılan gönderileri ve listedeki sitelere bağlantı veren gönderileri, paylaşımlar dahil, gizler. Listeniz dışa aktarmadıkça bu telefonda kalır.
 People, Pages and sites to hide	Gizlenecek kişiler, sayfalar ve siteler
-One per line, up to %1$d: a name as Facebook shows it, a profile or Page ID, or a site like example.com, which also covers addresses like m.example.com. Capital letters don't matter. A Facebook link works when it has the ID in it.	Her satıra bir tane, en fazla %1$d: Facebook'un gösterdiği şekliyle bir ad, bir profil veya Sayfa kimliği ya da m.example.com gibi adresleri de kapsayan example.com gibi bir site. Büyük harfler önemli değildir. Kimliği içeren bir Facebook bağlantısı çalışır.
+One per line, up to %1$d: a name as Facebook shows it (a person, Page or group), a profile, Page or group ID, or a site like example.com, which also covers addresses like m.example.com. Capital letters don't matter. A Facebook link works when it has the ID in it.	Her satıra bir tane, en fazla %1$d: Facebook'un gösterdiği şekliyle bir ad (kişi, Sayfa veya grup), bir profil, Sayfa veya grup kimliği ya da m.example.com gibi adresleri de kapsayan example.com gibi bir site. Büyük harfler önemli değildir. Kimliği içeren bir Facebook bağlantısı çalışır.
 One name, ID or site per line	Her satıra bir ad, kimlik veya site
 Nobody listed yet, so no post is hidden.	Henüz kimse eklenmedi, bu yüzden hiçbir gönderi gizlenmiyor.
 %1$d person, Page or site.	%1$d kişi, sayfa veya site.
@@ -1859,8 +1859,10 @@ Picture-in-picture button	Pencere içinde pencere düğmesi
 Shows a small button at the left edge of a reel or video that has the window ready. Tap it to open the window right away. Works with Picture-in-picture on.	Penceresi hazır olan bir reel veya videonun sol kenarında küçük bir düğme gösterir. Pencereyi hemen açmak için dokun. Pencere içinde pencere açıkken çalışır.
 # context: switch title under Playback; on, a video you started keeps its sound after you leave Facebook; also the label of a headphones button in the picture-in-picture window
 Keep playing in the background	Arka planda çalmaya devam et
+Next reel in the background	Arka planda sonraki reel
+When a reel playing in the background ends, the next reel plays instead of the same one again. It goes through the reels Reels had loaded when you left. Works with Keep playing in the background on.	Arka planda çalan bir reel bittiğinde aynısı tekrar çalmak yerine sonraki reel çalar. Çıktığında Reels'in yüklemiş olduğu reel'ler sırayla çalar. Arka planda çalmaya devam et açıkken çalışır.
 # context: summary of that switch; the notification is the one Facebook shows with the video's play and pause buttons
-A video you started with a tap keeps its sound after you leave Facebook, and its notification can pause it. Swiping the notification away or taking a call stops it.	Bir dokunuşla başlattığın video, Facebook'tan çıktıktan sonra da sesini sürdürür ve bildirimi onu duraklatabilir. Bildirimi kaydırıp kapatmak ya da bir aramayı yanıtlamak onu durdurur.
+A video you started with a tap, or a reel you swiped to in Reels, keeps its sound after you leave Facebook, and its notification can pause it. Swiping the notification away or taking a call stops it.	Bir dokunuşla başlattığın video ya da Reels'te kaydırarak geldiğin reel, Facebook'tan çıktıktan sonra da sesini sürdürür ve bildirimi onu duraklatabilir. Bildirimi kaydırıp kapatmak ya da bir aramayı yanıtlamak onu durdurur.
 # context: title of that notification when the video has none of its own
 Facebook video	Facebook videosu
 # context: switch title under Playback; on, the small picture-in-picture window gets a headphones button that keeps the sound playing after the window closes
@@ -3131,3 +3133,10 @@ When a video in your feed has the poster's name on top of the video, that name s
 Quality settings	Kalite ayarları
 Request community note	Topluluk notu iste
 Something went wrong	Bir şeyler ters gitti
+# context: the Mark all notifications as read row under Notifications and its toasts (Discussion #338)
+Mark all notifications as read	Tüm bildirimleri okundu olarak işaretle
+Clears every unread dot in the Notifications tab at once, like Mark all as read in the three-dot menu there, which some accounts don't have.	Bildirimler sekmesindeki tüm okunmamış noktalarını bir kerede temizler. Oradaki üç nokta menüsünde bulunan Tümünü okundu olarak işaretle ile aynıdır ve bazı hesaplarda bu menü yoktur.
+All your notifications are marked as read.	Tüm bildirimlerin okundu olarak işaretlendi.
+Nothing was marked, since Facebook didn't say who's signed in. Open the Notifications tab once, then try again.	Hiçbir şey işaretlenmedi, çünkü Facebook kimin oturum açtığını bildirmedi. Bildirimler sekmesini bir kez açıp yeniden dene.
+This build can't mark notifications as read.	Bu derleme bildirimleri okundu olarak işaretleyemez.
+Facebook couldn't mark your notifications as read. Try again in a moment.	Facebook bildirimlerini okundu olarak işaretleyemedi. Birazdan yeniden dene.

@@ -2154,3 +2154,9 @@ ModelUiのアーカイブ検索画面で、区切り線追加後も古い子View
 Patch buildAndroid成功。Frida 17.18.0／Java bridge 7.1.0で191・226・242を確認。画像設定のreset handlerと条件付き更新option各7チェック/版が成功し、テスト後に設定値を復元。実アーカイブActivityは各版で起動し、native childが7個、Compose navigation index 5はLinearLayout、元サイトButton index 6はButtonであることを確認。試験後のlogcatにClassCastException、VerifyError、fatal app crashなし。可視設定のタップ操作は端末がKeyguard中のため行わず、Fridaから同じreset handlerを呼び出した。242の更新所要時間を実スレで比較した試験ではない。
 
 署名済みreporter候補を191／226／242へ導入し、通常ChMate packageは変更していない。コミット`68ae442a`、dev CI `44425793532`成功。1.46.0-dev.7をプレリリースし、公開9 assetを確認。公開MPP SHA-256 `a2ec7f76dd620155253c1d2d2b1ca62670b387fd48ef816276fdddf3b8a8f1a4`。devはSemantic Release生成`fb6c9f33`まで同期。APK署名・SHA・導入時刻はdocs/android-installations.md、試験詳細はdocs/bugfix-frida-20261119.md。リリース https://github.com/areteruhiro/Haiagaru-Morphe/releases/tag/1.46.0-dev.7 。
+
+## 2026-11-22 エキスパート設定の即時表示修正（プレリリース準備）
+
+設定画面内でエキスパート設定をON／OFFしても、ネイティブViewの表示状態だけが変わりComposeの一覧行が再計算されず、画面を開き直すまで項目が現れない問題を修正。設定更新ごとに該当カテゴリの表示行を取り直す。
+
+` :patches:buildAndroid ` 成功。Mi Note 10 Android 11の隔離242版で実画面をON／OFFし、画面を離れずに項目が出現・消去することを確認。Fridaで実設定とCompose行数を含む7項目成功。確認後、元の設定値へ復元。MPP SHA-256 `f30f93c0c81ae2e0ab9b6fd4e545fc8d2241b71806855abe7a3015d8157c1dca`、APK SHA-256 `9153d09abfb05a1254b8b9b5d9da60994a77db4e15ef9bfb57c4363dfe2679c7`。導入記録はdocs/android-installations.md、実行証跡はbuild/expert-live-20261122。プレリリース公開はこれから行う。

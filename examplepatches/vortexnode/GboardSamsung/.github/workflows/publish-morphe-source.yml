@@ -1,0 +1,93 @@
+name: Publish Morphe source
+
+on:
+  workflow_run:
+    workflows:
+      - CI
+    types:
+      - completed
+    branches:
+      - main
+
+concurrency:
+  group: morphe-source-release-main
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: Publish verified Morphe source
+    if: >-
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.event == 'push' &&
+      github.event.workflow_run.head_branch == 'main'
+    permissions:
+      actions: read
+      contents: write
+      packages: read
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout current main
+        uses: actions/checkout@v7
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Ensure CI result belongs to current main
+        id: source
+        shell: bash
+        env:
+          EXPECTED_SHA: ${{ github.event.workflow_run.head_sha }}
+        run: |
+          set -euo pipefail
+          actual_sha="$(git rev-parse HEAD)"
+          if [[ "${actual_sha}" != "${EXPECTED_SHA}" ]]; then
+            echo "skip=true" >> "${GITHUB_OUTPUT}"
+            echo "A newer commit is already on main; this older CI result will not be published."
+            exit 0
+          fi
+          echo "skip=false" >> "${GITHUB_OUTPUT}"
+          echo "Publishing source commit ${actual_sha}."
+
+      - name: Verify Morphe package credentials
+        if: steps.source.outputs.skip != 'true'
+        env:
+          MORPHE_PACKAGES_TOKEN: ${{ secrets.MORPHE_PACKAGES_TOKEN }}
+        run: |
+          if [[ -z "${MORPHE_PACKAGES_TOKEN}" ]]; then
+            echo "::error::Missing MORPHE_PACKAGES_TOKEN (GitHub PAT with read:packages access)."
+            exit 1
+          fi
+
+      - name: Set up Java
+        if: steps.source.outputs.skip != 'true'
+        uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Set up Node.js
+        if: steps.source.outputs.skip != 'true'
+        uses: actions/setup-node@v7
+        with:
+          node-version: lts/*
+
+      - name: Make Gradle wrapper executable
+        if: steps.source.outputs.skip != 'true'
+        run: chmod +x ./gradlew
+
+      - name: Install release tooling
+        if: steps.source.outputs.skip != 'true'
+        run: npm install --no-audit --no-fund
+
+      - name: Verify release notes validator and .releaserc
+        if: steps.source.outputs.skip != 'true'
+        run: node --test scripts/validate-release-notes.test.mjs
+
+      - name: Analyze commits, build, and publish Morphe release
+        if: steps.source.outputs.skip != 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_ACTOR: ${{ github.repository_owner }}
+          GITHUB_TOKEN: ${{ secrets.MORPHE_PACKAGES_TOKEN }}
+          MORPHE_SIGNING_KEY: ${{ secrets.MORPHE_SIGNING_KEY }}
+        run: npx semantic-release

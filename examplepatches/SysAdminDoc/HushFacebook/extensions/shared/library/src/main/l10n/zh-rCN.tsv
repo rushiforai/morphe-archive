@@ -687,9 +687,9 @@ Hides ads and boosted listings in Marketplace's feed and search results. Regular
 # context: switch title under News feed; hides posts whose text holds a word or phrase the person listed
 Hide posts with words you choose	隐藏含你所选字词的帖子
 Hide posts from people, Pages and sites	隐藏来自用户、公共主页和网站的帖子
-Hides posts by people or Pages on your list below, or linking to sites on it, including shares. Your list stays on this phone unless you export it.	隐藏你在下方列表中的用户或公共主页发布的帖子，或链接到列表中网站的帖子，包括转发的帖子。除非你导出，否则你的列表只保存在这部手机上。
+Hides posts by people or Pages on your list below, posted in a group on it, or linking to sites on it, including shares. Your list stays on this phone unless you export it.	隐藏你在下方列表中的用户或公共主页发布的帖子、发在列表中小组里的帖子，或链接到列表中网站的帖子，包括转发的帖子。除非你导出，否则你的列表只保存在这部手机上。
 People, Pages and sites to hide	要隐藏的用户、公共主页和网站
-One per line, up to %1$d: a name as Facebook shows it, a profile or Page ID, or a site like example.com, which also covers addresses like m.example.com. Capital letters don't matter. A Facebook link works when it has the ID in it.	每行一个，最多 %1$d 个：Facebook 上显示的名称、个人主页或公共主页 ID，或像 example.com 这样的网站（也涵盖 m.example.com 这样的地址）。不区分大小写。包含 ID 的 Facebook 链接也可以使用。
+One per line, up to %1$d: a name as Facebook shows it (a person, Page or group), a profile, Page or group ID, or a site like example.com, which also covers addresses like m.example.com. Capital letters don't matter. A Facebook link works when it has the ID in it.	每行一个，最多 %1$d 个：Facebook 上显示的名称（用户、公共主页或小组）、个人主页、公共主页或小组 ID，或像 example.com 这样的网站（也涵盖 m.example.com 这样的地址）。不区分大小写。包含 ID 的 Facebook 链接也可以使用。
 One name, ID or site per line	每行一个名称、ID 或网站
 Nobody listed yet, so no post is hidden.	还没有列出任何内容，因此不会隐藏任何帖子。
 %1$d person, Page or site.	%1$d 个用户、公共主页或网站。
@@ -1854,8 +1854,10 @@ Picture-in-picture button	画中画按钮
 Shows a small button at the left edge of a reel or video that has the window ready. Tap it to open the window right away. Works with Picture-in-picture on.	在已准备好小窗口的 Reels 或视频左侧边缘显示一个小按钮。点按它可立即打开小窗口。需开启“画中画”。
 # context: switch title under Playback; on, a video you started keeps its sound after you leave Facebook; also the label of a headphones button in the picture-in-picture window
 Keep playing in the background	在后台继续播放
+Next reel in the background	在后台播放下一个 Reels
+When a reel playing in the background ends, the next reel plays instead of the same one again. It goes through the reels Reels had loaded when you left. Works with Keep playing in the background on.	在后台播放的 Reels 结束后，会播放下一个，而不是重复播放同一个。会依次播放你离开时 Reels 已加载的内容。需开启“在后台继续播放”。
 # context: summary of that switch; the notification is the one Facebook shows with the video's play and pause buttons
-A video you started with a tap keeps its sound after you leave Facebook, and its notification can pause it. Swiping the notification away or taking a call stops it.	你点按开始播放的视频在离开 Facebook 后仍会继续播放声音，可通过其通知暂停。滑走通知或接听电话会停止播放。
+A video you started with a tap, or a reel you swiped to in Reels, keeps its sound after you leave Facebook, and its notification can pause it. Swiping the notification away or taking a call stops it.	你点按开始播放的视频，或在 Reels 中滑到的短视频，在离开 Facebook 后仍会继续播放声音，可通过其通知暂停。滑走通知或接听电话会停止播放。
 # context: title of that notification when the video has none of its own
 Facebook video	Facebook 视频
 # context: switch title under Playback; on, the small picture-in-picture window gets a headphones button that keeps the sound playing after the window closes
@@ -3126,3 +3128,10 @@ When a video in your feed has the poster's name on top of the video, that name s
 Quality settings	画质设置
 Request community note	申请社区笔记
 Something went wrong	出了点问题
+# context: the Mark all notifications as read row under Notifications and its toasts (Discussion #338)
+Mark all notifications as read	将所有通知标为已读
+Clears every unread dot in the Notifications tab at once, like Mark all as read in the three-dot menu there, which some accounts don't have.	一次清除“通知”标签中的所有未读圆点，和那里三点菜单中的“全部标为已读”一样，有些账户没有这个菜单。
+All your notifications are marked as read.	你的所有通知都已标为已读。
+Nothing was marked, since Facebook didn't say who's signed in. Open the Notifications tab once, then try again.	没有标记任何通知，因为 Facebook 没有告知当前登录的是谁。请先打开一次“通知”标签，然后再试。
+This build can't mark notifications as read.	此版本无法将通知标为已读。
+Facebook couldn't mark your notifications as read. Try again in a moment.	Facebook 无法将你的通知标为已读。请稍后再试。

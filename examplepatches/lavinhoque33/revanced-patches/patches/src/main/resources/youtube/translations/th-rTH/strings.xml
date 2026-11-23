@@ -278,8 +278,10 @@
     <string name="morphe_playback_in_feeds_entry_off">ปิด</string>
     <string name="morphe_playback_in_feeds_entry_wifi_only">Wi-Fi เท่านั้น</string>
     <string name="morphe_playback_in_feeds_title">การเล่นในฟีด</string>
-    <string name="morphe_player_control_buttons_background_opacity_summary">ปรับความทึบแสงของพื้นหลังด้านหลังปุ่มควบคุมเครื่องเล่นและแถบเวลา (0 คือโปร่งใส, 100 คือทึบแสง)</string>
-    <string name="morphe_player_control_buttons_background_opacity_title">ความทึบแสงของพื้นหลังปุ่มควบคุม</string>
+    <string name="morphe_player_transport_background_opacity_summary">ปรับความทึบของพื้นหลังปุ่มเล่น หยุดชั่วคราว เล่นซ้ำ ถัดไป และก่อนหน้า</string>
+    <string name="morphe_player_transport_background_opacity_title">ความทึบของพื้นหลังปุ่มควบคุมการเล่น</string>
+    <string name="morphe_player_other_overlay_background_opacity_summary">ปรับความทึบของพื้นหลังปุ่มอื่น ๆ ในเครื่องเล่นและตัวแสดงเวลา</string>
+    <string name="morphe_player_other_overlay_background_opacity_title">ความทึบของพื้นหลังส่วนซ้อนทับอื่น ๆ</string>
     <string name="morphe_playlist_hide_removal_snackbar_summary">จะไม่มีการแสดงการยืนยันหลังจากนำวิดีโอออกจากเพลย์ลิสต์</string>
     <string name="morphe_playlist_hide_removal_snackbar_title">ซ่อนแถบแจ้งเตือนชั่วคราวการนำออกจากเพลย์ลิสต์</string>
     <string name="morphe_playlist_long_press_drag_summary">แตะและกดวิดีโอในเพลย์ลิสต์ของคุณค้างไว้เพื่อลากไปยังตำแหน่งใหม่</string>

@@ -15,7 +15,8 @@ import java.util.function.BooleanSupplier;
  *
  * <p>setlog の撮影画面は、シャッター（{@code CameraSmileButton}）の左にフラッシュボタン（50dp）を置き、
  * 画面の大きさに合わせて位置を動かしている。ボタンの位置は「シャッターからフラッシュまでの距離」を
- * 1 単位とした slot で指定する（フラッシュは -1）。レイアウトのたびに合わせ直す。
+ * 1 単位とした slot で指定する（フラッシュは -1）。レイアウトのたびに合わせ直す。同じ並びに本体のボタンが
+ * 見えていて重なるときは、その外側へずらす。
  *
  * <p>ボタンは設定で OFF にされていても追加しておき、表示だけを切り替える。設定を変えたら
  * {@link #refresh(View)} で並びを合わせ直す。
@@ -85,11 +86,80 @@ final class CameraChrome {
         if (control.getVisibility() != visibility) {
             control.setVisibility(visibility);
         }
-        View parent = (View) control.getParent();
+        ViewGroup parent = (ViewGroup) control.getParent();
         // 親は画面の幅いっぱいだが、カメラ映像の枠は内側に約 12dp 入っている。枠より内側に収める。
-        float centerX = centerX(shutterX, unit, slot, control.getWidth(), parent.getWidth(), Ui.dp(control.getContext(), 16));
+        int margin = Ui.dp(control.getContext(), 16);
+        float centerX = centerX(shutterX, unit, slot, control.getWidth(), parent.getWidth(), margin);
+        float[] placed = avoidSetlogControls(parent, control, shutter, centerX, centerY, slot >= 0, margin);
+        centerX = placed[0];
+        // 縮めるときは setScale を使う（レイアウトをやり直さず、押せる範囲も見た目と一緒に縮む）。
+        if (control.getScaleX() != placed[1]) {
+            control.setScaleX(placed[1]);
+            control.setScaleY(placed[1]);
+        }
         control.setTranslationX(centerX - control.getWidth() / 2f);
         control.setTranslationY(centerY - control.getHeight() / 2f);
+    }
+
+    /**
+     * 同じ並びに見えている本体のボタン（setlog 1.3 (89) のエフェクトボタンなど）と重なるなら、その外側へずらす。
+     * 本体のボタンは表示・位置が実行時に変わるため、名前ではなく見えている兄弟 View の位置で判断する。
+     *
+     * @return {中心の横位置, 縮める比率}
+     */
+    private static float[] avoidSetlogControls(
+            ViewGroup parent, View control, View shutter, float centerX, float centerY, boolean towardEnd, int margin) {
+        int count = parent.getChildCount();
+        float[] lefts = new float[count];
+        float[] rights = new float[count];
+        int n = 0;
+        for (int i = 0; i < count; i++) {
+            View other = parent.getChildAt(i);
+            if (other == control || other == shutter || other.getVisibility() != View.VISIBLE || other.getWidth() == 0) {
+                continue;
+            }
+            if (other.getTag() instanceof String && ((String) other.getTag()).startsWith("cutlog-")) {
+                continue;
+            }
+            float top = other.getTop() + other.getTranslationY();
+            if (centerY < top || centerY > top + other.getHeight()) {
+                continue;
+            }
+            lefts[n] = other.getLeft() + other.getTranslationX();
+            rights[n] = lefts[n] + other.getWidth();
+            n++;
+        }
+        return avoid(centerX, control.getWidth() / 2f, java.util.Arrays.copyOf(lefts, n), java.util.Arrays.copyOf(rights, n),
+                towardEnd, Ui.dp(control.getContext(), GAP_DP), margin, parent.getWidth() - margin);
+    }
+
+    /** 本体のボタンとの間を空ける幅。 */
+    private static final int GAP_DP = 4;
+    /** 縮めるときの下限（50dp のボタンを 36dp まで）。 */
+    static final float MIN_SCALE = 0.72f;
+
+    /**
+     * ボタン（中心 center、半幅 half）が [lefts[i], rights[i]] の範囲と重なるなら、towardEnd に応じてその右か左へ
+     * gap を空けてずらす。ずらした先と画面の端（start / end）の間に入りきらなければ {@link #MIN_SCALE} まで縮める。
+     * 最後に [start, end] の内側に収める。
+     *
+     * @return {中心の横位置, 縮める比率}
+     */
+    static float[] avoid(float center, float half, float[] lefts, float[] rights, boolean towardEnd, float gap,
+            float start, float end) {
+        float scale = 1f;
+        for (int i = 0; i < lefts.length; i++) {
+            float scaledHalf = half * scale;
+            if (center + scaledHalf <= lefts[i] || center - scaledHalf >= rights[i]) {
+                continue;
+            }
+            float room = towardEnd ? end - (rights[i] + gap) : (lefts[i] - gap) - start;
+            scale = Math.max(MIN_SCALE, Math.min(scale, room / (half * 2f)));
+            scaledHalf = half * scale;
+            center = towardEnd ? rights[i] + gap + scaledHalf : lefts[i] - gap - scaledHalf;
+        }
+        float scaledHalf = half * scale;
+        return new float[] {Math.max(start + scaledHalf, Math.min(end - scaledHalf, center)), scale};
     }
 
     /**

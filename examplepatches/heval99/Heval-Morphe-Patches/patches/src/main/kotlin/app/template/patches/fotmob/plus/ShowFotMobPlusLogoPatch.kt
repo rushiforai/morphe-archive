@@ -4,6 +4,8 @@ import app.morphe.patcher.extensions.InstructionExtensions.instructions
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.resource.ResourceType
+import app.morphe.patcher.resource.resourceId
 import app.template.patches.shared.Constants.COMPATIBILITY_FOTMOB
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.ClassDef
@@ -34,13 +36,17 @@ val showFotMobPlusLogoPatch = bytecodePatch(
     compatibleWith(COMPATIBILITY_FOTMOB)
 
     execute {
+        // The drawable ids move with every resource rebuild, so they are resolved by name from the
+        // app's resource table.
+        val plusLogo = resourceId(ResourceType.DRAWABLE, PLUS_LOGO_NAME)
+        val normalLogo = resourceId(ResourceType.DRAWABLE, NORMAL_LOGO_NAME)
         val owners = mutableListOf<Pair<ClassDef, Method>>()
         // One collection pass, before any mutation (the patcher forbids mutating during or between
         // iterations over classes). Managers and toolbar observers are both recorded here.
         val hooks = mutableListOf<Pair<ClassDef, Method>>()
         classDefForEach { classDef ->
             classDef.methods.forEach { method ->
-                if (method.hasPlusLogoBranch()) hooks += classDef to method
+                if (method.hasPlusLogoBranch(plusLogo, normalLogo)) hooks += classDef to method
             }
             if (classDef.fields.none { it.name == PLUS_FIELD && it.type == "Z" }) return@classDefForEach
             val reader = classDef.methods.firstOrNull { it.readsOnlyPlusField() } ?: return@classDefForEach
@@ -65,9 +71,8 @@ val showFotMobPlusLogoPatch = bytecodePatch(
         mutable.replaceInstruction(read, "const/4 v$register, 0x1")
 
         // 2. The home toolbar's own observer sets the logo from a Boolean flow through
-        // Toolbar.setLogo(I) (the ternary const 0x7f0802c5 is ic_fotmob_plus_logo_app_bar, the
-        // other 0x7f0802c2 is ic_fotmob_logo_app_bar). Skip the normal-logo branch so the Plus
-        // drawable is always used.
+        // Toolbar.setLogo(I) (the ternary picks ic_fotmob_plus_logo_app_bar or ic_fotmob_logo_app_bar,
+        // both resolved above). Skip the normal-logo branch so the Plus drawable is always used.
         val (hookClass, hookMethod) = hooks.singleOrNull() ?: throw PatchException(
             "expected one toolbar logo observer, found ${hooks.size}: " +
                 hooks.joinToString { (classDef, method) -> "${classDef.type}->${method.name}" },
@@ -78,7 +83,7 @@ val showFotMobPlusLogoPatch = bytecodePatch(
                     it.parameterTypes.map(CharSequence::toString) == hookMethod.parameterTypes.map(CharSequence::toString)
             }
             val hookInsns = mutableHook.instructions.toList()
-            val plus = hookInsns.indexOfFirst { it.literal() == PLUS_LOGO }
+            val plus = hookInsns.indexOfFirst { it.literal() == plusLogo }
             if (plus < 1) throw PatchException("${hookClass.type}->${mutableHook.name}: the Plus logo const is gone")
             val normalBranch = hookInsns[plus - 1]
             if (normalBranch.opcode != Opcode.IF_EQZ) {
@@ -94,13 +99,13 @@ val showFotMobPlusLogoPatch = bytecodePatch(
     }
 }
 
-/** The two app-bar wordmarks (drawable ids, stable across the 241 build). */
-private const val PLUS_LOGO = 0x7f0802c5L
-private const val NORMAL_LOGO = 0x7f0802c2L
+/** The two app-bar wordmark drawables, looked up by name. */
+private const val PLUS_LOGO_NAME = "ic_fotmob_plus_logo_app_bar"
+private const val NORMAL_LOGO_NAME = "ic_fotmob_logo_app_bar"
 
-private fun Method.hasPlusLogoBranch(): Boolean {
+private fun Method.hasPlusLogoBranch(plusLogo: Long, normalLogo: Long): Boolean {
     val insns = implementation?.instructions?.toList() ?: return false
-    if (insns.none { it.literal() == PLUS_LOGO } || insns.none { it.literal() == NORMAL_LOGO }) return false
+    if (insns.none { it.literal() == plusLogo } || insns.none { it.literal() == normalLogo }) return false
     return insns.any {
         val ref = (it as? ReferenceInstruction)?.reference as? MethodReference
         ref?.definingClass == "Landroidx/appcompat/widget/Toolbar;" && ref.name == "setLogo"

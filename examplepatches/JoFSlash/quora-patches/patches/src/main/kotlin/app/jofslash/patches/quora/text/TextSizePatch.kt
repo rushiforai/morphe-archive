@@ -19,7 +19,7 @@ val textSizePatch = bytecodePatch(
     category("Reading")
     compatibleWith(COMPATIBILITY_QUORA)
 
-    extendWith("extensions/extension.mpe")
+    extendWith("extensions/quora.mpe")
 
     val textSize = intOption(
         key = "textSize",

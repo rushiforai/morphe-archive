@@ -1051,6 +1051,14 @@ Shows a handle at the right edge of Saved and your collections while they scroll
 Hide the New collection button	새 컬렉션 버튼 숨기기
 # context: Profiles > summary of Hide the New collection button; Saved is Instagram's own Saved page (#762)
 Takes the + for a new collection off the top of Saved. Your collections stay.	저장됨 상단에서 새 컬렉션을 만드는 + 버튼을 숨깁니다. 내 컬렉션은 그대로 남습니다.
+# context: Profiles > switch right after Hide the New collection button; Reels is Instagram's own label for the Reels tab at the top of Saved, Saved is Instagram's own Saved page (#810)
+Hide the Reels tab in Saved	저장됨에서 릴스 탭 숨기기
+# context: Profiles > summary of Hide the Reels tab in Saved; saved reels still show under All (#810)
+Takes the Reels tab out of Saved. Your saved reels stay saved.	저장됨에서 릴스 탭을 숨깁니다. 저장한 릴스는 그대로 저장되어 있습니다.
+# context: Profiles > switch right after Hide the Reels tab in Saved; Saved is Instagram's own label for the bookmark at the top right of the Search tab, beside the search bar (#810)
+Hide Saved on the Search tab	검색 탭에서 저장됨 숨기기
+# context: Profiles > summary of Hide Saved on the Search tab (#810)
+Takes the Saved bookmark off the top of the Search tab. Restart Instagram after changing it.	검색 탭 상단의 저장됨 북마크를 숨깁니다. 변경한 뒤에는 Instagram을 다시 시작하세요.
 Battery	배터리
 Stop the background heartbeat	백그라운드 하트비트 중지
 Instagram wakes your phone every minute or two, screen off included, only to note that it is still running. This stops that. Messages, notifications and everything you see are unaffected.	Instagram은 화면이 꺼져 있을 때도 1~2분마다 휴대폰을 깨워 아직 실행 중이라고 기록만 합니다. 이를 멈춥니다. 메시지, 알림, 화면에 보이는 모든 것은 그대로입니다.
@@ -1902,6 +1910,10 @@ Glass top bar in chats	채팅 상단 바 유리 효과
 Turn it off to leave a chat's top bar as Instagram draws it, with no frosted band behind it. The round glass buttons and the glass message bar stay.	끄면 채팅 상단 바가 Instagram 기본 모습 그대로 남고 뒤에 반투명 유리 띠가 생기지 않습니다. 둥근 유리 버튼과 유리 메시지 입력 바는 그대로 유지됩니다.
 Top bar tint in chats	채팅 상단 바 색조
 Message bar tint	메시지 입력 바 색조
+Glass buttons in chats	채팅 유리 버튼
+Turn it off for a plain blur with no round glass behind the buttons at the top of a chat.	끄면 채팅 상단 버튼 뒤에 둥근 유리 없이 단순한 흐림 효과만 남습니다.
+Blur the chat behind a held message	길게 누른 메시지 뒤 채팅 흐리게
+Hold a message and the rest of the chat blurs behind it and its reactions. Needs Android 12 or newer.	메시지를 길게 누르면 그 메시지와 반응 뒤로 나머지 채팅이 흐려집니다. Android 12 이상이 필요합니다.
 # context: Reels switch Hide reels with few views, its summary, the Minimum views row, its dialog message and the row's summary, then the Minimum likes row, its dialog message, its summary and its summary at 0; %1$s is a number with thousands separators (#444)
 Hide reels with few views	조회수가 적은 릴스 숨기기
 Leaves out reels in the Reels tab outside the numbers below. Reels from accounts you follow, reels sent to you and reels that don't show a number still play.	아래 숫자 범위를 벗어난 릴스를 릴스 탭에서 숨깁니다. 팔로우하는 계정의 릴스, 받은 릴스, 숫자가 표시되지 않는 릴스는 그대로 재생됩니다.
@@ -2778,3 +2790,21 @@ Couldn't start recording this call	통화 녹음을 시작하지 못했어요
 Couldn't save the call recording	통화 녹음을 저장하지 못했어요
 # context: a toast when a recording ends with no sound in it (#732)
 Nothing was recorded	녹음된 내용이 없어요
+# context: a toast when a save starts, naming the account the media is from (#792)
+Saving from @%1$s...	@%1$s의 미디어를 저장하는 중…
+# context: a second toast after the one above, when notifications are off (#792)
+You can cancel from Downloads in HushGram settings.	HushGram 설정의 다운로드에서 취소할 수 있습니다.
+# context: a toast when a save waits for the ones already running, the account unknown (#792)
+Queued	대기 중
+# context: a toast when a save waits for the ones already running, naming the account (#792)
+Queued: @%1$s	대기 중: @%1$s
+# context: a toast when too many saves already wait their turn (#792)
+Not saved: %1$d saves are already waiting	저장 안 됨: 이미 %1$d개가 대기 중
+# context: a waiting save's notification text and its line in Downloads (#792)
+Waiting for the saves before it	앞의 저장이 끝나기를 기다리는 중
+# context: Feed settings: a switch under Start feed videos with sound that starts them with sound while the phone is on silent or vibrate too (#762)
+Even on silent	무음 모드에서도
+# context: Summary of Even on silent, a switch under Start feed videos with sound (#762)
+Feed videos start with sound with the phone on silent or vibrate too. Only the media volume counts.	휴대전화가 무음이나 진동 모드여도 피드 동영상이 소리와 함께 시작됩니다. 미디어 볼륨만 적용됩니다.
+Also in search	검색에도 적용
+Takes rows of the Explore grid and of search results out when a post in them holds a word or phrase from the list, or comes from an account the list names with @.	목록의 단어나 문구가 들어간 게시물이나, 목록에 @로 적은 계정의 게시물이 있는 탐색 그리드와 검색 결과의 줄을 뺍니다.

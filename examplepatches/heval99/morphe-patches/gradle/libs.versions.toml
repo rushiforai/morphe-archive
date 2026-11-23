@@ -14,4 +14,6 @@ gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
 morphe-patches-library = { module = "app.morphe:morphe-patches-library", version.ref = "morphe-patches-library" }
 # Heval Controls core unit tests (extensions/hevalcontrols/core).
 junit = { module = "junit:junit", version.ref = "junit" }
+# The real org.json for JVM unit tests (android.jar only has stubs): Sofascore's push rule parses JSON.
+json = { module = "org.json:json", version = "20250517" }
 

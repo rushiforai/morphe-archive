@@ -1,0 +1,15 @@
+.gradle/
+**/build/
+.idea/
+*.iml
+local.properties
+*.apk
+*.apks
+*.apkm
+*.xapk
+*.mpp
+*.keystore
+*.log
+/test-output/
+.tmp-verify/
+IMPLEMENTATION_TASK.md

@@ -7,6 +7,7 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 
+import app.hoitruyenchu.extension.itruyenchu.patches.shared.HtcSettings;
 import okhttp3.HttpUrl;
 import okhttp3.Interceptor;
 import okhttp3.MediaType;
@@ -102,7 +103,9 @@ public final class FixGoogleLoginPatch implements Interceptor {
         String token = firebaseIdToken;
         if (token == null || SystemClock.elapsedRealtime() - firebaseIdTokenAt > TOKEN_MAX_AGE_MS) {
             Log.w(TAG, "no recent Firebase sign-in, sending the original login request");
-            return chain.proceed(request);
+            Response original = chain.proceed(request);
+            status(original.isSuccessful() ? "ok" : "Lỗi: không thấy đăng nhập Google (HTTP " + original.code() + ")");
+            return original;
         }
 
         String body;
@@ -116,10 +119,12 @@ public final class FixGoogleLoginPatch implements Interceptor {
         Response response = chain.proceed(fixed);
         if (!response.isSuccessful()) {
             Log.w(TAG, "login with Firebase ID token -> HTTP " + response.code());
+            status("Lỗi: máy chủ trả về HTTP " + response.code());
             return response;
         }
         firebaseIdToken = null;
         Log.i(TAG, "logged in with the Firebase ID token");
+        status("ok");
 
         ResponseBody responseBody = response.body();
         if (responseBody == null) return response;
@@ -137,6 +142,14 @@ public final class FixGoogleLoginPatch implements Interceptor {
             Log.w(TAG, "could not complete the login answer: " + t);
         }
         return response.newBuilder().body(ResponseBody.create(type != null ? type : json, text)).build();
+    }
+
+    /** Last login result for the settings screen ("ok" or an error text). */
+    private static void status(String value) {
+        try {
+            HtcSettings.putStatus(HtcSettings.LOGIN_STATUS, value);
+        } catch (Throwable ignored) {
+        }
     }
 
     /** GET /auth/profile -> {profile, accessToken}; returns profile. */

@@ -295,8 +295,10 @@ DeArrow.ajay.app を開くには、ここをタップしてください。"</str
     <string name="morphe_playback_in_feeds_entry_off">オフ</string>
     <string name="morphe_playback_in_feeds_entry_wifi_only">Wi-Fi のみ</string>
     <string name="morphe_playback_in_feeds_title">フィードで再生</string>
-    <string name="morphe_player_control_buttons_background_opacity_summary">動画プレーヤーのコントロール (再生ボタンなど) の背景に表示される、ふちどりのための円形の影の透明度を設定します (0 が透明)。</string>
-    <string name="morphe_player_control_buttons_background_opacity_title">プレーヤーのコントロールの背景の透明度</string>
+    <string name="morphe_player_transport_background_opacity_summary">再生、一時停止、再再生、次へ、前へボタンの背景の不透明度を調整します</string>
+    <string name="morphe_player_transport_background_opacity_title">再生操作ボタンの背景の不透明度</string>
+    <string name="morphe_player_other_overlay_background_opacity_summary">その他のプレーヤーボタンと時間表示の背景の不透明度を調整します</string>
+    <string name="morphe_player_other_overlay_background_opacity_title">その他のオーバーレイの背景の不透明度</string>
     <string name="morphe_playlist_hide_removal_snackbar_summary">ビデオをプレイリストから削除した後に確認メッセージが表示されなくなります</string>
     <string name="morphe_playlist_hide_removal_snackbar_title">プレイリスト削除のスナックバーを非表示にする</string>
     <string name="morphe_playlist_long_press_drag_summary">プレイリストの動画をタッチして長押しすると、新しい位置にドラッグできます</string>

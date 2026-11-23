@@ -34,7 +34,10 @@ final class GlobalTitleSearchRules {
     static String key(String url){try{
         URI u=URI.create(url);String host=u.getHost();if(host==null)return url;
         host=host.toLowerCase(Locale.ROOT).replaceFirst("\\.(?:5ch\\.net|2ch\\.net)$",".5ch.io");
-        return host+(u.getPort()<0?"":":"+u.getPort())+u.getPath().replaceAll("/+$","")+"/";
+        String path=u.getPath().replaceAll("/+$","");
+        // A link to a reply or range still identifies the same thread.
+        path=path.replaceFirst("^((?:/test/read\\.cgi/[^/]+|/bbs/read\\.cgi/[^/]+/[0-9]+)/[0-9]+)/(?:l[0-9]+|[0-9]+(?:-[0-9]*)?n?)$", "$1");
+        return host+(u.getPort()<0?"":":"+u.getPort())+path+"/";
     }catch(IllegalArgumentException e){return url;}}
     static void existing(String tsv,Set<String> urls){
         for(String line:tsv.split("\\r?\\n")){String[] fields=line.split("\\t",-1);if(fields.length>=3)urls.add(key(fields[2]));}

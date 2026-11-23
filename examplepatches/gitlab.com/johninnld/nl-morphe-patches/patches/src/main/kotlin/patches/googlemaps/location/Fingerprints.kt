@@ -20,6 +20,21 @@ internal object GpsOnlyModeFingerprint2644 : Fingerprint(
     ),
 )
 
+/** 26.47 keeps the manager/listener split as ajvh/ajvg. */
+internal object GpsOnlyModeFingerprint2647 : Fingerprint(
+    name = "c",
+    returnType = "V",
+    parameters = emptyList(),
+    filters = listOf(
+        fieldAccess(opcode = Opcode.IGET_OBJECT, definingClass = "this", name = "l"),
+        fieldAccess(opcode = Opcode.IGET_OBJECT, definingClass = "this", name = "z", location = MatchAfterImmediately()),
+        methodCall(definingClass = "Lajvg;", name = "b", opcode = Opcode.INVOKE_VIRTUAL, location = MatchAfterImmediately()),
+        fieldAccess(opcode = Opcode.IGET_OBJECT, definingClass = "this", name = "m", location = MatchAfterImmediately()),
+        methodCall(definingClass = "Lajvg;", name = "a", opcode = Opcode.INVOKE_VIRTUAL, location = MatchAfterImmediately()),
+    ),
+    custom = { _, classDef -> classDef.type == "Lajvh;" },
+)
+
 /**
  * The platform-provider mode dispatcher's GPS-only branch: start the GPS
  * listener, then stop the network one. This exact five-step sequence (l

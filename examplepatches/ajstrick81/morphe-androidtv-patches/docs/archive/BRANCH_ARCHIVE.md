@@ -113,3 +113,60 @@ the record.
 it has an open PR (#207) and unique tooling not on `main` (`.claude/hooks/`
 secret-guard hooks + tests, `scripts/check_docs.py`). Resolve #207 before
 archiving it.
+
+## 2026-11-08: `feat/fawesome-20.8` (issue #257)
+
+Archived on purpose rather than merged. The branch re-anchored Fawesome's ad
+and update-prompt seams for 20.8 and the work itself was sound — the patches
+compiled, CI was green, both applied to the 20.8 APK and all three injections
+were confirmed in the patched dex.
+
+It was dropped because of what the APK turned out to be. Fawesome 20.8 (build
+200, the `com.future.moviesByFawesomeAndroidTV` package on APKMirror) is the
+**phone/tablet build**, not an Android TV one: its manifest requires
+`android.hardware.touchscreen`, pins activities to `sensorPortrait`, and has no
+`LEANBACK_LAUNCHER` category. Installed on the Onn 4K Plus it rendered as a
+608×1080 portrait window letterboxed on a 1920×1080 screen, the D-pad did
+nothing, and it showed a "long press any movie to share" phone interstitial.
+19.7 (the known-good TV build) requires no touchscreen and declares no
+orientation at all. This repo does not support phone/tablet APKs, and shipping
+a "Skip ads (v20)" patch against one would only create confusion about what
+Fawesome support means.
+
+19.7 remains the newest Android TV release and the supported target: `Skip ads`
++ `Disable update prompt` were re-verified on-device on 2026-11-08 (correct TV
+layout, D-pad focus, no update nag, no pre-roll, clean next-video transition).
+
+Also on the tag, and **not** copied to `main`: a `docs/seam-map/overlay.json`
+entry for Fawesome (the app has none, so its seam map renders as `_unknown_`).
+It was written around the 20.8 seams, so it needs rewriting for 19.7/20.1
+before it belongs on `main` rather than being lifted across as-is.
+
+| Tag `archive/…` | Tip SHA | Last commit | Notes |
+|---|---|---|---|
+| `feat/fawesome-20.8` | `fdfda337` | 2026-11-08 | Fawesome 20.8 seams; 20.8 is the phone build, out of scope |
+
+## 2026-11-22: leftovers from the 2026-10-30 PR triage
+
+The 2026-10-30 triage listed 16 branches for archiving. Nine of them were
+archived in the 2026-11-01 batch above; these seven were still live and were
+archived + deleted on 2026-11-22 with the **Archive branches** workflow. Each
+tip was confirmed as its tag before the branch was deleted.
+
+**Already in `main`.** Merged PRs, or superseded by newer `main` code; nothing
+unique on the branch:
+
+| Tag `archive/…` | Tip SHA | Last commit | Notes |
+|---|---|---|---|
+| `fix/hbomax-speed-remote-258` | `c448b8d7` | 2026-10-29 | Merged #277 |
+| `raiplay-501-live-fix` | `9447223d` | 2026-10-28 | Merged #271 |
+| `fix/tubi-10.40.5000` | `6ac45f6b` | 2026-10-22 | Merged #256 |
+| `feat/f1tv-uhd` | `a4094ef1` | 2026-10-16 | Merged #245 |
+| `claude/practical-mayer-dp16pq` | `583934b7` | 2026-10-04 | Merged #231 |
+| `fix/netflix-212-reminify` | `a35256ba` | 2026-10-06 | No PR. Its V3 re-minify ad-kill (#212) shipped via #250; `main`'s `killads.js` has it plus a newer stability layer |
+
+**Abandoned or superseded code.** Nothing copied; the tag is the record:
+
+| Tag `archive/…` | Tip SHA | Last commit | Notes |
+|---|---|---|---|
+| `feat/netflix-async-scan-scheduler` | `c4aee4b3` | 2026-10-11 | PR #240 (closed). Async-scan scheduler for the household prompt (#237). Household/ad-drift work shipped another way via #250/#261; #237 closed. Idea credited to @phly95 in project notes |

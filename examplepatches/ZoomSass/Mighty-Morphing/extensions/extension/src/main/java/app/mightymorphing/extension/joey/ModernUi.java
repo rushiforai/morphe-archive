@@ -153,13 +153,13 @@ public final class ModernUi {
             case "card": return palette.container;
             case "canvas": return palette.canvas;
             case "accent":
-            case "link":
-            case "sticky":
             case "highlight": return palette.accent;
+            case "link": return palette.links;
+            case "sticky": return palette.pinned;
             case "toolbar":
             case "unread":
             case "text": return palette.onSurface;
-            case "read":
+            case "read": return palette.slotRead;
             case "tint": return palette.onSurfaceVariant;
             default: return null;
         }
@@ -186,17 +186,69 @@ public final class ModernUi {
         public final int outline;
         public final int onSurface;
         public final int onSurfaceVariant;
+        /** Every role, in ModernTheme order. */
+        public final int[] roles;
+        public final boolean light;
+        public final int drawer;
+        public final int read;
+        public final int links;
+        public final int pinned;
+        public final int onAccent;
+        /** Zero keeps Joey's own vote colour. */
+        public final int upvote;
+        public final int downvote;
+        /** Joey's read-title slot. The original themes always gave it the secondary grey. */
+        public int slotRead;
+        /** Comment level bars, repeating. Empty keeps Joey's nine. */
+        public int[] depth = new int[0];
+        public boolean hideDepth;
+        /** OP, Mod, You, Friend, Admin tag colours. Empty keeps Joey's. */
+        public int[] tags = new int[0];
 
         public Palette(int accent, int primary, int canvas, int container, int containerHigh,
                        int outline, int onSurface, int onSurfaceVariant) {
-            this.accent = accent;
-            this.primary = primary;
-            this.canvas = canvas;
-            this.container = container;
-            this.containerHigh = containerHigh;
-            this.outline = outline;
-            this.onSurface = onSurface;
-            this.onSurfaceVariant = onSurfaceVariant;
+            this(rolesOf(accent, primary, canvas, container, containerHigh, outline, onSurface, onSurfaceVariant), false);
+        }
+
+        Palette(int[] roles, boolean light) {
+            this.roles = roles;
+            this.light = light;
+            this.accent = roles[ModernTheme.ACCENT];
+            this.primary = roles[ModernTheme.TOOLBAR];
+            this.canvas = roles[ModernTheme.BACKGROUND];
+            this.container = roles[ModernTheme.CARDS];
+            this.containerHigh = roles[ModernTheme.RAISED];
+            this.outline = roles[ModernTheme.DIVIDERS];
+            this.onSurface = roles[ModernTheme.TEXT];
+            this.onSurfaceVariant = roles[ModernTheme.SECONDARY];
+            this.drawer = roles[ModernTheme.DRAWER];
+            this.read = roles[ModernTheme.READ];
+            this.links = roles[ModernTheme.LINKS];
+            this.pinned = roles[ModernTheme.PINNED];
+            this.onAccent = roles[ModernTheme.ON_ACCENT];
+            this.upvote = roles[ModernTheme.UPVOTE];
+            this.downvote = roles[ModernTheme.DOWNVOTE];
+            this.slotRead = roles[ModernTheme.SECONDARY];
+        }
+
+        private static int[] rolesOf(int accent, int primary, int canvas, int container, int containerHigh,
+                                     int outline, int onSurface, int onSurfaceVariant) {
+            int[] roles = new int[ModernTheme.COUNT];
+            roles[ModernTheme.BACKGROUND] = canvas;
+            roles[ModernTheme.CARDS] = container;
+            roles[ModernTheme.RAISED] = containerHigh;
+            roles[ModernTheme.TOOLBAR] = primary;
+            roles[ModernTheme.DRAWER] = canvas;
+            roles[ModernTheme.DIVIDERS] = outline;
+            roles[ModernTheme.TEXT] = onSurface;
+            roles[ModernTheme.READ] = darker(onSurfaceVariant, 0.58f);
+            roles[ModernTheme.SECONDARY] = onSurfaceVariant;
+            roles[ModernTheme.ACCENT] = accent;
+            roles[ModernTheme.LINKS] = accent;
+            roles[ModernTheme.PINNED] = accent;
+            roles[ModernTheme.ON_ACCENT] = canvas;
+            roles[ModernTheme.HIDDEN_AVATAR] = 0;
+            return roles;
         }
     }
 
@@ -205,97 +257,27 @@ public final class ModernUi {
         if (cached != null && sPaletteKey != null) return cached;
         String accentKey = getMaterialAccent(context);
         boolean amoled = ACCENT_AMOLED.equalsIgnoreCase(accentKey) || cachedAmoled(context);
-        String key = accentKey + ":" + amoled;
+        boolean light = ModernTheme.wantsLight(context, accentKey);
+        String key = accentKey + ":" + amoled + ":" + light + ":" + ModernTheme.stamp(context, accentKey);
         if (key.equals(sPaletteKey) && sPalette != null) return sPalette;
-
-        int accent = COLOR_BLUE;
-        int primary = 0xFF111827;
-        int canvas = 0xFF0B0F19;
-        int container = 0xFF151E2E;
-        int containerHigh = 0xFF1E293B;
-        int outline = 0xFF334155;
-
-        if (ACCENT_MONET.equalsIgnoreCase(accentKey) && Build.VERSION.SDK_INT >= 31) {
-            try {
-                accent = context.getColor(android.R.color.system_accent1_500);
-                canvas = context.getColor(android.R.color.system_neutral1_900);
-                primary = context.getColor(android.R.color.system_neutral1_800);
-                container = context.getColor(android.R.color.system_neutral1_800);
-                containerHigh = context.getColor(android.R.color.system_neutral1_700);
-                outline = context.getColor(android.R.color.system_neutral2_700);
-            } catch (Throwable ignored) {
-            }
-        } else if (ACCENT_TEAL.equalsIgnoreCase(accentKey)) {
-            accent = COLOR_TEAL;
-            primary = 0xFF111E20;
-            canvas = 0xFF0A1213;
-            container = 0xFF132022;
-            containerHigh = 0xFF1B2B2D;
-            outline = 0xFF253B3E;
-        } else if (ACCENT_PURPLE.equalsIgnoreCase(accentKey)) {
-            accent = COLOR_PURPLE;
-            primary = 0xFF141318;
-            canvas = 0xFF0E0D12;
-            container = 0xFF18161D;
-            containerHigh = 0xFF221F28;
-            outline = 0xFF34303C;
-        } else if (ACCENT_CORAL.equalsIgnoreCase(accentKey)) {
-            accent = COLOR_CORAL;
-            primary = 0xFF1F1512;
-            canvas = 0xFF130D0B;
-            container = 0xFF241915;
-            containerHigh = 0xFF30221D;
-            outline = 0xFF453029;
-        } else if (ACCENT_MINT.equalsIgnoreCase(accentKey)) {
-            accent = COLOR_MINT;
-            primary = 0xFF0D1E14;
-            canvas = 0xFF08130D;
-            container = 0xFF102418;
-            containerHigh = 0xFF183222;
-            outline = 0xFF254631;
-        } else if (ACCENT_GOLD.equalsIgnoreCase(accentKey)) {
-            accent = COLOR_GOLD;
-            primary = 0xFF1C160F;
-            canvas = 0xFF120E09;
-            container = 0xFF241C13;
-            containerHigh = 0xFF302416;
-            outline = 0xFF4A3824;
-        } else if (ACCENT_AMBER.equalsIgnoreCase(accentKey)) {
-            accent = COLOR_AMBER;
-            primary = 0xFF1C140E;
-            canvas = 0xFF120E0A;
-            container = 0xFF261910;
-            containerHigh = 0xFF332114;
-            outline = 0xFF4E3422;
-        } else if (ACCENT_BLACK.equalsIgnoreCase(accentKey)) {
-            accent = COLOR_BLACK;
-            primary = 0xFF141618;
-            canvas = 0xFF0C0D10;
-            container = 0xFF1A1C20;
-            containerHigh = 0xFF24262B;
-            outline = 0xFF3A3D44;
+        int[] roles = ModernTheme.finish(context, accentKey, light,
+                ModernTheme.base(context, accentKey, light, amoled));
+        sPalette = new Palette(roles, light);
+        boolean original = !ModernTheme.hasLight(context, accentKey) || (ACCENT_MONET.equalsIgnoreCase(accentKey) && !light);
+        if (!original || ModernTheme.override(context, accentKey, light, ModernTheme.READ) != null) {
+            sPalette.slotRead = sPalette.read;
         }
-
-        if (amoled) {
-            canvas = 0xFF000000;
-            primary = 0xFF000000;
-            container = 0xFF0D1115;
-            containerHigh = 0xFF161B22;
-            outline = 0xFF26303B;
-        }
-
-        sPalette = new Palette(
-                accent,
-                primary,
-                canvas,
-                container,
-                containerHigh,
-                outline,
-                0xFFF1F5F9,
-                0xFF94A3B8
-        );
+        sPalette.depth = ModernTheme.depthColors(context, accentKey, light, roles);
+        sPalette.hideDepth = ModernTheme.depth(context, accentKey, light).hidden;
+        sPalette.tags = ModernTheme.tagColors(context, accentKey, light, roles);
         sPaletteKey = key;
         return sPalette;
+    }
+
+    /** A palette for any theme and mode, for previews. Not cached. */
+    static Palette paletteFor(Context context, String id, boolean light) {
+        boolean amoled = ACCENT_AMOLED.equalsIgnoreCase(id);
+        return new Palette(ModernTheme.finish(context, id, light, ModernTheme.base(context, id, light, amoled)), light);
     }
 
     private static boolean cachedAmoled(Context context) {
@@ -328,7 +310,7 @@ public final class ModernUi {
     /** Kept here because SharedPreferences only holds its listeners weakly. */
     private static final SharedPreferences.OnSharedPreferenceChangeListener PREFS_WATCH = (prefs, key) -> {
         if (key == null || KEY_CLASSIC.equals(key)) sClassicCache = null;
-        if (key == null || KEY_ACCENT.equals(key) || KEY_AMOLED.equals(key)) forgetTheme();
+        if (key == null || KEY_ACCENT.equals(key) || KEY_AMOLED.equals(key) || ModernTheme.watches(key)) forgetTheme();
     };
 
     /**
@@ -363,7 +345,8 @@ public final class ModernUi {
                 context.getApplicationContext().registerComponentCallbacks(new android.content.ComponentCallbacks() {
                     @Override
                     public void onConfigurationChanged(android.content.res.Configuration configuration) {
-                        if (ACCENT_MONET.equalsIgnoreCase(sAccentCache)) forgetTheme();
+                        // System light and dark also arrive here.
+                        forgetTheme();
                     }
 
                     @Override
@@ -434,6 +417,15 @@ public final class ModernUi {
         refreshLive(activity);
     }
 
+    /** Any theme change from the theme popup: other screens repaint, this one when the popup closes. */
+    static void themeChanged(Activity activity) {
+        forgetTheme();
+        sThemeDirty = true;
+        notifyThemeChanged(activity);
+        paintSystemBars(activity);
+        refreshLive(activity);
+    }
+
     static boolean consumeThemeReload() {
         boolean dirty = sThemeDirty;
         sThemeDirty = false;
@@ -447,6 +439,19 @@ public final class ModernUi {
         Window window = activity.getWindow();
         window.setStatusBarColor(palette.canvas);
         window.setNavigationBarColor(palette.canvas);
+        lightBars(window, palette.light);
+    }
+
+    /** Dark status and gesture bar icons on a light theme, light ones on a dark theme. */
+    static void lightBars(Window window, boolean light) {
+        try {
+            View decor = window.getDecorView();
+            int flags = decor.getSystemUiVisibility();
+            int wanted = View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR | View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR;
+            int next = light ? flags | wanted : flags & ~wanted;
+            if (next != flags) decor.setSystemUiVisibility(next);
+        } catch (Throwable ignored) {
+        }
     }
 
     private static void commitAccent(Context context, String accent) {
@@ -706,7 +711,7 @@ public final class ModernUi {
             private final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
             @Override
             protected void onDraw(Canvas canvas) {
-                paint.setColor(0xFFF1F5F9);
+                paint.setColor(getPalette(getContext()).onSurface);
                 paint.setStrokeWidth(Math.max(1f, density));
                 float w = getWidth();
                 float h = getHeight();
@@ -925,71 +930,88 @@ public final class ModernUi {
 
     /** Sort, Join, and Community info. Hide takes one off the row. Drag changes the order. */
     public static void showChips(Activity activity) {
-        List<String> order = new ArrayList<>(chipOrder(activity));
-        LinearLayout page = MorpheDialog.page(activity, "Subreddit chips",
-                "Drag the handle to change the order. Hide takes a chip off the row.");
-        LinearLayout rows = new LinearLayout(activity);
-        rows.setOrientation(LinearLayout.VERTICAL);
-        Runnable[] rebuild = new Runnable[1];
-        rebuild[0] = () -> {
-            rows.removeAllViews();
-            int text = MorpheDialog.text(activity);
-            float density = activity.getResources().getDisplayMetrics().density;
-            for (String id : order) {
-                LinearLayout line = new LinearLayout(activity);
-                line.setOrientation(LinearLayout.HORIZONTAL);
-                line.setGravity(Gravity.CENTER_VERTICAL);
-                line.setTag(id);
-                line.setMinimumHeight(Math.round(48 * density));
-                TextView label = new TextView(activity);
-                label.setText(chipTitle(id));
-                label.setTextColor(text);
-                label.setTextSize(15);
-                line.addView(label, new LinearLayout.LayoutParams(
-                        0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
-                TextView hide = MorpheDialog.action(activity, "Hide", MorpheDialog.TEXT);
-                MorpheDialog.setFilled(activity, hide, !chipShown(activity, id));
-                hide.setOnClickListener(v -> {
-                    setChipShown(activity, id, !chipShown(activity, id));
-                    rebuild[0].run();
-                });
-                LinearLayout.LayoutParams gap = new LinearLayout.LayoutParams(
-                        ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-                gap.leftMargin = Math.round(12 * density);
-                line.addView(hide, gap);
-                line.addView(DragOrder.handle(activity, rows, (from, to) -> {
-                    if (from < 0 || to < 0 || from >= rows.getChildCount() || to >= rows.getChildCount()) return false;
-                    String fromId = String.valueOf(rows.getChildAt(from).getTag());
-                    String toId = String.valueOf(rows.getChildAt(to).getTag());
-                    int ia = order.indexOf(fromId);
-                    int ib = order.indexOf(toId);
-                    if (ia < 0 || ib < 0) return false;
-                    String moved = order.remove(ia);
-                    order.add(ib, moved);
-                    setChipOrder(activity, order);
-                    return true;
-                }));
-                rows.addView(line);
-            }
+        List<List<String>> zones = ZoneEditor.lists(2);
+        for (String id : chipOrder(activity)) zones.get(chipShown(activity, id) ? 0 : 1).add(id);
+        FrameLayout stage = new FrameLayout(activity);
+        stage.setClipChildren(true);
+        Runnable paint = () -> {
+            LinearLayout host = new LinearLayout(activity);
+            host.setOrientation(LinearLayout.VERTICAL);
+            drawChips(activity, host, zones.get(0));
+            BarPreview.show(activity, stage, host);
         };
-        rebuild[0].run();
-        page.addView(rows);
+        Runnable save = () -> {
+            List<String> all = new ArrayList<>(zones.get(0));
+            all.addAll(zones.get(1));
+            for (String id : zones.get(0)) setChipShown(activity, id, true);
+            for (String id : zones.get(1)) setChipShown(activity, id, false);
+            setChipOrder(activity, all);
+            paint.run();
+        };
+        ZoneEditor editor = new ZoneEditor(activity,
+                new String[]{"On the row", "Hidden"},
+                new String[]{"Drag a button here", "Drag a button here to hide it"},
+                zones, (id, zone) -> true,
+                new ZoneEditor.Look() {
+                    @Override
+                    public String label(String id) {
+                        return chipTitle(id);
+                    }
+
+                    @Override
+                    public String icon(String id) {
+                        return null;
+                    }
+                }, save);
         TextView reset = MorpheDialog.action(activity, "Reset", MorpheDialog.SUB);
         TextView done = MorpheDialog.action(activity, "Done", MorpheDialog.GOLD);
-        page.addView(MorpheDialog.actions(activity, reset, done));
-        AlertDialog dialog = MorpheDialog.show(activity, page, 960);
+        LinearLayout page = ZoneEditor.screen(activity, "Subreddit buttons",
+                "Drag the handle to reorder the buttons, or to move one between the row and hidden.",
+                stage, editor, reset, done);
+        android.app.Dialog dialog = MorpheDialog.showFull(activity, page, 640, null);
+        page.post(paint);
         reset.setOnClickListener(v -> {
-            order.clear();
-            order.add("sort");
-            order.add("join");
-            order.add("info");
-            setChipOrder(activity, order);
-            setChipShown(activity, "sort", true);
-            setChipShown(activity, "join", true);
-            setChipShown(activity, "info", true);
-            rebuild[0].run();
+            for (List<String> zone : zones) zone.clear();
+            zones.get(0).add("sort");
+            zones.get(0).add("join");
+            zones.get(0).add("info");
+            save.run();
+            editor.rebuild();
         });
         done.setOnClickListener(v -> dialog.dismiss());
+    }
+
+    /** The chip row as it sits under a subreddit header, with refresh and the menu at the end. */
+    private static void drawChips(Activity activity, LinearLayout host, List<String> chips) {
+        float density = activity.getResources().getDisplayMetrics().density;
+        int text = MorpheDialog.text(activity);
+        int accent = MorpheDialog.accent(activity);
+        LinearLayout row = new LinearLayout(activity);
+        row.setOrientation(LinearLayout.HORIZONTAL);
+        row.setGravity(Gravity.CENTER_VERTICAL);
+        row.setPadding(Math.round(8 * density), Math.round(10 * density), Math.round(8 * density), Math.round(10 * density));
+        for (String id : chips) {
+            TextView chip = new TextView(activity);
+            String label = "join".equals(id) ? "\u25CF  Joined" : "info".equals(id) ? "\u24D8  Info" : "\u2261  Hot";
+            chip.setText(label);
+            chip.setTextColor(text);
+            chip.setTextSize(14);
+            chip.setGravity(Gravity.CENTER);
+            chip.setPadding(Math.round(14 * density), Math.round(8 * density), Math.round(14 * density), Math.round(8 * density));
+            GradientDrawable frame = new GradientDrawable();
+            frame.setCornerRadius(8 * density);
+            frame.setStroke(Math.max(1, Math.round(density)), "join".equals(id) ? accent : text);
+            chip.setBackground(frame);
+            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            lp.rightMargin = Math.round(8 * density);
+            row.addView(chip, lp);
+        }
+        row.addView(new View(activity), new LinearLayout.LayoutParams(0, 1, 1f));
+        row.addView(BarPreview.icon(activity, "refresh", text, 22));
+        row.addView(BarPreview.icon(activity, "more", text, 22));
+        host.addView(row);
+        host.setBackgroundColor(BarPreview.canvas(activity));
     }
 
     private static boolean chipId(String id) {
@@ -1159,11 +1181,11 @@ public final class ModernUi {
             }
             // 5. Post Title Read. A step under the metadata grey, so a read title is easier to pick out.
             if (token == 5 || (colRead != 0 && token == colRead)) {
-                return darker(palette.onSurfaceVariant, 0.58f);
+                return palette.read;
             }
             // 6. Sticky / Pinned badge
             if (token == 6 || (colSticky != 0 && token == colSticky)) {
-                return palette.accent;
+                return palette.pinned;
             }
             // 7. Highlight
             if (token == 7 || (colHighlight != 0 && token == colHighlight)) {
@@ -1179,11 +1201,11 @@ public final class ModernUi {
             }
             // 10. Links: URLs, sub mentions
             if (token == 10 || (colLink != 0 && token == colLink)) {
-                return palette.accent;
+                return palette.links;
             }
             // 11. Subject Background: Post Cards, Dialogs, Drawers
             if (token == 11 || (colSubjectBg != 0 && token == colSubjectBg)) {
-                if (isLeftDrawerSurface(view)) return palette.canvas;
+                if (isLeftDrawerSurface(view)) return palette.drawer;
                 return palette.container;
             }
             // 12. Canvas: Window canvas, activity background behind cards
@@ -1454,11 +1476,28 @@ public final class ModernUi {
     private static void hideAlbumPageLine(Activity activity) {
         Window window = activity.getWindow();
         if (window == null) return;
-        int pageId = activity.getResources().getIdentifier("ablum_photo_top_container", "id", activity.getPackageName());
+        int pageId = getResId(activity, "ablum_photo_top_container", "id");
         if (pageId == 0) return;
         View decor = window.getDecorView();
-        decor.getViewTreeObserver().addOnGlobalLayoutListener(() -> hideAlbumPageLines(decor, pageId));
+        // Once per screen. The walk covers the whole view tree, and layout runs on every frame of a
+        // swipe, so it is limited to one pass every 150ms with a last pass after the layout settles.
+        if (decor.getTag(ALBUM_LINE_TAG) != null) return;
+        decor.setTag(ALBUM_LINE_TAG, Boolean.TRUE);
+        long[] last = {0};
+        Runnable pass = () -> hideAlbumPageLines(decor, pageId);
+        decor.getViewTreeObserver().addOnGlobalLayoutListener(() -> {
+            long now = android.os.SystemClock.uptimeMillis();
+            decor.removeCallbacks(pass);
+            if (now - last[0] >= 150) {
+                last[0] = now;
+                pass.run();
+            } else {
+                decor.postDelayed(pass, 150);
+            }
+        });
     }
+
+    private static final int ALBUM_LINE_TAG = 0x4d4d414c;
 
     private static void hideAlbumPageLines(View view, int pageId) {
         if (!(view instanceof ViewGroup)) return;
@@ -1875,13 +1914,14 @@ public final class ModernUi {
     /** The overflow menu follows the activity theme, which stays light under the Modern colors. */
     public static void applyMenuTheme(Activity activity) {
         if (activity == null || !isModernUiEnabled(activity)) return;
-        int toolbarId = activity.getResources().getIdentifier("toolbar", "id", activity.getPackageName());
+        int toolbarId = getResId(activity, "toolbar", "id");
         if (toolbarId == 0) return;
         View toolbar = activity.findViewById(toolbarId);
         if (toolbar == null) return;
         String pkg = activity.getPackageName();
-        int theme = activity.getResources().getIdentifier("ThemeOverlay.Material3.Dark", "style", pkg);
-        if (theme == 0) theme = activity.getResources().getIdentifier("ThemeOverlay.AppCompat.Dark", "style", pkg);
+        String shade = getPalette(activity).light ? "Light" : "Dark";
+        int theme = activity.getResources().getIdentifier("ThemeOverlay.Material3." + shade, "style", pkg);
+        if (theme == 0) theme = activity.getResources().getIdentifier("ThemeOverlay.AppCompat." + shade, "style", pkg);
         if (theme == 0) return;
         try {
             toolbar.getClass().getMethod("setPopupTheme", int.class).invoke(toolbar, theme);
@@ -1893,7 +1933,7 @@ public final class ModernUi {
         if (root == null) return;
         Context context = root.getContext();
         if (context == null || !isModernUiEnabled(context)) return;
-        int bannerId = root.getResources().getIdentifier("top_info_banner", "id", context.getPackageName());
+        int bannerId = getResId(context, "top_info_banner", "id");
         if (bannerId == 0) return;
         ArrayList<View> banners = new ArrayList<>();
         collectBanners(root, bannerId, banners);
@@ -2476,7 +2516,7 @@ public final class ModernUi {
     /** How many toolbar icons may stay beside the chips. -1 means the menu decides. */
     public static int toolbarIconBudget(Activity activity) {
         if (activity == null || !isModernUiEnabled(activity)) return -1;
-        int id = activity.getResources().getIdentifier("top_info_chipGroup", "id", activity.getPackageName());
+        int id = getResId(activity, "top_info_chipGroup", "id");
         if (id == 0 || activity.findViewById(id) == null) return -1;
         return iconBudget;
     }
@@ -2499,6 +2539,9 @@ public final class ModernUi {
             inset = ((ViewGroup.MarginLayoutParams) scroller.getLayoutParams()).leftMargin;
         }
         int room = container.getWidth() - inset - group.getWidth() - gap;
+        // On narrow screens or with large text the chips alone can run under the menu button.
+        // Shorten Community info to Info first, so the row fits instead of cutting a chip off.
+        if (room < slot && group instanceof ViewGroup && shortenInfoChip((ViewGroup) group)) return slot + gap;
         int icons = Math.max(0, (room - slot) / slot);
         if (icons != iconBudget) {
             iconBudget = icons;
@@ -2840,7 +2883,29 @@ public final class ModernUi {
         for (View child : next) chips.addView(child);
     }
 
+    private static final int CHIP_SHORT = 0x4d4f0071;
+
+    /** Returns true when the label changed, so the row is measured again. */
+    private static boolean shortenInfoChip(ViewGroup chips) {
+        for (int i = 0; i < chips.getChildCount(); i++) {
+            View child = chips.getChildAt(i);
+            if (child.getVisibility() != View.VISIBLE || !"info".equals(chipKind(child))) continue;
+            CharSequence now = chipText(child);
+            if (now != null && "Info".contentEquals(now)) return false;
+            child.setTag(CHIP_SHORT, Boolean.TRUE);
+            try {
+                child.getClass().getMethod("setText", CharSequence.class).invoke(child, "Info");
+                child.requestLayout();
+                return true;
+            } catch (Throwable ignored) {
+                return false;
+            }
+        }
+        return false;
+    }
+
     private static String chipKind(View child) {
+        if (Boolean.TRUE.equals(child.getTag(CHIP_SHORT))) return "info";
         String value = chipLabel(child);
         if (value.contains("community")) return "info";
         if (value.equals("join") || value.equals("joined") || value.startsWith("unjoin")) return "join";
@@ -3061,7 +3126,10 @@ public final class ModernUi {
         if (activity == null || collapsing == null || !(collapsing.getParent() instanceof ViewGroup)) return;
         ViewGroup appbar = (ViewGroup) collapsing.getParent();
         View tabs = visibleTabs(appbar);
-        boolean needed = show && homeFeed(activity) && tabs != null && !showRail(activity);
+        // Joey's "Tab layout for subreddit" off hides the name strip (HomeActivity.S3), sometimes
+        // after this runs. Without the strip there is nothing to sit beside, so no row.
+        boolean needed = show && homeFeed(activity) && tabs != null && !showRail(activity)
+                && joeyTabLayout() && tabs.getVisibility() != View.GONE;
         if (!needed) {
             if (unwrapTabMenu(appbar) && homeFeed(activity)) setJoeyMenu(activity, !showRail(activity));
             return;
@@ -3253,6 +3321,15 @@ public final class ModernUi {
         parent.removeView(row);
         if (tabs != null) parent.addView(tabs, index, appBarParams(tabs.getLayoutParams() != null ? tabs.getLayoutParams() : params));
         return true;
+    }
+
+    /** Joey's "Tab layout for subreddit" (za.a.H). */
+    private static boolean joeyTabLayout() {
+        try {
+            return Class.forName("za.a").getField("H").getBoolean(null);
+        } catch (Throwable ignored) {
+            return true;
+        }
     }
 
     private static View visibleTabs(View appbar) {
@@ -3485,7 +3562,7 @@ public final class ModernUi {
     }
 
     private static int toolbarHeight(View view) {
-        int id = view.getResources().getIdentifier("toolbar_height", "dimen", view.getContext().getPackageName());
+        int id = getResId(view.getContext(), "toolbar_height", "dimen");
         if (id != 0) return view.getResources().getDimensionPixelSize(id);
         return Math.round(56 * view.getResources().getDisplayMetrics().density);
     }
@@ -3707,8 +3784,8 @@ public final class ModernUi {
         hit.setOnClickListener(v -> action.run());
         ImageView icon = new ImageView(activity);
         int iconSize = Math.round(20 * density);
-        int res = activity.getResources().getIdentifier(drawable, "drawable", activity.getPackageName());
-        if (res != 0) icon.setImageResource(res);
+        int res = getResId(activity, drawable, "drawable");
+        if (res != 0) icon.setImageResource(ModernIcons.swap(activity, res));
         icon.setScaleType(ImageView.ScaleType.FIT_CENTER);
         icon.setImageTintList(ColorStateList.valueOf(color));
         FrameLayout.LayoutParams iconLp = new FrameLayout.LayoutParams(iconSize, iconSize, Gravity.CENTER);
@@ -3760,7 +3837,7 @@ public final class ModernUi {
                         .invoke(toolbar, new Object[] {null});
                 return;
             }
-            int hamburger = activity.getResources().getIdentifier("hamburger", "drawable", activity.getPackageName());
+            int hamburger = getResId(activity, "hamburger", "drawable");
             if (hamburger == 0) return;
             toolbar.getClass().getMethod("setNavigationIcon", int.class).invoke(toolbar, hamburger);
             android.view.View.OnClickListener open = v -> openDrawer(activity);
@@ -3861,8 +3938,15 @@ public final class ModernUi {
         }
     }
 
+    private static volatile int sDrawerRecycler = -1;
+
     private static boolean isLeftDrawerSurface(View view) {
-        int recycler = getResId(view.getContext(), "home_left_drawer_recycler_view", "id");
+        // Asked for every surface colour Joey requests, so the id is kept instead of looked up by name.
+        int recycler = sDrawerRecycler;
+        if (recycler < 0) {
+            recycler = getResId(view.getContext(), "home_left_drawer_recycler_view", "id");
+            sDrawerRecycler = recycler;
+        }
         if (recycler == 0) return false;
         if (view.getId() == recycler) return true;
         if (!(view instanceof ViewGroup)) return false;

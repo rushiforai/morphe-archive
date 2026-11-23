@@ -39,7 +39,7 @@ class BooklySmokeTest {
             apk = apk,
             workDir = workDir,
             pkg = PKG,
-            version = "2.4.3",
+            version = "2.4.5",
             patchNames = setOf("Enable Premium"),
             allPatches = loadAllPatches(newestPatchBundle(root)),
         )
@@ -74,5 +74,22 @@ class BooklySmokeTest {
             },
             "the constructor does not create $ACTIVE\n$diagnostics",
         )
+        // The constructor call on the new Active must target a method that exists: Active declares
+        // no <init> in 2.4.5, so it must be Object.<init> (not an undefined Active.<init>).
+        val newIndex = insns.indexOfFirst {
+            it.opcode == Opcode.NEW_INSTANCE &&
+                ((it as? ReferenceInstruction)?.reference as? com.android.tools.smali.dexlib2.iface.reference.TypeReference)
+                    ?.type == ACTIVE
+        }
+        val ctorCall = (insns.getOrNull(newIndex + 1) as? ReferenceInstruction)?.reference
+            as? com.android.tools.smali.dexlib2.iface.reference.MethodReference
+        assertTrue(
+            insns[newIndex + 1].opcode == Opcode.INVOKE_DIRECT && ctorCall?.name == "<init>",
+            "no <init> call after new-instance Active",
+        )
+        val activeClass = classes.single { it.type == ACTIVE }
+        val resolves = ctorCall!!.definingClass == "Ljava/lang/Object;" ||
+            (ctorCall.definingClass == ACTIVE && activeClass.methods.any { it.name == "<init>" })
+        assertTrue(resolves, "Active constructor call targets undefined ${ctorCall.definingClass}-><init>")
     }
 }

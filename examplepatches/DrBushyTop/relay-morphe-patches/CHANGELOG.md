@@ -1,3 +1,9 @@
+## [1.7.1](https://github.com/DrBushyTop/relay-morphe-patches/compare/v1.7.0...v1.7.1) (2026-11-22)
+
+### 🐛 Bug Fixes
+
+* Keep playing videos and GIFs from holding the top refresh rate ([832fdab](https://github.com/DrBushyTop/relay-morphe-patches/commit/832fdab796868a0e13a925ed8707b3c2a33de61b))
+
 ## [1.7.0](https://github.com/DrBushyTop/relay-morphe-patches/compare/v1.6.3...v1.7.0) (2026-11-21)
 
 ### ✨ New Features

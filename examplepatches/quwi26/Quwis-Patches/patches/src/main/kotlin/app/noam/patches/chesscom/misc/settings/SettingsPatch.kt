@@ -26,7 +26,8 @@ private const val MORE_ENTRY = "${Constants.EXTENSION_PACKAGE}/settings/MoreEntr
 val settingsPatch = bytecodePatch(
     name = "Quwi's Patches settings",
     description = "Adds the Quwi's Patches row at the top of the More tab, where the other patches " +
-        "of this bundle are switched on and off. Patches you did not select do not show up there.",
+        "of this bundle are switched on and off. Patches you did not select do not show up there. " +
+        "On a root mount the screen opens in a dialog.",
 ) {
     compatibleWith(Constants.COMPATIBILITY)
 

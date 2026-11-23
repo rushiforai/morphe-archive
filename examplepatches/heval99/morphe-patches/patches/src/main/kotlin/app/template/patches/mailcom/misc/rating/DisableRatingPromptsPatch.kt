@@ -1,20 +1,23 @@
 package app.template.patches.mailcom.misc.rating
 
 import app.morphe.patcher.Fingerprint
-import app.morphe.patcher.methodCall
+import app.morphe.patcher.fieldAccess
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.returnEarly
 import app.template.patches.shared.Constants.COMPATIBILITY_MAILCOM
+import com.android.tools.smali.dexlib2.Opcode
 
-// InAppRatingManager.canRequestInAppReviewFlow (9.18.3): true at most once per 30 s. On a
-// MailSentEvent, MailListFragment reads it through MailListModuleAdapter.shouldStartInAppFlow and
-// then calls launchInAppReviewFlow, the app's only Play review request. Name plus shape: no
-// parameters, boolean, reads the clock.
-internal object CanRequestInAppReviewFlowFingerprint : Fingerprint(
-    name = "canRequestInAppReviewFlow",
+// MailListModuleAdapterImpl.shouldStartInAppFlow (9.21.2): true at most once per 30 s. On a
+// MailSentEvent, MailListFragment reads it through the MailListModuleAdapter interface and then
+// calls launchInAppReviewFlow, the app's only Play review request. Up to 9.20.2 it delegated to
+// InAppRatingManager.canRequestInAppReviewFlow; R8 inlined that into this method since 9.21.2.
+// Anchored on the kept method name, no parameters, boolean, and the lastRequestedReviewFlow
+// field it stores (a Kotlin property name; the interface declaration has no body).
+internal object ShouldStartInAppFlowFingerprint : Fingerprint(
+    name = "shouldStartInAppFlow",
     returnType = "Z",
     parameters = listOf(),
-    filters = listOf(methodCall(name = "getCurrentTimeMillis", parameters = listOf(), returnType = "J")),
+    filters = listOf(fieldAccess(name = "lastRequestedReviewFlow", opcode = Opcode.IPUT_WIDE)),
     custom = { method, _ -> method.implementation != null },
 )
 
@@ -26,6 +29,6 @@ val disableRatingPromptsPatch = bytecodePatch(
     compatibleWith(COMPATIBILITY_MAILCOM)
 
     execute {
-        CanRequestInAppReviewFlowFingerprint.method.returnEarly(false)
+        ShouldStartInAppFlowFingerprint.method.returnEarly(false)
     }
 }

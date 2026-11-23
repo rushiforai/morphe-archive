@@ -1,23 +1,31 @@
 /* Live status for the Hoodles mirror source.
  *
- * The site is static, so whether hoodles/source.json exists is asked of GitGud when the page loads
- * instead of being written into the HTML. Raw GitGud URLs send no CORS headers; the GitLab API does,
- * so the same file is read through the API. Three outcomes, never a guess:
+ * The site is static, so whether his patches can be added is asked of GitLab when the page loads
+ * instead of being written into the HTML. The file checked is the one Morphe's one-tap add link
+ * resolves to: patches-bundle.json at the root of the GitLab.com metadata project. Publishing puts
+ * it there last, after the bundle itself downloads from GitGud with a matching SHA-256, so that file
+ * existing means the bundle behind it does too.
  *
- *   live    the file is there and parses, so his patches can be added as a Morphe source
- *   pending 404, so CI has not published it yet
+ * GitLab's raw URLs send no CORS headers; its API does, so the same file is read through the API.
+ * Three outcomes, never a guess:
+ *
+ *   live    the metadata resolves, so the add link works and the button is enabled
+ *   pending 404, so the metadata is missing and the button stays disabled
  *   unknown network failure or an unexpected answer: the page says it could not check rather than
  *           claiming either state
  *
- * With JavaScript off the initial markup shows no status claim, only how to check by hand.
+ * With JavaScript off the initial markup reports the published state and the button keeps its live
+ * href. The script re-checks the metadata and disables the button if the file is gone.
  */
 (function () {
   "use strict";
 
   var API =
-    "https://gitgud.io/api/v4/projects/xiondigital%2FMorphePatches/repository/files/" +
-    "hoodles%2Fsource.json/raw?ref=main";
-  var SOURCE = "https://gitgud.io/xiondigital/MorphePatches/-/raw/main/hoodles/source.json";
+    "https://gitlab.com/api/v4/projects/XiONDiGiTaL%2Fhoodles-morphe-patches/repository/files/" +
+    "patches-bundle.json/raw?ref=main";
+  var MANUAL = "https://gitgud.io/xiondigital/MorphePatches/-/raw/main/hoodles/source.json";
+  var PROJECT = "https://gitlab.com/XiONDiGiTaL/hoodles-morphe-patches";
+  var ADD = "https://morphe.software/add-source?gitlab=XiONDiGiTaL/hoodles-morphe-patches&name=hoodles";
 
   function each(selector, fn) {
     Array.prototype.forEach.call(document.querySelectorAll(selector), fn);
@@ -32,20 +40,10 @@
   function render(state, data) {
     var live = state === "live";
     var version = live && data && data.version ? String(data.version) : "";
-    var sha = live && data && data.sha256 ? String(data.sha256) : "";
 
     setText(
       "[data-hoodles-chip]",
-      live ? "Bundle published" : state === "pending" ? "No bundle yet" : "Bundle status unknown"
-    );
-
-    setText(
-      "[data-hoodles-bundle]",
-      live
-        ? "Published as patches-" + (version || "1.47.0") + ".mpp"
-        : state === "pending"
-          ? "Not published"
-          : "Not checked"
+      live ? "Bundle published" : state === "pending" ? "Metadata not found" : "Bundle status unknown"
     );
 
     setText(
@@ -53,40 +51,61 @@
       live
         ? "Status: live."
         : state === "pending"
-          ? "Status: not published yet."
+          ? "Status: metadata not found."
           : "Status: could not check."
     );
 
     setText(
       "[data-hoodles-status]",
       live
-        ? "hoodles/source.json is published" +
-            (version
-              ? " — v" + version + (sha ? ", SHA-256 " + sha.slice(0, 12) + "…" : "")
-              : "") +
-            ", so his patches are addable as their own source."
+        ? "The add link resolves" +
+            (version ? ", v" + version : "") +
+            ", so his patches can be added as their own source." +
+            (data && data.sha256
+              ? " SHA-256 " + data.sha256 + "."
+              : " The SHA-256 is recorded in source.json.")
         : state === "pending"
-          ? "No hoodles/source.json exists yet, so his patches cannot be added as a source."
-          : "GitGud did not answer, so this is not a status: open the source link in step 03 to see whether the file exists."
+          ? "The GitLab metadata returned 404, so the one-tap link cannot resolve right now."
+          : "GitLab did not answer, so this is not a status: open " +
+            PROJECT +
+            " to see whether the metadata is there."
     );
 
     setText(
       "[data-hoodles-step]",
       live
-        ? "Open Sources → + → Remote and paste the link above. Morphe keeps one bundle per source, so when both have patches for an app it asks which source to use."
+        ? "Tap the button on a device with Morphe installed and confirm. Morphe keeps one bundle per source, so when both sources have patches for an app it asks which one to use."
         : state === "pending"
-          ? "Not published yet: that link returns 404 until CI has built the bundle, so there is nothing to add today. Morphe keeps one bundle per source, so his collection stays its own source beside the XiØN one."
-          : "Could not check: open the link above, and if it loads add it under Sources → + → Remote. Morphe keeps one bundle per source, so his collection stays its own source beside the XiØN one."
+          ? "The metadata is missing: the button stays disabled until the file exists, and the one-tap link returns 404. Morphe keeps one bundle per source, so his collection stays its own source beside the XiØN one."
+          : "Could not check: the button is left disabled rather than linking somewhere unverified. Open " +
+            PROJECT +
+            " to see whether the metadata is there."
     );
 
     setText(
       "[data-hoodles-note]",
       live
-        ? "His patches are a source of their own now — add " + SOURCE + " the same way."
+        ? "His patches are a source of their own now. The button adds them, and " +
+            MANUAL +
+            " works in Sources → + → Remote without the link."
         : state === "pending"
-          ? "His patches are not a source yet: hoodles/source.json is only committed after CI has built the bundle and confirmed it downloads, so there is nothing to add until that has run."
-          : "GitGud did not answer, so this page cannot say whether his source is published; the Hoodles page tries again."
+          ? "The metadata is missing, so the one-tap link cannot resolve. It is written only after the bundle is built and confirmed to download."
+          : "GitLab did not answer, so this page cannot say whether his source is published; " +
+            PROJECT +
+            " will."
     );
+
+    each("[data-hoodles-add]", function (el) {
+      if (live) {
+        el.setAttribute("href", ADD);
+        el.removeAttribute("aria-disabled");
+        el.classList.remove("is-disabled");
+      } else {
+        el.removeAttribute("href");
+        el.setAttribute("aria-disabled", "true");
+        el.classList.add("is-disabled");
+      }
+    });
   }
 
   if (!window.fetch) {

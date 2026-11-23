@@ -27,7 +27,7 @@ import patches.gboard.shared.runtimeabi.RuntimeAbiCatalog
 import patches.gboard.shared.runtimeabi.RuntimeCallEmitter
 import patches.gboard.shared.runtimeabi.RuntimeCallId
 
-private const val EXPRESSION_CORPUS_MANAGER_CLASS = "Lgva;"
+private const val EXPRESSION_CORPUS_MANAGER_CLASS = "Lnxt;"
 
 internal val gboardSymbolFooterOrderBytecodePatch = bytecodePatch(
     description = "Reorder the expression footer corpus list from the user setting."
@@ -234,10 +234,10 @@ private val ENTRY_PARAMETER_COPIES = """
 """.trimIndent()
 
 private const val TARGET_METHOD_NAME = "a"
-private const val TARGET_RETURN_TYPE = "Lwhe;"
+private const val TARGET_RETURN_TYPE = "Lauaz;"
 private val TARGET_PARAMETERS = listOf("Landroid/view/inputmethod/EditorInfo;", "Z")
 private const val TARGET_DESCRIPTOR =
-    "Lgva;->a(Landroid/view/inputmethod/EditorInfo;Z)Lwhe;"
+    "Lnxt;->a(Landroid/view/inputmethod/EditorInfo;Z)Lauaz;"
 private val FOOTER_RUNTIME_CALL =
     RuntimeCallId.SYMBOL_FOOTER_ORDER_RUNTIME_REORDER_EXPRESSION_CORPUS_LIST
 private val FOOTER_RUNTIME_DESCRIPTOR = RuntimeAbiCatalog.abi(FOOTER_RUNTIME_CALL).reference
@@ -245,7 +245,7 @@ private const val FINAL_COLLECT_DESCRIPTOR =
     "Lj$/util/stream/Stream;->collect" +
         "(Lj$/util/stream/Collector;)Ljava/lang/Object;"
 private const val RECEIVER_LAST_USE_DESCRIPTOR =
-    "Lguy;-><init>(Lgva;Landroid/view/inputmethod/EditorInfo;Z)V"
+    "Lnxp;-><init>(Lnxt;Landroid/view/inputmethod/EditorInfo;Z)V"
 private const val STOCK_REGISTER_COUNT = 14
 private const val PATCHED_REGISTER_COUNT = 17
 private const val LEGACY_P0_REGISTER = 11

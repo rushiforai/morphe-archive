@@ -213,6 +213,18 @@ val binocularsModsSettingsPatch =
                     setAttribute("name", "bin0culars_restart")
                     text = "Restart"
                 }
+                strings.root.appendChild("string") {
+                    setAttribute("name", "bin0culars_restart_title")
+                    text = "Restart Reddit?"
+                }
+                strings.root.appendChild("string") {
+                    setAttribute("name", "bin0culars_restart_message")
+                    text = "Your changes apply after Reddit restarts."
+                }
+                strings.root.appendChild("string") {
+                    setAttribute("name", "bin0culars_later")
+                    text = "Later"
+                }
             }
 
             val encoded = registeredSettings.joinToString("\n") { setting ->

@@ -3,6 +3,7 @@
  * https://github.com/MorpheApp/morphe-patches/pull/3014
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
+ * Modified by lavinhoque33, 2026-11-22.
  */
 
 package app.morphe.extension.music.patches.jam;
@@ -202,6 +203,11 @@ public final class JamUI {
 
     public static boolean enabled() {
         return ENABLED;
+    }
+
+    /** A connected companion can route queue commands asynchronously, even while its UI is idle. */
+    public static boolean ownsQueue() {
+        return ENABLED && (companion != null || participant() || sessionActive());
     }
 
     public static void install(Activity a) {

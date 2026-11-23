@@ -152,6 +152,35 @@ public final class GlassTopBar {
     }
 
     /**
+     * Injected in Instagram's helper setting a view's bottom padding, which a chat runs on its messages each time
+     * the message bar changes height: [bottom], with the room the glass gives the messages under the bar when
+     * [view] is a chat's list it took down (#528). Answers [bottom] itself for any other view. Never throws.
+     */
+    public static int bottomPadding(@Nullable View view, int bottom) {
+        try {
+            HookStatus.invoked(FamilyNames.GLASS_CHAT);
+            return ChatReach.bottomPadding(view, bottom);
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.GLASS_CHAT, HOOK, failure);
+            return bottom;
+        }
+    }
+
+    /**
+     * Injected where a chat reads its message list's bottom padding to work out the next one: [bottom], as
+     * Instagram set it, without the room {@link #bottomPadding} adds (#528). Never throws.
+     */
+    public static int ownBottomPadding(@Nullable View view, int bottom) {
+        try {
+            HookStatus.invoked(FamilyNames.GLASS_CHAT);
+            return ChatReach.ownBottomPadding(view, bottom);
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.GLASS_CHAT, HOOK, failure);
+            return bottom;
+        }
+    }
+
+    /**
      * Gives a message box, [box], the glass as a pill while [on] says so (#391): a chat's message bar or the
      * reply box on a story. The glass records what the view with the id [source] draws before the view holding
      * the box, the messages or the story, and [dark] keeps it dark whatever the theme, as the story viewer is.
@@ -362,6 +391,12 @@ public final class GlassTopBar {
         return background instanceof Frost && ((Frost) background).sheened;
     }
 
+    /** How far below [header]'s top its sheen runs on over Home's stories row, 0 while it doesn't (#800). */
+    static int sheenTo(View header) {
+        Drawable background = header.getBackground();
+        return background instanceof Frost ? ((Frost) background).glass.sheenTo : 0;
+    }
+
     /**
      * The view under [header]'s parent, [header] or one of the views wrapped round it, whose parent
      * draws the feed before it: the first parent more than twice as tall as [header]. Null when there's
@@ -470,6 +505,13 @@ public final class GlassTopBar {
         int fade;
         /** How far Home's glass fades out below a header still showing, so it never ends on a hard line (#462). */
         int softEdge;
+        /** Finds Home's stories row under the header. Null for a chat's header. */
+        @Nullable private final TraySheen traySheen;
+        /**
+         * How far below the header's top the stories row ends while the glass tab bar's sheen runs on down over
+         * it, 0 while it doesn't (#800).
+         */
+        int sheenTo;
         private boolean describedHollow;
         private int describedCovers = -1;
 
@@ -499,6 +541,7 @@ public final class GlassTopBar {
             this.lined = sourceId == 0 && !FamilyNames.GLASS_CHAT.equals(family);
             this.frost = new Frost(this, header.getResources().getDisplayMetrics().density);
             this.reach = home ? new GlassReach() : null;
+            this.traySheen = home ? new TraySheen() : null;
         }
 
         /** The view whose parent draws what's under the glass, under that parent: see {@link #host} and {@link #under}. */
@@ -610,9 +653,14 @@ public final class GlassTopBar {
             int wasBelow = below;
             boolean wasHollow = hollow;
             int wasSoftEdge = softEdge;
+            int wasSheenTo = sheenTo;
             reachUnder(host);
+            // While the glass reaches over Home, slid away to the strip or not, with the glass tab bar's look on it.
+            sheenTo = traySheen != null && reach != null && (softEdge > 0 || hollow) && GlassTabBar.onNow()
+                    ? traySheen.end(header, reach.home()) : 0;
             // A header sliding only moves its node, and how far the glass reaches is drawn into that node.
-            if (above != wasAbove || below != wasBelow || hollow != wasHollow || softEdge != wasSoftEdge) {
+            if (above != wasAbove || below != wasBelow || hollow != wasHollow || softEdge != wasSoftEdge
+                    || sheenTo != wasSheenTo) {
                 frost.invalidateSelf();
                 if (edge != null) edge.invalidateSelf();
             }
@@ -775,6 +823,7 @@ public final class GlassTopBar {
             below = 0;
             hollow = false;
             softEdge = 0;
+            sheenTo = 0;
         }
 
         private void forgetBackdrop() {
@@ -1058,20 +1107,29 @@ public final class GlassTopBar {
             // The strip fades out under the status bar and Home's glass below its header, so each is drawn in a
             // layer the fade can thin (#450, #462).
             boolean fades = hollow || glass.softEdge > 0;
+            // Over Home's stories row the sheen runs on to the row's bottom, whole through the fade, so the row and
+            // the header, or the strip left of it once it slid away, read as one pane of glass (#800).
+            int sheenTo = glass.sheenTo <= 0 ? Integer.MIN_VALUE : bounds.top + glass.sheenTo;
+            boolean runsOn = sheenTo > area.bottom && GlassTabBar.onNow();
             int layer = fades ? canvas.saveLayer(area.left, area.top, area.right, area.bottom, null) : -1;
             try {
-                drawGlass(canvas, bounds, base);
+                drawGlass(canvas, bounds, base, !runsOn);
                 if (fades) fadeOut(canvas, area.bottom - glass.fade);
             } finally {
                 if (layer >= 0) canvas.restoreToCount(layer);
+            }
+            if (runsOn) {
+                sheened = true;
+                keepSheen(GlassTabBar.isDark(base), area.top, sheenTo);
+                canvas.drawRect(area.left, area.top, area.right, sheenTo, sheen);
             }
             if (!glass.lined || fades) return;
             paint.setColor(hairline(base));
             canvas.drawRect(area.left, area.bottom - hairline, area.right, area.bottom, paint);
         }
 
-        /** The blur over [area], its rim bend and the tint and sheen over it. */
-        private void drawGlass(Canvas canvas, Rect bounds, int base) {
+        /** The blur over [area], its rim bend and the tint over it, and the sheen too when [withSheen]. */
+        private void drawGlass(Canvas canvas, Rect bounds, int base, boolean withSheen) {
             boolean blurred = glass.drawBackdrop(canvas, area);
             // Every header follows the glass tab bar's pill: its rim bend, measured on the header, and its sheen.
             boolean likeTabBar = GlassTabBar.onNow();
@@ -1081,8 +1139,8 @@ public final class GlassTopBar {
             paint.setColor(GlassTabBar.tint(base, blurred, glass.tintScale()));
             canvas.drawRect(area, paint);
             sheened = likeTabBar;
-            if (likeTabBar) {
-                keepSheen(GlassTabBar.isDark(base));
+            if (likeTabBar && withSheen) {
+                keepSheen(GlassTabBar.isDark(base), area.top, area.bottom);
                 canvas.drawRect(area, sheen);
             }
         }
@@ -1117,8 +1175,7 @@ public final class GlassTopBar {
                 canvas.drawRect(bounds, paint);
                 sheened = likeTabBar;
                 if (likeTabBar) {
-                    area.set(bounds);
-                    keepSheen(GlassTabBar.isDark(glass.base));
+                    keepSheen(GlassTabBar.isDark(glass.base), bounds.top, bounds.bottom);
                     canvas.drawRect(bounds, sheen);
                 }
             } finally {
@@ -1134,13 +1191,13 @@ public final class GlassTopBar {
             kept.draw(canvas);
         }
 
-        /** Makes the sheen's gradient again when the glass's top, bottom or shade changed. */
-        private void keepSheen(boolean dark) {
-            if (sheenTop == area.top && sheenBottom == area.bottom && sheenDark == dark) return;
-            sheenTop = area.top;
-            sheenBottom = area.bottom;
+        /** Makes the sheen's gradient again when its [top], [bottom] or shade changed. */
+        private void keepSheen(boolean dark, int top, int bottom) {
+            if (sheenTop == top && sheenBottom == bottom && sheenDark == dark) return;
+            sheenTop = top;
+            sheenBottom = bottom;
             sheenDark = dark;
-            sheen.setShader(new LinearGradient(0, area.top, 0, area.bottom,
+            sheen.setShader(new LinearGradient(0, top, 0, bottom,
                     GlassTabBar.sheenTop(dark), 0x00ffffff, Shader.TileMode.CLAMP));
         }
 

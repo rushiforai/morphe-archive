@@ -11,7 +11,7 @@ final class MusicReflection {
 
     interface Action { void run() throws ReflectiveOperationException; }
 
-    // The library bindings patch selects the second argument for Apple Music 7.0.1 and 7.0.2.
+    // The library bindings patch selects the second argument for Apple Music 7.0.1, 7.0.2, and 7.0.3.
     static String classNameForVersion(String version700, String version701) {
         return version700;
     }

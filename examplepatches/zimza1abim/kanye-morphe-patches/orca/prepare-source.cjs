@@ -116,7 +116,14 @@ function prepareSource(sourceArg) {
     { cwd: mobile, stdio: 'inherit' })
   const generated = fs.readFileSync(path.join(mobile, 'src/terminal/document/terminal-webview-document-script.generated.ts'), 'utf8')
   if (!generated.includes('MorpheOrcaText')) throw Error('terminal document script was not regenerated with the font')
-  return { version, files: [...changes.keys()].map((file) => path.relative(source, file)) }
+
+  // Home's bot rows draw the uploaded picture, not its initial: the same bundle carries it.
+  const avatars = require('./bot-avatars.cjs')(source)
+  return {
+    version,
+    files: [...changes.keys(), ...avatars.files.map((file) => path.join(source, file))]
+      .map((file) => path.relative(source, file))
+  }
 }
 
 module.exports = prepareSource

@@ -1,5 +1,7 @@
 package app.hoitruyenchu.patches.itruyenchu.audio.tts
 
+import app.hoitruyenchu.patches.itruyenchu.misc.settings.enablePatchFlag
+import app.hoitruyenchu.patches.itruyenchu.misc.settings.settingsPatch
 import app.hoitruyenchu.patches.itruyenchu.misc.extension.sharedExtensionPatch
 import app.hoitruyenchu.patches.itruyenchu.shared.AsyncStorageMultiSetFingerprint
 import app.hoitruyenchu.patches.itruyenchu.shared.Constants.COMPATIBILITY_ITRUYENCHU
@@ -46,9 +48,11 @@ val ttsReliabilityPatch = patch(
 ) {
     compatibleWith(COMPATIBILITY_ITRUYENCHU)
 
-    dependsOn(sharedExtensionPatch, wakeLockPermissionPatch)
+    dependsOn(sharedExtensionPatch, wakeLockPermissionPatch, settingsPatch)
 
     execute {
+        enablePatchFlag("ttsReliability")
+
         // The UtteranceProgressListener that forwards engine events to JS
         // (SpeechModule$textToSpeech$2$newTtsInstance$1$1$1 in expo-speech 14).
         val listenerType = classDefBy { classDef ->

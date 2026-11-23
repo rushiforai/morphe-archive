@@ -1,14 +1,12 @@
 package app.template.patches.digisport.betting
 
-import app.morphe.patcher.Fingerprint
+import app.template.patches.digisport.ads.dataGetterFingerprint
 
-// UIResultsMatch.getBet(): the bookmaker odds (1 / X / 2 and the bet link) of a soccer match row.
-// Its only readers are in RowResultsMatchBindingImpl: executeBindings sets the odds block
-// (@id/nas) GONE when it is null, and the block's click callback returns early on null.
-internal object UIResultsMatchGetBetFingerprint : Fingerprint(
-    definingClass = "Lro/rcsrds/digisport/data/model/ui/articles/UIResultsMatch;",
-    name = "getBet",
-    returnType = "Lro/rcsrds/digisport/data/model/ui/articles/UIResultsMatchBet;",
-    parameters = listOf(),
-    custom = { method, _ -> method.implementation != null },
-)
+internal const val UI_RESULTS_MATCH = "Lro/rcsrds/digisport/data/model/ui/articles/UIResultsMatch;"
+internal const val UI_RESULTS_MATCH_BET = "Lro/rcsrds/digisport/data/model/ui/articles/UIResultsMatchBet;"
+
+// UIResultsMatch's bet getter (renamed since 1.1.16; the serialised field "bet" keeps its name):
+// the bookmaker odds (1 / X / 2 and the bet link) of a soccer match row. The match row binding
+// sets the odds block (@id/nas) GONE when it is null, and the block's click callback returns
+// early on null.
+internal val uiResultsMatchBetFingerprint = dataGetterFingerprint(UI_RESULTS_MATCH, "bet", UI_RESULTS_MATCH_BET)

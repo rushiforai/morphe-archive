@@ -13,7 +13,7 @@ val hideBettingOddsPatch = bytecodePatch(
 
     execute {
         // Every match row reads as having no odds, so its odds block stays GONE.
-        UIResultsMatchGetBetFingerprint.method.addInstructionsChecked(
+        uiResultsMatchBetFingerprint.method.addInstructionsChecked(
             0,
             """
                 const/4 v0, 0x0

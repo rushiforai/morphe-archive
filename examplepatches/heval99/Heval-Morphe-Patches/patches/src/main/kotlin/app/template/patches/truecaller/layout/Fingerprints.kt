@@ -63,6 +63,22 @@ internal object FeedbackInviteCardFingerprint : Fingerprint(
     returnType = "Z",
     parameters = listOf(),
 )
+
+// The survey eligibility check (hh40.N in 26.44.6, g740.O in 26.45.5, a member of the surveys
+// repository): true when the survey's frequency and the per-number cooldown have both passed. The
+// first parameter (the R8-named last-shown state) is matched by position only; the other two are kept
+// types. The survey start (sj50.e / du50.e) and the "has a survey for this context" check
+// (hh40.a0 / g740.e0, used by the details view, block and after-call hosts) both call it.
+internal object SurveyEligibilityFingerprint : Fingerprint(
+    returnType = "Z",
+    parameters = listOf(
+        "L",
+        "Lcom/truecaller/contact/entity/model/ContactSurveyEntity;",
+        "Lcom/truecaller/surveys/data/domain/SurveyConfig;",
+    ),
+    custom = { method, _ -> method.implementation != null },
+)
+
 internal const val FAMILY_MEMBER_ROLE = "Lcom/truecaller/familyprotect/api/model/Family\$MemberRole;"
 
 // The bottom bar builder (xm6.g(SparseIntArray) in 26.39.6, cp6.g in 26.40.5, mr6.i in 26.44.6):
@@ -169,7 +185,8 @@ internal const val CALL_LOG_FILTER_TYPE = "Lcom/truecaller/calllog/api/FilterTyp
 
 // The revamped call log's filter row (static a050.e in 26.41.5), the only renderer of the filter chips
 // (All / Missed / Not spam / Spam / ...) and the SIM selector next to them (shown with two or more
-// SIMs): (modifier, filter chips, chip click, SIMs, selected SIM index, ..., composer, changed). The
+// SIMs): (modifier, filter chips, chip click, SIMs, selected SIM index, ..., selected FilterType (kept
+// type, added in 26.45.5 as ya.e), a click lambda, composer, two changed ints). The
 // call log screen draws it pinned above the list or as the LazyColumn item "call_log_filters"; its
 // restart lambda calls it again. "filtersStartPadding" is its padding animation label.
 internal object CallLogFiltersRowFingerprint : Fingerprint(
@@ -177,7 +194,9 @@ internal object CallLogFiltersRowFingerprint : Fingerprint(
     returnType = "V",
     parameters = listOf(
         "L", "L", "Lkotlin/jvm/functions/Function1;", "L", "I", "Lkotlin/jvm/functions/Function1;",
-        "Lkotlin/jvm/functions/Function0;", "Z", "Lkotlin/jvm/functions/Function1;", "L", "I",
+        "Lkotlin/jvm/functions/Function0;", "Z", "Lkotlin/jvm/functions/Function1;",
+        "Lcom/truecaller/calllog/presentation/ui/screen/model/FiltersState\$CallHistoryFilter\$FilterType;",
+        "Lkotlin/jvm/functions/Function1;", "L", "I", "I",
     ),
     strings = listOf("filtersStartPadding"),
 )

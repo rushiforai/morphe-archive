@@ -21,7 +21,7 @@ import patches.gboard.shared.isMethodReference
 import patches.gboard.shared.isOpcode
 import patches.gboard.Constants.COMPATIBILITY_GBOARD
 
-private const val SIGNATURE_UTILS_CLASS = "Lrzu;"
+private const val SIGNATURE_UTILS_CLASS = "Lakqp;"
 
 internal val gboardSignatureBypassBytecodePatch = bytecodePatch(
     description = "Force Gboard's own signature whitelist checks to pass."
@@ -171,17 +171,17 @@ private data class LiteralShape(
 
 private const val SIGNATURE_CHECK_METHOD_NAME = "a"
 private const val SIGNATURE_CHECK_DESCRIPTOR =
-    "Lrzu;->a(Landroid/content/Context;Ljava/lang/String;)Z"
+    "Lakqp;->a(Landroid/content/Context;Ljava/lang/String;)Z"
 private val SIGNATURE_CHECK_PARAMETERS =
     listOf("Landroid/content/Context;", "Ljava/lang/String;")
 private const val DIGEST_METHOD_DESCRIPTOR =
-    "Lrzu;->c(Landroid/content/Context;Ljava/lang/String;)[B"
+    "Lakqp;->c(Landroid/content/Context;Ljava/lang/String;)[B"
 private const val ARRAYS_EQUALS_DESCRIPTOR = "Ljava/util/Arrays;->equals([B[B)Z"
 private val TARGET_FIELD_DESCRIPTORS = listOf(
-    "Lrzu;->e:[B",
-    "Lrzu;->d:[B",
-    "Lrzu;->c:[B",
-    "Lryv;->b:Z",
+    "Lakqp;->e:[B",
+    "Lakqp;->d:[B",
+    "Lakqp;->c:[B",
+    "Lakpd;->b:Z",
 )
 private val TARGET_BASELINE_LITERALS = listOf(
     LiteralShape(0, 3),

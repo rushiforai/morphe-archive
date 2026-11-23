@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="DeezerCarTheme" parent="@android:style/Theme.Black.NoTitleBar">
+        <item name="carColorPrimary">#FFA238FF</item>
+        <item name="carColorPrimaryDark">#FFA238FF</item>
+        <item name="carColorSecondary">#FFFFFFFF</item>
+        <item name="carColorSecondaryDark">#FFFFFFFF</item>
+    </style>
+</resources>

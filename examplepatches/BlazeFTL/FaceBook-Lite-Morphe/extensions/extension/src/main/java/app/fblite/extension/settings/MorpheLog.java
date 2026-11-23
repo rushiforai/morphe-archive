@@ -3,6 +3,7 @@ package app.fblite.extension.settings;
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.net.Uri;
 import android.os.Build;
@@ -20,7 +21,9 @@ import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Locale;
+import java.util.Map;
 
 /**
  * Debug log shared by the patches. Off by default; switched on in the Morphe settings screen.
@@ -37,6 +40,23 @@ public final class MorpheLog {
     private static final long MAX_BYTES = 4L * 1024 * 1024;
     private static final long CHECK_MS = 1500;
     private static final SimpleDateFormat TIME = new SimpleDateFormat("HH:mm:ss.SSS", Locale.US);
+    private static final String[][] CATEGORIES = {
+            {MorpheSettings.DEBUG_ADS, "ads", "reels", "listcheck"},
+            {MorpheSettings.DEBUG_VIEWS, "layout"},
+            {MorpheSettings.DEBUG_PLAYER, "controls", "cover", "doubletap", "sound"},
+            {MorpheSettings.DEBUG_VIDEO, "video", "probe"},
+            {MorpheSettings.DEBUG_STORIES, "story", "profile"},
+            {MorpheSettings.DEBUG_APP, "activity", "clone", "settings"}
+    };
+    private static final Map<String, Integer> TAGS = new HashMap<>();
+    private static final boolean[] CATEGORY_ON = new boolean[CATEGORIES.length];
+
+    static {
+        for (int i = 0; i < CATEGORIES.length; i++) {
+            CATEGORY_ON[i] = true;
+            for (int j = 1; j < CATEGORIES[i].length; j++) TAGS.put(CATEGORIES[i][j], i);
+        }
+    }
 
     private static Context context;
     private static boolean enabled;
@@ -59,12 +79,20 @@ public final class MorpheLog {
         if (now - checked >= CHECK_MS) {
             checked = now;
             try {
-                enabled = c.getSharedPreferences("morphe_fblite_settings", Context.MODE_PRIVATE).getBoolean(KEY, false);
+                SharedPreferences prefs = c.getSharedPreferences("morphe_fblite_settings", Context.MODE_PRIVATE);
+                enabled = prefs.getBoolean(KEY, false);
+                for (int i = 0; i < CATEGORIES.length; i++) CATEGORY_ON[i] = prefs.getBoolean(CATEGORIES[i][0], true);
             } catch (Throwable t) {
                 enabled = false;
             }
         }
         return enabled;
+    }
+
+    public static synchronized boolean enabled(String tag) {
+        if (!enabled()) return false;
+        Integer index = TAGS.get(tag);
+        return index == null || CATEGORY_ON[index];
     }
 
     public static void log(String tag, String message) {
@@ -76,7 +104,7 @@ public final class MorpheLog {
     }
 
     private static synchronized void write(String tag, String message, Throwable t) {
-        if (!enabled()) return;
+        if (!enabled(tag)) return;
         try {
             File target = file(context);
             if (target.length() > MAX_BYTES) {
@@ -88,6 +116,7 @@ public final class MorpheLog {
             if (!headerWritten) {
                 headerWritten = true;
                 line.append(TIME.format(new Date())).append(" == ").append(header()).append('\n');
+                line.append(TIME.format(new Date())).append(" settings ").append(settings()).append('\n');
             }
             line.append(TIME.format(new Date())).append(' ').append(tag).append(' ').append(message);
             if (t != null) line.append(" :: ").append(android.util.Log.getStackTraceString(t));
@@ -112,6 +141,22 @@ public final class MorpheLog {
                 + " | " + Build.MANUFACTURER + " " + Build.MODEL
                 + " | Android " + Build.VERSION.RELEASE + " (API " + Build.VERSION.SDK_INT + ")"
                 + " | " + Locale.getDefault();
+    }
+
+    private static String settings() {
+        StringBuilder sb = new StringBuilder();
+        try {
+            for (String key : MorpheSettings.SWITCHES) {
+                sb.append(key).append('=').append(MorpheSettings.isEnabled(context, key) ? "on" : "off").append(' ');
+            }
+            sb.append("font=").append(MorpheSettings.fontScalePercent(context)).append("% log=");
+            for (int i = 0; i < CATEGORIES.length; i++) {
+                if (CATEGORY_ON[i]) sb.append(CATEGORIES[i][0].substring("debug_log_".length())).append(',');
+            }
+        } catch (Throwable t) {
+            sb.append("unreadable");
+        }
+        return sb.toString();
     }
 
     public static synchronized File file(Context c) {

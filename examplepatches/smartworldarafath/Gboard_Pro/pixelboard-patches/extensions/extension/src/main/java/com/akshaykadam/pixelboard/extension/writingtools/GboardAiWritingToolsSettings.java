@@ -1,0 +1,235 @@
+package com.akshaykadam.pixelboard.extension.writingtools;
+
+import android.content.Context;
+import android.content.SharedPreferences;
+
+public final class GboardAiWritingToolsSettings {
+    public static final String PREF_FILE = "gboard_ai_writing_tools";
+    public static final String PREF_KEY_ENABLED = "pref_ai_writing_tools_enabled";
+    public static final String PREF_KEY_ALL_KEYBOARDS =
+            "pref_ai_writing_tools_all_keyboards_enabled";
+    public static final String PREF_KEY_BACKEND_TYPE =
+            "pref_ai_writing_tools_backend_type";
+    public static final String PREF_KEY_BACKEND_RESET_MIGRATED =
+            "pref_backend_force_server_v2";
+    public static final String PREF_KEY_V2_ENABLED =
+            "pref_ai_writing_tools_v2_enabled";
+    public static final String BACKEND_GBOARD_SERVER = "GBOARD_SERVER";
+    public static final String BACKEND_PRIVATE_INFERENCE_AICORE =
+            "PRIVATE_INFERENCE_AICORE";
+    public static final String BACKEND_PRIVATE_INFERENCE_ASTREA =
+            "PRIVATE_INFERENCE_ASTREA";
+    public static final boolean DEFAULT_ENABLED = true;
+    public static final boolean DEFAULT_ALL_KEYBOARDS = true;
+    public static final boolean DEFAULT_V2_ENABLED = false;
+    public static final String DEFAULT_BACKEND_TYPE = BACKEND_GBOARD_SERVER;
+
+    private GboardAiWritingToolsSettings() {
+    }
+
+    public static SharedPreferences preferences(Context context) {
+        Context applicationContext = context == null ? null : context.getApplicationContext();
+        Context lookupContext = applicationContext != null ? applicationContext : context;
+        if (lookupContext == null) {
+            return null;
+        }
+        if (android.os.Build.VERSION.SDK_INT >= 24) {
+            try {
+                android.os.UserManager um =
+                        (android.os.UserManager) lookupContext.getSystemService(Context.USER_SERVICE);
+                if (um != null && !um.isUserUnlocked()) {
+                    Context dpsContext = lookupContext.createDeviceProtectedStorageContext();
+                    if (dpsContext != null) {
+                        return dpsContext.getSharedPreferences(PREF_FILE, Context.MODE_PRIVATE);
+                    }
+                }
+            } catch (Throwable ignored) {
+            }
+        }
+        return lookupContext.getSharedPreferences(PREF_FILE, Context.MODE_PRIVATE);
+    }
+
+    public static void ensureDefaults(Context context) {
+        if (context == null) {
+            return;
+        }
+        ensureDefaults(preferences(context));
+    }
+
+    public static void ensureDefaults(SharedPreferences preferences) {
+        if (preferences == null) {
+            return;
+        }
+        SharedPreferences.Editor editor = null;
+        if (!preferences.contains(PREF_KEY_ENABLED)) {
+            editor = preferences.edit();
+            editor.putBoolean(PREF_KEY_ENABLED, DEFAULT_ENABLED);
+        }
+        if (!preferences.contains(PREF_KEY_ALL_KEYBOARDS)
+                || !preferences.getBoolean("pref_defaults_migrated_v3", false)) {
+            if (editor == null) {
+                editor = preferences.edit();
+            }
+            editor.putBoolean(PREF_KEY_ALL_KEYBOARDS, DEFAULT_ALL_KEYBOARDS);
+            editor.putBoolean("pref_defaults_migrated_v3", true);
+        }
+        if (!DEFAULT_BACKEND_TYPE.equals(preferences.getString(PREF_KEY_BACKEND_TYPE, null))
+                || !preferences.getBoolean(PREF_KEY_BACKEND_RESET_MIGRATED, false)) {
+            if (editor == null) {
+                editor = preferences.edit();
+            }
+            editor.putString(PREF_KEY_BACKEND_TYPE, DEFAULT_BACKEND_TYPE);
+            editor.putBoolean(PREF_KEY_BACKEND_RESET_MIGRATED, true);
+        }
+        if (!preferences.getBoolean("pref_v2_force_disabled_v1", false)) {
+            if (editor == null) {
+                editor = preferences.edit();
+            }
+            editor.putBoolean(PREF_KEY_V2_ENABLED, false);
+            editor.putBoolean("pref_v2_force_disabled_v1", true);
+        }
+        if (editor != null) {
+            editor.commit();
+        }
+    }
+
+    public static boolean readEnabled(SharedPreferences preferences) {
+        if (preferences == null) {
+            return DEFAULT_ENABLED;
+        }
+        try {
+            return preferences.getBoolean(PREF_KEY_ENABLED, DEFAULT_ENABLED);
+        } catch (ClassCastException ignored) {
+            return DEFAULT_ENABLED;
+        }
+    }
+
+    public static boolean readAllKeyboardsEnabled(SharedPreferences preferences) {
+        if (preferences == null) {
+            return DEFAULT_ALL_KEYBOARDS;
+        }
+        try {
+            return preferences.getBoolean(PREF_KEY_ALL_KEYBOARDS, DEFAULT_ALL_KEYBOARDS);
+        } catch (ClassCastException ignored) {
+            return DEFAULT_ALL_KEYBOARDS;
+        }
+    }
+
+    public static String readBackendType(SharedPreferences preferences) {
+        if (preferences == null) {
+            return DEFAULT_BACKEND_TYPE;
+        }
+        try {
+            return sanitizeBackendType(
+                    preferences.getString(PREF_KEY_BACKEND_TYPE, DEFAULT_BACKEND_TYPE));
+        } catch (ClassCastException ignored) {
+            return DEFAULT_BACKEND_TYPE;
+        }
+    }
+
+    public static boolean readV2Enabled(SharedPreferences preferences) {
+        if (preferences == null) {
+            return DEFAULT_V2_ENABLED;
+        }
+        try {
+            return preferences.getBoolean(PREF_KEY_V2_ENABLED, DEFAULT_V2_ENABLED);
+        } catch (ClassCastException ignored) {
+            return DEFAULT_V2_ENABLED;
+        }
+    }
+
+    public static boolean writeEnabled(SharedPreferences preferences, boolean enabled) {
+        if (preferences == null) {
+            return false;
+        }
+        try {
+            return preferences.edit()
+                    .putBoolean(PREF_KEY_ENABLED, enabled)
+                    .commit();
+        } catch (Throwable ignored) {
+            return false;
+        }
+    }
+
+    public static boolean writeAllKeyboardsEnabled(SharedPreferences preferences,
+            boolean enabled) {
+        if (preferences == null) {
+            return false;
+        }
+        try {
+            return preferences.edit()
+                    .putBoolean(PREF_KEY_ALL_KEYBOARDS, enabled)
+                    .commit();
+        } catch (Throwable ignored) {
+            return false;
+        }
+    }
+
+    public static boolean writeBackendType(SharedPreferences preferences, String backendType) {
+        if (preferences == null) {
+            return false;
+        }
+        try {
+            return preferences.edit()
+                    .putString(PREF_KEY_BACKEND_TYPE, sanitizeBackendType(backendType))
+                    .commit();
+        } catch (Throwable ignored) {
+            return false;
+        }
+    }
+
+    public static boolean writeV2Enabled(SharedPreferences preferences, boolean enabled) {
+        if (preferences == null) {
+            return false;
+        }
+        try {
+            return preferences.edit()
+                    .putBoolean(PREF_KEY_V2_ENABLED, enabled)
+                    .commit();
+        } catch (Throwable ignored) {
+            return false;
+        }
+    }
+
+    public static String sanitizeBackendType(String backendType) {
+        if (BACKEND_PRIVATE_INFERENCE_AICORE.equals(backendType)
+                || BACKEND_PRIVATE_INFERENCE_ASTREA.equals(backendType)) {
+            return backendType;
+        }
+        return BACKEND_GBOARD_SERVER;
+    }
+
+    public static Snapshot snapshot(Context context) {
+        SharedPreferences preferences = preferences(context);
+        ensureDefaults(preferences);
+        return new Snapshot(
+                readEnabled(preferences),
+                readAllKeyboardsEnabled(preferences),
+                readBackendType(preferences),
+                readV2Enabled(preferences));
+    }
+
+    public static final class Snapshot {
+        public final boolean featureEnabled;
+        public final boolean allKeyboardsEnabled;
+        public final String backendType;
+        public final boolean v2Enabled;
+
+        public Snapshot(boolean featureEnabled, boolean allKeyboardsEnabled) {
+            this(featureEnabled, allKeyboardsEnabled, DEFAULT_BACKEND_TYPE, DEFAULT_V2_ENABLED);
+        }
+
+        public Snapshot(boolean featureEnabled, boolean allKeyboardsEnabled,
+                String backendType) {
+            this(featureEnabled, allKeyboardsEnabled, backendType, DEFAULT_V2_ENABLED);
+        }
+
+        public Snapshot(boolean featureEnabled, boolean allKeyboardsEnabled,
+                String backendType, boolean v2Enabled) {
+            this.featureEnabled = featureEnabled;
+            this.allKeyboardsEnabled = featureEnabled && allKeyboardsEnabled;
+            this.backendType = sanitizeBackendType(backendType);
+            this.v2Enabled = false;
+        }
+    }
+}

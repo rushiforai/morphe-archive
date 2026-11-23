@@ -404,7 +404,9 @@ public final class NativeCarService extends Service {
         main.post(() -> {
             try {
                 if (active != session || session.closed) throw new IllegalStateException("Car session closed");
-                if (session.failure != null) throw new IllegalStateException("Maps car UI failed", session.failure);
+                // The host only prints this throwable's message, so carry the recorded cause in it;
+                // the full stack still travels as the cause and in logcat.
+                if (session.failure != null) throw new IllegalStateException("Maps car UI failed: " + session.failure, session.failure);
                 if (needsRenderer && session.renderer == null) throw new IllegalStateException("Car app has not been created");
                 action.run();
                 CarProtocol.complete(callback, null, session.failure);

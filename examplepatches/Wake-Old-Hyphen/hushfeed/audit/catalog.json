@@ -848,7 +848,9 @@
   "kind": "runtime",
   "source": [
    "patches/src/main/kotlin/app/morphe/patches/tiktok/interaction/publishdate/AlwaysShowPublishDatePatch.kt",
-   "extensions/tiktok/src/main/java/app/morphe/extension/tiktok/publishdate/AlwaysShowPublishDatePatch.java"
+   "extensions/tiktok/src/main/java/app/morphe/extension/tiktok/publishdate/AlwaysShowPublishDatePatch.java",
+   "patches/src/main/kotlin/app/morphe/patches/tiktok/interaction/publishdate/GridCorners.kt",
+   "extensions/tiktok/src/main/java/app/morphe/extension/tiktok/feed/GridCorners.java"
   ],
   "settings": [
    {
@@ -893,6 +895,12 @@
     "default": false,
     "type": "bool",
     "row": "Show video length on profile grids"
+   },
+   {
+    "key": "rounded_grid_corners",
+    "default": false,
+    "type": "bool",
+    "row": "Round the corners on profile grids"
    },
    {
     "key": "profile_grid_sort",
@@ -5126,6 +5134,13 @@
     "restart": true
    },
    {
+    "key": "hide_playable_games",
+    "default": false,
+    "type": "bool",
+    "row": "Hide playable games",
+    "restart": true
+   },
+   {
     "key": "hide_ai_cast",
     "default": false,
     "type": "bool",
@@ -5717,6 +5732,12 @@
     "default": "tiktok",
     "type": "string",
     "row": "Open TikTok on"
+   },
+   {
+    "key": "exit_with_one_back",
+    "default": false,
+    "type": "bool",
+    "row": "Exit with one Back"
    },
    {
     "key": "bottom_tab_icon_style",
@@ -9115,6 +9136,12 @@
     "row": "Hide the people you may know tag"
    },
    {
+    "key": "hide_pause_icon",
+    "default": false,
+    "type": "bool",
+    "row": "Hide the pause icon"
+   },
+   {
     "key": "hide_following_live_row",
     "default": false,
     "type": "bool",
@@ -11032,10 +11059,34 @@
     "row": "Show exact LIVE viewer counts"
    },
    {
+    "key": "show_exact_battle_scores",
+    "default": false,
+    "type": "bool",
+    "row": "Show exact LIVE battle scores"
+   },
+   {
+    "key": "live_room_info",
+    "default": false,
+    "type": "bool",
+    "row": "Show the room ID and your connection"
+   },
+   {
+    "key": "live_running_time",
+    "default": false,
+    "type": "bool",
+    "row": "Show how long a LIVE has been on"
+   },
+   {
     "key": "offer_live_quality",
     "default": false,
     "type": "bool",
     "row": "Offer LIVE quality in more rooms"
+   },
+   {
+    "key": "live_start_quality",
+    "default": "last",
+    "type": "string",
+    "row": "Start LIVEs at"
    },
    {
     "key": "offer_live_clear_screen",
@@ -11048,6 +11099,66 @@
     "default": false,
     "type": "bool",
     "row": "Dark LIVE panels in dark mode"
+   },
+   {
+    "key": "live_card_background",
+    "default": "off",
+    "type": "string",
+    "row": "LIVE profile card background"
+   },
+   {
+    "key": "live_card_text",
+    "default": "off",
+    "type": "string",
+    "row": "LIVE profile card text"
+   },
+   {
+    "key": "hide_live_card_events",
+    "default": false,
+    "type": "bool",
+    "row": "LIVE profile card rows: Upcoming LIVE events"
+   },
+   {
+    "key": "hide_live_card_products",
+    "default": false,
+    "type": "bool",
+    "row": "LIVE profile card rows: Products in the LIVE"
+   },
+   {
+    "key": "hide_live_card_shop",
+    "default": false,
+    "type": "bool",
+    "row": "LIVE profile card rows: Shop"
+   },
+   {
+    "key": "hide_live_card_shop_rating",
+    "default": false,
+    "type": "bool",
+    "row": "LIVE profile card rows: Shop rating"
+   },
+   {
+    "key": "hide_live_card_group_chat",
+    "default": false,
+    "type": "bool",
+    "row": "LIVE profile card rows: Group chat"
+   },
+   {
+    "key": "hide_live_card_bulletin_board",
+    "default": false,
+    "type": "bool",
+    "row": "LIVE profile card rows: Bulletin board"
+   },
+   {
+    "key": "hide_live_card_gift_gallery",
+    "default": false,
+    "type": "bool",
+    "row": "LIVE profile card rows: Gift gallery"
+   },
+   {
+    "key": "hide_live_card_fest_honors",
+    "default": false,
+    "type": "bool",
+    "row": "LIVE profile card rows: Festival honors"
    },
    {
     "key": "remember_live_quality",
@@ -14122,7 +14233,9 @@
   "source": [
    "patches/src/main/kotlin/app/morphe/patches/tiktok/misc/spoof/sim/SpoofSimPatch.kt",
    "extensions/tiktok/src/main/java/app/morphe/extension/tiktok/spoof/sim/SpoofSimPatch.java",
-   "extensions/tiktok/src/main/java/app/morphe/extension/tiktok/spoof/sim/SimPresets.java"
+   "extensions/tiktok/src/main/java/app/morphe/extension/tiktok/spoof/sim/SimPresets.java",
+   "patches/src/main/kotlin/app/morphe/patches/tiktok/misc/spoof/sim/NetworkStackSim.kt",
+   "extensions/tiktok/src/main/java/app/morphe/extension/tiktok/spoof/sim/NetworkStackSim.java"
   ],
   "settings": [
    {
@@ -17111,7 +17224,10 @@
    "patches/src/main/kotlin/app/morphe/patches/tiktok/interaction/captions/CaptionsAvailable.kt",
    "extensions/tiktok/src/main/java/app/morphe/extension/tiktok/captions/CaptionStyle.java",
    "extensions/tiktok/src/main/java/app/morphe/extension/tiktok/captions/CaptionTools.java",
-   "extensions/tiktok/src/main/java/app/morphe/extension/tiktok/captions/CaptionsAvailable.java"
+   "extensions/tiktok/src/main/java/app/morphe/extension/tiktok/captions/CaptionsAvailable.java",
+   "patches/src/main/kotlin/app/morphe/patches/tiktok/interaction/captions/PromoSkip.kt",
+   "extensions/tiktok/src/main/java/app/morphe/extension/tiktok/captions/PromoSkip.java",
+   "extensions/tiktok/src/main/java/app/morphe/extension/tiktok/download/CaptionCues.java"
   ],
   "settings": [
    {
@@ -17162,6 +17278,18 @@
     "type": "bool",
     "row": "Keep captions available",
     "restart": true
+   },
+   {
+    "key": "skip_promo_lines",
+    "default": false,
+    "type": "bool",
+    "row": "Skip promo lines"
+   },
+   {
+    "key": "skip_promo_words",
+    "default": "",
+    "type": "string",
+    "row": "Promo words"
    },
    {
     "key": "download_subtitles",
@@ -18081,5 +18209,84 @@
    }
   ],
   "notes": "Importing a .ttf/.otf (imported_font) needs a file chosen in the Android picker and is not exercised; the 'imported' bound name would appear then. The hook records on the first typeface request after the process starts, hence every phase restarts. How the text looks on screen is a visual review the hook status stands in for."
+ },
+ {
+  "name": "Smaller text sizes",
+  "category": "Interface",
+  "default": true,
+  "kind": "runtime",
+  "source": [
+   "patches/src/main/kotlin/app/morphe/patches/tiktok/interaction/textsize/SmallerTextSizesPatch.kt",
+   "patches/src/main/kotlin/app/morphe/patches/tiktok/interaction/textsize/TextSizeSites.kt",
+   "extensions/tiktok/src/main/java/app/morphe/extension/tiktok/font/SmallerTextSizes.java"
+  ],
+  "settings": [
+   {
+    "key": "smaller_text_sizes",
+    "default": false,
+    "type": "bool",
+    "row": "Smaller text sizes",
+    "restart": true
+   }
+  ],
+  "surface": "other",
+  "checks": [
+   {
+    "id": "patch-applied",
+    "what": "SettingsStatus.smallerTextSizesEnabled is true, so every hook point was found and the extension loaded it.",
+    "steps": [
+     {
+      "probe": "fields",
+      "extras": {
+       "class": "app.morphe.extension.tiktok.settings.SettingsStatus",
+       "names": "smallerTextSizesEnabled"
+      },
+      "expect": "\\bsmallerTextSizesEnabled=true\\b",
+      "waitMs": 1500
+     }
+    ],
+    "auto": true
+   }
+  ],
+  "notes": "Issue #476, inxomnyaa's pull request. TikTok's Text size page (Settings and privacy > Accessibility, DynamicFontSizeFragment) keeps a mode from 0 to 3 under dynamic_font_mode, and X.03aF's LIZ()F and LIZJ()F turn it into the factor its density rewrites scale the whole interface by, 1.0 for mode 0. With the switch on the slider (X.1PkU) gets three positions below mode 0, smaller_text_size_level keeps the one confirmed (factors 0.93, 0.87 and 0.8) and TikTok still stores mode 0. The switch has a row; the level has none, the slider writes it. Check on a phone: switch on, restart, open Text size, confirm the leftmost stop, restart, and everything is smaller than at TikTok's smallest; switch off and restart, and TikTok's smallest is back."
+ },
+ {
+  "name": "UI scale",
+  "category": "Interface",
+  "default": true,
+  "kind": "runtime",
+  "source": [
+   "patches/src/main/kotlin/app/morphe/patches/tiktok/interaction/uiscale/UiScalePatch.kt",
+   "extensions/tiktok/src/main/java/app/morphe/extension/tiktok/font/UiScale.java"
+  ],
+  "settings": [
+   {
+    "key": "ui_scale_percent",
+    "default": 100,
+    "type": "int",
+    "row": "UI size",
+    "restart": true
+   }
+  ],
+  "surface": "other",
+  "checks": [
+   {
+    "id": "patch-applied",
+    "what": "SettingsStatus.uiScaleEnabled is true, so both density rewrites were found and the extension loaded it.",
+    "steps": [
+     {
+      "probe": "fields",
+      "extras": {
+       "class": "app.morphe.extension.tiktok.settings.SettingsStatus",
+       "names": "uiScaleEnabled"
+      },
+      "expect": "\\buiScaleEnabled=true\\b",
+      "waitMs": 1500
+     }
+    ],
+    "auto": true
+   }
+  ],
+  "notes": "Issue #477, inxomnyaa's pull request. TikTok's two density rewrites in X.03aF, LIZLLL(Context) at startup (from TuxInitTask) and LJFF(Activity) for each activity, read the text size factor from LIZ()F and divide the screen width by it. UiScale multiplies that factor by ui_scale_percent / 100 right after the read, so 80 makes the whole interface a fifth smaller; 100 changes nothing. It composes with Smaller text sizes, which answers the factor itself. Check on a phone: set UI size to 80, restart, and the feed's buttons and text are smaller; set 100 and restart, and they're back."
  }
 ]

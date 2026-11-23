@@ -75,7 +75,7 @@ class MyFitnessPalSmokeTest {
             apk = apk,
             workDir = workDir,
             pkg = PKG,
-            version = "26.45.0",
+            version = "26.46.0",
             patchNames = MFP_PATCHES,
             allPatches = loadAllPatches(newestPatchBundle(root)),
         )

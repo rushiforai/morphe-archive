@@ -1052,6 +1052,14 @@ Shows a handle at the right edge of Saved and your collections while they scroll
 Hide the New collection button	Nascondi il pulsante Nuova raccolta
 # context: Profiles > summary of Hide the New collection button; Saved is Instagram's own Saved page (#762)
 Takes the + for a new collection off the top of Saved. Your collections stay.	Toglie il + per una nuova raccolta dalla parte alta di Salvati. Le tue raccolte restano.
+# context: Profiles > switch right after Hide the New collection button; Reels is Instagram's own label for the Reels tab at the top of Saved, Saved is Instagram's own Saved page (#810)
+Hide the Reels tab in Saved	Nascondi la scheda Reel in Salvati
+# context: Profiles > summary of Hide the Reels tab in Saved; saved reels still show under All (#810)
+Takes the Reels tab out of Saved. Your saved reels stay saved.	Toglie la scheda Reel da Salvati. I reel che hai salvato restano salvati.
+# context: Profiles > switch right after Hide the Reels tab in Saved; Saved is Instagram's own label for the bookmark at the top right of the Search tab, beside the search bar (#810)
+Hide Saved on the Search tab	Nascondi Salvati nella scheda Cerca
+# context: Profiles > summary of Hide Saved on the Search tab (#810)
+Takes the Saved bookmark off the top of the Search tab. Restart Instagram after changing it.	Toglie il segnalibro di Salvati dalla parte alta della scheda Cerca. Riavvia Instagram dopo averlo cambiato.
 Battery	Batteria
 Stop the background heartbeat	Ferma il battito in background
 Instagram wakes your phone every minute or two, screen off included, only to note that it is still running. This stops that. Messages, notifications and everything you see are unaffected.	Instagram sveglia il telefono ogni minuto o due, anche a schermo spento, solo per segnalare che è ancora in esecuzione. Questo lo ferma. Messaggi, notifiche e tutto ciò che vedi non cambiano.
@@ -1903,6 +1911,10 @@ Glass top bar in chats	Vetro nella barra in alto delle chat
 Turn it off to leave a chat's top bar as Instagram draws it, with no frosted band behind it. The round glass buttons and the glass message bar stay.	Disattivalo per lasciare la barra in alto di una chat come la disegna Instagram, senza la fascia di vetro smerigliato dietro. I pulsanti rotondi di vetro e la barra dei messaggi di vetro restano.
 Top bar tint in chats	Tinta della barra in alto delle chat
 Message bar tint	Tinta della barra dei messaggi
+Glass buttons in chats	Pulsanti di vetro nelle chat
+Turn it off for a plain blur with no round glass behind the buttons at the top of a chat.	Disattivalo per una sfocatura semplice, senza il vetro rotondo dietro i pulsanti in alto in una chat.
+Blur the chat behind a held message	Sfoca la chat dietro un messaggio tenuto premuto
+Hold a message and the rest of the chat blurs behind it and its reactions. Needs Android 12 or newer.	Tieni premuto un messaggio e il resto della chat si sfoca dietro il messaggio e le sue reazioni. Richiede Android 12 o successivo.
 # context: Reels switch Hide reels with few views, its summary, the Minimum views row, its dialog message and the row's summary, then the Minimum likes row, its dialog message, its summary and its summary at 0; %1$s is a number with thousands separators (#444)
 Hide reels with few views	Nascondi i reel con poche visualizzazioni
 Leaves out reels in the Reels tab outside the numbers below. Reels from accounts you follow, reels sent to you and reels that don't show a number still play.	Esclude dalla scheda Reels i reel fuori dai numeri qui sotto. I reel degli account che segui, quelli che ti vengono inviati e quelli che non mostrano un numero restano visibili.
@@ -2779,3 +2791,21 @@ Couldn't start recording this call	Impossibile registrare la chiamata
 Couldn't save the call recording	Impossibile salvare la registrazione della chiamata
 # context: a toast when a recording ends with no sound in it (#732)
 Nothing was recorded	Non è stato registrato nulla
+# context: a toast when a save starts, naming the account the media is from (#792)
+Saving from @%1$s...	Salvataggio da @%1$s...
+# context: a second toast after the one above, when notifications are off (#792)
+You can cancel from Downloads in HushGram settings.	Puoi annullare da Download nelle impostazioni di HushGram.
+# context: a toast when a save waits for the ones already running, the account unknown (#792)
+Queued	In coda
+# context: a toast when a save waits for the ones already running, naming the account (#792)
+Queued: @%1$s	In coda: @%1$s
+# context: a toast when too many saves already wait their turn (#792)
+Not saved: %1$d saves are already waiting	Non salvato: %1$d già in attesa
+# context: a waiting save's notification text and its line in Downloads (#792)
+Waiting for the saves before it	In attesa dei salvataggi precedenti
+# context: Feed settings: a switch under Start feed videos with sound that starts them with sound while the phone is on silent or vibrate too (#762)
+Even on silent	Anche in silenzioso
+# context: Summary of Even on silent, a switch under Start feed videos with sound (#762)
+Feed videos start with sound with the phone on silent or vibrate too. Only the media volume counts.	I video del feed partono con l'audio anche con il telefono in silenzioso o in vibrazione. Conta solo il volume multimediale.
+Also in search	Anche nella ricerca
+Takes rows of the Explore grid and of search results out when a post in them holds a word or phrase from the list, or comes from an account the list names with @.	Toglie le righe della griglia Esplora e dei risultati di ricerca quando un post al loro interno contiene una parola o una frase dell'elenco, o viene da un account che l'elenco indica con @.

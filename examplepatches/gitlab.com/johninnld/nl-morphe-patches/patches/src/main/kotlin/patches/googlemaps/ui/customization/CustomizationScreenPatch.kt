@@ -105,6 +105,10 @@ val customizationScreenPatch = bytecodePatch(
             buildCustomization2644()
             return@execute
         }
+        if (packageMetadata.versionName == "26.47.00.1022347503") {
+            buildCustomization2647()
+            return@execute
+        }
         // 1. A row builder of our own on the sheet's row holder, built the way Maps builds
         //    "Your data in Maps" (olr.a()), so the sheet's own rows are left alone -- this
         //    used to take that row's builder over, which forced Trim account menu on
@@ -268,3 +272,108 @@ private fun buildCustomization2644() {
     addAfterSettings2644(modernSettingsRowFingerprint2644)
     addAfterSettings2644(settingsRowFingerprint2644)
 }
+
+/** 26.47's account sheet: row holder `ool`, row `brlr` built by `brlp`, list `bwzs`. */
+context(context: BytecodePatchContext)
+private fun buildCustomization2647() {
+    val rowHolder = context.mutableClassDefBy("Lool;")
+    val template = rowHolder.methods.single {
+        it.name == "a" && it.returnType == "Lbrlr;" && it.parameterTypes.isEmpty()
+    }
+    val templateRefs = template.implementation!!.instructions.mapNotNull {
+        (it as? ReferenceInstruction)?.reference?.toString()
+    }
+    listOf(
+        "Lool;->a:Ljava/lang/Object;",
+        "Lfzc;->aP(Landroid/content/Context;I)Landroid/graphics/drawable/Drawable;",
+        "Lbrlr;->a()Lbrlp;",
+        "Lbrlp;->c(I)V", "Lbrlp;->d(Ljava/lang/String;)V", "Lbrlp;->f(I)V",
+        "Lbrlp;->e(Landroid/view/View${'$'}OnClickListener;)V", "Lbrlp;->a()Lbrlr;",
+    ).forEach { if (it !in templateRefs) throw PatchException("account sheet row builder no longer uses $it") }
+    rowHolder.methods.add(
+        ImmutableMethod(
+            rowHolder.type, "uaCustomizationRow", emptyList(), "Lbrlr;",
+            AccessFlags.PUBLIC.value or AccessFlags.FINAL.value, null, null, MutableMethodImplementation(6),
+        ).toMutable().apply {
+            addInstructions(
+                0,
+                """
+                    iget-object v0, p0, Lool;->a:Ljava/lang/Object;
+                    check-cast v0, Landroid/content/Context;
+                    const v1, 0x7f080b85
+                    invoke-static { v0, v1 }, Lfzc;->aP(Landroid/content/Context;I)Landroid/graphics/drawable/Drawable;
+                    move-result-object v1
+                    invoke-static { }, Lbrlr;->a()Lbrlp;
+                    move-result-object v3
+                    invoke-static { }, Landroid/view/View;->generateViewId()I
+                    move-result v4
+                    invoke-virtual { v3, v4 }, Lbrlp;->c(I)V
+                    iput-object v1, v3, Lbrlp;->a:Landroid/graphics/drawable/Drawable;
+                    const-string v4, "$TITLE"
+                    invoke-virtual { v3, v4 }, Lbrlp;->d(Ljava/lang/String;)V
+                    const v4, 0x161a8
+                    invoke-virtual { v3, v4 }, Lbrlp;->f(I)V
+                    new-instance v2, $OPEN
+                    invoke-direct { v2, v0 }, $OPEN-><init>(Landroid/content/Context;)V
+                    invoke-virtual { v3, v2 }, Lbrlp;->e(Landroid/view/View${'$'}OnClickListener;)V
+                    sget-object v4, Lbrlo;->b:Lbrlo;
+                    iput-object v4, v3, Lbrlp;->d:Lbrlo;
+                    invoke-virtual { v3 }, Lbrlp;->a()Lbrlr;
+                    move-result-object v0
+                    return-object v0
+                """,
+            )
+        },
+    )
+
+    fun addAfterSettings2647(fp: Fingerprint) {
+        val method = fp.method
+        val instructions = method.implementation!!.instructions
+        val build = fp.instructionMatches[0].index
+        val add = fp.instructionMatches[2].index
+        val listener = instructions.subList(0, build).lastOrNull {
+            ((it as? ReferenceInstruction)?.reference as? MethodReference)?.let { r ->
+                r.definingClass == "Look;" && r.name == "<init>"
+            } == true
+        } as? Instruction35c ?: throw PatchException("Settings row listener not found in ${method.definingClass}")
+        val holder = listener.registerD
+        val row = (instructions[fp.instructionMatches[1].index] as OneRegisterInstruction).registerA
+        val list = (instructions[add] as Instruction35c).registerC
+        if (holder > 15 || row > 15) throw PatchException("Settings row registers out of move-object range: v$holder, v$row")
+        method.addInstructionsAtLabel(
+            add + 1,
+            """
+                move-object v$row, v$holder
+                check-cast v$row, Lool;
+                invoke-virtual { v$row }, Lool;->uaCustomizationRow()Lbrlr;
+                move-result-object v$row
+                invoke-virtual { v$list, v$row }, Lbwzs;->i(Ljava/lang/Object;)V
+            """,
+        )
+    }
+    addAfterSettings2647(modernSettingsRowFingerprint2647)
+    addAfterSettings2647(settingsRowFingerprint2647)
+}
+
+/** 26.47's account-sheet builders: `oim.O(Lagnt;)` and `ooo.a(Z)`. */
+private val settingsRowFingerprint2647 = Fingerprint(
+    returnType = "Lbrel;",
+    parameters = listOf("Z"),
+    filters = listOf(
+        methodCall(opcode = Opcode.INVOKE_STATIC, definingClass = "Lbucr;", name = "bg"),
+        opcode(Opcode.MOVE_RESULT_OBJECT, MatchAfterImmediately()),
+        methodCall(opcode = Opcode.INVOKE_VIRTUAL, definingClass = "Lbwzs;", name = "i", location = MatchAfterImmediately()),
+    ),
+    custom = { method, _ -> method.definingClass == "Looo;" },
+)
+
+private val modernSettingsRowFingerprint2647 = Fingerprint(
+    returnType = "Lbrgh;",
+    parameters = listOf("Lagnt;"),
+    filters = listOf(
+        methodCall(opcode = Opcode.INVOKE_STATIC, definingClass = "Lbucr;", name = "bg"),
+        opcode(Opcode.MOVE_RESULT_OBJECT, MatchAfterImmediately()),
+        methodCall(opcode = Opcode.INVOKE_VIRTUAL, definingClass = "Lbwzs;", name = "i", location = MatchAfterImmediately()),
+    ),
+    custom = { method, _ -> method.definingClass == "Loim;" },
+)

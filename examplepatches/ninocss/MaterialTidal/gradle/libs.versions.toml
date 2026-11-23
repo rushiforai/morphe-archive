@@ -1,0 +1,14 @@
+[versions]
+morphe-patcher = "2.4.0"
+smali = "5eaff5a2c9"
+androidx-recyclerview = "1.4.0"
+androidx-core = "1.17.0"
+kotlinx-coroutines = "1.10.2"
+gson = "2.15.0"
+
+[libraries]
+morphe-patcher = { module = "app.morphe:morphe-patcher", version.ref = "morphe-patcher" }
+androidx-recyclerview = { module = "androidx.recyclerview:recyclerview", version.ref = "androidx-recyclerview" }
+androidx-core = { module = "androidx.core:core", version.ref = "androidx-core" }
+kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinx-coroutines" }
+gson = { module = "com.google.code.gson:gson", version.ref = "gson" }

@@ -1,3 +1,9 @@
+import app.template.patches.digisport.layout.capturedField
+import app.template.patches.digisport.layout.caseOf
+import app.template.patches.digisport.layout.lastIndexOfString
+import app.template.patches.digisport.layout.returnedSingletonAfter
+import app.template.patches.digisport.layout.singletonBefore
+import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Method
@@ -7,8 +13,8 @@ import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstructio
 import com.android.tools.smali.dexlib2.iface.instruction.OffsetInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
-import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.WideLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
@@ -23,28 +29,25 @@ import java.io.File
 import javax.xml.parsers.DocumentBuilderFactory
 
 private const val PKG = "ro.rcsrds.digisport"
-private const val ADMOB_MANAGER = "Lro/rcsrds/digisport/tools/helpers/ads/AdMobManager;"
 private const val UI_AD = "Lro/rcsrds/digisport/data/model/ui/others/UIAd;"
-private const val VH_SECTION_AD = "Lro/rcsrds/digisport/ui/article/adapter/viewholder/VHSectionAd;"
 private const val UI_LIVE_PREROLL = "Lro/rcsrds/digisport/data/model/ui/live/UiLivePreroll;"
 private const val UI_LIVE_DAI = "Lro/rcsrds/digisport/data/model/ui/live/UiLiveDai;"
-private const val ARTICLE_API_PAYLOADS =
-    "Lro/rcsrds/digisport/tools/helpers/parsing/articleTextAndLive/ArticleApiPayloads;"
-private const val EXTENSION_SERVICE = "Lro/rcsrds/lib/player/core/extensions/ExtensionServiceKt;"
 private const val PLAYER_SERVICE = "Lro/rcsrds/lib/player/PlayerService;"
-private val AD_SLOT_PARAMETERS = listOf("Landroid/view/ViewGroup;", UI_AD)
-private const val PARSING = "Lro/rcsrds/digisport/tools/helpers/parsing/"
-private const val ARTICLE_WIDGETS = "${PARSING}articleTextAndLive/GetArticleDetailsWidgets;"
+private const val VIEW = "Landroid/view/View;"
+private const val VIEW_GROUP = "Landroid/view/ViewGroup;"
+private val AD_SLOT_PARAMETERS = listOf(VIEW_GROUP, UI_AD)
 private const val ARTICLE_SECTION = "Lro/rcsrds/digisport/data/model/ui/articles/ArticleSection;"
 private const val API_ARTICLE = "Lro/rcsrds/digisport/data/model/api/article/ApiArticle;"
 private const val API_ARTICLE_LAYOUT = "Lro/rcsrds/digisport/data/model/api/article/ApiArticleLayout;"
-private const val PARSING_EXTENSIONS = "${PARSING}ParsingExtensionsKt;"
-private const val CONSENT = "Lro/rcsrds/digisport/tools/helpers/googleConsent/GoogleConsentUmp;"
-private const val CONSENT_STATUS = "Lro/rcsrds/digisport/tools/helpers/googleConsent/GoogleConsentUmp\$STATUS;"
-private const val CRASHLYTICS = "Lcom/google/firebase/crashlytics/FirebaseCrashlytics;"
-private const val PERFORMANCE = "Lcom/google/firebase/perf/FirebasePerformance;"
-private const val BOOLEAN = "Ljava/lang/Boolean;"
+private const val UI_EXCLUSIVE = "Lro/rcsrds/digisport/data/model/ui/epg/UIExclusive;"
+private const val STRING = "Ljava/lang/String;"
+private const val OBJECT = "Ljava/lang/Object;"
 
+/**
+ * Since 1.1.16 Digi Sport is R8-obfuscated (renamed, merged and inlined, SDKs included), so every
+ * target is found in the stock APK the same way the patches find it (kept data classes and field
+ * names, manifest components, app and SDK strings, method shape), then checked in the patched APK.
+ */
 class DigiSportSmokeTest {
 
     @TempDir
@@ -52,10 +55,12 @@ class DigiSportSmokeTest {
 
     private fun Instruction.methodRef() = (this as? ReferenceInstruction)?.reference as? MethodReference
     private fun Instruction.fieldRef() = (this as? ReferenceInstruction)?.reference as? FieldReference
+    private fun Instruction.stringRef() = ((this as? ReferenceInstruction)?.reference as? StringReference)?.string
     private fun Instruction.registerA() = (this as OneRegisterInstruction).registerA
-
-    private fun List<ClassDef>.byType(type: String): ClassDef =
-        firstOrNull { it.type == type } ?: error("$type not found in emitted dexes")
+    private fun Instruction.literal() = (this as? NarrowLiteralInstruction)?.narrowLiteral
+    private fun Method.params() = parameterTypes.map(CharSequence::toString)
+    private fun Method.isStatic() = AccessFlags.STATIC.isSet(accessFlags)
+    private fun Method.label() = "$definingClass->$name(${params().joinToString("")})$returnType"
 
     /** The register of parameter [index] (0 = this) of an instance method. */
     private fun Method.p(index: Int): Int = implementation!!.registerCount - (parameterTypes.size + 1) + index
@@ -74,14 +79,16 @@ class DigiSportSmokeTest {
     private fun Instruction.calls(owner: String, name: String) =
         methodRef()?.let { it.definingClass == owner && it.name == name } == true
 
-    private fun Instruction.rangeStart() = (this as RegisterRangeInstruction).startRegister
+    private fun Instruction.reads(field: FieldReference) = fieldRef()?.let {
+        it.definingClass == field.definingClass && it.name == field.name && it.type == field.type
+    } == true
 
     /** Asserts `const/4 vX, 0x0` + `return-object vX` at the top. */
     private fun assertReturnsNull(method: Method, label: String) {
         val insns = method.instructions()
         val first = insns.getOrNull(0)
         assertTrue(
-            first?.opcode == Opcode.CONST_4 && (first as NarrowLiteralInstruction).narrowLiteral == 0 &&
+            first?.opcode == Opcode.CONST_4 && first.literal() == 0 &&
                 insns.getOrNull(1)?.opcode == Opcode.RETURN_OBJECT && insns[1].registerA() == first.registerA(),
             "$label does not return null; starts with ${first?.opcode}, ${insns.getOrNull(1)?.opcode}"
         )
@@ -104,50 +111,51 @@ class DigiSportSmokeTest {
         )
     }
 
-    /** Asserts the first instruction loads false (const/4 0 or Boolean.FALSE) into parameter 1. */
+    /** Asserts the first instruction is `const/4 p1, 0x0` (a (Z) argument forced off). */
     private fun assertArgumentForcedOff(method: Method, label: String) {
         val first = method.instructions().firstOrNull()
-        val boxed = method.parameterTypes.single().toString() == BOOLEAN
-        val loadsFalse = if (boxed) {
-            first?.opcode == Opcode.SGET_OBJECT && first.fieldRef()?.definingClass == BOOLEAN &&
-                first.fieldRef()?.name == "FALSE"
-        } else {
-            first?.opcode == Opcode.CONST_4 && (first as NarrowLiteralInstruction).narrowLiteral == 0
-        }
         assertTrue(
-            loadsFalse && first!!.registerA() == method.p(1),
-            "$label does not force its argument (p1 = v${method.p(1)}) off first; found ${first?.opcode} ${first?.fieldRef()}"
+            first?.opcode == Opcode.CONST_4 && first.literal() == 0 && first.registerA() == method.p(1),
+            "$label does not force its argument (p1 = v${method.p(1)}) off first; found ${first?.opcode}"
         )
     }
 
     /**
-     * Asserts that a `getSponsored()` + null-safe isBlank guard of [length] instructions starts at
-     * [start] on [articleRegister] (a range invoke when [range]), and that both branches skip to its
-     * trailing nop.
+     * Asserts a case prologue at [start]: move-object/from16 v0, p0; iget-byte v1, v0, [selector];
+     * const/16 v2, [key]; if-ne v1, v2 to [skip]. Returns the index after it.
      */
-    private fun assertSponsoredGuard(
+    private fun assertCasePrologue(
+        method: Method,
         insns: List<Instruction>,
         start: Int,
-        length: Int,
-        articleRegister: Int,
-        range: Boolean,
+        selector: FieldReference,
+        key: Int,
+        skip: Int,
         label: String,
-    ) {
-        val get = insns.getOrNull(start)
-        val register = if (range) get?.takeIf { it.opcode == Opcode.INVOKE_VIRTUAL_RANGE }?.rangeStart()
-        else (get as? FiveRegisterInstruction)?.takeIf { get.opcode == Opcode.INVOKE_VIRTUAL }?.registerC
+    ): Int {
+        val move = insns[start]
         assertTrue(
-            get?.calls(API_ARTICLE, "getSponsored") == true && register == articleRegister,
-            "$label does not read the article's getSponsored() first; found ${get?.opcode} ${get?.methodRef()}"
+            move.opcode == Opcode.MOVE_OBJECT_FROM16 && (move as TwoRegisterInstruction).registerA == 0 &&
+                move.registerB == method.p(0),
+            "$label: no move-object/from16 v0, p0 at $start; found ${move.opcode}"
         )
-        val nop = start + length - 1
-        assertEquals(Opcode.MOVE_RESULT_OBJECT, insns[start + 1].opcode, "$label: no move-result after getSponsored")
-        assertEquals(Opcode.IF_EQZ, insns[start + 2].opcode, "$label: no null check on the sponsored text")
-        assertTrue(insns[start + 3].calls("Lkotlin/text/StringsKt;", "isBlank"), "$label: no isBlank check")
-        assertEquals(Opcode.IF_NEZ, insns[start + 5].opcode, "$label: no blank check branch")
-        assertEquals(Opcode.NOP, insns[nop].opcode, "$label: the guard does not end with its nop label")
-        assertEquals(nop, insns.branchTarget(start + 2), "$label: the null branch does not skip the guard")
-        assertEquals(nop, insns.branchTarget(start + 5), "$label: the blank branch does not skip the guard")
+        val case = insns[start + 1]
+        assertTrue(
+            case.opcode == Opcode.IGET_BYTE && case.reads(selector) && (case as TwoRegisterInstruction).registerA == 1 &&
+                case.registerB == 0,
+            "$label: does not read the case selector ${selector.name} into v1; found ${case.opcode} ${case.fieldRef()}"
+        )
+        assertTrue(
+            insns[start + 2].opcode == Opcode.CONST_16 && insns[start + 2].literal() == key && insns[start + 2].registerA() == 2,
+            "$label: does not load case $key into v2; found ${insns[start + 2].opcode} ${insns[start + 2].literal()}"
+        )
+        val branch = insns[start + 3]
+        assertTrue(
+            branch.opcode == Opcode.IF_NE && (branch as TwoRegisterInstruction).registerA == 1 && branch.registerB == 2 &&
+                insns.branchTarget(start + 3) == skip,
+            "$label: the other cases do not skip the hook (if-ne at ${start + 3} -> ${insns.branchTarget(start + 3)}, expected $skip)"
+        )
+        return start + 4
     }
 
     @Test
@@ -159,11 +167,20 @@ class DigiSportSmokeTest {
         // absent, so CI stays green; locally it is present and the test really runs.
         assumeTrue(apk.exists(), "skipping: base.apk not present at ${apk.path}")
 
+        val stockClasses = patchedApkClasses(apk)
+        val stock = stockClasses.associateBy { it.type }
+        val stockMethods = stockClasses.flatMap { it.methods }.filter { it.implementation != null }
+        fun stockOne(label: String, predicate: (Method) -> Boolean): Method =
+            stockMethods.filter(predicate).also {
+                check(it.size == 1) { "$label: expected one stock method, found ${it.map { m -> m.label() }}" }
+            }.single()
+
         val classes = applyPatches(
             apk = apk,
             workDir = workDir,
             pkg = PKG,
-            version = "1.1.15",
+            version = "1.1.16",
+            versionCode = 76,
             patchNames = setOf(
                 "Disable ads",
                 "Disable live stream ads",
@@ -176,49 +193,58 @@ class DigiSportSmokeTest {
             ),
             allPatches = loadAllPatches(newestPatchBundle(root)),
         )
+        val byType = classes.associateBy { it.type }
+        fun patched(method: Method): Method = byType.getValue(method.definingClass).methods.single {
+            it.name == method.name && it.returnType == method.returnType && it.params() == method.params()
+        }
+        fun Method.readsField(type: String, field: String) = instructions().any {
+            it.fieldRef()?.let { ref -> ref.definingClass == type && ref.name == field } == true
+        }
+        fun getter(type: String, field: String, returnType: String) = stockOne("$type getter of $field") {
+            it.definingClass == type && it.returnType == returnType && it.params().isEmpty() && it.name != "toString" &&
+                it.readsField(type, field)
+        }
 
-        // Disable ads 1: AdMobManager.loadAd starts with const/16 8, container.setVisibility(GONE),
-        // return-void.
-        val manager = classes.byType(ADMOB_MANAGER)
-        val loadAd = manager.method("loadAd", AD_SLOT_PARAMETERS)
-        val loadInsns = loadAd.instructions()
-        val gone = loadInsns.getOrNull(0)
-        val hide = loadInsns.getOrNull(1)
-        val hideRef = hide?.methodRef()
+        // Disable ads 1: AdMobManager's requestAd (instance, builds the AdView) and putAd (static)
+        // return at once. They are the app's only two (ViewGroup, UIAd)V methods.
+        val adSlots = stockMethods.filter { it.returnType == "V" && it.params() == AD_SLOT_PARAMETERS }
+        assertEquals(1, adSlots.count { it.isStatic() }, "expected one static putAd, found ${adSlots.map { it.label() }}")
+        assertEquals(1, adSlots.count { !it.isStatic() }, "expected one requestAd, found ${adSlots.map { it.label() }}")
         assertTrue(
-            gone?.opcode == Opcode.CONST_16 && (gone as NarrowLiteralInstruction).narrowLiteral == 8,
-            "AdMobManager.loadAd does not start with const/16 0x8; found ${gone?.opcode}"
+            adSlots.single { !it.isStatic() }.instructions().any { it.literal() == 300 },
+            "requestAd does not pick the 300x250 size"
         )
         assertTrue(
-            hide?.opcode == Opcode.INVOKE_VIRTUAL &&
-                hideRef?.definingClass == "Landroid/view/View;" && hideRef.name == "setVisibility" &&
-                (hide as FiveRegisterInstruction).registerC == loadAd.p(1) &&
-                hide.registerD == gone!!.registerA(),
-            "AdMobManager.loadAd does not call container.setVisibility(GONE); found ${hide?.opcode} $hideRef"
+            adSlots.single { it.isStatic() }.instructions().any { it.calls(VIEW_GROUP, "addView") },
+            "putAd does not add the AdView"
         )
-        assertEquals(Opcode.RETURN_VOID, loadInsns.getOrNull(2)?.opcode, "AdMobManager.loadAd does not return after hiding")
+        adSlots.forEach { assertReturnsEarlyVoid(patched(it), label = "AdMobManager ${it.label()}") }
 
-        // Disable ads 1: requestAd and putAd return at once.
-        assertReturnsEarlyVoid(manager.method("requestAd", AD_SLOT_PARAMETERS), label = "AdMobManager.requestAd")
-        assertReturnsEarlyVoid(manager.method("putAd", AD_SLOT_PARAMETERS), label = "AdMobManager.putAd")
-
-        // Disable ads 2: VHSectionAd.bind (.locals 0) loads itemView into p1, sets it GONE, zeroes
-        // its LayoutParams height when there are any, and returns before loadAd.
-        val bind = classes.byType(VH_SECTION_AD).method("bind", listOf(UI_AD))
+        // Disable ads 2: VHSectionAd.bind (with AdMobManager.loadAd inlined since 1.1.16, which
+        // replaces the old loadAd assertion) loads itemView into p1, sets it GONE, zeroes its
+        // LayoutParams height when there are any, and returns before it posts the ad request.
+        val stockBind = stockOne("VHSectionAd.bind") {
+            it.returnType == "V" && it.params() == listOf(UI_AD) && it.instructions().any { insn -> insn.calls(VIEW, "post") }
+        }
+        val itemViewField = stockBind.instructions().first { it.opcode == Opcode.IGET_OBJECT && it.fieldRef()?.type == VIEW }.fieldRef()!!
+        assertEquals(
+            stock.getValue(stockBind.definingClass).superclass, itemViewField.definingClass,
+            "bind's itemView is not the ViewHolder's field"
+        )
+        val bind = patched(stockBind)
         val b = bind.instructions()
         val p0 = bind.p(0)
         val p1 = bind.p(1)
         val label = "VHSectionAd.bind"
         val itemView = b.getOrNull(0)
         assertTrue(
-            itemView?.opcode == Opcode.IGET_OBJECT && itemView.fieldRef()?.name == "itemView" &&
+            itemView?.opcode == Opcode.IGET_OBJECT && itemView.reads(itemViewField) &&
                 (itemView as TwoRegisterInstruction).registerA == p1 && itemView.registerB == p0,
             "$label does not load this.itemView into p1 first; found ${itemView?.opcode} ${itemView?.fieldRef()}"
         )
         val bindGone = b.getOrNull(1)
         assertTrue(
-            bindGone?.opcode == Opcode.CONST_16 && (bindGone as NarrowLiteralInstruction).narrowLiteral == 8 &&
-                bindGone.registerA() == p0,
+            bindGone?.opcode == Opcode.CONST_16 && bindGone.literal() == 8 && bindGone.registerA() == p0,
             "$label does not load View.GONE into p0; found ${bindGone?.opcode}"
         )
         val setVisibility = b.getOrNull(2)
@@ -242,7 +268,7 @@ class DigiSportSmokeTest {
         val zero = b.getOrNull(6)
         val height = b.getOrNull(7)
         assertTrue(
-            zero?.opcode == Opcode.CONST_4 && (zero as NarrowLiteralInstruction).narrowLiteral == 0 &&
+            zero?.opcode == Opcode.CONST_4 && zero.literal() == 0 &&
                 height?.opcode == Opcode.IPUT && height.fieldRef()?.definingClass == "Landroid/view/ViewGroup\$LayoutParams;" &&
                 height.fieldRef()?.name == "height" &&
                 (height as TwoRegisterInstruction).registerA == zero.registerA() && height.registerB == p0,
@@ -250,115 +276,160 @@ class DigiSportSmokeTest {
         )
         assertEquals(Opcode.RETURN_VOID, b.getOrNull(8)?.opcode, "$label does not return after collapsing the row")
 
-        // Disable ads 3: UiLivePreroll.getEnable() answers false.
-        assertForcedBoolean(
-            classes.byType(UI_LIVE_PREROLL).method("getEnable", emptyList()),
-            expected = false,
-            label = "UiLivePreroll.getEnable()",
-        )
+        // Disable ads 3: UiLivePreroll's enable getter answers false.
+        assertForcedBoolean(patched(getter(UI_LIVE_PREROLL, "enable", "Z")), expected = false, label = "UiLivePreroll enable")
 
-        // Disable ads 4: ArticleApiPayloads.getMVideoPreroll() returns "" (not null).
-        val preroll = classes.byType(ARTICLE_API_PAYLOADS).method("getMVideoPreroll", emptyList()).instructions()
-        val empty = preroll.getOrNull(0)
-        assertTrue(
-            empty?.opcode == Opcode.CONST_STRING &&
-                ((empty as ReferenceInstruction).reference as StringReference).string == "" &&
-                preroll.getOrNull(1)?.opcode == Opcode.RETURN_OBJECT && preroll[1].registerA() == empty.registerA(),
-            "ArticleApiPayloads.getMVideoPreroll does not return \"\"; starts with ${empty?.opcode}, ${preroll.getOrNull(1)?.opcode}"
-        )
-
-        // Disable ads 5: ExtensionServiceKt.initImaAds returns null.
-        val service = classes.byType(EXTENSION_SERVICE)
-        val initIma = service.method(
-            "initImaAds",
-            listOf(PLAYER_SERVICE, "Landroidx/media3/common/MediaItem\$AdsConfiguration;"),
-        ).instructions()
-        val nullConst = initIma.getOrNull(0)
-        assertTrue(
-            nullConst?.opcode == Opcode.CONST_4 && (nullConst as NarrowLiteralInstruction).narrowLiteral == 0 &&
-                initIma.getOrNull(1)?.opcode == Opcode.RETURN_OBJECT && initIma[1].registerA() == nullConst.registerA(),
-            "ExtensionServiceKt.initImaAds does not return null; starts with ${nullConst?.opcode}, ${initIma.getOrNull(1)?.opcode}"
-        )
-
-        // Disable live stream ads 1: UiLiveDai.getEnable() answers false.
-        assertForcedBoolean(
-            classes.byType(UI_LIVE_DAI).method("getEnable", emptyList()),
-            expected = false,
-            label = "UiLiveDai.getEnable()",
-        )
-
-        // Disable live stream ads 2: ExtensionServiceKt.updateAdViewForDai returns at once.
-        assertReturnsEarlyVoid(
-            service.method("updateAdViewForDai", listOf(PLAYER_SERVICE)),
-            label = "ExtensionServiceKt.updateAdViewForDai",
-        )
-
-        // Disable ads 6: the four server ad-list getters return a new empty ArrayList.
-        for ((type, name) in listOf(
-            "Lro/rcsrds/digisport/data/model/api/article/ApiArticleData;" to "getAds",
-            "Lro/rcsrds/digisport/data/model/api/epg/ApiEpgData;" to "getAds",
-            "Lro/rcsrds/digisport/data/model/api/listingArticles/Data;" to "getAdsList",
-            "Lro/rcsrds/digisport/data/model/api/soccer/APIResultsResponseData;" to "getAds",
-        )) {
-            assertReturnsNewEmptyArrayList(classes.byType(type).method(name, emptyList()), label = "$type.$name")
+        // Disable ads 4: the inlined getMVideoPreroll: every read of ArticleApiPayloads'
+        // mVideoPreroll field (the one after ", mVideoPreroll=" in its toString) outside its own
+        // class became const-string "" in the same register.
+        val toString = stockOne("ArticleApiPayloads.toString") {
+            it.name == "toString" && it.instructions().any { insn -> insn.stringRef() == "ArticleApiPayloads(mId=" }
         }
-
-        // Disable ads 7: in-article <ad-api> elements are never ads.
-        assertForcedBoolean(
-            classes.byType("${PARSING}articleTextAndLive/GetArticleDetailsLiveTab1;")
-                .method("adConstraints", listOf("Lorg/jsoup/nodes/Element;")),
-            expected = false,
-            label = "GetArticleDetailsLiveTab1.adConstraints(Element)",
-        )
-
-        // Disable ads 8: no ad section between article widgets.
-        val widgets = classes.byType(ARTICLE_WIDGETS)
-        assertReturnsNull(widgets.method("addAdWidget", listOf(ARTICLE_API_PAYLOADS, "I")), "GetArticleDetailsWidgets.addAdWidget")
-
-        // Disable ads 9: the EPG cache gets no ad rows.
-        assertReturnsEarlyVoid(
-            classes.byType("Lro/rcsrds/digisport/data/sync/epg/repository/SyncEpgRepositoryBase;").method(
-                "addBanner",
-                listOf("Ljava/util/List;", "Lro/rcsrds/digisport/data/model/ui/epg/UIEpgCacheDay;", "Ljava/lang/String;"),
-            ),
-            label = "SyncEpgRepositoryBase.addBanner",
-        )
-
-        // Hide betting odds: UIResultsMatch.getBet() returns null.
-        assertReturnsNull(
-            classes.byType("Lro/rcsrds/digisport/data/model/ui/articles/UIResultsMatch;").method("getBet", emptyList()),
-            "UIResultsMatch.getBet",
-        )
-
-        // Disable telemetry: the Crashlytics and Performance collection setters force their
-        // argument off; the Crashlytics senders, Cxense pushEvents and Analytics logEvent return.
-        val crashlytics = classes.byType(CRASHLYTICS)
-        val performance = classes.byType(PERFORMANCE)
-        for ((klass, name) in listOf(crashlytics to "setCrashlyticsCollectionEnabled", performance to "setPerformanceCollectionEnabled")) {
-            for (parameter in listOf("Z", BOOLEAN)) {
-                assertArgumentForcedOff(klass.method(name, listOf(parameter)), "${klass.type}.$name($parameter)")
+        val toStringInsns = toString.instructions()
+        val prerollField = toStringInsns.drop(toStringInsns.indexOfFirst { it.stringRef() == ", mVideoPreroll=" })
+            .first { it.opcode == Opcode.IGET_OBJECT && it.fieldRef()?.definingClass == toString.definingClass }.fieldRef()!!
+        assertEquals(STRING, prerollField.type, "mVideoPreroll is not a String")
+        val prerollReaders = stockMethods.filter { method ->
+            method.definingClass != prerollField.definingClass &&
+                method.instructions().any { it.opcode == Opcode.IGET_OBJECT && it.reads(prerollField) }
+        }
+        assertTrue(prerollReaders.size >= 2, "expected the VOD and article pre-roll readers, found ${prerollReaders.map { it.label() }}")
+        for (reader in prerollReaders) {
+            val before = reader.instructions()
+            val after = patched(reader).instructions()
+            assertTrue(after.none { it.opcode == Opcode.IGET_OBJECT && it.reads(prerollField) }, "${reader.label()} still reads the pre-roll tag")
+            before.forEachIndexed { index, insn ->
+                if (insn.opcode == Opcode.IGET_OBJECT && insn.reads(prerollField)) {
+                    val replaced = after[index]
+                    assertTrue(
+                        replaced.opcode == Opcode.CONST_STRING && replaced.stringRef() == "" &&
+                            replaced.registerA() == (insn as TwoRegisterInstruction).registerA,
+                        "${reader.label()} at $index is ${replaced.opcode}, not const-string \"\" into v${(insn as TwoRegisterInstruction).registerA}"
+                    )
+                }
             }
         }
-        val recordException = crashlytics.methods.filter { it.name == "recordException" && it.implementation != null }
+
+        // Disable ads 5: initImaAds (static (PlayerService), ImaAdsLoader's 10 s preload timeout)
+        // returns null.
+        val initIma = stockOne("initImaAds") {
+            it.isStatic() && it.params() == listOf(PLAYER_SERVICE) && it.returnType.startsWith("L") &&
+                it.instructions().any { insn -> (insn as? WideLiteralInstruction)?.wideLiteral == 10000L }
+        }
+        assertReturnsNull(patched(initIma), "initImaAds")
+
+        // Disable live stream ads 1: UiLiveDai's enable getter answers false.
+        assertForcedBoolean(patched(getter(UI_LIVE_DAI, "enable", "Z")), expected = false, label = "UiLiveDai enable")
+
+        // Disable live stream ads 2: updateAdViewForDai (static (PlayerService)V for "dai" items)
+        // returns at once.
+        val updateDai = stockOne("updateAdViewForDai") {
+            it.isStatic() && it.returnType == "V" && it.params() == listOf(PLAYER_SERVICE) &&
+                it.instructions().any { insn -> insn.stringRef() == "media_item_type" } &&
+                it.instructions().any { insn -> insn.stringRef() == "dai" }
+        }
+        assertReturnsEarlyVoid(patched(updateDai), label = "updateAdViewForDai")
+
+        // Disable ads 6: the four server ad-list getters return a new empty ArrayList (the article
+        // list also fed the inlined addAdWidget, whose own assertion this replaces).
+        for ((type, field, returnType) in listOf(
+            Triple("Lro/rcsrds/digisport/data/model/api/article/ApiArticleData;", "ads", "Ljava/util/List;"),
+            Triple("Lro/rcsrds/digisport/data/model/api/epg/ApiEpgData;", "ads", "Ljava/util/List;"),
+            Triple("Lro/rcsrds/digisport/data/model/api/listingArticles/Data;", "adsList", "Ljava/util/List;"),
+            Triple("Lro/rcsrds/digisport/data/model/api/soccer/APIResultsResponseData;", "ads", "Ljava/util/ArrayList;"),
+        )) {
+            assertReturnsNewEmptyArrayList(patched(getter(type, field, returnType)), label = "$type $field")
+        }
+
+        // Disable ads 7: the inlined adConstraints: hasAttr("data-slot") reads false right after
+        // its move-result.
+        val adSlotMethod = stockOne("article ad-slot check") { method ->
+            method.instructions().withIndex().any { (i, insn) ->
+                insn.stringRef() == "data-slot" && method.instructions().getOrNull(i + 1)?.methodRef()?.returnType == "Z" &&
+                    method.instructions().getOrNull(i + 2)?.opcode == Opcode.MOVE_RESULT
+            }
+        }
+        val slotInsns = adSlotMethod.instructions()
+        val hasAttr = slotInsns.indices.first { slotInsns[it].stringRef() == "data-slot" && slotInsns.getOrNull(it + 1)?.methodRef()?.returnType == "Z" } + 1
+        assertEquals(Opcode.MOVE_RESULT, slotInsns[hasAttr + 1].opcode, "no move-result after hasAttr(\"data-slot\")")
+        val forced = patched(adSlotMethod).instructions()[hasAttr + 2]
         assertTrue(
-            recordException.map { it.parameterTypes.map(CharSequence::toString) }.toSet() == setOf(
-                listOf("Ljava/lang/Throwable;"),
-                listOf("Ljava/lang/Throwable;", "Lcom/google/firebase/crashlytics/CustomKeysAndValues;"),
-            ),
-            "unexpected recordException overloads: ${recordException.map { it.parameterTypes }}"
+            forced.opcode == Opcode.CONST_4 && forced.literal() == 0 && forced.registerA() == slotInsns[hasAttr + 1].registerA(),
+            "hasAttr(\"data-slot\") is not forced false; found ${forced.opcode}"
         )
-        recordException.forEach { assertReturnsEarlyVoid(it, label = "FirebaseCrashlytics.recordException(${it.parameterTypes.joinToString()})") }
-        assertReturnsEarlyVoid(crashlytics.method("log", listOf("Ljava/lang/String;")), label = "FirebaseCrashlytics.log")
-        assertReturnsEarlyVoid(crashlytics.method("sendUnsentReports", emptyList()), label = "FirebaseCrashlytics.sendUnsentReports")
-        assertReturnsEarlyVoid(
-            classes.byType("Lio/piano/android/cxense/CxenseSdk;").method("pushEvents", listOf("[Lio/piano/android/cxense/model/Event;")),
-            label = "CxenseSdk.pushEvents",
+
+        // Disable ads 8: the EPG cache gets no ad rows (addBanner, static, with the "ad" row type).
+        val addBanner = stockOne("SyncEpgRepositoryBase.addBanner") {
+            it.isStatic() && it.returnType == "V" &&
+                it.params() == listOf("Ljava/util/List;", "Lro/rcsrds/digisport/data/model/ui/epg/UIEpgCacheDay;", STRING) &&
+                it.instructions().any { insn -> insn.stringRef() == "ad" }
+        }
+        assertReturnsEarlyVoid(patched(addBanner), label = "SyncEpgRepositoryBase.addBanner")
+
+        // Hide betting odds: UIResultsMatch's bet getter returns null.
+        assertReturnsNull(
+            patched(getter("Lro/rcsrds/digisport/data/model/ui/articles/UIResultsMatch;", "bet", "Lro/rcsrds/digisport/data/model/ui/articles/UIResultsMatchBet;")),
+            "UIResultsMatch bet",
         )
-        assertReturnsEarlyVoid(
-            classes.byType("Lcom/google/firebase/analytics/FirebaseAnalytics;")
-                .method("logEvent", listOf("Ljava/lang/String;", "Landroid/os/Bundle;")),
-            label = "FirebaseAnalytics.logEvent",
+
+        // Disable telemetry: Crashlytics (the class of getInstance's "component is not present"
+        // error): the (Z) collection switch is forced off; recordException, sendUnsentReports and
+        // the core's log(String) return. Performance's (Z) switch is forced off; the Cxense event
+        // store and every measurement logEvent return.
+        val crashlyticsType = stockOne("FirebaseCrashlytics.getInstance") {
+            it.isStatic() && it.instructions().any { insn -> insn.stringRef() == "FirebaseCrashlytics component is not present." }
+        }.definingClass
+        val crashlytics = stock.getValue(crashlyticsType).methods.filter { it.implementation != null }
+        val collection = crashlytics.single {
+            it.params() == listOf("Z") && it.instructions().any { insn -> insn.stringRef() == "firebase_crashlytics_collection_enabled" }
+        }
+        assertArgumentForcedOff(patched(collection), "FirebaseCrashlytics.setCrashlyticsCollectionEnabled(Z)")
+        val recordException = crashlytics.filter {
+            it.returnType == "V" && it.params().singleOrNull() in setOf("Ljava/lang/Throwable;", "Ljava/lang/Exception;", "Ljava/lang/RuntimeException;")
+        }
+        assertEquals(1, recordException.size, "expected one recordException overload in $crashlyticsType, found ${recordException.map { it.label() }}")
+        recordException.forEach { assertReturnsEarlyVoid(patched(it), label = "FirebaseCrashlytics.recordException ${it.label()}") }
+        val sendUnsent = crashlytics.single {
+            it.returnType == "V" && it.params().isEmpty() &&
+                it.instructions().any { insn -> insn.fieldRef()?.let { f -> f.definingClass == "Ljava/lang/Boolean;" && f.name == "TRUE" } == true }
+        }
+        assertReturnsEarlyVoid(patched(sendUnsent), label = "FirebaseCrashlytics.sendUnsentReports")
+        val coreType = stock.getValue(crashlyticsType).fields.single { it.type.startsWith("L") && it.type != crashlyticsType }.type
+        val coreLog = stock.getValue(coreType).methods.single {
+            it.implementation != null && it.returnType == "V" && it.params() == listOf(STRING) &&
+                it.instructions().any { insn -> insn.calls("Ljava/lang/System;", "currentTimeMillis") }
+        }
+        assertReturnsEarlyVoid(patched(coreLog), label = "CrashlyticsCore.log")
+        val performance = stockOne("FirebasePerformance.setPerformanceCollectionEnabled") {
+            it.returnType == "V" && it.params() == listOf("Z") &&
+                it.instructions().any { insn -> insn.stringRef() == "Firebase Performance is permanently disabled" }
+        }
+        assertArgumentForcedOff(patched(performance), "FirebasePerformance.setPerformanceCollectionEnabled(Z)")
+        fun Instruction.castsToEvents() = opcode == Opcode.CHECK_CAST &&
+            (this as ReferenceInstruction).reference.toString() == "[Lio/piano/android/cxense/model/Event;"
+        val stockPush = stockOne("Cxense pushEvents runnable") {
+            it.name == "run" && it.returnType == "V" && it.params().isEmpty() && it.instructions().any { insn -> insn.castsToEvents() }
+        }
+        val (pushSelector, pushCase) = stockPush.caseOf(stockPush.instructions().indexOfFirst { it.castsToEvents() })
+        // The case keys of 1.1.16 were read by hand from the smali (the switch target holding the
+        // anchor), independent of the patch's own case walk.
+        assertEquals(0x11, pushCase, "Cxense pushEvents runnable: the Event[] cast is in case 0x11")
+        val push = patched(stockPush)
+        val pu = push.instructions()
+        val pushAt = assertCasePrologue(push, pu, 0, pushSelector, pushCase, 5, "Cxense pushEvents runnable")
+        assertTrue(
+            pu[pushAt].opcode == Opcode.RETURN_VOID && pu[pushAt + 1].opcode == Opcode.NOP,
+            "the Cxense pushEvents case does not return at once; found ${pu[pushAt].opcode}"
         )
+        val logEvents = stockMethods.filter {
+            it.name == "logEvent" && it.returnType == "V" &&
+                it.params() == listOf(STRING, STRING, "Landroid/os/Bundle;", "Z", "Z", "J")
+        }
+        assertTrue(
+            logEvents.any { it.definingClass == "Lcom/google/android/gms/measurement/internal/AppMeasurementDynamiteService;" } && logEvents.size >= 2,
+            "expected the measurement service and its binder proxy logEvent, found ${logEvents.map { it.label() }}"
+        )
+        logEvents.forEach { assertReturnsEarlyVoid(patched(it), label = "measurement ${it.label()}") }
 
         // Disable telemetry (manifest): the Firebase switches are set on <application>.
         val manifestFile = workDir.walkTopDown()
@@ -379,115 +450,201 @@ class DigiSportSmokeTest {
             check(metaData[name] == listOf(value)) { "meta-data $name is ${metaData[name]}, expected [$value]" }
         }
 
-        // Disable update prompts: MainActivityBase.checkUpdate returns at once.
-        assertReturnsEarlyVoid(
-            classes.byType("Lro/rcsrds/digisport/ui/main/MainActivityBase;").method("checkUpdate", emptyList()),
-            label = "MainActivityBase.checkUpdate",
+        // Disable update prompts: MainActivity's checkUpdate (Play Core's "requestUpdateInfo(%s)")
+        // returns at once.
+        val checkUpdate = stockOne("checkUpdate") {
+            it.definingClass == "Lro/rcsrds/digisport/ui/main/MainActivity;" && it.returnType == "V" && it.params().isEmpty() &&
+                it.instructions().any { insn -> insn.stringRef() == "requestUpdateInfo(%s)" }
+        }
+        assertReturnsEarlyVoid(patched(checkUpdate), label = "MainActivity checkUpdate")
+
+        // Skip ad consent form 1: loadConsentInfo posts STATUS.SUCCESS to its status LiveData (the
+        // same field, cast and post method its own STARTED post uses) and returns.
+        val stockConsent = stockOne("loadConsentInfo") {
+            it.returnType == "V" && it.params() == listOf("Z") &&
+                it.instructions().any { insn -> insn.stringRef() == "mConsentInformation" } &&
+                it.instructions().any { insn -> insn.opcode == Opcode.SGET_OBJECT && insn.fieldRef()?.name == "STARTED" }
+        }
+        val stockHead = stockConsent.instructions().take(4)
+        val consent = patched(stockConsent)
+        val c = consent.instructions()
+        assertTrue(
+            c[0].opcode == Opcode.MOVE_OBJECT_FROM16 && (c[0] as TwoRegisterInstruction).registerA == 0 &&
+                (c[0] as TwoRegisterInstruction).registerB == consent.p(0),
+            "loadConsentInfo does not start with move-object/from16 v0, p0; found ${c[0].opcode}"
+        )
+        assertTrue(
+            c[1].opcode == Opcode.IGET_OBJECT && c[1].reads(stockHead[0].fieldRef()!!),
+            "loadConsentInfo does not read the status LiveData; found ${c[1].opcode} ${c[1].fieldRef()}"
+        )
+        assertEquals(
+            (stockHead[1] as ReferenceInstruction).reference.toString(), (c[2] as ReferenceInstruction).reference.toString(),
+            "loadConsentInfo does not cast to the LiveData type"
+        )
+        val statusEnum = stockHead[2].fieldRef()!!.definingClass
+        assertTrue(
+            c[3].opcode == Opcode.SGET_OBJECT && c[3].fieldRef()?.definingClass == statusEnum && c[3].fieldRef()?.name == "SUCCESS",
+            "loadConsentInfo does not load STATUS.SUCCESS; found ${c[3].opcode} ${c[3].fieldRef()}"
+        )
+        val post = c[4] as? FiveRegisterInstruction
+        assertTrue(
+            post != null && c[4].methodRef()?.let { it.definingClass == stockHead[3].methodRef()!!.definingClass && it.name == stockHead[3].methodRef()!!.name } == true &&
+                post.registerC == c[1].registerA() && post.registerD == c[3].registerA(),
+            "loadConsentInfo does not post SUCCESS to the status; found ${c[4].opcode} ${c[4].methodRef()}"
+        )
+        assertEquals(Opcode.RETURN_VOID, c[5].opcode, "loadConsentInfo does not return right after")
+
+        // Skip ad consent form 2: the include_settings_user_data_ads binding (created by
+        // DataBinderMapperImpl after its layout tag check) sets its root view GONE at the end of
+        // its constructor, and nothing else in it touches the root's visibility.
+        val mapper = stock.getValue("Lro/rcsrds/digisport/DataBinderMapperImpl;").methods.single {
+            it.instructions().any { insn -> insn.stringRef() == "layout/include_settings_user_data_ads_0" }
+        }.instructions()
+        val tag = mapper.indexOfFirst { it.stringRef() == "layout/include_settings_user_data_ads_0" }
+        val bindingType = mapper.drop(tag).first { it.opcode == Opcode.NEW_INSTANCE }.let {
+            ((it as ReferenceInstruction).reference as TypeReference).type
+        }
+        val bindingSuper = stock.getValue(bindingType).superclass!!
+        val rootField = stock.getValue(bindingSuper).fields.single { it.type == VIEW }
+        val ctor = byType.getValue(bindingType).methods.single { it.name == "<init>" && it.params() == listOf(VIEW) }
+        val e = ctor.instructions()
+        val end = e.indexOfLast { it.opcode == Opcode.RETURN_VOID }
+        val (loadRoot, gone, hide) = Triple(e[end - 3], e[end - 2], e[end - 1])
+        assertTrue(
+            loadRoot.opcode == Opcode.IGET_OBJECT && loadRoot.fieldRef()?.name == rootField.name &&
+                loadRoot.fieldRef()?.definingClass == bindingSuper && (loadRoot as TwoRegisterInstruction).registerB == ctor.p(0),
+            "the binding does not read its root view before returning; found ${loadRoot.opcode} ${loadRoot.fieldRef()}"
+        )
+        assertTrue(gone.opcode == Opcode.CONST_16 && gone.literal() == 8, "the binding does not load View.GONE; found ${gone.opcode}")
+        assertTrue(
+            hide.calls(VIEW, "setVisibility") && (hide as FiveRegisterInstruction).registerC == loadRoot.registerA() &&
+                hide.registerD == gone.registerA(),
+            "the binding does not set its root GONE; found ${hide.opcode} ${hide.methodRef()}"
+        )
+        assertTrue(
+            byType.getValue(bindingType).methods.flatMap { it.instructions() }.count { it.calls(VIEW, "setVisibility") } ==
+                stock.getValue(bindingType).methods.flatMap { it.instructions() }.count { it.calls(VIEW, "setVisibility") } + 1,
+            "the binding gained more than the one root setVisibility"
         )
 
-        // Skip ad consent form: loadConsentInfo posts STATUS.SUCCESS to mStatus and returns this.
-        val loadConsent = classes.byType(CONSENT).method("loadConsentInfo", listOf("Z"))
-        val c = loadConsent.instructions()
+        val sponsoredGetter = getter(API_ARTICLE, "sponsored", STRING)
+        val typeGetter = getter(API_ARTICLE_LAYOUT, "type", STRING)
+        val spacing = stockOne("ParsingExtensionsKt.getSpacing") {
+            it.isStatic() && it.returnType == ARTICLE_SECTION && it.params().isEmpty() &&
+                it.instructions().any { insn -> insn.fieldRef()?.name == "SPACING" }
+        }
+
+        /** Asserts the null-safe trim().isEmpty() check on v1 at [start], branching to [skip]. Returns the index after it. */
+        fun assertBlankCheck(insns: List<Instruction>, start: Int, skip: Int, label: String): Int {
+            assertTrue(insns[start].opcode == Opcode.IF_EQZ && insns[start].registerA() == 1 && insns.branchTarget(start) == skip, "$label: no null check")
+            assertTrue(insns[start + 1].calls(STRING, "trim") && insns[start + 3].calls(STRING, "isEmpty"), "$label: no trim().isEmpty()")
+            assertTrue(insns[start + 5].opcode == Opcode.IF_NEZ && insns.branchTarget(start + 5) == skip, "$label: blank text does not skip")
+            return start + 6
+        }
+
+        // Hide sponsored articles 1: the listing article lambda's parseListingArticles case returns
+        // its Unit for an article with a non-blank sponsored text; other cases skip the check.
+        val stockListing = stockOne("listing article lambda") { method ->
+            method.returnType == OBJECT && method.params().isEmpty() &&
+                stock.getValue(method.definingClass).fields.any { it.type == API_ARTICLE } &&
+                method.instructions().any { it.stringRef() == "1" } && method.instructions().any { it.stringRef() == "bg" }
+        }
+        val (listingSelector, listingCase) = stockListing.caseOf(stockListing.instructions().indexOfFirst { it.stringRef() == "1" })
+        assertEquals(0, listingCase, "listing lambda: the \"1\" anchor is in case 0")
+        val listingUnit = stockListing.singletonBefore(stockListing.instructions().indexOfFirst { it.opcode == Opcode.PACKED_SWITCH || it.opcode == Opcode.SPARSE_SWITCH })
+        val l = patched(stockListing).instructions()
+        val listingSkip = l.indexOfFirst { it.opcode == Opcode.NOP }
+        var at = assertCasePrologue(patched(stockListing), l, 0, listingSelector, listingCase, listingSkip, "listing lambda")
+        assertTrue(l[at].opcode == Opcode.IGET_OBJECT && l[at].fieldRef()?.type == API_ARTICLE, "listing lambda does not read its article")
+        assertTrue(l[at + 1].calls(API_ARTICLE, sponsoredGetter.name) && l[at + 2].opcode == Opcode.MOVE_RESULT_OBJECT, "listing lambda does not read the sponsored text")
+        at = assertBlankCheck(l, at + 3, listingSkip, "listing lambda")
         assertTrue(
-            c.getOrNull(0)?.opcode == Opcode.IGET_OBJECT && c[0].fieldRef()?.name == "mStatus" &&
-                (c[0] as TwoRegisterInstruction).registerB == loadConsent.p(0),
-            "GoogleConsentUmp.loadConsentInfo does not read this.mStatus first; found ${c.getOrNull(0)?.opcode}"
-        )
-        assertTrue(
-            c.getOrNull(1)?.opcode == Opcode.SGET_OBJECT && c[1].fieldRef()?.definingClass == CONSENT_STATUS &&
-                c[1].fieldRef()?.name == "SUCCESS",
-            "GoogleConsentUmp.loadConsentInfo does not load STATUS.SUCCESS; found ${c.getOrNull(1)?.opcode} ${c.getOrNull(1)?.fieldRef()}"
-        )
-        val post = c.getOrNull(2) as? FiveRegisterInstruction
-        assertTrue(
-            post != null && c[2].calls("Landroidx/lifecycle/MutableLiveData;", "postValue") &&
-                post.registerC == c[0].registerA() && post.registerD == c[1].registerA(),
-            "GoogleConsentUmp.loadConsentInfo does not post SUCCESS to mStatus; found ${c.getOrNull(2)?.opcode}"
-        )
-        assertTrue(
-            c.getOrNull(3)?.opcode == Opcode.RETURN_OBJECT && c[3].registerA() == loadConsent.p(0),
-            "GoogleConsentUmp.loadConsentInfo does not return this right after; found ${c.getOrNull(3)?.opcode}"
+            l[at].opcode == Opcode.SGET_OBJECT && l[at].reads(listingUnit) && l[at + 1].opcode == Opcode.RETURN_OBJECT && at + 2 == listingSkip,
+            "listing lambda does not return its Unit for a sponsored article; found ${l[at].opcode} ${l[at].fieldRef()}, ${l[at + 1].opcode}"
         )
 
-        // Skip ad consent form 2: the Settings ad consent block's executeBindings first sets its
-        // root (mboundView0) GONE, and no later instruction touches mboundView0 again.
-        val userDataAds = classes.byType("Lro/rcsrds/digisport/databinding/IncludeSettingsUserDataAdsBindingImpl;")
-        val bindings = userDataAds.method("executeBindings", emptyList())
-        val e = bindings.instructions()
-        assertTrue(
-            e.getOrNull(0)?.opcode == Opcode.IGET_OBJECT && e[0].fieldRef()?.name == "mboundView0" &&
-                (e[0] as TwoRegisterInstruction).registerB == bindings.p(0),
-            "executeBindings does not read this.mboundView0 first; found ${e.getOrNull(0)?.opcode} ${e.getOrNull(0)?.fieldRef()}"
-        )
-        assertTrue(
-            e.getOrNull(1)?.opcode == Opcode.CONST_16 && (e[1] as NarrowLiteralInstruction).narrowLiteral == 8,
-            "executeBindings does not load View.GONE second; found ${e.getOrNull(1)?.opcode}"
-        )
-        val hideRoot = e.getOrNull(2) as? FiveRegisterInstruction
-        assertTrue(
-            hideRoot != null && e[2].calls("Landroid/view/View;", "setVisibility") &&
-                hideRoot.registerC == e[0].registerA() && hideRoot.registerD == e[1].registerA(),
-            "executeBindings does not call mboundView0.setVisibility(GONE); found ${e.getOrNull(2)?.opcode} ${e.getOrNull(2)?.methodRef()}"
-        )
-        assertTrue(
-            e.drop(3).none { it.fieldRef()?.name == "mboundView0" },
-            "executeBindings reads mboundView0 again after hiding it"
-        )
-
-        // Hide sponsored articles 1: parseListingArticles returns early for a sponsored article.
-        val parseListing = classes.byType("${PARSING}listing/GetListingDetailsArticles;")
-            .method("parseListingArticles", listOf(API_ARTICLE))
-        val l = parseListing.instructions()
-        assertSponsoredGuard(l, start = 0, length = 8, articleRegister = parseListing.p(1), range = false, label = "parseListingArticles")
-        assertEquals(Opcode.RETURN_VOID, l[6].opcode, "parseListingArticles does not return for a sponsored article")
-
-        // Hide sponsored articles 2 + Hide promotions 1: addArticleWidget starts with both
-        // self-contained guards (in either order), each returning getSpacing().
-        val addArticle = widgets.method("addArticleWidget", listOf("Z", API_ARTICLE))
-        val a = addArticle.instructions()
-        fun returnsSpacing(at: Int) = a[at].calls(PARSING_EXTENSIONS, "getSpacing") &&
-            a[at + 1].opcode == Opcode.MOVE_RESULT_OBJECT && a[at + 2].opcode == Opcode.RETURN_OBJECT &&
-            a[at + 2].registerA() == a[at + 1].registerA()
+        // Hide sponsored articles 2 + Hide promotions 1: the article widget lambda's card case
+        // starts with both self-contained checks (in either order); each adds getSpacing() to the
+        // card list and returns the add result instead of the card.
+        val stockWidget = stockOne("article widget lambda") { method ->
+            method.returnType == OBJECT && method.params().isEmpty() && method.instructions().any { it.stringRef() == "widgetCross" }
+        }
+        val widgetAnchor = stockWidget.lastIndexOfString("widgetCross")
+        val (widgetSelector, widgetCase) = stockWidget.caseOf(widgetAnchor)
+        assertEquals(0, widgetCase, "article widget lambda: the widgetCross card is case 0")
+        val listField = stockWidget.capturedField(widgetAnchor, "Ljava/util/ArrayList;")
+        val articleField = stockWidget.capturedField(widgetAnchor, API_ARTICLE)
+        val layoutField = stockWidget.capturedField(widgetAnchor, API_ARTICLE_LAYOUT)
+        val widget = patched(stockWidget)
+        val w = widget.instructions()
         var index = 0
         var sponsoredGuards = 0
         var crossGuards = 0
         repeat(2) {
-            if (a[index].opcode == Opcode.IF_EQZ) {
-                // Cross guard: if-eqz p1, getSpacing, move-result-object, return-object, nop.
-                assertTrue(
-                    a[index].registerA() == addArticle.p(1) && returnsSpacing(index + 1) &&
-                        a[index + 4].opcode == Opcode.NOP && a.branchTarget(index) == index + 4,
-                    "addArticleWidget's cross guard at $index is malformed"
-                )
-                crossGuards++
-                index += 5
-            } else {
-                assertSponsoredGuard(a, start = index, length = 10, articleRegister = addArticle.p(2), range = true, label = "addArticleWidget")
-                assertTrue(returnsSpacing(index + 6), "addArticleWidget's sponsored guard does not return getSpacing()")
+            val skip = (index until w.size).first { w[it].opcode == Opcode.NOP }
+            at = assertCasePrologue(widget, w, index, widgetSelector, widgetCase, skip, "widget lambda guard at $index")
+            assertTrue(w[at].opcode == Opcode.IGET_OBJECT, "widget lambda guard at $index does not read a capture")
+            if (w[at].reads(articleField)) {
+                assertTrue(w[at + 1].opcode == Opcode.CHECK_CAST && w[at + 2].calls(API_ARTICLE, sponsoredGetter.name), "sponsored guard does not read the sponsored text")
+                at = assertBlankCheck(w, at + 4, skip, "sponsored guard")
                 sponsoredGuards++
-                index += 10
+            } else {
+                assertTrue(w[at].reads(layoutField) && w[at + 2].calls(API_ARTICLE_LAYOUT, typeGetter.name), "cross guard does not read the widget type")
+                assertTrue(w[at + 4].stringRef() == "widgetCross" && w[at + 5].calls(STRING, "equals"), "cross guard does not compare with widgetCross")
+                assertTrue(w[at + 7].opcode == Opcode.IF_EQZ && w.branchTarget(at + 7) == skip, "cross guard does not skip other widgets")
+                at += 8
+                crossGuards++
             }
+            assertTrue(
+                w[at].reads(listField) && w[at + 2].calls(spacing.definingClass, spacing.name) &&
+                    w[at + 4].calls("Ljava/util/ArrayList;", "add") && w[at + 6].calls("Ljava/lang/Boolean;", "valueOf") &&
+                    w[at + 8].opcode == Opcode.RETURN_OBJECT && at + 9 == skip,
+                "widget lambda guard at $index does not add getSpacing() and return the add result"
+            )
+            index = skip + 1
         }
-        assertTrue(sponsoredGuards == 1 && crossGuards == 1, "addArticleWidget guards: $sponsoredGuards sponsored, $crossGuards cross")
+        assertTrue(sponsoredGuards == 1 && crossGuards == 1, "widget lambda guards: $sponsoredGuards sponsored, $crossGuards cross")
 
-        // Hide promotions 2: widgetTitle returns for a "widgetCross" widget.
-        val widgetTitle = widgets.method("widgetTitle", listOf("Ljava/util/ArrayList;", API_ARTICLE_LAYOUT))
-        val t = widgetTitle.instructions()
+        // Hide promotions 2: the widgetTitle case returns its Unit for a "widgetCross" widget.
+        val stockTitle = stockOne("widget title lambda") { method ->
+            method.returnType == OBJECT && method.params().isEmpty() && method.instructions().any { it.stringRef() == "row.widget.title" }
+        }
+        val titleAnchor = stockTitle.lastIndexOfString("row.widget.title")
+        val (titleSelector, titleCase) = stockTitle.caseOf(titleAnchor)
+        assertEquals(5, titleCase, "widget title lambda: row.widget.title is case 5")
+        val titleLayout = stockTitle.capturedField(titleAnchor, API_ARTICLE_LAYOUT)
+        val titleUnit = stockTitle.returnedSingletonAfter(titleAnchor)
+        val title = patched(stockTitle)
+        val t = title.instructions()
+        val titleSkip = t.indexOfFirst { it.opcode == Opcode.NOP }
+        at = assertCasePrologue(title, t, 0, titleSelector, titleCase, titleSkip, "widget title lambda")
         assertTrue(
-            t[0].opcode == Opcode.INVOKE_VIRTUAL_RANGE && t[0].calls(API_ARTICLE_LAYOUT, "getType") &&
-                t[0].rangeStart() == widgetTitle.p(2) && t[1].opcode == Opcode.MOVE_RESULT_OBJECT &&
-                t[2].opcode == Opcode.CONST_STRING &&
-                ((t[2] as ReferenceInstruction).reference as StringReference).string == "widgetCross" &&
-                t[3].calls("Ljava/lang/String;", "equals") && t[4].opcode == Opcode.MOVE_RESULT &&
-                t[5].opcode == Opcode.IF_EQZ && t[6].opcode == Opcode.RETURN_VOID && t[7].opcode == Opcode.NOP &&
-                t.branchTarget(5) == 7,
-            "widgetTitle does not return for a widgetCross widget; starts with ${t.take(8).map { it.opcode }}"
+            t[at].reads(titleLayout) && t[at + 2].calls(API_ARTICLE_LAYOUT, typeGetter.name) && t[at + 4].stringRef() == "widgetCross" &&
+                t[at + 5].calls(STRING, "equals") && t[at + 7].opcode == Opcode.IF_EQZ && t.branchTarget(at + 7) == titleSkip,
+            "widget title lambda does not check for a widgetCross widget"
+        )
+        assertTrue(
+            t[at + 8].reads(titleUnit) && t[at + 9].opcode == Opcode.RETURN_OBJECT && at + 10 == titleSkip,
+            "widget title lambda does not return its Unit for a widgetCross widget"
         )
 
-        // Hide promotions 3: HomeViewModel.getExclusiveVideo returns at once.
-        assertReturnsEarlyVoid(
-            classes.byType("Lro/rcsrds/digisport/ui/main/home/HomeViewModel;").method("getExclusiveVideo", emptyList()),
-            label = "HomeViewModel.getExclusiveVideo",
-        )
+        // Hide promotions 3: the inlined getExclusiveVideo in HomeFragment: both exclusive-count
+        // reads are followed by a 0 in their result register, so the promotion flag is false.
+        val stockHome = stockOne("HomeFragment exclusive video") {
+            it.definingClass == "Lro/rcsrds/digisport/ui/main/home/HomeFragment;" && it.returnType == "V" &&
+                it.instructions().count { insn -> insn.methodRef()?.let { ref -> ref.definingClass == UI_EXCLUSIVE && ref.returnType == "I" } == true } == 2
+        }
+        val h = patched(stockHome).instructions()
+        val countReads = h.indices.filter { h[it].methodRef()?.let { ref -> ref.definingClass == UI_EXCLUSIVE && ref.returnType == "I" } == true }
+        assertEquals(2, countReads.size, "HomeFragment exclusive count reads")
+        for (read in countReads) {
+            val result = h[read + 1]
+            val zeroed = h[read + 2]
+            assertTrue(
+                result.opcode == Opcode.MOVE_RESULT && zeroed.opcode in setOf(Opcode.CONST_4, Opcode.CONST_16) &&
+                    zeroed.literal() == 0 && zeroed.registerA() == result.registerA(),
+                "the exclusive count read at $read is not zeroed; found ${result.opcode}, ${zeroed.opcode}"
+            )
+        }
     }
 }

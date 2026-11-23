@@ -65,6 +65,26 @@ def inspect(bundle: Path, version: str, baseline: Path | None = None) -> dict:
             native = archive.read("nicoid/method-delta.dex")
             require(helpers.startswith(b"dex\n"), "Invalid helper DEX signature")
             require(native.startswith(b"dex\n"), "Invalid native DEX signature")
+            if version == "2.1.8":
+                require(b"2.1.8" in helpers, "v2.1.8 runtime version missing")
+                require(b"2.1.8-dev.2" not in helpers, "Development version leaked into stable helpers")
+                require(b"v2.1.8 @chikuwadon" in helpers, "Shorts helper version not promoted")
+                require(b"v2.1.7 @chikuwadon" not in helpers, "Previous version remains in helpers")
+                extension = archive.read("extensions/extension.mpe")
+                require(extension.startswith(b"dex\n"), "Invalid extension DEX")
+                require(b"v2.1.8 @chikuwadon" in extension, "Extension version not promoted")
+                require(b"v2.1.8-dev.2 @chikuwadon" not in extension, "Development extension metadata leaked")
+                for marker in (
+                    b"PausedCenter218", b"canUsePausedFrame", b"PlayerStart215",
+                    b"LinkIntentPolicy217", b"NormalVideoInsets", b"FullscreenViewport209",
+                    b"CommentPresentation", b"Media3Diagnostics276",
+                ):
+                    require(marker in helpers, f"Missing reviewed v2.1.8 helper: {marker!r}")
+                require(b"v1.5.1" in helpers, "Verified scoped runtime version missing")
+                require(b"tryWheelieCrush" in helpers and b"pickupStage" in helpers,
+                        "Verified scoped runtime behavior missing")
+                require(b"CommentPresentation" in native, "Native drawing pipeline lost")
+                require(b"PausedCenter218" not in native, "Unexpected native playback changes")
             if version == "2.1.7":
                 require(b"2.1.7" in helpers, "v2.1.7 runtime version missing")
                 require(b"2.1.7-dev.2" not in helpers, "Development version leaked into released helper")

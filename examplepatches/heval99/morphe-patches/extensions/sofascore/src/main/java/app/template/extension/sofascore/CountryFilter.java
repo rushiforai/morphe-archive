@@ -209,12 +209,13 @@ public final class CountryFilter {
     }
 
     /**
-     * The result of NetworkCoroutineAPI.sportLiveEvents (Live tab) and getIndexedEventsPage (the
-     * chronological view), at the return of the request lambda. Anything that is not an
+     * The result of NetworkCoroutineAPI.sportLiveEvents (Live tab), getIndexedEventsPage (the
+     * chronological view) and getPopularEvents(sport, countryCode, date) (the popular matches at the
+     * top of a date in the Matches tab), at the return of the request lambda. Anything that is not an
      * EventListResponse (the coroutine's suspend marker, null) passes through; otherwise a new
      * EventListResponse without the events of hidden countries and hidden competitions is returned
-     * when any is hidden. These lists hold hundreds of competitions a day, so they offer only the
-     * picked competitions in the picker (see CompetitionFilter).
+     * when any is hidden. The Live tab and the chronological view hold hundreds of competitions a
+     * day, so these lists offer only the picked competitions in the picker (see CompetitionFilter).
      */
     public static Object filterEventList(Object response) {
         return filterEvents(response, false);

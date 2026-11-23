@@ -94,6 +94,10 @@ public final class LivePanelTheme {
     static volatile boolean panelSeen;
     /** Each darkened panel with the dark context its views inflated through. */
     private static final Map<Object, Context> DARK_PANELS = Collections.synchronizedMap(new WeakHashMap<>());
+    /** The Compose views of LIVE pages under a darkened panel, which take the dark palette. */
+    private static final Map<View, Boolean> DARK_COMPOSE = Collections.synchronizedMap(new WeakHashMap<>());
+    /** The name of the Dark constant of TikTok's Compose palette modes (X.0ofT on 47.9.3: Auto, Light, Dark). */
+    static final String DARK_COMPOSE_MODE = "Dark";
     /** The profile card's label color when the server's is missing or unreadable: color/aj, #0F161823, on 47.4.3. */
     private static final int LABEL_DEFAULT = 0x0F161823;
     /**
@@ -227,6 +231,10 @@ public final class LivePanelTheme {
             return inflater;
         }
         try {
+            // The profile card with colors picked for it is colored there instead (#487).
+            if (LiveProfileCard.colorCard(panel)) {
+                return inflater;
+            }
             Context context = inflater.getContext();
             if (!LiveControls.darkLivePanels(context)) {
                 return inflater;
@@ -807,28 +815,39 @@ public final class LivePanelTheme {
      * showing one of those.
      */
     static boolean ownBackdrop(Drawable background) {
+        return ownBackdrop(background, false);
+    }
+
+    /**
+     * {@link #ownBackdrop(Drawable)}, where with {@code seeThroughDark} a fill less than half opaque
+     * counts as dark too. A page under a darkened panel sits on the panel's dark sheet, so such a
+     * fill reads dark there whatever its color: the Muted and Blocked lists' Unmute and Remove
+     * buttons are TikTok's white at 12% under a fixed #161823 label, which stayed dark on the
+     * dark gray button (#362).
+     */
+    private static boolean ownBackdrop(Drawable background, boolean seeThroughDark) {
         if (background == null) {
             return false;
         }
         if (background instanceof DrawableContainer) {
             Drawable current = background.getCurrent();
-            return current != background && ownBackdrop(current);
+            return current != background && ownBackdrop(current, seeThroughDark);
         }
         if (background instanceof ColorDrawable) {
-            return !darkBackdrop(((ColorDrawable) background).getColor());
+            return !darkBackdrop(((ColorDrawable) background).getColor(), seeThroughDark);
         }
         if (background instanceof GradientDrawable && Build.VERSION.SDK_INT >= 24) {
             GradientDrawable shape = (GradientDrawable) background;
             ColorStateList color = shape.getColor();
             if (color != null) {
-                return !darkBackdrop(color.getDefaultColor());
+                return !darkBackdrop(color.getDefaultColor(), seeThroughDark);
             }
             int[] stops = shape.getColors();
             if (stops == null) {
                 return false;
             }
             for (int stop : stops) {
-                if (!darkBackdrop(stop)) {
+                if (!darkBackdrop(stop, seeThroughDark)) {
                     return true;
                 }
             }
@@ -846,8 +865,12 @@ public final class LivePanelTheme {
         return true;
     }
 
-    private static boolean darkBackdrop(int color) {
-        return Color.alpha(color) == 0 || (Color.alpha(color) >= MIN_FILL_ALPHA && !isLight(color));
+    private static boolean darkBackdrop(int color, boolean seeThroughDark) {
+        int alpha = Color.alpha(color);
+        if (alpha == 0) {
+            return true;
+        }
+        return alpha < MIN_FILL_ALPHA ? seeThroughDark : !isLight(color);
     }
 
     /**
@@ -1052,23 +1075,79 @@ public final class LivePanelTheme {
      * at a panel that wasn't darkened; anything else hands TikTok's inflater back.
      */
     private static LayoutInflater darkPanelPage(Object fragment, LayoutInflater inflater) {
+        Context dark = darkPanelAbove(fragment, inflater.getContext());
+        if (dark == null) {
+            return inflater;
+        }
+        inkPage(fragment);
+        return inflater.cloneInContext(dark);
+    }
+
+    /**
+     * The dark context of the panel a fragment sits under, by its parent fragments, while the
+     * switch is on for {@code context}. Null when the first panel up the walk wasn't darkened, at
+     * a stock panel, and for a fragment under no panel.
+     */
+    private static Context darkPanelAbove(Object fragment, Context context) {
         Object current = Reflect.invoke(fragment, "getParentFragment");
         for (int depth = 0; current != null && depth < MAX_PARENTS; depth++) {
             int kind = panelType(current.getClass());
             if (kind == STOCK) {
-                return inflater;
+                return null;
             }
             if (kind == PANEL) {
                 Context dark = DARK_PANELS.get(current);
-                if (dark == null || !LiveControls.darkLivePanels(inflater.getContext())) {
-                    return inflater;
-                }
-                inkPage(fragment);
-                return inflater.cloneInContext(dark);
+                return dark != null && LiveControls.darkLivePanels(context) ? dark : null;
             }
             current = Reflect.invoke(current, "getParentFragment");
         }
-        return inflater;
+        return null;
+    }
+
+    /**
+     * Called by the guest panels' "Find an open guest spot" page with the Compose view it just
+     * made, before it hands the view its content. The page is a plain fragment under the guest
+     * panel, whose white sheet goes black with the switch on, and a view under a panel the switch
+     * darkened takes Compose's dark palette from {@link #composeMode}.
+     */
+    public static void darkComposePage(Object page, View view) {
+        try {
+            if (!panelSeen || page == null || view == null) {
+                return;
+            }
+            if (darkPanelAbove(page, view.getContext()) != null) {
+                DARK_COMPOSE.put(view, Boolean.TRUE);
+            }
+        } catch (Throwable failure) {
+            Logger.printException(() -> "Could not check a LIVE Compose page for a dark panel", failure);
+        }
+    }
+
+    /**
+     * Called by TikTok's LIVE Compose host with the view and the palette mode it gives every LIVE
+     * Compose view, always Light: the palette's black text and its pill at 5% black. Under the
+     * guest panel the switch turns the white sheet black, so the "Find an open guest spot" bar
+     * read black on black (#362). A view {@link #darkComposePage} found under a darkened panel
+     * takes the mode's Dark constant, near-white text on a dark gray pill; everything else, and
+     * anything that fails, keeps TikTok's mode.
+     */
+    public static Object composeMode(View view, Object mode) {
+        try {
+            if (view == null || !(mode instanceof Enum) || !DARK_COMPOSE.containsKey(view)) {
+                return mode;
+            }
+            Object[] modes = ((Enum<?>) mode).getDeclaringClass().getEnumConstants();
+            if (modes != null) {
+                for (Object constant : modes) {
+                    if (DARK_COMPOSE_MODE.equals(((Enum<?>) constant).name())) {
+                        return constant;
+                    }
+                }
+            }
+        } catch (Throwable failure) {
+            Logger.printException(() -> "Could not pick a LIVE Compose view's palette", failure);
+        }
+        return mode;
     }
 
     /**
@@ -1077,8 +1156,8 @@ public final class LivePanelTheme {
      * in TikTok's fixed #161823, which no theme reaches, so on the dark sheet they read dark on
      * dark (#362). The page's view doesn't exist yet when its inflater is asked for, so it's
      * looked for on the next frames. While it's on screen its dark gray text and one-ink icons go
-     * white before each frame, and so does a button's dark outline. Anything on a light chip of
-     * its own keeps its ink.
+     * white before each frame, its list rows included, and so does a button's dark outline.
+     * Anything on a light chip of its own keeps its ink.
      */
     static void inkPage(Object page) {
         new Handler(Looper.getMainLooper()).post(() -> inkPage(page, 0));
@@ -1108,13 +1187,16 @@ public final class LivePanelTheme {
     }
 
     /**
-     * Keeps a page's ink light while the page is on screen: gathered again on each layout, since
-     * its lists bind rows as they scroll, and lit again before each frame, since TikTok sets the
-     * fixed colors back as it rebinds. It only listens while the page is in a window, so a page
-     * that was closed is let go.
+     * Keeps a page's ink light while the page is on screen: gathered and lit again before each
+     * frame. A list lays out the rows it binds while it scrolls on its own, with no layout pass
+     * of the window, so rows gathered only on a layout kept the fixed dark ink of whatever they
+     * first showed, read dark on the dark sheet and lit rows moved around as they were recycled
+     * (#362). TikTok also sets the fixed colors back as it binds a row again. Judging a view is
+     * cheap once its background was judged, and lighting writes only what TikTok changed back.
+     * It only listens while the page is in a window, so a page that was closed is let go.
      */
     private static final class PageInk implements View.OnAttachStateChangeListener,
-            ViewTreeObserver.OnGlobalLayoutListener, ViewTreeObserver.OnPreDrawListener {
+            ViewTreeObserver.OnPreDrawListener {
         private final View page;
         private final List<View> ink = new ArrayList<>();
         private final List<View> outlines = new ArrayList<>();
@@ -1125,21 +1207,15 @@ public final class LivePanelTheme {
 
         @Override
         public void onViewAttachedToWindow(View view) {
-            ViewTreeObserver observer = view.getViewTreeObserver();
-            observer.addOnGlobalLayoutListener(this);
-            observer.addOnPreDrawListener(this);
-            onGlobalLayout();
+            view.getViewTreeObserver().addOnPreDrawListener(this);
         }
 
         @Override
         public void onViewDetachedFromWindow(View view) {
-            ViewTreeObserver observer = view.getViewTreeObserver();
-            observer.removeOnGlobalLayoutListener(this);
-            observer.removeOnPreDrawListener(this);
+            view.getViewTreeObserver().removeOnPreDrawListener(this);
         }
 
-        @Override
-        public void onGlobalLayout() {
+        private void gather() {
             try {
                 ink.clear();
                 outlines.clear();
@@ -1151,6 +1227,8 @@ public final class LivePanelTheme {
                     }
                 }
             } catch (Throwable failure) {
+                ink.clear();
+                outlines.clear();
                 if (!pageFailureLogged) {
                     pageFailureLogged = true;
                     Logger.printException(() -> "Could not find a LIVE panel page's ink", failure);
@@ -1160,6 +1238,7 @@ public final class LivePanelTheme {
 
         @Override
         public boolean onPreDraw() {
+            gather();
             try {
                 for (View view : ink) {
                     lightInk(view);
@@ -1179,8 +1258,9 @@ public final class LivePanelTheme {
 
     /**
      * Gathers a page's text and icon views, and the views drawing a dark outline as their
-     * background. A view on a backdrop of its own, other than such an outline, keeps the ink it
-     * was picked for, and so does anything marked to stay light.
+     * background. A view on a backdrop of its own, other than such an outline or a see-through
+     * fill over the dark sheet, keeps the ink it was picked for, and so does anything marked to
+     * stay light.
      */
     private static void gatherPage(View view, List<View> ink, List<View> outlines, int depth) {
         if (view.getVisibility() != View.VISIBLE || KEEP_LIGHT.containsKey(view) || depth > MAX_TREE_DEPTH) {
@@ -1190,7 +1270,7 @@ public final class LivePanelTheme {
         if (background != null) {
             if (darkOutline(view)) {
                 outlines.add(view);
-            } else if (ownBackdrop(background)) {
+            } else if (ownBackdrop(background, true)) {
                 return;
             }
         }
@@ -1231,7 +1311,7 @@ public final class LivePanelTheme {
         int[] pixels = backgroundPixels(background, viewWidth, viewHeight, width, height);
         int middle = pixels[(height / 2) * width + width / 2];
         boolean outline = Color.alpha(middle) < MIN_INK_ALPHA && darkMonochrome(pixels);
-        OUTLINES.put(view, new OutlineCheck(background, outline));
+        OUTLINES.put(view, new OutlineCheck(background, outline, false));
         return outline;
     }
 
@@ -1253,25 +1333,80 @@ public final class LivePanelTheme {
         }
     }
 
-    /** Draws a judged dark outline white, once per background TikTok gives the view. */
+    /**
+     * Draws a judged dark outline white, once per background TikTok gives the view. Its middle
+     * stays clear: a shape with no fill color of its own paints all of itself under a color
+     * filter, the way a tint fills LIVE's empty button shapes, so the white ink turned a button's
+     * outline into a white box over its lit label, the Moderation list's buttons among them
+     * (#362). Each such shape takes a clear fill first.
+     */
     private static void lightOutline(View view) {
         Drawable background = view.getBackground();
-        if (background == null || !darkOutline(view) || background.getColorFilter() == WHITE_INK) {
+        if (background == null || background.getColorFilter() == WHITE_INK || litOutline(view, background)
+                || !darkOutline(view)) {
             return;
         }
         Drawable own = background.mutate();
+        keepMiddleClear(own, 0);
         own.setColorFilter(WHITE_INK);
-        OUTLINES.put(view, new OutlineCheck(own, true));
+        OUTLINES.put(view, new OutlineCheck(own, true, true));
         view.invalidate();
+    }
+
+    /**
+     * True once {@link #lightOutline} drew this view's background white. A state list or a layered
+     * background doesn't hand its color filter back, and LIVE's buttons carry state lists, so a lit
+     * one is remembered: lighting it again on every frame drew the page again on every frame.
+     */
+    private static boolean litOutline(View view, Drawable background) {
+        OutlineCheck seen = OUTLINES.get(view);
+        return seen != null && seen.lit && seen.drawable.get() == background;
+    }
+
+    /**
+     * Gives each shape in a mutated outline that has neither a fill color nor a gradient a clear
+     * fill, the states of a state list and the layers of a layered one included, so a color
+     * filter recolors its stroke and nothing else. One drawn as an outline has no tint filling
+     * it, so its look doesn't change.
+     */
+    private static void keepMiddleClear(Drawable drawable, int depth) {
+        if (drawable == null || depth > MAX_TREE_DEPTH) {
+            return;
+        }
+        if (drawable instanceof DrawableContainer) {
+            Drawable.ConstantState state = drawable.getConstantState();
+            if (state instanceof DrawableContainer.DrawableContainerState) {
+                for (Drawable child : ((DrawableContainer.DrawableContainerState) state).getChildren()) {
+                    keepMiddleClear(child, depth + 1);
+                }
+            } else if (drawable.getCurrent() != drawable) {
+                keepMiddleClear(drawable.getCurrent(), depth + 1);
+            }
+        } else if (drawable instanceof LayerDrawable) {
+            LayerDrawable layers = (LayerDrawable) drawable;
+            for (int i = 0; i < layers.getNumberOfLayers(); i++) {
+                keepMiddleClear(layers.getDrawable(i), depth + 1);
+            }
+        } else if (drawable instanceof GradientDrawable && Build.VERSION.SDK_INT >= 24) {
+            GradientDrawable shape = (GradientDrawable) drawable;
+            if (shape.getColor() == null && shape.getColors() == null) {
+                // Its own copy, so the shape TikTok's other views load stays as it is.
+                shape.mutate();
+                shape.setColor(Color.TRANSPARENT);
+            }
+        }
     }
 
     private static final class OutlineCheck {
         final WeakReference<Drawable> drawable;
         final boolean outline;
+        /** Drawn white by lightOutline. */
+        final boolean lit;
 
-        OutlineCheck(Drawable drawable, boolean outline) {
+        OutlineCheck(Drawable drawable, boolean outline, boolean lit) {
             this.drawable = new WeakReference<>(drawable);
             this.outline = outline;
+            this.lit = lit;
         }
     }
 
@@ -1286,6 +1421,10 @@ public final class LivePanelTheme {
      * TikTok gave the room since ({@link #roomStyle}) and LIVE's light color overlay where the room
      * took the dark one ({@link #liveColorTheme}). A room the hook never darkened, and anything
      * that fails, keeps TikTok's context.
+     * Also called by a pinned comment widget with its own context right before it makes the
+     * inflater for its card's rows. The rows' Pinned and timer tags resolve their pill color on
+     * that context, and the dark LIVE colors the darkened room got make it white at 50%, so the
+     * tags sat on pale pills they don't have with the switch off (#362).
      */
     public static Context lightRoomView(Context context) {
         try {
@@ -1302,7 +1441,7 @@ public final class LivePanelTheme {
         } catch (Throwable failure) {
             if (!bubbleFailureLogged) {
                 bubbleFailureLogged = true;
-                Logger.printException(() -> "Could not give a LIVE room's gift guide its light theme", failure);
+                Logger.printException(() -> "Could not give a LIVE view its room's light theme", failure);
             }
             return context;
         }
@@ -1547,6 +1686,14 @@ public final class LivePanelTheme {
     }
 
     /**
+     * Whether the profile card's own parts get their dark fixes: Dark LIVE panels on in dark mode,
+     * and no colors picked for the card, which then keeps TikTok's light parts (#487).
+     */
+    static boolean cardPartsDark(Context context) {
+        return LiveControls.darkLivePanels(context) && !LiveProfileCard.colorsPicked();
+    }
+
+    /**
      * Called by the LIVE profile card with the color it picked for a translated bio's "See
      * original" link and the bio's view. The card's theme already gives the dark theme's light
      * link color, but the link is drawn through a replacement span, which skips color spans and
@@ -1554,9 +1701,10 @@ public final class LivePanelTheme {
      * on the dark card (#159). While Dark LIVE panels is on in dark mode, the view's text color
      * becomes the link color. The bio's own text keeps the color its span gives it.
      */
+
     public static void bioLinkColor(int color, Object bio) {
         try {
-            if (bio instanceof TextView && LiveControls.darkLivePanels(((TextView) bio).getContext())) {
+            if (bio instanceof TextView && cardPartsDark(((TextView) bio).getContext())) {
                 ((TextView) bio).setTextColor(color);
             }
         } catch (Throwable failure) {
@@ -1576,7 +1724,7 @@ public final class LivePanelTheme {
     public static void cardLabels(Object labels, Object strip) {
         try {
             if (!(labels instanceof Iterable) || !(strip instanceof View)
-                    || !LiveControls.darkLivePanels(((View) strip).getContext())) {
+                    || !cardPartsDark(((View) strip).getContext())) {
                 return;
             }
             // The chips stay light on purpose, so the fill pass leaves the strip alone.
@@ -1653,7 +1801,7 @@ public final class LivePanelTheme {
      */
     public static void eventBox(Object box) {
         try {
-            if (!(box instanceof ViewGroup) || !LiveControls.darkLivePanels(((View) box).getContext())) {
+            if (!(box instanceof ViewGroup) || !cardPartsDark(((View) box).getContext())) {
                 return;
             }
             Drawable background = ((View) box).getBackground();
@@ -1680,7 +1828,7 @@ public final class LivePanelTheme {
     public static void badgeTile(View tile, Drawable background) {
         Drawable shown = background;
         try {
-            if (background instanceof GradientDrawable && LiveControls.darkLivePanels(tile.getContext())) {
+            if (background instanceof GradientDrawable && cardPartsDark(tile.getContext())) {
                 Drawable.ConstantState shape = background.getConstantState();
                 if (shape != null) {
                     // Copies with their own state, so the tile's shape keeps its fill and border.

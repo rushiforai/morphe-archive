@@ -1,3 +1,9 @@
+## [1.6.4](https://github.com/rimixyz/morphe-patches/compare/v1.6.3...v1.6.4) (2026-11-22)
+
+### 🐛 Bug Fixes
+
+* restore main menu screen after cancelling Retro season dialog in New Star Soccer ([808eff9](https://github.com/rimixyz/morphe-patches/commit/808eff969bc4769a13b315ca1f21459505a6f2e0))
+
 ## [1.6.3](https://github.com/rimixyz/morphe-patches/compare/v1.6.2...v1.6.3) (2026-11-22)
 
 ### 🐛 Bug Fixes

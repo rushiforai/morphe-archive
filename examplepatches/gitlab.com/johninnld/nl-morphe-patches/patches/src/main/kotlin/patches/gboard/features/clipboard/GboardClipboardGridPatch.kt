@@ -15,7 +15,7 @@ import patches.gboard.shared.runtimeabi.RuntimeCallId
 private const val GRID_ACCESS = "Ldev/jason/gboardpatches/extension/clipboard/GboardClipboardGridAccess;"
 internal fun installClipboard1853GridAdapter(context: BytecodePatchContext) {
     val keyboard = context.mutableClass(CLIPBOARD_KEYBOARD_CLASS)
-    val columns = keyboard.methods.single { it.name == "l" && it.parameterTypes.isEmpty() && it.returnType == "I" }
+    val columns = GboardVersionBindings.clipboardColumns.resolve(context)
     val layout = GboardVersionBindings.clipboardLayoutBuilt.resolve(context)
     val adapterField = GboardVersionBindings.clipboardKeyboardAdapter
     val recyclerField = GboardVersionBindings.clipboardAdapterRecycler
@@ -87,7 +87,7 @@ private fun MutableClass.copyClipboardStock(target: MutableMethod, helper: Strin
     methods.remove(target)
 }
 internal fun installClipboard1853ColumnWrapper(owner: MutableClass, target: MutableMethod) {
-    target.requireExactClipboardTarget(CLIPBOARD_KEYBOARD_CLASS, "l", "I", emptyList())
+    target.requireExactClipboardTarget(CLIPBOARD_KEYBOARD_CLASS, "b", "I", emptyList())
     val helper = "jasondevClipboardStockColumns"
     owner.copyClipboardStock(target, helper)
     owner.addHelperMethodIfMissing(target.name, target.parameterTypes.map { it.toString() }, target.returnType, target.accessFlags, 2, """

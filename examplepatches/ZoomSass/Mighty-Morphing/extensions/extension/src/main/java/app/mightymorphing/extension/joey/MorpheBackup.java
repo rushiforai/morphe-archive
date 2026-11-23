@@ -55,14 +55,14 @@ public final class MorpheBackup {
             group("default-subs", "Default subs", "On this device", true, "SPECIAL_SUB_PREF_NAME"),
             group("theme", "Theme", "Appearance", false, "THEME_PREFS"),
             group("fonts", "Fonts", "Appearance", false, "font_prefs", "morphe_fonts"),
-            group("posts", "Post style", "Appearance", false, "settings"),
+            group("posts", "Post style", "Appearance", false, "settings", "submission_preferences"),
             group("drawer", "Left drawer", "Appearance", false, "left_drawer_prefs"),
-            group("posts", "Multi column", "Appearance", false, "settings"),
+            group("posts", "Multi column", "Appearance", false, "settings", "submission_preferences"),
             group("animations", "Animations", "Appearance", false, "animation_prefs"),
-            group("morphe", "Morphe settings", "Splash, theme, comments, show and hide", false, "mighty_morphing"),
-            group("posts", "Awards", "Content", false, "settings"),
+            group("morphe", "Morphe settings", "Morphe", false, "mighty_morphing", ModernSettings.COPY, "morphe_seasonal"),
+            group("posts", "Awards", "Content", false, "settings", "submission_preferences"),
             group("labels", "Account stats", "Content", false, "USER_TAG_PREF"),
-            group("posts", "Posts", "Content", false, "settings"),
+            group("posts", "Posts", "Content", false, "settings", "submission_preferences"),
             group("comments", "Comments", "Content", false, "comment_preferences"),
             group("links", "Link handling", "Content", false, "link_prefs"),
             group("filters", "Filters", "Content", false, "filter_prefs"),
@@ -249,6 +249,7 @@ public final class MorpheBackup {
         boolean settingsHeader = false;
         String lastSection = null;
         boolean[] linking = {false};
+        boolean[] postNote = {false};
         for (Group group : ordered) {
             boolean inFile = only == null || containsId(only, group.id);
             if (!group.account && !inFile) continue;
@@ -292,6 +293,16 @@ public final class MorpheBackup {
                 section.setTypeface(Typeface.DEFAULT_BOLD);
                 section.setPadding(0, Math.round(8 * density), 0, Math.round(2 * density));
                 rows.addView(section);
+                if ("Morphe".equals(group.section)) {
+                    TextView morphe = new TextView(activity);
+                    morphe.setText("Theme, icons, fonts, layout, seasonal banner, splash and show and hide. "
+                            + "Includes your Modern layout.");
+                    morphe.setTextColor(sub);
+                    morphe.setTextSize(12);
+                    morphe.setTypeface(Typeface.SANS_SERIF, Typeface.ITALIC);
+                    morphe.setPadding(0, 0, 0, Math.round(6 * density));
+                    rows.addView(morphe);
+                }
                 if ("On this device".equals(group.section)) {
                     TextView local = new TextView(activity);
                     local.setText("Kept in Joey only. A restore of these stays put.");
@@ -311,6 +322,17 @@ public final class MorpheBackup {
                 locked.setPadding(Math.round(8 * density), Math.round(6 * density), 0, Math.round(6 * density));
                 batch.add(locked);
                 continue;
+            }
+            if (!postNote[0] && "posts".equals(group.id)) {
+                postNote[0] = true;
+                flushGrid(rows, batch);
+                TextView note = new TextView(activity);
+                note.setText("Joey's own post settings (used by Classic). Modern's layout is in Morphe settings.");
+                note.setTextColor(sub);
+                note.setTextSize(12);
+                note.setTypeface(Typeface.SANS_SERIF, Typeface.ITALIC);
+                note.setPadding(0, 0, 0, Math.round(6 * density));
+                rows.addView(note);
             }
             CheckBox box = MorpheDialog.check(activity, group.title, true, null);
             final String shared = group.files.length > 0 ? group.files[0] : group.id;
@@ -372,12 +394,17 @@ public final class MorpheBackup {
         batch.clear();
     }
 
+    /** Device state that belongs to the last reset, not to the settings. Left out and left alone. */
+    private static boolean skipped(String key) {
+        return "modern_layout_undo".equals(key);
+    }
+
     private static JSONObject snapshot(Context context, String name) throws Exception {
         SharedPreferences prefs = context.getApplicationContext().getSharedPreferences(name, Context.MODE_PRIVATE);
         JSONObject out = new JSONObject();
         for (Map.Entry<String, ?> entry : prefs.getAll().entrySet()) {
             Object value = entry.getValue();
-            if (value == null) continue;
+            if (value == null || skipped(entry.getKey())) continue;
             JSONObject wrapped = new JSONObject();
             if (value instanceof String) {
                 wrapped.put("t", "s");
@@ -417,7 +444,7 @@ public final class MorpheBackup {
                 for (int i = 0; i < names.length(); i++) {
                     String key = names.optString(i, null);
                     JSONObject wrapped = key == null ? null : values.optJSONObject(key);
-                    if (key == null || wrapped == null) continue;
+                    if (key == null || wrapped == null || skipped(key)) continue;
                     keep.add(key);
                     String type = wrapped.optString("t");
                     if ("s".equals(type)) editor.putString(key, wrapped.optString("v"));
@@ -436,7 +463,7 @@ public final class MorpheBackup {
                 }
             }
             for (String existing : new ArrayList<>(prefs.getAll().keySet())) {
-                if (!keep.contains(existing)) editor.remove(existing);
+                if (!keep.contains(existing) && !skipped(existing)) editor.remove(existing);
             }
             if (!editor.commit()) return "Joey did not save the file";
             return null;

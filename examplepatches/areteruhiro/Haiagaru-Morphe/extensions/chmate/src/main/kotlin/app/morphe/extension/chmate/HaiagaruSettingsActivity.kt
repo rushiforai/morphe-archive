@@ -7,6 +7,8 @@ import android.view.ViewGroup
 import androidx.activity.compose.BackHandler
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -115,10 +117,12 @@ class HaiagaruSettingsActivity : HaiagaruComposeActivity() {
         return super.dispatchTouchEvent(event)
     }
 
-    @OptIn(ExperimentalMaterial3Api::class)
+    @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
     @Composable
     private fun SettingsScreen() {
-        var selected by rememberSaveable { mutableIntStateOf(-1) }
+        var focusLabel by rememberSaveable { mutableStateOf(intent.getStringExtra("haiagaru.settings.highlight").orEmpty()) }
+        var selected by rememberSaveable { mutableIntStateOf(settingsGroups().indexOfFirst {
+            intent.getStringExtra("haiagaru.settings.category") in it.sources }) }
         var query by rememberSaveable { mutableStateOf(intent.getStringExtra("haiagaru.settings.search").orEmpty().take(160)) }
         var categoryQuery by rememberSaveable { mutableStateOf("") }
         val searchQuery = if (selected >= 0) categoryQuery else query
@@ -144,6 +148,25 @@ class HaiagaruSettingsActivity : HaiagaruComposeActivity() {
             else if (query.isBlank()) homeList else searchList
         val scope = rememberCoroutineScope()
         val invalidation = revision
+        // The backing Views are detached from Compose. Resnapshot their visibility
+        // when settings change so the lazy list receives a new set of rows.
+        val categoryRows = remember(currentCategory, searchQuery.isBlank(), invalidation) {
+            if (searchQuery.isBlank()) currentCategory?.sources.orEmpty().map { source ->
+                source to settingsRows(body(source))
+            } else emptyList()
+        }
+        fun containsLabel(row: BoundSetting): Boolean = row.label == focusLabel ||
+            row.children.orEmpty().any { containsLabel(it) }
+        LaunchedEffect(selected, categoryRows, focusLabel) {
+            if (focusLabel.isBlank() || selected < 0 || categoryRows.isEmpty()) return@LaunchedEffect
+            var position = 1
+            for ((source, rows) in categoryRows) {
+                if (currentCategory!!.sources.size > 1) position++
+                val index = rows.indexOfFirst { containsLabel(it) }
+                if (index >= 0) { categoryList.animateScrollToItem(position + index); break }
+                position += rows.size
+            }
+        }
         // Snapshot native toggle values on every preference refresh, even while the
         // asynchronous search index is being rebuilt. Keep the same controls/listeners.
         val visibleMatches = if (indexedScope == selected) matches.map { (group, option) -> group to option.refreshed() } else emptyList()
@@ -182,7 +205,9 @@ class HaiagaruSettingsActivity : HaiagaruComposeActivity() {
             // Rebuild editors on navigation, so a toggle changed in the expert
             // projection cannot leave its ordinary-category control stale.
             bodies.clear()
-            if (selected >= 0) { categoryList.scrollToItem(0); categorySearchList.scrollToItem(0) }
+            if (selected >= 0 && focusLabel.isBlank()) {
+                categoryList.scrollToItem(0); categorySearchList.scrollToItem(0)
+            }
             revision++
         }
         LaunchedEffect(searchQuery, selected, invalidation) {
@@ -288,22 +313,25 @@ class HaiagaruSettingsActivity : HaiagaruComposeActivity() {
                             else if (english) "${visibleMatches.size} settings" else "${visibleMatches.size}件の設定") }
                         if (visibleMatches.isNotEmpty()) item {
                             Text(if (english) "Change settings here. Changes are saved automatically."
-                                else "検索結果のスイッチでオン／オフできます。変更は自動で保存されます。",
+                                else "検索結果のスイッチでオン／オフできます。長押しすると設定一覧を開き、該当項目が青く点滅します。",
                                 style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                         items(visibleMatches, key = { (group, option) -> "${group.id}:${System.identityHashCode(option.control)}" }) {
-                            (group, option) -> SettingsFrame(padded = false) {
+                            (group, option) -> Box(Modifier.combinedClickable(onClick = {}, onLongClick = {
+                                focusLabel = option.label
+                                selected = groups.indexOf(group)
+                                categoryQuery = ""
+                            })) { SettingsFrame(padded = false) {
                                 Text(group.title(english), style = MaterialTheme.typography.titleSmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(start = 12.dp, top = 10.dp))
                                 SettingCopyScope(listOf("Haiagaru設定", group.title(english))) {
                                     BoundSettingRow(option, update)
                                 }
-                            }
+                            } }
                         }
                 } else if (currentCategory != null) {
                     val group = currentCategory
-                    group.sources.forEachIndexed { index, source ->
-                        val rows = settingsRows(body(source))
+                    categoryRows.forEachIndexed { index, (source, rows) ->
                         if (group.sources.size > 1) item("heading:$source") {
                             Text(sectionTitle(source, english), style = MaterialTheme.typography.titleSmall, fontSize = 15.sp,
                                 color = if (source == "DISPLAY" || source == "SOCIAL")
@@ -313,7 +341,9 @@ class HaiagaruSettingsActivity : HaiagaruComposeActivity() {
                         items(rows, key = { "${source}:${System.identityHashCode(it.control)}" }) { option ->
                             SettingsFrame(padded = false) {
                                 SettingCopyScope(listOf("Haiagaru設定", group.title(english), sectionTitle(source, english))) {
-                                    BoundSettingRow(option, update)
+                                    CompositionLocalProvider(LocalSettingHighlight provides focusLabel) {
+                                        BoundSettingRow(option, update)
+                                    }
                                 }
                             }
                         }

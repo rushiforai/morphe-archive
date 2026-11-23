@@ -9,6 +9,7 @@ import org.w3c.dom.Element
 private const val ANDROID_NS = "http://schemas.android.com/apk/res/android"
 private const val BRANDING_NAME = "morphe_gboard_app_name"
 private const val BRANDING_ICON = "morphe_gboard_launcher"
+private const val DEFAULT_NAME = "Gboard Parakeet/Rambler"
 private const val DEFAULT_ICON = "parakeet"
 private const val ORIGINAL_ICON = "original"
 
@@ -70,13 +71,13 @@ val gboardCustomBrandingPatch = resourcePatch(
     name = "Custom branding",
     description = "Changes Gboard's app name and launcher icon. Choose the Parakeet icon (default), Gboard's original icon " +
         "or one of five other designs. The name also appears in Android's keyboard list.",
-    default = false,
+    default = true,
 ) {
     compatibleWith(gboard)
     dependsOn(originalInput, gboardParakeetIconPatch)
 
     val customName by stringOption(
-        key = "customName", title = "App name",
+        key = "customName", title = "App name", default = DEFAULT_NAME,
         description = "Name shown in the launcher, Android's keyboard list and app information. Leave empty to keep Gboard.",
     ) { value ->
         // Surrounding whitespace is trimmed rather than rejected: an invisible trailing

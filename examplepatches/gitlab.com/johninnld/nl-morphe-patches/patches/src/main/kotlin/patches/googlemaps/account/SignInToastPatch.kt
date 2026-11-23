@@ -15,7 +15,9 @@ internal val signInToastPatch = bytecodePatch(
 
     execute {
         if (MicrogSelection.replaces(this, "Remove sign-in prompts")) return@execute
-        val matches = SignInClickFingerprint.instructionMatches
+        val fingerprint = if (packageMetadata.versionName == "26.47.00.1022347503")
+            SignInClickFingerprint2647 else SignInClickFingerprint
+        val matches = fingerprint.instructionMatches
         val cast = matches.first().index
         val count = matches.last().index - cast + 1
         if (count != 3) throw PatchException("sign-in click case is $count instructions, expected 3")
@@ -26,10 +28,14 @@ internal val signInToastPatch = bytecodePatch(
         // with the click, and the verifier rejected the whole dispatcher class.
         // Nothing is removed; the original click and return are left behind the
         // toast's own return, unreachable.
-        SignInClickFingerprint.method.addInstructions(
+        // 26.47's case runs inside a switch payload where the pill sits in v7,
+        // so read the cast's own register instead of assuming v0.
+        val view = (fingerprint.method.implementation!!.instructions[cast] as
+            com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction).registerA
+        fingerprint.method.addInstructions(
             cast + 1,
             """
-                invoke-virtual {v0}, Landroid/view/View;->getContext()Landroid/content/Context;
+                invoke-virtual {v$view}, Landroid/view/View;->getContext()Landroid/content/Context;
                 move-result-object v0
                 const-string v1, "$TOAST_TEXT"
                 const/4 v2, 0x0

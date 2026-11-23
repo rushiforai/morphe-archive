@@ -16,7 +16,7 @@ import patches.gboard.shared.isMethodReference
 
 /** The provider that hands Gboard its TextRecognizer. */
 internal val textRecognizerProvider = GboardMethodTarget(
-    classType = "Ljid;",
+    classType = "Ltxa;",
     // The DI method itself is obfuscated; get() is only the synthetic interface bridge.
     name = "a",
     parameterTypes = emptyList(),

@@ -19,6 +19,14 @@ private const val PATCH = "Disable telemetry"
 // flag are left as consent set them.
 internal val DENIED_TRACKERS = listOf("isBrainTrackingAllowed", "isReachTrackingAllowed", "isTropTrackingAllowed")
 
+private const val CRASH_ALLOWED = "isCrashTrackingAllowedByUser"
+
+private fun com.android.tools.smali.dexlib2.iface.instruction.Instruction.storesBooleanField(
+    definingClass: String,
+    name: String,
+) = opcode == Opcode.IPUT_BOOLEAN &&
+    ((this as ReferenceInstruction).reference as FieldReference).let { it.definingClass == definingClass && it.name == name }
+
 @Suppress("unused")
 val disableTelemetryPatch = bytecodePatch(
     name = PATCH,
@@ -63,8 +71,28 @@ val disableTelemetryPatch = bytecodePatch(
         // 3. App monitoring stays off.
         AppMonConfigToStringFingerprint.classDef.forceGettersFalse(PATCH, listOf("isAppMonEnabled"))
 
-        // 4. Sentry is never started (auto-init is already off in the manifest). Reports and
-        // breadcrumbs then go to Sentry's no-op hub.
-        SentryStartFingerprint.method.returnEarly()
+        // 4. Sentry is never started (auto-init is already off in the manifest): the crash config
+        // is built with isCrashTrackingAllowedByUser = false, so MailApplication.onCreate takes its
+        // own "Sentry is disabled by config" branch. Reports and breadcrumbs then go to Sentry's
+        // no-op hub. The register is read from the iput-boolean that stores the field.
+        val crashConfig = CrashTrackingConfigToStringFingerprint.classDef
+        val crashConstructors = crashConfig.methods.filter { method ->
+            method.name == "<init>" && method.implementation != null &&
+                method.implementation!!.instructions.any { it.storesBooleanField(crashConfig.type, CRASH_ALLOWED) }
+        }
+        val crashConstructor = crashConstructors.singleOrNull()
+            ?: throw PatchException("$PATCH: expected one ${crashConfig.type} <init> storing $CRASH_ALLOWED, found ${crashConstructors.size}")
+        val crashImplementation = crashConstructor.implementation!!
+        val crashP0 = crashImplementation.registerCount - (crashConstructor.parameterTypes.size + 1)
+        val allowedRegister = crashImplementation.instructions
+            .single { it.storesBooleanField(crashConfig.type, CRASH_ALLOWED) }
+            .let { (it as TwoRegisterInstruction).registerA }
+        if (allowedRegister - crashP0 !in 1..crashConstructor.parameterTypes.size) {
+            throw PatchException("$PATCH: $CRASH_ALLOWED is stored from v$allowedRegister, not a parameter (p0 = v$crashP0)")
+        }
+        crashConstructor.addInstructionsChecked(
+            0,
+            "${if (allowedRegister < 16) "const/4" else "const/16"} p${allowedRegister - crashP0}, 0x0",
+        )
     }
 }

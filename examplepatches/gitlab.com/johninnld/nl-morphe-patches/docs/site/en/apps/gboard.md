@@ -1,10 +1,12 @@
 # Gboard
 
-**App version:** 18.6.3.1002251336-release-arm64-v8a · **Build:** 176071766 · **Original file:** APK
+**App version:** 18.8.0.1022711984-beta-arm64-v8a · **Build:** 176124766 · **Original file:** APK
 
 [Use your original APK](../guides/downloads.md#local-original-inputs){ .md-button .md-button--primary }
 
-Select Google's armeabi-v7a APK (build 176071765) or arm64-v8a APK (build 176071766) for this exact release; each build's versionName ends in its own ABI. Android 8.0+ is enough: the minAPI26 and minAPI32 variants of each build both work.
+Select Google's armeabi-v7a APK (build 176124765) or arm64-v8a APK (build 176124766) for this exact release; each build's versionName ends in its own ABI. Android 8.0+ is enough: the minAPI26 and minAPI32 variants of each build both work.
+
+[Read how to use and test every Gboard patch](../guides/gboard.md) · [Make Frosted Glass visible](../guides/gboard.md#frosted-glass)
 
 ## Patches
 
@@ -20,24 +22,123 @@ Select Google's armeabi-v7a APK (build 176071765) or arm64-v8a APK (build 176071
 | **Rambler stop after silence** | On | Rambler stops by itself after 3 seconds without speech and keeps the text, as when you tap ✓. Change the time (3, 5, 8 or 10 seconds) or switch it off under Gboard settings → Voice typing → Rambler → **Stop after silence**. Requires Rambler voice typing. |
 | **Parakeet personal dictionary** | On | Lets Parakeet spell the names and words in the **Voice dictionary**'s voice correction list, including contact names added there. Parakeet favours them while listening and corrects a sound-alike spelling only when a second listen agrees. Needs a 2 MB spelling download under Parakeet voice typing. Requires Parakeet voice typing and Rambler personal dictionary. |
 | **Change package name** | On | Installs the patched Gboard under its own package name (app.morphe.android.inputmethod.latin by default), so it sits beside the stock Gboard that most phones have built in. Your stock Gboard, its settings and its dictionary are not touched; choose the patched keyboard in Android's keyboard settings. |
-| **Custom branding** | Off | Changes the app name shown in the launcher, Android's keyboard list and app information, and the launcher icon (Parakeet by default, Gboard's original or five other designs), so the patched keyboard is easy to tell apart from the stock one. |
+| **Custom branding** | On | Sets the launcher name to **Gboard Parakeet/Rambler** and uses the Parakeet icon by default. Change either in Morphe's patch options. |
 | **Add Gboard Signature Bypass** | On | Lets the patched, re-signed Gboard use the parts that check the app's signature, such as Themes, which otherwise stop with a warning about unrecognized certificates. |
 | **Rounded Keyboard Panel** | On | Chooses which corners of the keyboard panel are rounded and sets the top and bottom radii separately, on whichever theme is active. |
 | **Frosted Glass** | On | Adds live background blur behind the keyboard plus theme or custom transparency for the background and the keys, with an option to extend the effect into the navigation bar. Blur needs Android 12 or newer. |
 | **Custom Theme** | On | Adds ZIP theme import to Gboard's own theme screen and a gallery of ready-made theme packs, downloaded on demand and checked by checksum. Adds the INTERNET permission. |
 | **G Logo on Spacebar** | On | Shows a built-in icon or your own PNG, WebP or JPEG on the space bar, in its own colours or a single colour, with an adjustable size. |
 | **Key Shape Selection** | On | Enables Gboard's own Key shape option in theme details, so a theme's keys keep their shape instead of being forced square. |
-| **AMOLED dark keyboard** | Off | Turns the dark keyboard background pure black instead of Google's grey, including the dynamic theme that follows your wallpaper, while light mode keeps the light keyboard. Experimental: confirmed on an emulator, not yet on a phone. |
+| **AMOLED dark keyboard** | On | Turns the dark keyboard background pure black instead of Google's grey, including the dynamic theme that follows your wallpaper, while light mode keeps the light keyboard. There is no separate tile: pick Dynamic Color in Gboard's theme screen — see [AMOLED dark keyboard](#amoled-dark-keyboard). |
 | **Enable OCR / Scan Text** | On | Adds Gboard's Scan Text camera entry point: point the camera at text and it is recognised and inserted at your cursor. The patch ships its own on-device OCR engine, because Play Services refuses the download to a re-signed Gboard. Latin text only. You can also pick an existing screenshot or photo in Gboard settings and have its text copied to the clipboard. |
-| **AI Writing Tools** | On | Turns on Gboard's Writing tools on selected text: proofread for spelling, grammar and punctuation, rewrite, and set a tone. Google's own client does the work; on Pixel phones it can run on-device, elsewhere it uses Google's server. Works in every language and keyboard layout. |
+| **AI Writing Tools** | On | Exposes Google's rewrite and tone tools for selected text where supported. Proofread / Auto Fix is outside this port. |
 | **Clipboard Enhancements** | On | Controls how long copied snippets stay available, how many are kept, how many preview lines a card shows, and whether cards show a countdown, creation time, order number and column count. |
 | **Web Clipboard** | On | Hosts a small Web Clipboard portal on the phone so a desktop browser on the same local network can exchange clipboard text with Gboard. The portal is protected by a pairing code and can be reached from a Quick Settings tile. |
 | **Toolbar Editing Buttons** | On | Adds Select All, Copy, Cut and Paste to Gboard's menu so they can be dragged onto the top toolbar and used across supported keyboard languages and editors. |
 | **Cursor trackpad mode** | On | Long-press the space bar to move the cursor more precisely with a trackpad and use the lock mode. |
 | **Incognito Mode Toggle** | On | Adds an Incognito toggle to the Access Point toolbar and lets you choose whether the clipboard and voice typing stay available while Incognito is active. This controls Gboard's own incognito state; it is not a network-wide tracking blocker. |
 | **Simple Calculator** | On | Type an arithmetic expression in a text field and see a scrollable equation with its answer in Gboard's suggestion row, ready to insert. |
+| **Advanced voice typing (NGA)** | On | Enables Google's advanced dictation capabilities and bundles the matching dictation component for both ABIs. Availability depends on Gboard's recognizer eligibility. |
+| **Use Bluetooth microphone** | On | Shows Gboard's own Voice typing → **Use Bluetooth microphone** switch, which stock hides, so dictation can capture from a paired headset. The stock switch still decides routing. |
+| **Rambler toolbar & revert extras (18.8)** | On | Adds the overflow button to the floating Rambler toolbar, keeps the rewritten text when you revert from the full transcript to the cleaned-up text, and passes edit history on the Jetson Lite path. |
+| **Rambler automatic retry (18.8)** | On | Lets Rambler retry an eligible recognition failure with audio from the current dictation. It may send that audio to Google again. |
+| **Hidden flags (18.8)** | On | Three internal 18.8 flags written through Gboard's own override store: app-specific word biasing, the app-specific suggestion bar and the square normalised search radius. See [Hidden flags](#hidden-flags-188). |
+| **Beta features (18.8)** | On | Enables five features for clipboard, floating keyboard, Emoji2 and suggestion removal. Change each under **Patches → More settings → Beta features**. See [Beta features](#beta-features-188). |
 
-Clipboard Enhancements, Web Clipboard, Toolbar Editing Buttons, Cursor trackpad mode, Incognito Mode Toggle, Simple Calculator, Rounded Keyboard Panel, Frosted Glass, Custom Theme, G Logo on Spacebar and Key Shape Selection are ported from the GPLv3 [Gboard Patches](https://github.com/jasonwu1994/Gboard-patches) project and updated for Gboard 18.6.3.
+Clipboard Enhancements, Web Clipboard, Toolbar Editing Buttons, Cursor trackpad mode, Incognito Mode Toggle, Simple Calculator, Rounded Keyboard Panel, Frosted Glass, Custom Theme, G Logo on Spacebar and Key Shape Selection are ported from the GPLv3 [Gboard Patches](https://github.com/jasonwu1994/Gboard-patches) project and updated for Gboard 18.8.0.
+
+
+### Advanced voice typing (NGA)
+This patch enables Google’s advanced dictation capabilities and bundles the matching native component. Gboard still checks that the recognizer and language can start. The selector has two entries, **Rambler** and **Standard** (Parakeet when applied and ready). See [setup and testing](../guides/gboard.md#advanced-voice-typing-nga).
+
+### Use Bluetooth microphone
+Stock declares `enable_use_bluetooth_setting` false, so the row never appears. This patch exposes Gboard's **Voice typing → Use Bluetooth microphone** switch; the switch then decides whether recordings come from the headset.
+
+- Two different things: the patch makes the row visible; the stock row enables routing.
+- Gboard applies its own input-device rules (Android version, wired/USB preference, car devices can be excluded). A paired headset alone proves nothing — dictating with the phone's and the headset's microphone near different sounds is the test.
+
+### Rambler toolbar and revert extras (18.8)
+Three behaviors available when the extras patch is applied:
+
+- **Overflow menu** on the floating Rambler toolbar, where the secondary toolbar actions live.
+- **Keep rewritten text on revert**: when you revert from the full transcript to the cleaned-up text, the rewritten version is kept instead of discarded.
+- **Lite edit history**: passes edit history into a Jetson Lite request; it has no effect unless the Lite path is active.
+
+### Hidden flags (18.8)
+Three flags Gboard keeps for internal builds, written through Gboard's **own override store**, so they apply to the running keyboard:
+
+- **App-specific word biasing** (`enable_dcontext_biasing`)
+- **App-specific suggestion bar** (`enable_dcontext_suggestion_bar`)
+- **Square normalised search radius** (`square_normalized_search_radius`)
+
+Opening the screen writes nothing. A switch you toggle is recorded as an explicit On or Off and is re-applied after a restart; the curated flags start on, and explicit Off choices stay off. Every write is read back, and a failure is logged as `Hidden flag switch did not take`.
+
+### AMOLED dark keyboard
+This patch has no tile of its own in Gboard's theme picker; it recolours the dark palette that the
+dynamic theme uses.
+
+1. When patching in Morphe Manager, make sure **AMOLED dark keyboard** is selected. If it was not,
+   re-patch with it enabled and install the update.
+2. In patched Gboard, open **Settings → Theme**, choose **Dynamic Color**, and tap **Apply**.
+3. Turn on Android's dark theme, then reopen the keyboard in a text field.
+
+**What to look for:** the background behind and between the keys is pure black (`#000000`). Key faces
+can still be grey or tinted. For a quick A/B test, switch Android back to light mode and reopen the
+keyboard — the same theme returns to its light palette.
+
+AMOLED applies automatically to the dark palette.
+
+## Beta features (18.8)
+
+Gboard 18.8 ships five finished features that Google keeps switched off for a re-signed build. **Beta features (18.8)** turns them on together, behind a single switch: Gboard settings → Patch settings → More settings → **Beta features**. It is on once you apply the patch; turn it off and restart Gboard to get Google's behaviour back. None of them needs an account, a download or a server.
+
+| Feature | Where you see it | How to use it |
+| --- | --- | --- |
+| Quick-paste chip | Suggestion row above the keyboard | Copy text, open a text field: a second chip next to the clipboard suggestion pastes with one tap |
+| Clipboard chip on the floating keyboard | Floating keyboard's suggestion strip | Copy text and switch to the floating keyboard: the clipboard item now appears there too |
+| Invisible resizing | Edges of the floating keyboard | Drag just inside the left or right edge to make the float wider or narrower; there is no visible handle |
+| Emoji2 rendering | Emoji picker | Nothing to press: emoji are drawn by the platform Emoji2 stack instead of Gboard's older provider |
+| Swipe-to-remove confirmation | Suggestion row | Drag a suggestion out of the bar: the confirmation bubble uses the newer layout |
+
+### Quick-paste chip
+
+Copied text normally shows one clipboard chip, and tapping it opens the clipboard panel. With the beta switch on, a plain-text clip additionally shows a **paste** chip: one tap inserts the text at the cursor without opening the panel.
+
+- Only plain text gets the extra chip; images and rich content keep the normal chip.
+- It follows the clip on top of the clipboard, like the normal suggestion.
+- Requires Gboard's clipboard suggestions (Gboard settings → Clipboard) to be on, exactly like the normal chip.
+
+### Clipboard chip on the floating keyboard
+
+The floating keyboard has its own suggestion strip, and stock Gboard refuses clipboard items there. With the beta switch on, the clipboard chip appears in the floating strip as well, so you can paste while the keyboard floats.
+
+- Requires **Clipboard** suggestions in Gboard settings and the keyboard in floating mode.
+- On the docked keyboard nothing changes.
+
+### Invisible resizing of the floating keyboard
+
+The floating keyboard can be resized by dragging an invisible band just inside its left or right edge. There is no grip or handle, so the feature is easy to miss: drag inward or outward from the edge and the keyboard follows.
+
+- Only the floating layout resizes; the split and docked layouts are unchanged.
+- The size is remembered while the keyboard floats.
+
+### Emoji2 rendering
+
+This switches Gboard's emoji provider from its own implementation to the platform's Emoji2 stack. There is no visible switch: current emoji render correctly and the picker works as before. It is the least visible of the five and safe to leave on.
+
+### Swipe-to-remove confirmation
+
+When you drag a suggestion or a learned word out of the suggestion bar, Gboard asks for confirmation. The beta switch selects the newer confirmation layout. If you never drag suggestions away, you will not notice it.
+
+### Cursor after a Rambler edit
+
+This one is not behind the beta switch: with **Rambler voice typing** applied, Rambler leaves the cursor **after the text it just changed** instead of at the end of the field. Dictate an edit in the middle of a text and keep typing where you were.
+
+### If something does not appear
+
+- Restart Gboard after changing the switch; Android may keep the old keyboard process alive.
+- `adb logcat | grep GboardPatches` shows why a beta feature declined to start. Nothing is logged when it works.
+- The five features were verified to apply to the 18.8.0 beta, not yet confirmed on a phone. The two clipboard chips also need Gboard's own clipboard setting on, and the floating-keyboard chips need the keyboard to float.
 
 ## Choosing a model
 
@@ -121,7 +222,7 @@ Google's Rambler keeps listening until you tap ✓ or ✕, with a five-minute li
 - A 64-bit ARM phone is required. Keep about 1.4 GB free while downloading; the installed model takes about 650 MB.
 - The model uses roughly 700 MB of memory while you dictate and is unloaded after five idle minutes, so the first sentence after a break takes a moment longer.
 - With Change package name on, the patched Gboard is a separate app with its own settings: enable it under Android settings → Keyboard, then pick it. Without that patch it cannot be installed on phones that have Gboard built in. Features that depend on Google's own app signature may not work in the patched copy; Parakeet does not need them.
-- The seventeen Gboard patches were verified to build and apply against this 18.6.3 build. Patch application is not the same as a full device test of every feature.
+- The 26 Gboard patches (plus the Beta features patch) were verified to build and apply against this 18.8.0 beta build on both ABIs. Patch application is not the same as a full device test of every feature.
 - Checked on an Android 14 emulator: the settings entry, the download, and Dutch, English and mixed Dutch-English dictation into a text field, plus silence and background noise without stray text. Dictation on a phone has not been confirmed yet.
 
 [Installation](../guides/install.md) · [Choose patches](../guides/choose-patches.md)

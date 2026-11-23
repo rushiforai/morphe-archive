@@ -29,7 +29,7 @@ class BlueMailSmokeTest {
             apk = apk,
             workDir = workDir,
             pkg = PKG,
-            version = "2.2.432",
+            version = "2.2.436",
             patchNames = setOf("Disable ads"),
             allPatches = loadAllPatches(newestPatchBundle(root)),
         )

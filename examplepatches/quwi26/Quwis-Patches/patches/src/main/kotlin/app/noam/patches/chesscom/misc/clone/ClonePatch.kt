@@ -36,7 +36,8 @@ val clonePatch = patch(
     name = "Clone Chess.com",
     description = "Renames the app package so it installs next to the real Chess.com app " +
         "instead of over it. The default package is com.chess.$DEFAULT_SUFFIX; the last part " +
-        "can be changed in the patch options. Leave it off to keep updating your current install.",
+        "can be changed in the patch options. Leave it off to keep updating your current install. " +
+        "This patch does not work with root mounting.",
     default = false,
 ) {
     compatibleWith(Constants.COMPATIBILITY)

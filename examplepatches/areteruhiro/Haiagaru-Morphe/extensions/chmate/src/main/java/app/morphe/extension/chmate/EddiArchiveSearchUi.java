@@ -138,7 +138,7 @@ final class EddiArchiveSearchUi {
         boolean dark = theme == 1 || theme == 2 || (theme != 3
                 && (activity.getResources().getConfiguration().uiMode
                     & Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES);
-        background = dark ? Color.rgb(18, 18, 20) : Color.WHITE;
+        background = theme == 2 ? Color.BLACK : dark ? Color.rgb(30, 30, 32) : Color.WHITE;
         foreground = dark ? Color.WHITE : Color.rgb(28, 30, 34);
         muted = dark ? Color.rgb(185, 188, 198) : Color.rgb(95, 99, 108);
 
@@ -146,6 +146,7 @@ final class EddiArchiveSearchUi {
         root.setTag(REFRESH_ACTION_TAG,(Runnable)this::refreshResults);
         root.setOrientation(LinearLayout.VERTICAL);
         root.setBackgroundColor(background);
+        root.setTag(CheckerBarOptions.PALETTE_TAG, new int[]{background, foreground});
         root.setPadding(dp(16), dp(12), dp(16), dp(8));
         if (!embedded && Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             // This native search screen returns before HissiMenuActivity installs

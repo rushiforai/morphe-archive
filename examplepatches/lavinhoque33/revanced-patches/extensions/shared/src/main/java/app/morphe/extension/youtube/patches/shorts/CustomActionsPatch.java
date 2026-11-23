@@ -10,7 +10,7 @@
  * - inotia00 (https://github.com/inotia00)
  *
  * Licensed under the GNU General Public License v3.0.
- * Modified by lavinhoque33, 2026-11-17
+ * Modified by lavinhoque33, 2026-11-22.
  *
  * ------------------------------------------------------------------------
  * GPLv3 Section 7 – Additional Terms & Attribution Requirements
@@ -221,10 +221,7 @@ public final class CustomActionsPatch {
                     flyoutPanel,
                     customAction.getDrawable(),
                     customAction.getLabel(),
-                    view -> {
-                        FlyoutUtils.dismissFlyout();
-                        customAction.getOnClickAction().run();
-                    },
+                    view -> customAction.runClickAction(FlyoutUtils::dismissFlyout),
                     longClickListener,
                     index
             );
@@ -408,6 +405,17 @@ public final class CustomActionsPatch {
         parentView4th.setVisibility(View.GONE);
     }
 
+    private static void launchShortDownload(@Nullable Runnable dismiss) {
+        ShortsDownloadTarget.INSTANCE.launch(
+                isShortsActive(),
+                ShortsDownloadTarget.usesNativeSource(),
+                ShortsCustomActionsFilter::getShortsVideoId,
+                dismiss,
+                VideoUtils::launchVideoExternalDownloader,
+                () -> Utils.showToastShort(str("revanced_offline_download_unavailable"))
+        );
+    }
+
     public enum CustomAction {
         COPY_URL(
                 Settings.SHORTS_CUSTOM_ACTIONS_COPY_VIDEO_URL,
@@ -451,9 +459,7 @@ public final class CustomActionsPatch {
                 Settings.SHORTS_CUSTOM_ACTIONS_EXTERNAL_DOWNLOADER,
                 "yt_outline_download_black_24",
                 "yt_outline_experimental_download_vd_theme_24",
-                () -> VideoUtils.launchVideoExternalDownloader(
-                        ShortsCustomActionsFilter.getShortsVideoId()
-                )
+                () -> launchShortDownload(null)
         ),
         OPEN_VIDEO(
                 Settings.SHORTS_CUSTOM_ACTIONS_OPEN_VIDEO,
@@ -627,15 +633,22 @@ public final class CustomActionsPatch {
 
         @NonNull
         public Runnable getOnClickActionWithFlyoutMenuDismiss() {
-            return () -> {
-                hideFlyoutMenu();
-                onClickAction.run();
-            };
+            return () -> runClickAction(CustomActionsPatch::hideFlyoutMenu);
+        }
+
+        private void runClickAction(Runnable dismiss) {
+            if (this == EXTERNAL_DOWNLOADER) {
+                launchShortDownload(dismiss);
+                return;
+            }
+
+            dismiss.run();
+            onClickAction.run();
         }
 
         @NonNull
         public View.OnClickListener getOnClickListener() {
-            return v -> getOnClickActionWithFlyoutMenuDismiss().run();
+            return v -> runClickAction(CustomActionsPatch::hideFlyoutMenu);
         }
 
         @Nullable

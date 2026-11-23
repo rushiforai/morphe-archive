@@ -5,6 +5,7 @@ import app.morphe.patcher.Fingerprint
 /**
  * Fingerprint matching AuthenticationViewModel.<init>(...)
  * Used to make custom server settings button permanently visible on the login screen.
+ * Matched by definingClass + strings in both 4.10.5 and 4.11.2.
  */
 object AuthenticationViewModelInitFingerprint : Fingerprint(
     definingClass = "Lcom/habitrpg/android/habitica/ui/viewmodels/AuthenticationViewModel;",
@@ -13,10 +14,8 @@ object AuthenticationViewModelInitFingerprint : Fingerprint(
     strings = listOf("server_url")
 )
 
-/**
- * Fingerprint matching Analytics.initialize(Context)
- * Neutralized to prevent Firebase Crashlytics & Performance monitoring initialization.
- */
+// ── 4.10.5 Analytics Fingerprints ────────────────────────────────────────────
+
 object AnalyticsInitializeFingerprint : Fingerprint(
     definingClass = "Lcom/habitrpg/android/habitica/helpers/Analytics;",
     name = "initialize",
@@ -24,10 +23,6 @@ object AnalyticsInitializeFingerprint : Fingerprint(
     parameters = listOf("Landroid/content/Context;")
 )
 
-/**
- * Fingerprint matching Analytics.logException(Throwable)
- * Neutralized to prevent unconditional crash reporting to Firebase Crashlytics.
- */
 object AnalyticsLogExceptionFingerprint : Fingerprint(
     definingClass = "Lcom/habitrpg/android/habitica/helpers/Analytics;",
     name = "logException",
@@ -35,10 +30,6 @@ object AnalyticsLogExceptionFingerprint : Fingerprint(
     parameters = listOf("Ljava/lang/Throwable;")
 )
 
-/**
- * Fingerprint matching Analytics.logError(String)
- * Neutralized to prevent error logging to Firebase Crashlytics.
- */
 object AnalyticsLogErrorFingerprint : Fingerprint(
     definingClass = "Lcom/habitrpg/android/habitica/helpers/Analytics;",
     name = "logError",
@@ -46,10 +37,6 @@ object AnalyticsLogErrorFingerprint : Fingerprint(
     parameters = listOf("Ljava/lang/String;")
 )
 
-/**
- * Fingerprint matching Analytics.setUserID(String)
- * Neutralized to prevent linking Habitica UUID to Firebase Crashlytics identity.
- */
 object AnalyticsSetUserIDFingerprint : Fingerprint(
     definingClass = "Lcom/habitrpg/android/habitica/helpers/Analytics;",
     name = "setUserID",
@@ -57,10 +44,6 @@ object AnalyticsSetUserIDFingerprint : Fingerprint(
     parameters = listOf("Ljava/lang/String;")
 )
 
-/**
- * Fingerprint matching Analytics.clearUserID()
- * Neutralized to prevent identity operations with Firebase Crashlytics.
- */
 object AnalyticsClearUserIDFingerprint : Fingerprint(
     definingClass = "Lcom/habitrpg/android/habitica/helpers/Analytics;",
     name = "clearUserID",
@@ -68,10 +51,6 @@ object AnalyticsClearUserIDFingerprint : Fingerprint(
     parameters = emptyList()
 )
 
-/**
- * Fingerprint matching Analytics.setAnalyticsConsent(Boolean)
- * Neutralized to prevent any consent state transmission to Firebase.
- */
 object AnalyticsSetConsentFingerprint : Fingerprint(
     definingClass = "Lcom/habitrpg/android/habitica/helpers/Analytics;",
     name = "setAnalyticsConsent",
@@ -79,10 +58,52 @@ object AnalyticsSetConsentFingerprint : Fingerprint(
     parameters = listOf("Ljava/lang/Boolean;")
 )
 
-/**
- * Fingerprint matching HabiticaBaseApplication.setupRemoteConfig()
- * Patched to load local XML defaults without initiating network fetch or realtime listeners.
- */
+// ── 4.11.2 FirebaseAnalyticsManager Fingerprints ─────────────────────────────
+
+object FirebaseAnalyticsInitializeFingerprint : Fingerprint(
+    definingClass = "Lcom/habitrpg/android/habitica/helpers/FirebaseAnalyticsManager;",
+    name = "initialize",
+    returnType = "V",
+    parameters = listOf("Landroid/content/Context;")
+)
+
+object FirebaseAnalyticsLogExceptionFingerprint : Fingerprint(
+    definingClass = "Lcom/habitrpg/android/habitica/helpers/FirebaseAnalyticsManager;",
+    name = "logException",
+    returnType = "V",
+    parameters = listOf("Ljava/lang/Throwable;")
+)
+
+object FirebaseAnalyticsLogErrorFingerprint : Fingerprint(
+    definingClass = "Lcom/habitrpg/android/habitica/helpers/FirebaseAnalyticsManager;",
+    name = "logError",
+    returnType = "V",
+    parameters = listOf("Ljava/lang/String;")
+)
+
+object FirebaseAnalyticsSetUserIDFingerprint : Fingerprint(
+    definingClass = "Lcom/habitrpg/android/habitica/helpers/FirebaseAnalyticsManager;",
+    name = "setUserID",
+    returnType = "V",
+    parameters = listOf("Ljava/lang/String;")
+)
+
+object FirebaseAnalyticsClearUserIDFingerprint : Fingerprint(
+    definingClass = "Lcom/habitrpg/android/habitica/helpers/FirebaseAnalyticsManager;",
+    name = "clearUserID",
+    returnType = "V",
+    parameters = emptyList()
+)
+
+object FirebaseAnalyticsSetConsentFingerprint : Fingerprint(
+    definingClass = "Lcom/habitrpg/android/habitica/helpers/FirebaseAnalyticsManager;",
+    name = "setAnalyticsConsent",
+    returnType = "V",
+    parameters = listOf("Ljava/lang/Boolean;")
+)
+
+// ── Application Lifecycle & Telemetry Fingerprints ───────────────────────────
+
 object SetupRemoteConfigFingerprint : Fingerprint(
     definingClass = "Lcom/habitrpg/android/habitica/HabiticaBaseApplication;",
     name = "setupRemoteConfig",
@@ -90,10 +111,6 @@ object SetupRemoteConfigFingerprint : Fingerprint(
     parameters = emptyList()
 )
 
-/**
- * Fingerprint matching HabiticaBaseApplication.setupNotifications()
- * Neutralized to prevent Firebase Installations ID generation and FCM token acquisition.
- */
 object SetupNotificationsFingerprint : Fingerprint(
     definingClass = "Lcom/habitrpg/android/habitica/HabiticaBaseApplication;",
     name = "setupNotifications",
@@ -101,10 +118,6 @@ object SetupNotificationsFingerprint : Fingerprint(
     parameters = emptyList()
 )
 
-/**
- * Fingerprint matching HabiticaBaseApplication.setupAdHandler()
- * Neutralized to prevent AdMob initialization.
- */
 object SetupAdHandlerFingerprint : Fingerprint(
     definingClass = "Lcom/habitrpg/android/habitica/HabiticaBaseApplication;",
     name = "setupAdHandler",
@@ -112,10 +125,17 @@ object SetupAdHandlerFingerprint : Fingerprint(
     parameters = emptyList()
 )
 
-/**
- * Fingerprint matching AdHandler.show()
- * Replaced to immediately invoke rewardAction callback with Boolean.TRUE without loading ads.
- */
+// ── Privacy Preferences Dialog Bypass Fingerprint ────────────────────────────
+
+object PrivacyPreferencesActivityOnCreateFingerprint : Fingerprint(
+    definingClass = "Lcom/habitrpg/android/habitica/ui/activities/PrivacyPreferencesActivity;",
+    name = "onCreate",
+    returnType = "V",
+    parameters = listOf("Landroid/os/Bundle;")
+)
+
+// ── Rewarded Ads Fingerprints (<= 4.10.5) ────────────────────────────────────
+
 object AdHandlerShowFingerprint : Fingerprint(
     definingClass = "Lcom/habitrpg/android/habitica/helpers/AdHandler;",
     name = "show",
@@ -123,10 +143,6 @@ object AdHandlerShowFingerprint : Fingerprint(
     parameters = emptyList()
 )
 
-/**
- * Fingerprint matching AppConfigManager.enableArmoireAds()
- * Forced to return true so the Armoire ad button is always visible.
- */
 object EnableArmoireAdsFingerprint : Fingerprint(
     definingClass = "Lcom/habitrpg/android/habitica/helpers/AppConfigManager;",
     name = "enableArmoireAds",
@@ -134,10 +150,6 @@ object EnableArmoireAdsFingerprint : Fingerprint(
     parameters = emptyList()
 )
 
-/**
- * Fingerprint matching AdHandler$Companion.nextAdAllowedDate(AdType)
- * Forced to return null to bypass residual cooldown timers on ad buttons.
- */
 object NextAdAllowedDateFingerprint : Fingerprint(
     definingClass = "Lcom/habitrpg/android/habitica/helpers/AdHandler\$Companion;",
     name = "nextAdAllowedDate",
@@ -145,13 +157,15 @@ object NextAdAllowedDateFingerprint : Fingerprint(
     parameters = listOf("Lcom/habitrpg/android/habitica/helpers/AdType;")
 )
 
+// ── Armoire Subscriber Free Roll Fingerprint (>= 4.11.2 & Universal) ─────────
+
 /**
- * Fingerprint matching PrivacyPreferencesActivity.onCreate(Bundle)
- * Used to immediately finish the activity and bypass the privacy preferences page.
+ * Fingerprint matching User.isSubscribed()
+ * Used to grant subscriber benefits (such as free daily Armoire rolls) across all app versions.
  */
-object PrivacyPreferencesActivityOnCreateFingerprint : Fingerprint(
-    definingClass = "Lcom/habitrpg/android/habitica/ui/activities/PrivacyPreferencesActivity;",
-    name = "onCreate",
-    returnType = "V",
-    parameters = listOf("Landroid/os/Bundle;")
+object UserIsSubscribedFingerprint : Fingerprint(
+    definingClass = "Lcom/habitrpg/android/habitica/models/user/User;",
+    name = "isSubscribed",
+    returnType = "Z",
+    parameters = emptyList()
 )

@@ -10,7 +10,7 @@
  * - inotia00 (https://github.com/inotia00)
  *
  * Licensed under the GNU General Public License v3.0.
- * Modified by lavinhoque33, 2026-11-17.
+ * Modified by lavinhoque33, 2026-11-22.
  *
  * ------------------------------------------------------------------------
  * GPLv3 Section 7 – Additional Terms & Attribution Requirements
@@ -482,6 +482,10 @@ private val shortsCustomActionsPatch = bytecodePatch(
         addLithoFilter(SHORTS_PLAYER_FLYOUT_MENU_FILTER_CLASS_DESCRIPTOR)
 
         // endregion
+
+        if (is_21_04_or_greater && !hookShortsDownloadTarget()) {
+            printWarn("Could not bind the active Shorts reel for downloads on this YouTube version.")
+        }
 
         if (!is_19_02_or_greater) {
             return@execute

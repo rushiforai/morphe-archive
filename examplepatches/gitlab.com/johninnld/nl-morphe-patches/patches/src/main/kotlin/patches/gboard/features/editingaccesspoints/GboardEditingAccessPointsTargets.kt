@@ -8,7 +8,7 @@ import patches.gboard.shared.mutableClass
 
 /** Reviewed target shape. No editor policy belongs in this version adapter. */
 internal object GboardEditingAccessPointsTargets {
-    private const val OWNER = "Lpbk;"
+    private const val OWNER = "Lafae;"
     val startView = lifecycle("onStartInputView", "Landroid/view/inputmethod/EditorInfo;", "Z")
     val resetMethods = listOf(
         startView,
@@ -22,13 +22,16 @@ internal object GboardEditingAccessPointsTargets {
         GboardMethodTarget(OWNER, name, parameters.toList(), "V")
 
     private val descriptorMethods = listOf(
-        GboardMethodTarget("Lmmm;", "c", emptyList(), "Lmmh;") to true,
-        GboardMethodTarget("Lmmh;", "l", listOf("Ljava/lang/String;"), "V") to false,
-        GboardMethodTarget("Lmmh;", "i", listOf("I"), "V") to false,
-        GboardMethodTarget("Lmmh;", "q", listOf("Ljava/lang/Runnable;"), "V") to false,
-        GboardMethodTarget("Lmmh;", "a", emptyList(), "Lmmm;") to false,
-        GboardMethodTarget("Lmpq;", "g", listOf("Lmmm;", "Z"), "V") to false,
-        GboardMethodTarget("Lwim;", "n", listOf("Ljava/util/Collection;"), "Lwim;") to true,
+        // 18.8.0: AccessPoint.m() is the static factory and returns the abstract builder;
+        // the concrete AutoValue builder (Laaej) keeps q(String)/l(I)/field d:a(), while the
+        // click action setter moved to the base class as v(Runnable).
+        GboardMethodTarget("Laadr;", "m", emptyList(), "Laadm;") to true,
+        GboardMethodTarget("Laaej;", "q", listOf("Ljava/lang/String;"), "V") to false,
+        GboardMethodTarget("Laaej;", "l", listOf("I"), "V") to false,
+        GboardMethodTarget("Laadm;", "v", listOf("Ljava/lang/Runnable;"), "V") to false,
+        GboardMethodTarget("Laaej;", "a", emptyList(), "Laadr;") to false,
+        GboardMethodTarget("Laajh;", "g", listOf("Laadr;", "Z"), "V") to false,
+        GboardMethodTarget("Lauco;", "n", listOf("Ljava/util/Collection;"), "Lauco;") to true,
     )
 
     fun validate(context: BytecodePatchContext) {
@@ -49,7 +52,7 @@ internal object GboardEditingAccessPointsTargets {
             check(method.implementation != null) { "Missing body: ${target.reference}" }
         }
         listOf("d").forEach { name ->
-            val field = GboardFieldTarget("Lmmh;", name, "Ljava/lang/String;").resolve(context)
+            val field = GboardFieldTarget("Laaej;", name, "Ljava/lang/String;").resolve(context)
             check(!AccessFlags.STATIC.isSet(field.accessFlags)) { "Unexpected builder field: $name" }
         }
     }

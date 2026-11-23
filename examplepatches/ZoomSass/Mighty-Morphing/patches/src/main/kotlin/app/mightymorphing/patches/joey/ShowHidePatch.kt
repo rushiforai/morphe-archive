@@ -7,6 +7,7 @@ import app.morphe.patcher.patch.bytecodePatch
 
 private const val SETTINGS = "Lapp/mightymorphing/extension/joey/MorpheSettings;"
 private const val BAR = "Lapp/mightymorphing/extension/joey/EditorBar;"
+private const val REPLY = "Lapp/mightymorphing/extension/joey/ReplyCard;"
 private const val SIDEBAR = "Lapp/mightymorphing/extension/joey/Sidebar;"
 private const val TOOLBAR = "Lapp/mightymorphing/extension/joey/SubredditToolbar;"
 
@@ -16,6 +17,8 @@ val showHidePatch = bytecodePatch(
     description = "Choose which comment editor buttons, sidebar entries, subreddit toolbar items and post actions are shown, and drag to reorder them. What doesn't fit on a post goes in its menu. Adjust in Joey Settings - Morphe Settings.",
 ) {
     compatibleWith(JOEY)
+
+    dependsOn(problemReportPatch)
 
     extendWith("extensions/extension.mpe")
 
@@ -33,6 +36,13 @@ val showHidePatch = bytecodePatch(
             setup.instructions.lastIndex,
             """
             invoke-static {p0}, $BAR->apply(Landroid/app/Activity;)V
+            """,
+        )
+
+        ReplyContextFingerprint.method.insertAt(
+            0,
+            """
+            invoke-static {p0}, $REPLY->prepare(Landroid/app/Activity;)V
             """,
         )
 

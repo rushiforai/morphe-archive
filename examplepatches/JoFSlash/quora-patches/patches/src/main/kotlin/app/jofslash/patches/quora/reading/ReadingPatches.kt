@@ -34,7 +34,7 @@ private fun readingPatch(
     category(patchCategory)
     compatibleWith(COMPATIBILITY_QUORA)
 
-    extendWith("extensions/extension.mpe")
+    extendWith("extensions/quora.mpe")
 
     execute {
         PageFinishedFingerprint.method.addInstruction(
@@ -63,7 +63,7 @@ private fun readingOptionPatch(
     category(patchCategory)
     compatibleWith(COMPATIBILITY_QUORA)
 
-    extendWith("extensions/extension.mpe")
+    extendWith("extensions/quora.mpe")
 
     val option = stringOption(
         key = optionKey,
@@ -168,7 +168,7 @@ val copyAnswerTextPatch = bytecodePatch(
     category("Reading")
     compatibleWith(COMPATIBILITY_QUORA)
 
-    extendWith("extensions/extension.mpe")
+    extendWith("extensions/quora.mpe")
 
     execute {
         PageFinishedFingerprint.method.addInstruction(
@@ -189,6 +189,14 @@ val hidePeopleSuggestionsPatch = readingPatch(
     patchCategory = "Feed",
     description = "Hides \"People you may know\" and other people to follow in the feed.",
     extensionMethod = "hidePeopleSuggestions",
+)
+
+@Suppress("unused")
+val hideAnonymousAnswersPatch = readingPatch(
+    name = "Hide anonymous answers",
+    patchCategory = "Feed",
+    description = "Hides answers written as \"Anonymous\" in the feed and on question pages.",
+    extensionMethod = "hideAnonymousAnswers",
 )
 
 @Suppress("unused")
@@ -232,7 +240,7 @@ val hideAskButtonPatch = bytecodePatch(
     category("App")
     compatibleWith(COMPATIBILITY_QUORA)
 
-    extendWith("extensions/extension.mpe")
+    extendWith("extensions/quora.mpe")
 
     execute {
         registerSetting("hideAskButton", "Hide Ask button")
@@ -264,7 +272,7 @@ val dataSaverPatch = bytecodePatch(
     category("Reading")
     compatibleWith(COMPATIBILITY_QUORA)
 
-    extendWith("extensions/extension.mpe")
+    extendWith("extensions/quora.mpe")
 
     val loadOnWifi = booleanOption(
         key = "loadOnWifi",

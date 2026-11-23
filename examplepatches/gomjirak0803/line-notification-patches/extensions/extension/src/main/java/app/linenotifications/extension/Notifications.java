@@ -168,11 +168,12 @@ public final class Notifications {
                 if (!stillActive || !account.equals(NativeLine.account())) continue;
                 if (updated != null && !NativeLine.previewsAllowed()) {
                     // An action refresh must not republish a preview after privacy was disabled.
+                    String newMessage = Strings.get("line_notify_new_message", "You have a new message.");
                     updated = plainSummary(Notification.Builder.recoverBuilder(Settings.context(), updated),
-                            "LINE", "새 메시지가 있습니다");
+                            "LINE", newMessage);
                     if (updated.publicVersion != null) updated.publicVersion = plainSummary(
                             Notification.Builder.recoverBuilder(Settings.context(), updated.publicVersion)
-                                    .setActions(new Notification.Action[0]), "LINE", "새 메시지가 있습니다");
+                                    .setActions(new Notification.Action[0]), "LINE", newMessage);
                 }
                 if (updated == null) manager.cancel(active.getTag(), active.getId());
                 else {
@@ -232,12 +233,13 @@ public final class Notifications {
             // Keep a single room's native sender/body while its push awaits local storage.
             // Never reuse LINE's global summary total or stale recovered BigTextStyle.
             boolean nativePreview = singleRoom && NativeLine.previewsAllowed();
+            String newMessage = Strings.get("line_notify_new_message", "You have a new message.");
             Notification fallback = plainSummary(builder, nativePreview
                     ? original.extras.getCharSequence(Notification.EXTRA_TITLE, "LINE") : "LINE", nativePreview
-                    ? original.extras.getCharSequence(Notification.EXTRA_TEXT, "새 메시지가 있습니다") : "새 메시지가 있습니다");
+                    ? original.extras.getCharSequence(Notification.EXTRA_TEXT, newMessage) : newMessage);
             if (original.publicVersion != null) {
                 fallback.publicVersion = plainSummary(Notification.Builder.recoverBuilder(Settings.context(), original.publicVersion)
-                        .setActions(new Notification.Action[0]), "LINE", "새 메시지가 있습니다");
+                        .setActions(new Notification.Action[0]), "LINE", newMessage);
             }
             builder = Notification.Builder.recoverBuilder(Settings.context(), fallback);
         }
@@ -303,9 +305,11 @@ public final class Notifications {
     }
 
     private static Notification.Builder silent(NotificationManager manager, Notification.Builder builder) {
-        NotificationChannel channel = new NotificationChannel(CHANNEL, "조용한 채팅 알림", NotificationManager.IMPORTANCE_LOW);
+        NotificationChannel channel = new NotificationChannel(CHANNEL,
+                Strings.get("line_notify_channel_silent_name", "Silent chat notifications"), NotificationManager.IMPORTANCE_LOW);
         channel.setSound(null, null); channel.enableVibration(false); channel.enableLights(false);
-        channel.setDescription("Not Too Much Silent로 표시하는 채팅방");
+        channel.setDescription(Strings.get("line_notify_channel_silent_desc",
+                "Chats delivered quietly via Not Too Much Silent"));
         manager.createNotificationChannel(channel);
         // Android retains any explicit channel override made by the user.
         return builder.setChannelId(CHANNEL).setOnlyAlertOnce(true)

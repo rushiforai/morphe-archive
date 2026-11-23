@@ -26,7 +26,7 @@ import patches.gboard.shared.runtimeabi.RuntimeAbiCatalog
 import patches.gboard.shared.runtimeabi.RuntimeCallEmitter
 import patches.gboard.shared.runtimeabi.RuntimeCallId
 
-private const val LATIN_IME_SERVICE_CLASS = "Lpbk;"
+private const val LATIN_IME_SERVICE_CLASS = "Lafae;"
 private const val INPUT_METHOD_SERVICE_CLASS =
     "Landroid/inputmethodservice/InputMethodService;"
 private const val TARGET_METHOD_NAME = "onCreate"
@@ -37,7 +37,10 @@ private const val SUPER_ON_CREATE_DESCRIPTOR =
     "$INPUT_METHOD_SERVICE_CLASS->onCreate()V"
 private const val STOCK_REGISTER_COUNT = 12
 private const val STOCK_RECEIVER_REGISTER = 11
-private const val SAVED_RECEIVER_REGISTER = 9
+// 18.8.0's onCreate keeps v9 live until the constructor call at index 190 (after p0 is
+// clobbered), so the save target moved to v10, whose last stock use is the array store
+// right before the clobber.
+private const val SAVED_RECEIVER_REGISTER = 10
 private const val STOCK_THROW_COUNT = 3
 private const val STOCK_TRY_BLOCK_COUNT = 6
 private const val STOCK_CATCHALL_HANDLER_COUNT = 3
@@ -174,9 +177,6 @@ private fun MutableMethod.validateCompletedPatch() {
         "$TARGET_DESCRIPTOR must contain exactly one receiver save"
     }
     val saveIndex = saveIndices.single()
-    check(instructions.getOrNull(saveIndex - 1).isExactLastSavedLocalUse()) {
-        "$TARGET_DESCRIPTOR receiver save is missing or misplaced"
-    }
     check(instructions.getOrNull(returnIndex - 1).isExactCaptureDelegate()) {
         "$TARGET_DESCRIPTOR delegate is missing, misplaced, or malformed"
     }
@@ -184,10 +184,12 @@ private fun MutableMethod.validateCompletedPatch() {
     check(saveIndex < delegateIndex) {
         "$TARGET_DESCRIPTOR receiver save must precede the delegate"
     }
-    check(instructions.subList(saveIndex + 1, delegateIndex).none { instruction ->
-        SAVED_RECEIVER_REGISTER in instruction.mentionedRegisters()
-    }) {
-        "$TARGET_DESCRIPTOR saved receiver local is redefined or consumed before delegate"
+    val savedLocalConflict = instructions.subList(saveIndex + 1, delegateIndex)
+        .withIndex()
+        .firstOrNull { (_, instruction) -> SAVED_RECEIVER_REGISTER in instruction.mentionedRegisters() }
+    check(savedLocalConflict == null) {
+        "$TARGET_DESCRIPTOR saved receiver local is redefined or consumed before delegate " +
+            "at index ${savedLocalConflict!!.index + saveIndex + 1}: ${savedLocalConflict.value}"
     }
     val firstP0Clobber = instructions.indices.firstOrNull { index ->
         instructions[index].definesRegister(STOCK_RECEIVER_REGISTER)
@@ -309,16 +311,20 @@ private fun receiverSaveInsertionIndex(instructions: List<Instruction>): Int {
     check(savedRegisterAccesses.isNotEmpty()) {
         "$TARGET_DESCRIPTOR must use v$SAVED_RECEIVER_REGISTER before receiver save"
     }
-    val lastAccess = savedRegisterAccesses.last()
-    check(instructions[lastAccess].isExactLastSavedLocalUse()) {
-        "$TARGET_DESCRIPTOR v$SAVED_RECEIVER_REGISTER liveness anchor drifted"
-    }
-    val insertionIndex = lastAccess + 1
     val firstP0Clobber = instructions.indices.firstOrNull { index ->
         instructions[index].definesRegister(STOCK_RECEIVER_REGISTER)
     } ?: error("$TARGET_DESCRIPTOR must retain its p0 clobber")
-    check(insertionIndex < firstP0Clobber) {
-        "$TARGET_DESCRIPTOR has no proven-dead local before p0 clobber"
+
+    // The scratch register only needs to be dead from the save point to the delegate. 18.6.3
+    // ended that window with one exact APUT_OBJECT shape; 18.8.0's register allocator ends it
+    // elsewhere, so the window is established by liveness (no later mention) instead of shape.
+    val lastAccessBeforeClobber = savedRegisterAccesses.lastOrNull { it < firstP0Clobber }
+        ?: error("$TARGET_DESCRIPTOR must use v$SAVED_RECEIVER_REGISTER before receiver save")
+    val insertionIndex = lastAccessBeforeClobber + 1
+    check(instructions.subList(insertionIndex, firstP0Clobber).none { instruction ->
+        SAVED_RECEIVER_REGISTER in instruction.mentionedRegisters()
+    }) {
+        "$TARGET_DESCRIPTOR v$SAVED_RECEIVER_REGISTER is live between the save point and p0 clobber"
     }
     return insertionIndex
 }
@@ -344,13 +350,6 @@ private fun Instruction?.isExactReceiverSave(): Boolean =
         this is TwoRegisterInstruction &&
         registerA == SAVED_RECEIVER_REGISTER &&
         registerB == STOCK_RECEIVER_REGISTER
-
-private fun Instruction?.isExactLastSavedLocalUse(): Boolean =
-    this?.isOpcode("APUT_OBJECT") == true &&
-        this is ThreeRegisterInstruction &&
-        registerA == 1 &&
-        registerB == 2 &&
-        registerC == SAVED_RECEIVER_REGISTER
 
 private fun Instruction.mentionedRegisters(): Set<Int> = when (this) {
     is RegisterRangeInstruction ->

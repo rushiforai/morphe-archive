@@ -17,6 +17,7 @@ class DllEditsTest {
         assertEquals(1, DllEdits.FIRSTPASS_HOSTS.size)
         assertEquals(4, DllEdits.TAPJOY.size)
         assertEquals(1, DllEdits.AMMO_REFILL_POPUP.size)
+        assertEquals(3, DllEdits.HUD_RELOAD.size)
         assertEquals(
             "assets/bin/Data/Managed/Assembly-CSharp-firstpass.dll",
             DllEdits.FIRSTPASS_PATH,
@@ -110,7 +111,7 @@ class DllEditsTest {
     @Test
     fun `no two ranges overlap`() {
         val all = DllEdits.AMMO + DllEdits.CURRENCY_BODIES + DllEdits.CURRENCY_RVA +
-            DllEdits.HOSTS + DllEdits.TAPJOY + DllEdits.AMMO_REFILL_POPUP
+            DllEdits.HOSTS + DllEdits.TAPJOY + DllEdits.AMMO_REFILL_POPUP + DllEdits.HUD_RELOAD
         val firstpass = DllEdits.FIRSTPASS_HOSTS.sortedBy { it.offset }
         val sorted = all.sortedBy { it.offset }
         for (i in 0 until sorted.lastIndex) {
@@ -134,7 +135,8 @@ class DllEditsTest {
     @Test
     fun `old and new of each range have the same length`() {
         for (edit in DllEdits.AMMO + DllEdits.CURRENCY_BODIES + DllEdits.CURRENCY_RVA +
-            DllEdits.HOSTS + DllEdits.FIRSTPASS_HOSTS + DllEdits.TAPJOY + DllEdits.AMMO_REFILL_POPUP
+            DllEdits.HOSTS + DllEdits.FIRSTPASS_HOSTS + DllEdits.TAPJOY + DllEdits.AMMO_REFILL_POPUP +
+            DllEdits.HUD_RELOAD
         ) {
             assertEquals(edit.old.size, edit.new.size, "0x${edit.offset.toString(16)}")
             assertTrue(edit.old.isNotEmpty(), "0x${edit.offset.toString(16)}")
@@ -178,5 +180,25 @@ class DllEditsTest {
             edit.new.toHex(),
             patched.copyOfRange(edit.offset, edit.offset + edit.new.size).toHex(),
         )
+    }
+
+    @Test
+    fun `reload hud writes cache 0 while reloading and prints that cache`() {
+        assertEquals(listOf(0x9BE55, 0x9BE82, 0x9BEC2), DllEdits.HUD_RELOAD.map { it.offset })
+        assertEquals(34, DllEdits.HUD_RELOAD[0].old.size)
+        assertEquals(6, DllEdits.HUD_RELOAD[1].old.size)
+        assertEquals(12, DllEdits.HUD_RELOAD[2].old.size)
+        val data = ByteArray(DllEdits.HUD_RELOAD.maxOf { it.offset + it.old.size })
+        for (edit in DllEdits.HUD_RELOAD) {
+            edit.old.copyInto(data, edit.offset)
+        }
+        val patched = data.applyEdits(DllEdits.HUD_RELOAD)
+        for (edit in DllEdits.HUD_RELOAD) {
+            assertEquals(
+                edit.new.toHex(),
+                patched.copyOfRange(edit.offset, edit.offset + edit.new.size).toHex(),
+                "0x${edit.offset.toString(16)}",
+            )
+        }
     }
 }

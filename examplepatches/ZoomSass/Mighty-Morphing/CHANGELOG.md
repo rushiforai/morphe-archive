@@ -1,3 +1,9 @@
+## [1.6.0](https://github.com/ZoomSass/Mighty-Morphing/compare/v1.5.0...v1.6.0) (2026-11-22)
+
+### ✨ New Features
+
+* Theme Manager, global colours, new editor zones, adaptive icon fix (1.6.0) ([bce6204](https://github.com/ZoomSass/Mighty-Morphing/commit/bce62044fe22b9adcd4dfc3787d347d4e44815b5))
+
 ## [1.5.0](https://github.com/ZoomSass/Mighty-Morphing/compare/v1.4.5...v1.5.0) (2026-11-15)
 
 ### ✨ New Features

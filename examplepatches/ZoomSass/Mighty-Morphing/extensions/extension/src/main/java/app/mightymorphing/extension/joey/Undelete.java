@@ -110,11 +110,7 @@ public final class Undelete {
     }
 
     private static Context appContext() {
-        try {
-            return (Context) Class.forName("o.o.joey.MyApplication").getMethod("p").invoke(null);
-        } catch (Throwable ignored) {
-            return null;
-        }
+        return ModernUi.getContext();
     }
 
     // ---- Joey hooks ----

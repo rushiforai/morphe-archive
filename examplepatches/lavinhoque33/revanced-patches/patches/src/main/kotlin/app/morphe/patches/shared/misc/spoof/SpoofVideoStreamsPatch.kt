@@ -12,6 +12,7 @@
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to Morphe contributions.
  *
  * Modified by lavinhoque33, 2026-11-13
+ * Modified by lavinhoque33, 2026-11-22
  */
 
 package app.morphe.patches.shared.misc.spoof
@@ -64,6 +65,8 @@ private const val WEBVIEW_CHECK_CLASS = "Lapp/morphe/extension/shared/spoof/WebV
 
 internal const val EXTENSION_CLASS =
     "Lapp/morphe/extension/shared/spoof/SpoofVideoStreamsPatch;"
+
+internal const val SPOOF_STREAM_OVERRIDE_METHOD = "patch_setStreamingData"
 
 context(patchContext: BytecodePatchContext)
 internal fun addMediaSessionOverride(extension: String) {
@@ -246,7 +249,7 @@ internal fun spoofVideoStreamsPatch(
 
                 val helperMethod = ImmutableMethod(
                     it.classDef.type,
-                    "patch_setStreamingData",
+                    SPOOF_STREAM_OVERRIDE_METHOD,
                     listOf(
                         ImmutableMethodParameter(videoDetailsClass, null, null),
                         ImmutableMethodParameter(playerProtoClass, null, null)

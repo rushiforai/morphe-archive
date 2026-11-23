@@ -7,7 +7,8 @@ package app.morphe.patches.shared.misc.extension
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
-import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.patch.patch
+import app.morphe.util.onBytecode
 import app.morphe.util.returnEarly
 import app.morphe.util.BundleIdentity
 import com.android.tools.smali.dexlib2.iface.Method
@@ -26,7 +27,7 @@ fun sharedExtensionPatch(
     extensionName: String,
     isYouTubeOrYouTubeMusic: Boolean,
     vararg hooks: ExtensionHook,
-) = bytecodePatch {
+) = patch {
     dependsOn(sharedExtensionPatch(isYouTubeOrYouTubeMusic, *hooks))
 
     extendWith("extensions/$extensionName.mpe")
@@ -41,55 +42,60 @@ fun sharedExtensionPatch(
 fun sharedExtensionPatch(
     isYouTubeOrYouTubeMusic: Boolean,
     vararg hooks: ExtensionHook,
-) = bytecodePatch {
+) = patch {
     val extensionName = if (isYouTubeOrYouTubeMusic) "shared-youtube" else "shared"
     val readBuildIdentity = BundleIdentity.boundToClass(BundleIdentity::class.java)
     extendWith("extensions/$extensionName.mpe")
 
+    // Built in a function, so the block is written here to carry this file's name (see PatchBodies.kt).
     execute {
-        // Verify the extension class exists.
-        classDefBy(EXTENSION_CLASS_DESCRIPTOR)
+        onBytecode {
+            // Verify the extension class exists.
+            classDefBy(EXTENSION_CLASS_DESCRIPTOR)
+        }
     }
 
     finalize {
-        // The hooks are made in finalize to ensure that the context is hooked before any other patches.
-        hooks.forEach { hook -> hook(EXTENSION_CLASS_DESCRIPTOR) }
+        onBytecode {
+            // The hooks are made in finalize to ensure that the context is hooked before any other patches.
+            hooks.forEach { hook -> hook(EXTENSION_CLASS_DESCRIPTOR) }
 
-        // Modify Utils method to include the patches release version.
-        MorpheUtilsPatchesVersionFingerprint.method.apply {
-            /**
-             * @return The file path for the jar this classfile is contained inside.
-             */
-            fun getCurrentJarFilePath(): String {
-                val className = object {}::class.java.enclosingClass.name.replace('.', '/') + ".class"
-                val classUrl = object {}::class.java.classLoader?.getResource(className)
-                if (classUrl != null) {
-                    val urlString = classUrl.toString()
+            // Modify Utils method to include the patches release version.
+            MorpheUtilsPatchesVersionFingerprint.method.apply {
+                /**
+                 * @return The file path for the jar this classfile is contained inside.
+                 */
+                fun getCurrentJarFilePath(): String {
+                    val className = object {}::class.java.enclosingClass.name.replace('.', '/') + ".class"
+                    val classUrl = object {}::class.java.classLoader?.getResource(className)
+                    if (classUrl != null) {
+                        val urlString = classUrl.toString()
 
-                    if (urlString.startsWith("jar:file:")) {
-                        val end = urlString.lastIndexOf('!')
+                        if (urlString.startsWith("jar:file:")) {
+                            val end = urlString.lastIndexOf('!')
 
-                        return URLDecoder.decode(urlString.substring("jar:file:".length, end), "UTF-8")
+                            return URLDecoder.decode(urlString.substring("jar:file:".length, end), "UTF-8")
+                        }
                     }
+                    throw IllegalStateException("Not running from inside a JAR file.")
                 }
-                throw IllegalStateException("Not running from inside a JAR file.")
-            }
 
-            /**
-             * @return The value for the manifest entry,
-             *         or "Unknown" if the entry does not exist or is blank.
-             */
-            @Suppress("SameParameterValue")
-            fun getPatchesManifestEntry(attributeKey: String) = JarFile(getCurrentJarFilePath()).use { jarFile ->
-                jarFile.manifest.mainAttributes.entries.firstOrNull { it.key.toString() == attributeKey }?.value?.toString()
-                    ?: "Unknown"
-            }
+                /**
+                 * @return The value for the manifest entry,
+                 *         or "Unknown" if the entry does not exist or is blank.
+                 */
+                @Suppress("SameParameterValue")
+                fun getPatchesManifestEntry(attributeKey: String) = JarFile(getCurrentJarFilePath()).use { jarFile ->
+                    jarFile.manifest.mainAttributes.entries.firstOrNull { it.key.toString() == attributeKey }?.value?.toString()
+                        ?: "Unknown"
+                }
 
-            val manifestValue = getPatchesManifestEntry("Version")
-            returnEarly(manifestValue)
+                val manifestValue = getPatchesManifestEntry("Version")
+                returnEarly(manifestValue)
+            }
+            // Missing or damaged provenance remains visible without making a compatible patch fail.
+            injectBuildIdentity(readBuildIdentity())
         }
-        // Missing or damaged provenance remains visible without making a compatible patch fail.
-        injectBuildIdentity(readBuildIdentity())
     }
 }
 

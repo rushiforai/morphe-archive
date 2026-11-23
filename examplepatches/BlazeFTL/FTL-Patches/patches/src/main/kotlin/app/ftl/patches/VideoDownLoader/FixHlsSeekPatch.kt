@@ -14,9 +14,7 @@ import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
-import com.android.tools.smali.dexlib2.iface.reference.FieldReference
-
-private const val APP_OPEN_MANAGER = "Landroid/supprot/design/widgit/open_ad/AppOpenManager;"
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 
 private object HlsConvertGateFingerprint : Fingerprint(
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC),
@@ -42,7 +40,6 @@ private object BackgroundConvertGateFingerprint : Fingerprint(
     filters = listOf(
         fieldAccess(
             opcode = Opcode.SGET_BOOLEAN,
-            definingClass = APP_OPEN_MANAGER,
             type = "Z"
         ),
         opcode(Opcode.IF_EQZ, InstructionLocation.MatchAfterImmediately()),
@@ -54,8 +51,14 @@ private object BackgroundConvertGateFingerprint : Fingerprint(
             smali = "Ljava/lang/Thread;->start()V",
             location = InstructionLocation.MatchAfterWithin(30)
         )
-    )
+    ),
+    custom = { _, classDef ->
+        classDef.fields.any { it.type == "Ljava/util/concurrent/LinkedBlockingQueue;" }
+    }
 )
+
+private fun MethodReference.isCurrentTimeMillis() =
+    definingClass == "Ljava/lang/System;" && name == "currentTimeMillis"
 
 @Suppress("unused")
 val fixHlsSeekPatch = bytecodePatch(
@@ -72,14 +75,18 @@ val fixHlsSeekPatch = bytecodePatch(
         }
 
         BackgroundConvertGateFingerprint.method.apply {
-            val gateIndices = implementation!!.instructions
-                .withIndex()
-                .filter { (_, instruction) ->
-                    instruction.opcode == Opcode.SGET_BOOLEAN &&
-                        ((instruction as ReferenceInstruction).reference as FieldReference)
-                            .definingClass == APP_OPEN_MANAGER
-                }
-                .map { it.index }
+            val instructions = implementation!!.instructions.toList()
+
+            val gateIndices = instructions.indices.filter { index ->
+                instructions[index].opcode == Opcode.SGET_BOOLEAN &&
+                    instructions.getOrNull(index + 1)?.opcode == Opcode.IF_EQZ &&
+                    instructions
+                        .subList(index + 2, minOf(index + 7, instructions.size))
+                        .any {
+                            ((it as? ReferenceInstruction)?.reference as? MethodReference)
+                                ?.isCurrentTimeMillis() == true
+                        }
+            }
 
             gateIndices.forEach { index ->
                 val register = getInstruction<OneRegisterInstruction>(index).registerA

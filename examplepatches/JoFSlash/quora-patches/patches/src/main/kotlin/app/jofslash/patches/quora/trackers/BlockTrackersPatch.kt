@@ -16,7 +16,7 @@ val blockTrackersPatch = bytecodePatch(
     category("Privacy")
     compatibleWith(COMPATIBILITY_QUORA)
 
-    extendWith("extensions/extension.mpe")
+    extendWith("extensions/quora.mpe")
 
     execute {
         InterceptRequestFingerprint.method.addInstructionsWithLabels(

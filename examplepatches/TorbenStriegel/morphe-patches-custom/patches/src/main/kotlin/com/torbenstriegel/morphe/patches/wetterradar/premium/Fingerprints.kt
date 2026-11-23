@@ -23,6 +23,22 @@ object FusedAccessCombineFingerprint : Fingerprint(
     parameters = listOf("Ljava/lang/Object;")
 )
 
+// Version 2026.22: isPro is the Function5 combine (debug / membership / purchase /
+// login) in Lyh5, and the AccessLevel decision is FusedAccessProvider Lci5.d.
+object IsProCombine202622Fingerprint : Fingerprint(
+    definingClass = "Lyh5;",
+    name = "invokeSuspend",
+    parameters = listOf("Ljava/lang/Object;"),
+    returnType = "Ljava/lang/Object;"
+)
+
+object AccessLevel202622Fingerprint : Fingerprint(
+    definingClass = "Lci5;",
+    name = "d",
+    parameters = listOf("Lqt2;"),
+    returnType = "Ljava/lang/Enum;"
+)
+
 /**
  * The FusedAccessProvider's AccessLevel decision.
  *

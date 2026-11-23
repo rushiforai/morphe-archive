@@ -28,12 +28,12 @@ internal object InitWebViewFingerprint : Fingerprint(
 val disableVideoAutoplayPatch = bytecodePatch(
     name = "Disable video autoplay",
     description = "Videos in the feed and in answers only play when you tap them.",
-    default = false
+    default = true
 ) {
     category("Reading")
     compatibleWith(COMPATIBILITY_QUORA)
 
-    extendWith("extensions/extension.mpe")
+    extendWith("extensions/quora.mpe")
 
     execute {
         registerSetting("disableVideoAutoplay", "Disable video autoplay")

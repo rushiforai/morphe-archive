@@ -32,7 +32,8 @@ final class ChatNotifications {
             trace("toggle: native menu intercepted");
             change(context, chat, disabled ? NORMAL : QUIET, callback, null);
         } catch (ReflectiveOperationException | RuntimeException ignored) {
-            toast(Settings.context(), "알림 설정을 변경하지 못했습니다. 다시 시도해 주세요.");
+            toast(Settings.context(), Strings.get("line_notify_toast_change_failed",
+                    "Could not update notification setting. Please try again."));
         }
         // Never fall through to the server mute operation after a failed quiet toggle.
         return true;
@@ -46,7 +47,8 @@ final class ChatNotifications {
             trace("toggle: chat-list menu intercepted");
             change(Settings.context(), chat, disabled ? NORMAL : QUIET, null, null);
         } catch (ReflectiveOperationException | RuntimeException ignored) {
-            toast(Settings.context(), "알림 설정을 변경하지 못했습니다. 다시 시도해 주세요.");
+            toast(Settings.context(), Strings.get("line_notify_toast_change_failed",
+                    "Could not update notification setting. Please try again."));
         }
         // Never fall through to the server mute operation after a failed quiet toggle.
         return true;
@@ -86,16 +88,19 @@ final class ChatNotifications {
                     trace(success ? "setting: completed" : "setting: failed");
                     try {
                         if (!account.equals(NativeLine.account())) return;
-                        if (!success) toast(context, "알림 설정을 변경하지 못했습니다. 다시 시도해 주세요.");
+                        if (!success) toast(context, Strings.get(context, "line_notify_toast_change_failed",
+                                "Could not update notification setting. Please try again."));
                         else if (nativeCallback != null) {
                             Object result = NativeLine.type("com.linecorp.chathistory.menu.t$a$b")
                                     .getConstructor(boolean.class).newInstance(mode == NORMAL);
                             NativeLine.type("nt8.l").getMethod("invoke", Object.class).invoke(nativeCallback, result);
-                        } else toast(context, mode == HIDDEN ? "알림을 완전히 숨겼습니다."
-                                : mode == QUIET ? "조용히 받도록 설정했습니다."
-                                : oldHidden != null ? "알림 숨김을 해제했습니다." : "일반 알림으로 설정했습니다.");
+                        } else toast(context, mode == HIDDEN ? Strings.get(context, "line_notify_toast_hidden", "Notifications hidden completely.")
+                                : mode == QUIET ? Strings.get(context, "line_notify_toast_quiet", "Set to silent notifications.")
+                                : oldHidden != null ? Strings.get(context, "line_notify_toast_unhidden", "Notifications unhidden.")
+                                : Strings.get(context, "line_notify_toast_normal", "Set to normal notifications."));
                     } catch (ReflectiveOperationException | RuntimeException ignored) {
-                        toast(context, "설정이 변경되었습니다. 채팅방 메뉴를 다시 열어 주세요.");
+                        toast(context, Strings.get(context, "line_notify_toast_reopen_menu",
+                                "Setting updated. Please reopen the chat menu."));
                     }
                     if (success) refreshChatList();
                     if (completed != null) completed.run();
@@ -141,7 +146,8 @@ final class ChatNotifications {
                 } catch (ReflectiveOperationException | RuntimeException ignored) { finish.accept(false); }
             });
         } catch (ReflectiveOperationException | RuntimeException ignored) {
-            toast(context, "알림 설정을 변경하지 못했습니다. 다시 시도해 주세요.");
+            toast(context, Strings.get(context, "line_notify_toast_change_failed",
+                    "Could not update notification setting. Please try again."));
         }
     }
 

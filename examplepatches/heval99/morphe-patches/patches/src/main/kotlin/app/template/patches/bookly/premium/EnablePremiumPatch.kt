@@ -19,7 +19,10 @@ import com.android.tools.smali.dexlib2.iface.reference.FieldReference
  * the manager with Active so the first frames before the first callback are already Pro. RevenueCat,
  * the paywall (Superwall) and the purchase screen are untouched.
  *
- * Verified 2026-10-27 against 2.4.2 (versionCode 505): see COMPATIBILITY_BOOKLY.
+ * Active declares no constructor since 2.4.5 (R8), so the seed calls Object.<init> on it exactly like
+ * the app's own SubscriptionManager.b does.
+ *
+ * Verified 2026-11-21 against 2.4.5 (versionCode 509): see COMPATIBILITY_BOOKLY.
  */
 @Suppress("unused")
 val enablePremiumPatch = bytecodePatch(
@@ -45,7 +48,7 @@ val enablePremiumPatch = bytecodePatch(
             seed,
             """
                 new-instance v0, $ACTIVE_STATE
-                invoke-direct {v0}, $ACTIVE_STATE-><init>()V
+                invoke-direct {v0}, Ljava/lang/Object;-><init>()V
             """,
         )
         init.removeInstructions(seed + 2, 1)

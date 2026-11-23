@@ -1,203 +1,166 @@
 package app.template.patches.digisport.ads
 
 import app.morphe.patcher.Fingerprint
-import app.morphe.patcher.StringComparisonType
+import app.morphe.patcher.InstructionLocation.MatchAfterImmediately
+import app.morphe.patcher.fieldAccess
+import app.morphe.patcher.literal
+import app.morphe.patcher.methodCall
+import app.morphe.patcher.opcode
 import app.morphe.patcher.string
 import com.android.tools.smali.dexlib2.AccessFlags
+import com.android.tools.smali.dexlib2.Opcode
 
-// Digi Sport's own code (ro.rcsrds.digisport.*) and its player library (ro.rcsrds.lib.player.*)
-// are not obfuscated, so these fingerprints pin the readable class and method names plus the full
-// signature. Every one also requires a method body (AGENTS.md rule 2).
+// Since 1.1.16 Digi Sport is R8-obfuscated: its own classes and methods are renamed, merged into
+// shared classes and partly inlined into multi-case lambdas, and so are AdMob, media3, Kotlin and
+// jsoup. What keeps its name: the data model classes and their field names (serialised), the
+// manifest components (PlayerService), Android framework calls, the app's string literals and
+// the IMA SDK API. Every fingerprint below anchors on those, never on an obfuscated name, and
+// requires a method body (AGENTS.md rule 2).
 
-internal const val ADMOB_MANAGER = "Lro/rcsrds/digisport/tools/helpers/ads/AdMobManager;"
 internal const val UI_AD = "Lro/rcsrds/digisport/data/model/ui/others/UIAd;"
-internal const val VH_SECTION_AD = "Lro/rcsrds/digisport/ui/article/adapter/viewholder/VHSectionAd;"
 internal const val UI_LIVE_PREROLL = "Lro/rcsrds/digisport/data/model/ui/live/UiLivePreroll;"
 internal const val UI_LIVE_DAI = "Lro/rcsrds/digisport/data/model/ui/live/UiLiveDai;"
-internal const val ARTICLE_API_PAYLOADS =
-    "Lro/rcsrds/digisport/tools/helpers/parsing/articleTextAndLive/ArticleApiPayloads;"
-internal const val EXTENSION_SERVICE = "Lro/rcsrds/lib/player/core/extensions/ExtensionServiceKt;"
 internal const val PLAYER_SERVICE = "Lro/rcsrds/lib/player/PlayerService;"
+internal const val UI_EPG_CACHE_DAY = "Lro/rcsrds/digisport/data/model/ui/epg/UIEpgCacheDay;"
 
 private val AD_SLOT_PARAMETERS = listOf("Landroid/view/ViewGroup;", UI_AD)
 
-// AdMobManager.loadAd(container, ad): the one public entry point for the in-app AdMob banners
-// (called from VHSectionAd). It posts a lambda that either re-attaches a cached AdView (putAd) or
-// builds a new one and loads it (requestAd). Its Intrinsics parameter names pin the overload.
-// They are matched with CONTAINS, as patcher 1.8.0 matched raw `strings`; patcher 2.0 would
-// require the whole string. Kotlin emits the null checks in parameter order (container, ad).
-internal object AdMobManagerLoadAdFingerprint : Fingerprint(
-    definingClass = ADMOB_MANAGER,
-    name = "loadAd",
-    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
+private fun isStatic(accessFlags: Int) = AccessFlags.STATIC.isSet(accessFlags)
+
+/**
+ * The getter of the data-class field [type].[field]: no parameters, returns [returnType] and
+ * reads the field. The getter is renamed, the field (serialised) is not.
+ */
+internal fun dataGetterFingerprint(type: String, field: String, returnType: String) = Fingerprint(
+    definingClass = type,
+    returnType = returnType,
+    parameters = listOf(),
+    filters = listOf(fieldAccess(definingClass = type, name = field)),
+    custom = { method, _ -> method.implementation != null && method.name != "toString" },
+)
+
+// AdMobManager's requestAd(container, ad) (merged into a shared class): builds the AdView for the
+// ad's size (300x250, 320x100, 468x60), sets its listener and loads it. The app has exactly two
+// (ViewGroup, UIAd)V methods: this instance one and the static putAd.
+internal val adMobRequestAdFingerprint = Fingerprint(
     returnType = "V",
     parameters = AD_SLOT_PARAMETERS,
     filters = listOf(
-        string("nContainer", StringComparisonType.CONTAINS),
-        string("nAd", StringComparisonType.CONTAINS),
+        methodCall(definingClass = "Landroid/view/View;", name = "getContext"),
+        literal(300),
+        literal(250),
+        literal(320),
+        literal(100),
+        literal(468),
+        literal(60),
+    ),
+    custom = { method, _ -> method.implementation != null && !isStatic(method.accessFlags) },
+)
+
+// AdMobManager's putAd(container, ad) (static since 1.1.16): moves the loaded AdView into the
+// container.
+internal val adMobPutAdFingerprint = Fingerprint(
+    returnType = "V",
+    parameters = AD_SLOT_PARAMETERS,
+    filters = listOf(
+        methodCall(definingClass = "Landroid/view/ViewGroup;", name = "removeAllViews"),
+        methodCall(definingClass = "Landroid/view/ViewGroup;", name = "addView"),
+        methodCall(definingClass = "Landroid/view/View;", name = "requestLayout"),
+        methodCall(definingClass = "Landroid/view/View;", name = "bringToFront"),
+    ),
+    custom = { method, _ -> method.implementation != null && isStatic(method.accessFlags) },
+)
+
+// VHSectionAd.bind(ad): the RecyclerView row of an ad slot in articles and the live EPG list.
+// Since 1.1.16 AdMobManager.loadAd is inlined here: bind posts the request/put runnable on the
+// row's container. The other (UIAd)V methods in the app are plain setters without a post.
+internal val sectionAdBindFingerprint = Fingerprint(
+    returnType = "V",
+    parameters = listOf(UI_AD),
+    filters = listOf(methodCall(definingClass = "Landroid/view/View;", name = "post")),
+    custom = { method, _ -> method.implementation != null },
+)
+
+// UiLivePreroll's enable getter: createPlayerInput adds the "Reclama" pre-roll item before a live
+// channel only when it is true.
+internal val uiLivePrerollEnableFingerprint = dataGetterFingerprint(UI_LIVE_PREROLL, "enable", "Z")
+
+// ArticleApiPayloads.toString(): the class and its mVideoPreroll field are renamed and the getter
+// is inlined, so the field is found as the one appended after ", mVideoPreroll=".
+internal const val VIDEO_PREROLL_LABEL = ", mVideoPreroll="
+internal val articleApiPayloadsToStringFingerprint = Fingerprint(
+    name = "toString",
+    returnType = "Ljava/lang/String;",
+    parameters = listOf(),
+    filters = listOf(
+        string("ArticleApiPayloads(mId="),
+        string(VIDEO_PREROLL_LABEL),
     ),
     custom = { method, _ -> method.implementation != null },
 )
 
-// requestAd(container, ad): builds the AdView, sets its AdListener and calls
-// AdView.loadAd(AdRequest.Builder().build()). The listener's onAdClicked re-enters it through
-// access$requestAd.
-internal object AdMobManagerRequestAdFingerprint : Fingerprint(
-    definingClass = ADMOB_MANAGER,
-    name = "requestAd",
-    accessFlags = listOf(AccessFlags.PRIVATE, AccessFlags.FINAL),
-    returnType = "V",
-    parameters = AD_SLOT_PARAMETERS,
-    custom = { method, _ -> method.implementation != null },
-)
-
-// putAd(container, ad): adds the loaded (or cached) AdView to the container. The listener's
-// onAdLoaded reaches it through access$putAd.
-internal object AdMobManagerPutAdFingerprint : Fingerprint(
-    definingClass = ADMOB_MANAGER,
-    name = "putAd",
-    accessFlags = listOf(AccessFlags.PRIVATE, AccessFlags.FINAL),
-    returnType = "V",
-    parameters = AD_SLOT_PARAMETERS,
-    custom = { method, _ -> method.implementation != null },
-)
-
-// VHSectionAd.bind(ad): the RecyclerView row for an ad slot in articles and the live EPG list.
-internal object VHSectionAdBindFingerprint : Fingerprint(
-    definingClass = VH_SECTION_AD,
-    name = "bind",
-    returnType = "V",
-    parameters = listOf(UI_AD),
-    custom = { method, _ -> method.implementation != null },
-)
-
-// UiLivePreroll.getEnable(): GetLiveStreamUtils.createPlayerInput adds the "Reclama" pre-roll item
-// before a live channel only when it is true.
-internal object UiLivePrerollGetEnableFingerprint : Fingerprint(
-    definingClass = UI_LIVE_PREROLL,
-    name = "getEnable",
-    returnType = "Z",
-    parameters = listOf(),
-    custom = { method, _ -> method.implementation != null },
-)
-
-// ArticleApiPayloads.getMVideoPreroll(): the IMA ad tag for article and VOD videos (a non-null
-// Kotlin String). GetArticleVod skips the pre-roll item when it is blank; GetArticleDetailsUtils
-// only null-checks it.
-internal object ArticleApiPayloadsGetMVideoPrerollFingerprint : Fingerprint(
-    definingClass = ARTICLE_API_PAYLOADS,
-    name = "getMVideoPreroll",
-    returnType = "Ljava/lang/String;",
-    parameters = listOf(),
-    custom = { method, _ -> method.implementation != null },
-)
-
-// ExtensionServiceKt.initImaAds(service, adsConfiguration): builds (once) and returns the IMA
-// client-side AdsLoader. It is the player's AdsLoader.Provider and is also called, result unused,
-// from PlayerService.onCreate.
-internal object InitImaAdsFingerprint : Fingerprint(
-    definingClass = EXTENSION_SERVICE,
-    name = "initImaAds",
-    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC, AccessFlags.FINAL),
-    returnType = "Landroidx/media3/exoplayer/source/ads/AdsLoader;",
-    parameters = listOf(PLAYER_SERVICE, "Landroidx/media3/common/MediaItem\$AdsConfiguration;"),
-    custom = { method, _ -> method.implementation != null },
+// ExtensionServiceKt.initImaAds(service) (the AdsConfiguration parameter is gone since 1.1.16):
+// builds (once) and returns the IMA client-side ads loader, with ImaAdsLoader's default 10 s ad
+// preload timeout. DefaultMediaSourceFactory's AdsLoader provider calls it and plays without ads
+// when it answers null ("Playing media without ads, as no AdsLoader was provided."); PlayerService
+// .onCreate ignores the result.
+internal val initImaAdsFingerprint = Fingerprint(
+    parameters = listOf(PLAYER_SERVICE),
+    filters = listOf(
+        methodCall(name = "getApplicationContext"),
+        literal(10000),
+    ),
+    custom = { method, _ ->
+        method.implementation != null && isStatic(method.accessFlags) && method.returnType.startsWith("L")
+    },
 )
 
 // The four getters of the server's "ads" list (List<ApiAdsBanners>): articles, the EPG, listings
-// and soccer results. Gson fills the fields by reflection, so only app code reads the getters, and
-// every reader handles an empty list (isEmpty checks or a plain loop).
+// and soccer results. Every reader handles an empty list.
 internal const val API_AD_LIST_ARTICLE = "Lro/rcsrds/digisport/data/model/api/article/ApiArticleData;"
 internal const val API_AD_LIST_EPG = "Lro/rcsrds/digisport/data/model/api/epg/ApiEpgData;"
 internal const val API_AD_LIST_LISTING = "Lro/rcsrds/digisport/data/model/api/listingArticles/Data;"
 internal const val API_AD_LIST_SOCCER = "Lro/rcsrds/digisport/data/model/api/soccer/APIResultsResponseData;"
 
-internal object ApiArticleDataGetAdsFingerprint : Fingerprint(
-    definingClass = API_AD_LIST_ARTICLE,
-    name = "getAds",
-    returnType = "Ljava/util/List;",
+internal val apiArticleDataAdsFingerprint = dataGetterFingerprint(API_AD_LIST_ARTICLE, "ads", "Ljava/util/List;")
+internal val apiEpgDataAdsFingerprint = dataGetterFingerprint(API_AD_LIST_EPG, "ads", "Ljava/util/List;")
+internal val listingDataAdsListFingerprint = dataGetterFingerprint(API_AD_LIST_LISTING, "adsList", "Ljava/util/List;")
+internal val apiResultsResponseDataAdsFingerprint =
+    dataGetterFingerprint(API_AD_LIST_SOCCER, "ads", "Ljava/util/ArrayList;")
+
+// GetArticleDetailsLiveTab1.adConstraints(element) is inlined since 1.1.16 into the article body
+// parser lambda: `hasAttr("data-slot") && !isBlank(attr("data-slot"))` decides whether an
+// <ad-api> element becomes an ad section. This matches the hasAttr call and its move-result; the
+// other "data-slot" user (parseAd) reads the attribute as a String.
+internal val articleAdSlotCheckFingerprint = Fingerprint(
+    returnType = "Ljava/lang/Object;",
     parameters = listOf(),
-    custom = { method, _ -> method.implementation != null },
-)
-
-internal object ApiEpgDataGetAdsFingerprint : Fingerprint(
-    definingClass = API_AD_LIST_EPG,
-    name = "getAds",
-    returnType = "Ljava/util/List;",
-    parameters = listOf(),
-    custom = { method, _ -> method.implementation != null },
-)
-
-internal object ListingDataGetAdsListFingerprint : Fingerprint(
-    definingClass = API_AD_LIST_LISTING,
-    name = "getAdsList",
-    returnType = "Ljava/util/List;",
-    parameters = listOf(),
-    custom = { method, _ -> method.implementation != null },
-)
-
-internal object ApiResultsResponseDataGetAdsFingerprint : Fingerprint(
-    definingClass = API_AD_LIST_SOCCER,
-    name = "getAds",
-    returnType = "Ljava/util/ArrayList;",
-    parameters = listOf(),
-    custom = { method, _ -> method.implementation != null },
-)
-
-// GetArticleDetailsLiveTab1.adConstraints(element): whether an <ad-api> element in the article body
-// becomes an ad section (parseAd) with its spacer. Its "data-slot" string is shared with parseAd,
-// so the private (Element)Z shape pins it.
-internal object ArticleAdConstraintsFingerprint : Fingerprint(
-    definingClass = "Lro/rcsrds/digisport/tools/helpers/parsing/articleTextAndLive/GetArticleDetailsLiveTab1;",
-    name = "adConstraints",
-    accessFlags = listOf(AccessFlags.PRIVATE, AccessFlags.FINAL),
-    returnType = "Z",
-    parameters = listOf("Lorg/jsoup/nodes/Element;"),
-    custom = { method, _ -> method.implementation != null },
-)
-
-// GetArticleDetailsWidgets.addAdWidget(article, position): the ad section between article widgets.
-// Its only caller (a GetArticleDetails.parseWidgets lambda) adds the result only when non-null.
-internal object AddAdWidgetFingerprint : Fingerprint(
-    definingClass = "Lro/rcsrds/digisport/tools/helpers/parsing/articleTextAndLive/GetArticleDetailsWidgets;",
-    name = "addAdWidget",
-    returnType = "Lro/rcsrds/digisport/data/model/ui/articles/ArticleSection;",
-    parameters = listOf(ARTICLE_API_PAYLOADS, "I"),
-    custom = { method, _ -> method.implementation != null },
-)
-
-// SyncEpgRepositoryBase.addBanner(ads, day, channel): inserts the ad rows into the cached EPG days.
-internal object SyncEpgAddBannerFingerprint : Fingerprint(
-    definingClass = "Lro/rcsrds/digisport/data/sync/epg/repository/SyncEpgRepositoryBase;",
-    name = "addBanner",
-    accessFlags = listOf(AccessFlags.PRIVATE, AccessFlags.FINAL),
-    returnType = "V",
-    parameters = listOf(
-        "Ljava/util/List;",
-        "Lro/rcsrds/digisport/data/model/ui/epg/UIEpgCacheDay;",
-        "Ljava/lang/String;",
+    filters = listOf(
+        string("data-slot"),
+        methodCall(parameters = listOf("Ljava/lang/String;"), returnType = "Z", location = MatchAfterImmediately()),
+        opcode(Opcode.MOVE_RESULT, location = MatchAfterImmediately()),
     ),
     custom = { method, _ -> method.implementation != null },
 )
 
-// UiLiveDai.getEnable(): true when the channel config carries an enabled IMA DAI balancer. It
-// gates the DAI balancer request in GetLiveStream and the ssai:// DAI media item in
-// GetLiveStreamUtils.createPlayerInput.
-internal object UiLiveDaiGetEnableFingerprint : Fingerprint(
-    definingClass = UI_LIVE_DAI,
-    name = "getEnable",
-    returnType = "Z",
-    parameters = listOf(),
-    custom = { method, _ -> method.implementation != null },
+// SyncEpgRepositoryBase.addBanner(ads, day, channel) (static since 1.1.16): inserts "ad" rows
+// into the cached EPG days.
+internal val syncEpgAddBannerFingerprint = Fingerprint(
+    returnType = "V",
+    parameters = listOf("Ljava/util/List;", UI_EPG_CACHE_DAY, "Ljava/lang/String;"),
+    filters = listOf(string("ad")),
+    custom = { method, _ -> method.implementation != null && isStatic(method.accessFlags) },
 )
 
-// ExtensionServiceKt.updateAdViewForDai(service): re-creates the IMA DAI AdsLoader and media source
-// for the current item when it is a DAI item.
-internal object UpdateAdViewForDaiFingerprint : Fingerprint(
-    definingClass = EXTENSION_SERVICE,
-    name = "updateAdViewForDai",
-    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC, AccessFlags.FINAL),
+// UiLiveDai's enable getter: true when the channel config carries an enabled IMA DAI balancer. It
+// gates the DAI balancer request and the ssai:// DAI media item.
+internal val uiLiveDaiEnableFingerprint = dataGetterFingerprint(UI_LIVE_DAI, "enable", "Z")
+
+// ExtensionServiceKt.updateAdViewForDai(service): when the current item's "media_item_type" is
+// "dai", re-creates the IMA DAI ads loader and media source for it.
+internal val updateAdViewForDaiFingerprint = Fingerprint(
     returnType = "V",
     parameters = listOf(PLAYER_SERVICE),
-    custom = { method, _ -> method.implementation != null },
+    filters = listOf(string("media_item_type"), string("dai")),
+    custom = { method, _ -> method.implementation != null && isStatic(method.accessFlags) },
 )

@@ -28,8 +28,7 @@ public final class QuickFilterToolbar {
 
     public static boolean supported(Context context) {
         try {
-            String version = context.getPackageManager()
-                    .getPackageInfo(context.getPackageName(), 0).versionName;
+            String version = RuntimeVersion.get(context);
             return "0.8.10.191 dev".equals(version)
                     || "0.8.10.226 dev".equals(version)
                     || "0.8.10.241".equals(version)
@@ -47,8 +46,7 @@ public final class QuickFilterToolbar {
         try {
             activity = (Activity) fragment.getClass().getMethod("getActivity").invoke(fragment);
             if (activity == null || activity.isFinishing()) return true;
-            String version = activity.getPackageManager()
-                    .getPackageInfo(activity.getPackageName(), 0).versionName;
+            String version = RuntimeVersion.get(activity);
             if ("0.8.10.226 dev".equals(version)) {
                 show226FilterDialog(fragment, activity);
                 return true;
@@ -528,7 +526,36 @@ public final class QuickFilterToolbar {
                 && names.contains("IMAGE") && names.contains("MOVIE");
     }
 
+    // Remember the access path only. Every lookup still reads the current fragment's model.
+    private static volatile ModelAccess modelAccess;
+    private static final class ModelAccess {
+        final java.lang.reflect.Field field;
+        final Method getter;
+        final Class<?> modelClass;
+        ModelAccess(java.lang.reflect.Field field, Method getter, Object model) {
+            this.field = field;
+            this.getter = getter;
+            this.modelClass = model.getClass();
+        }
+        Object read(Object fragment) throws ReflectiveOperationException {
+            if (!field.getDeclaringClass().isInstance(fragment)) return null;
+            Object value = field.get(fragment);
+            if (getter != null) {
+                if (!getter.getDeclaringClass().isInstance(value)) return null;
+                value = getter.invoke(value);
+            }
+            return modelClass.isInstance(value) ? value : null;
+        }
+    }
     static Object findResponseViewModel(Object fragment) throws Exception {
+        boolean optimize = FeatureSwitches.enabled(ExpertSettings.MODEL_ACCESS, true);
+        ModelAccess cached = modelAccess;
+        if (optimize && cached != null) {
+            try {
+                Object model = cached.read(fragment);
+                if (model != null) return model;
+            } catch (ReflectiveOperationException ignored) { }
+        }
         if (fragment.getClass().getName().equals("jp.syoboi.a2chMate.ui.reslist.ResListFragment")) {
             try {
                 java.lang.reflect.Field provider = fragment.getClass().getDeclaredField("H");
@@ -537,7 +564,10 @@ public final class QuickFilterToolbar {
                 if (lazy != null) {
                     Method getter=lazy.getClass().getMethod("e");getter.setAccessible(true);
                     Object model = getter.invoke(lazy);
-                    if (model != null && model.getClass().getName().equals("o.getImgAcceptedHeight")) return model;
+                    if (model != null && model.getClass().getName().equals("o.getImgAcceptedHeight")) {
+                        if (optimize) modelAccess = new ModelAccess(provider, getter, model);
+                        return model;
+                    }
                 }
             } catch (ReflectiveOperationException ignored) {}
         }
@@ -546,7 +576,10 @@ public final class QuickFilterToolbar {
             field.setAccessible(true);
             Object value = field.get(fragment);
             if (value == null) continue;
-            if (value.getClass().getName().contains("ResListFragmentViewModel")) return value;
+            if (value.getClass().getName().contains("ResListFragmentViewModel")) {
+                if (optimize) modelAccess = new ModelAccess(field, null, value);
+                return value;
+            }
             for (Method accessor : value.getClass().getMethods()) {
                 if (accessor.getParameterTypes().length != 0
                         || !accessor.getName().equals("getValue")) continue;
@@ -554,7 +587,10 @@ public final class QuickFilterToolbar {
                     accessor.setAccessible(true);
                     Object resolved = accessor.invoke(value);
                     if (resolved != null && resolved.getClass().getName()
-                            .contains("ResListFragmentViewModel")) return resolved;
+                            .contains("ResListFragmentViewModel")) {
+                        if (optimize) modelAccess = new ModelAccess(field, accessor, resolved);
+                        return resolved;
+                    }
                 } catch (Exception ignored) { }
             }
         }

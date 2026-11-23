@@ -63,6 +63,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewParent;
+import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -399,7 +400,9 @@ public final class EnhancedKeywordContentFilter extends EnhancedBufferPhraseFilt
             String matchedText,
             String ruleDisplay,
             @Nullable String videoId,
-            boolean debugMode
+            boolean debugMode,
+            @Nullable String authorName,
+            @Nullable String avatarUrl
     ) {}
 
     private static final int MAX_MATCH_LOG_ENTRIES = 60;
@@ -419,7 +422,10 @@ public final class EnhancedKeywordContentFilter extends EnhancedBufferPhraseFilt
     private static final Map<ComponentHost, DebugCardOverlay> debugOverlays = new WeakHashMap<>();
     private static final Map<ComponentHost, Boolean> pendingHostsToUpdate =
             Collections.synchronizedMap(new WeakHashMap<>());
+    private static final Map<ComponentHost, Boolean> attachHookedDebugHosts =
+            Collections.synchronizedMap(new WeakHashMap<>());
     private static volatile boolean hostsUpdateScheduled;
+    private static volatile boolean lastDebugModeState = false;
 
     /**
      * Represents a single condition within a line (or the entire line when '&' is not used).
@@ -834,12 +840,30 @@ public final class EnhancedKeywordContentFilter extends EnhancedBufferPhraseFilt
 
     @Override
     protected void reparseIfNeeded() {
+        boolean debugNow = KeywordFilterSettings.HIDE_KEYWORD_CONTENT_DEBUG.get();
+        if (debugNow != lastDebugModeState) {
+            lastDebugModeState = debugNow;
+            debugMatchedTextMap.clear();
+            commentDecisionsById.clear();
+            if (!debugNow && !debugOverlays.isEmpty()) {
+                Utils.runOnMainThread(EnhancedKeywordContentFilter::detachAllDebugOverlays);
+            }
+        }
         //noinspection StringEquality
         if (KeywordFilterSettings.HIDE_KEYWORD_CONTENT_PHRASES.get() != lastKeywordPhrasesParsed
                 || KeywordFilterSettings.HIDE_KEYWORD_CONTENT_USE_AND_OPERATOR.get() != lastUseAndOperator
                 || KeywordFilterSettings.HIDE_KEYWORD_CONTENT_USE_REGEX.get() != lastUseRegex
                 || KeywordFilterSettings.HIDE_KEYWORD_CONTENT_CASE_SENSITIVE.get() != lastCaseSensitive) {
             parseKeywords();
+        }
+    }
+
+    private static void detachAllDebugOverlays() {
+        ComponentHost[] hosts = debugOverlays.keySet().toArray(new ComponentHost[0]);
+        for (ComponentHost host : hosts) {
+            if (host != null) {
+                detachDebugOverlay(host);
+            }
         }
     }
 
@@ -911,7 +935,7 @@ public final class EnhancedKeywordContentFilter extends EnhancedBufferPhraseFilt
             String videoId = activeVideoId.isEmpty() ? null : activeVideoId;
             List<String> commentTexts = extractCommentTexts(buffer, videoId);
             String componentName = extractRootComponentName(path);
-            String matchedWord = evaluateRulesAndRecord(commentTexts, rules, Source.COMMENTS, videoId, componentName, debug);
+            String matchedWord = evaluateRulesAndRecord(buffer, commentTexts, rules, Source.COMMENTS, videoId, componentName, debug);
 
             CommentDecision decision = new CommentDecision(
                     path.toString(),
@@ -937,7 +961,7 @@ public final class EnhancedKeywordContentFilter extends EnhancedBufferPhraseFilt
 
         String componentName = extractRootComponentName(path);
         Source source = detectSource(matchedGroup, contextInterface);
-        return evaluateRulesAndRecord(searchableTexts, rules, source, videoId, componentName, debug);
+        return evaluateRulesAndRecord(buffer, searchableTexts, rules, source, videoId, componentName, debug);
     }
 
     private static String extractRootComponentName(@Nullable CharSequence path) {
@@ -949,10 +973,101 @@ public final class EnhancedKeywordContentFilter extends EnhancedBufferPhraseFilt
         return dash > 0 ? head.substring(0, dash) : head;
     }
 
+    private static final Pattern SPOKEN_DURATION_PATTERN = Pattern.compile(
+            "^(?:\\d+\\s+(?:час(?:а|ов)?|минут(?:а|ы)?|секунд(?:а|ы)?|hour(?:s)?|minute(?:s)?|second(?:s)?|hr|min|sec)\\s*)+$",
+            Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE
+    );
+
+    private static boolean isSpokenDurationText(@Nullable String s) {
+        if (s == null || s.isEmpty()) return false;
+        String t = s.trim();
+        return isDurationOrBadgeText(t) || SPOKEN_DURATION_PATTERN.matcher(t).matches();
+    }
+
+    private static final Pattern NON_AUTHOR_METADATA_PATTERN = Pattern.compile(
+            "(?i)(?:просмотр|views?|зрител|watching|назад|ago|премьера|premiere|трансляц|streamed|live|нет просмотров|no views)"
+    );
+
+    private static boolean isNonAuthorMetadata(@Nullable String s) {
+        if (s == null || s.isEmpty()) return true;
+        String t = s.trim();
+        if (t.isEmpty() || isSpokenDurationText(t)) return true;
+        if (NON_AUTHOR_METADATA_PATTERN.matcher(t).find()) return true;
+        return Character.isDigit(t.charAt(0)) && t.length() <= 20
+                && (t.contains("тыс") || t.contains("млн") || t.endsWith("K") || t.endsWith("M"));
+    }
+
+    private static String[] extractAuthorAndAvatarSinglePass(@Nullable byte[] buffer, Source source,
+                                                             List<String> searchableTexts, String titleText) {
+        String author = null;
+        String avatar = null;
+
+        if (buffer != null && buffer.length > 0) {
+            try {
+                List<ProtoNode> root = ProtoNode.parse(buffer);
+                if (root != null) {
+                    List<ProtoNode> textNodes = ProtoNode.textNodes(root);
+                    for (int i = 0, size = textNodes.size(); i < size; i++) {
+                        String t = textNodes.get(i).getText().trim();
+                        if (avatar == null && (t.startsWith("https://yt3.ggpht.com/")
+                                || t.startsWith("https://yt3.googleusercontent.com/"))) {
+                            avatar = t;
+                        } else if (source == Source.COMMENTS && author == null
+                                && t.startsWith("@") && t.length() >= 2 && t.length() <= 60
+                                && !t.contains(" ") && !t.equals(titleText)) {
+                            author = t;
+                        }
+                        if (avatar != null && (source != Source.COMMENTS || author != null)) {
+                            break;
+                        }
+                    }
+                }
+            } catch (Exception ignored) {
+            }
+        }
+
+        if (source == Source.COMMENTS) {
+            if (author == null) {
+                for (int i = 0, size = searchableTexts.size(); i < size; i++) {
+                    String t = searchableTexts.get(i).trim();
+                    if (t.startsWith("@") && t.length() >= 2 && t.length() <= 60 && !t.equals(titleText)) {
+                        author = t;
+                        break;
+                    }
+                }
+            }
+            return new String[]{author, avatar};
+        }
+
+        for (int i = 0, size = searchableTexts.size(); i < size; i++) {
+            String t = searchableTexts.get(i).trim();
+            if (t.isEmpty() || t.equals(titleText) || isSpokenDurationText(t)) continue;
+            int sep = t.indexOf(" · ");
+            if (sep <= 0) sep = t.indexOf(" • ");
+            if (sep > 0) {
+                String candidate = t.substring(0, sep).trim();
+                if (!candidate.equals(titleText) && !isNonAuthorMetadata(candidate)) {
+                    author = candidate;
+                    break;
+                }
+            }
+        }
+        if (author == null) {
+            for (int i = 0, size = searchableTexts.size(); i < size; i++) {
+                String t = searchableTexts.get(i).trim();
+                if (t.startsWith("@") && t.length() >= 2 && t.length() <= 60 && !t.equals(titleText)) {
+                    author = t;
+                    break;
+                }
+            }
+        }
+        return new String[]{author, avatar};
+    }
+
     @Nullable
-    private String evaluateRulesAndRecord(List<String> searchableTexts, List<KeywordRule> rules,
-                                          Source source, @Nullable String videoId,
-                                          String componentName, boolean debug) {
+    private String evaluateRulesAndRecord(@Nullable byte[] buffer, List<String> searchableTexts,
+                                          List<KeywordRule> rules, Source source,
+                                          @Nullable String videoId, String componentName, boolean debug) {
         if (searchableTexts.isEmpty()) {
             return null;
         }
@@ -965,18 +1080,22 @@ public final class EnhancedKeywordContentFilter extends EnhancedBufferPhraseFilt
                     MatchDetails detail = matchedClauses.get(j);
                     debugMatchedTextMap.put(detail.matchedText(), detail);
                 }
-                String logText = primary.matchedText();
-                String firstTitle = searchableTexts.get(0);
-                if (source != Source.COMMENTS && !firstTitle.equals(logText)
-                        && !logText.contains(firstTitle)) {
-                    logText = firstTitle + " (" + logText + ")";
+
+                String cleanTitle = primary.matchedText().trim();
+                if (source != Source.COMMENTS && isNonAuthorMetadata(cleanTitle)) {
+                    for (int k = 0, sSize = searchableTexts.size(); k < sSize; k++) {
+                        String cand = searchableTexts.get(k).trim();
+                        if (!cand.isEmpty() && !isNonAuthorMetadata(cand)) {
+                            cleanTitle = cand;
+                            break;
+                        }
+                    }
                 }
-                if (componentName != null && !componentName.isEmpty()) {
-                    logText = "[" + componentName + "] " + logText;
-                }
-                recordMatchLog(source, primary.matchedWord(), logText,
-                        rule.displayRule, videoId, debug);
-                recordHide(source, videoId, firstTitle);
+
+                String[] meta = extractAuthorAndAvatarSinglePass(buffer, source, searchableTexts, cleanTitle);
+                recordMatchLog(source, primary.matchedWord(), cleanTitle,
+                        rule.displayRule, videoId, debug, meta[0], meta[1]);
+                recordHide(source, videoId, cleanTitle);
                 return primary.matchedWord();
             }
         }
@@ -1059,27 +1178,41 @@ public final class EnhancedKeywordContentFilter extends EnhancedBufferPhraseFilt
     }
 
     private static void recordMatchLog(Source source, String matchedWord, String matchedText,
-                                       String ruleDisplay, @Nullable String videoId, boolean debugMode) {
+                                       String ruleDisplay, @Nullable String videoId, boolean debugMode,
+                                       @Nullable String authorName, @Nullable String avatarUrl) {
         Logger.printInfo(() -> "[KeywordFilter] " + (debugMode ? "DIMMED" : "HIDDEN")
                 + " | Word: '" + matchedWord + "'"
                 + " | Text: '" + matchedText + "'"
                 + " | Source: " + source);
 
-        String dedupId = (videoId != null && !videoId.isEmpty() && source != Source.COMMENTS)
-                ? videoId
-                : matchedText;
-        String dedupKey = source + "|" + dedupId + "|" + matchedWord;
+        final boolean hasValidVideoId = videoId != null && videoId.length() == 11 && source != Source.COMMENTS;
+        final String normTitle = matchedText != null ? matchedText.trim().toLowerCase(Locale.ROOT) : "";
+        final String normWord = matchedWord != null ? matchedWord.trim().toLowerCase(Locale.ROOT) : "";
+
         synchronized (recentMatchLogs) {
-            if (!recentLoggedKeys.add(dedupKey)) {
-                return;
+            MatchLogEntry existingToReplace = null;
+            for (MatchLogEntry existing : recentMatchLogs) {
+                boolean sameVideo = hasValidVideoId && videoId.equals(existing.videoId());
+                boolean sameTitle = !normTitle.isEmpty()
+                        && normTitle.equals(existing.matchedText().trim().toLowerCase(Locale.ROOT))
+                        && normWord.equals(existing.matchedWord().trim().toLowerCase(Locale.ROOT));
+                if (sameVideo) {
+                    return;
+                }
+                if (sameTitle) {
+                    boolean existingHasVideo = existing.videoId() != null && existing.videoId().length() == 11;
+                    if (existingHasVideo || !hasValidVideoId) {
+                        return;
+                    }
+                    existingToReplace = existing;
+                    break;
+                }
             }
-            if (recentMatchLogs.size() >= MAX_MATCH_LOG_ENTRIES) {
-                MatchLogEntry removed = recentMatchLogs.removeLast();
-                String remId = (removed.videoId() != null && !removed.videoId().isEmpty() && removed.source() != Source.COMMENTS)
-                        ? removed.videoId()
-                        : removed.matchedText();
-                String removedKey = removed.source() + "|" + remId + "|" + removed.matchedWord();
-                recentLoggedKeys.remove(removedKey);
+            if (existingToReplace != null) {
+                recentMatchLogs.remove(existingToReplace);
+            }
+            while (recentMatchLogs.size() >= MAX_MATCH_LOG_ENTRIES) {
+                recentMatchLogs.removeLast();
             }
             recentMatchLogs.addFirst(new MatchLogEntry(
                     System.currentTimeMillis(),
@@ -1087,8 +1220,10 @@ public final class EnhancedKeywordContentFilter extends EnhancedBufferPhraseFilt
                     matchedWord,
                     matchedText,
                     ruleDisplay,
-                    videoId,
-                    debugMode
+                    hasValidVideoId ? videoId : null,
+                    debugMode,
+                    authorName,
+                    avatarUrl
             ));
         }
     }
@@ -2472,10 +2607,11 @@ public final class EnhancedKeywordContentFilter extends EnhancedBufferPhraseFilt
             return;
         }
         int endMarkerIdx = text.indexOf(SUBTITLE_BANNER_END_MARKER, startIdx);
-        if (endMarkerIdx <= startIdx) {
-            return;
-        }
-        final int bannerEnd = endMarkerIdx + SUBTITLE_BANNER_END_MARKER.length();
+        // When the description is collapsed ("...more"), YouTube truncates the text before
+        // SUBTITLE_BANNER_END_MARKER — still style the visible prefix up to text.length().
+        final int bannerEnd = (endMarkerIdx > startIdx)
+                ? endMarkerIdx + SUBTITLE_BANNER_END_MARKER.length()
+                : text.length();
 
         boolean dark = ((ThemeUtils.getAppBackgroundColor() & 0x00FFFFFF) < 0x00808080);
         int primaryColor = dark ? 0xFFF1F1F1 : 0xFF0F0F0F;
@@ -2487,11 +2623,14 @@ public final class EnhancedKeywordContentFilter extends EnhancedBufferPhraseFilt
         // 1. Header line: vector CC icon + bold title + secondary count
         int iconStart = startIdx + SUBTITLE_BANNER_START_MARKER.length();
         int firstNewline = text.indexOf('\n', iconStart);
-        if (firstNewline > iconStart + 2) {
+        int headerLineEnd = (firstNewline > iconStart && firstNewline <= bannerEnd)
+                ? firstNewline
+                : bannerEnd;
+        if (headerLineEnd > iconStart + 2) {
             spannable.setSpan(new SubtitleVectorIconSpan(primaryColor),
                     iconStart, iconStart + 2, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
             int dotIdx = text.indexOf(" · ", iconStart + 2);
-            int titleEnd = (dotIdx > iconStart + 2 && dotIdx < firstNewline) ? dotIdx : firstNewline;
+            int titleEnd = (dotIdx > iconStart + 2 && dotIdx < headerLineEnd) ? dotIdx : headerLineEnd;
             spannable.setSpan(new ForegroundColorSpan(primaryColor),
                     iconStart + 2, titleEnd, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
             spannable.setSpan(new StyleSpan(Typeface.BOLD),
@@ -3307,9 +3446,8 @@ public final class EnhancedKeywordContentFilter extends EnhancedBufferPhraseFilt
                 return original;
             }
 
-            if (recorded == null) {
-                recordMatchLog(Source.HOME, matchedWord, cleaned, matchedRuleDisplay, null, true);
-            }
+            // Do not insert duplicate videoId-less log entries from onLithoTextLoaded;
+            // evaluateRulesAndRecord already records the full video/comment metadata.
 
             SpannableStringBuilder builder = new SpannableStringBuilder(original);
             for (int i = 0, size = matchRanges.size(); i < size; i++) {
@@ -3391,21 +3529,27 @@ public final class EnhancedKeywordContentFilter extends EnhancedBufferPhraseFilt
             return;
         }
         try {
-            if (KeywordFilterSettings.HIDE_KEYWORD_CONTENT_CHECK_SUBTITLES.get()) {
+            if (KeywordFilterSettings.HIDE_KEYWORD_CONTENT_CHECK_SUBTITLES.get()
+                    && (host.getTextContent() != null || touchHookedBannerHosts.containsKey(host))) {
                 attachBannerTouchHandlerIfNeeded(host);
             }
-            if (!KeywordFilterSettings.HIDE_KEYWORD_CONTENT_DEBUG.get() && debugOverlays.isEmpty()) {
+            boolean debugEnabled = KeywordFilterSettings.HIDE_KEYWORD_CONTENT_DEBUG.get();
+            if (debugEnabled != lastDebugModeState) {
+                lastDebugModeState = debugEnabled;
+                debugMatchedTextMap.clear();
+                commentDecisionsById.clear();
+                if (!debugEnabled && !debugOverlays.isEmpty()) {
+                    Utils.runOnMainThread(EnhancedKeywordContentFilter::detachAllDebugOverlays);
+                }
+            }
+            if (!debugEnabled && debugOverlays.isEmpty()) {
                 return;
             }
             ComponentHost root = findRootHost(host);
             if (root == null) {
                 return;
             }
-            pendingHostsToUpdate.put(root, Boolean.TRUE);
-            if (!hostsUpdateScheduled) {
-                hostsUpdateScheduled = true;
-                Utils.runOnMainThread(updateDebugHostsRunnable);
-            }
+            scheduleDebugHostUpdate(root);
         } catch (Exception ex) {
             Logger.printException(() -> "EnhancedKeywordContentFilter.onComponentHostLayout failure", ex);
         }
@@ -3594,6 +3738,40 @@ public final class EnhancedKeywordContentFilter extends EnhancedBufferPhraseFilt
         }
     }
 
+    private static void scheduleDebugHostUpdate(ComponentHost root) {
+        if (!root.isAttachedToWindow()) {
+            if (attachHookedDebugHosts.put(root, Boolean.TRUE) == null) {
+                root.addOnAttachStateChangeListener(new View.OnAttachStateChangeListener() {
+                    @Override
+                    public void onViewAttachedToWindow(@NonNull View v) {
+                        if (v instanceof ComponentHost ch) {
+                            attachHookedDebugHosts.remove(ch);
+                            v.removeOnAttachStateChangeListener(this);
+                            ComponentHost r = findRootHost(ch);
+                            if (r != null) {
+                                enqueueDebugHostUpdate(r);
+                            }
+                        }
+                    }
+
+                    @Override
+                    public void onViewDetachedFromWindow(@NonNull View v) {
+                    }
+                });
+            }
+            return;
+        }
+        enqueueDebugHostUpdate(root);
+    }
+
+    private static void enqueueDebugHostUpdate(ComponentHost root) {
+        pendingHostsToUpdate.put(root, Boolean.TRUE);
+        if (!hostsUpdateScheduled) {
+            hostsUpdateScheduled = true;
+            Utils.runOnMainThread(updateDebugHostsRunnable);
+        }
+    }
+
     private static final Runnable updateDebugHostsRunnable = () -> {
         hostsUpdateScheduled = false;
         try {
@@ -3601,13 +3779,17 @@ public final class EnhancedKeywordContentFilter extends EnhancedBufferPhraseFilt
             pendingHostsToUpdate.clear();
 
             final boolean debugEnabled = KeywordFilterSettings.HIDE_KEYWORD_CONTENT_DEBUG.get();
+            if (!debugEnabled) {
+                detachAllDebugOverlays();
+                return;
+            }
             for (ComponentHost root : roots) {
                 if (root == null) continue;
-                if (!debugEnabled) {
-                    detachDebugOverlay(root);
+                if (root.getParent() instanceof ComponentHost) {
                     continue;
                 }
-                if (!root.isAttachedToWindow() || root.getParent() instanceof ComponentHost) {
+                if (!root.isAttachedToWindow()) {
+                    scheduleDebugHostUpdate(root);
                     continue;
                 }
                 if (hasHorizontalScrollingChild(root) || isHostInDialog(root)) {
@@ -3616,6 +3798,9 @@ public final class EnhancedKeywordContentFilter extends EnhancedBufferPhraseFilt
                 }
 
                 DebugRuleSpan matchedSpan = findDebugSpanInViewTree(root);
+                if (matchedSpan == null) {
+                    matchedSpan = matchVisibleTextInViewTreeForDebug(root);
+                }
                 if (matchedSpan != null) {
                     DebugCardOverlay overlay = debugOverlays.get(root);
                     if (overlay == null) {
@@ -3651,6 +3836,7 @@ public final class EnhancedKeywordContentFilter extends EnhancedBufferPhraseFilt
                     }
                 }
             }
+
         } else if (view instanceof TextView textView) {
             DebugRuleSpan span = getDebugRuleSpan(textView.getText());
             if (span != null) {
@@ -3672,6 +3858,75 @@ public final class EnhancedKeywordContentFilter extends EnhancedBufferPhraseFilt
         return null;
     }
 
+    /**
+     * Fallback for already-mounted cards (when Debug Mode is toggled without restarting) or ROMs
+     * where non-Parcelable marker spans are stripped from mounted text items.
+     */
+    @Nullable
+    private static DebugRuleSpan matchVisibleTextInViewTreeForDebug(View view) {
+        EnhancedKeywordContentFilter filter = instance;
+        if (filter == null) return null;
+        filter.reparseIfNeeded();
+        List<KeywordRule> rules = filter.parsedRules;
+        if (rules.isEmpty()) return null;
+        return findRuleMatchInViewTree(view, rules);
+    }
+
+    @Nullable
+    private static DebugRuleSpan findRuleMatchInViewTree(View view, List<KeywordRule> rules) {
+        if (view instanceof ComponentHost host) {
+            TextContent tc = host.getTextContent();
+            if (tc != null) {
+                for (CharSequence item : tc.getTextItems()) {
+                    DebugRuleSpan match = matchCharSequenceForDebug(item, rules);
+                    if (match != null) return match;
+                }
+            }
+        } else if (view instanceof TextView tv) {
+            DebugRuleSpan match = matchCharSequenceForDebug(tv.getText(), rules);
+            if (match != null) return match;
+        }
+        if (view instanceof ViewGroup group) {
+            for (int i = 0, count = group.getChildCount(); i < count; i++) {
+                View child = group.getChildAt(i);
+                if (child.getVisibility() == View.VISIBLE && !isHorizontalScrollingView(child)) {
+                    DebugRuleSpan found = findRuleMatchInViewTree(child, rules);
+                    if (found != null) return found;
+                }
+            }
+        }
+        return null;
+    }
+
+    @Nullable
+    private static DebugRuleSpan matchCharSequenceForDebug(@Nullable CharSequence text, List<KeywordRule> rules) {
+        if (text == null || text.length() < 2) return null;
+        String raw = text.toString();
+        if (raw.contains(SUBTITLE_BANNER_START_MARKER)) return null;
+        String cleaned = stripFormatCharacters(raw);
+        if (cleaned.length() < 2
+                || isDurationOrBadgeText(cleaned)
+                || COMMENT_UI_LABELS.contains(cleaned.toLowerCase(Locale.ROOT))) {
+            return null;
+        }
+        MatchDetails recorded = debugMatchedTextMap.get(cleaned);
+        if (recorded != null) {
+            return new DebugRuleSpan(recorded.matchedWord(), cleaned, recorded.ruleDisplay(), "");
+        }
+        List<int[]> ranges = new ArrayList<>();
+        for (int i = 0, size = rules.size(); i < size; i++) {
+            KeywordRule rule = rules.get(i);
+            ranges.clear();
+            rule.collectMatchRangesInText(raw, false, ranges);
+            if (!ranges.isEmpty()) {
+                int[] first = ranges.get(0);
+                String word = raw.substring(first[0], first[1]);
+                return new DebugRuleSpan(word, cleaned, rule.displayRule, "");
+            }
+        }
+        return null;
+    }
+
     @Nullable
     private static ComponentHost findRootHost(ComponentHost host) {
         ComponentHost root = host;
@@ -3688,11 +3943,11 @@ public final class EnhancedKeywordContentFilter extends EnhancedBufferPhraseFilt
             return false;
         }
         String name = view.getClass().getName();
+        if (name.contains("HorizontalScrollView") || name.contains("ViewPager")) {
+            return true;
+        }
         return name.contains("RecyclerView")
-                || name.contains("HorizontalScrollView")
-                || name.contains("ViewPager")
-                || view.canScrollHorizontally(1)
-                || view.canScrollHorizontally(-1);
+                && (view.canScrollHorizontally(1) || view.canScrollHorizontally(-1));
     }
 
     private static boolean hasHorizontalScrollingChild(ViewGroup group) {
@@ -3707,13 +3962,11 @@ public final class EnhancedKeywordContentFilter extends EnhancedBufferPhraseFilt
     }
 
     private static boolean isHostInDialog(ComponentHost host) {
-        Context context = host.getContext();
-        while (context instanceof ContextWrapper wrapper && !(context instanceof Activity)) {
-            context = wrapper.getBaseContext();
-        }
-        if (context instanceof Activity activity && activity.getWindow() != null) {
-            View decorView = activity.getWindow().peekDecorView();
-            if (decorView != null && host.getRootView() != decorView) {
+        View rootView = host.getRootView();
+        if (rootView != null && rootView.getLayoutParams() instanceof WindowManager.LayoutParams lp) {
+            if (lp.type == WindowManager.LayoutParams.TYPE_APPLICATION_PANEL
+                    || lp.type == WindowManager.LayoutParams.TYPE_APPLICATION_SUB_PANEL
+                    || (lp.flags & WindowManager.LayoutParams.FLAG_DIM_BEHIND) != 0) {
                 return true;
             }
         }
@@ -3727,6 +3980,7 @@ public final class EnhancedKeywordContentFilter extends EnhancedBufferPhraseFilt
     private static final class DebugCardOverlay extends Drawable {
         private static final int BORDER_COLOR = 0x99EF5350;
 
+        private final WeakReference<ComponentHost> hostRef;
         private final Paint scrimPaint = new Paint();
         private final Paint borderPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         private final Paint badgeBgPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -3738,6 +3992,7 @@ public final class EnhancedKeywordContentFilter extends EnhancedBufferPhraseFilt
         private String badgeLabel = "";
 
         DebugCardOverlay(ComponentHost host) {
+            this.hostRef = new WeakReference<>(host);
             density = host.getResources().getDisplayMetrics().density;
             borderPaint.setColor(BORDER_COLOR);
             borderPaint.setStyle(Paint.Style.STROKE);
@@ -3745,36 +4000,52 @@ public final class EnhancedKeywordContentFilter extends EnhancedBufferPhraseFilt
             badgeBgPaint.setColor(0xD91E1E1E);
             badgeBgPaint.setStyle(Paint.Style.FILL);
             badgeTextPaint.setColor(0xFFFF8A80);
-            badgeTextPaint.setTextSize(10.5f * density);
+            badgeTextPaint.setTextSize(12f * density);
             badgeTextPaint.setTypeface(Typeface.create("sans-serif-medium", Typeface.BOLD));
         }
 
         void bind(ComponentHost host, @Nullable DebugRuleSpan span) {
+            // Ensure Android's RenderNode invokes onDrawForeground() so ViewOverlay is always drawn.
+            host.setWillNotDraw(false);
+            // Dim card children directly at RenderNode level (100% ROM-safe) while keeping overlay badge bright.
+            for (int i = 0, count = host.getChildCount(); i < count; i++) {
+                host.getChildAt(i).setAlpha(0.45f);
+            }
             setBounds(0, 0, host.getWidth(), host.getHeight());
-            if (span != null) {
-                String comp = span.componentName() != null && !span.componentName().isEmpty()
-                        ? span.componentName() + " · "
-                        : "";
-                badgeLabel = comp + "«" + span.matchedWord() + "»";
+            if (span != null && span.matchedWord() != null && !span.matchedWord().isEmpty()) {
+                badgeLabel = span.matchedWord();
             }
             if (!added) {
                 host.getOverlay().add(this);
                 added = true;
             }
             invalidateSelf();
+            host.invalidate();
         }
 
         void detach(ComponentHost host) {
+            for (int i = 0, count = host.getChildCount(); i < count; i++) {
+                host.getChildAt(i).setAlpha(1.0f);
+            }
             if (added) {
                 host.getOverlay().remove(this);
                 added = false;
+                host.invalidate();
             }
         }
 
         @Override
         public void draw(@NonNull Canvas canvas) {
             Rect bounds = getBounds();
-            if (bounds.isEmpty()) return;
+            if (bounds.isEmpty()) {
+                ComponentHost h = hostRef.get();
+                if (h != null && h.getWidth() > 0 && h.getHeight() > 0) {
+                    setBounds(0, 0, h.getWidth(), h.getHeight());
+                    bounds = getBounds();
+                } else {
+                    return;
+                }
+            }
 
             int appBg = ThemeUtils.getAppBackgroundColor() & 0x00FFFFFF;
             scrimPaint.setColor(appBg | 0x9E000000);

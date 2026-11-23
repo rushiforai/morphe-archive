@@ -110,14 +110,24 @@ val powerSavingModePatch = bytecodePatch(
                 if (calls) callers += method
             }
         }
+        val is2647 = packageMetadata.versionName == "26.47.00.1022347503"
         val availability = callers.singleOrNull()
             ?: throw PatchException("expected one caller of the min-mode device check, found ${callers.size}")
-        if (availability.returnType != "Ljava/lang/Object;" || availability.parameterTypes.isNotEmpty() ||
+        // 26.47 answers availability in a plain static predicate (agqs.aa) instead
+        // of a boxed Dagger provider; every other version keeps the boxed shape.
+        if (is2647) {
+            if (availability.returnType != "Z" || !AccessFlags.STATIC.isSet(availability.accessFlags)) {
+                throw PatchException("min-mode availability predicate changed shape")
+            }
+        } else if (availability.returnType != "Ljava/lang/Object;" || availability.parameterTypes.isNotEmpty() ||
             AccessFlags.STATIC.isSet(availability.accessFlags)) {
             throw PatchException("min-mode availability is no longer a boxed Dagger provider")
         }
         mutableClassDefBy(availability.definingClass).methods
-            .single { it.name == availability.name && it.returnType == availability.returnType && it.parameterTypes.isEmpty() }
+            .single {
+                it.name == availability.name && it.returnType == availability.returnType &&
+                    it.parameterTypes == availability.parameterTypes
+            }
             .apply {
                 val instructions = implementation!!.instructions.toList()
                 val call = instructions.indexOfFirst { insn ->
@@ -151,7 +161,13 @@ val powerSavingModePatch = bytecodePatch(
                 }
                 addInstructionsWithLabels(
                     gate,
-                    """
+                    if (is2647) """
+                        invoke-static {}, $POWER_SAVING->forceAvailable()Z
+                        move-result v$scratch
+                        if-eqz v$scratch, :google_check
+                        const/4 v$scratch, 0x1
+                        return v$scratch
+                    """ else """
                         invoke-static {}, $POWER_SAVING->forceAvailable()Z
                         move-result v$scratch
                         if-eqz v$scratch, :google_check
@@ -302,45 +318,54 @@ val powerSavingModePatch = bytecodePatch(
     // Local saved. In finalize, after every patch has run, so the sheet's other rows of ours are
     // in place whichever order the patches ran in.
     finalize {
-        val rowHolder = mutableClassDefBy("Lomf;")
-        val template = rowHolder.methods.single { it.name == "a" && it.returnType == "Lbrdm;" && it.parameterTypes.isEmpty() }
+        val is2647 = packageMetadata.versionName == "26.47.00.1022347503"
+        val holderType = if (is2647) "Lool;" else "Lomf;"
+        val rowType = if (is2647) "Lbrlr;" else "Lbrdm;"
+        val builderType = if (is2647) "Lbrlp;" else "Lbrdk;"
+        val listType = if (is2647) "Lbwzs;" else "Lbwpw;"
+        val category = if (is2647) "Lbrlo;" else "Lbrdj;"
+        val iconLoader = if (is2647) "Lfzc;->aP(Landroid/content/Context;I)Landroid/graphics/drawable/Drawable;" else "Lgez;->aC(Landroid/content/Context;I)Landroid/graphics/drawable/Drawable;"
+        val icon = if (is2647) "0x7f0804d4" else "$BATTERY_ICON"
+        val rowHolder = mutableClassDefBy(holderType)
+        val template = rowHolder.methods.single { it.name == "a" && it.returnType == rowType && it.parameterTypes.isEmpty() }
         val templateRefs = template.implementation!!.instructions.mapNotNull { (it as? ReferenceInstruction)?.reference?.toString() }
         listOf(
-            "Lomf;->a:Lnxh;", "Lgez;->aC(Landroid/content/Context;I)Landroid/graphics/drawable/Drawable;",
-            "Lbrdm;->a()Lbrdk;", "Lbrdk;->c(I)V", "Lbrdk;->d(Ljava/lang/String;)V", "Lbrdk;->f(I)V",
-            "Lbrdk;->e(Landroid/view/View\$OnClickListener;)V", "Lbrdj;->d:Lbrdj;", "Lbrdk;->a()Lbrdm;",
+            if (is2647) "$holderType->a:Ljava/lang/Object;" else "$holderType->a:Lnxh;", iconLoader, "$rowType->a()$builderType",
+            "$builderType->c(I)V", "$builderType->d(Ljava/lang/String;)V", "$builderType->f(I)V",
+            "$builderType->e(Landroid/view/View\$OnClickListener;)V", "$category->d:$category", "$builderType->a()$rowType",
         ).forEach { if (it !in templateRefs) throw PatchException("account sheet row builder no longer uses $it") }
         // Built like the Customization row; its action id must be unique on the sheet too.
         rowHolder.methods.add(
             ImmutableMethod(
-                rowHolder.type, "uaPowerRow", emptyList(), "Lbrdm;",
+                rowHolder.type, "uaPowerRow", emptyList(), rowType,
                 AccessFlags.PUBLIC.value or AccessFlags.FINAL.value, null, null, MutableMethodImplementation(6),
             ).toMutable().apply {
                 addInstructions(
                     0,
                     """
-                        iget-object v0, p0, Lomf;->a:Lnxh;
-                        const v1, $BATTERY_ICON
-                        invoke-static { v0, v1 }, Lgez;->aC(Landroid/content/Context;I)Landroid/graphics/drawable/Drawable;
+                        ${if (is2647) "iget-object v0, p0, $holderType->a:Ljava/lang/Object;" else "iget-object v0, p0, $holderType->a:Lnxh;"}
+                        ${if (is2647) "check-cast v0, Landroid/content/Context;" else ""}
+                        const v1, $icon
+                        invoke-static { v0, v1 }, $iconLoader
                         move-result-object v1
                         invoke-static { v1 }, $POWER_ROW_ICON
                         move-result-object v1
-                        invoke-static { }, Lbrdm;->a()Lbrdk;
+                        invoke-static { }, $rowType->a()$builderType
                         move-result-object v3
                         invoke-static { }, Landroid/view/View;->generateViewId()I
                         move-result v4
-                        invoke-virtual { v3, v4 }, Lbrdk;->c(I)V
-                        iput-object v1, v3, Lbrdk;->a:Landroid/graphics/drawable/Drawable;
+                        invoke-virtual { v3, v4 }, $builderType->c(I)V
+                        iput-object v1, v3, $builderType->a:Landroid/graphics/drawable/Drawable;
                         const-string v4, "Power Saving Options"
-                        invoke-virtual { v3, v4 }, Lbrdk;->d(Ljava/lang/String;)V
+                        invoke-virtual { v3, v4 }, $builderType->d(Ljava/lang/String;)V
                         const v4, 0x161a8
-                        invoke-virtual { v3, v4 }, Lbrdk;->f(I)V
+                        invoke-virtual { v3, v4 }, $builderType->f(I)V
                         new-instance v2, $OPEN_POWER
                         invoke-direct { v2, v0 }, $OPEN_POWER-><init>(Landroid/content/Context;)V
-                        invoke-virtual { v3, v2 }, Lbrdk;->e(Landroid/view/View${'$'}OnClickListener;)V
-                        sget-object v4, Lbrdj;->d:Lbrdj;
-                        iput-object v4, v3, Lbrdk;->d:Lbrdj;
-                        invoke-virtual { v3 }, Lbrdk;->a()Lbrdm;
+                        invoke-virtual { v3, v2 }, $builderType->e(Landroid/view/View${'$'}OnClickListener;)V
+                        sget-object v4, $category->d:$category
+                        iput-object v4, v3, $builderType->d:$category
+                        invoke-virtual { v3 }, $builderType->a()$rowType
                         move-result-object v0
                         return-object v0
                     """,
@@ -352,7 +377,7 @@ val powerSavingModePatch = bytecodePatch(
         fun addUnderCustomization(returnType: String, parameters: List<String>) {
             fun callsCustomizationRow(insn: com.android.tools.smali.dexlib2.iface.instruction.Instruction) =
                 ((insn as? ReferenceInstruction)?.reference as? MethodReference)?.let { r ->
-                    r.definingClass == "Lomf;" && r.name == "uaCustomizationRow"
+                    r.definingClass == holderType && r.name == "uaCustomizationRow"
                 } == true
             val found = mutableListOf<Pair<String, String>>()
             classDefForEach { c ->
@@ -371,7 +396,7 @@ val powerSavingModePatch = bytecodePatch(
             val result = ins[call + 1]
             val add = ins[call + 2]
             if (result.opcode != Opcode.MOVE_RESULT_OBJECT || add.opcode != Opcode.INVOKE_VIRTUAL ||
-                ((add as ReferenceInstruction).reference as MethodReference).let { it.definingClass != "Lbwpw;" || it.name != "i" }
+                ((add as ReferenceInstruction).reference as MethodReference).let { it.definingClass != listType || it.name != "i" }
             ) throw PatchException("Customization row add changed shape")
             // The row's result register is dead after its add, so it carries ours.
             val scratch = (result as OneRegisterInstruction).registerA
@@ -379,25 +404,30 @@ val powerSavingModePatch = bytecodePatch(
             val holder = (ins[call] as Instruction35c).registerC
             // Modern builder: the holder is cast from a wider register just before; do the same.
             val cast = ins.getOrNull(call - 1)?.takeIf {
-                it.opcode == Opcode.CHECK_CAST && ((it as ReferenceInstruction).reference as TypeReference).type == "Lomf;"
+                it.opcode == Opcode.CHECK_CAST && ((it as ReferenceInstruction).reference as TypeReference).type == holderType
             }
             val source = cast?.let { (ins[call - 2] as TwoRegisterInstruction).registerB }
             method.addInstructions(
                 call + 3,
                 if (source != null) """
                     move-object v$scratch, v$source
-                    check-cast v$scratch, Lomf;
-                    invoke-virtual { v$scratch }, Lomf;->uaPowerRow()Lbrdm;
+                    check-cast v$scratch, $holderType
+                    invoke-virtual { v$scratch }, $holderType->uaPowerRow()$rowType
                     move-result-object v$scratch
-                    invoke-virtual { v$list, v$scratch }, Lbwpw;->i(Ljava/lang/Object;)V
+                    invoke-virtual { v$list, v$scratch }, $listType->i(Ljava/lang/Object;)V
                 """ else """
-                    invoke-virtual { v$holder }, Lomf;->uaPowerRow()Lbrdm;
+                    invoke-virtual { v$holder }, $holderType->uaPowerRow()$rowType
                     move-result-object v$scratch
-                    invoke-virtual { v$list, v$scratch }, Lbwpw;->i(Ljava/lang/Object;)V
+                    invoke-virtual { v$list, v$scratch }, $listType->i(Ljava/lang/Object;)V
                 """,
             )
         }
-        addUnderCustomization("Lbqye;", listOf("Lagdp;"))
-        addUnderCustomization("Lbqvz;", listOf("Z"))
+        if (is2647) {
+            addUnderCustomization("Lbrgh;", listOf("Lagnt;"))
+            addUnderCustomization("Lbrel;", listOf("Z"))
+        } else {
+            addUnderCustomization("Lbqye;", listOf("Lagdp;"))
+            addUnderCustomization("Lbqvz;", listOf("Z"))
+        }
     }
 }

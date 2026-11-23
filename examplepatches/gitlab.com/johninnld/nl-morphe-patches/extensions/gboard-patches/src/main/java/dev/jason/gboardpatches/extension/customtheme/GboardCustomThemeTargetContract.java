@@ -29,13 +29,14 @@ final class GboardCustomThemeTargetContract {
         ClassLoader loader = plusItem.getClass().getClassLoader();
         Class<?> plusClass = targetClass(loader, GboardCustomThemeVersionBindings.PLUS_CLASS);
         Class<?> peerClass = targetClass(loader, GboardCustomThemeVersionBindings.PEER_CLASS);
-        Class<?> adapterClass = targetClass(loader, GboardCustomThemeVersionBindings.ADAPTER_CLASS);
+        Class<?> peerParamClass = targetClass(loader, GboardCustomThemeVersionBindings.PLUS_PARAM0);
+        Class<?> adapterParamClass = targetClass(loader, GboardCustomThemeVersionBindings.PLUS_PARAM1);
         requireInstance(plusItem, plusClass);
         requireInstance(peer, peerClass);
-        requireInstance(adapter, adapterClass);
+        requireInstance(adapter, adapterParamClass);
         Method method = plusClass.getDeclaredMethod(
                 GboardCustomThemeVersionBindings.PLUS_METHOD,
-                peerClass, adapterClass, Integer.TYPE);
+                peerParamClass, adapterParamClass, Integer.TYPE);
         method.setAccessible(true);
         method.invoke(plusItem, peer, adapter, position);
     }

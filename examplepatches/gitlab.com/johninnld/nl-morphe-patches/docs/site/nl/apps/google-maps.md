@@ -55,6 +55,7 @@ Kies bij het patchen van Maps alleen patches uit **Dutch App Patches**. Onze bun
 | Patch | Standaard | Wat verandert er? |
 | --- | --- | --- |
 | **Native navigation for any Android Auto host** | Aan | Voegt een navigatie-ingang toe die de oorspronkelijke Android Auto-kaartinterface van deze gepatchte app gebruikt, ook onder een aparte pakketnaam. De adapter beheert de eigen auto-interface; zie de acceptatiegrenzen hierboven. |
+| **Android Auto options** | Aan | Voegt een Android Auto-pagina toe aan Customization: satellietweergave in de auto, satelliet herstellen bij het starten en je navatar behouden op autoschermen. Wijzig ze in de app; een instelling die je in Maps kiest blijft gelden. |
 | **Use the system voice for navigation** | Uit | Leest navigatie-aanwijzingen voor met de tekst-naar-spraak-engine die op de telefoon is gekozen in plaats van Google TTS, ook DriveDeck als die is gekozen. |
 
 ### Uitgebreid door dit project

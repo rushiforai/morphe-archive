@@ -277,8 +277,10 @@ Um das zu beheben, aktiviere 'Video-Streams vortäuschen' und stelle den 'Standa
     <string name="morphe_playback_in_feeds_entry_off">Aus</string>
     <string name="morphe_playback_in_feeds_entry_wifi_only">Nur über WLAN</string>
     <string name="morphe_playback_in_feeds_title">Wiedergabe in Feeds</string>
-    <string name="morphe_player_control_buttons_background_opacity_summary">Deckkraft des Hintergrunds hinter den Player-Steuertasten und der Zeitleiste anpassen (0 = unsichtbar, 100 = deckend)</string>
-    <string name="morphe_player_control_buttons_background_opacity_title">Hintergrundtransparenz der Steuertasten</string>
+    <string name="morphe_player_transport_background_opacity_summary">Deckkraft der Hintergründe für Wiedergabe, Pause, Erneut abspielen, Weiter und Zurück anpassen</string>
+    <string name="morphe_player_transport_background_opacity_title">Hintergrunddeckkraft der Wiedergabetasten</string>
+    <string name="morphe_player_other_overlay_background_opacity_summary">Deckkraft der Hintergründe für die übrigen Player-Tasten und die Zeitanzeige anpassen</string>
+    <string name="morphe_player_other_overlay_background_opacity_title">Hintergrunddeckkraft der übrigen Überlagerung</string>
     <string name="morphe_playlist_hide_removal_snackbar_summary">Die Bestätigung wird nicht angezeigt, nachdem ein Video aus einer Playlist entfernt wurde</string>
     <string name="morphe_playlist_hide_removal_snackbar_title">Snackbar zum Entfernen der Playlist ausblenden</string>
     <string name="morphe_playlist_long_press_drag_summary">Tippen Sie lange auf ein Video Ihrer Playlist, um es an eine neue Position zu ziehen</string>

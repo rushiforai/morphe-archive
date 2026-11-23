@@ -18,7 +18,7 @@ import android.view.Surface;
 public final class WazeDashService extends Service {
     private static final String DESCRIPTOR = "com.lampp.nmaxconnect.waze.IWazeDash";
     private static final String CLIENT = "com.lampp.nmaxconnect";
-    private static final int API_VERSION = 3; // 2: REPORT, 3: ZOOM
+    private static final int API_VERSION = 4; // 2: REPORT, 3: ZOOM, 4: STOP_NAVIGATION
     private static final int GET_API_VERSION = IBinder.FIRST_CALL_TRANSACTION + 1;
     private static final int GET_SNAPSHOT = IBinder.FIRST_CALL_TRANSACTION + 2;
     private static final int REGISTER = IBinder.FIRST_CALL_TRANSACTION + 3;
@@ -28,6 +28,7 @@ public final class WazeDashService extends Service {
     private static final int IS_DASH_SHOWN = IBinder.FIRST_CALL_TRANSACTION + 7;
     private static final int REPORT = IBinder.FIRST_CALL_TRANSACTION + 8;
     private static final int ZOOM = IBinder.FIRST_CALL_TRANSACTION + 9;
+    private static final int STOP_NAVIGATION = IBinder.FIRST_CALL_TRANSACTION + 10;
 
     private final Binder binder = new Binder() {
         @Override
@@ -36,7 +37,7 @@ public final class WazeDashService extends Service {
                 reply.writeString(DESCRIPTOR);
                 return true;
             }
-            if (code < GET_API_VERSION || code > ZOOM) return super.onTransact(code, data, reply, flags);
+            if (code < GET_API_VERSION || code > STOP_NAVIGATION) return super.onTransact(code, data, reply, flags);
             data.enforceInterface(DESCRIPTOR);
             if (!allowed(getCallingUid())) {
                 Log.w("WazeNmax", "refused uid " + getCallingUid());
@@ -64,6 +65,7 @@ public final class WazeDashService extends Service {
             if (code == IS_DASH_SHOWN) reply.writeInt(DashSurfaceBridge.isDashShown() ? 1 : 0);
             if (code == REPORT) reply.writeInt(WazeReport.send(data.readInt()) ? 1 : 0);
             if (code == ZOOM) reply.writeInt(WazeZoom.zoom(data.readInt() != 0) ? 1 : 0);
+            if (code == STOP_NAVIGATION) reply.writeInt(WazeStop.stop() ? 1 : 0);
             return true;
         }
     };

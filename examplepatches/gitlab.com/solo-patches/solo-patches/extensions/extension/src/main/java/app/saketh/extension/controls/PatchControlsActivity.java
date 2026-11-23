@@ -14,6 +14,7 @@ import android.widget.ScrollView;
 import android.widget.Switch;
 import android.widget.TextView;
 import app.saketh.extension.comments.TranslateLanguage;
+import app.saketh.extension.gifs.GifSearch;
 import app.saketh.extension.theme.ThemeHooks;
 
 public final class PatchControlsActivity extends Activity {
@@ -92,6 +93,12 @@ public final class PatchControlsActivity extends Activity {
         } else {
             body.addView(ui.text("Copy and translate patch is not included in this APK.", 14, ui.muted, false));
         }
+        ui.section(body, "GIFS");
+        if (PatchSettings.installed("gif_providers")) {
+            gifSearch(ui.card(body));
+        } else {
+            body.addView(ui.text("GIF search providers patch is not included in this APK.", 14, ui.muted, false));
+        }
         ui.section(body, "TYPOGRAPHY");
         if (PatchSettings.installed("custom_fonts")) {
             fonts.add(body, false);
@@ -134,26 +141,25 @@ public final class PatchControlsActivity extends Activity {
     }
 
     private void translateLanguage(LinearLayout card) {
-        LinearLayout row = new LinearLayout(this);
-        row.setGravity(Gravity.CENTER_VERTICAL);
-        row.setMinimumHeight(ui.dp(56));
-        row.setPadding(ui.dp(16), ui.dp(14), ui.dp(16), ui.dp(14));
-        LinearLayout copy = ui.column();
-        copy.addView(ui.text("Translate comments to", 16, ui.text, true));
-        TextView detail = ui.text("Language for Translate in the comment long-press menu. "
-                + "You can also change it from the translation window.", 13, ui.muted, false);
-        detail.setPadding(0, ui.dp(5), ui.dp(10), 0);
-        copy.addView(detail);
-        row.addView(copy, new LinearLayout.LayoutParams(0, -2, 1f));
-        TextView value = ui.text(TranslateLanguage.label(), 14, ui.accent, true);
-        row.addView(value);
-        row.setContentDescription("Translate comments to " + TranslateLanguage.label());
-        row.setOnClickListener(view -> TranslateLanguage.choose(this, () -> {
-            value.setText(TranslateLanguage.label());
-            row.setContentDescription("Translate comments to " + TranslateLanguage.label());
-            saved.setText("Saved. Applies to the next translation.");
-        }));
-        card.addView(row);
+        ui.valueRow(card, "Translate comments to", "Language for Translate in the comment long-press menu. "
+                + "You can also change it from the translation window.", value -> TranslateLanguage.choose(this, () -> {
+                    value.setText(TranslateLanguage.label());
+                    saved.setText("Saved. Applies to the next translation.");
+                })).setText(TranslateLanguage.label());
+    }
+
+    private void gifSearch(LinearLayout card) {
+        ui.valueRow(card, "GIF search", "Provider for the GIF picker in comments. Reopen the comment editor to apply.",
+                value -> GifSearch.chooseProvider(this, () -> {
+                    value.setText(GifSearch.providerLabel());
+                    saved.setText("Saved. Reopen the comment editor to apply.");
+                })).setText(GifSearch.providerLabel());
+        ui.divider(card);
+        ui.valueRow(card, "GIPHY API key", "Needed for GIPHY. Create a free key at developers.giphy.com.",
+                value -> GifSearch.editKey(this, () -> {
+                    value.setText(GifSearch.keyLabel());
+                    saved.setText("Saved. Applies to the next GIF search.");
+                })).setText(GifSearch.keyLabel());
     }
 
     private void toggle(LinearLayout card, String key, String title, String detail, boolean initial) {

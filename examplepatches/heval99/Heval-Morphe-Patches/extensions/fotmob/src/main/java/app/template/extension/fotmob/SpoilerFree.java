@@ -16,11 +16,16 @@ import app.template.extension.hevalcontrols.HevalSettings;
 
 /**
  * "Spoiler-free mode" (Patch settings switch {@value #FEATURE_ID}, on by default): the user marks
- * a match on its page or a whole competition on its page, and FotMob then posts no notification
- * for that match, and the match rows, the match page header, the live-update notification and the
- * home-screen live score widget show its kickoff time instead of the score. Each of those surfaces
- * has its own Patch settings switch ({@value #NOTIFICATIONS}, {@value #LISTS}, {@value #MATCH_PAGE},
- * {@value #WIDGET}, all depending on {@value #FEATURE_ID}), so the user chooses what gets hidden.
+ * a match on its page or a whole competition on its page, and while a marked match is live FotMob
+ * posts no alert for it, and the match rows, the match page header, the share text, the
+ * live-update notification and the home-screen live score widget show no score. Each of those
+ * surfaces has its own Patch settings switch ({@value #NOTIFICATIONS}, {@value #LISTS},
+ * {@value #MATCH_PAGE}, {@value #WIDGET}, all depending on {@value #FEATURE_ID}), so the user
+ * chooses what gets hidden.
+ *
+ * <p>Once the match is over (its status is one of {@link SpoilerRules#FINISHED}) the score shows
+ * again at the next bind or refresh, with no un-marking, unless {@value #KEEP_FINAL} is on. Every
+ * hook asks again on each bind, so a status flip is picked up without a restart.
  *
  * <p>The marks are two Patch settings lists, {@value #MATCHES} (FotMob match ids, "4506263") and
  * {@value #COMPETITIONS} (league ids, keyed like "Hide competitions": "47" is the Premier League).
@@ -40,6 +45,8 @@ public final class SpoilerFree {
     static final String LISTS = "fotmob.spoiler_lists";
     static final String MATCH_PAGE = "fotmob.spoiler_match_page";
     static final String WIDGET = "fotmob.spoiler_widget";
+    /** Off by default: marked matches also stay hidden after full time. Depends on {@link #FEATURE_ID}. */
+    static final String KEEP_FINAL = "fotmob.spoiler_keep_final";
     private static final String TAG = "Morphe-FotMob";
 
     /** Outside FotMob's own 0x7f...... resource ids, so no inflated item clashes with it. */
@@ -87,10 +94,23 @@ public final class SpoilerFree {
         }
     }
 
+    /** Whether the user keeps final scores of marked matches hidden too ({@value #KEEP_FINAL}). */
+    private static boolean keepsFinal() {
+        try {
+            return HevalSettings.isEnabled(KEEP_FINAL);
+        } catch (Throwable failure) {
+            return false;
+        }
+    }
+
     /**
      * Patched into PushMessagingService.onMessageReceived, behind the switch: true drops the push
      * before FotMob handles it. {@code message} is the FCM message bundle; match pushes carry the
-     * match id under "m" and the league and parent league ids under "lid" and "plid".
+     * match id under "m", the league and parent league ids under "lid" and "plid", and the match
+     * status (a MatchStatus name, FotMob's MatchNotificationData parses it with valueOf) under
+     * "status". A push of a marked match is dropped while the match is live; a push whose status
+     * says the match is over (the full-time result) goes through unless final scores stay hidden.
+     * A missing or unknown status counts as live.
      */
     public static boolean blocksPush(Bundle message) {
         try {
@@ -99,18 +119,22 @@ public final class SpoilerFree {
             int leagueId = parseId(message.getString("lid"));
             int parentId = parseId(message.getString("plid"));
             if ((matchId == null || matchId.trim().isEmpty()) && leagueId <= 0 && parentId <= 0) return false;
-            return isMarked(matchId, leagueId, parentId);
+            boolean marked = isMarked(matchId, leagueId, parentId);
+            return SpoilerRules.hides(marked, message.getString("status"), keepsFinal());
         } catch (Throwable failure) {
             return false;
         }
     }
 
     // ---------------------------------------------------------------------------------------
-    // Score display (the home-screen live score widget)
+    // Score display (match rows, match page, share text, live-update notification, widget)
     // ---------------------------------------------------------------------------------------
 
-    /** Match.Id, Match.league, League.Id and League.ParentId: kept model names (the patch checks them). */
-    private static volatile Field matchId, matchLeague, leagueId, leagueParentId;
+    /**
+     * Match.id, Match.league, League.id, League.parentId and Match.StatusOfMatch: kept model names
+     * (the patch checks them; 242 renamed Id/ParentId).
+     */
+    private static volatile Field matchId, matchLeague, leagueId, leagueParentId, matchStatus;
 
     private static Field field(Class<?> owner, String name) throws NoSuchFieldException {
         Field field = owner.getDeclaredField(name);
@@ -139,34 +163,66 @@ public final class SpoilerFree {
     }
 
     /**
+     * The live-update notification's score texts ("2 - 1", the penalties "(4 - 3)"): every number
+     * becomes "?" while the match's score is hidden.
+     */
+    public static String maskScoreInNotifications(String text, Object match) {
+        return hidesScoreInNotifications(match) ? SpoilerRules.maskScore(text) : text;
+    }
+
+    /** The live-update notification's header "2 - 1 • 67'": "? - ? • 67'" while the score is hidden. */
+    public static String maskLeadingScoreInNotifications(String text, Object match) {
+        return hidesScoreInNotifications(match) ? SpoilerRules.maskLeadingScore(text) : text;
+    }
+
+    /**
+     * A match row's winner inputs (the aggregate status, the match status read for "won on
+     * penalties"): null while the score is hidden, so the row bolds no team name.
+     */
+    public static Object hiddenInLists(Object value, Object match) {
+        return hidesScoreInLists(match) ? null : value;
+    }
+
+    /**
      * Whether FotMob's Match {@code match} is marked (by its id or its competition) while the master
-     * switch and the {@code surface} switch are on. Patched after a "has the match started" check:
-     * true makes that code draw the kickoff time instead of the score.
+     * switch and the {@code surface} switch are on, and its score is not final yet (or final scores
+     * stay hidden, see {@link SpoilerRules#hides}). Patched after a "has the match started" check:
+     * true makes that code draw the kickoff time or the minute instead of the score.
      */
     private static boolean hides(Object match, String surface) {
+        boolean marked;
         try {
             if (match == null || !HevalSettings.isEnabled(FEATURE_ID) || !HevalSettings.isEnabled(surface)) return false;
             if (matchId == null) {
                 Class<?> type = match.getClass();
                 Field league = field(type, "league");
-                leagueId = field(league.getType(), "Id");
-                leagueParentId = field(league.getType(), "ParentId");
+                leagueId = field(league.getType(), "id");
+                leagueParentId = field(league.getType(), "parentId");
                 matchLeague = league;
-                matchId = field(type, "Id");
+                matchId = field(type, "id");
             }
             Object id = matchId.get(match);
             Object league = matchLeague.get(match);
             int competition = league == null ? 0 : leagueId.getInt(league);
             int parent = league == null ? 0 : leagueParentId.getInt(league);
-            return isMarked(id == null ? null : id.toString(), competition, parent);
+            marked = isMarked(id == null ? null : id.toString(), competition, parent);
         } catch (Throwable failure) {
             return false;
         }
+        // A marked match whose status cannot be read counts as live: it stays hidden.
+        return SpoilerRules.hides(marked, marked ? statusName(match) : null, keepsFinal());
     }
 
-    /** The widget's status label ("FT", "67'") of a marked match is empty, so it hides its view. */
-    public static String status(String label, Object match) {
-        return hidesScoreInWidget(match) ? "" : label;
+    /** Match.StatusOfMatch's enum constant name ("SecondHalf", "Finished"), null when unreadable. */
+    private static String statusName(Object match) {
+        try {
+            Field status = matchStatus;
+            if (status == null) matchStatus = status = field(match.getClass(), "StatusOfMatch");
+            Object value = status.get(match);
+            return value instanceof Enum ? ((Enum<?>) value).name() : null;
+        } catch (Throwable failure) {
+            return null;
+        }
     }
 
     // ---------------------------------------------------------------------------------------
@@ -271,7 +327,7 @@ public final class SpoilerFree {
             return;
         }
         if (mark && label != null) HevalSettings.reportOptionsSeen(listId, key, label);
-        toast(activity, mark ? "Spoiler-free on: scores and alerts are hidden" : "Spoiler-free off");
+        toast(activity, mark ? "Spoiler-free on: live scores and alerts are hidden" : "Spoiler-free off");
     }
 
     private static Bundle extras(Activity activity) {

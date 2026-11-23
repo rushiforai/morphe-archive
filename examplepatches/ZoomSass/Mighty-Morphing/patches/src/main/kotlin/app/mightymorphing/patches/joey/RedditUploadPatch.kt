@@ -58,7 +58,7 @@ private val editorHostStringPatch = resourcePatch {
 @Suppress("unused")
 val redditUploadPatch = bytecodePatch(
     name = "Editor image and GIF upload",
-    description = "Uploads images and GIFs to Reddit directly when adding comments. Both can be uploaded via the image button. Also adds keyboard gif auto upload to reddit (click markdown in editor (far left icon) to enable keyboard gif support).",
+    description = "Uploads images and GIFs to Reddit directly when adding comments. Both can be uploaded via the image button. Also adds keyboard gif auto upload to reddit (click markdown in editor (far left icon) to enable keyboard gif support). Also works when editing a comment, and explains when a subreddit doesn't allow images or GIFs in comments.",
 ) {
     compatibleWith(JOEY)
     dependsOn(editorHostStringPatch)
@@ -78,7 +78,10 @@ val redditUploadPatch = bytecodePatch(
             """,
             ExternalLabel("morphe_editor_image", upload.instructions.last()),
         )
-        for (submit in listOf(CommentSubmitFingerprint.method, EditSubmitFingerprint.method)) {
+        for ((submit, hook) in listOf(
+            CommentSubmitFingerprint.method to "attach",
+            EditSubmitFingerprint.method to "attachEdit",
+        )) {
             val form = submit.instructions.indexOfFirst {
                 it is ReferenceInstruction && it.reference.toString().contains("f\$b;->y(Ljava/util/Map;)")
             }
@@ -86,7 +89,7 @@ val redditUploadPatch = bytecodePatch(
             submit.insertAt(
                 form,
                 """
-                invoke-static {p1}, Lapp/mightymorphing/extension/joey/EditorUpload;->attach(Ljava/util/Map;)V
+                invoke-static {p1}, Lapp/mightymorphing/extension/joey/EditorUpload;->$hook(Ljava/util/Map;)V
                 """,
             )
         }
@@ -117,6 +120,20 @@ val redditUploadPatch = bytecodePatch(
             return-object p1
             """,
             ExternalLabel("morphe_reply_error", result.instructions[handler + 1]),
+        )
+        ReplyErrorFingerprint.method.insertAt(
+            0,
+            """
+            invoke-static {p0, p1}, Lapp/mightymorphing/extension/joey/CommentRules;->explain(Landroid/app/Activity;Ljava/lang/String;)Ljava/lang/String;
+            move-result-object p1
+            """,
+        )
+        // Looks up what the subreddit allows in comments as the reply screen opens.
+        ReplyContextFingerprint.method.insertAt(
+            0,
+            """
+            invoke-static {p0}, Lapp/mightymorphing/extension/joey/CommentRules;->prepare(Landroid/app/Activity;)V
+            """,
         )
         val gifHost = upload.instructions.indexOfFirst {
             it is ReferenceInstruction && it.reference.toString().contains("EditorActivity\$k;-><init>")

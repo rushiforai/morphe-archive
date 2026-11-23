@@ -13,7 +13,7 @@ import re
 import sys
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
-EXT = ROOT / "extensions/extension/src/main/java/app/jofslash/extension/quora"
+EXT = ROOT / "extensions/quora/src/main/java/app/jofslash/extension/quora"
 STR = r'"((?:[^"\\]|\\.)*)"'
 
 # Texts put together at run time, so they can't be found as one string in the code.
@@ -52,6 +52,9 @@ def used_texts():
                         break
                     if not tok.group(2):
                         used.add(unescape(tok.group(1)))
+        # The notifications row's lines (GmsCoreCheck.Status), translated by the settings page.
+        for m in re.finditer(r'new Status\(\s*' + STR, src):
+            used.add(unescape(m.group(1)))
         # Option titles: PatchSettings.choice/text("key", "option", "Title", …).
         for m in re.finditer(r'PatchSettings\.(?:choice|text)\(\s*[\w"]+\s*,\s*' + STR + r'\s*,\s*' + STR, src):
             used.add(unescape(m.group(2)))

@@ -12,6 +12,28 @@ val enablePremiumPatch = bytecodePatch(
     compatibleWith(COMPATIBILITY_WETTERRADAR)
 
     execute {
+        // 2026.22: isPro is Lyh5.invokeSuspend and the AccessLevel decision is Lci5.d.
+        val accessLevel202622 = AccessLevel202622Fingerprint.methodOrNull
+        if (accessLevel202622 != null) {
+            IsProCombine202622Fingerprint.method.addInstructions(
+                0,
+                """
+                    const/4 v0, 0x1
+                    invoke-static {v0}, Ljava/lang/Boolean;->valueOf(Z)Ljava/lang/Boolean;
+                    move-result-object v0
+                    return-object v0
+                """.trimIndent()
+            )
+            accessLevel202622.addInstructions(
+                0,
+                """
+                    sget-object v0, Lt6;->b:Lt6;
+                    return-object v0
+                """.trimIndent()
+            )
+            return@execute
+        }
+
         // Select the matching pair together: R8 reuses old names for unrelated methods.
         val newAccessLevel = AccessLevel202621Fingerprint.methodOrNull
         val fusedAccess = if (newAccessLevel != null) {

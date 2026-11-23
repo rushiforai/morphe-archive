@@ -40,6 +40,10 @@ internal val wazeFeaturesRowPatch = bytecodePatch(
             buildWazeRow2644()
             return@finalize
         }
+        if (packageMetadata.versionName == "26.47.00.1022347503") {
+            buildWazeRow2647()
+            return@finalize
+        }
         val rowHolder = mutableClassDefBy("Lolm;")
         val template = rowHolder.methods.single { it.name == "a" && it.returnType == "Lbqxa;" && it.parameterTypes.isEmpty() }
         val templateRefs = template.implementation!!.instructions.mapNotNull { (it as? ReferenceInstruction)?.reference?.toString() }
@@ -261,6 +265,122 @@ private fun buildWazeRow2644() {
                 invoke-virtual { v$holder }, Lomf;->uaWazeRow()Lbrdm;
                 move-result-object v$scratch
                 invoke-virtual { v$list, v$scratch }, Lbwpw;->i(Ljava/lang/Object;)V
+            """,
+        )
+    }
+}
+
+/** 26.47 variant: row holder ool, row brlr, builder brlp, list bwzs. */
+context(context: BytecodePatchContext)
+private fun buildWazeRow2647() {
+    val rowHolder = context.mutableClassDefBy("Lool;")
+    val template = rowHolder.methods.single {
+        it.name == "a" && it.returnType == "Lbrlr;" && it.parameterTypes.isEmpty()
+    }
+    val templateRefs = template.implementation!!.instructions.mapNotNull {
+        (it as? ReferenceInstruction)?.reference?.toString()
+    }
+    listOf(
+        "Lool;->a:Ljava/lang/Object;",
+        "Lfzc;->aP(Landroid/content/Context;I)Landroid/graphics/drawable/Drawable;",
+        "Lbrlr;->a()Lbrlp;",
+        "Lbrlp;->c(I)V", "Lbrlp;->d(Ljava/lang/String;)V", "Lbrlp;->f(I)V",
+        "Lbrlp;->e(Landroid/view/View${'$'}OnClickListener;)V", "Lbrlp;->a()Lbrlr;",
+    ).forEach { if (it !in templateRefs) throw PatchException("account sheet row builder no longer uses $it") }
+    rowHolder.methods.add(
+        ImmutableMethod(
+            rowHolder.type, "uaWazeRow", emptyList(), "Lbrlr;",
+            AccessFlags.PUBLIC.value or AccessFlags.FINAL.value, null, null, MutableMethodImplementation(6),
+        ).toMutable().apply {
+            addInstructions(
+                0,
+                """
+                    iget-object v0, p0, Lool;->a:Ljava/lang/Object;
+                    check-cast v0, Landroid/content/Context;
+                    const v1, 0x7f080514
+                    invoke-static { v0, v1 }, Lfzc;->aP(Landroid/content/Context;I)Landroid/graphics/drawable/Drawable;
+                    move-result-object v1
+                    invoke-static { }, Lbrlr;->a()Lbrlp;
+                    move-result-object v3
+                    invoke-static { }, Landroid/view/View;->generateViewId()I
+                    move-result v4
+                    invoke-virtual { v3, v4 }, Lbrlp;->c(I)V
+                    iput-object v1, v3, Lbrlp;->a:Landroid/graphics/drawable/Drawable;
+                    const-string v4, "Waze & external data source"
+                    invoke-virtual { v3, v4 }, Lbrlp;->d(Ljava/lang/String;)V
+                    const v4, 0x161a8
+                    invoke-virtual { v3, v4 }, Lbrlp;->f(I)V
+                    new-instance v2, $OPEN_WAZE
+                    invoke-direct { v2, v0 }, $OPEN_WAZE-><init>(Landroid/content/Context;)V
+                    invoke-virtual { v3, v2 }, Lbrlp;->e(Landroid/view/View${'$'}OnClickListener;)V
+                    sget-object v4, Lbrlo;->b:Lbrlo;
+                    iput-object v4, v3, Lbrlp;->d:Lbrlo;
+                    invoke-virtual { v3 }, Lbrlp;->a()Lbrlr;
+                    move-result-object v0
+                    return-object v0
+                """,
+            )
+        },
+    )
+
+    // Insert the row into both account-sheet builders: the legacy builder used
+    // by older layouts and the modern builder that current 26.44 builds show.
+    listOf("Lbrel;" to listOf("Z"), "Lbrgh;" to listOf("Lagnt;")).forEach { (returnType, parameters) ->
+        val found = mutableListOf<Pair<String, String>>()
+        context.classDefForEach { c ->
+            for (m in c.methods) {
+                if (m.returnType != returnType || m.parameterTypes.map { it.toString() } != parameters) continue
+                val usesCustomization = m.implementation?.instructions?.any { insn ->
+                    ((insn as? ReferenceInstruction)?.reference as? MethodReference)?.let { r ->
+                        r.definingClass == "Lool;" && r.name == "uaCustomizationRow"
+                    } == true
+                } == true
+                if (usesCustomization) found += c.type to m.name
+            }
+        }
+        val (owner, name) = found.singleOrNull()
+            ?: throw PatchException("account sheet builder $returnType(${parameters.joinToString()}) with the Customization row: found ${found.size}")
+        val method = context.mutableClassDefBy(owner).methods.single {
+            it.name == name && it.returnType == returnType && it.parameterTypes.map { t -> t.toString() } == parameters
+        }
+        val ins = method.implementation!!.instructions
+        fun calls(insn: Instruction, target: String) =
+            ((insn as? ReferenceInstruction)?.reference as? MethodReference)?.let { r ->
+                r.definingClass == "Lool;" && r.name == target
+            } == true
+        val call = ins.indexOfFirst { calls(it, "uaCustomizationRow") }
+        if (call < 0) throw PatchException("Customization row call not found in $owner")
+        val result = ins[call + 1] as OneRegisterInstruction
+        val add = ins[call + 2] as Instruction35c
+        val list = add.registerC
+        val scratch = result.registerA
+        val holder = (ins[call] as Instruction35c).registerC
+        val cast = ins.getOrNull(call - 1)?.takeIf {
+            it.opcode == Opcode.CHECK_CAST && ((it as ReferenceInstruction).reference as TypeReference).type == "Lool;"
+        }
+        val source = cast?.let { (ins[call - 2] as TwoRegisterInstruction).registerB }
+        val power = (call + 3 until minOf(ins.size, call + 10)).firstOrNull { calls(ins[it], "uaPowerRow") }
+        val at = if (power == null) call + 3 else {
+            val powerAdd = (power + 1 until minOf(ins.size, power + 4)).firstOrNull {
+                ins[it].opcode == Opcode.INVOKE_VIRTUAL &&
+                    ((ins[it] as ReferenceInstruction).reference as MethodReference).let { r ->
+                        r.definingClass == "Lbwzs;" && r.name == "i"
+                    }
+            } ?: throw PatchException("Power Saving Options row add not found")
+            powerAdd + 1
+        }
+        method.addInstructions(
+            at,
+            if (source != null) """
+                move-object v$scratch, v$source
+                check-cast v$scratch, Lool;
+                invoke-virtual { v$scratch }, Lool;->uaWazeRow()Lbrlr;
+                move-result-object v$scratch
+                invoke-virtual { v$list, v$scratch }, Lbwzs;->i(Ljava/lang/Object;)V
+            """ else """
+                invoke-virtual { v$holder }, Lool;->uaWazeRow()Lbrlr;
+                move-result-object v$scratch
+                invoke-virtual { v$list, v$scratch }, Lbwzs;->i(Ljava/lang/Object;)V
             """,
         )
     }

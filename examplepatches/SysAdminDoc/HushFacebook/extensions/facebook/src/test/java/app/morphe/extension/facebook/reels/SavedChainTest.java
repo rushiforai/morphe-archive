@@ -13,11 +13,17 @@ import static org.junit.Assert.assertTrue;
 import static org.robolectric.Shadows.shadowOf;
 
 import android.app.Activity;
+import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.os.SystemClock;
+import android.view.KeyEvent;
 import android.view.MotionEvent;
+import android.view.TextureView;
 import android.view.VelocityTracker;
 import android.view.View;
 import android.view.ViewGroup;
@@ -34,11 +40,17 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
 import org.robolectric.android.controller.ActivityController;
 import org.robolectric.annotation.Config;
+import org.robolectric.annotation.GraphicsMode;
 
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 
+import app.morphe.extension.facebook.misc.AppLockForTests;
 import app.morphe.extension.facebook.settings.FamilyNames;
 import app.morphe.extension.facebook.settings.Settings;
 import app.morphe.extension.shared.SettingsContextRule;
@@ -99,6 +111,7 @@ public class SavedChainTest {
     public static final class ReelsViewer extends Activity {
         final List<Integer> facebook = new ArrayList<>();
         int reads = 1;
+        TextureView player;
 
         @Override
         protected void onCreate(Bundle state) {
@@ -107,7 +120,48 @@ public class SavedChainTest {
             requestWindowFeature(Window.FEATURE_NO_TITLE);
             FrameLayout video = new FrameLayout(this);
             video.setOnTouchListener((view, event) -> facebook.add(event.getActionMasked()));
+            if (getIntent().getBooleanExtra("video", false)) {
+                // Where Facebook 588 first lays a new viewer's video out: fitted to the width, under
+                // the status bar (S22 2026-11-22).
+                player = new TextureView(this);
+                FrameLayout.LayoutParams fitted = new FrameLayout.LayoutParams(360, 640);
+                fitted.topMargin = 24;
+                video.addView(player, fitted);
+            }
             setContentView(video);
+        }
+
+        /**
+         * Facebook filling the screen with the video a moment later, up under the status bar: its
+         * viewer draws edge to edge, so the video's top is the window's top (0,0 on the S22).
+         */
+        void fill() {
+            int[] content = new int[2];
+            content().getLocationInWindow(content);
+            FrameLayout.LayoutParams full = new FrameLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
+            full.topMargin = -content[1];
+            player.setLayoutParams(full);
+        }
+
+        /**
+         * Facebook giving the video its own shape, wider than the window and centered, its top a
+         * pixel below the window's (1185x2105 at -52,1 on the S22).
+         */
+        void cropToFill() {
+            int[] content = new int[2];
+            content().getLocationInWindow(content);
+            FrameLayout.LayoutParams crop = new FrameLayout.LayoutParams(400, 700);
+            crop.leftMargin = -20;
+            crop.topMargin = 1 - content[1];
+            player.setLayoutParams(crop);
+        }
+
+        /** Facebook laying the video out again on its way, still under the status bar. */
+        void refit() {
+            FrameLayout.LayoutParams fitted = new FrameLayout.LayoutParams(360, 600);
+            fitted.topMargin = 40;
+            player.setLayoutParams(fitted);
         }
 
         @Override
@@ -181,6 +235,8 @@ public class SavedChainTest {
         forgetEarlierTouches();
         HookStatus.clear();
         SavedChain.resetForTests();
+        // A fresh process: the window list is read from this test's window manager, not an earlier test's.
+        AppLockForTests.disarm();
         RuntimeEnvironment.getApplication().registerActivityLifecycleCallbacks(screens);
         Settings.SAVED_VIDEOS_IN_ORDER.save(true);
     }
@@ -248,9 +304,15 @@ public class SavedChainTest {
 
     /** The same, its touches read [reads] times each. */
     private ReelsViewer openViewer(String origin, int reads) {
+        return openViewer(origin, reads, false);
+    }
+
+    /** The same, showing its video in a TextureView when [video] is set. */
+    private ReelsViewer openViewer(String origin, int reads, boolean video) {
         pageController.pause();
         SavedChain.viewerOpening(origin);
-        Intent intent = new Intent(RuntimeEnvironment.getApplication(), ReelsViewer.class).putExtra("reads", reads);
+        Intent intent = new Intent(RuntimeEnvironment.getApplication(), ReelsViewer.class)
+                .putExtra("reads", reads).putExtra("video", video);
         ActivityController<ReelsViewer> viewer = Robolectric.buildActivity(ReelsViewer.class, intent).setup();
         viewer.windowFocusChanged(true);
         viewers.add(viewer);
@@ -268,6 +330,21 @@ public class SavedChainTest {
 
     private static void idle(long millis) {
         shadowOf(getMainLooper()).idleFor(Duration.ofMillis(millis));
+    }
+
+    /** A frame on [screen]: its layout settles and it's about to draw. */
+    private static void frame(Activity screen) {
+        idle(20);
+        screen.getWindow().getDecorView().getViewTreeObserver().dispatchOnPreDraw();
+    }
+
+    /** Whether [screen] is black over everything it draws. */
+    private static boolean black(Activity screen) {
+        return SettleCover.blackedOut(screen.getWindow().getDecorView());
+    }
+
+    private static boolean black(Dialog window) {
+        return SettleCover.blackedOut(window.getWindow().getDecorView());
     }
 
     private List<Integer> touchesOf(int index) {
@@ -307,10 +384,20 @@ public class SavedChainTest {
 
     private static final List<Integer> TAKEN = List.of(MotionEvent.ACTION_DOWN, MotionEvent.ACTION_CANCEL);
 
-    /** The black cover over the Saved page's content, or null when it's off. */
-    private View coverOnSaved() {
-        ViewGroup content = page.findViewById(android.R.id.content);
-        return content.getChildCount() > 1 ? content.getChildAt(content.getChildCount() - 1) : null;
+    /** Whether the Saved page is covered in black. */
+    private boolean savedCovered() {
+        return black(page);
+    }
+
+    /**
+     * Whether the middle of [screen]'s window comes out black when it draws, everything over its
+     * views included. Needs native graphics.
+     */
+    private static boolean drawsBlack(Activity screen) {
+        View decor = screen.getWindow().getDecorView();
+        Bitmap shot = Bitmap.createBitmap(decor.getWidth(), decor.getHeight(), Bitmap.Config.ARGB_8888);
+        decor.draw(new Canvas(shot));
+        return shot.getPixel(decor.getWidth() / 2, decor.getHeight() / 4) == Color.BLACK;
     }
 
     private ReelsViewer playing(int card) {
@@ -405,22 +492,45 @@ public class SavedChainTest {
 
         idle(SavedChain.SLIDE_MS + 50);
         assertTrue("a swipe up stayed in the viewer", viewer.isFinishing());
-        View cover = coverOnSaved();
-        assertNotNull("Saved showed between one saved video and the next", cover);
-        assertEquals(View.IMPORTANT_FOR_ACCESSIBILITY_NO, cover.getImportantForAccessibility());
+        assertTrue("Saved showed between one saved video and the next", savedCovered());
 
         backToSaved();
         idle(SavedChain.SETTLE_MS + SavedChain.PRESS_MS + 50);
         assertEquals("the tap under the cover didn't reach card 2", TAP, touchesOf(2));
         assertTrue("card 0 was tapped", touchesOf(0).isEmpty());
         assertTrue(statusLine(), statusLine().contains(SavedChain.NEXT + " 1"));
-        assertNotNull("the cover came off before the next video opened", coverOnSaved());
+        assertTrue("the cover came off before the next video opened", savedCovered());
 
         openViewer(SAVED);
         assertEquals("the next chain's card", "card 2", SavedChain.chainForTests().card.label);
-        assertNotNull("the cover came off as the next video opened, before it drew", coverOnSaved());
+        assertTrue("the cover came off as the next video opened, before it drew", savedCovered());
         idle(SavedChain.UNCOVER_MS + 50);
-        assertNull("the cover stayed on Saved", coverOnSaved());
+        assertFalse("the cover stayed on Saved", savedCovered());
+    }
+
+    /**
+     * On the S22 the Saved grid showed for 80 ms as the chain's tap opened a saved post, and again
+     * as the post closed: Facebook laid its page back out over the black the chain had put after it
+     * (2026-11-22, a frame-by-frame recording). Whatever Facebook adds or moves, Saved stays black.
+     */
+    @Test
+    @GraphicsMode(GraphicsMode.Mode.NATIVE)
+    public void savedStaysBlackWhenFacebookPutsItsPageBackOverTheCover() {
+        openSaved(6, true);
+        page.list.setBackgroundColor(Color.WHITE);
+        ReelsViewer viewer = playing(1);
+        swipe(viewer, 600, 300);
+        idle(SavedChain.SLIDE_MS + 50);
+        backToSaved();
+        idle(0);
+        assertTrue("Saved showed between one saved video and the next", drawsBlack(page));
+
+        ViewGroup content = page.findViewById(android.R.id.content);
+        View facebooks = content.getChildAt(0);
+        content.removeView(facebooks);
+        content.addView(facebooks);
+        idle(0);
+        assertTrue("Saved showed once Facebook put its page back on top", drawsBlack(page));
     }
 
     /**
@@ -481,7 +591,7 @@ public class SavedChainTest {
         assertEquals("the video didn't slide back", 0f, viewer.content().getTranslationY(), 0.5f);
         assertNotNull(SavedChain.chainForTests());
         assertFalse(SavedChain.chainForTests().moving);
-        assertNull(coverOnSaved());
+        assertFalse(savedCovered());
     }
 
     @Test
@@ -505,7 +615,7 @@ public class SavedChainTest {
         assertFalse("a swipe down on the first saved video left it", viewer.isFinishing());
         assertEquals(0f, viewer.content().getTranslationY(), 0.5f);
         assertNotNull(SavedChain.chainForTests());
-        assertNull(coverOnSaved());
+        assertFalse(savedCovered());
     }
 
     @Test
@@ -576,12 +686,12 @@ public class SavedChainTest {
         SavedChain.ended(player);
         idle(0);
         assertTrue("the last saved reel went on to Facebook's suggestions", viewer.isFinishing());
-        assertNotNull(coverOnSaved());
+        assertTrue(savedCovered());
 
         backToSaved();
         idle(SavedChain.SETTLE_MS + SavedChain.SCROLL_SETTLE_MS + SavedChain.PRESS_MS + 50);
         assertNull("the chain went on past the last card", SavedChain.chainForTests());
-        assertNull("Saved stayed covered with nothing to play", coverOnSaved());
+        assertFalse("Saved stayed covered with nothing to play", savedCovered());
         for (int card = 0; card < 6; card++) {
             assertTrue("card " + card + " was tapped after the last one", touchesOf(card).isEmpty());
         }
@@ -744,6 +854,7 @@ public class SavedChainTest {
     public void aPostTheChainOpenedIsClosedForTheCardAfterIt() {
         chainTappedCardOne();
         ActivityController<PostPage> post = openPost();
+        assertTrue("the post showed while the chain made sure it wasn't a video", black(post.get()));
         idle(SavedChain.POST_CHECK_MS - 100);
         assertFalse("the post closed before a slow video had its chance", post.get().isFinishing());
         idle(200);
@@ -752,7 +863,7 @@ public class SavedChainTest {
         assertNotNull("closing the post ended the chain", chain);
         assertEquals("the chain's card", "card 1", chain.card.label);
         assertEquals(1, chain.postsSkipped);
-        assertNotNull("Saved showed while the post closed", coverOnSaved());
+        assertTrue("Saved showed while the post closed", savedCovered());
         assertTrue(statusLine(), statusLine().contains(SavedChain.POST_SKIPPED + " 1"));
 
         postClosed(post);
@@ -816,5 +927,295 @@ public class SavedChainTest {
         idle(SavedChain.POST_CHECK_MS + 100);
         assertFalse("the chain kept closing posts past its limit", last.get().isFinishing());
         assertNull(SavedChain.chainForTests());
+        assertFalse("the post the chain left open stayed black", black(last.get()));
+    }
+
+    /**
+     * Facebook 588's saved post page: a window over the Saved page's own screen, with no screen of
+     * its own. As on the S22 (2026-11-22), a Back key handed to its views is swallowed with nothing
+     * closing, since Back reaches it through Android's back callbacks, which end in its own Back.
+     */
+    static final class PostWindow extends Dialog {
+        final boolean keepsBack;
+        int backs;
+        int escapes;
+
+        PostWindow(Activity page, boolean keepsBack) {
+            super(page);
+            this.keepsBack = keepsBack;
+        }
+
+        @Override
+        public boolean dispatchKeyEvent(KeyEvent event) {
+            if (event.getKeyCode() == KeyEvent.KEYCODE_ESCAPE) {
+                // Android 14 and later: a dialog cancels on Escape.
+                if (event.getAction() == KeyEvent.ACTION_UP) {
+                    escapes++;
+                    cancel();
+                }
+                return true;
+            }
+            return event.getKeyCode() == KeyEvent.KEYCODE_BACK || super.dispatchKeyEvent(event);
+        }
+
+        @Override
+        @SuppressWarnings("deprecation")
+        public void onBackPressed() {
+            backs++;
+            if (!keepsBack) super.onBackPressed();
+        }
+    }
+
+    /** A saved post opening as a window over Saved, which loses the focus to it. */
+    private PostWindow openPostWindow() {
+        return openPostWindow(false);
+    }
+
+    /**
+     * What Facebook 588 hands a dialog's window as its callback on the S22 (2026-11-22): a proxy
+     * whose handler passes each call on to the dialog it holds in a plain field.
+     */
+    static final class Forwarder implements InvocationHandler {
+        private final Object target;
+
+        Forwarder(Object target) {
+            this.target = target;
+        }
+
+        @Override
+        public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+            try {
+                return method.invoke(target, args);
+            } catch (InvocationTargetException thrown) {
+                throw thrown.getCause();
+            }
+        }
+    }
+
+    private PostWindow openPostWindow(boolean keepsBack) {
+        PostWindow post = new PostWindow(page, keepsBack);
+        post.getWindow().setCallback((Window.Callback) Proxy.newProxyInstance(Window.Callback.class.getClassLoader(),
+                new Class<?>[]{Window.Callback.class}, new Forwarder(post)));
+        post.setContentView(new FrameLayout(page));
+        post.show();
+        pageController.windowFocusChanged(false);
+        idle(0);
+        return post;
+    }
+
+    @Test
+    public void aPostShownAsAWindowOverSavedGetsBackAndTheCardAfterItPlays() {
+        chainTappedCardOne();
+        PostWindow post = openPostWindow();
+        idle(50);
+        assertTrue("the post showed while the chain made sure it wasn't a video", black(post));
+        idle(SavedChain.POST_CHECK_MS - 150);
+        assertTrue("the post closed before a slow video had its chance", post.isShowing());
+        idle(200);
+        assertFalse("the chain stopped on a saved post shown over Saved", post.isShowing());
+        assertEquals("one Back", 1, post.backs);
+        SavedChain.Chain chain = SavedChain.chainForTests();
+        assertNotNull("closing the post ended the chain", chain);
+        assertEquals("card 1", chain.card.label);
+        assertEquals(1, chain.postsSkipped);
+        assertTrue(statusLine(), statusLine().contains(SavedChain.POST_SKIPPED + " 1"));
+
+        pageController.windowFocusChanged(true);
+        idle(SavedChain.SETTLE_MS + SavedChain.PRESS_MS + 50);
+        assertEquals("the card after the post wasn't tapped", TAP, touchesOf(2));
+        for (int other : new int[]{0, 1, 3, 4, 5}) assertTrue("card " + other + " was tapped", touchesOf(other).isEmpty());
+
+        ReelsViewer viewer = openViewer(SAVED);
+        idle(SavedChain.POST_CHECK_MS + 100);
+        assertFalse("a saved video was closed as a post", viewer.isFinishing());
+        assertEquals("card 2", SavedChain.chainForTests().card.label);
+    }
+
+    @Test
+    public void aPostWindowThatKeepsItsBackIsDismissedAndTheChainGoesOn() {
+        chainTappedCardOne();
+        PostWindow post = openPostWindow(true);
+        idle(SavedChain.POST_CHECK_MS + 100);
+        assertTrue("the post wasn't given its Back first", post.isShowing());
+        assertEquals(1, post.backs);
+        idle(SavedChain.SETTLE_MS);
+        assertFalse("a post that kept its Back stayed open", post.isShowing());
+
+        pageController.windowFocusChanged(true);
+        idle(SavedChain.SETTLE_MS + SavedChain.PRESS_MS + 50);
+        assertEquals("the card after the post wasn't tapped", TAP, touchesOf(2));
+    }
+
+    @Test
+    public void aPostWindowWhoseDialogCantBeReadGetsEscapeAndTheChainGoesOn() {
+        SavedChain.readWindows = false;
+        try {
+            chainTappedCardOne();
+            PostWindow post = openPostWindow();
+            idle(SavedChain.POST_CHECK_MS + 100);
+            assertFalse("a post window with no dialog to read stayed open", post.isShowing());
+            assertEquals(1, post.escapes);
+            assertEquals(0, post.backs);
+
+            pageController.windowFocusChanged(true);
+            idle(SavedChain.SETTLE_MS + SavedChain.PRESS_MS + 50);
+            assertEquals("the card after the post wasn't tapped", TAP, touchesOf(2));
+        } finally {
+            SavedChain.readWindows = true;
+        }
+    }
+
+    @Test
+    public void aWindowAlreadyOverSavedOrOpenedByHandStays() {
+        openSaved(6, true);
+        press(1);
+        PostWindow mine = openPostWindow();
+        idle(50);
+        assertFalse("a post the user opened went black", black(mine));
+        idle(SavedChain.TOUCH_WINDOW_MS + 500);
+        assertTrue("a post the user opened was closed", mine.isShowing());
+        assertNull(SavedChain.chainForTests());
+        mine.dismiss();
+        pageController.windowFocusChanged(true);
+
+        playing(0);
+        SavedChain.ended(new Object());
+        idle(0);
+        PostWindow early = new PostWindow(page, false);
+        early.setContentView(new FrameLayout(page));
+        early.show();
+        backToSaved();
+        idle(SavedChain.SETTLE_MS + SavedChain.PRESS_MS + SavedChain.TOUCH_WINDOW_MS);
+        assertTrue("a window up before the chain's tap was closed", early.isShowing());
+        assertFalse("a window up before the chain's tap went black", black(early));
+        assertEquals(0, early.backs);
+        assertEquals(0, early.escapes);
+        assertFalse(statusLine().contains(SavedChain.POST_SKIPPED));
+    }
+
+    @Test
+    public void aWindowThatIsntThePostGetsItsBlackLiftedAndTheLastPostAllowedShows() {
+        chainTappedCardOne();
+        PostWindow other = openPostWindow();
+        idle(50);
+        assertTrue(black(other));
+        SavedChain.viewerOpening(SAVED); // A saved video after all.
+        idle(50);
+        assertTrue(other.isShowing());
+        assertFalse("a window over Saved stayed black once a saved video started", black(other));
+        other.dismiss();
+        idle(0);
+
+        SavedChain.Chain chain = SavedChain.chainForTests();
+        assertNotNull(chain);
+        chain.postsSkipped = SavedChain.MAX_POSTS_SKIPPED;
+        pageController.pause();
+        Intent intent = new Intent(RuntimeEnvironment.getApplication(), ReelsViewer.class);
+        ActivityController<ReelsViewer> viewer = Robolectric.buildActivity(ReelsViewer.class, intent).setup();
+        viewer.windowFocusChanged(true);
+        viewers.add(viewer);
+        SavedChain.bound(new Object());
+        idle(SavedChain.OPEN_GUARD_MS + 100);
+        SavedChain.ended(new Object());
+        idle(0);
+        backToSaved();
+        pageController.windowFocusChanged(true);
+        idle(SavedChain.SETTLE_MS + SavedChain.PRESS_MS + 50);
+        assertEquals("card 2 wasn't tapped", TAP, touchesOf(2));
+        PostWindow last = openPostWindow();
+        idle(SavedChain.POST_CHECK_MS + 100);
+        assertTrue("the chain closed a post past its limit", last.isShowing());
+        assertFalse("the post the chain left open stayed black", black(last));
+    }
+
+    @Test
+    public void theNextVideoStaysBlackUntilFacebookMovesItIntoPlace() {
+        openSaved(6, true);
+        playing(0);
+        assertFalse("a video opened by hand went black", black(viewers.get(0).get()));
+        SavedChain.ended(new Object());
+        idle(0);
+        backToSaved();
+        idle(SavedChain.SETTLE_MS + SavedChain.PRESS_MS + 50);
+        ReelsViewer next = openViewer(SAVED, 1, true);
+        frame(next);
+        assertTrue("the next video showed before Facebook moved it into place", black(next));
+        idle(SettleCover.HOLD_MS - 200);
+        frame(next);
+        assertTrue("the next video showed before Facebook moved it into place", black(next));
+        next.fill();
+        frame(next);
+        assertTrue("the next video showed as Facebook moved it", black(next));
+        idle(SettleCover.MOVED_HOLD_MS + 50);
+        frame(next);
+        assertFalse("the next video stayed black once in place", black(next));
+    }
+
+    /**
+     * On the S22 the black came off as Facebook first laid the video out again, still fitted under
+     * the status bar, so the jump to the full screen showed after all (2026-11-22, two frames of
+     * it). Each move starts a short hold over, so the video shows only once it stops moving.
+     */
+    @Test
+    public void eachMoveStartsTheHoldOverSoTheNextVideoShowsOnceItStopsMoving() {
+        chainTappedCardOne();
+        ReelsViewer next = openViewer(SAVED, 1, true);
+        frame(next);
+        idle(SettleCover.HOLD_MS - 300);
+        next.refit();
+        frame(next);
+        assertTrue("the next video showed as Facebook moved it", black(next));
+        idle(SettleCover.MOVED_HOLD_MS - 100);
+        frame(next);
+        assertTrue("the next video showed between two of Facebook's layouts", black(next));
+        next.fill();
+        frame(next);
+        idle(SettleCover.MOVED_HOLD_MS - 100);
+        frame(next);
+        assertTrue("the hold didn't start over at the second move", black(next));
+        idle(150);
+        frame(next);
+        assertFalse("the next video stayed black once it stopped moving", black(next));
+    }
+
+    /**
+     * On the S22 the full-screen video's top sits a pixel below the window's (2026-11-22, 1185x2105
+     * at -52,1), so where it lands can't tell that it's in place, and every saved video waited out
+     * the long hold. It shows a short hold after Facebook's last move instead.
+     */
+    @Test
+    public void aVideoFacebookMovedShowsShortlyAfterItsLastMove() {
+        chainTappedCardOne();
+        ReelsViewer next = openViewer(SAVED, 1, true);
+        frame(next);
+        idle(250);
+        next.cropToFill();
+        frame(next);
+        idle(SettleCover.MOVED_HOLD_MS + 50);
+        frame(next);
+        assertFalse("the next video waited out the long hold after Facebook moved it", black(next));
+    }
+
+    @Test
+    public void aNextVideoFacebookLeavesWhereItIsShowsAfterAShortHold() {
+        chainTappedCardOne();
+        ReelsViewer next = openViewer(SAVED, 1, true);
+        frame(next);
+        assertTrue(black(next));
+        idle(SettleCover.HOLD_MS + 50);
+        assertFalse("a video Facebook never moved stayed black", black(next));
+    }
+
+    @Test
+    public void aNextScreenWithNoVideoShowsAfterTheLongestWait() {
+        chainTappedCardOne();
+        ReelsViewer next = openViewer(SAVED);
+        frame(next);
+        assertTrue(black(next));
+        idle(SettleCover.MAX_MS - 300);
+        frame(next);
+        assertTrue(black(next));
+        idle(300);
+        assertFalse("a screen with no video stayed black", black(next));
     }
 }

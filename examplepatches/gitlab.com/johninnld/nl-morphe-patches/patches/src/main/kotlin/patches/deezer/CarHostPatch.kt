@@ -15,10 +15,10 @@ import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.immutable.reference.ImmutableStringReference
 import patches.shared.androidAutoHostVisibility
 
-private const val CAR_SERVICE = "LIIlIIIIlllIlIlI;"
-private const val ROOT = "LlIlIlllllIlllIl;"
-private const val ROOT_METHOD = "lllIlIIIlllIIII"
-private const val ROOT_REQUEST = "LlIlllIIIIlllIlI;"
+private const val CAR_SERVICE = "LlIIlllIlllIlIl;"
+private const val ROOT = "LlIIllllIIIlllI;"
+private const val ROOT_METHOD = "llIIIIIIlIIIIll"
+private const val ROOT_REQUEST = "LllIIIIIllIll;"
 private const val AUTO_PACKAGE = "com.google.android.projection.gearhead"
 private val GOTO = setOf(Opcode.GOTO, Opcode.GOTO_16, Opcode.GOTO_32)
 
@@ -31,14 +31,14 @@ private val GOTO = setOf(Opcode.GOTO, Opcode.GOTO_16, Opcode.GOTO_32)
 @Suppress("unused")
 val deezerCustomAndroidAutoHosts = bytecodePatch(
     name = "Allow any Android Auto host",
-    description = "Lets Deezer's car media browser accept any Android Auto host, including DriveDeck, " +
+    description = "Lets Deezer's native and templated car surfaces accept any compatible Android Auto host, including DriveDeck, " +
         "Gearslip and hosts outside Deezer's package/signature allow-list. Home, Library, Recently " +
         "played and Explore stay browsable and Deezer's own Up next queue is used. Account, catalogue " +
         "and playback services are unchanged.",
     default = true,
 ) {
     compatibleWith(deezer)
-    dependsOn(originalInput, androidAutoHostVisibility, deezerKeepSessionOnColdStart)
+    dependsOn(deezerBase, androidAutoHostVisibility, deezerKeepSessionOnColdStart)
 
     execute {
         val method = mutableClassDefBy(CAR_SERVICE).methods.singleOrNull { candidate ->

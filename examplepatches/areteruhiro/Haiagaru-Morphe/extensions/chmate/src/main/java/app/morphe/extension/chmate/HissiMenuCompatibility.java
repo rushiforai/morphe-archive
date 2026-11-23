@@ -122,6 +122,7 @@ public final class HissiMenuCompatibility {
     /** Keep the checker inside this installed ChMate, even if browsers or old test builds also match. */
     public static void prepareExternalIntent(Intent intent) {
         if (intent == null || !Intent.ACTION_VIEW.equals(intent.getAction())) return;
+        if (prepareTaisakuIntent(intent)) return;
         Uri uri = intent.getData();
         // Native next-thread results pin an implicit web intent to this app.
         // An external-board host need not have a matching manifest filter.
@@ -137,12 +138,6 @@ public final class HissiMenuCompatibility {
         }
         if (owner != null && uri != null && MediaUploadWebPolicy.gigaShare(uri.toString())) {
             GigaFilePosting.prepareLink(owner,intent);
-            return;
-        }
-        if(owner!=null&&intent.getComponent()==null
-                &&(intent.getPackage()==null||owner.getPackageName().equals(intent.getPackage()))
-                &&isTaisakuSite(uri)){
-            intent.setClassName(owner,"jp.syoboi.a2chMate.activity.WebViewActivity");
             return;
         }
         if (owner != null && intent.getComponent() == null
@@ -181,6 +176,20 @@ public final class HissiMenuCompatibility {
             intent.setData(uri.buildUpon().scheme("haiagaru-hissis".equalsIgnoreCase(scheme)
                     ? "https" : "http").build());
         }
+    }
+
+    public static boolean prepareTaisakuIntent(Intent intent) {
+        if (intent == null || !Intent.ACTION_VIEW.equals(intent.getAction())
+                || intent.getComponent() != null || !isTaisakuSite(intent.getData())) return false;
+        Context context = Haiagaru.applicationContextForExtension();
+        if (context == null || (intent.getPackage() != null
+                && !context.getPackageName().equals(intent.getPackage()))) return false;
+        intent.setClassName(context, "jp.syoboi.a2chMate.activity.WebViewActivity");
+        return true;
+    }
+
+    public static void prepareTaisakuResultIntent(Intent intent) {
+        prepareTaisakuIntent(intent);
     }
 
     static boolean isTaisakuSite(Uri uri){

@@ -18,7 +18,7 @@ To add this fork as an updatable patch source:
 2. Paste this patch source URL:
 
    ```text
-   https://raw.githubusercontent.com/lavinhoque33/revanced-patches/refs/heads/rvx-latest/patches-bundle.json
+   https://raw.githubusercontent.com/lavinhoque33/revanced-patches/rvx-latest/patches-bundle.json
    ```
 
 3. Tap **Add**. The source appears as **RVX Patches**.
@@ -28,16 +28,16 @@ To add this fork as an updatable patch source:
 Use the source's **Update** button to fetch newer bundles, then patch and install the app again.
 Updating the source alone does not update an installed app.
 
-Use the full URL above, not the repository URL or a repository-only add-source link. Manager resolves those
-through `main`, which still contains upstream metadata rather than this fork's releases.
-The `refs/heads/rvx-latest` URL keeps Manager on this fork's stable release branch.
+Use the full URL above. A bare repository link resolves to upstream metadata on `main`. If Manager 2.7.x
+shows v4.3.0 release notes for RVX, add the URL above as a separate source and select it instead. The older
+`refs/heads/rvx-latest` URL still downloads the right bundle, but Manager reads the wrong changelog.
 
 ### Dev builds (prereleases)
 
 For dev builds, add this URL as a **second source** using **Sources > + > Remote**:
 
 ```text
-https://raw.githubusercontent.com/lavinhoque33/revanced-patches/refs/heads/rvx-dev/patches-bundle.json
+https://raw.githubusercontent.com/lavinhoque33/revanced-patches/rvx-dev/patches-bundle.json
 ```
 
 Select the dev source instead of the stable source when patching if you want dev builds.
@@ -49,6 +49,8 @@ source, not a switch on the stable source.
 These bundles declare **YouTube 21.45.90** and **YouTube Music 9.45.51** as experimental app targets.
 Manager's **Experimental app versions** switch is available for this source. Suggested versions remain
 **YouTube 21.39.525** and **YouTube Music 9.40.51**.
+If a download search offers `21.45.90-EXTENDED`, choose the plain `21.45.90` APK instead. The two
+manifest versions are different; do not override the compatibility warning.
 
 You can also download a `.mpp` from a release and import it via **Sources > + > Local**.
 Local imports do not update automatically; import the new `.mpp` for each update.
@@ -175,6 +177,7 @@ Local imports do not update automatically; import the new `.mpp` for each update
 
 | 💊 Patch | 📜 Description | 🏹 Target Version |
 |:--------:|:--------------:|:-----------------:|
+| `Add to queue in tap order` | Adds an opt-in setting to play songs added from the native song menu in tap order, before the rest of a local, unshuffled queue. Leaves Play next unchanged. | 9.40.51 ~ 8.12.54 |
 | `Android Auto` | Bypasses certificate checks and restores YouTube Music Home recommendations, Library collections (including playlists), search and podcasts in Android Auto. Needs YouTube Music 9.15 or newer. | 9.40.51 ~ 8.12.54 |
 | `App refresh rate` | Adds an option to change the app refresh rate. | 9.40.51 ~ 8.12.54 |
 | `Bitrate default value` | Sets the audio quality to 'Always High' when you first install the app. | 9.40.51 ~ 8.12.54 |

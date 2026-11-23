@@ -22,6 +22,8 @@ public class SettingsStatus {
     public static void enableSubtitleTools() { subtitleToolsEnabled = true; }
     public static boolean captionsAvailableEnabled;
     public static void enableCaptionsAvailable() { captionsAvailableEnabled = true; }
+    public static boolean promoSkipEnabled;
+    public static void enablePromoSkip() { promoSkipEnabled = true; }
     public static boolean screenCaptureEnabled;
     public static void enableScreenCapture() { screenCaptureEnabled = true; }
     // Volatile because FeatureGateLearnMode reads it before taking its monitor, on TikTok's own
@@ -97,6 +99,8 @@ public class SettingsStatus {
     public static boolean externalBrowserEnabled = false;
     public static boolean alwaysShowPublishDateEnabled = false;
     public static boolean systemFontEnabled = false;
+    public static boolean smallerTextSizesEnabled = false;
+    public static boolean uiScaleEnabled = false;
     public static boolean turnOffHapticsEnabled = false;
     public static boolean amoledDarkModeEnabled = false;
     public static boolean screenTransitionsEnabled = false;
@@ -247,6 +251,13 @@ public class SettingsStatus {
 
     public static void enableFeedNavigation() {
         feedNavigationEnabled = true;
+    }
+
+    /** Feed tab navigation found TikTok's press-twice-to-quit check and hooked it (#489). */
+    public static boolean exitWithOneBackEnabled = false;
+
+    public static void enableExitWithOneBack() {
+        exitWithOneBackEnabled = true;
     }
 
     public static void enableCommentTranslation() {
@@ -513,6 +524,14 @@ public class SettingsStatus {
 
     public static void enableSystemFont() {
         systemFontEnabled = true;
+    }
+
+    public static void enableSmallerTextSizes() {
+        smallerTextSizesEnabled = true;
+    }
+
+    public static void enableUiScale() {
+        uiScaleEnabled = true;
     }
 
     public static void enableTurnOffHaptics() {
@@ -810,6 +829,13 @@ public class SettingsStatus {
         mayKnowTagEnabled = true;
     }
 
+    /** Hide video overlays found both play button classes' pause icon fade and hooked them (#489). */
+    public static boolean pauseIconEnabled = false;
+
+    public static void enablePauseIcon() {
+        pauseIconEnabled = true;
+    }
+
     /** Hide video overlays found the Following tab's LIVE and stories row toggle and hooked it (#262). */
     public static boolean followingSkylightEnabled = false;
 
@@ -1010,6 +1036,10 @@ public class SettingsStatus {
     public static void enableSpotifyLoginFix() { spotifyLoginFixEnabled = true; }
     public static boolean runBesideStoreAppEnabled = false;
     public static void enableRunBesideStoreApp() { runBesideStoreAppEnabled = true; }
+    public static boolean tabletRotationEnabled = false;
+    public static void enableTabletRotation() { tabletRotationEnabled = true; }
+    public static boolean oppoPushFixEnabled = false;
+    public static void enableOppoPushFix() { oppoPushFixEnabled = true; }
     public static boolean commentPublishDiagnosticsEnabled = false;
     public static void enableCommentPublishDiagnostics() { commentPublishDiagnosticsEnabled = true; }
     public static boolean commentSendFixEnabled = false;

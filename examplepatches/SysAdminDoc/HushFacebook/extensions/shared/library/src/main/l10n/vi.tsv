@@ -687,9 +687,9 @@ Hides ads and boosted listings in Marketplace's feed and search results. Regular
 # context: switch title under News feed; hides posts whose text holds a word or phrase the person listed
 Hide posts with words you choose	Ẩn bài viết chứa từ bạn chọn
 Hide posts from people, Pages and sites	Ẩn bài viết từ người, Trang và trang web
-Hides posts by people or Pages on your list below, or linking to sites on it, including shares. Your list stays on this phone unless you export it.	Ẩn bài viết của người hoặc Trang trong danh sách bên dưới, hoặc có liên kết đến trang web trong đó, kể cả bài chia sẻ lại. Danh sách chỉ ở trên điện thoại này trừ khi bạn xuất nó.
+Hides posts by people or Pages on your list below, posted in a group on it, or linking to sites on it, including shares. Your list stays on this phone unless you export it.	Ẩn bài viết của người hoặc Trang trong danh sách bên dưới, bài đăng trong nhóm có trong danh sách, hoặc có liên kết đến trang web trong đó, kể cả bài chia sẻ lại. Danh sách chỉ ở trên điện thoại này trừ khi bạn xuất nó.
 People, Pages and sites to hide	Người, Trang và trang web cần ẩn
-One per line, up to %1$d: a name as Facebook shows it, a profile or Page ID, or a site like example.com, which also covers addresses like m.example.com. Capital letters don't matter. A Facebook link works when it has the ID in it.	Mỗi dòng một mục, tối đa %1$d: tên như Facebook hiển thị, ID trang cá nhân hoặc Trang, hoặc trang web như example.com (cũng bao gồm địa chỉ như m.example.com). Không phân biệt chữ hoa, chữ thường. Liên kết Facebook dùng được nếu có chứa ID.
+One per line, up to %1$d: a name as Facebook shows it (a person, Page or group), a profile, Page or group ID, or a site like example.com, which also covers addresses like m.example.com. Capital letters don't matter. A Facebook link works when it has the ID in it.	Mỗi dòng một mục, tối đa %1$d: tên như Facebook hiển thị (người, Trang hoặc nhóm), ID trang cá nhân, Trang hoặc nhóm, hoặc trang web như example.com (cũng bao gồm địa chỉ như m.example.com). Không phân biệt chữ hoa, chữ thường. Liên kết Facebook dùng được nếu có chứa ID.
 One name, ID or site per line	Mỗi dòng một tên, ID hoặc trang web
 Nobody listed yet, so no post is hidden.	Chưa có ai trong danh sách nên không bài viết nào bị ẩn.
 %1$d person, Page or site.	%1$d người, Trang hoặc trang web.
@@ -1859,8 +1859,10 @@ Picture-in-picture button	Nút hình trong hình
 Shows a small button at the left edge of a reel or video that has the window ready. Tap it to open the window right away. Works with Picture-in-picture on.	Hiện một nút nhỏ ở mép trái của reel hoặc video đã sẵn sàng cửa sổ. Chạm vào để mở cửa sổ ngay. Hoạt động khi bật Hình trong hình.
 # context: switch title under Playback; on, a video you started keeps its sound after you leave Facebook; also the label of a headphones button in the picture-in-picture window
 Keep playing in the background	Tiếp tục phát trong nền
+Next reel in the background	Reel tiếp theo trong nền
+When a reel playing in the background ends, the next reel plays instead of the same one again. It goes through the reels Reels had loaded when you left. Works with Keep playing in the background on.	Khi một reel đang phát trong nền kết thúc, reel tiếp theo sẽ phát thay vì phát lại reel đó. Nó phát lần lượt các reel mà Reels đã tải khi bạn rời đi. Hoạt động khi bật Tiếp tục phát trong nền.
 # context: summary of that switch; the notification is the one Facebook shows with the video's play and pause buttons
-A video you started with a tap keeps its sound after you leave Facebook, and its notification can pause it. Swiping the notification away or taking a call stops it.	Video bạn bắt đầu bằng một lần chạm vẫn tiếp tục phát âm thanh sau khi bạn rời Facebook, và thông báo của nó có thể tạm dừng video. Vuốt bỏ thông báo hoặc nghe cuộc gọi sẽ dừng video.
+A video you started with a tap, or a reel you swiped to in Reels, keeps its sound after you leave Facebook, and its notification can pause it. Swiping the notification away or taking a call stops it.	Video bạn bắt đầu bằng một lần chạm, hoặc reel bạn vuốt tới trong Reels, vẫn tiếp tục phát âm thanh sau khi bạn rời Facebook, và thông báo của nó có thể tạm dừng video. Vuốt bỏ thông báo hoặc nghe cuộc gọi sẽ dừng video.
 # context: title of that notification when the video has none of its own
 Facebook video	Video Facebook
 # context: switch title under Playback; on, the small picture-in-picture window gets a headphones button that keeps the sound playing after the window closes
@@ -3131,3 +3133,10 @@ When a video in your feed has the poster's name on top of the video, that name s
 Quality settings	Cài đặt chất lượng
 Request community note	Yêu cầu ghi chú cộng đồng
 Something went wrong	Đã xảy ra lỗi
+# context: the Mark all notifications as read row under Notifications and its toasts (Discussion #338)
+Mark all notifications as read	Đánh dấu tất cả thông báo là đã đọc
+Clears every unread dot in the Notifications tab at once, like Mark all as read in the three-dot menu there, which some accounts don't have.	Xóa cùng lúc mọi chấm chưa đọc trong tab Thông báo, giống Đánh dấu tất cả là đã đọc trong menu ba chấm ở đó, mục mà một số tài khoản không có.
+All your notifications are marked as read.	Tất cả thông báo của bạn đã được đánh dấu là đã đọc.
+Nothing was marked, since Facebook didn't say who's signed in. Open the Notifications tab once, then try again.	Chưa đánh dấu gì vì Facebook không cho biết ai đang đăng nhập. Hãy mở tab Thông báo một lần rồi thử lại.
+This build can't mark notifications as read.	Bản dựng này không thể đánh dấu thông báo là đã đọc.
+Facebook couldn't mark your notifications as read. Try again in a moment.	Facebook không thể đánh dấu thông báo của bạn là đã đọc. Hãy thử lại sau giây lát.

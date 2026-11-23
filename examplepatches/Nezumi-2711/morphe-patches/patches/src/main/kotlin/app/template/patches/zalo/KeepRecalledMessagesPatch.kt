@@ -13,16 +13,22 @@ import app.morphe.patcher.string
 import app.morphe.patcher.util.smali.ExternalLabel
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 
 private const val RECALL_SETTINGS = "Lapp/template/extension/extension/NezumiSettings;"
 
+// 26.11.01: the "msgActionUndo" log string is gone; the undo handler is now
+// SpecialMessageProcessor.e(vv3), identified by the UNDO enum read plus its logger tag.
 private object IncomingUndoFingerprint : Fingerprint(
     returnType = "V",
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
+    parameters = listOf("L"),
     filters = listOf(
-        string("msgActionUndo"),
         fieldAccess(opcode = Opcode.SGET_OBJECT, name = "UNDO"),
+        string("SpecialMessageProcessor"),
     ),
 )
 
@@ -46,7 +52,7 @@ val keepRecalledMessagesPatch = bytecodePatch(
         packageName = "com.zing.zalo",
         apkFileType = ApkFileType.APKM,
         appIconColor = 0x0068FF,
-        targets = listOf(AppTarget(version = "26.10.02")),
+        targets = listOf(AppTarget(version = "26.11.01")),
     ))
 
     dependsOn(nativeSignaturePatch)
@@ -58,22 +64,28 @@ val keepRecalledMessagesPatch = bytecodePatch(
         val undo = IncomingUndoFingerprint.method
         val control = IncomingDeleteControlFingerprint.method
         check(undo.definingClass == control.definingClass)
-        check(undo.parameters.map { it.type } == listOf("Lj20/q;"))
-        check(control.parameters.map { it.type } == listOf("Lj20/q;", "Ld30/a;", "Ld30/e;"))
-        check(undo.implementation!!.registerCount == 14)
+
+        // Obfuscated app types: message, control payload, control event, bind style type.
+        val message = "Lvv3;"
+        val controlPayload = "Lnw3;"
+        val controlEvent = "Lga7;"
+        val rowStyle = "Lmu3;"
+        check(undo.parameters.map { it.type } == listOf(message))
+        check(control.parameters.map { it.type } == listOf(message, controlPayload, controlEvent))
+        check(undo.implementation!!.registerCount == 13)
         check(control.implementation!!.registerCount == 15)
 
         listOf(undo, control).forEachIndexed { eventType, method ->
             val originalStart = method.implementation!!.instructions.first()
             val targetId = if (eventType == 0) """
-                iget-object v0, p1, Lj20/q;->Q1:Lcom/zing/zalo/webview/g;
+                iget-object v0, p1, Lvv3;->H1:Lmgj;
                 if-eqz v0, :nezumi_skip_marker
-                iget-object v0, v0, Lcom/zing/zalo/webview/g;->b:Ljava/lang/Object;
+                iget-object v0, v0, Lmgj;->b:Ljava/lang/Object;
             """.trimIndent() else """
-                iget-object v0, p3, Ld30/e;->b:Lcom/zing/zalo/data/entity/chat/message/MessageId;
+                iget-object v0, p3, Lga7;->b:Lcom/zing/zalo/data/entity/chat/message/MessageId;
             """.trimIndent()
             method.addInstructionsWithLabels(0, """
-                iget-object v0, p1, Lj20/q;->c:Ljava/lang/String;
+                iget-object v0, p1, $message->c:Ljava/lang/String;
                 const/4 v1, $eventType
                 invoke-static {v0, v1}, $RECALL_SETTINGS->shouldKeepIncomingRecall(Ljava/lang/String;I)Z
                 move-result v0
@@ -90,31 +102,48 @@ val keepRecalledMessagesPatch = bytecodePatch(
             it.name == "getCurrentTimeText" && it.parameterTypes.isEmpty() &&
                 it.returnType == "Ljava/lang/String;"
         }
-        check(timeText.implementation!!.registerCount == 3)
-        val timeInstructions = timeText.implementation!!.instructions.toList()
-        val returns = timeInstructions.indices.filter { timeInstructions[it].opcode == Opcode.RETURN_OBJECT }
-        check(returns.size == 2)
-        returns.reversed().forEach { index ->
-            check((timeInstructions[index] as OneRegisterInstruction).registerA == 0)
-            timeText.replaceInstruction(index,
-                "invoke-static {p0, v0}, $RECALL_SETTINGS->formatRecallTime(Landroid/view/View;Ljava/lang/String;)Ljava/lang/String;")
-            timeText.addInstructions(index + 1, "move-result-object v0\nreturn-object v0")
+        // 26.11.01: getCurrentTimeText reuses p0's register, so `this` is gone at its returns.
+        // Wrap the private method's two call sites (dedup check and row bind) instead.
+        var wrapped = 0
+        row.methods.filter { it.implementation != null && it != timeText }.forEach { caller ->
+            val list = caller.implementation!!.instructions.toList()
+            list.indices.reversed().forEach { index ->
+                val invoke = list[index] as? FiveRegisterInstruction ?: return@forEach
+                val ref = (invoke as? ReferenceInstruction)?.reference as? MethodReference ?: return@forEach
+                if (ref.definingClass != "Lcom/zing/zalo/ui/chat/chatrow/ChatRow;" ||
+                    ref.name != "getCurrentTimeText" || ref.parameterTypes.isNotEmpty()) return@forEach
+                val result = list[index + 1]
+                check(result.opcode == Opcode.MOVE_RESULT_OBJECT)
+                val resultRegister = (result as OneRegisterInstruction).registerA
+                check(invoke.registerCount == 1 && invoke.registerC != resultRegister)
+                caller.addInstructions(index + 2, """
+                    invoke-static {v${invoke.registerC}, v$resultRegister}, $RECALL_SETTINGS->formatRecallTime(Landroid/view/View;Ljava/lang/String;)Ljava/lang/String;
+                    move-result-object v$resultRegister
+                """.trimIndent())
+                wrapped++
+            }
         }
+        check(wrapped == 2) { "Expected two getCurrentTimeText call sites, found $wrapped" }
 
         val timeVisible = row.methods.single {
-            it.name == "E" && it.parameterTypes == listOf("Lzg1/a;") && it.returnType == "Z"
+            it.name == "E" && it.parameterTypes == listOf(rowStyle) && it.returnType == "Z"
         }
-        check(timeVisible.implementation!!.registerCount == 3)
-        val visibleStart = timeVisible.implementation!!.instructions.first()
-        timeVisible.addInstructionsWithLabels(0, """
+        // 26.11.01: E has no spare registers (v0=this, v1=style). Its first two instructions are
+        // `iget-boolean v1, v1, style.f` / `if-nez v1, :true`; after those v1 is dead, so the
+        // recall check slots in there (equivalent: the original already returns true when f is set).
+        check(timeVisible.implementation!!.registerCount == 2)
+        val list = timeVisible.implementation!!.instructions.toList()
+        check(list[0].opcode == Opcode.IGET_BOOLEAN && (list[0] as OneRegisterInstruction).registerA == 1)
+        check(list[1].opcode == Opcode.IF_NEZ && (list[1] as OneRegisterInstruction).registerA == 1)
+        timeVisible.addInstructionsWithLabels(2, """
             invoke-static {p0}, $RECALL_SETTINGS->hasRecallLabel(Ljava/lang/Object;)Z
-            move-result v0
-            if-eqz v0, :nezumi_original_time_visibility
-            return v0
-        """.trimIndent(), ExternalLabel("nezumi_original_time_visibility", visibleStart))
+            move-result v1
+            if-eqz v1, :nezumi_original_time_visibility
+            return v1
+        """.trimIndent(), ExternalLabel("nezumi_original_time_visibility", list[2]))
 
         val bind = row.methods.single {
-            it.name == "p2" && it.parameterTypes == listOf("Lj20/q;", "Lzg1/a;") && it.returnType == "V"
+            it.name == "p2" && it.parameterTypes == listOf(message, rowStyle) && it.returnType == "V"
         }
         bind.addInstructions(0, "invoke-static {p0}, $RECALL_SETTINGS->trackRecallRow(Landroid/view/View;)V")
 

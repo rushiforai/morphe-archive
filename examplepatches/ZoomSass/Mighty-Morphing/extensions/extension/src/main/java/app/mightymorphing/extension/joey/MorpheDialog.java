@@ -64,7 +64,7 @@ final class MorpheDialog {
         if (drawable != null) {
             int id = activity.getResources().getIdentifier(drawable, "drawable", activity.getPackageName());
             if (id != 0) {
-                Drawable icon = activity.getDrawable(id);
+                Drawable icon = activity.getDrawable(ModernIcons.swap(activity, id));
                 if (icon != null) {
                     icon = icon.mutate();
                     icon.setTint(text(activity));
@@ -143,6 +143,46 @@ final class MorpheDialog {
         return view;
     }
 
+    /** A pick-one row: the name on the left and a switch on the right. Callers set the click and call setFilled. */
+    static final class ModeRow extends LinearLayout {
+        final android.widget.CompoundButton toggle;
+
+        ModeRow(Activity activity, String label) {
+            super(activity);
+            float density = activity.getResources().getDisplayMetrics().density;
+            setOrientation(HORIZONTAL);
+            setGravity(Gravity.CENTER_VERTICAL);
+            setMinimumHeight(Math.round(44 * density));
+            setPadding(0, Math.round(4 * density), 0, Math.round(4 * density));
+            setClickable(true);
+            setFocusable(true);
+            TextView name = new TextView(activity);
+            name.setText(label);
+            name.setTextSize(15);
+            name.setTextColor(text(activity));
+            addView(name, new LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
+            toggle = toggle(activity);
+            toggle.setClickable(false);
+            toggle.setFocusable(false);
+            LayoutParams lp = new LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            lp.leftMargin = Math.round(16 * density);
+            addView(toggle, lp);
+        }
+    }
+
+    static View mode(Activity activity, String label) {
+        return new ModeRow(activity, label);
+    }
+
+    /** Switch rows follow the same call the buttons used. */
+    static void setFilled(Activity activity, View view, boolean on) {
+        if (view instanceof ModeRow) {
+            ((ModeRow) view).toggle.setChecked(on);
+        } else if (view instanceof TextView) {
+            setFilled(activity, (TextView) view, on);
+        }
+    }
+
     /** Filled when the action is the one in use. Outline when it is available. */
     static void setFilled(Activity activity, TextView view, boolean filled) {
         view.setBackground(plate(activity, filled));
@@ -163,7 +203,7 @@ final class MorpheDialog {
     }
 
     private static int ink(Activity activity) {
-        return ModernUi.modernLook(activity) ? ModernUi.getPalette(activity).canvas : 0xFF1A140C;
+        return ModernUi.modernLook(activity) ? ModernUi.getPalette(activity).onAccent : 0xFF1A140C;
     }
 
     static LinearLayout actions(Activity activity, TextView... buttons) {
@@ -173,42 +213,166 @@ final class MorpheDialog {
         bar.setPadding(0, Math.round(12 * activity.getResources().getDisplayMetrics().density), 0, 0);
         float density = activity.getResources().getDisplayMetrics().density;
         for (TextView button : buttons) {
-            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
-                    ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-            lp.leftMargin = Math.round(8 * density);
+            boolean many = buttons.length > 3;
+            LinearLayout.LayoutParams lp = many
+                    ? new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f)
+                    : new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            lp.leftMargin = Math.round((many ? 6 : 8) * density);
+            if (many) {
+                button.setSingleLine(true);
+                button.setGravity(Gravity.CENTER);
+                button.setPadding(Math.round(6 * density), button.getPaddingTop(), Math.round(6 * density), button.getPaddingBottom());
+            }
             bar.addView(button, lp);
         }
         return bar;
     }
 
-    /** A short list. The chosen row uses the current accent. */
+    /** A short list of plain rows. The chosen row uses the current accent and a tick. */
     static void choices(Activity activity, String title, String[] labels, int selected, Choice choice) {
+        float density = activity.getResources().getDisplayMetrics().density;
         LinearLayout page = page(activity, title, null);
         AlertDialog[] shown = new AlertDialog[1];
+        page.getChildAt(0).setPadding(0, 0, 0, Math.round(6 * density));
         for (int i = 0; i < labels.length; i++) {
-            TextView row = action(activity, labels[i], i == selected ? GOLD : TEXT);
+            LinearLayout row = new LinearLayout(activity);
+            row.setOrientation(LinearLayout.HORIZONTAL);
             row.setGravity(Gravity.CENTER_VERTICAL);
-            LinearLayout.LayoutParams rowLp = new LinearLayout.LayoutParams(
-                    ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-            rowLp.bottomMargin = Math.round(8 * activity.getResources().getDisplayMetrics().density);
-            row.setLayoutParams(rowLp);
+            row.setMinimumHeight(Math.round(48 * density));
+            boolean on = i == selected;
+            TextView name = new TextView(activity);
+            name.setText(labels[i]);
+            name.setTextSize(16);
+            name.setTextColor(on ? accent(activity) : text(activity));
+            row.addView(name, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
+            if (on) {
+                TextView tick = new TextView(activity);
+                tick.setText("\u2713");
+                tick.setTextSize(16);
+                tick.setTextColor(accent(activity));
+                row.addView(tick);
+            }
             int index = i;
+            row.setClickable(true);
             row.setOnClickListener(v -> {
                 if (shown[0] != null) shown[0].dismiss();
                 choice.pick(index);
             });
             page.addView(row);
+            if (i < labels.length - 1) {
+                View line = new View(activity);
+                line.setBackgroundColor(sub(activity) & 0x00FFFFFF | 0x33000000);
+                page.addView(line, new LinearLayout.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT, Math.max(1, Math.round(density))));
+            }
         }
         TextView cancel = action(activity, "Cancel", SUB);
         cancel.setOnClickListener(v -> {
             if (shown[0] != null) shown[0].dismiss();
         });
-        page.addView(actions(activity, cancel));
+        LinearLayout bar = actions(activity, cancel);
+        bar.setPadding(0, Math.round(16 * density), 0, Math.round(4 * density));
+        page.addView(bar);
         shown[0] = show(activity, page);
     }
 
     interface Choice {
         void pick(int index);
+    }
+
+    /**
+     * A short list of options with a switch on each. Turning one on turns the others off, and the
+     * choice applies at once. The one in use cannot be turned off, so one is always selected.
+     */
+    static void exclusive(Activity activity, String title, String[] labels, String[] details,
+                          int selected, Choice choice) {
+        float density = activity.getResources().getDisplayMetrics().density;
+        LinearLayout page = page(activity, title, null);
+        AlertDialog[] shown = new AlertDialog[1];
+        android.widget.CompoundButton[] switches = new android.widget.CompoundButton[labels.length];
+        boolean[] busy = {false};
+        for (int i = 0; i < labels.length; i++) {
+            int index = i;
+            LinearLayout row = new LinearLayout(activity);
+            row.setOrientation(LinearLayout.HORIZONTAL);
+            row.setGravity(Gravity.CENTER_VERTICAL);
+            row.setPadding(0, Math.round(12 * density), 0, Math.round(12 * density));
+            LinearLayout words = new LinearLayout(activity);
+            words.setOrientation(LinearLayout.VERTICAL);
+            TextView name = new TextView(activity);
+            name.setText(labels[i]);
+            name.setTextColor(text(activity));
+            name.setTextSize(16);
+            words.addView(name);
+            if (details != null && details[i] != null) {
+                TextView note = new TextView(activity);
+                note.setText(details[i]);
+                note.setTextColor(sub(activity));
+                note.setTextSize(13);
+                note.setPadding(0, Math.round(2 * density), 0, 0);
+                words.addView(note);
+            }
+            row.addView(words, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
+            android.widget.CompoundButton toggle = toggle(activity);
+            toggle.setChecked(i == selected);
+            switches[i] = toggle;
+            LinearLayout.LayoutParams tlp = new LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            tlp.leftMargin = Math.round(16 * density);
+            row.addView(toggle, tlp);
+            toggle.setOnCheckedChangeListener((button, on) -> {
+                if (busy[0]) return;
+                busy[0] = true;
+                if (!on) {
+                    button.setChecked(true);
+                } else {
+                    for (int j = 0; j < switches.length; j++) if (j != index) switches[j].setChecked(false);
+                    choice.pick(index);
+                }
+                busy[0] = false;
+            });
+            row.setOnClickListener(v -> toggle.setChecked(true));
+            page.addView(row);
+            if (i < labels.length - 1) {
+                View line = new View(activity);
+                line.setBackgroundColor(sub(activity) & 0x00FFFFFF | 0x33000000);
+                page.addView(line, new LinearLayout.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT, Math.max(1, Math.round(density))));
+            }
+        }
+        TextView done = action(activity, "Done", SUB);
+        done.setOnClickListener(v -> {
+            if (shown[0] != null) shown[0].dismiss();
+        });
+        LinearLayout bar = actions(activity, done);
+        bar.setPadding(0, Math.round(16 * density), 0, Math.round(4 * density));
+        page.addView(bar);
+        shown[0] = show(activity, page);
+    }
+
+    /** A switch in the popup's colours. */
+    static android.widget.CompoundButton toggle(Activity activity) {
+        android.widget.CompoundButton toggle;
+        try {
+            Object created = Class.forName("com.google.android.material.materialswitch.MaterialSwitch")
+                    .getConstructor(android.content.Context.class).newInstance(activity);
+            toggle = (android.widget.CompoundButton) created;
+        } catch (Throwable ignored) {
+            toggle = new android.widget.Switch(activity);
+        }
+        int on = accent(activity);
+        int off = sub(activity);
+        android.content.res.ColorStateList thumb = new android.content.res.ColorStateList(
+                new int[][]{{android.R.attr.state_checked}, {}}, new int[]{on, off});
+        android.content.res.ColorStateList track = new android.content.res.ColorStateList(
+                new int[][]{{android.R.attr.state_checked}, {}},
+                new int[]{on & 0x00FFFFFF | 0x66000000, off & 0x00FFFFFF | 0x33000000});
+        try {
+            toggle.getClass().getMethod("setThumbTintList", android.content.res.ColorStateList.class).invoke(toggle, thumb);
+            toggle.getClass().getMethod("setTrackTintList", android.content.res.ColorStateList.class).invoke(toggle, track);
+        } catch (Throwable ignored) {
+        }
+        return toggle;
     }
 
     static AlertDialog show(Activity activity, View page) {
@@ -250,6 +414,53 @@ final class MorpheDialog {
         activity.getApplication().registerComponentCallbacks(callbacks);
         dialog.setOnDismissListener(d -> activity.getApplication().unregisterComponentCallbacks(callbacks));
         return dialog;
+    }
+
+    /**
+     * A popup that uses nearly the whole screen: a fixed frame the caller lays out itself, with
+     * its own scrolling where it needs any. It sits beside show(), which wraps and scrolls.
+     */
+    static android.app.Dialog showFull(Activity activity, View page, int maxDp, Runnable onDismiss) {
+        android.app.Dialog dialog = new android.app.Dialog(activity);
+        dialog.requestWindowFeature(android.view.Window.FEATURE_NO_TITLE);
+        dialog.setContentView(page, new ViewGroup.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+        dialog.show();
+        placeFull(activity, dialog, maxDp);
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().getDecorView().post(() -> placeFull(activity, dialog, maxDp));
+        }
+        ComponentCallbacks callbacks = new ComponentCallbacks() {
+            @Override
+            public void onConfigurationChanged(Configuration newConfig) {
+                if (dialog.getWindow() == null) return;
+                dialog.getWindow().getDecorView().post(() -> placeFull(activity, dialog, maxDp));
+            }
+
+            @Override
+            public void onLowMemory() {
+            }
+        };
+        activity.getApplication().registerComponentCallbacks(callbacks);
+        dialog.setOnDismissListener(d -> {
+            activity.getApplication().unregisterComponentCallbacks(callbacks);
+            if (onDismiss != null) onDismiss.run();
+        });
+        return dialog;
+    }
+
+    private static void placeFull(Activity activity, android.app.Dialog dialog, int maxDp) {
+        if (dialog.getWindow() == null || !dialog.isShowing()) return;
+        float density = activity.getResources().getDisplayMetrics().density;
+        int margin = Math.round(10 * density);
+        android.graphics.Rect visible = new android.graphics.Rect();
+        activity.getWindow().getDecorView().getWindowVisibleDisplayFrame(visible);
+        int screenW = activity.getResources().getDisplayMetrics().widthPixels;
+        int screenH = visible.height() > 0 ? visible.height() : activity.getResources().getDisplayMetrics().heightPixels;
+        int width = Math.min(screenW - 2 * margin, Math.round(maxDp * density));
+        int height = screenH - 2 * margin;
+        dialog.getWindow().setLayout(width, height);
+        dialog.getWindow().setGravity(Gravity.CENTER);
     }
 
     /** Keeps the card to a phone width, and fits it again when a fold opens or closes. */

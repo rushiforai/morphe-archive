@@ -1,0 +1,104 @@
+{
+  "day": "2000-01-01",
+  "storefront": "us",
+  "policyVersion": "v1",
+  "explorationLevel": 35,
+  "sections": [
+    {
+      "key": "dailyDrop",
+      "title": "Your Daily Drop",
+      "layout": "hero",
+      "decisionId": "0000000000000008",
+      "cards": [
+        {
+          "id": "dailyDrop-cold",
+          "title": "Today's Drop",
+          "subtitle": "30 tracks · play more music to personalize",
+          "artworkUrl": "https://example.invalid/image/thumb/a61/400x400bb.jpg",
+          "signals": [
+            "Cold start - charts until we learn your taste"
+          ],
+          "tracks": [
+            {
+              "title": "Track 31",
+              "artist": "Artist Seventeen",
+              "album": "Album 31",
+              "isrc": "ZZXXX0000031",
+              "appleMusicTrackId": "9000000031",
+              "artworkUrl": "https://example.invalid/image/thumb/a31/400x400bb.jpg",
+              "durationS": 211,
+              "genre": "Genre A",
+              "explicit": null,
+              "decisionId": "0000000000000008",
+              "position": 0
+            },
+            {
+              "title": "Track 32",
+              "artist": "Artist Eighteen",
+              "album": "Album 32",
+              "isrc": "ZZXXX0000032",
+              "appleMusicTrackId": "9000000032",
+              "artworkUrl": "https://example.invalid/image/thumb/a32/400x400bb.jpg",
+              "durationS": 212,
+              "genre": "Genre A",
+              "explicit": null,
+              "decisionId": "0000000000000008",
+              "position": 1
+            },
+            {
+              "title": "Track 33",
+              "artist": "Artist Nineteen",
+              "album": "Album 33",
+              "isrc": "ZZXXX0000033",
+              "appleMusicTrackId": "9000000033",
+              "artworkUrl": "https://example.invalid/image/thumb/a33/400x400bb.jpg",
+              "durationS": 213,
+              "genre": "Genre G",
+              "explicit": null,
+              "decisionId": "0000000000000008",
+              "position": 2
+            },
+            {
+              "title": "Track 34",
+              "artist": "Artist Twenty",
+              "album": "Album 34",
+              "isrc": "ZZXXX0000034",
+              "appleMusicTrackId": "9000000034",
+              "artworkUrl": "https://example.invalid/image/thumb/a34/400x400bb.jpg",
+              "durationS": 214,
+              "genre": "Genre H",
+              "explicit": null,
+              "decisionId": "0000000000000008",
+              "position": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "stationsNew",
+      "title": "More For You",
+      "layout": "grid",
+      "decisionId": "d1",
+      "cards": [
+        {
+          "id": "grid-1",
+          "title": "Chill Picks",
+          "subtitle": "6 tracks",
+          "artworkUrl": "https://example.invalid/chill.jpg",
+          "signals": [
+            "Because you like chill"
+          ],
+          "tracks": [
+            {
+              "title": "Calm Song",
+              "artist": "Calm Artist",
+              "album": "Calm",
+              "durationS": 120
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

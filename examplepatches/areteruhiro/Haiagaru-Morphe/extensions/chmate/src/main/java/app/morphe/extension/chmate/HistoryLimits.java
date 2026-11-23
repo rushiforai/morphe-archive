@@ -16,6 +16,7 @@ import java.util.ArrayList;
 public final class HistoryLimits {
     private static final String PREFS = "io.github.areteruhiro.chmate.haiagaru.ui-config";
     private static volatile Context context;
+    private static volatile Integer cachedDefaultDisplay;
     private HistoryLimits() { }
     static void initialize(Context value) {
         context = value.getApplicationContext();
@@ -24,15 +25,32 @@ public final class HistoryLimits {
     private static SharedPreferences prefs() { return context.getSharedPreferences(PREFS, 0); }
     private static SharedPreferences nativePrefs() { return PreferenceManager.getDefaultSharedPreferences(context); }
     private static int defaultDisplay() {
-        try { return context.getPackageManager().getPackageInfo(context.getPackageName(), 0)
-                .versionName.contains("242") ? 50 : 0; }
+        try {
+            String version = context.getPackageManager().getPackageInfo(context.getPackageName(), 0).versionName;
+            return version != null && version.contains("242") ? 50 : 0;
+        }
         catch (Exception ignored) { return 50; }
     }
     public static boolean unlimitedThreadHistory() {
         return context != null && prefs().getBoolean("unlimitedThreadHistory", false);
     }
     public static int getRecentThreadDisplayCount() {
-        int value = context == null ? 50 : prefs().getInt("recentThreadDisplayCount", defaultDisplay());
+        if (context == null) return 50;
+        SharedPreferences settings = prefs();
+        boolean optimize = settings.getBoolean(ExpertSettings.HISTORY_LIMIT, true);
+        int value;
+        if (optimize && settings.contains("recentThreadDisplayCount")) {
+            value = settings.getInt("recentThreadDisplayCount", 50);
+        } else if (optimize) {
+            Integer fallback = cachedDefaultDisplay;
+            if (fallback == null) {
+                fallback = defaultDisplay();
+                cachedDefaultDisplay = fallback;
+            }
+            value = fallback;
+        } else {
+            value = settings.getInt("recentThreadDisplayCount", defaultDisplay());
+        }
         return value <= 0 ? Integer.MAX_VALUE : Math.min(value, 10000);
     }
     public static long getRecentThreadDisplayCountLong() { return getRecentThreadDisplayCount(); }

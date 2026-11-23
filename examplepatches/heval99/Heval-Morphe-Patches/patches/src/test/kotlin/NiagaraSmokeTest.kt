@@ -7,6 +7,7 @@ import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
@@ -59,8 +60,8 @@ class NiagaraSmokeTest {
             apk = apk,
             workDir = workDir,
             pkg = PKG,
-            version = "1.16.36",
-            patchNames = setOf("Disable telemetry", "Enable Premium", "Fix home screen numbers tile"),
+            version = "1.16.37",
+            patchNames = setOf("Disable telemetry", "Enable Premium", "Fix home screen numbers tile", "Raise widget stack limit"),
             allPatches = loadAllPatches(newestPatchBundle(root)),
         )
         val diagnostics = "emitted classes=${classes.size}"
@@ -239,6 +240,78 @@ class NiagaraSmokeTest {
             false,
             "Channels diagnostic tip handler ${tipManager.type}->${tipHandlers.single().name}",
             diagnostics,
+        )
+
+        // 7. Raise widget stack limit. Add method (the only one with "Widget stack at "): the
+        // iget-boolean/if-eqz pair is now followed by const/16 0x14, not const/4 4.
+        fun Instruction.literalInto(opcode: Opcode, value: Int, register: Int? = null) =
+            this.opcode == opcode && (this as NarrowLiteralInstruction).narrowLiteral == value &&
+                (register == null || (this as OneRegisterInstruction).registerA == register)
+
+        val addMethods = classes.flatMap { it.methods }.filter {
+            it.returnType == "Ljava/lang/Object;" && "Widget stack at " in it.strings()
+        }
+        assertEquals(1, addMethods.size, "\"Widget stack at \" methods: ${addMethods.map { "${it.definingClass}->${it.name}" }}")
+        val addInsns = addMethods.single().instructions()
+        val proFlag = addInsns.indices.filter { i ->
+            val ref = (addInsns[i] as? ReferenceInstruction)?.reference as? FieldReference
+            addInsns[i].opcode == Opcode.IGET_BOOLEAN && ref?.type == "Z" &&
+                addInsns.getOrNull(i + 1)?.opcode == Opcode.IF_EQZ &&
+                addInsns.getOrNull(i + 2)?.literalInto(Opcode.CONST_16, 0x14) == true
+        }
+        assertEquals(1, proFlag.size, "Pro-flag/limit sequences with const/16 0x14 in ${addMethods.single().name}\n$diagnostics")
+        val stockAdd = patchedApkClasses(apk).flatMap { it.methods }.single {
+            it.definingClass == addMethods.single().definingClass && it.name == addMethods.single().name &&
+                it.parameterTypes.map(CharSequence::toString) == addMethods.single().parameterTypes.map(CharSequence::toString)
+        }.instructions()
+        val stockLimit = stockAdd[proFlag.single() + 2]
+        assertTrue(
+            stockLimit.literalInto(Opcode.CONST_4, 4, (addInsns[proFlag.single() + 2] as OneRegisterInstruction).registerA),
+            "the stock add method does not hold const/4 4 after the Pro flag test; got ${stockLimit.opcode}"
+        )
+
+        // Stack-full pre-check: size(), move-result, const/4 4 (kept), ..., add-int/lit8 size,size,-16 right before the if-lt.
+        val fullMethods = classes.flatMap { it.methods }.filter { m ->
+            val params = m.parameterTypes.map(CharSequence::toString)
+            m.returnType == "Ljava/lang/Object;" && params.size == 3 && params[0] == "Ljava/util/List;" &&
+                params[1] == "Z" && params[2].startsWith("L") && m.implementation != null &&
+                m.instructions().any {
+                    val ref = (it as? ReferenceInstruction)?.reference as? MethodReference
+                    ref?.definingClass == "Ljava/util/List;" && ref.name == "size"
+                }
+        }
+        val checks = fullMethods.mapNotNull { m ->
+            val insns = m.instructions()
+            val i = insns.indices.firstOrNull { k ->
+                val ref = (insns[k] as? ReferenceInstruction)?.reference as? MethodReference
+                ref?.name == "size" && ref.definingClass == "Ljava/util/List;" &&
+                    insns.getOrNull(k + 1)?.opcode == Opcode.MOVE_RESULT &&
+                    insns.getOrNull(k + 2)?.literalInto(Opcode.CONST_4, 4) == true &&
+                    insns.subList(k + 3, minOf(insns.size, k + 7)).any { it.opcode == Opcode.ADD_INT_LIT8 }
+            }
+            if (i == null) null else m to i
+        }
+        assertEquals(1, checks.size, "stack-full pre-checks with an add-int/lit8 before the compare: ${checks.map { it.first.name }}\n$diagnostics")
+        val (fullMethod, sizeAt) = checks.single()
+        assertEquals(
+            addMethods.single().definingClass, fullMethod.definingClass,
+            "the stack-full pre-check must sit in the add method's class",
+        )
+        val fullInsns = fullMethod.instructions()
+        val sizeReg = (fullInsns[sizeAt + 1] as OneRegisterInstruction).registerA
+        val limitReg = (fullInsns[sizeAt + 2] as OneRegisterInstruction).registerA
+        val adjustAt = (sizeAt + 3 until fullInsns.size).first { fullInsns[it].opcode == Opcode.ADD_INT_LIT8 }
+        val adjust = fullInsns[adjustAt]
+        assertTrue(
+            adjust is TwoRegisterInstruction && adjust.registerA == sizeReg && adjust.registerB == sizeReg &&
+                (adjust as NarrowLiteralInstruction).narrowLiteral == -16,
+            "the size adjustment is not add-int/lit8 v$sizeReg, v$sizeReg, -16; got $adjust"
+        )
+        val compare = fullInsns[adjustAt + 1]
+        assertTrue(
+            compare.opcode == Opcode.IF_LT && (compare as TwoRegisterInstruction).registerA == sizeReg &&
+                compare.registerB == limitReg,
+            "the adjustment is not right before if-lt v$sizeReg, v$limitReg; got ${compare.opcode}"
         )
     }
 }

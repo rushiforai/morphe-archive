@@ -36,6 +36,17 @@ private object AccountSheetActionDismissFingerprint : Fingerprint(
     custom = { method, _ -> method.definingClass == "Lbnhv;" },
 )
 
+/** 26.47: the same tap lives in the shared switch lambda `bqow.a`, policy enum `cmzt`. */
+private object AccountSheetActionDismissFingerprint2647 : Fingerprint(
+    filters = listOf(
+        fieldAccess(opcode = Opcode.IGET_OBJECT, definingClass = "Lcmvk;", name = "e"),
+        methodCall(opcode = Opcode.INVOKE_INTERFACE, definingClass = "Lcuno;", name = "a", location = MatchAfterImmediately()),
+        fieldAccess(opcode = Opcode.SGET_OBJECT, definingClass = "Lcmzt;", name = "a", location = MatchAfterImmediately()),
+        opcode(Opcode.RETURN_OBJECT, MatchAfterImmediately()),
+    ),
+    custom = { method, _ -> method.definingClass == "Lbqow;" },
+)
+
 /**
  * Lets something of ours opened from the account sheet (the Customization
  * screen, the profile toast) leave the sheet open behind it: when
@@ -48,7 +59,10 @@ internal val accountSheetNoDismissPatch = bytecodePatch(
     dependsOn(sharedExtensionPatch)
 
     execute {
-        AccountSheetActionDismissFingerprint.let { fp ->
+        val is2647 = packageMetadata.versionName == "26.47.00.1022347503"
+        val noDismiss = if (is2647) "Lcmzt;->b:Lcmzt;" else "Lcmnr;->b:Lcmnr;"
+        val dismissFingerprint = if (is2647) AccountSheetActionDismissFingerprint2647 else AccountSheetActionDismissFingerprint
+        dismissFingerprint.let { fp ->
             val dismiss = fp.instructionMatches[2].index
             val register = (fp.method.implementation!!.instructions[dismiss] as OneRegisterInstruction).registerA
             fp.method.addInstructionsWithLabels(
@@ -58,7 +72,7 @@ internal val accountSheetNoDismissPatch = bytecodePatch(
                     if-eqz v$register, :dismiss
                     const/4 v$register, 0x0
                     sput-boolean v$register, $SHAPES->SKIP_DISMISS:Z
-                    sget-object v$register, Lcmnr;->b:Lcmnr;
+                    sget-object v$register, $noDismiss
                     return-object v$register
                 """,
                 ExternalLabel("dismiss", fp.method.implementation!!.instructions[dismiss]),
@@ -94,6 +108,19 @@ private object FragmentOnDestroyFingerprint : Fingerprint(
     ),
 )
 
+/** 26.47 keeps the fragment class as `ai` with the same `ai()` onDestroy body. */
+private object FragmentOnDestroyFingerprint2647 : Fingerprint(
+    definingClass = "Lai;",
+    name = "ai",
+    returnType = "V",
+    parameters = emptyList(),
+    filters = listOf(
+        literal(1),
+        fieldAccess(opcode = Opcode.IPUT_BOOLEAN, definingClass = "this", name = "O", location = MatchAfterImmediately()),
+        opcode(Opcode.RETURN_VOID, MatchAfterImmediately()),
+    ),
+)
+
 /** The account sheet's Settings row: its case in the shared row-click dispatcher, from its first instruction. */
 private object SettingsRowClickFingerprint : Fingerprint(
     name = "onClick",
@@ -108,6 +135,20 @@ private object SettingsRowClickFingerprint : Fingerprint(
     ),
 )
 
+/** 26.47's Settings case: same dispatcher shape, row holder `ool`. */
+private object SettingsRowClickFingerprint2647 : Fingerprint(
+    name = "onClick",
+    returnType = "V",
+    parameters = listOf("Landroid/view/View;"),
+    filters = listOf(
+        fieldAccess(opcode = Opcode.IGET_OBJECT, definingClass = "this", name = "a"),
+        opcode(Opcode.MOVE_OBJECT, MatchAfterImmediately()),
+        checkCast("Lool;", location = MatchAfterImmediately()),
+        fieldAccess(opcode = Opcode.IGET_OBJECT, definingClass = "Lool;", location = MatchAfterImmediately()),
+        string("SettingsActionSpecClicked", location = MatchAfterImmediately()),
+    ),
+)
+
 internal val keepAccountSheetOpenPatch = bytecodePatch(
     description = "Returning from Settings or Customization, or tapping \"Your profile\", " +
         "leaves the account sheet open instead of dropping back to the map.",
@@ -116,14 +157,17 @@ internal val keepAccountSheetOpenPatch = bytecodePatch(
     dependsOn(sharedExtensionPatch, accountSheetNoDismissPatch)
 
     execute {
+        val is2647 = packageMetadata.versionName == "26.47.00.1022347503"
         // Remember the sheet's shower every time it opens, so it can be re-shown.
         AccountMenuShowerFingerprint.method.addInstructions(0, "sput-object p0, $SHAPES->MENU:Ljava/lang/Object;")
 
         // Report every fragment destroy; Shapes re-shows the sheet when the Settings page goes away.
-        FragmentOnDestroyFingerprint.method.addInstructions(0, "invoke-static { p0 }, $SHAPES->fragmentDestroyed(Ljava/lang/Object;)V")
+        val fragmentDestroy = if (is2647) FragmentOnDestroyFingerprint2647 else FragmentOnDestroyFingerprint
+        fragmentDestroy.method.addInstructions(0, "invoke-static { p0 }, $SHAPES->fragmentDestroyed(Ljava/lang/Object;)V")
 
         // The Settings row asks for the sheet back. At the case's own label, so the switch reaches it.
-        SettingsRowClickFingerprint.let { fp ->
+        val settingsRow = if (is2647) SettingsRowClickFingerprint2647 else SettingsRowClickFingerprint
+        settingsRow.let { fp ->
             val caseEntry = fp.instructionMatches.first().index
             // v0 carries the shared dispatcher's receiver in 26.43. The following
             // move-object writes its destination before reading it, so use that
@@ -141,6 +185,7 @@ internal val keepAccountSheetOpenPatch = bytecodePatch(
                 """,
             )
         }
-        if (SettingsRowClickFingerprint.method.definingClass != "Lome;") throw PatchException("Settings row is no longer in the shared dispatcher")
+        val dispatcher = if (is2647) "Look;" else "Lome;"
+        if (settingsRow.method.definingClass != dispatcher) throw PatchException("Settings row is no longer in the shared dispatcher")
     }
 }

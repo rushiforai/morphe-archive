@@ -181,6 +181,8 @@ public class FeedScreenCoverageTest {
         put("publish_date_on_grid", NONE, NONE, NONE);
         put("video_length_on_grid", NONE, NONE, NONE);
         put("hide_grid_view_count", NONE, NONE, NONE);
+        // The grid cell's own corners (#487), drawn in the profile grids, none of the three windows.
+        put("rounded_grid_corners", NONE, NONE, NONE);
         // The order of the profile, Liked, Favorites and sound page grids (#180). A cell opened from
         // the grid swipes through the grid's order on the video page (GridSort.beforeOpen), and a
         // grid narrowed to a search plays its matches first, so all of them reach the detail pager.
@@ -220,6 +222,9 @@ public class FeedScreenCoverageTest {
         put("hide_feed_surveys", YES, YES, NONE);
         put("hide_footnotes", YES, YES, NONE);
         put("hide_may_know_tag", YES, YES, NONE);
+        // The play icon is the shared feed panel's PlayButtonComponent, which every video cell
+        // builds in both windows; a LIVE room has no tap-to-pause icon (#489).
+        put("hide_pause_icon", YES, YES, NONE);
         // The Following tab's LIVE row is the main feed's; an opened video has none (#262).
         put("hide_following_live_row", YES, NONE, NONE);
         // All and Create sit in the Following row (and the Inbox's, which is no video window).

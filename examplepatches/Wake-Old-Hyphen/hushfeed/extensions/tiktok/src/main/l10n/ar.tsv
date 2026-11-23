@@ -2266,11 +2266,9 @@ Shows a small count under TikTok's top tabs of what the feed filter has removed 
 %1$d filtered out|few	%1$d عناصر تمت تصفيتها
 %1$d filtered out|many	%1$d عنصرا تمت تصفيته
 Account facts on profiles	حقائق الحساب في الملفات الشخصية
-A profile's share sheet gets an Account facts button. It shows what TikTok already sent about the account: when it joined, its region and language, when its username and display name last changed, whether it's private and whether its liked videos are public. Nothing extra is fetched.	تحصل ورقة مشاركة الملف الشخصي على زر حقائق الحساب. يعرض ما أرسله TikTok بالفعل عن الحساب: تاريخ انضمامه، ومنطقته ولغته، وآخر تغيير لاسم المستخدم واسم العرض، وما إذا كان خاصًا وما إذا كانت مقاطع الفيديو التي أعجبته عامة. لا يتم جلب أي شيء إضافي.
 Account facts	حقائق الحساب
 TikTok account facts	حقائق حساب TikTok
 Account facts copied	تم نسخ حقائق الحساب
-Not sent	لم يرسل
 Joined	انضم
 Account region	منطقة الحساب
 Language	اللغة
@@ -3307,7 +3305,7 @@ Saving %1$s videos|many	جارٍ حفظ %1$s فيديو
 The host can see you	يمكن للمضيف رؤيتك
 Let the host see you	اسمح للمضيف برؤيتك
 Couldn't tell which LIVE this is. Open it again.	تعذّر معرفة أي LIVE هذا. افتحه مرة أخرى.
-The host can already see you in this LIVE	يمكن للمضيف رؤيتك بالفعل في هذا LIVE
+The host won't see you next time you open it	لن يراك المضيف في المرة القادمة التي تفتحه فيها
 Letting the host see you	جارٍ السماح للمضيف برؤيتك
 The host can see you now	يمكن للمضيف رؤيتك الآن
 The host sees you next time you open it	سيراك المضيف في المرة القادمة التي تفتحه فيها
@@ -3404,3 +3402,59 @@ Always show the expand button in comments	إظهار زر التوسيع في ا
 Puts the button that stretches the comments over the whole screen on every video. TikTok only gives it to some accounts. Hide the expand button in comments wins if both are on.	يضع الزر الذي يمدد التعليقات على كامل الشاشة في كل فيديو. لا يمنحه TikTok إلا لبعض الحسابات. إذا كان الخياران مفعّلين، يتغلب إخفاء زر التوسيع في التعليقات.
 Keep the video full size under comments	إبقاء الفيديو بحجمه الكامل تحت التعليقات
 The video keeps its size when you open the comments, and the comments cover its lower part instead of pushing it up into a smaller box.	يحتفظ الفيديو بحجمه عند فتح التعليقات، وتغطي التعليقات الجزء السفلي منه بدلًا من دفعه إلى الأعلى في مربع أصغر.
+# context: Always show publish date grid switch; rounds each profile grid cell's corners
+Round the corners on profile grids	تدوير الزوايا في شبكات الملف الشخصي
+Gives each video on profile grids rounded corners, on your own profile and on Liked and Favorites too.	يجعل زوايا كل فيديو في شبكات الملف الشخصي مستديرة، في ملفك الشخصي وفي الإعجابات والمفضلة أيضًا.
+# context: Account facts sheet on a profile's share sheet: the gifter level (pay_grade) and SecUID lines, the value shown for a detail TikTok left out, and the switch summary
+Gifter level	مستوى الإهداء
+SecUID	SecUID
+Unknown (TikTok didn't send it)	غير معروف (لم يرسله TikTok)
+A profile's share sheet gets an Account facts button. It shows what TikTok already sent about the account: when it joined, its region and language, its gifter level and SecUID, when its username and display name last changed, whether it's private and whether its liked videos are public. Nothing extra is fetched.	تحصل ورقة مشاركة الملف الشخصي على زر حقائق الحساب. يعرض ما أرسله TikTok بالفعل عن الحساب: تاريخ انضمامه، ومنطقته ولغته، ومستوى الإهداء ومعرّف SecUID، وآخر تغيير لاسم المستخدم واسم العرض، وما إذا كان خاصًا وما إذا كانت مقاطع الفيديو التي أعجبته عامة. لا يتم جلب أي شيء إضافي.
+# context: LIVE controls: a small line in a LIVE room with the room ID and the viewer's own connection (ping, latency, download speed) from TikTok's player; a tap copies the room ID
+Show the room ID and your connection	إظهار معرّف الغرفة واتصالك
+Adds a small line to LIVE rooms with the room's ID and how your own connection to the stream is doing, as TikTok's player measures it: ping, latency and download speed. Tap the line to copy the room ID.	يضيف سطرًا صغيرًا إلى غرف LIVE فيه معرّف الغرفة وحالة اتصالك أنت بالبث، كما يقيسها مشغّل TikTok: البينغ والتأخير وسرعة التنزيل. اضغط على السطر لنسخ معرّف الغرفة.
+Room ID %1$s	معرّف الغرفة %1$s
+Ping %1$s ms	البينغ %1$s مللي ث
+Latency %1$s s	التأخير %1$s ث
+Room ID copied	تم نسخ معرّف الغرفة
+LIVE room ID	معرّف غرفة LIVE
+Hide playable games	إخفاء الألعاب القابلة للعب
+Hide the mini games you can play right in the For You feed.	إخفاء الألعاب الصغيرة التي يمكنك لعبها مباشرة في خلاصة لك.
+Playable games	ألعاب قابلة للعب
+Hide the pause icon	إخفاء أيقونة الإيقاف المؤقت
+A tap still pauses and plays the video, but the big play icon doesn't show over it.	لا يزال النقر يوقف الفيديو مؤقتاً ويشغّله، لكن أيقونة التشغيل الكبيرة لا تظهر فوقه.
+Exit with one Back	الخروج بضغطة رجوع واحدة
+Back on Home leaves TikTok right away, with no "Tap again to exit" message. From another tab, Back still takes you to Home first, or to the tab Open TikTok on picks.	الرجوع في الرئيسية يغلق TikTok فوراً، بدون رسالة "انقر مرة أخرى للخروج". من أي تبويب آخر، لا يزال الرجوع يأخذك إلى الرئيسية أولاً، أو إلى التبويب الذي يختاره إعداد فتح TikTok على.
+# context: LIVE controls: colors and hidden rows for the profile card a tap on a name opens in a LIVE room
+LIVE profile card background	خلفية بطاقة الملف الشخصي في LIVE
+Colors the card a tap on a name opens in a LIVE room. Chips, buttons and boxes on it keep their own colors, and while a color is picked the card skips Dark LIVE panels.	يلوّن البطاقة التي تفتح عند النقر على اسم في غرفة LIVE. تحتفظ الشارات والأزرار والمربعات عليها بألوانها، وما دام هناك لون مختار لا تستخدم البطاقة لوحات LIVE الداكنة.
+LIVE profile card text	نص بطاقة الملف الشخصي في LIVE
+Colors the text drawn on the card itself. Automatic picks white or black, whichever stands out from the card.	يلوّن النص المكتوب على البطاقة نفسها. يختار «تلقائي» الأبيض أو الأسود، أيهما أوضح على البطاقة.
+Hide rows on LIVE profile cards	إخفاء صفوف في بطاقات الملف الشخصي في LIVE
+Pick the rows to take off the card a tap on a name opens in a LIVE room. The rest stay where they are.	اختر الصفوف التي تريد إزالتها من البطاقة التي تفتح عند النقر على اسم في غرفة LIVE. يبقى الباقي في مكانه.
+Upcoming LIVE events	فعاليات LIVE القادمة
+Products in the LIVE	المنتجات في LIVE
+Shop rating	تقييم المتجر
+Group chat	الدردشة الجماعية
+Bulletin board	لوحة الإعلانات
+Gift gallery	معرض الهدايا
+Festival honors	أوسمة المهرجانات
+# context: an Appearance switch and its summary (#476). Text size, Settings and privacy and Accessibility are TikTok's own labels (its NxString entries 13899, 2691 and 2892 on 47.9.3): the slider page, the menu, and the menu row that holds the page. Use TikTok's label for each in this language
+Smaller text sizes	أحجام نص أصغر
+Adds three stops below the smallest size on TikTok's own Text size slider, in Settings and privacy > Accessibility. Pick one there, then restart TikTok.	يضيف ثلاث درجات أصغر من أصغر حجم إلى شريط حجم الخط في TikTok نفسه، في الإعدادات والخصوصية > صلاحية الوصول. اختر واحدة منها هناك، ثم أعد تشغيل TikTok.
+# context: a number row under Appearance and its summary (#477). The number is a percent of TikTok's own size, from 50 to 100, and the row shows it as 80% and so on
+UI size	حجم الواجهة
+Makes TikTok's whole interface smaller, text and buttons alike, so more fits on screen. 100 leaves it as it is. Restart TikTok to see the change.	يصغّر واجهة TikTok بالكامل، النصوص والأزرار معًا، ليتسع المزيد على الشاشة. القيمة 100 تتركها كما هي. أعد تشغيل TikTok لرؤية التغيير.
+Show how long a LIVE has been on	إظهار مدة بث LIVE
+Adds a small line to LIVE rooms with how long the host has been live, counted from when the room started. With the room ID on too, it goes under that.	يضيف سطرًا صغيرًا إلى غرف LIVE يبيّن منذ متى والمضيف في بث مباشر، محسوبًا من بدء الغرفة. وإذا كان معرّف الغرفة مفعّلًا أيضًا، يظهر تحته.
+LIVE for %1$s	مدة LIVE %1$s
+Show exact LIVE battle scores	إظهار نتائج معارك LIVE الدقيقة
+In a LIVE battle, TikTok caps the big scores viewers see while the host sees the whole number. This shows the whole score in the battle bar and the co-host windows.	في معركة LIVE، يقيّد TikTok النتائج الكبيرة التي يراها المشاهدون بينما يرى المضيف الرقم كاملًا. يعرض هذا النتيجة كاملة في شريط المعركة ونوافذ المضيفين المشاركين.
+Start LIVEs at	بدء LIVE بجودة
+The quality you picked last	الجودة التي اخترتها آخر مرة
+A LIVE room opens at this quality until you pick another one, and that pick carries to the next rooms until TikTok closes. A room whose stream doesn't have it opens at TikTok's choice.	تُفتح غرفة LIVE بهذه الجودة حتى تختار جودة أخرى، ثم ينتقل اختيارك إلى الغرف التالية حتى يُغلق TikTok. الغرفة التي لا يتوفر بثها بهذه الجودة تُفتح باختيار TikTok.
+Skip promo lines	تخطي سطور الترويج
+Skips the part of a video where a caption line has a word from Promo words, like a casino or promo code plug, and shows Undo. It reads the video's own captions, so a video without any plays as usual.	يتخطى جزء الفيديو الذي يحتوي فيه سطر من التسميات التوضيحية على كلمة من كلمات الترويج، مثل إعلان كازينو أو رمز ترويجي، ويعرض تراجع. يقرأ التسميات التوضيحية الخاصة بالفيديو، لذا يُشغَّل الفيديو الذي لا يحتوي عليها كالمعتاد.
+Promo words	كلمات الترويج
+Separate words or phrases with commas, like casino, promo code. Capital letters don't matter, and "a" & "b" or "a" !& "b" work as they do for Blocked caption words.	افصل الكلمات أو العبارات بفواصل، مثل casino, promo code. لا تهم الأحرف الكبيرة، و"a" & "b" أو "a" !& "b" تعمل كما تعمل في كلمات الوصف المحظورة.
+Skipped a promo line	تم تخطي سطر ترويجي

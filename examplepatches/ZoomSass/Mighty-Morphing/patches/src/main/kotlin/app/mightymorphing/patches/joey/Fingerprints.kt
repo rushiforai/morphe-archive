@@ -350,6 +350,13 @@ object ReplyResultFingerprint : Fingerprint(
     parameters = listOf("[Ljava/lang/Void;"),
 )
 
+object ReplyErrorFingerprint : Fingerprint(
+    definingClass = "Lo/o/joey/Activities/ReplyActivity;",
+    name = "D4",
+    returnType = "V",
+    parameters = listOf("Ljava/lang/String;"),
+)
+
 object EditSubmitFingerprint : Fingerprint(
     definingClass = "Lnet/dean/jraw/managers/AccountManager;",
     returnType = "V",
@@ -380,6 +387,13 @@ object DrawerOpenFingerprint : Fingerprint(
 object DrawerBuildFingerprint : Fingerprint(
     definingClass = "Lua/b;",
     name = "B",
+    returnType = "V",
+    parameters = listOf(),
+)
+
+object ReplyContextFingerprint : Fingerprint(
+    definingClass = "Lo/o/joey/Activities/ReplyActivity;",
+    name = "r4",
     returnType = "V",
     parameters = listOf(),
 )

@@ -35,6 +35,7 @@ private val identities = listOf(
     Identity("receiver", "android:permission", suffix = ".pixelbundle.RECEIVER"),
     Identity("provider", "android:authorities"),
     Identity("provider", "android:authorities", suffix = ".androidx-startup"),
+    Identity("provider", "android:authorities", suffix = ".train.androidx-startup"),
     Identity("provider", "android:authorities", suffix = ".clipboard_content"),
     Identity("provider", "android:authorities", suffix = ".gboard_patches", optional = true),
     Identity("provider", "android:authorities", suffix = ".fileprovider"),

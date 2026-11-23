@@ -17,17 +17,11 @@ internal val TrackingPermissionsToStringFingerprint =
 // The app-monitoring switch (9.18.3: remoteconfig.models.AppMonConfig), read by MailAppMonProxy.
 internal val AppMonConfigToStringFingerprint = toStringFingerprint("AppMonConfig(isAppMonEnabled=")
 
-// The Sentry starter (9.18.3: trackingcrashes.sentry.SentryAPI.start(CrashTrackingConfig)): the
-// one-parameter void that calls the SDK's SentryAndroid.init. The manifest sets
-// io.sentry.auto-init=false, so this is the only way Sentry starts. The SDK's own init overloads
-// and SentryInitProvider also call init; they are excluded by package and by being static.
-internal object SentryStartFingerprint : Fingerprint(
-    returnType = "V",
-    filters = listOf(
-        methodCall(definingClass = "Lio/sentry/android/core/SentryAndroid;", name = "init"),
-    ),
-    custom = { method, classDef ->
-        method.implementation != null && method.parameterTypes.size == 1 &&
-            !AccessFlags.STATIC.isSet(method.accessFlags) && !classDef.type.startsWith("Lio/sentry/")
-    },
-)
+// The Sentry crash-tracking config (9.18.3: trackingcrashes.sentry.CrashTrackingConfig, the data
+// class SentryApi.start received). Since 9.21.2 R8 inlined SentryApi.start into
+// MailApplication.onCreate, which calls SentryAndroid.init only when the config says
+// crashTrackingType == SENTRY and isCrashTrackingAllowedByUser; the manifest sets
+// io.sentry.auto-init=false, so that is the only way Sentry starts. The remote-config model of the
+// same simple name starts with a different property, so the prefix is unique.
+internal val CrashTrackingConfigToStringFingerprint =
+    toStringFingerprint("CrashTrackingConfig(isCrashTrackingAllowedByUser=")

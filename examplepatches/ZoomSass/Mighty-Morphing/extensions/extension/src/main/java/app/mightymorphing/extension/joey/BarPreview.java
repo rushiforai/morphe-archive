@@ -60,7 +60,7 @@ final class BarPreview {
         value.setTextSize(15);
         Runnable paint = () -> value.setText(WIDTH_NAME[index[0]] + "  ›");
         paint.run();
-        row.setOnClickListener(v -> MorpheDialog.choices(activity, "Screen size", WIDTH_NAME, index[0], picked -> {
+        row.setOnClickListener(v -> MorpheDialog.exclusive(activity, "Screen size", WIDTH_NAME, null, index[0], picked -> {
             index[0] = picked;
             paint.run();
             refresh.run();
@@ -125,7 +125,7 @@ final class BarPreview {
         int id = drawable == null ? 0 : activity.getResources().getIdentifier(
                 drawable, "drawable", activity.getPackageName());
         if (id != 0) {
-            Drawable image = activity.getDrawable(id);
+            Drawable image = activity.getDrawable(ModernIcons.swap(activity, id));
             if (image != null) {
                 image = image.mutate();
                 image.setTint(color);

@@ -36,6 +36,7 @@ internal val RESULT_CONSTRUCTOR_PARAMETERS = listOf(
     "Ljava/lang/Long;",
     "Ljava/lang/Integer;",
     "Ljava/lang/String;",
+    "Ljava/lang/String;",
 )
 
 internal val IPUT_OPCODES = setOf(
@@ -292,6 +293,7 @@ internal fun fieldRef(owner: String, field: FieldReference) = "$owner->${field.n
 /**
  * `static Result cutlogWithReplacement(Result, CaptureReplacement)`。
  * replacement が null なら元の結果を、そうでなければ長さ・解像度・音声有無だけを差し替えた結果を返す。
+ * effectData（撮影時に使ったエフェクトの曲名・アーティストの JSON）は元の撮影のものを引き継ぐ。
  */
 private fun withReplacementMethod(resultClass: MutableClass): MutableMethod {
     val resultType = resultClass.type
@@ -301,13 +303,14 @@ private fun withReplacementMethod(resultClass: MutableClass): MutableMethod {
     val timestamp = fields[7]
     val utcOffset = fields[8]
     val countryCode = fields[9]
-    // v0〜v11 を range 呼び出しに使う。p0 は v12、p1 は v13。
+    val effectData = fields[10]
+    // v0〜v12 を range 呼び出しに使う。p0 は v13、p1 は v14。
     return staticMethod(
         resultType,
         WITH_REPLACEMENT,
         listOf(resultType, REPLACEMENT),
         resultType,
-        registerCount = 14,
+        registerCount = 15,
         smali = """
             if-nez p1, :replaced
             return-object p0
@@ -322,8 +325,9 @@ private fun withReplacementMethod(resultClass: MutableClass): MutableMethod {
             iget-object v9, p0, ${fieldRef(resultType, timestamp)}
             iget-object v10, p0, ${fieldRef(resultType, utcOffset)}
             iget-object v11, p0, ${fieldRef(resultType, countryCode)}
+            iget-object v12, p0, ${fieldRef(resultType, effectData)}
             new-instance v0, $resultType
-            invoke-direct/range {v0 .. v11}, $resultType-><init>(${RESULT_CONSTRUCTOR_PARAMETERS.joinToString("")})V
+            invoke-direct/range {v0 .. v12}, $resultType-><init>(${RESULT_CONSTRUCTOR_PARAMETERS.joinToString("")})V
             return-object v0
         """,
     )

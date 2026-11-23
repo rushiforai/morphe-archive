@@ -81,7 +81,7 @@ val viewOnlineStatusPrivatelyPatch = bytecodePatch(
         packageName = "com.zing.zalo",
         apkFileType = ApkFileType.APKM,
         appIconColor = 0x0068FF,
-        targets = listOf(AppTarget(version = "26.10.02")),
+        targets = listOf(AppTarget(version = "26.11.01")),
     ))
 
     dependsOn(nativeSignaturePatch)
@@ -141,10 +141,16 @@ val viewOnlineStatusPrivatelyPatch = bytecodePatch(
         check(OnlineListResponse.matchAll(1..1).size == 1)
         val response = OnlineListResponse.method
         val responseInstructions = response.implementation!!.instructions.toList()
-        val dataIndex = responseInstructions.indices.single { index ->
+        // The response handler may be a multi-case callback (26.11.01+), so anchor on the data
+        // getJSONObject(String) that immediately precedes the HashSet.clear() of the online set.
+        val onlineSetClearIndex = responseInstructions.indices.first { index ->
             val call = (responseInstructions[index] as? ReferenceInstruction)?.reference as? MethodReference
-            call?.definingClass == "Lorg/json/JSONObject;" && call.name == "getJSONObject" &&
-                call.parameterTypes == listOf("Ljava/lang/String;")
+            call?.definingClass == "Ljava/util/HashSet;" && call.name == "clear"
+        }
+        val dataIndex = responseInstructions.indices.last { index ->
+            val call = (responseInstructions[index] as? ReferenceInstruction)?.reference as? MethodReference
+            index < onlineSetClearIndex && call?.definingClass == "Lorg/json/JSONObject;" &&
+                call.name == "getJSONObject" && call.parameterTypes == listOf("Ljava/lang/String;")
         }
         check(responseInstructions[dataIndex + 1].opcode == Opcode.MOVE_RESULT_OBJECT)
         val dataRegister = (responseInstructions[dataIndex + 1] as OneRegisterInstruction).registerA
@@ -247,7 +253,7 @@ val viewOnlineStatusPrivatelyPatch = bytecodePatch(
         val refresh = ChatOnlineListRefresh.method
         val onlineRepository = mutableClassDefBy(refresh.definingClass)
         val refreshInstructions = refresh.implementation!!.instructions.toList()
-        check(refresh.implementation!!.registerCount == 5)
+        check(refresh.implementation!!.registerCount >= 5)
         val tabIndex = refreshInstructions.indices.first { index ->
             val call = (refreshInstructions[index] as? ReferenceInstruction)?.reference as? MethodReference
             call?.definingClass == "Lcom/zing/zalo/ui/maintab/MainTabView;"
@@ -298,7 +304,7 @@ val viewOnlineStatusPrivatelyPatch = bytecodePatch(
                         "Wrong chat argument: UID is null or empty. Current uid empty? "
                 } == true
         }
-        check(chatArguments.implementation!!.registerCount == 5)
+        check(chatArguments.implementation!!.registerCount >= 4)
         chatArguments.addInstructions(0,
             "invoke-static {p0, p1}, $SETTINGS_CLASS->setChatPresenceTarget(Ljava/lang/Object;Landroid/os/Bundle;)V")
         val subtitleMethod = chatView.methods.single {

@@ -1,5 +1,6 @@
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.ClassDef
+import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
@@ -43,7 +44,7 @@ class MangoSmokeTest {
             apk = apk,
             workDir = workDir,
             pkg = PKG,
-            version = "1.68",
+            version = "1.70",
             patchNames = setOf("Enable Premium", "Disable license check"),
             allPatches = loadAllPatches(newestPatchBundle(root)),
         )
@@ -85,9 +86,29 @@ class MangoSmokeTest {
         for (cls in classes) for (method in cls.methods) {
             val code = method.implementation?.instructions?.toList() ?: continue
             for (i in code.indices.filter { code[it].isFlowRead() }) {
-                val valueOf = (i + 1..minOf(code.lastIndex, i + 8)).firstOrNull { code[it].isBooleanValueOf() } ?: continue
+                // 1.70 computes the Boolean.valueOf before reading the flow field, so look on both sides.
+                // Only count a valueOf whose result reaches the (Object, Object)Z setter of the very flow the
+                // read loaded: the setter comes after the read, its receiver is the read's register, and
+                // neither that register nor the value register is rewritten before it. The patch inserts one
+                // sget-object at v + 2 (the forced TRUE), so the window is one wider than in the patch and
+                // the value register is checked from v + 3.
+                val flowReg = (code[i] as OneRegisterInstruction).registerA
+                fun rewritten(reg: Int, from: Int, to: Int) = (from until to).any {
+                    code[it].opcode.setsRegister() && code[it] is OneRegisterInstruction && (code[it] as OneRegisterInstruction).registerA == reg
+                }
+                val valueOf = (maxOf(0, i - 8)..minOf(code.lastIndex, i + 8)).firstOrNull { v ->
+                    if (!code[v].isBooleanValueOf() || code.getOrNull(v + 1)?.opcode != Opcode.MOVE_RESULT_OBJECT) return@firstOrNull false
+                    val reg = (code[v + 1] as OneRegisterInstruction).registerA
+                    (maxOf(v + 3, i + 1)..minOf(code.lastIndex, maxOf(v, i) + 7)).any { s ->
+                        val c = (code[s] as? ReferenceInstruction)?.reference as? MethodReference
+                        val invoke = code[s] as? FiveRegisterInstruction
+                        invoke != null && code[s].opcode == Opcode.INVOKE_VIRTUAL && c != null &&
+                            c.parameterTypes?.map(CharSequence::toString) == listOf("Ljava/lang/Object;", "Ljava/lang/Object;") &&
+                            c.returnType == "Z" && invoke.registerC == flowReg && invoke.registerE == reg &&
+                            !rewritten(flowReg, i + 1, s) && !rewritten(reg, v + 3, s)
+                    }
+                } ?: continue
                 val move = code[valueOf + 1]
-                if (move.opcode != Opcode.MOVE_RESULT_OBJECT) continue
                 val next = code[valueOf + 2]
                 val field = ((next as? ReferenceInstruction)?.reference as? FieldReference)
                 assertTrue(

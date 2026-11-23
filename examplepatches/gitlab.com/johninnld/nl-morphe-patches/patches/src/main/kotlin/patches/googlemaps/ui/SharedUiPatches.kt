@@ -278,7 +278,8 @@ private fun avatarPainter(classDef: ClassDef): AvatarPainter? {
         // 26.43 split the monogram's text and background painting. The background
         // strategy receives an existing Canvas/Paint and draws either a fill or a
         // circle; preserve those circles just like the former bitmap painter.
-        if ((classDef.interfaces.contains("Lbuhf;") || classDef.interfaces.contains("Lbunt;")) &&
+        if ((classDef.interfaces.contains("Lbuhf;") || classDef.interfaces.contains("Lbunt;") ||
+                classDef.interfaces.contains("Lbuxr;")) &&
             method.parameterTypes.map(CharSequence::toString) == listOf(canvas, paint) &&
             has(canvas, "drawPaint", paint) && has(canvas, "drawCircle", "FFF$paint")
         ) return AvatarPainter.MONOGRAM

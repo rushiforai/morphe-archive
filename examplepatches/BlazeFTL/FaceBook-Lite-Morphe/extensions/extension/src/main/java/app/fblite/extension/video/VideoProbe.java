@@ -39,6 +39,8 @@ final class VideoProbe {
             String key = id != null ? id : "view" + System.identityHashCode(video);
             if (SEEN.size() > MAX_SEEN) SEEN.clear();
             if (!SEEN.add(key)) return;
+            LayoutProbe.schedule(video);
+            if (!MorpheLog.enabled("probe")) return;
             // Reels are understood by now; videos of any other shape (feed, Marketplace) get the full dump.
             boolean reel = video.getHeight() >= video.getWidth() * 1.5f;
             boolean full = reel ? reelDumps++ < REEL_DUMPS : otherDumps++ < OTHER_DUMPS;
@@ -50,7 +52,7 @@ final class VideoProbe {
 
     /** Same report for the video a download was just asked for, always with the full dump. */
     static void onDownload(View video, Object[] roots, String id) {
-        if (!MorpheLog.enabled()) return;
+        if (!MorpheLog.enabled("probe")) return;
         try {
             report("DOWNLOAD", video, roots, id, downloadDumps++ < DOWNLOAD_DUMPS);
         } catch (Throwable t) {

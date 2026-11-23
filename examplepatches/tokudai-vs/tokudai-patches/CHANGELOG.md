@@ -1,3 +1,33 @@
+## [1.3.0](https://github.com/tokudai-vs/tokudai-patches/compare/v1.2.0...v1.3.0) (2026-11-22)
+
+### ✨ New Features
+
+* **mygate:** add support for version 7.41.0 ([0d9fb88](https://github.com/tokudai-vs/tokudai-patches/commit/0d9fb8890b4bd662937eeeff8eb96224604f92c0))
+
+### 🐛 Bug Fixes
+
+* **mygate:** fix AppTarget parameter syntax in Constants.kt and bump-version.py ([531cdb4](https://github.com/tokudai-vs/tokudai-patches/commit/531cdb4ac58cc84c79f23377a8d794a9bd7c03ba))
+
+## [1.3.0-dev.1](https://github.com/tokudai-vs/tokudai-patches/compare/v1.2.0...v1.3.0-dev.1) (2026-11-22)
+
+### ✨ New Features
+
+* **mygate:** add support for version 7.41.0 ([0d9fb88](https://github.com/tokudai-vs/tokudai-patches/commit/0d9fb8890b4bd662937eeeff8eb96224604f92c0))
+
+### 🐛 Bug Fixes
+
+* **mygate:** fix AppTarget parameter syntax in Constants.kt and bump-version.py ([531cdb4](https://github.com/tokudai-vs/tokudai-patches/commit/531cdb4ac58cc84c79f23377a8d794a9bd7c03ba))
+
+## [1.3.0-dev.1](https://github.com/tokudai-vs/tokudai-patches/compare/v1.2.0...v1.3.0-dev.1) (2026-11-22)
+
+### ✨ New Features
+
+* **mygate:** add support for version 7.41.0 ([0d9fb88](https://github.com/tokudai-vs/tokudai-patches/commit/0d9fb8890b4bd662937eeeff8eb96224604f92c0))
+
+### 🐛 Bug Fixes
+
+* **mygate:** fix AppTarget parameter syntax in Constants.kt and bump-version.py ([531cdb4](https://github.com/tokudai-vs/tokudai-patches/commit/531cdb4ac58cc84c79f23377a8d794a9bd7c03ba))
+
 ## [1.2.0](https://github.com/tokudai-vs/tokudai-patches/compare/v1.1.1...v1.2.0) (2026-11-22)
 
 ### ✨ New Features

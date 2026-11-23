@@ -28,7 +28,7 @@ private fun InputStream.sha256(): String = use { input ->
 private val target = Compatibility(
     name = "Honista", packageName = "cc.honista.app", apkFileType = ApkFileType.APK,
     appIconColor = 0x862DDE,
-    targets = listOf(AppTarget(version = "426.0.0.37.69"))
+    targets = listOf(AppTarget(version = "426.0.0.37.70"))
 )
 // Fingerprint every original class we modify, before any extension is merged.
 internal fun classDigest(def: ClassDef): String {
@@ -41,8 +41,8 @@ internal fun classDigest(def: ClassDef): String {
 private val validatedInput = bytecodePatch {
     execute {
         if (packageMetadata.packageName != "cc.honista.app" ||
-            packageMetadata.versionName != "426.0.0.37.69" ||
-            packageMetadata.versionCode != "383207253")
+            packageMetadata.versionName != "426.0.0.37.70" ||
+            packageMetadata.versionCode != "383207254")
             throw PatchException("Unsupported input: select the original Honista v13 ARM64 APK.")
         if (classDefByOrNull("LX/LocalSponsoredFilter;") != null || classDefByOrNull("LX/LocalModuleOverride;") != null)
             throw PatchException("Unsupported input: already patched. Select the original APK.")

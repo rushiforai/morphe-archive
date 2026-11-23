@@ -6,6 +6,7 @@ updates Constants.kt and README.md if a newer version is released.
 
 import os
 import re
+import subprocess
 import sys
 import urllib.request
 from pathlib import Path
@@ -84,33 +85,27 @@ def main():
 
     print(f"Newer version detected: {latest_scraped} > {max_current}")
 
-    # 3. Update Constants.kt
-    target_entry = (
-        f'            AppTarget(version = "{latest_scraped}", minSdk = 26),\n'
+    # 3. Update Constants.kt by reconstructing the targets list cleanly
+    all_versions = sorted(
+        set(current_versions + [latest_scraped]), key=parse_semver
     )
-    match_targets = re.search(
-        r"(targets\s*=\s*listOf\([^)]*)\)", constants_content, re.DOTALL
-    )
-    if not match_targets:
+    target_lines = ["targets = listOf("]
+    for v in all_versions:
+        target_lines.append(f'            AppTarget(version = "{v}", minSdk = 26),')
+    target_lines.append("        )")
+    new_targets_block = "\n".join(target_lines)
+
+    targets_pattern = r"targets\s*=\s*listOf\(\s*(?:AppTarget\([^)]+\),?\s*)+\)"
+    if not re.search(targets_pattern, constants_content):
         print(
             "Error: Could not locate targets list in Constants.kt",
             file=sys.stderr,
         )
         sys.exit(1)
 
-    targets_block = match_targets.group(1)
-    if not targets_block.rstrip().endswith(","):
-        new_targets_block = targets_block.rstrip() + ",\n" + target_entry
-    else:
-        new_targets_block = targets_block + target_entry
-
-    new_constants = (
-        constants_content[: match_targets.start(1)]
-        + new_targets_block
-        + constants_content[match_targets.end(1) :]
-    )
+    new_constants = re.sub(targets_pattern, new_targets_block, constants_content)
     constants_file.write_text(new_constants, encoding="utf-8")
-    print(f"Updated Constants.kt with version {latest_scraped}")
+    print(f"Updated Constants.kt with targets:\n{new_targets_block}")
 
     # 4. Update README.md
     if readme_file.exists():
@@ -134,6 +129,27 @@ def main():
         )
         readme_file.write_text(readme_content, encoding="utf-8")
         print(f"Updated README.md with version {latest_scraped}")
+
+    # 5. Validate Gradle Kotlin compilation if gradlew exists
+    gradlew_path = repo_root / "gradlew"
+    if gradlew_path.exists():
+        print("Running ./gradlew :patches:compileKotlin to validate syntax...")
+        gradle_cmd = [str(gradlew_path), ":patches:compileKotlin", "--no-daemon"]
+        res = subprocess.run(
+            gradle_cmd,
+            cwd=repo_root,
+            capture_output=True,
+            text=True,
+        )
+        if res.returncode != 0:
+            print(
+                f"Error: Gradle compilation failed after version bump:\n{res.stdout}\n{res.stderr}",
+                file=sys.stderr,
+            )
+            # Revert Constants.kt and README.md so workspace isn't left corrupted
+            constants_file.write_text(constants_content, encoding="utf-8")
+            sys.exit(1)
+        print("Gradle compilation validation successful.")
 
     if "GITHUB_OUTPUT" in os.environ:
         with open(os.environ["GITHUB_OUTPUT"], "a") as f:

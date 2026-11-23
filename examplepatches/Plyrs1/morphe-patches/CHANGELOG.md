@@ -1,3 +1,56 @@
+## [1.6.0-dev.6](https://github.com/Plyrs1/morphe-patches/compare/v1.6.0-dev.5...v1.6.0-dev.6) (2026-11-23)
+
+### ✨ New Features
+
+* **com_gajihub_app:** add Replace Google Maps API Key patch with stringOption ([3e02110](https://github.com/Plyrs1/morphe-patches/commit/3e021106782e05d32e360a5749b3ae1afc5bb0a6))
+
+## [1.6.0-dev.5](https://github.com/Plyrs1/morphe-patches/compare/v1.6.0-dev.4...v1.6.0-dev.5) (2026-11-23)
+
+### 🐛 Bug Fixes
+
+* **com_gajihub_app:** neutralize Sentry providers in bytecode and preserve FirebaseInitProvider ([8b0f090](https://github.com/Plyrs1/morphe-patches/commit/8b0f09080b193e2b7b69b3d27dd740b9e4619cb2))
+
+## [1.6.0-dev.4](https://github.com/Plyrs1/morphe-patches/compare/v1.6.0-dev.3...v1.6.0-dev.4) (2026-11-22)
+
+### ✨ New Features
+
+* **com_gajihub_app:** add v2.0.14 support and remote update suppression ([28417d5](https://github.com/Plyrs1/morphe-patches/commit/28417d566a5d2246a1d4e40d8ba7b47cd5f2c98a))
+
+## [1.6.0-dev.3](https://github.com/Plyrs1/morphe-patches/compare/v1.6.0-dev.2...v1.6.0-dev.3) (2026-11-22)
+
+### ✨ New Features
+
+* **com_habitrpg_android_habitica:** add Habitica 4.11.2 support and subscriber free armoire roll ([a24250c](https://github.com/Plyrs1/morphe-patches/commit/a24250c8a1ad5c45e94e79aa036bca71fa87baaf))
+
+## [1.6.0-dev.2](https://github.com/Plyrs1/morphe-patches/compare/v1.6.0-dev.1...v1.6.0-dev.2) (2026-11-22)
+
+### ✨ New Features
+
+* **com_gajihub_app:** add comprehensive telemetry suppression ([a52625e](https://github.com/Plyrs1/morphe-patches/commit/a52625e297540f7d652265b54c4ecb0d6c47bbc4))
+* **com_gajihub_app:** add mock location bypass and telemetry suppression patches ([afd1a31](https://github.com/Plyrs1/morphe-patches/commit/afd1a316ba2cf2650bcd17a756cfffaaa0bf53d7))
+
+### 🐛 Bug Fixes
+
+* **com_gajihub_app:** fix login crash and SoLoader ARM64 emulation ([cc27fc7](https://github.com/Plyrs1/morphe-patches/commit/cc27fc721fb55574bf7d8c0d852b3a70cf2a8232))
+
+## [1.6.0-dev.1](https://github.com/Plyrs1/morphe-patches/compare/v1.5.0...v1.6.0-dev.1) (2026-11-22)
+
+### ✨ New Features
+
+* **com_google_android_projection_gearhead:** re-add android auto patch ([3895091](https://github.com/Plyrs1/morphe-patches/commit/3895091e2b6f392167d851f1404aaf7086b5da58))
+
+## [1.5.0](https://github.com/Plyrs1/morphe-patches/compare/v1.4.0...v1.5.0) (2026-11-22)
+
+### ✨ New Features
+
+* **com_google_android_projection_gearhead:** add allow sideloaded apps patch ([15558b4](https://github.com/Plyrs1/morphe-patches/commit/15558b4f74ebd362f6dabff436d0e9936e4d0902))
+* **nusuk:** add integrity check bypass patch for com.moh.nusukapp ([fbe13e9](https://github.com/Plyrs1/morphe-patches/commit/fbe13e983b20bd2c19b3b280dd7f8b6b11566eb0))
+
+### 🐛 Bug Fixes
+
+* **shared:** register Android Auto compatibility target ([26b8fe1](https://github.com/Plyrs1/morphe-patches/commit/26b8fe1bed8e729cf821f910155be1dab36d2b89))
+* **strukpom:** pass index to addInstructions for Patcher 2.3.0 API ([0a9a0c7](https://github.com/Plyrs1/morphe-patches/commit/0a9a0c7119fdd2b7e2ed122346e6ec083dc73968))
+
 ## [1.5.0-dev.3](https://github.com/Plyrs1/morphe-patches/compare/v1.5.0-dev.2...v1.5.0-dev.3) (2026-11-07)
 
 ### 🐛 Bug Fixes

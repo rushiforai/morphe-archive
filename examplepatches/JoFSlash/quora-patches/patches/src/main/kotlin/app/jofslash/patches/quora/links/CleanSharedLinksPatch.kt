@@ -45,7 +45,7 @@ val cleanSharedLinksPatch = bytecodePatch(
     category("Privacy")
     compatibleWith(COMPATIBILITY_QUORA)
 
-    extendWith("extensions/extension.mpe")
+    extendWith("extensions/quora.mpe")
 
     execute {
         fun Fingerprint.cleanArgument(registerOf: (FiveRegisterInstruction) -> Int) {

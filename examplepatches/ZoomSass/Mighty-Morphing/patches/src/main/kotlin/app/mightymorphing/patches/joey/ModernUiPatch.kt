@@ -9,6 +9,7 @@ import app.mightymorphing.patches.shared.nextReference
 import app.mightymorphing.patches.shared.returnVoid
 import app.mightymorphing.patches.shared.writeBody
 import app.morphe.patcher.extensions.InstructionExtensions.instructions
+import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
@@ -25,6 +26,10 @@ private const val POSTS = "Lapp/mightymorphing/extension/joey/PostLayout;"
 private const val MOTION = "Lapp/mightymorphing/extension/joey/PostMotion;"
 private const val SIDEBAR = "Lapp/mightymorphing/extension/joey/Sidebar;"
 private const val FONTS = "Lapp/mightymorphing/extension/joey/ModernFonts;"
+private const val THEME = "Lapp/mightymorphing/extension/joey/ModernTheme;"
+private const val VIDEO = "Lapp/mightymorphing/extension/joey/ModernVideo;"
+private const val ICONS = "Lapp/mightymorphing/extension/joey/ModernIcons;"
+private const val LAYOUT_COPY = "Lapp/mightymorphing/extension/joey/ModernSettings;"
 
 private const val ANIM_HEAD = """<?xml version="1.0" encoding="utf-8"?>
 <set xmlns:android="http://schemas.android.com/apk/res/android" android:shareInterpolator="true""""
@@ -34,6 +39,19 @@ private val modernMotionResources = resourcePatch {
     compatibleWith(JOEY)
 
     execute {
+        // Icon packs: about twenty vector icons per pack, chosen at runtime by ModernIcons.
+        val drawable = get("res").resolve("drawable")
+        drawable.mkdirs()
+        // A class from this bundle, not the patcher's context, so the lookup searches our jar.
+        val loader = Class.forName("app.mightymorphing.patches.joey.ModernUiPatchKt").classLoader
+            ?: throw PatchException("Icon pack files cannot be read")
+        val index = loader.getResourceAsStream("icons/index.txt")?.bufferedReader()?.readLines()
+            ?: throw PatchException("Icon pack index is missing")
+        for (name in index.map { it.trim() }.filter { it.isNotEmpty() }) {
+            val stream = loader.getResourceAsStream("icons/$name") ?: throw PatchException("Missing icon $name")
+            stream.use { input -> drawable.resolve(name).outputStream().use { input.copyTo(it) } }
+        }
+
         val anim = get("res").resolve("anim")
         anim.mkdirs()
         mapOf(
@@ -70,12 +88,12 @@ private val modernMotionResources = resourcePatch {
 @Suppress("unused")
 val modernUiPatch = bytecodePatch(
     name = "Modern UI",
-    description = "[v1.5.0: The media features (downloads, full screen media, album viewer and more) are now shared with the new Media enhancements patch, so Classic Joey users can have them too. Nothing changes for existing users. Media options now have their own section in Morphe Settings.] [v1.4.0: Post buttons & menu editor for the post bar and ⋮ menu. Full screen media, optionally opening without controls. New album viewer with thumbnails, grid and captions. Separate Modern fonts. Sidebar subreddit search keyboard fixed. Performance improvements, comparably smooth to Joey or better.] A cleaner layout for Joey, on by default, with a choice of themes. Joey's own themes and colours are off while it's on, and Classic Joey can be switched back on any time. Posts use one compact list with adjustable post buttons, info line and image style, including whether opened posts show the full picture. Settings in Joey Settings - Morphe Settings.",
+    description = "A cleaner layout for Joey, on by default. Choose from 12 new themes and Joey's originals, or make your own in the Theme Manager and share it as a file. Posts show as cards or a compact list, with adjustable post buttons, info line and image style. Also adds icon packs, fonts, editors for the text formatting and subreddit bars, and downloads, full screen media and an album viewer. Joey's own themes are off while it's on, and Classic Joey can be switched back on any time. Settings in Joey Settings - Morphe Settings.",
     default = true,
 ) {
     compatibleWith(JOEY)
 
-    dependsOn(modernMotionResources, mediaHooksPatch)
+    dependsOn(problemReportPatch, modernMotionResources, mediaHooksPatch)
     extendWith("extensions/extension.mpe")
 
     execute {
@@ -135,6 +153,238 @@ val modernUiPatch = bytecodePatch(
             """,
             ExternalLabel("theme_skip", themeMethod.instructions[0]),
         )
+
+        // Icon packs. Layout icons load through AppCompat, Joey's own code through zd.x0.e.
+        // Both ask ModernIcons for the drawable to use first.
+        Fingerprint(
+            definingClass = "Lf/a;",
+            name = "b",
+            returnType = "Landroid/graphics/drawable/Drawable;",
+            parameters = listOf("Landroid/content/Context;", "I"),
+        ).method.insertAt(
+            0,
+            """
+            invoke-static {p0, p1}, $ICONS->swap(Landroid/content/Context;I)I
+            move-result p1
+            """,
+        )
+        Fingerprint(
+            definingClass = "Lzd/x0;",
+            name = "e",
+            returnType = "Landroid/graphics/drawable/Drawable;",
+            parameters = listOf("Landroid/content/Context;", "I"),
+        ).method.insertAt(
+            0,
+            """
+            invoke-static {p0, p1}, $ICONS->swap(Landroid/content/Context;I)I
+            move-result p1
+            """,
+        )
+
+        // Theme vote colours. Joey reads its upvote and downvote colour resources through two
+        // helpers and a few direct Resources.getColor calls in its text builders. Each now asks
+        // ModernTheme first, which answers only for those two colours while Modern is on.
+        writeBody(
+            Fingerprint(
+                definingClass = "Lzd/x0;",
+                name = "b",
+                returnType = "I",
+                parameters = listOf("Landroid/content/Context;", "I"),
+            ).method,
+            3,
+            """
+            invoke-static {p0, p1}, $THEME->contextColor(Landroid/content/Context;I)I
+            move-result v0
+            return v0
+            """,
+        )
+        writeBody(
+            Fingerprint(
+                definingClass = "Lzd/e;",
+                name = "h",
+                returnType = "I",
+                parameters = listOf("I"),
+            ).method,
+            2,
+            """
+            invoke-static {p0}, $THEME->appColor(I)I
+            move-result v0
+            return v0
+            """,
+        )
+        val textBuilders = mutableClassDefBy("Lzd/n;")
+        var routed = 0
+        for (method in textBuilders.methods.toList()) {
+            if (method.implementation == null) continue
+            for ((index, instruction) in method.instructions.withIndex().toList()) {
+                if (instruction.opcode != Opcode.INVOKE_VIRTUAL) continue
+                val reference = (instruction as? ReferenceInstruction)?.reference as? MethodReference ?: continue
+                if (reference.definingClass != "Landroid/content/res/Resources;" ||
+                    reference.name != "getColor" ||
+                    reference.parameterTypes.size != 1
+                ) continue
+                val call = instruction as FiveRegisterInstruction
+                method.replaceInstruction(
+                    index,
+                    "invoke-static {v${call.registerC}, v${call.registerD}}, $THEME->resourcesColor(Landroid/content/res/Resources;I)I",
+                )
+                routed++
+            }
+        }
+        if (routed == 0) throw PatchException("Joey's comment text builder no longer reads colours")
+
+        // Comment level colours. Every bar, "more replies" row and reply-to name gets its
+        // colour from n9.j.d, which now asks the theme first. Zero keeps Joey's nine.
+        val depthMethod = Fingerprint(
+            definingClass = "Ln9/j;",
+            name = "d",
+            returnType = "I",
+            parameters = listOf("Landroid/content/Context;", "I"),
+        ).method
+        depthMethod.insertAt(
+            0,
+            """
+            invoke-static {p0, p1}, $THEME->depthColor(Landroid/content/Context;I)I
+            move-result v0
+            if-eqz v0, :theme_depth_joey
+            return v0
+            """,
+            ExternalLabel("theme_depth_joey", depthMethod.instructions[0]),
+        )
+        // The bars themselves, so a theme can hide them without losing the indent.
+        for ((owner, name) in listOf("Ln9/k;" to "J", "Ln9/m;" to "c")) {
+            val painter = Fingerprint(
+                definingClass = owner,
+                name = name,
+                returnType = "V",
+                parameters = listOf(),
+            ).method
+            val read = painter.indexOfReference("Ln9/j;->d(Landroid/content/Context;I)I")
+            val paint = painter.nextReference(read, "Landroid/view/View;->setBackgroundColor(I)V")
+            val call = painter.instructions[paint] as FiveRegisterInstruction
+            painter.replaceInstruction(
+                paint,
+                "invoke-static {v${call.registerC}, v${call.registerD}}, $THEME->depthBar(Landroid/view/View;I)V",
+            )
+        }
+
+        // Hidden NSFW profile pictures: Joey draws a circle in its NSFW red. Use the theme's.
+        val avatar = Fingerprint(
+            definingClass = "Lzd/n;",
+            name = "c",
+            returnType = "V",
+            parameters = listOf(
+                "Landroid/content/Context;",
+                "Landroid/text/SpannableStringBuilder;",
+                "I",
+                "I",
+                "Ljava/lang/String;",
+                "Landroid/view/View;",
+                "Z",
+            ),
+        ).method
+        val red = avatar.indexOfString("#FF575B")
+        avatar.insertAt(
+            red + 1,
+            """
+            invoke-static {p0}, $THEME->hiddenAvatar(Ljava/lang/String;)Ljava/lang/String;
+            move-result-object p0
+            """,
+        )
+
+        // Author tags (OP, MOD, YOU, FRIEND, ADMIN). Joey draws each as one outlined chip and gives
+        // every type the same highlight colour. Note which tag is being built, then let the theme
+        // pick the chip colour for it. Joey's colour stays when nothing is set.
+        val tag = Fingerprint(
+            definingClass = "Lzd/n;",
+            name = "y",
+            returnType = "Landroid/text/SpannableStringBuilder;",
+            parameters = listOf("Lec/j;", "Lzd/n\$b;"),
+        ).method
+        val chip = tag.indexOfReference("Lv9/q;-><init>(IILandroid/content/Context;)V")
+        tag.insertAt(
+            chip,
+            """
+            invoke-static {p1}, $THEME->tagColor(I)I
+            move-result p1
+            move p0, p1
+            """,
+        )
+        tag.insertAt(
+            0,
+            """
+            invoke-static {p1}, $THEME->tagType(Ljava/lang/Object;)V
+            """,
+        )
+
+        // Video controls: when Joey's player sets up its progress bar, hand the bar (and its buttons
+        // and volume slider) to the theme. Joey sets no colours of its own here except for its thin
+        // white feed line, which ModernVideo leaves alone, so running first is enough.
+        val player = Fingerprint(
+            definingClass = "Lab/c;",
+            name = "H0",
+            returnType = "V",
+            parameters = listOf(),
+        ).method
+        player.insertAt(
+            0,
+            """
+            iget-object v0, p0, Lab/c;->u:Lo/o/joey/CustomViews/VideoTimeBar;
+            iget-boolean v1, p0, Lab/c;->C:Z
+            invoke-static {v0, v1}, $VIDEO->bar(Landroid/view/View;Z)V
+            """,
+        )
+
+        // Modern's own copy of Joey's layout settings. Wherever Joey opens a settings file, the
+        // file goes through ModernSettings.wrap, which sends the layout keys to Modern's copy
+        // while Modern is on. Files without layout keys come back unchanged.
+        var wrapped = 0
+        for (owner in listOf("Lza/a;", "Lmb/o;", "Lmb/b;", "Lmb/j;", "Lmb/i;")) {
+            for (method in mutableClassDefBy(owner).methods.toList()) {
+                if (method.implementation == null) continue
+                val opens = method.instructions.withIndex().filter { (_, instruction) ->
+                    instruction.opcode == Opcode.INVOKE_VIRTUAL &&
+                        ((instruction as? ReferenceInstruction)?.reference as? MethodReference)?.let {
+                            it.name == "getSharedPreferences" &&
+                                it.parameterTypes.map { type -> type.toString() } == listOf("Ljava/lang/String;", "I")
+                        } == true
+                }.map { it.index }
+                for (index in opens.reversed()) {
+                    val call = method.instructions[index] as FiveRegisterInstruction
+                    val result = method.instructions[index + 1]
+                    if (result.opcode != Opcode.MOVE_RESULT_OBJECT) continue
+                    val target = (result as com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction).registerA
+                    if (target > 15 || call.registerD > 15) throw PatchException("$owner settings file register out of reach")
+                    method.insertAt(
+                        index + 2,
+                        """
+                        invoke-static {v$target, v${call.registerD}}, $LAYOUT_COPY->wrap(Landroid/content/SharedPreferences;Ljava/lang/String;)Landroid/content/SharedPreferences;
+                        move-result-object v$target
+                        """,
+                    )
+                    wrapped++
+                }
+            }
+        }
+        if (wrapped < 5) throw PatchException("Only $wrapped of Joey's settings files could be wrapped")
+
+        // Joey's "Show thumbnail on right" (za.a.d). With it off, Joey anchors the thumbnail on
+        // the left and Modern's right-side anchor centred it. In Modern it always reads as on.
+        var thumbSides = 0
+        for (owner in listOf("Ljc/k;", "Lv8/b;")) {
+            for (method in mutableClassDefBy(owner).methods.toList()) {
+                if (method.implementation == null) continue
+                val reads = method.instructions.withIndex().filter { (_, instruction) ->
+                    instruction.opcode == Opcode.SGET_BOOLEAN &&
+                        (instruction as? ReferenceInstruction)?.reference?.toString() == "Lza/a;->d:Z"
+                }.map { it.index }
+                for (index in reads.reversed()) {
+                    method.filterBoolean(index, "$POSTS->joeyRightThumbnail(Z)Z")
+                    thumbSides++
+                }
+            }
+        }
+        if (thumbSides == 0) throw PatchException("Joey's thumbnail side is no longer read where expected")
 
         // 3. Material 3 rounded corners & AMOLED card background
         val cardInit = CardViewInitFingerprint.method
@@ -444,6 +694,21 @@ val modernUiPatch = bytecodePatch(
             return-void
             """,
             ExternalLabel("image_settings_joey", imageSettings.instructions[0]),
+        )
+
+        // Modern has Full image and Thumbnail only. After Joey loads its image style, a saved
+        // 16:9 is swapped for Full image in memory (the saved value is left alone).
+        val loadSettings = Fingerprint(
+            definingClass = "Lza/a;",
+            name = "q",
+            returnType = "V",
+            parameters = emptyList(),
+        ).method
+        loadSettings.insertAt(
+            loadSettings.instructions.lastIndex,
+            """
+            invoke-static {}, $POSTS->liftWide()V
+            """,
         )
 
         // 5. Fonts. Modern keeps its own copy of Joey's font settings (ModernFonts).

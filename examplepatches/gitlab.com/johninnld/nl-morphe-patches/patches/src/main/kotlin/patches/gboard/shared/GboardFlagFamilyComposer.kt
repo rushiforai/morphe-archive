@@ -103,6 +103,11 @@ internal enum class GboardFlagFamilyFeature(
         RuntimeCallId.CLOSE_PROACTIVE_SUGGESTIONS_RUNTIME_APPLY_FLAG_VALUE,
         GboardFlagFamilyArgumentShape.FLAG_NAME_AND_RESULT,
     ),
+    BETA_FLAGS(
+        1100,
+        RuntimeCallId.BETA_FLAGS_RUNTIME_APPLY_FLAG_VALUE,
+        GboardFlagFamilyArgumentShape.FLAG_NAME_AND_RESULT,
+    ),
     QUICK_INSERT(
         1200,
         RuntimeCallId.QUICK_INSERT_RUNTIME_APPLY_FLAG_VALUE,
@@ -311,13 +316,13 @@ private data class GboardFlagFamilyTransformationPlan(
                 flagNameScratch = FLAG_NAME_SCRATCH_REGISTER.takeIf { needsFlagName },
             )
 
-            if (GboardVersionBindings.targetVersion == "18.6.3") {
+            if (GboardVersionBindings.targetVersion in setOf("18.6.3", "18.8.0-beta")) {
                 val snapshots = instructions.filter { instruction ->
                     val load = instruction as? TwoRegisterInstruction
                     val field = (instruction as? ReferenceInstruction)?.reference as? FieldReference
                     instruction.opcode.name.normalized() == "IGET_OBJECT" &&
                         load?.registerA == 0 && load.registerB == receiverRegister &&
-                        field?.definingClass == "Lodo;" && field.name == "f" && field.type == "Lody;"
+                        field?.definingClass == "Ladfs;" && field.name == "f" && field.type == "Ladgf;"
                 }
                 check(snapshots.size == 1) { "18.5.4 flag snapshot carrier drift" }
             }
@@ -543,10 +548,12 @@ private fun com.android.tools.smali.dexlib2.iface.instruction.Instruction
         load.registerA == receiverRegister &&
         load.registerB == FLAG_NAME_SCRATCH_REGISTER &&
         field.definingClass == when (GboardVersionBindings.targetVersion) {
-            "18.0.3" -> "Lnrg;"
-            "18.6.3" -> "Lody;"
+            "18.0.3" -> "Lackd;"
+            "18.8.0-beta" -> "Ladgf;"
+            "18.6.3" -> "Ladgf;"
             else -> error("Unsupported Gboard flag stock contract for ${GboardVersionBindings.targetVersion}")
         } && field.name == when (GboardVersionBindings.targetVersion) {
+            "18.8.0-beta" -> "a"
             "18.6.3" -> "a"
             else -> "c"
         } &&
@@ -642,6 +649,10 @@ private fun emitFlagFamilyRuntimeCall(call: RuntimeCallId, registers: String): S
             RuntimeCallId.CLIPBOARD_CONTENT_LIMIT_RUNTIME_APPLY_OVERRIDDEN_FLAG_VALUE,
             registers,
         )
+    RuntimeCallId.BETA_FLAGS_RUNTIME_APPLY_FLAG_VALUE -> RuntimeCallEmitter.invoke(
+        RuntimeCallId.BETA_FLAGS_RUNTIME_APPLY_FLAG_VALUE,
+        registers,
+    )
     RuntimeCallId.CLOSE_PROACTIVE_SUGGESTIONS_RUNTIME_APPLY_FLAG_VALUE ->
         RuntimeCallEmitter.invoke(
             RuntimeCallId.CLOSE_PROACTIVE_SUGGESTIONS_RUNTIME_APPLY_FLAG_VALUE,
@@ -734,6 +745,7 @@ private val ALL_FLAG_FAMILY_RUNTIME_CALLS: Set<RuntimeCallId> = setOf(
     RuntimeCallId.BLUETOOTH_MICROPHONE_RUNTIME_APPLY_OVERRIDDEN_FLAG_VALUE,
     RuntimeCallId.CLIPBOARD_CONTENT_LIMIT_RUNTIME_APPLY_OVERRIDDEN_FLAG_VALUE,
     RuntimeCallId.CLOSE_PROACTIVE_SUGGESTIONS_RUNTIME_APPLY_FLAG_VALUE,
+    RuntimeCallId.BETA_FLAGS_RUNTIME_APPLY_FLAG_VALUE,
     RuntimeCallId.CURSOR_TRACKPAD_RUNTIME_APPLY_OVERRIDDEN_FLAG_VALUE,
     RuntimeCallId.DEVICE_INTELLIGENCE_RUNTIME_APPLY_FLAG_VALUE,
     RuntimeCallId.EMOJI_SIZE_RUNTIME_APPLY_OVERRIDDEN_FLAG_VALUE,

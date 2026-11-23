@@ -3,6 +3,19 @@
 Morphe settings (long-press the app icon) > **Debug logging** on. Use the app for a minute: scroll the feed, Reels
 and Marketplace, play a few videos, tap download on one. Then **Save log to Downloads** and send the file.
 
+With Debug logging on, six switches appear under it (all on by default). Turn off what the bug does not need, to keep the log short:
+
+| Switch | Tags |
+| --- | --- |
+| Ads and sponsored items | `ads`, `reels`, `listcheck` |
+| Views and layout | `layout` |
+| Player buttons | `controls`, `cover`, `doubletap`, `sound` |
+| Videos and downloads | `video`, `probe` |
+| Stories and profiles | `story`, `profile` |
+| Screens and app | `activity`, `clone`, `settings` |
+
+For a button that sits in the wrong place, turn on **Views and layout** and **Player buttons**, open the reel, and send the log. The first lines of every session are the app build, the device, and a `settings` line with every switch of the patches and the log switches that were on.
+
 The log is `Android/data/com.facebook.lite/files/morphe-debug.log` (older part: `morphe-debug.1.log`). It holds
 on-screen text of feed items and video file addresses without their signatures. Check it before sharing.
 
@@ -18,10 +31,12 @@ on-screen text of feed items and video file addresses without their signatures. 
 | `story` / `ads IMAGE` | Story photo search: large views and picture addresses found. |
 | `cover` | Download button or short video controls hidden or allowed again because a large list that is not the video's (the comment sheet) is drawn over them, `Outside layer ... not treated as cover` (what was on top that did not count), and the window's top layers whenever they change (`LAYERS changed`). |
 | `doubletap` | Double tap to seek: zones on for which video, off, covered or uncovered. |
-| `controls` | Seek bar and 10 s buttons for short videos: which of the app's own controls were found (`Native controls: back=... play=... forward=... seek=...`), `Corner views` (every small view in the bottom right of the reel, at lookup and again when paused, with id name, clickable, showing: finds the speaker and the 3 dot button), shown for which video, hidden, covered or uncovered. |
+| `controls` | Seek bar and 10 s buttons for short videos: `App reel bar held hidden under our bar` (the app's own thin reel bar, kept at alpha 0 while ours shows), which of the app's own controls were found (`Native controls: back=... play=... forward=... seek=...`), `Corner views` (every small view in the bottom right of the reel, at lookup and again when paused, with id name, clickable, showing: finds the speaker and the 3 dot button), shown for which video, hidden, covered or uncovered. `App seek bar is not the one found at lookup` and `Own bar is visible while a seek bar is shown but not counted` explain a second seek bar under the app's own. |
 | `listcheck` | Small container 30001 lists (empty screens such as "No reels yet") and any list where the patch hid something: children, texts, hidden flags. Tells a server-empty list from one emptied by the patch. |
 | `profile` | "Skip creator's Reels page" and "Open profile when no reels": the empty Reels page found, where the 3 dot button was tapped (a view, or the fallback position), whether the "View main profile" sheet was seen, the row tap, and 2.5 s later every list on screen with its texts (to find the profile's Reels tab). Then the profile's Reels tab tap (`Profile open, tapping its Reels tab`) or `No Reels tab row found`. A page that is seen but left alone is logged once per reason (`not redirected: ...`: left for its profile, already tried, with the seconds left), and `Redirect still busy ... resetting` means a run hung and was cleared. |
 | `sound` | The speaker button over reels and videos: the app's own speaker view (position, showing), taps, and why the button was hidden. |
-| `probe` / `video` | Where each video's sources are, DASH manifest tracks, the options offered on download. |
+| `layout` | About 0.9 s after a video starts playing: `LAYOUT <kind> \| screen ... density=... dpi=... fontScale=... widthDp=...` (the phone's display settings), the video, list and item bounds, then `TREE` (every view of the current item with class, id name, size and position in the window, flags, content description, text, layout params) and `SUMMARY` (this extension's own views, the Like / Comment / Share / More column the download button anchors to, and every clickable view in the right quarter of the video). At most 2 dumps per kind (reel or video, in a list or not, and the sizes) and 16 per session. |
+| `settings` | The switches of the patches at the start of the session. |
+| `probe` / `video` | `Like column found` / `Like column changed` (the view the download button hangs from, with its pitch), where each video's sources are, DASH manifest tracks, the options offered on download. |
 
 What the findings so far mean is in [RESEARCH.md](RESEARCH.md).

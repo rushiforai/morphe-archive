@@ -1,0 +1,16 @@
+.gradle/
+.kotlin/
+build/
+**/build/
+local.properties
+*.apkm
+*.apk
+dist/
+MaterialTidal-patches.zip
+*.mpp
+AGENTS.md
+morphe-signing.key
+.idea/
+*.iml
+.DS_Store
+Thumbs.db

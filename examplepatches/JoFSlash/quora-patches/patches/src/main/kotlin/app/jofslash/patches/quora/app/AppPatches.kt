@@ -34,7 +34,7 @@ val blockPromotionalNotificationsPatch = bytecodePatch(
     category("App")
     compatibleWith(COMPATIBILITY_QUORA)
 
-    extendWith("extensions/extension.mpe")
+    extendWith("extensions/quora.mpe")
 
     execute {
         registerSetting("blockPromotionalNotifications", "Block promotional notifications")
@@ -79,7 +79,7 @@ val disableSwipeGesturesPatch = bytecodePatch(
     category("App")
     compatibleWith(COMPATIBILITY_QUORA)
 
-    extendWith("extensions/extension.mpe")
+    extendWith("extensions/quora.mpe")
 
     val pullToRefresh = booleanOption(
         key = "disablePullToRefresh",
@@ -153,7 +153,7 @@ val blockBranchTrackingPatch = bytecodePatch(
     category("Privacy")
     compatibleWith(COMPATIBILITY_QUORA)
 
-    extendWith("extensions/extension.mpe")
+    extendWith("extensions/quora.mpe")
 
     execute {
         BranchStartFingerprint.let {
@@ -186,7 +186,7 @@ val keepPlaceOnReturnPatch = bytecodePatch(
     category("App")
     compatibleWith(COMPATIBILITY_QUORA)
 
-    extendWith("extensions/extension.mpe")
+    extendWith("extensions/quora.mpe")
 
     execute {
         registerSetting("keepPlaceOnReturn", "Keep place on return")
@@ -226,7 +226,7 @@ val fixDeviceThemePatch = bytecodePatch(
     category("App")
     compatibleWith(COMPATIBILITY_QUORA)
 
-    extendWith("extensions/extension.mpe")
+    extendWith("extensions/quora.mpe")
 
     execute {
         UseDeviceThemeFingerprint.let {

@@ -7,6 +7,7 @@ import app.ckzorigins.patches.intro.playIntroOncePatch
 import app.ckzorigins.patches.mono.disableTelemetryPatch
 import app.ckzorigins.patches.mono.gluBackupPatch
 import app.ckzorigins.patches.mono.disableAmmoRefillPopupPatch
+import app.ckzorigins.patches.mono.reloadHudPatch
 import app.ckzorigins.patches.mono.unlimitedAmmoPatch
 import app.ckzorigins.patches.mono.unlimitedCurrencyPatch
 import app.ckzombies.patches.compat.unusedPermissionsPatch as zombiesUnusedPermissionsPatch
@@ -46,6 +47,16 @@ class PatchListTest {
         assertNull(gluBackupPatch.name)
         for (patch in PATCHES) {
             assertTrue(gluBackupPatch in patch.dependencies, patch.name)
+        }
+    }
+
+    @Test
+    fun `reload hud is unnamed and rides with ammo`() {
+        assertNull(reloadHudPatch.name)
+        assertTrue(reloadHudPatch in unlimitedAmmoPatch.dependencies)
+        for (patch in PATCHES) {
+            if (patch === unlimitedAmmoPatch) continue
+            assertFalse(reloadHudPatch in patch.dependencies, patch.name)
         }
     }
 

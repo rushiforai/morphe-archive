@@ -228,8 +228,15 @@ final class PuzzleStore extends SQLiteOpenHelper {
         }
     }
 
-    void solved(long number) {
-        getWritableDatabase().execSQL("UPDATE puzzles SET state = " + SOLVED + " WHERE number = " + number);
+    /**
+     * Marks the puzzle played and returns whether this was its first result. A puzzle is one game,
+     * so chess.com's Retry (which scores the same puzzle again) must not move the rating twice.
+     */
+    boolean claim(long number) {
+        ContentValues values = new ContentValues();
+        values.put("state", SOLVED);
+        return getWritableDatabase().update("puzzles", values, "number = ? AND state <> ?",
+            new String[]{String.valueOf(number), String.valueOf(SOLVED)}) > 0;
     }
 
     /** The given puzzles, once chess.com's queue no longer has them: new again. */

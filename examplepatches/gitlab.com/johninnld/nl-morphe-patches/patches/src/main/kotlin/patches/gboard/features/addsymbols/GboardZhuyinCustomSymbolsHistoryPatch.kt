@@ -13,8 +13,8 @@ import patches.gboard.shared.findMutableMethodOrThrow
 import patches.gboard.shared.runtimeabi.RuntimeCallEmitter
 import patches.gboard.shared.runtimeabi.RuntimeCallId
 
-private const val EMOTICON_ITEM_CLICK_CONSUMER_CLASS = "Ljsk;"
-private const val EMOTICON_HISTORY_MANAGER_CLASS = "Lgoc;"
+private const val EMOTICON_ITEM_CLICK_CONSUMER_CLASS = "Luuc;"
+private const val EMOTICON_HISTORY_MANAGER_CLASS = "Lnmn;"
 private const val EMOTICON_KEYBOARD_CLASS =
     "Lcom/google/android/apps/inputmethod/libs/search/emoticon/EmoticonKeyboardM2;"
 private const val EMOTICON_HISTORY_FIELD = "b"

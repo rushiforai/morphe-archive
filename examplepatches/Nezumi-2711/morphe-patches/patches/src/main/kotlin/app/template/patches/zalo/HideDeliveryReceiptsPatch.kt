@@ -19,7 +19,6 @@ private object DeliveryAckFingerprint : Fingerprint(
     returnType = "V",
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
     filters = listOf(
-        string("ackMsgList"),
         string("seen"),
         string("data"),
         fieldAccess(opcode = Opcode.IPUT_SHORT, definingClass = DELIVERY_REQUEST_PACKET, name = "g"),
@@ -38,7 +37,7 @@ val hideDeliveryReceiptsPatch = bytecodePatch(
         packageName = "com.zing.zalo",
         apkFileType = ApkFileType.APKM,
         appIconColor = 0x0068FF,
-        targets = listOf(AppTarget(version = "26.10.02")),
+        targets = listOf(AppTarget(version = "26.11.01")),
     ))
 
     dependsOn(nativeSignaturePatch)
@@ -49,7 +48,7 @@ val hideDeliveryReceiptsPatch = bytecodePatch(
         val sender = DeliveryAckFingerprint.method
         check(sender.parameters.map { it.type }.take(4) == listOf("Ljava/util/List;", "Z", "I", "I"))
         check(sender.parameters.size == 5)
-        check(sender.implementation!!.registerCount >= 14)
+        check(sender.implementation!!.registerCount >= 8)
         val originalStart = sender.implementation!!.instructions.first()
         sender.addInstructionsWithLabels(0, """
             const/16 v0, 0x66

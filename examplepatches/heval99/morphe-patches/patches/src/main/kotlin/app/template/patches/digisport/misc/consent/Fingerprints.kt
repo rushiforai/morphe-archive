@@ -1,32 +1,38 @@
 package app.template.patches.digisport.misc.consent
 
 import app.morphe.patcher.Fingerprint
+import app.morphe.patcher.InstructionLocation.MatchAfterWithin
+import app.morphe.patcher.fieldAccess
+import app.morphe.patcher.opcode
+import app.morphe.patcher.string
+import com.android.tools.smali.dexlib2.Opcode
 
-internal const val GOOGLE_CONSENT_UMP = "Lro/rcsrds/digisport/tools/helpers/googleConsent/GoogleConsentUmp;"
-internal const val GOOGLE_CONSENT_STATUS = "Lro/rcsrds/digisport/tools/helpers/googleConsent/GoogleConsentUmp\$STATUS;"
+internal const val DATA_BINDER_MAPPER = "Lro/rcsrds/digisport/DataBinderMapperImpl;"
+internal const val USER_DATA_ADS_TAG = "layout/include_settings_user_data_ads_0"
 
-internal const val USER_DATA_ADS_BINDING = "Lro/rcsrds/digisport/databinding/IncludeSettingsUserDataAdsBindingImpl;"
-
-// The generated data binding of include_settings_user_data_ads: the "Publicitate (Google Ad
-// Manager)" heading, its paragraph and the "Actualizare date" consent button, included as
-// mIncludeAds in the confidentiality section of Settings and of the GDPR details screen (Google and
-// Huawei variants). executeBindings only sets the button's visibility and click listener; nothing
-// (generated or app code) ever sets the root's visibility.
-internal object UserDataAdsExecuteBindingsFingerprint : Fingerprint(
-    definingClass = USER_DATA_ADS_BINDING,
-    name = "executeBindings",
+// GoogleConsentUmp.loadConsentInfo(requestUpdate) (merged into a shared class and void since
+// 1.1.16): posts STATUS.STARTED, then runs UMP's requestConsentInfoUpdate (and from its callback
+// loadAndShowConsentFormIfRequired); it is the app's only reader of the "mConsentInformation"
+// property name besides a UMP callback. MainActivity, the GDPR onboarding, its details screen and
+// Settings call it and then observe the status LiveData. The STATUS enum keeps its constant names.
+internal val loadConsentInfoFingerprint = Fingerprint(
     returnType = "V",
-    parameters = listOf(),
+    parameters = listOf("Z"),
+    filters = listOf(
+        fieldAccess(name = "STARTED", opcode = Opcode.SGET_OBJECT),
+        string("mConsentInformation"),
+    ),
     custom = { method, _ -> method.implementation != null },
 )
 
-// GoogleConsentUmp.loadConsentInfo(requestUpdate): the app's only path to Google UMP's
-// requestConsentInfoUpdate and loadAndShowConsentFormIfRequired. MainActivity, the GDPR onboarding
-// (GdprActivityBase), its details screen and Settings call it and then observe mStatus.
-internal object LoadConsentInfoFingerprint : Fingerprint(
-    definingClass = GOOGLE_CONSENT_UMP,
-    name = "loadConsentInfo",
-    returnType = GOOGLE_CONSENT_UMP,
-    parameters = listOf("Z"),
+// The generated DataBinderMapperImpl creates the binding of include_settings_user_data_ads (the
+// "Publicitate (Google Ad Manager)" heading, its paragraph and the "Actualizare date" consent
+// button) right after it checks the layout tag. The binding class itself is renamed since 1.1.16.
+internal val userDataAdsBindingFactoryFingerprint = Fingerprint(
+    definingClass = DATA_BINDER_MAPPER,
+    filters = listOf(
+        string(USER_DATA_ADS_TAG),
+        opcode(Opcode.NEW_INSTANCE, location = MatchAfterWithin(4)),
+    ),
     custom = { method, _ -> method.implementation != null },
 )

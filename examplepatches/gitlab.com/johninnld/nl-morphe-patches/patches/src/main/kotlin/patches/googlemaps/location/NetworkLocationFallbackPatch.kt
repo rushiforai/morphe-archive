@@ -18,7 +18,11 @@ internal val networkLocationFallbackPatch = bytecodePatch(
         // looper already loaded for the GPS start two instructions earlier is
         // avoided in favour of a fresh load, matching the equivalent shell
         // patch's own choice not to rely on that value still being live.
-        val fp = if (packageMetadata.versionName == "26.44.06.1006895251") GpsOnlyModeFingerprint2644 else GpsOnlyModeFingerprint
+        val fp = when (packageMetadata.versionName) {
+            "26.44.06.1006895251" -> GpsOnlyModeFingerprint2644
+            "26.47.00.1022347503" -> GpsOnlyModeFingerprint2647
+            else -> GpsOnlyModeFingerprint
+        }
         val stopCall = fp.instructionMatches.last()
         val stop = fp.method.implementation!!.instructions[stopCall.index] as ReferenceInstruction
         val listener = (stop.reference as MethodReference).definingClass

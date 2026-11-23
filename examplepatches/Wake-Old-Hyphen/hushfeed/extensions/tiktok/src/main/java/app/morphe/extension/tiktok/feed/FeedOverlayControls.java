@@ -10,6 +10,7 @@ import android.view.ViewTreeObserver;
 import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.ResourceIdCache;
 import app.morphe.extension.shared.Utils;
+import app.morphe.extension.shared.diagnostics.FeedFilterCounters;
 import app.morphe.extension.shared.diagnostics.HookStatus;
 import app.morphe.extension.shared.settings.BooleanSetting;
 import app.morphe.extension.tiktok.settings.Settings;
@@ -71,6 +72,18 @@ public final class FeedOverlayControls {
     }
 
     /**
+     * The alpha the play icon fades in to when a tap pauses a video (#489). Asked with TikTok's
+     * own alpha in front of the fade and in the play button's alpha getter, so with the switch on
+     * the icon is still shown (TikTok reads that as paused, and the next tap plays) but can't be
+     * seen, and with it off TikTok's alpha comes back untouched.
+     */
+    public static float pauseIconAlpha(float alpha) {
+        boolean hide = Settings.HIDE_PAUSE_ICON.get();
+        HookStatus.bound("pause icon", hide ? "hidden" : "left");
+        return hide ? 0f : alpha;
+    }
+
+    /**
      * Whether the Following tab's LIVE and stories row may open (#262). Asked with TikTok's own
      * isShow at the top of the row's toggle, so false is the fold TikTok does when the row has
      * nothing in it, and with the switch off TikTok's answer comes back untouched.
@@ -118,12 +131,26 @@ public final class FeedOverlayControls {
     public static String feedComponent(String type, String containerType) {
         feedComponentBuilt(containerType == null || type == null || type.equals(containerType)
                 ? containerType : containerType + " (" + type + ")");
-        if (containerType == null || !(isInterestFeedback(type) || isInterestFeedback(containerType))) {
+        if (containerType == null) return null;
+        if (isBrandZone(type) || isBrandZone(containerType)) {
+            // Issue #484: a search's top "Ad" block (a brand's banner, its videos and a Follow
+            // button) is built here from a hybrid template, and its search card has no ad field.
+            boolean hideAd = Settings.REMOVE_ADS.get();
+            HookStatus.bound("search brand zone", hideAd ? "component skipped" : "component left");
+            if (!hideAd) return containerType;
+            FeedFilterCounters.removedItems("SearchBrandZone", 1, "brandZone");
+            return "";
+        }
+        if (!(isInterestFeedback(type) || isInterestFeedback(containerType))) {
             return containerType;
         }
         boolean hide = Settings.HIDE_FEED_SURVEYS.get();
         HookStatus.bound("interest buttons", hide ? "component skipped" : "component left");
         return hide ? "" : containerType;
+    }
+
+    private static boolean isBrandZone(String name) {
+        return name != null && name.toLowerCase(Locale.ROOT).contains("brand_zone");
     }
 
     private static boolean isInterestFeedback(String name) {

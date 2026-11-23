@@ -71,6 +71,36 @@ object Constants {
         appIconColor = 0x4B275F,
         targets = listOf(
             AppTarget(version = "4.10.5"),
+            AppTarget(version = "4.11.2"),
+            AppTarget(version = null, isExperimental = true)
+        )
+    )
+
+    /**
+     * Compatibility definition for Android Auto (com.google.android.projection.gearhead).
+     */
+    val COMPATIBILITY_ANDROID_AUTO = Compatibility(
+        name = "Android Auto",
+        packageName = "com.google.android.projection.gearhead",
+        apkFileType = ApkFileType.APK,
+        appIconColor = 0x1A73E8,
+        targets = listOf(
+            AppTarget(version = "17.7.663654-release"),
+            AppTarget(version = null, isExperimental = true)
+        )
+    )
+
+    /**
+     * Compatibility definition for GajiHub (com.gajihub.app).
+     */
+    val COMPATIBILITY_GAJIHUB = Compatibility(
+        name = "GajiHub",
+        packageName = "com.gajihub.app",
+        apkFileType = ApkFileType.APK,
+        appIconColor = 0xE53F6A,
+        targets = listOf(
+            AppTarget(version = "2.0.14"),
+            AppTarget(version = "2.0.4"),
             AppTarget(version = null, isExperimental = true)
         )
     )

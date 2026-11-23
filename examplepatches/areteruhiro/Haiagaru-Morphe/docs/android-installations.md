@@ -3861,3 +3861,90 @@ MPP: `C:\Users\narum\.codex\worktrees\945d\morphe-chmate\output\haiagaru-current
 - Haiagaru 修正確認 242 / ChMate 0.8.10.242 dev / `jp.co.airfront.android.a2chMate.haiagaru.reporter242` / Mi Note 10 Android 11 / ADB `d5497008` / 2026-11-21T13:38:46+09:00 / 署名照合・`adb install -r`成功。APK `C:/Users/narum/.codex/worktrees/945d/morphe-chmate/output/haiagaru-current/build/archive-duplicate-fix/apks/final242.apk` SHA-256 `15029a71e2157936dc47b939e5e73b3cd5097ecaccfdf3393a7f744877d2f767`。
 - 共通MPP `C:/Users/narum/.codex/worktrees/945d/morphe-chmate/output/haiagaru-current/build/archive-duplicate-fix/apks/candidate.mpp` SHA-256 `9ff85dfc8adad98f82965bac93ef234d3f4825cfb45ebcd6161042cd531b2e46`。署名証明書SHA-256 `0af4ddc1302b93481adb5c7d9657aae48d8d6733afc1e15d01129107a59c1eed`、署名鍵 `C:/Users/narum/morphe-chmate-local/tools/morphe-data/morphe.keystore`、alias `Morphe`。
 - Frida 17.18.0で3版の標準アーカイブDAT解決とfile URI経路を各8項目、HOMEの合成行を含む既存履歴検証を191=31／226=20／242=54項目確認。242の修正前APKでは同一フォルダの重複DATを解決できないことを再現。検索画面・長押しメニューからの通し操作は未確認。通常ChMateのアプリや既存の保存ファイルは変更していない。
+
+## 2026-11-21 Kyodemoツールバー配色・作成したスレ・フィルター更新候補
+
+- Haiagaru 修正確認 242 / ChMate 0.8.10.242 dev / `jp.co.airfront.android.a2chMate.haiagaru.reporter242` / Mi Note 10 Android 11 / ADB `d5497008` / 2026-11-21T14:36:24+09:00 / 署名照合・`adb install -r`成功。APK `C:/Users/narum/.codex/worktrees/945d/morphe-chmate/output/haiagaru-current/build/kyodemo-toolbar-20261121/apks/final242.apk` SHA-256 `042126bc40f26cb5687ba54525a600258530f3fa3cfcb27a39225127ce0947b8`。
+- MPP `C:/Users/narum/.codex/worktrees/945d/morphe-chmate/output/haiagaru-current/build/kyodemo-toolbar-20261121/apks/candidate.mpp` SHA-256 `95c9c8df3bfb7b11e38025c3503a982cfe0e9da2b4953691b9f147daa59e8231`。署名証明書SHA-256 `0af4ddc1302b93481adb5c7d9657aae48d8d6733afc1e15d01129107a59c1eed`、署名鍵 `C:/Users/narum/morphe-chmate-local/tools/morphe-data/morphe.keystore`、alias `Morphe`。
+- Frida 17.18.0で16項目成功。端末内の合成WebView結果で独立した配色、拡張ビューOFF時のエッヂ用タブ切替を確認。フィルターでは非表示バーの更新未登録と、連続通知後の更新待ち解除を確認。DOM 11項目と更新履歴429項目も成功。実サイトと長時間連続利用の計測は未実施。
+
+## 2026-11-21 投稿ポップアップ・Xカード・診断送信・外部板候補
+
+- Haiagaru 修正確認 191 / ChMate 0.8.10.191 dev / `jp.co.airfront.android.a2chMate.haiagaru.reporter191` / Mi Note 10 Android 11 / ADB `d5497008` / 2026-11-21T16:14:30.051071+09:00 / 署名照合・`adb install -r`成功。APK `C:/Users/narum/.codex/worktrees/945d/morphe-chmate/output/haiagaru-current/build/posting-x-report-20261121/apks/final191.apk` SHA-256 `2cbd418d18acf763df2681f2ea5ae4dafd6316940fa0cf5eed98ae3591651956`。
+- Haiagaru 修正確認 226 / ChMate 0.8.10.226 dev / `jp.co.airfront.android.a2chMate.haiagaru.reporter226` / Mi Note 10 Android 11 / ADB `d5497008` / 2026-11-21T16:15:06.883299+09:00 / 署名照合・`adb install -r`成功。APK `C:/Users/narum/.codex/worktrees/945d/morphe-chmate/output/haiagaru-current/build/posting-x-report-20261121/apks/final226.apk` SHA-256 `d44600c0230adb981b9180f932aaaf8eb8f6a978f9575bba995863ace8ab79f2`。
+- Haiagaru 修正確認 242 / ChMate 0.8.10.242 dev / `jp.co.airfront.android.a2chMate.haiagaru.reporter242` / Mi Note 10 Android 11 / ADB `d5497008` / 2026-11-21T16:07:45.080960+09:00 / 署名照合・`adb install -r`成功。APK `C:/Users/narum/.codex/worktrees/945d/morphe-chmate/output/haiagaru-current/build/posting-x-report-20261121/apks/final242.apk` SHA-256 `132d38a61b236eed5315a5153d6851e5ee7f9a063e8aef9ad38d4dd7491386c5`。
+- 共通MPP `C:/Users/narum/.codex/worktrees/945d/morphe-chmate/output/haiagaru-current/build/posting-x-report-20261121/apks/candidate.mpp` SHA-256 `abd96ae8b17d96c2819044da601598ef12760a9a8007fe55f93b87daa38fd346`。署名証明書SHA-256 `0af4ddc1302b93481adb5c7d9657aae48d8d6733afc1e15d01129107a59c1eed`、署名鍵 `C:/Users/narum/morphe-chmate-local/tools/morphe-data/morphe.keystore`、alias `Morphe`。
+- Frida 17.18.0: 191／226／242で各22項目、242のXカードで14項目。クラッシュ・ANRの送信は模擬レポートを使用。GASの受信応答と同意前のキュー抑止を確認。
+- 指定エッヂスレで修正前の242はレスツリーが書き込み画面の裏に残ることを確認。修正後は開く時点で閉じ、利用者許可の本文 `test` を1件投稿。レス699と投稿画面の正常終了を確認。
+- 242の従来の投稿レイアウトフックは既存DEX検証に合格。Android 11実機で既存の縦横・タブレット・異常IME余白の検証各12／15項目、追加Frida 15項目（縦横、IME補正、実キーボード時の本文・送信・アップロードの可視性）を確認。Android 17実機での再現・動作確認は未実施。
+
+## 2026-11-21 あにまん♡・削除の認証エラー切り分け候補
+
+- Haiagaru 修正確認 242 / `jp.co.airfront.android.a2chMate.haiagaru.reporter242` / Android 11 Mi Note 10 / ADB `d5497008` / 2026-11-21T18:09:06+09:00 / 署名照合・`adb install -r`成功。APK `C:/Users/narum/.codex/worktrees/945d/morphe-chmate/output/haiagaru-current/build/animanch-action-diagnostic-20261121/apks/final242.apk` SHA-256 `64a71df37d4452df0adbfdd2aef2f4a9d664ae2dd2f46718c30221a611408a4d`。
+- MPP `C:/Users/narum/.codex/worktrees/945d/morphe-chmate/output/haiagaru-current/build/animanch-action-diagnostic-20261121/apks/candidate.mpp` SHA-256 `cc11520bd097315b372658173058b78a152bc4c41a98b38d33d518e350829eea`。署名証明書SHA-256 `0af4ddc1302b93481adb5c7d9657aae48d8d6733afc1e15d01129107a59c1eed`。
+- あにまんサイトへの♡／削除送信はまだ行っていない。ブラウザ安全ポリシーでサイト表示の確認が拒否されたため、実サイト操作の確認は未完了。
+
+## 2026-11-21 あにまん認証エラー診断の最終242候補
+
+- Haiagaru 修正確認 242 / `jp.co.airfront.android.a2chMate.haiagaru.reporter242` / Android 11 Mi Note 10 / ADB `d5497008` / 2026-11-21T18:24:12+09:00 / 署名照合・`adb install -r`成功。APK `C:/Users/narum/.codex/worktrees/945d/morphe-chmate/output/haiagaru-current/build/animanch-action-diagnostic-20261121/apks-final/final242.apk` SHA-256 `4e78d6ca9377f0e4d58bc57561a663b8cceb9c2841b2b86d7125235774ca6812`。
+- MPP `C:/Users/narum/.codex/worktrees/945d/morphe-chmate/output/haiagaru-current/build/animanch-action-diagnostic-20261121/apks-final/candidate.mpp` SHA-256 `5fbfca7650148e12bfd95d1635dbc3c7fd311bf26f7726e16ee383f0377240ef`。署名証明書SHA-256 `0af4ddc1302b93481adb5c7d9657aae48d8d6733afc1e15d01129107a59c1eed`。
+- Frida 17.18.0のオフライン診断11項目PASS。実サイトへの♡／削除操作は未実施。詳細 `docs/animanch-action-diagnostic-20261121.md`。
+
+## 2026-11-21 ふたばHTTP 200投稿結果修正の242候補
+
+- Haiagaru 修正確認 242 / `jp.co.airfront.android.a2chMate.haiagaru.reporter242` / Mi Note 10 Android 11 / ADB `d5497008` / 2026-11-21 19:09 JST / 署名照合・`adb install -r`成功。
+- APK `C:/Users/narum/.codex/worktrees/945d/morphe-chmate/output/haiagaru-current/build/futaba-post-result-20261121/apks242/final242.apk` SHA-256 `41921df38bd01431a87b3cfb4ba660bc3f95c70306d19d00c1273f117eaab3c1`。
+- MPP `C:/Users/narum/.codex/worktrees/945d/morphe-chmate/output/haiagaru-current/build/futaba-post-result-20261121/apks242/candidate.mpp` SHA-256 `32548a92e1d38316688c0c5807aa76dbba5629d92b3aab62819392a97d11ff41`。
+- 署名証明書SHA-256 `0af4ddc1302b93481adb5c7d9657aae48d8d6733afc1e15d01129107a59c1eed`。署名鍵 `C:/Users/narum/morphe-chmate-local/tools/morphe-data/morphe.keystore`、alias `Morphe`。
+- Frida 17.18.0で合成HTTP 200応答6項目PASS。実サイトへの投稿は未確認。詳細 `docs/futaba-post-result-20261121.md`。
+
+## 2026-11-21 ふたば専用投稿ポップアップの初回候補
+
+- Haiagaru 修正確認 242 / `jp.co.airfront.android.a2chMate.haiagaru.reporter242` / Mi Note 10 Android 11 / ADB `d5497008` / 2026-11-21 20:52 JST / 署名照合・`adb install -r`成功。
+- APK `C:/Users/narum/.codex/worktrees/945d/morphe-chmate/output/haiagaru-current/build/futaba-popup-20261121/final242.apk` SHA-256 `e90a94cf6e86c1b69e93e78b759479b3f5a53d4410dc994de462b9ec34c5570d`。
+- MPP `C:/Users/narum/.codex/worktrees/945d/morphe-chmate/output/haiagaru-current/build/futaba-popup-20261121/candidate.mpp` SHA-256 `ecfbe8327946959e72059ba127bb59140aefa885eb74a0df8df5b871819bfa08`。
+- 署名証明書SHA-256 `0af4ddc1302b93481adb5c7d9657aae48d8d6733afc1e15d01129107a59c1eed`。署名鍵 `C:/Users/narum/morphe-chmate-local/tools/morphe-data/morphe.keystore`、alias `Morphe`。
+
+## 2026-11-21 ふたば投稿フォームと直接起動の242候補
+
+- Haiagaru 修正確認 242 / jp.co.airfront.android.a2chMate.haiagaru.reporter242 / Mi Note 10 Android 11 / ADB d5497008 / 11/21/2026 21:14:53 / 署名照合・adb install -r 成功。
+- APK C:/Users/narum/.codex/worktrees/945d/morphe-chmate/output/haiagaru-current/build/futaba-popup-final-20261121/final242.apk SHA-256 3dff080567911f4a6b277b6c974831d2a0a152f9534eeb1e37420a160deb0829。MPP C:\Users\narum\.codex\worktrees\945d\morphe-chmate\output\haiagaru-current\build\futaba-popup-final-20261121\candidate.mpp SHA-256 301c270d8d0feef0e611a2f524ca686576ba16f746e2119ce99554d979a48aa8。
+- 署名証明書SHA-256 0af4ddc1302b93481adb5c7d9657aae48d8d6733afc1e15d01129107a59c1eed。署名鍵 C:/Users/narum/morphe-chmate-local/tools/morphe-data/morphe.keystore、alias Morphe。
+
+## 2026-11-21 Haiagaru 1.49.0 ローカル検証候補
+
+- Haiagaru 修正確認 191 / jp.co.airfront.android.a2chMate.haiagaru.reporter191 / Mi Note 10 Android 11 / ADB d5497008 / 11/21/2026 22:13:17 / 署名照合・インストール成功。APK C:/Users/narum/.codex/worktrees/945d/morphe-chmate/output/haiagaru-current/build/release-1.49.0-20261121/apks/final191.apk SHA-256 ab87f1b89785d88280b28496ac1e4454ebb2f5ed475b826031e4d61d2b1112f5。MPP C:\Users\narum\.codex\worktrees\945d\morphe-chmate\output\haiagaru-current\build\release-1.49.0-20261121\apks\candidate.mpp SHA-256 3345879c89bf4f60a63d948de196f86b4e72725afb0f69b604db1fb548d619f6。
+- Haiagaru 修正確認 226 / jp.co.airfront.android.a2chMate.haiagaru.reporter226 / Mi Note 10 Android 11 / ADB d5497008 / 11/21/2026 22:14:55 / 署名照合・インストール成功。APK C:/Users/narum/.codex/worktrees/945d/morphe-chmate/output/haiagaru-current/build/release-1.49.0-20261121/apks/final226.apk SHA-256 56dd9ca1127ab28e4fb293db547ba7fe036c3e38f8e86a1fbb12c2c08cfbe4e8。MPP C:\Users\narum\.codex\worktrees\945d\morphe-chmate\output\haiagaru-current\build\release-1.49.0-20261121\apks\candidate.mpp SHA-256 3345879c89bf4f60a63d948de196f86b4e72725afb0f69b604db1fb548d619f6。
+- Haiagaru 修正確認 242 / jp.co.airfront.android.a2chMate.haiagaru.reporter242 / Mi Note 10 Android 11 / ADB d5497008 / 11/21/2026 22:15:52 / 署名照合・インストール成功。APK C:/Users/narum/.codex/worktrees/945d/morphe-chmate/output/haiagaru-current/build/release-1.49.0-20261121/apks/final242.apk SHA-256 3b8476dbdae52714030e144bdbd187aac7a2ade4c01ee3dca1f7983b44f5dab7。MPP C:\Users\narum\.codex\worktrees\945d\morphe-chmate\output\haiagaru-current\build\release-1.49.0-20261121\apks\candidate.mpp SHA-256 3345879c89bf4f60a63d948de196f86b4e72725afb0f69b604db1fb548d619f6。
+- Haiagaru 修正確認 191 / jp.co.airfront.android.a2chMate.haiagaru.reporter191 / Mi Note 10 Android 11 / ADB d5497008 / 11/21/2026 22:28:00 / 署名照合・インストール成功。APK C:/Users/narum/.codex/worktrees/945d/morphe-chmate/output/haiagaru-current/build/release-1.49.0-20261121/revised/apks/final191.apk SHA-256 a818ceb03770cc1822144a4fb5dd9460faccb9edff47364fa30f3ceb78b0a620。MPP C:\Users\narum\.codex\worktrees\945d\morphe-chmate\output\haiagaru-current\build\release-1.49.0-20261121\revised\apks\candidate.mpp SHA-256 bd6d9c73d23c03adb227335f41cf69b3d1ace93ad3c082f2f5d8807964e5ad41。
+- Haiagaru 修正確認 226 / jp.co.airfront.android.a2chMate.haiagaru.reporter226 / Mi Note 10 Android 11 / ADB d5497008 / 11/21/2026 22:31:17 / 署名照合・インストール成功。APK C:/Users/narum/.codex/worktrees/945d/morphe-chmate/output/haiagaru-current/build/release-1.49.0-20261121/revised/apks/final226.apk SHA-256 59cb3adb3a5b5318d93a01044f5f89b2d080250216da60bc309386d9420b8a83。MPP C:\Users\narum\.codex\worktrees\945d\morphe-chmate\output\haiagaru-current\build\release-1.49.0-20261121\revised\apks\candidate.mpp SHA-256 bd6d9c73d23c03adb227335f41cf69b3d1ace93ad3c082f2f5d8807964e5ad41。
+- Haiagaru 修正確認 242 / jp.co.airfront.android.a2chMate.haiagaru.reporter242 / Mi Note 10 Android 11 / ADB d5497008 / 11/21/2026 22:32:11 / 署名照合・インストール成功。APK C:/Users/narum/.codex/worktrees/945d/morphe-chmate/output/haiagaru-current/build/release-1.49.0-20261121/revised/apks/final242.apk SHA-256 75f3248b10b7df6d9e196e0f871da24005a6c7b4a1e31150b40499aca7d89f59。MPP C:\Users\narum\.codex\worktrees\945d\morphe-chmate\output\haiagaru-current\build\release-1.49.0-20261121\revised\apks\candidate.mpp SHA-256 bd6d9c73d23c03adb227335f41cf69b3d1ace93ad3c082f2f5d8807964e5ad41。
+- 署名証明書SHA-256 0af4ddc1302b93481adb5c7d9657aae48d8d6733afc1e15d01129107a59c1eed。署名鍵 C:/Users/narum/morphe-chmate-local/tools/morphe-data/morphe.keystore、alias Morphe。
+
+## 2026-11-21 あにまんのハート表示と保存
+
+- Haiagaru 修正確認 242 / jp.co.airfront.android.a2chMate.haiagaru.reporter242 / Mi Note 10 Android 11 / ADB d5497008 / 11/21/2026 22:58:38 / 署名照合・インストール成功。APK C:/Users/narum/.codex/worktrees/945d/morphe-chmate/output/haiagaru-current/build/animanch-hearts-20261121/apks/final242.apk SHA-256 6dcc33df3e27a4c3b31efec9a6a78fb604c0e54693719677bb1d6a06410c2c8b。MPP C:\Users\narum\.codex\worktrees\945d\morphe-chmate\output\haiagaru-current\build\animanch-hearts-20261121\apks\candidate.mpp SHA-256 53c54695ce107bb5f179501f6ceda01a728d4101d3918003cd5681d6f6d365d8。
+- 署名証明書SHA-256 0af4ddc1302b93481adb5c7d9657aae48d8d6733afc1e15d01129107a59c1eed。署名鍵 C:/Users/narum/morphe-chmate-local/tools/morphe-data/morphe.keystore、alias Morphe。
+- Fridaと模擬応答で6項目を確認。公開投票0件。
+
+## 2026-11-22 mayのカタログ長文タイトル検証
+
+- Haiagaru 修正確認 242 / ChMate 0.8.10.242 dev / jp.co.airfront.android.a2chMate.haiagaru.reporter242 / Mi Note 10 Android 11 / ADB d5497008 / 2026-11-22T11:13:37.291912+09:00 / 署名照合・Performing Streamed Install
+Success。
+- APK `C:/Users/narum/.codex/worktrees/945d/morphe-chmate/output/haiagaru-current/build/futaba-may-titles/apks/final242.apk` SHA-256 `1a1198fc8f5815b733b761575ea2d2e58af62e544e834f81c7b084413ea11225`。MPP `C:/Users/narum/.codex/worktrees/945d/morphe-chmate/output/haiagaru-current/build/futaba-may-titles/apks/candidate.mpp` SHA-256 `7821bb1a90622dc38f99a4e88aac223c7aa56a09867e2b69a10c8b51ac08f53d`。
+- 署名証明書 SHA-256 `0af4ddc1302b93481adb5c7d9657aae48d8d6733afc1e15d01129107a59c1eed`。署名鍵 `C:/Users/narum/morphe-chmate-local/tools/morphe-data/morphe.keystore`、alias `Morphe`。
+
+## 2026-11-22 エキスパート設定の即時更新検証
+
+- Haiagaru 修正確認 242 / ChMate 0.8.10.242 dev / jp.co.airfront.android.a2chMate.haiagaru.reporter242 / Mi Note 10 Android 11 / ADB d5497008 / 2026-11-22T11:23:13.509626+09:00 / 署名照合・Performing Streamed Install
+Success。
+- APK `C:/Users/narum/.codex/worktrees/945d/morphe-chmate/output/haiagaru-current/build/expert-live-20261122/apks/final242.apk` SHA-256 `9153d09abfb05a1254b8b9b5d9da60994a77db4e15ef9bfb57c4363dfe2679c7`。MPP `C:/Users/narum/.codex/worktrees/945d/morphe-chmate/output/haiagaru-current/build/expert-live-20261122/apks/candidate.mpp` SHA-256 `f30f93c0c81ae2e0ab9b6fd4e545fc8d2241b71806855abe7a3015d8157c1dca`。
+- 署名証明書 SHA-256 `0af4ddc1302b93481adb5c7d9657aae48d8d6733afc1e15d01129107a59c1eed`。署名鍵 `C:/Users/narum/morphe-chmate-local/tools/morphe-data/morphe.keystore`、alias `Morphe`。
+
+
+## 2026-11-23 エッヂ投稿成功後の本文消去
+
+- 検証用242 / jp.co.airfront.android.a2chMate.haiagaru.reporter242 / Mi Note 10 Android 11 / ADB d5497008。署名照合後install -r、起動成功。
+- APK `C:/Users/narum/.codex/worktrees/945d/haiagaru-edge-post-reset/build/edge-post-reset-20261123/test242-final.apk` SHA-256 `2956c84853b1073d065777be0ce9f15864c196ebcc1e70f1eadc99ebdb3c31b2`。MPP `C:/Users/narum/.codex/worktrees/945d/haiagaru-edge-post-reset/patches/build/libs/patches-1.50.1.mpp` SHA-256 `63e9a8eeeb824f1a39c001f95f97694296fee143258cb2a46c714ab4ff9f665d`。
+- 署名証明書 SHA-256 `0af4ddc1302b93481adb5c7d9657aae48d8d6733afc1e15d01129107a59c1eed`。alias Morphe。
+- FridaでnativePosted成功通知を模擬し、前画面復帰ON/OFF状態双方の本文消去、新規入力保持、他板の本文保持の4項目成功。実際の公開投稿は行っていない。

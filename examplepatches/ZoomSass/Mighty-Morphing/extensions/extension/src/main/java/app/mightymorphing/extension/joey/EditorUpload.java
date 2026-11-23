@@ -44,9 +44,13 @@ public final class EditorUpload {
     private static final String TAG = "MightyUpload";
     private static final ThreadLocal<String> PARENT = new ThreadLocal<>();
     private static final Pattern MARKER = Pattern.compile(
-            "!?\\[[^\\]]*]\\(reddit-media:(img|gif|video):([A-Za-z0-9_./-]+)\\)");
+            "!?\\\\?\\[[^\\]]*]\\(reddit-media:(img|gif|video):((?:\\\\?[A-Za-z0-9_./-])+)\\)");
 
     private EditorUpload() {}
+
+    private static void trace(String line) {
+        Log.i(TAG, line);
+    }
 
     /** Single comment JPEG, PNG, or GIF. Post uploads stay on Joey's own path. */
     public static boolean still(Activity activity, List<?> uris, boolean post) {
@@ -56,6 +60,7 @@ public final class EditorUpload {
         String mime = mime(activity, (Uri) item, name((Uri) item));
         if (!"image/jpeg".equals(mime) && !"image/png".equals(mime) && !"image/gif".equals(mime)
                 && !"image/webp".equals(mime)) return false;
+        if (!CommentRules.permits(activity, "image/gif".equals(mime))) return true;
         start(activity, uris);
         return true;
     }
@@ -88,7 +93,7 @@ public final class EditorUpload {
                 for (Uri file : files) links.add(publish(activity, progress, file));
                 activity.runOnUiThread(() -> finish(activity, progress, links));
             } catch (Throwable failure) {
-                Log.i(TAG, "upload failed", failure);
+                trace("upload failed: " + failure);
                 activity.runOnUiThread(() -> {
                     dismiss(progress);
                     String message = failure.getMessage();
@@ -102,6 +107,7 @@ public final class EditorUpload {
         dismiss(progress);
         int editor = activity.getResources().getIdentifier("ReplyEditor", "id", activity.getPackageName());
         EditText text = activity.findViewById(editor);
+        if (insertIntoWebEditor(activity, links)) return;
         StringBuilder block = new StringBuilder();
         for (String link : links) {
             if (block.length() > 0) block.append('\n');
@@ -113,6 +119,26 @@ public final class EditorUpload {
             return;
         }
         Toast.makeText(activity, block.toString(), Toast.LENGTH_LONG).show();
+    }
+
+    /**
+     * Joey's reply screen has two editors on top of each other. The plain box is used for
+     * edits and when markdown is chosen; otherwise the web editor is showing and the plain
+     * box is hidden, so text put there never appears. Returns true when the web editor took it.
+     */
+    private static boolean insertIntoWebEditor(Activity activity, List<String> links) {
+        try {
+            Object plain = activity.getClass().getMethod("U3").invoke(activity);
+            if (!(plain instanceof Boolean) || (Boolean) plain) return false;
+            Object editor = activity.getClass().getMethod("L3").invoke(activity);
+            if (editor == null) return false;
+            java.lang.reflect.Method insert = editor.getClass().getMethod("o", String.class);
+            for (String link : links) insert.invoke(editor, link);
+            return true;
+        } catch (Throwable failure) {
+            Log.i(TAG, "web editor insert failed", failure);
+            return false;
+        }
     }
 
     /**
@@ -132,9 +158,30 @@ public final class EditorUpload {
             params.put("return_rtjson", "true");
             params.put("api_type", "json");
             PARENT.set(thing);
-            Log.i(TAG, "comment media " + rich);
+            trace("comment request " + thing + " richtext " + rich);
         } catch (Throwable failure) {
-            Log.i(TAG, "comment media skipped", failure);
+            trace("comment media skipped: " + failure);
+        }
+    }
+
+    /**
+     * An edit: the same rich-text body, but Joey ignores the response, so the reply-only
+     * extras (return_rtjson and the id lookup) are left out.
+     */
+    public static void attachEdit(Map<String, String> params) {
+        if (params == null) return;
+        String body = params.get("text");
+        if (body == null || !body.contains("reddit-media:")) return;
+        String thing = params.get("thing_id");
+        if (thing == null || !(thing.startsWith("t1_") || thing.startsWith("t3_"))) return;
+        try {
+            String rich = document(body);
+            params.put("richtext_json", rich);
+            params.put("text", "");
+            params.put("api_type", "json");
+            trace("edit request " + thing + " richtext " + rich);
+        } catch (Throwable failure) {
+            trace("edit media skipped: " + failure);
         }
     }
 
@@ -145,6 +192,7 @@ public final class EditorUpload {
     public static String submittedId(Object node) {
         String parent = PARENT.get();
         if (parent == null) return null;
+        trace("reddit replied " + (node == null ? "(nothing)" : String.valueOf(node)));
         if (node != null && (hasErrors(node) || hasThings(node))) {
             PARENT.remove();
             return null;
@@ -193,6 +241,7 @@ public final class EditorUpload {
                 String[] found = matchParent(new JSONObject(get(access, url, 5000)).getJSONObject("data").getJSONArray("children"), parent);
                 if (found == null) continue;
                 posted = found[0];
+                trace("new comment " + posted + " " + found[1]);
                 if ("ready".equals(found[1])) return posted;
             }
             if (posted != null) Log.i(TAG, "comment id " + posted + " image still processing");
@@ -249,7 +298,7 @@ public final class EditorUpload {
         return get(token, url, 20000);
     }
 
-    private static String get(String token, String url, int timeout) throws Exception {
+    static String get(String token, String url, int timeout) throws Exception {
         HttpURLConnection conn = (HttpURLConnection) new URL(url).openConnection();
         conn.setConnectTimeout(timeout);
         conn.setReadTimeout(timeout);
@@ -272,7 +321,7 @@ public final class EditorUpload {
             String kind = matcher.group(1);
             if (!"img".equals(kind) && !"gif".equals(kind) && !"video".equals(kind)) throw new IllegalStateException("empty");
             media.put("e", kind);
-            media.put("id", matcher.group(2));
+            media.put("id", matcher.group(2).replace("\\", ""));
             document.put(media);
             at = matcher.end();
         }
@@ -311,7 +360,6 @@ public final class EditorUpload {
         } else if (!name.endsWith(".jpg") && !name.endsWith(".jpeg") && !name.endsWith(".png")) {
             name = "image/png".equals(mime) ? "image.png" : "image.jpg";
         }
-        Log.i(TAG, "lease " + mime + " " + bytes.length + " bytes");
         JSONObject lease = lease(token, name, mime);
         JSONObject args = lease.getJSONObject("args");
         JSONObject asset = lease.getJSONObject("asset");
@@ -331,15 +379,10 @@ public final class EditorUpload {
             listen = new VideoListen(address);
             listen.begin();
         }
-        Log.i(TAG, "send " + id);
         send(args, bytes, name);
-        if (listen != null) {
-            id = listen.await();
-            Log.i(TAG, "video " + id);
-        }
+        if (listen != null) id = listen.await();
         String kind = clip ? "video" : (gif ? "gif" : "img");
         String marker = "![](reddit-media:" + kind + ":" + id + ")";
-        Log.i(TAG, "media " + marker);
         return marker;
     }
 
@@ -456,7 +499,6 @@ public final class EditorUpload {
         private String idFrom(String text) throws Exception {
             JSONObject json = new JSONObject(text);
             String type = json.optString("type", "");
-            Log.i(TAG, "video status " + type);
             if ("failed".equals(type) || "failure".equals(type)) {
                 throw new IllegalStateException("Reddit could not process the video");
             }
@@ -516,7 +558,7 @@ public final class EditorUpload {
         return mime;
     }
 
-    private static String token(Context context) throws Exception {
+    static String token(Context context) throws Exception {
         SharedPreferences prefs = context.getSharedPreferences("Authentication", 0);
         String raw = prefs.getString("access_token", "");
         if (raw == null) raw = "";

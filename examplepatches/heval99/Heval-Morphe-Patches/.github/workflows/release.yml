@@ -47,7 +47,8 @@ jobs:
         run: npm ci --allow-git=root
 
       # Run the tests that need no APK before anything is released: the helper, registry and
-      # bundle-selection tests, the webviewads extension unit tests and the release-script tests. The
+      # bundle-selection tests, the extension unit tests (webviewads, fotmob, sofascore, wemuslim and the
+      # Patch settings core) and the release-script tests. The
       # per-app smoke tests skip here (their APKs are gitignored), so they stay a local check.
       # A cold compile runs out of memory at Gradle's default heap, hence the explicit sizes.
       # The tests build a bundle with the CURRENT version number. It is deleted afterwards: the release
@@ -58,7 +59,9 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           ./gradlew -Pkotlin.daemon.jvmargs=-Xmx4g -Dorg.gradle.jvmargs=-Xmx3g --no-daemon \
-            :patches:test :extensions:webviewads:testDebugUnitTest
+            :patches:test :extensions:webviewads:testDebugUnitTest :extensions:fotmob:testDebugUnitTest \
+            :extensions:sofascore:testDebugUnitTest :extensions:wemuslim:testDebugUnitTest \
+            :extensions:hevalcontrols:core:testDebugUnitTest
           python3 -m unittest discover -s .github/scripts/tests
           rm -f patches/build/libs/*.mpp
 

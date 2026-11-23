@@ -198,9 +198,75 @@ export function decide({ released, channel, supportedVersions }) {
     channel,
     supportedVersions,
     newestSupported,
-    // "Uploaded to the channel but not on the storefront yet" -- the early signal.
-    uploadedNotReleased: Boolean(released) && released.version !== channel.version,
+    // "Uploaded to the channel but not on the storefront yet" -- the early signal. Directional
+    // on purpose: the summary's "the storefront page has not caught up" claim is only true when
+    // the channel is actually AHEAD of the page. The reverse (the page serving a build the
+    // channel answer does not list yet) gets its own label in the summary -- printing "the page
+    // has not caught up" while the page is the one ahead would point the maintainer the
+    // exactly wrong way.
+    uploadedNotReleased:
+        Boolean(released) && compareVersions(channel.version, released.version) > 0,
+    pageAheadOfChannel:
+        Boolean(released) && compareVersions(released.version, channel.version) > 0,
   };
+}
+
+/**
+ * The run summary's headline status. Pure, so the decision table can pin it.
+ *
+ * "Up to date" is only honest when the channel and the storefront agree. A channel ahead of the
+ * storefront means a build exists that the repo has not re-anchored, and the page lagging does
+ * NOT mean the binary is unobtainable -- measured 2026-11-22, 1.92.11 was downloadable with the
+ * DownQuest extension while the storefront page still listed 1.91.10 (the state this summary
+ * used to call "not downloadable yet"). It still files no issue: the channel answer alone once
+ * filed an issue for a version nobody could download from the page (#40), so the issue waits
+ * for `hasUpdate` -- a storefront flip, or an unreadable page falling back to the channel.
+ */
+export function statusLine(result) {
+  if (result.hasUpdate) {
+    return `⚠️ **New version detected!**${result.confirmed ? '' : ' (unconfirmed — storefront unreadable)'}`;
+  }
+  if (result.uploadedNotReleased) {
+    return '🟡 **New build uploaded; the storefront page has not caught up** — no issue filed yet, and "not on the page" is not "not downloadable" (DownQuest can serve the uploaded binary)';
+  }
+  return '✅ **Up to date**';
+}
+
+/**
+ * The run summary, pure so the decision table can pin it -- most importantly the channel-ahead
+ * line's wording, which used to claim the uploaded build was "not downloadable yet": a claim
+ * nothing in this script can verify, and which the 2026-11-22 DownQuest fetch disproved. The
+ * tests hold every variant to "not downloadable yet" never reappearing.
+ */
+export function summaryLines(result, storefrontWarning) {
+  const lines = [
+    '### Meta Quest Store Version Check',
+    `- **Storefront (released)**: ${describeBinary(result.released)}${result.released ? ` — binary \`${result.released.binaryId}\`` : ''}`,
+    `- **Channel \`${result.channel.channel}\` (newest uploaded)**: ${describeBinary(result.channel)} — binary \`${result.channel.binaryId}\``,
+    `- **Supported in Code**: ${result.supportedVersions.map((v) => `\`${v}\``).join(', ')}`,
+  ];
+  if (result.uploadedNotReleased) {
+    lines.push(
+      `- ℹ️ The channel has \`${result.channel.version}\` uploaded but the storefront page still serves \`${result.released.version}\` — the page lagging is not proof the binary is unobtainable (measured 2026-11-22: DownQuest fetched 1.92.11 while the page still served 1.91.10). No issue is filed off the channel answer alone; treat availability as unknown, not false`
+    );
+  }
+  if (result.pageAheadOfChannel) {
+    lines.push(
+      `- ℹ️ The storefront page serves \`${result.released.version}\` while the channel answer still says \`${result.channel.version}\` — the page is ahead of the channel data, so the verdict comes from the page`
+    );
+  }
+  if (result.isRollback) {
+    lines.push(
+      `- ⚠️ The storefront serves \`${result.released.version}\`, which is *older* than the newest supported \`${result.newestSupported}\` — a rollback, so no update is filed`
+    );
+  }
+  if (storefrontWarning) {
+    lines.push(
+      `- ⚠️ Storefront unreadable (\`${storefrontWarning}\`), so the verdict falls back to the channel answer and is **unconfirmed**`
+    );
+  }
+  lines.push(`- **Status**: ${statusLine(result)}`);
+  return lines;
 }
 
 function parseSupportedVersions() {
@@ -307,36 +373,7 @@ async function main() {
   setGithubOutput('issue_body_path', ISSUE_BODY_FILE);
   setGithubOutput('verdict_confirmed', result.confirmed.toString());
 
-  const summaryLines = [
-    '### Meta Quest Store Version Check',
-    `- **Storefront (released)**: ${describeBinary(released)}${released ? ` — binary \`${released.binaryId}\`` : ''}`,
-    `- **Channel \`${channel.channel}\` (newest uploaded)**: ${describeBinary(channel)} — binary \`${channel.binaryId}\``,
-    `- **Supported in Code**: ${supportedVersions.map((v) => `\`${v}\``).join(', ')}`,
-  ];
-  if (result.uploadedNotReleased) {
-    summaryLines.push(
-      `- ℹ️ The channel has \`${channel.version}\` uploaded but the storefront still serves \`${released.version}\` — not downloadable yet, so no issue is filed for it`
-    );
-  }
-  if (result.isRollback) {
-    summaryLines.push(
-      `- ⚠️ The storefront serves \`${effective.version}\`, which is *older* than the newest supported \`${result.newestSupported}\` — a rollback, so no update is filed`
-    );
-  }
-  if (storefrontWarning) {
-    summaryLines.push(
-      `- ⚠️ Storefront unreadable (\`${storefrontWarning}\`), so the verdict falls back to the channel answer and is **unconfirmed**`
-    );
-  }
-  summaryLines.push(
-    `- **Status**: ${
-      result.hasUpdate
-        ? `⚠️ **New version detected!**${result.confirmed ? '' : ' (unconfirmed — storefront unreadable)'}`
-        : '✅ **Up to date**'
-    }`
-  );
-
-  const summary = summaryLines.join('\n');
+  const summary = summaryLines(result, storefrontWarning).join('\n');
   console.log('\n' + summary);
   appendGithubSummary(summary);
 

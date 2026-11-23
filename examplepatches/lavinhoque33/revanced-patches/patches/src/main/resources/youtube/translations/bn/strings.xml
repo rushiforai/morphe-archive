@@ -277,8 +277,10 @@ MicroG-এর জন্য ব্যাটারি অপ্টিমাইজ�
     <string name="morphe_playback_in_feeds_entry_off">বন্ধ</string>
     <string name="morphe_playback_in_feeds_entry_wifi_only">শুধুমাত্র ওয়াই-ফাই</string>
     <string name="morphe_playback_in_feeds_title">ফিডে প্লেব্যাক</string>
-    <string name="morphe_player_control_buttons_background_opacity_summary">প্লেয়ার কন্ট্রোল বাটন এবং টাইম বারের পিছনের ব্যাকগ্রাউন্ডের অস্বচ্ছতা সামঞ্জস্য করুন (0 অদৃশ্য, 100 অস্বচ্ছ)</string>
-    <string name="morphe_player_control_buttons_background_opacity_title">কন্ট্রোল বাটনের পটভূমির অস্বচ্ছতা</string>
+    <string name="morphe_player_transport_background_opacity_summary">চালান, বিরতি, আবার চালান, পরবর্তী ও আগের বোতামগুলোর পটভূমির অস্বচ্ছতা সামঞ্জস্য করুন</string>
+    <string name="morphe_player_transport_background_opacity_title">প্লেব্যাক বোতামের পটভূমির অস্বচ্ছতা</string>
+    <string name="morphe_player_other_overlay_background_opacity_summary">প্লেয়ারের অন্যান্য বোতাম ও সময় প্রদর্শনের পটভূমির অস্বচ্ছতা সামঞ্জস্য করুন</string>
+    <string name="morphe_player_other_overlay_background_opacity_title">অন্য ওভারলে পটভূমির অস্বচ্ছতা</string>
     <string name="morphe_playlist_hide_removal_snackbar_summary">প্লেলিস্ট থেকে কোনো ভিডিও রিমুভ করার পর আর কনফার্মেশন দেখানো হবে না</string>
     <string name="morphe_playlist_hide_removal_snackbar_title">প্লেলিস্ট রিমুভ্যাল স্নাকবার হাইড করুন</string>
     <string name="morphe_playlist_long_press_drag_summary">আপনার প্লেলিস্টের কোনো ভিডিও নতুন অবস্থানে সরাতে সেটি স্পর্শ করে ধরে রাখুন</string>

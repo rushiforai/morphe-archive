@@ -1052,6 +1052,14 @@ Shows a handle at the right edge of Saved and your collections while they scroll
 Hide the New collection button	Yeni koleksiyon düğmesini gizle
 # context: Profiles > summary of Hide the New collection button; Saved is Instagram's own Saved page (#762)
 Takes the + for a new collection off the top of Saved. Your collections stay.	Kaydedilenler'in üstündeki yeni koleksiyon için + düğmesini kaldırır. Koleksiyonların yerinde kalır.
+# context: Profiles > switch right after Hide the New collection button; Reels is Instagram's own label for the Reels tab at the top of Saved, Saved is Instagram's own Saved page (#810)
+Hide the Reels tab in Saved	Kaydedilenler'de Reels sekmesini gizle
+# context: Profiles > summary of Hide the Reels tab in Saved; saved reels still show under All (#810)
+Takes the Reels tab out of Saved. Your saved reels stay saved.	Reels sekmesini Kaydedilenler'den kaldırır. Kaydettiğin reels videoları kayıtlı kalır.
+# context: Profiles > switch right after Hide the Reels tab in Saved; Saved is Instagram's own label for the bookmark at the top right of the Search tab, beside the search bar (#810)
+Hide Saved on the Search tab	Ara sekmesinde Kaydedilenler'i gizle
+# context: Profiles > summary of Hide Saved on the Search tab (#810)
+Takes the Saved bookmark off the top of the Search tab. Restart Instagram after changing it.	Ara sekmesinin üstündeki Kaydedilenler yer imini kaldırır. Değiştirdikten sonra Instagram'ı yeniden başlat.
 Battery	Pil
 Stop the background heartbeat	Arka plandaki kalp atışını durdur
 Instagram wakes your phone every minute or two, screen off included, only to note that it is still running. This stops that. Messages, notifications and everything you see are unaffected.	Instagram, ekran kapalıyken bile her bir iki dakikada bir telefonunu yalnızca hâlâ çalıştığını not etmek için uyandırır. Bu, bunu durdurur. Mesajlar, bildirimler ve gördüğün her şey etkilenmez.
@@ -1903,6 +1911,10 @@ Glass top bar in chats	Sohbetlerde üst çubukta cam
 Turn it off to leave a chat's top bar as Instagram draws it, with no frosted band behind it. The round glass buttons and the glass message bar stay.	Kapatınca sohbetin üst çubuğu Instagram'ın çizdiği gibi kalır, arkasında buzlu cam şerit olmaz. Yuvarlak cam düğmeler ve cam mesaj çubuğu kalır.
 Top bar tint in chats	Sohbetlerde üst çubuk renk tonu
 Message bar tint	Mesaj çubuğu renk tonu
+Glass buttons in chats	Sohbetlerde cam düğmeler
+Turn it off for a plain blur with no round glass behind the buttons at the top of a chat.	Bir sohbetin üstündeki düğmelerin arkasında yuvarlak cam olmadan düz bir bulanıklık için kapat.
+Blur the chat behind a held message	Basılı tutulan mesajın arkasındaki sohbeti bulanıklaştır
+Hold a message and the rest of the chat blurs behind it and its reactions. Needs Android 12 or newer.	Bir mesajı basılı tut, sohbetin geri kalanı mesajın ve tepkilerinin arkasında bulanıklaşsın. Android 12 veya daha yenisi gerekir.
 # context: Reels switch Hide reels with few views, its summary, the Minimum views row, its dialog message and the row's summary, then the Minimum likes row, its dialog message, its summary and its summary at 0; %1$s is a number with thousands separators (#444)
 Hide reels with few views	Az izlenen reelleri gizle
 Leaves out reels in the Reels tab outside the numbers below. Reels from accounts you follow, reels sent to you and reels that don't show a number still play.	Reels sekmesinde aşağıdaki sayıların dışında kalan reelleri çıkarır. Takip ettiğin hesapların reelleri, sana gönderilen reeller ve sayı göstermeyen reeller oynamaya devam eder.
@@ -2779,3 +2791,21 @@ Couldn't start recording this call	Arama kaydı başlatılamadı
 Couldn't save the call recording	Arama kaydı saklanamadı
 # context: a toast when a recording ends with no sound in it (#732)
 Nothing was recorded	Hiçbir şey kaydedilmedi
+# context: a toast when a save starts, naming the account the media is from (#792)
+Saving from @%1$s...	@%1$s hesabından kaydediliyor...
+# context: a second toast after the one above, when notifications are off (#792)
+You can cancel from Downloads in HushGram settings.	HushGram ayarlarındaki İndirmeler bölümünden iptal edebilirsin.
+# context: a toast when a save waits for the ones already running, the account unknown (#792)
+Queued	Sırada
+# context: a toast when a save waits for the ones already running, naming the account (#792)
+Queued: @%1$s	Sırada: @%1$s
+# context: a toast when too many saves already wait their turn (#792)
+Not saved: %1$d saves are already waiting	Kaydedilmedi: %1$d kayıt zaten sırada
+# context: a waiting save's notification text and its line in Downloads (#792)
+Waiting for the saves before it	Önceki kayıtlar bekleniyor
+# context: Feed settings: a switch under Start feed videos with sound that starts them with sound while the phone is on silent or vibrate too (#762)
+Even on silent	Sessizdeyken de
+# context: Summary of Even on silent, a switch under Start feed videos with sound (#762)
+Feed videos start with sound with the phone on silent or vibrate too. Only the media volume counts.	Telefon sessizde ya da titreşimdeyken de akış videoları sesli başlar. Yalnızca medya sesi dikkate alınır.
+Also in search	Aramada da
+Takes rows of the Explore grid and of search results out when a post in them holds a word or phrase from the list, or comes from an account the list names with @.	İçlerindeki bir gönderi listedeki bir kelimeyi veya ifadeyi içerdiğinde ya da listenin @ ile andığı bir hesaptan geldiğinde, Keşfet ızgarasının ve arama sonuçlarının satırlarını kaldırır.

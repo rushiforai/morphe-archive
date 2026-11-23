@@ -1,0 +1,131 @@
+name: Repair v4.3.0 tag and publish
+
+on:
+  workflow_dispatch:
+
+permissions:
+  actions: write
+  contents: read
+
+jobs:
+  repair-and-publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Move tag with the dedicated release credential
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+        run: |
+          set -euo pipefail
+          if [[ -z "${GH_TOKEN}" ]]; then
+            echo "::error::RELEASE_TOKEN is missing. Add a fine-grained PAT with Contents: write and Workflows: write for GboardSamsung."
+            exit 1
+          fi
+
+          tag="v4.3.0"
+          expected_old="967d127ffeec80953085c86d5cb6b993faae2432"
+          target="a7d799873fe17eb2558f12cfaf02b245b1e6d83e"
+          ref="$(gh api "repos/${GITHUB_REPOSITORY}/git/ref/tags/${tag}")"
+          current="$(jq -r '.object.sha' <<< "${ref}")"
+          object_type="$(jq -r '.object.type' <<< "${ref}")"
+
+          if [[ "${object_type}" == "tag" ]]; then
+            current="$(gh api "repos/${GITHUB_REPOSITORY}/git/tags/${current}" --jq '.object.sha')"
+          fi
+
+          if [[ "${current}" == "${target}" ]]; then
+            echo "Tag ${tag} already points to the verified commit."
+          elif [[ "${current}" == "${expected_old}" ]]; then
+            gh api --method PATCH "repos/${GITHUB_REPOSITORY}/git/refs/tags/${tag}" \
+              -f sha="${target}" -F force=true
+            echo "Moved ${tag} to ${target}."
+          else
+            echo "::error::Safety stop: ${tag} points to unexpected commit ${current}."
+            exit 1
+          fi
+
+          actual="$(gh api "repos/${GITHUB_REPOSITORY}/git/ref/tags/${tag}" --jq '.object.sha')"
+          if [[ "${actual}" != "${target}" ]]; then
+            echo "::error::Tag verification failed: expected ${target}, got ${actual}."
+            exit 1
+          fi
+
+      - name: Verify tag, build its exact commit, and publish
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const tag = "v4.3.0";
+            const verifiedCommit = "a7d799873fe17eb2558f12cfaf02b245b1e6d83e";
+            const artifactName = "GboardSamsung-MPP-4.3.0";
+
+            const ref = await github.rest.git.getRef({
+              ...context.repo,
+              ref: `tags/${tag}`
+            });
+            let currentCommit = ref.data.object.sha;
+            if (ref.data.object.type === "tag") {
+              const annotated = await github.rest.git.getTag({
+                ...context.repo,
+                tag_sha: currentCommit
+              });
+              currentCommit = annotated.data.object.sha;
+            }
+            if (currentCommit !== verifiedCommit) {
+              core.setFailed(`Safety stop: ${tag} resolves to ${currentCommit}, expected ${verifiedCommit}.`);
+              return;
+            }
+
+            await github.rest.actions.createWorkflowDispatch({
+              ...context.repo,
+              workflow_id: "ci.yml",
+              ref: tag
+            });
+            core.info(`Started CI for ${tag} at ${verifiedCommit}.`);
+
+            let successfulRun = null;
+            for (let attempt = 0; attempt < 90; attempt++) {
+              const runs = await github.rest.actions.listWorkflowRuns({
+                ...context.repo,
+                workflow_id: "ci.yml",
+                head_sha: verifiedCommit,
+                per_page: 100
+              });
+              successfulRun = runs.data.workflow_runs
+                .filter(run =>
+                  run.head_sha === verifiedCommit &&
+                  run.head_branch === tag &&
+                  run.event === "workflow_dispatch" &&
+                  run.status === "completed" &&
+                  run.conclusion === "success"
+                )
+                .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))[0] || null;
+
+              if (successfulRun) {
+                const artifacts = await github.rest.actions.listWorkflowRunArtifacts({
+                  ...context.repo,
+                  run_id: successfulRun.id,
+                  per_page: 100
+                });
+                const matches = artifacts.data.artifacts.filter(
+                  artifact => artifact.name === artifactName && !artifact.expired
+                );
+                if (matches.length === 1) {
+                  core.info(`Verified CI run ${successfulRun.id} and retained MPP artifact for ${verifiedCommit}.`);
+                  break;
+                }
+                successfulRun = null;
+              }
+              await new Promise(resolve => setTimeout(resolve, 20000));
+            }
+
+            if (!successfulRun) {
+              core.setFailed("Safety stop: CI did not produce exactly one successful retained MPP artifact for the tagged commit. Release was not published.");
+              return;
+            }
+
+            await github.rest.actions.createWorkflowDispatch({
+              ...context.repo,
+              workflow_id: "release.yml",
+              ref: tag
+            });
+            core.info("Dispatched release.yml after verifying the exact CI artifact.");

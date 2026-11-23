@@ -16,7 +16,7 @@ private const val STORE_CLASS_DESCRIPTOR =
 
 private const val ATTACH_METHOD = "attach(Landroid/view/View;)V"
 
-private const val SHOWING_METHOD = "showing(Ljava/lang/String;)V"
+private const val SHOWING_METHOD = "showing(Landroid/view/View;Ljava/lang/String;)V"
 
 /** The feed's own floating button, which is handed what the feed is about. */
 private const val POSTS_FAB = "Lcom/laurencedawson/reddit_sync/ui/views/posts/PostsFab;"
@@ -45,7 +45,9 @@ val subredditBannerPatch = bytecodePatch(
         ).method.returnEarly(true)
 
         // What the feed is about, taken where Sync hands it to its own button: every accessor
-        // on the fragment itself is obfuscated, and this one is a plain parameter.
+        // on the fragment itself is obfuscated, and this one is a plain parameter. The button
+        // itself goes with it, because it says which window was meant: a subreddit opened in a
+        // new window must not be drawn over the feed the reader left behind.
         Fingerprint(
             definingClass = POSTS_FAB,
             name = "Q",
@@ -53,7 +55,7 @@ val subredditBannerPatch = bytecodePatch(
             returnType = "V",
         ).method.addInstructions(
             0,
-            "invoke-static { p2 }, $STORE_CLASS_DESCRIPTOR->$SHOWING_METHOD"
+            "invoke-static { p0, p2 }, $STORE_CLASS_DESCRIPTOR->$SHOWING_METHOD"
         )
 
         // Where the feed's own view exists to put a strip above.

@@ -34,6 +34,11 @@
 3. Sign in with an email and a password, not with Google - see
    [Signing in after patching](#signing-in-after-patching).
 
+A **root mount** works too: Android keeps the stock app's manifest, so the settings screen opens in a dialog there
+instead of a screen of its own, and the Lichess login page does the same. The app log screen, the crash screen,
+the Discord login and Lichess's review in the app's own browser are separate screens and need a normally
+installed patched app.
+
 ## What this fork adds
 
 Six patches, all for chess.com:

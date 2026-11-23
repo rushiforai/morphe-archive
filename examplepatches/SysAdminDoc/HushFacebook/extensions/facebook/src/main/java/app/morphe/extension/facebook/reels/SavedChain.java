@@ -6,12 +6,17 @@ package app.morphe.extension.facebook.reels;
 
 import android.app.Activity;
 import android.app.Application;
+import android.app.Dialog;
 import android.content.Context;
-import android.graphics.Color;
+import android.content.ContextWrapper;
 import android.graphics.Rect;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.IBinder;
+import android.os.Looper;
 import android.os.SystemClock;
 import android.view.InputDevice;
+import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewConfiguration;
@@ -19,15 +24,20 @@ import android.view.ViewGroup;
 import android.view.VelocityTracker;
 import android.view.ViewParent;
 import android.view.Window;
+import android.view.WindowManager;
 
 import androidx.annotation.Nullable;
 
 import java.lang.ref.WeakReference;
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
+import java.lang.reflect.Proxy;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.LongSupplier;
 
+import app.morphe.extension.facebook.misc.AppLock;
 import app.morphe.extension.facebook.settings.FamilyNames;
 import app.morphe.extension.facebook.settings.Settings;
 import app.morphe.extension.shared.Logger;
@@ -56,7 +66,8 @@ import app.morphe.extension.shared.diagnostics.HookStatus;
  * after it the chain ends on Saved. A card the chain taps can be a saved post, which opens a post
  * page instead and used to end the chain there (#404, a reporter's video): a screen that comes in
  * front from the chain's own tap with no saved video starting is closed again ({@link #closePost})
- * and the card after it tapped. Back from the viewer, another viewer opening from anywhere but
+ * and the card after it tapped. Facebook 588 shows that post page as a window over Saved's own
+ * screen instead ({@link #checkPostWindow}), which gets a Back the same way. Back from the viewer, another viewer opening from anywhere but
  * Saved, the Saved page closing, a page that doesn't come back within {@link #RETURN_WINDOW_MS},
  * the switch going off and Pause each end the chain.
  *
@@ -66,7 +77,10 @@ import app.morphe.extension.shared.diagnostics.HookStatus;
  * finger, and a long enough or quick enough swipe slides it off and plays the next saved video, or
  * the one before for a swipe down, while anything shorter slides back. A swipe down on the first
  * card slides back too. While the viewer closes and Saved taps the next card, a black cover lies
- * over the Saved page, taken off once the next video's screen is in front or the chain ends. With
+ * over the Saved page, taken off once the next video's screen is in front or the chain ends. That
+ * screen, and any window the chain's tap brings up over Saved, is black itself from its first frame
+ * until its video settles into place or it's closed ({@link SettleCover}), so neither Facebook moving
+ * the new video up under the status bar nor a post being skipped shows between two videos. With
  * Stay on a saved video when it ends on, an end leaves the video where Facebook does and only a
  * swipe moves on.
  *
@@ -152,6 +166,9 @@ public final class SavedChain {
      */
     static final long POST_CHECK_MS = 500;
 
+    /** How often, after the chain's tap, Saved is checked for a new window to keep black. Under a frame. */
+    static final long WINDOW_POLL_MS = 4;
+
     /** How many posts in a row the chain closes before it gives up on Saved. */
     static final int MAX_POSTS_SKIPPED = 12;
 
@@ -201,6 +218,8 @@ public final class SavedChain {
         int direction = 1;
         /** How many posts in a row the chain has closed to get here (#404). */
         int postsSkipped;
+        /** Whether the chain's own tap opened this viewer, which then stays black while its video settles. */
+        boolean chained;
 
         Chain(Card card, long openedAt) {
             this.card = card;
@@ -214,12 +233,26 @@ public final class SavedChain {
         final long at;
         final int direction;
         final int postsSkipped;
+        /** The dialog windows already over the Saved page when the chain tapped, which aren't the card's. */
+        final List<WeakReference<View>> windowsBefore = new ArrayList<>();
+        /** The windows the tap brought up over Saved, kept black until it's known what they are. Main thread. */
+        final List<WeakReference<View>> blackedOut = new ArrayList<>();
+        /** The post window the chain is closing, which keeps its black as it goes. Main thread. */
+        WeakReference<View> closing = new WeakReference<>(null);
 
-        Tapped(Activity page, long at, int direction, int postsSkipped) {
+        Tapped(Activity page, long at, int direction, int postsSkipped, List<View> windowsBefore) {
             this.page = new WeakReference<>(page);
             this.at = at;
             this.direction = direction;
             this.postsSkipped = postsSkipped;
+            for (View window : windowsBefore) this.windowsBefore.add(new WeakReference<>(window));
+        }
+
+        boolean hadBefore(View window) {
+            for (WeakReference<View> old : windowsBefore) {
+                if (old.get() == window) return true;
+            }
+            return false;
         }
     }
 
@@ -276,7 +309,9 @@ public final class SavedChain {
     private static long readEventTime;
     private static int readAction;
     private static boolean readAnswer;
+    /** The window of the Saved page the chain covered in black, and that page. */
     private static WeakReference<View> cover = new WeakReference<>(null);
+    private static WeakReference<Activity> coveredPage = NO_SCREEN;
     private static int coverToken;
     private static WeakReference<Activity> resumed = NO_SCREEN;
     private static WeakReference<Activity> lastCreated = NO_SCREEN;
@@ -476,9 +511,11 @@ public final class SavedChain {
                 return;
             }
             Card card;
+            boolean byChain;
             synchronized (SavedChain.class) {
                 card = lastCard;
                 if (card == null && chain != null) return; // The same viewer asking again.
+                byChain = tapped != null;
                 lastCard = null;
                 chain = null;
                 tapped = null; // A saved video, so the card the chain tapped was no post.
@@ -491,6 +528,7 @@ public final class SavedChain {
             }
             HookStatus.bound(FAMILY, CHAIN_HOOK);
             Chain started = new Chain(card, at);
+            started.chained = byChain;
             synchronized (SavedChain.class) {
                 Activity created = lastCreated.get();
                 if (created != null && created != card.page.get() && lastCreatedAt >= card.at) {
@@ -613,34 +651,23 @@ public final class SavedChain {
      */
     static void closePost(Activity screen, Tapped opened) {
         try {
-            Chain skipped;
-            Activity page;
+            Activity page = opened.page.get();
             synchronized (SavedChain.class) {
                 if (tapped != opened) return;
-                tapped = null;
-                if (chain != null) return;
-                Card card = lastCard;
-                page = opened.page.get();
-                if (card == null || page == null || card.page.get() != page || card.at < opened.at) return;
-                if (screen == page || screen.isFinishing() || screen != resumed.get()) return;
-                if (!on()) return;
-                if (opened.postsSkipped >= MAX_POSTS_SKIPPED) {
-                    Logger.printDebug(() -> "Saved videos in a row: " + MAX_POSTS_SKIPPED
-                            + " posts in a row, so it stops on this one");
+                if (page == null || screen == page || screen.isFinishing() || screen != resumed.get()) {
+                    tapped = null;
                     return;
                 }
-                lastCard = null;
-                skipped = new Chain(card, now());
-                skipped.viewer = new WeakReference<>(screen);
-                skipped.moving = true;
-                skipped.direction = opened.direction;
-                skipped.postsSkipped = opened.postsSkipped + 1;
-                chain = skipped;
             }
-            HookStatus.bound(FAMILY, CHAIN_HOOK);
-            HookStatus.counted(FAMILY, POST_SKIPPED);
-            Logger.printDebug(() -> "Saved videos in a row: the card opened a post, not a video, so it's closed for the "
-                    + (opened.direction > 0 ? "next" : "previous") + " one");
+            Chain skipped = skip(opened, page, screen);
+            if (skipped == null) {
+                synchronized (SavedChain.class) {
+                    if (chain != null && chain.viewer.get() == screen) return; // A saved video after all.
+                }
+                SettleCover.lift(screen.getWindow().getDecorView());
+                return;
+            }
+            skipped(opened);
             coverPage(page);
             screen.finish();
             screen.overridePendingTransition(0, 0);
@@ -649,6 +676,333 @@ public final class SavedChain {
             disarm();
             HookStatus.threw(FAMILY, CHAIN_HOOK, failure);
         }
+    }
+
+    /**
+     * On the main thread, [POST_CHECK_MS] after the chain's tap lifts, and again every [POST_CHECK_MS]
+     * until [TOUCH_WINDOW_MS] has passed: with no saved video started from the card, a new dialog
+     * window over the Saved page's own screen is the post Facebook opened from it. Facebook 588 shows
+     * a saved post that way, in a window over Saved with no screen of its own, so {@link #closePost}
+     * never hears of it (#404, S22 2026-11-22). That window's dialog gets the Back a finger on the
+     * phone's Back would give it, and once it's gone the card after the post is tapped.
+     */
+    static void checkPostWindow(Tapped opened) {
+        try {
+            Activity page;
+            synchronized (SavedChain.class) {
+                if (tapped != opened || chain != null) return;
+                page = opened.page.get();
+            }
+            if (page == null || page.isFinishing() || !on()) return;
+            View post = newDialogOver(page, opened);
+            if (post == null) {
+                if (now() - opened.at + POST_CHECK_MS <= TOUCH_WINDOW_MS) {
+                    Utils.runOnMainThreadDelayed(() -> checkPostWindow(opened), POST_CHECK_MS);
+                }
+                return;
+            }
+            Chain skipped = skip(opened, page, page);
+            if (skipped == null) return;
+            opened.closing = new WeakReference<>(post);
+            synchronized (SavedChain.class) {
+                skipped.returned = true; // Saved never left: the post was a window over it.
+            }
+            skipped(opened);
+            coverPage(page);
+            Dialog dialog = dialogOf(post);
+            if (dialog != null) {
+                pressBack(dialog);
+            } else {
+                pressEscape(post);
+            }
+            long since = now();
+            WeakReference<View> window = new WeakReference<>(post);
+            WeakReference<Dialog> closing = new WeakReference<>(dialog);
+            Utils.runOnMainThreadDelayed(() -> afterPostWindow(skipped, window, closing, since, false), SETTLE_MS);
+        } catch (Throwable failure) {
+            disarm();
+            HookStatus.threw(FAMILY, CHAIN_HOOK, failure);
+        }
+    }
+
+    /**
+     * Taps the card after a post whose window got a Back or an Escape, once it's gone. A window still
+     * up at the first look kept that, so its dialog, when there is one, is dismissed ([dismissed]).
+     */
+    private static void afterPostWindow(Chain skipped, WeakReference<View> window, WeakReference<Dialog> closing,
+            long since, boolean dismissed) {
+        try {
+            synchronized (SavedChain.class) {
+                if (chain != skipped) return;
+            }
+            View post = window.get();
+            if (post != null && post.getWindowToken() != null && post.isShown()) {
+                if (now() - since < RETURN_WINDOW_MS) {
+                    Dialog dialog = closing.get();
+                    if (!dismissed && dialog != null) dialog.dismiss();
+                    Utils.runOnMainThreadDelayed(() -> afterPostWindow(skipped, window, closing, since, true), SETTLE_MS);
+                } else {
+                    disarm();
+                    SettleCover.lift(post);
+                    Logger.printDebug(() -> "Saved videos in a row: the post's window stayed open, so the chain ends there");
+                }
+                return;
+            }
+            tapNext(skipped);
+        } catch (Throwable failure) {
+            disarm();
+            HookStatus.threw(FAMILY, CHAIN_HOOK, failure);
+        }
+    }
+
+    /**
+     * The chain that skips the post [opened]'s tap brought up over [page], shown by [screen], or null
+     * when it isn't the chain's to close: a video started, the press wasn't the chain's own, the switch
+     * is off, or [MAX_POSTS_SKIPPED] posts in a row were closed already, which ends the chain on this one.
+     */
+    @Nullable
+    private static Chain skip(Tapped opened, Activity page, Activity screen) {
+        synchronized (SavedChain.class) {
+            if (tapped != opened) return null;
+            tapped = null;
+            if (chain != null) return null;
+            Card card = lastCard;
+            if (card == null || card.page.get() != page || card.at < opened.at) return null;
+            if (!on()) return null;
+            if (opened.postsSkipped >= MAX_POSTS_SKIPPED) {
+                Logger.printDebug(() -> "Saved videos in a row: " + MAX_POSTS_SKIPPED
+                        + " posts in a row, so it stops on this one");
+                return null;
+            }
+            lastCard = null;
+            Chain skipped = new Chain(card, now());
+            skipped.viewer = new WeakReference<>(screen);
+            skipped.moving = true;
+            skipped.direction = opened.direction;
+            skipped.postsSkipped = opened.postsSkipped + 1;
+            chain = skipped;
+            return skipped;
+        }
+    }
+
+    private static void skipped(Tapped opened) {
+        HookStatus.bound(FAMILY, CHAIN_HOOK);
+        HookStatus.counted(FAMILY, POST_SKIPPED);
+        Logger.printDebug(() -> "Saved videos in a row: the card opened a post, not a video, so it's closed for the "
+                + (opened.direction > 0 ? "next" : "previous") + " one");
+    }
+
+    /**
+     * Every {@link #WINDOW_POLL_MS} from the chain's tap until it's known what the card opened, lays
+     * black over any new window over Saved, so a saved post doesn't show while the chain waits to
+     * close it (#404: on the S22 one showed for 0.4 s between two videos, 2026-11-22). The checks are
+     * asynchronous messages, which Android runs ahead of the frame a new window waits for, so one
+     * lands before the post first draws. Once the tap is settled, every window but the post being
+     * closed gets its black lifted. Main thread.
+     */
+    private static void blackOutNewWindows(Tapped opened) {
+        Handler handler = asyncMain();
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                boolean more = false;
+                try {
+                    more = blackOutNew(opened);
+                } catch (Throwable failure) {
+                    HookStatus.threw(FAMILY, CHAIN_HOOK, failure);
+                }
+                if (more) {
+                    handler.postDelayed(this, WINDOW_POLL_MS);
+                } else {
+                    liftUnclosed(opened);
+                }
+            }
+        }, WINDOW_POLL_MS);
+    }
+
+    @Nullable private static Handler asyncMain;
+
+    /** A main-thread handler whose messages don't wait behind a frame. */
+    private static Handler asyncMain() {
+        Handler handler = asyncMain;
+        if (handler == null) asyncMain = handler = Handler.createAsync(Looper.getMainLooper());
+        return handler;
+    }
+
+    /** Blacks out each window that came over Saved after [opened]. False once that tap is settled. */
+    private static boolean blackOutNew(Tapped opened) {
+        Activity page;
+        synchronized (SavedChain.class) {
+            if (tapped != opened) return false;
+            page = opened.page.get();
+        }
+        if (page == null || page.isFinishing() || !on() || now() - opened.at > TOUCH_WINDOW_MS) return false;
+        for (View window : windowsOver(page, false)) {
+            if (opened.hadBefore(window) || SettleCover.blackedOut(window)) continue;
+            SettleCover.blackOut(window);
+            opened.blackedOut.add(new WeakReference<>(window));
+        }
+        return true;
+    }
+
+    /** Lifts the black off the windows [opened]'s tap brought up, all but the post the chain is closing. */
+    private static void liftUnclosed(Tapped opened) {
+        View closing = opened.closing.get();
+        for (WeakReference<View> held : opened.blackedOut) {
+            View window = held.get();
+            if (window != null && window != closing) SettleCover.lift(window);
+        }
+        opened.blackedOut.clear();
+    }
+
+    /** Whether [screen], just created, came from the chain's own tap: it stays black while it settles. Holding the lock. */
+    private static boolean openedByChain(Activity screen) {
+        Tapped card = tapped;
+        if (card != null && card.page.get() != screen && now() - card.at <= TOUCH_WINDOW_MS) return true;
+        Chain current = chain;
+        return current != null && current.chained && !current.moving && current.viewer.get() == screen
+                && screen != current.card.page.get();
+    }
+
+    /**
+     * The dialog windows showing over [page]'s screen: windows of the plain application type that
+     * belong to it, by its token or by the screen their views were made for. Empty when the phone
+     * won't list its windows.
+     */
+    static List<View> dialogsOver(Activity page) {
+        return windowsOver(page, true);
+    }
+
+    /** The same, with [shownOnly] false also a window Android hasn't laid out or drawn yet. */
+    private static List<View> windowsOver(Activity page, boolean shownOnly) {
+        List<View> found = new ArrayList<>();
+        Window window = page.getWindow();
+        List<View> roots = AppLock.windowsForDiagnostics();
+        if (window == null || roots == null) return found;
+        IBinder token = window.getAttributes().token;
+        View base = window.getDecorView();
+        for (View root : roots) {
+            if (root == null || root == base) continue;
+            if (shownOnly && (root.getWindowToken() == null || !root.isShown())) continue;
+            ViewGroup.LayoutParams params = root.getLayoutParams();
+            if (!(params instanceof WindowManager.LayoutParams)) continue;
+            WindowManager.LayoutParams attributes = (WindowManager.LayoutParams) params;
+            if (attributes.type != WindowManager.LayoutParams.TYPE_APPLICATION) continue;
+            if ((token != null && attributes.token == token) || activityOf(root.getContext()) == page) found.add(root);
+        }
+        return found;
+    }
+
+    /** The screen [context] was made for, unwrapping wrappers, or null. */
+    @Nullable
+    private static Activity activityOf(@Nullable Context context) {
+        for (int i = 0; context != null && i < 10; i++) {
+            if (context instanceof Activity) return (Activity) context;
+            if (!(context instanceof ContextWrapper)) return null;
+            context = ((ContextWrapper) context).getBaseContext();
+        }
+        return null;
+    }
+
+    /** The dialog window over [page] that came after the chain's tap and holds the focus, or null. */
+    @Nullable
+    private static View newDialogOver(Activity page, Tapped opened) {
+        List<View> dialogs = dialogsOver(page);
+        for (int i = dialogs.size() - 1; i >= 0; i--) {
+            View dialog = dialogs.get(i);
+            if (opened.hadBefore(dialog)) continue;
+            if (dialog.hasWindowFocus() || !page.hasWindowFocus()) return dialog;
+        }
+        return null;
+    }
+
+    /**
+     * Gives [dialog] the Back the phone's Back button would. Facebook's windows take Back through
+     * Android's back callbacks, so a Back key handed to the window's views does nothing there (S22
+     * 2026-11-22), and an app can't send keys through the phone's input.
+     */
+    @SuppressWarnings("deprecation")
+    private static void pressBack(Dialog dialog) {
+        dialog.onBackPressed();
+    }
+
+    /**
+     * Hands the window whose top view is [root] a press and lift of Escape, for a post window whose
+     * dialog can't be read. Since Android 14 a dialog cancels on Escape, a keyboard's way out, even
+     * where Back goes through Android's back callbacks.
+     */
+    private static void pressEscape(View root) {
+        long at = SystemClock.uptimeMillis();
+        root.dispatchKeyEvent(new KeyEvent(at, at, KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_ESCAPE, 0));
+        root.dispatchKeyEvent(new KeyEvent(at, SystemClock.uptimeMillis(), KeyEvent.ACTION_UP, KeyEvent.KEYCODE_ESCAPE, 0));
+    }
+
+    /** False to read no window's `mWindow`, as on a phone that refuses it. For tests. */
+    static volatile boolean readWindows = true;
+
+    /**
+     * The dialog whose window [root] is the top view of, or null. Android keeps that window in the
+     * top view's `mWindow`, the field LeakCanary reads for the same reason, and the window reports to
+     * the dialog, sometimes through a wrapper that holds it. Why there's none is logged.
+     */
+    @Nullable
+    static Dialog dialogOf(View root) {
+        String why;
+        try {
+            Window window = readWindows ? windowField(root) : null;
+            if (window == null) {
+                why = "no window in its " + root.getClass().getName();
+            } else {
+                Object callback = window.getCallback();
+                why = "its window reports to " + (callback == null ? "nothing" : callback.getClass().getName());
+                for (int i = 0; callback != null && i < 4; i++) {
+                    if (callback instanceof Dialog) return (Dialog) callback;
+                    callback = heldCallback(callback);
+                }
+            }
+        } catch (Throwable unreadable) {
+            why = "its window couldn't be read: " + unreadable;
+        }
+        String reason = why;
+        Logger.printDebug(() -> "Saved videos in a row: the post's window has no dialog to close, " + reason);
+        return null;
+    }
+
+    @Nullable
+    private static Window windowField(View root) throws IllegalAccessException {
+        for (Class<?> type = root.getClass(); type != null && type != View.class; type = type.getSuperclass()) {
+            try {
+                Field field = type.getDeclaredField("mWindow");
+                field.setAccessible(true);
+                Object value = field.get(root);
+                return value instanceof Window ? (Window) value : null;
+            } catch (NoSuchFieldException notHere) {
+                // A parent class may declare it, or the phone keeps it from apps.
+            }
+        }
+        return null;
+    }
+
+    /**
+     * What window callback [wrapper] passes things on to: a proxy's handler (Facebook 588 gives a
+     * dialog's window one, S22 2026-11-22), a field holding a dialog, else one holding another
+     * callback, or null.
+     */
+    @Nullable
+    private static Object heldCallback(Object wrapper) throws IllegalAccessException {
+        if (Proxy.isProxyClass(wrapper.getClass())) return Proxy.getInvocationHandler(wrapper);
+        Object held = null;
+        for (Class<?> type = wrapper.getClass(); type != null && type != Object.class; type = type.getSuperclass()) {
+            for (Field field : type.getDeclaredFields()) {
+                if (Modifier.isStatic(field.getModifiers()) || field.getType().isPrimitive()) continue;
+                field.setAccessible(true);
+                Object value = field.get(wrapper);
+                if (value == null || value == wrapper) continue;
+                if (value instanceof Dialog) return value;
+                if (held == null && value instanceof Window.Callback) held = value;
+            }
+        }
+        return held;
     }
 
     /** Ends a chain whose Saved page never came back. */
@@ -662,20 +1016,20 @@ public final class SavedChain {
     }
 
     /**
-     * Lays black over [page]'s content, so it doesn't show between one saved video and the next.
-     * Main thread. Touches pass through it, and {@link #cardAt} looks past it.
+     * Lays black over everything [page]'s window draws, so it doesn't show between one saved video
+     * and the next. Main thread. It's drawn over the window's views rather than being one of them,
+     * so touches pass through it, and Facebook laying its page out again on top of a view added
+     * after it doesn't show the page (S22 2026-11-22: the grid showed for 80 ms as a post opened).
      */
     static void coverPage(@Nullable Activity page) {
         if (page == null) return;
-        View content = page.findViewById(android.R.id.content);
-        if (!(content instanceof ViewGroup)) return;
+        Window window = page.getWindow();
+        if (window == null) return;
         uncover();
-        View black = new View(page);
-        black.setBackgroundColor(Color.BLACK);
-        black.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
-        ((ViewGroup) content).addView(black, new ViewGroup.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
-        cover = new WeakReference<>(black);
+        View decor = window.getDecorView();
+        SettleCover.blackOut(decor);
+        cover = new WeakReference<>(decor);
+        coveredPage = new WeakReference<>(page);
         int token = ++coverToken;
         Utils.runOnMainThreadDelayed(() -> {
             if (coverToken == token) uncover();
@@ -684,12 +1038,11 @@ public final class SavedChain {
 
     /** Takes the cover off the Saved page, if one is on. Main thread. */
     static void uncover() {
-        View black = cover.get();
+        View decor = cover.get();
         cover = new WeakReference<>(null);
+        coveredPage = NO_SCREEN;
         coverToken++;
-        if (black == null) return;
-        ViewParent parent = black.getParent();
-        if (parent instanceof ViewGroup) ((ViewGroup) parent).removeView(black);
+        SettleCover.lift(decor);
     }
 
     /** Takes the cover off after [delay], unless another one went on meanwhile. Main thread. */
@@ -701,9 +1054,6 @@ public final class SavedChain {
         }, delay);
     }
 
-    private static boolean isCover(View view) {
-        return view == cover.get();
-    }
 
     /**
      * Taps the card after the chain's, or the one before it after a swipe down, once the Saved page
@@ -762,14 +1112,19 @@ public final class SavedChain {
                     return;
                 }
             }
+            List<View> before = dialogsOver(page);
+            Tapped opened;
             synchronized (SavedChain.class) {
                 if (chain != current) return;
                 chain = null; // The viewer the tap opens starts the next chain.
-                tapped = new Tapped(page, now(), back ? -1 : 1, current.postsSkipped);
+                opened = new Tapped(page, now(), back ? -1 : 1, current.postsSkipped, before);
+                tapped = opened;
             }
             int left = next.getLeft();
             int top = next.getTop();
             tap(page, point[0], point[1]);
+            blackOutNewWindows(opened);
+            Utils.runOnMainThreadDelayed(() -> checkPostWindow(opened), PRESS_MS + POST_CHECK_MS);
             HookStatus.counted(FAMILY, back ? PREVIOUS : NEXT);
             Logger.printDebug(() -> "Saved videos in a row: tapped the " + (back ? "previous" : "next") + " card, at "
                     + left + "," + top);
@@ -929,7 +1284,7 @@ public final class SavedChain {
             View hit = null;
             for (int i = group.getChildCount() - 1; i >= 0; i--) {
                 View child = group.getChildAt(i);
-                if (child == null || child.getVisibility() != View.VISIBLE || isCover(child)) continue;
+                if (child == null || child.getVisibility() != View.VISIBLE) continue;
                 float cx = px + group.getScrollX() - child.getLeft() - child.getTranslationX();
                 float cy = py + group.getScrollY() - child.getTop() - child.getTranslationY();
                 if (cx >= 0 && cy >= 0 && cx < child.getWidth() && cy < child.getHeight()) {
@@ -1015,7 +1370,7 @@ public final class SavedChain {
         return Utils.settingsReady() && Settings.SAVED_VIDEOS_IN_ORDER.get();
     }
 
-    private static long now() {
+    static long now() {
         LongSupplier clock = clockForTests;
         return clock != null ? clock.getAsLong() : SystemClock.uptimeMillis();
     }
@@ -1038,6 +1393,7 @@ public final class SavedChain {
     static final class Screens implements Application.ActivityLifecycleCallbacks {
         @Override
         public void onActivityCreated(Activity activity, @Nullable Bundle state) {
+            boolean settle;
             synchronized (SavedChain.class) {
                 lastCreated = new WeakReference<>(activity);
                 lastCreatedAt = now();
@@ -1046,6 +1402,13 @@ public final class SavedChain {
                         && activity != current.card.page.get() && now() - current.openedAt <= SCREEN_WINDOW_MS) {
                     current.viewer = new WeakReference<>(activity);
                 }
+                settle = on() && openedByChain(activity);
+            }
+            if (!settle) return;
+            try {
+                SettleCover.untilSettled(activity);
+            } catch (Throwable failure) {
+                HookStatus.threw(FAMILY, CHAIN_HOOK, failure);
             }
         }
 
@@ -1068,7 +1431,7 @@ public final class SavedChain {
             if (black != null && back == null) {
                 // The next video's screen in front keeps the cover while it opens. Saved back with
                 // nothing to tap shows at once.
-                if (black.getContext() == activity) uncover();
+                if (coveredPage.get() == activity) uncover();
                 else uncoverAfter(UNCOVER_MS);
             }
             if (back != null) {
@@ -1122,10 +1485,13 @@ public final class SavedChain {
     static synchronized void resetForTests() {
         lastCard = null;
         chain = null;
+        tapped = null;
+        asyncMain = null;
         if (drag != null) drag.forget();
         drag = null;
         readEvent = null;
         cover = new WeakReference<>(null);
+        coveredPage = NO_SCREEN;
         coverToken = 0;
         resumed = NO_SCREEN;
         lastCreated = NO_SCREEN;

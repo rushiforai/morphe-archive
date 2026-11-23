@@ -1,0 +1,147 @@
+{
+  "branches": [
+    "main"
+  ],
+  "plugins": [
+    [
+      "@semantic-release/commit-analyzer",
+      {
+        "preset": "conventionalcommits",
+        "releaseRules": [
+          {
+            "breaking": true,
+            "release": "major"
+          },
+          {
+            "type": "feat",
+            "release": "minor"
+          },
+          {
+            "type": "fix",
+            "release": "patch"
+          },
+          {
+            "type": "bump",
+            "release": "patch"
+          },
+          {
+            "type": "perf",
+            "release": "patch"
+          },
+          {
+            "type": "build",
+            "scope": "morphe-source",
+            "release": "patch"
+          },
+          {
+            "type": "remove",
+            "release": "patch"
+          }
+        ]
+      }
+    ],
+    [
+      "@semantic-release/release-notes-generator",
+      {
+        "preset": "conventionalcommits",
+        "presetConfig": {
+          "types": [
+            {
+              "type": "feat",
+              "section": "✨ New Features",
+              "hidden": false
+            },
+            {
+              "type": "perf",
+              "section": "🔧 Improvements",
+              "hidden": false
+            },
+            {
+              "type": "fix",
+              "section": "🐛 Bug Fixes",
+              "hidden": false
+            },
+            {
+              "type": "bump",
+              "section": "🚀 Updated App Support",
+              "hidden": false
+            },
+            {
+              "type": "remove",
+              "section": "🗑 Removed",
+              "hidden": false
+            },
+            {
+              "type": "build",
+              "hidden": true
+            },
+            {
+              "type": "docs",
+              "hidden": true
+            },
+            {
+              "type": "chore",
+              "hidden": true
+            },
+            {
+              "type": "ci",
+              "hidden": true
+            },
+            {
+              "type": "test",
+              "hidden": true
+            },
+            {
+              "type": "refactor",
+              "hidden": true
+            },
+            {
+              "type": "style",
+              "hidden": true
+            }
+          ]
+        }
+      }
+    ],
+    [
+      "@MorpheApp/changelog",
+      {
+        "releaseJson": {
+          "path": "patches-bundle.json",
+          "downloadUrlTemplate": "https://github.com/${owner}/${repo}/releases/download/v${version}/patches-${version}.mpp",
+          "signatureUrlTemplate": ""
+        }
+      }
+    ],
+    "gradle-semantic-release-plugin",
+    [
+      "@semantic-release/exec",
+      {
+        "prepareCmd": "./gradlew generatePatchesList && jq --arg version \"${nextRelease.version}\" '.version = $version' patches-list.json > patches-list.json.tmp && mv patches-list.json.tmp patches-list.json && node scripts/validate-release-notes.mjs patches-bundle.json"
+      }
+    ],
+    [
+      "@semantic-release/git",
+      {
+        "assets": [
+          "CHANGELOG.md",
+          "gradle.properties",
+          "patches-bundle.json",
+          "patches-list.json"
+        ],
+        "message": "chore: Release v${nextRelease.version} [skip ci]\n\n${nextRelease.notes}"
+      }
+    ],
+    [
+      "@semantic-release/github",
+      {
+        "assets": [
+          {
+            "path": "patches/build/libs/patches-!(*sources*|*javadoc*).mpp?(.asc)"
+          }
+        ],
+        "successComment": false
+      }
+    ]
+  ]
+}

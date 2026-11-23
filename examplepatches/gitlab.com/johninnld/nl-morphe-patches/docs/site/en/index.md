@@ -38,7 +38,7 @@ hide:
 <button type="button" data-category="other" aria-pressed="false">Other</button>
 </div>
 </div>
-<p class="dap-catalogue__status"><span data-app-count aria-live="polite" aria-atomic="true">80 apps</span> · Patch bundle: 1.94.0</p>
+<p class="dap-catalogue__status"><span data-app-count aria-live="polite" aria-atomic="true">82 apps</span> · Patch bundle: 1.101.0</p>
 <div class="dap-app-grid" markdown>
 <article class="dap-app-card" data-category="other" data-search="2dehands be.tweedehands.m 16.19.0 disable threatmetrix disable tracking hide ads skip consent screens" markdown>
 <p class="dap-app-card__category">Other</p>
@@ -272,7 +272,7 @@ hide:
 
 </article>
 
-<article class="dap-app-card" data-category="weather" data-search="buienradar com.supportware.buienradar 7.4.8 disable swrve and location upload disable tracking hide premium banner hide ads skip consent screens" markdown>
+<article class="dap-app-card" data-category="weather" data-search="buienradar com.supportware.buienradar 7.4.8 disable swrve and location upload disable tracking hide premium banner hide ads hide update prompt skip consent screens" markdown>
 <p class="dap-app-card__category">Weather</p>
 
 ### [Buienradar](apps/buienradar.md)
@@ -280,12 +280,13 @@ hide:
 <p class="dap-app-card__version">App versions: <span class="dap-data">7.4.8</span></p>
 <p class="dap-app-card__package">com.supportware.Buienradar</p>
 <details class="dap-app-card__patches">
-<summary>5 patches</summary>
+<summary>6 patches</summary>
 <ul>
 <li>Disable Swrve and location upload <span class="dap-app-card__target">7.4.8 · default off</span></li>
 <li>Disable tracking <span class="dap-app-card__target">7.4.8</span></li>
 <li>Hide Premium banner <span class="dap-app-card__target">7.4.8</span></li>
 <li>Hide ads <span class="dap-app-card__target">7.4.8</span></li>
+<li>Hide update prompt <span class="dap-app-card__target">7.4.8</span></li>
 <li>Skip consent screens <span class="dap-app-card__target">7.4.8</span></li>
 </ul>
 </details>
@@ -362,22 +363,29 @@ hide:
 
 </article>
 
-<article class="dap-app-card" data-category="entertainment" data-search="deezer deezer.android.app 9.0.26.3 allow any android auto host disable tracking enable full streaming remove advertising remove premium upsell ui remove subscription paywalls" markdown>
+<article class="dap-app-card" data-category="entertainment" data-search="deezer deezer.android.app 9.0.27.3 allow any android auto host android auto api 9 media surface disable tracking enable full streaming enable lyrics enable offline downloads enable queue item selection google sign-in through microg-re player queue shortcuts remove advertising remove premium upsell ui remove subscription paywalls search and sort playlists" markdown>
 <p class="dap-app-card__category">Entertainment</p>
 
 ### [Deezer](apps/deezer.md)
 
-<p class="dap-app-card__version">App versions: <span class="dap-data">9.0.26.3</span></p>
+<p class="dap-app-card__version">App versions: <span class="dap-data">9.0.27.3</span></p>
 <p class="dap-app-card__package">deezer.android.app</p>
 <details class="dap-app-card__patches">
-<summary>6 patches</summary>
+<summary>13 patches</summary>
 <ul>
-<li>Allow any Android Auto host <span class="dap-app-card__target">9.0.26.3</span></li>
-<li>Disable tracking <span class="dap-app-card__target">9.0.26.3</span></li>
-<li>Enable full streaming <span class="dap-app-card__target">9.0.26.3</span></li>
-<li>Remove advertising <span class="dap-app-card__target">9.0.26.3</span></li>
-<li>Remove premium upsell UI <span class="dap-app-card__target">9.0.26.3</span></li>
-<li>Remove subscription paywalls <span class="dap-app-card__target">9.0.26.3</span></li>
+<li>Allow any Android Auto host <span class="dap-app-card__target">9.0.27.3</span></li>
+<li>Android Auto API 9 media surface <span class="dap-app-card__target">9.0.27.3</span></li>
+<li>Disable tracking <span class="dap-app-card__target">9.0.27.3</span></li>
+<li>Enable full streaming <span class="dap-app-card__target">9.0.27.3</span></li>
+<li>Enable lyrics <span class="dap-app-card__target">9.0.27.3</span></li>
+<li>Enable offline downloads <span class="dap-app-card__target">9.0.27.3</span></li>
+<li>Enable queue item selection <span class="dap-app-card__target">9.0.27.3</span></li>
+<li>Google sign-in through microG-RE <span class="dap-app-card__target">9.0.27.3</span></li>
+<li>Player queue shortcuts <span class="dap-app-card__target">9.0.27.3</span></li>
+<li>Remove advertising <span class="dap-app-card__target">9.0.27.3</span></li>
+<li>Remove premium upsell UI <span class="dap-app-card__target">9.0.27.3</span></li>
+<li>Remove subscription paywalls <span class="dap-app-card__target">9.0.27.3</span></li>
+<li>Search and sort playlists <span class="dap-app-card__target">9.0.27.3</span></li>
 </ul>
 </details>
 
@@ -460,6 +468,25 @@ hide:
 </details>
 
 [Guide and downloads](apps/easypark-nl.md){ .dap-app-card__link }
+
+</article>
+
+<article class="dap-app-card" data-category="entertainment" data-search="eclipse music com.eclipse.android 0.6.75 android auto browse upgrade android auto templated media app" markdown>
+<p class="dap-app-card__category">Entertainment</p>
+
+### [Eclipse Music](apps/eclipse-music.md)
+
+<p class="dap-app-card__version">App versions: <span class="dap-data">0.6.75</span></p>
+<p class="dap-app-card__package">com.eclipse.android</p>
+<details class="dap-app-card__patches">
+<summary>2 patches</summary>
+<ul>
+<li>Android Auto browse upgrade <span class="dap-app-card__target">0.6.75</span></li>
+<li>Android Auto templated media app <span class="dap-app-card__target">0.6.75</span></li>
+</ul>
+</details>
+
+[Guide and downloads](apps/eclipse-music.md){ .dap-app-card__link }
 
 </article>
 
@@ -553,42 +580,48 @@ hide:
 
 </article>
 
-<article class="dap-app-card" data-category="other" data-search="gboard com.google.android.inputmethod.latin 18.6.3.1002251336-release-armeabi-v7a 18.6.3.1002251336-release-arm64-v8a ai writing tools amoled dark keyboard add gboard signature bypass change package name clipboard enhancements cursor trackpad mode custom theme custom branding enable ocr / scan text frosted glass g logo on spacebar incognito mode toggle key shape selection parakeet personal dictionary parakeet voice typing rambler app context rambler contact names rambler cursor-aware editing rambler custom instructions rambler personal dictionary rambler stop after silence rambler voice typing rounded keyboard panel simple calculator toolbar editing buttons web clipboard" markdown>
+<article class="dap-app-card" data-category="other" data-search="gboard com.google.android.inputmethod.latin 18.8.0.1022711984-beta-arm64-v8a 18.8.0.1022711984-beta-armeabi-v7a ai writing tools amoled dark keyboard add gboard signature bypass advanced voice typing (nga) beta features (18.8) change package name clipboard enhancements cursor trackpad mode custom theme custom branding enable ocr / scan text frosted glass g logo on spacebar hidden flags (18.8) incognito mode toggle key shape selection parakeet personal dictionary parakeet voice typing rambler app context rambler automatic retry (18.8) rambler contact names rambler cursor-aware editing rambler custom instructions rambler personal dictionary rambler stop after silence rambler toolbar &amp; revert extras (18.8) rambler voice typing rounded keyboard panel simple calculator toolbar editing buttons use bluetooth microphone web clipboard" markdown>
 <p class="dap-app-card__category">Other</p>
 
 ### [Gboard](apps/gboard.md)
 
-<p class="dap-app-card__version">App versions: <span class="dap-data">18.6.3.1002251336-release-armeabi-v7a, 18.6.3.1002251336-release-arm64-v8a</span></p>
+<p class="dap-app-card__version">App versions: <span class="dap-data">18.8.0.1022711984-beta-arm64-v8a, 18.8.0.1022711984-beta-armeabi-v7a</span></p>
 <p class="dap-app-card__package">com.google.android.inputmethod.latin</p>
 <details class="dap-app-card__patches">
-<summary>26 patches</summary>
+<summary>32 patches</summary>
 <ul>
-<li>AI Writing Tools <span class="dap-app-card__target">18.6.3.1002251336-release-armeabi-v7a, 18.6.3.1002251336-release-arm64-v8a</span></li>
-<li>AMOLED dark keyboard <span class="dap-app-card__target">18.6.3.1002251336-release-armeabi-v7a, 18.6.3.1002251336-release-arm64-v8a · default off</span></li>
-<li>Add Gboard Signature Bypass <span class="dap-app-card__target">18.6.3.1002251336-release-armeabi-v7a, 18.6.3.1002251336-release-arm64-v8a</span></li>
-<li>Change package name <span class="dap-app-card__target">18.6.3.1002251336-release-armeabi-v7a, 18.6.3.1002251336-release-arm64-v8a</span></li>
-<li>Clipboard Enhancements <span class="dap-app-card__target">18.6.3.1002251336-release-armeabi-v7a, 18.6.3.1002251336-release-arm64-v8a</span></li>
-<li>Cursor trackpad mode <span class="dap-app-card__target">18.6.3.1002251336-release-armeabi-v7a, 18.6.3.1002251336-release-arm64-v8a</span></li>
-<li>Custom Theme <span class="dap-app-card__target">18.6.3.1002251336-release-armeabi-v7a, 18.6.3.1002251336-release-arm64-v8a</span></li>
-<li>Custom branding <span class="dap-app-card__target">18.6.3.1002251336-release-armeabi-v7a, 18.6.3.1002251336-release-arm64-v8a · default off</span></li>
-<li>Enable OCR / Scan Text <span class="dap-app-card__target">18.6.3.1002251336-release-armeabi-v7a, 18.6.3.1002251336-release-arm64-v8a</span></li>
-<li>Frosted Glass <span class="dap-app-card__target">18.6.3.1002251336-release-armeabi-v7a, 18.6.3.1002251336-release-arm64-v8a</span></li>
-<li>G Logo on Spacebar <span class="dap-app-card__target">18.6.3.1002251336-release-armeabi-v7a, 18.6.3.1002251336-release-arm64-v8a</span></li>
-<li>Incognito Mode Toggle <span class="dap-app-card__target">18.6.3.1002251336-release-armeabi-v7a, 18.6.3.1002251336-release-arm64-v8a</span></li>
-<li>Key Shape Selection <span class="dap-app-card__target">18.6.3.1002251336-release-armeabi-v7a, 18.6.3.1002251336-release-arm64-v8a</span></li>
-<li>Parakeet personal dictionary <span class="dap-app-card__target">18.6.3.1002251336-release-armeabi-v7a, 18.6.3.1002251336-release-arm64-v8a</span></li>
-<li>Parakeet voice typing <span class="dap-app-card__target">18.6.3.1002251336-release-armeabi-v7a, 18.6.3.1002251336-release-arm64-v8a</span></li>
-<li>Rambler app context <span class="dap-app-card__target">18.6.3.1002251336-release-armeabi-v7a, 18.6.3.1002251336-release-arm64-v8a</span></li>
-<li>Rambler contact names <span class="dap-app-card__target">18.6.3.1002251336-release-armeabi-v7a, 18.6.3.1002251336-release-arm64-v8a</span></li>
-<li>Rambler cursor-aware editing <span class="dap-app-card__target">18.6.3.1002251336-release-armeabi-v7a, 18.6.3.1002251336-release-arm64-v8a</span></li>
-<li>Rambler custom instructions <span class="dap-app-card__target">18.6.3.1002251336-release-armeabi-v7a, 18.6.3.1002251336-release-arm64-v8a</span></li>
-<li>Rambler personal dictionary <span class="dap-app-card__target">18.6.3.1002251336-release-armeabi-v7a, 18.6.3.1002251336-release-arm64-v8a</span></li>
-<li>Rambler stop after silence <span class="dap-app-card__target">18.6.3.1002251336-release-armeabi-v7a, 18.6.3.1002251336-release-arm64-v8a</span></li>
-<li>Rambler voice typing <span class="dap-app-card__target">18.6.3.1002251336-release-armeabi-v7a, 18.6.3.1002251336-release-arm64-v8a</span></li>
-<li>Rounded Keyboard Panel <span class="dap-app-card__target">18.6.3.1002251336-release-armeabi-v7a, 18.6.3.1002251336-release-arm64-v8a</span></li>
-<li>Simple Calculator <span class="dap-app-card__target">18.6.3.1002251336-release-armeabi-v7a, 18.6.3.1002251336-release-arm64-v8a</span></li>
-<li>Toolbar Editing Buttons <span class="dap-app-card__target">18.6.3.1002251336-release-armeabi-v7a, 18.6.3.1002251336-release-arm64-v8a</span></li>
-<li>Web Clipboard <span class="dap-app-card__target">18.6.3.1002251336-release-armeabi-v7a, 18.6.3.1002251336-release-arm64-v8a</span></li>
+<li>AI Writing Tools <span class="dap-app-card__target">18.8.0.1022711984-beta-arm64-v8a, 18.8.0.1022711984-beta-armeabi-v7a</span></li>
+<li>AMOLED dark keyboard <span class="dap-app-card__target">18.8.0.1022711984-beta-arm64-v8a, 18.8.0.1022711984-beta-armeabi-v7a</span></li>
+<li>Add Gboard Signature Bypass <span class="dap-app-card__target">18.8.0.1022711984-beta-arm64-v8a, 18.8.0.1022711984-beta-armeabi-v7a</span></li>
+<li>Advanced voice typing (NGA) <span class="dap-app-card__target">18.8.0.1022711984-beta-arm64-v8a, 18.8.0.1022711984-beta-armeabi-v7a</span></li>
+<li>Beta features (18.8) <span class="dap-app-card__target">18.8.0.1022711984-beta-arm64-v8a, 18.8.0.1022711984-beta-armeabi-v7a</span></li>
+<li>Change package name <span class="dap-app-card__target">18.8.0.1022711984-beta-arm64-v8a, 18.8.0.1022711984-beta-armeabi-v7a</span></li>
+<li>Clipboard Enhancements <span class="dap-app-card__target">18.8.0.1022711984-beta-arm64-v8a, 18.8.0.1022711984-beta-armeabi-v7a</span></li>
+<li>Cursor trackpad mode <span class="dap-app-card__target">18.8.0.1022711984-beta-arm64-v8a, 18.8.0.1022711984-beta-armeabi-v7a</span></li>
+<li>Custom Theme <span class="dap-app-card__target">18.8.0.1022711984-beta-arm64-v8a, 18.8.0.1022711984-beta-armeabi-v7a</span></li>
+<li>Custom branding <span class="dap-app-card__target">18.8.0.1022711984-beta-arm64-v8a, 18.8.0.1022711984-beta-armeabi-v7a</span></li>
+<li>Enable OCR / Scan Text <span class="dap-app-card__target">18.8.0.1022711984-beta-arm64-v8a, 18.8.0.1022711984-beta-armeabi-v7a</span></li>
+<li>Frosted Glass <span class="dap-app-card__target">18.8.0.1022711984-beta-arm64-v8a, 18.8.0.1022711984-beta-armeabi-v7a</span></li>
+<li>G Logo on Spacebar <span class="dap-app-card__target">18.8.0.1022711984-beta-arm64-v8a, 18.8.0.1022711984-beta-armeabi-v7a</span></li>
+<li>Hidden flags (18.8) <span class="dap-app-card__target">18.8.0.1022711984-beta-arm64-v8a, 18.8.0.1022711984-beta-armeabi-v7a</span></li>
+<li>Incognito Mode Toggle <span class="dap-app-card__target">18.8.0.1022711984-beta-arm64-v8a, 18.8.0.1022711984-beta-armeabi-v7a</span></li>
+<li>Key Shape Selection <span class="dap-app-card__target">18.8.0.1022711984-beta-arm64-v8a, 18.8.0.1022711984-beta-armeabi-v7a</span></li>
+<li>Parakeet personal dictionary <span class="dap-app-card__target">18.8.0.1022711984-beta-arm64-v8a, 18.8.0.1022711984-beta-armeabi-v7a</span></li>
+<li>Parakeet voice typing <span class="dap-app-card__target">18.8.0.1022711984-beta-arm64-v8a, 18.8.0.1022711984-beta-armeabi-v7a</span></li>
+<li>Rambler app context <span class="dap-app-card__target">18.8.0.1022711984-beta-arm64-v8a, 18.8.0.1022711984-beta-armeabi-v7a</span></li>
+<li>Rambler automatic retry (18.8) <span class="dap-app-card__target">18.8.0.1022711984-beta-arm64-v8a, 18.8.0.1022711984-beta-armeabi-v7a</span></li>
+<li>Rambler contact names <span class="dap-app-card__target">18.8.0.1022711984-beta-arm64-v8a, 18.8.0.1022711984-beta-armeabi-v7a</span></li>
+<li>Rambler cursor-aware editing <span class="dap-app-card__target">18.8.0.1022711984-beta-arm64-v8a, 18.8.0.1022711984-beta-armeabi-v7a</span></li>
+<li>Rambler custom instructions <span class="dap-app-card__target">18.8.0.1022711984-beta-arm64-v8a, 18.8.0.1022711984-beta-armeabi-v7a</span></li>
+<li>Rambler personal dictionary <span class="dap-app-card__target">18.8.0.1022711984-beta-arm64-v8a, 18.8.0.1022711984-beta-armeabi-v7a</span></li>
+<li>Rambler stop after silence <span class="dap-app-card__target">18.8.0.1022711984-beta-arm64-v8a, 18.8.0.1022711984-beta-armeabi-v7a</span></li>
+<li>Rambler toolbar &amp; revert extras (18.8) <span class="dap-app-card__target">18.8.0.1022711984-beta-arm64-v8a, 18.8.0.1022711984-beta-armeabi-v7a</span></li>
+<li>Rambler voice typing <span class="dap-app-card__target">18.8.0.1022711984-beta-arm64-v8a, 18.8.0.1022711984-beta-armeabi-v7a</span></li>
+<li>Rounded Keyboard Panel <span class="dap-app-card__target">18.8.0.1022711984-beta-arm64-v8a, 18.8.0.1022711984-beta-armeabi-v7a</span></li>
+<li>Simple Calculator <span class="dap-app-card__target">18.8.0.1022711984-beta-arm64-v8a, 18.8.0.1022711984-beta-armeabi-v7a</span></li>
+<li>Toolbar Editing Buttons <span class="dap-app-card__target">18.8.0.1022711984-beta-arm64-v8a, 18.8.0.1022711984-beta-armeabi-v7a</span></li>
+<li>Use Bluetooth microphone <span class="dap-app-card__target">18.8.0.1022711984-beta-arm64-v8a, 18.8.0.1022711984-beta-armeabi-v7a</span></li>
+<li>Web Clipboard <span class="dap-app-card__target">18.8.0.1022711984-beta-arm64-v8a, 18.8.0.1022711984-beta-armeabi-v7a</span></li>
 </ul>
 </details>
 
@@ -616,48 +649,49 @@ hide:
 
 </article>
 
-<article class="dap-app-card" data-category="mobility" data-search="google maps com.google.android.apps.maps 26.44.06.1006895251 26.43.05.1002020710 120 refresh rate account sheet cleanup add microg-re support add original microg support any media app avoid flock cameras better offline maps black theme blue pin bypass play services checks change app name change package name customization screen flock cameras follow playing media hide ads and clutter legacy icon location provider toggle native navigation for any android auto host offline saved places power saving mode proxy receive alerts from a third-party application rectangle shapes remove permissions remove sign-in prompts remove telemetry speed cameras speeding chime trim account menu use the system voice for navigation zoom controls in navigation" markdown>
+<article class="dap-app-card" data-category="mobility" data-search="google maps com.google.android.apps.maps 26.44.06.1006895251 26.47.00.1022347503 26.43.05.1002020710 120 refresh rate account sheet cleanup add microg-re support add original microg support android auto options any media app avoid flock cameras better offline maps black theme blue pin bypass play services checks change app name change package name customization screen flock cameras follow playing media hide ads and clutter legacy icon location provider toggle native navigation for any android auto host offline saved places power saving mode proxy receive alerts from a third-party application rectangle shapes remove permissions remove sign-in prompts remove telemetry speed cameras speeding chime trim account menu use the system voice for navigation zoom controls in navigation" markdown>
 <p class="dap-app-card__category">Traffic</p>
 
 ### [Google Maps](apps/google-maps.md)
 
-<p class="dap-app-card__version">App versions: <span class="dap-data">26.44.06.1006895251, 26.43.05.1002020710</span></p>
+<p class="dap-app-card__version">App versions: <span class="dap-data">26.44.06.1006895251, 26.47.00.1022347503, 26.43.05.1002020710</span></p>
 <p class="dap-app-card__package">com.google.android.apps.maps</p>
 <details class="dap-app-card__patches">
-<summary>32 patches</summary>
+<summary>33 patches</summary>
 <ul>
-<li>120 refresh rate <span class="dap-app-card__target">26.44.06.1006895251</span></li>
-<li>Account sheet cleanup <span class="dap-app-card__target">26.44.06.1006895251</span></li>
-<li>Add microG-RE support <span class="dap-app-card__target">26.44.06.1006895251 · default off</span></li>
-<li>Add original microG support <span class="dap-app-card__target">26.44.06.1006895251 · default off</span></li>
-<li>Any media app <span class="dap-app-card__target">26.44.06.1006895251</span></li>
-<li>Avoid Flock cameras <span class="dap-app-card__target">26.44.06.1006895251</span></li>
-<li>Better offline maps <span class="dap-app-card__target">26.44.06.1006895251</span></li>
-<li>Black theme <span class="dap-app-card__target">26.44.06.1006895251</span></li>
-<li>Blue pin <span class="dap-app-card__target">26.44.06.1006895251</span></li>
-<li>Bypass Play Services checks <span class="dap-app-card__target">26.44.06.1006895251</span></li>
-<li>Change app name <span class="dap-app-card__target">26.44.06.1006895251</span></li>
-<li>Change package name <span class="dap-app-card__target">26.44.06.1006895251</span></li>
-<li>Customization screen <span class="dap-app-card__target">26.44.06.1006895251</span></li>
-<li>Flock cameras <span class="dap-app-card__target">26.44.06.1006895251</span></li>
-<li>Follow playing media <span class="dap-app-card__target">26.44.06.1006895251 · default off</span></li>
-<li>Hide ads and clutter <span class="dap-app-card__target">26.44.06.1006895251</span></li>
-<li>Legacy icon <span class="dap-app-card__target">26.44.06.1006895251</span></li>
-<li>Location provider toggle <span class="dap-app-card__target">26.44.06.1006895251</span></li>
-<li>Native navigation for any Android Auto host <span class="dap-app-card__target">26.44.06.1006895251</span></li>
-<li>Offline saved places <span class="dap-app-card__target">26.44.06.1006895251</span></li>
-<li>Power saving mode <span class="dap-app-card__target">26.44.06.1006895251</span></li>
-<li>Proxy <span class="dap-app-card__target">26.44.06.1006895251</span></li>
-<li>Receive alerts from a third-party application <span class="dap-app-card__target">26.44.06.1006895251</span></li>
-<li>Rectangle shapes <span class="dap-app-card__target">26.44.06.1006895251</span></li>
-<li>Remove permissions <span class="dap-app-card__target">26.44.06.1006895251</span></li>
-<li>Remove sign-in prompts <span class="dap-app-card__target">26.44.06.1006895251</span></li>
-<li>Remove telemetry <span class="dap-app-card__target">26.44.06.1006895251</span></li>
-<li>Speed cameras <span class="dap-app-card__target">26.44.06.1006895251</span></li>
-<li>Speeding chime <span class="dap-app-card__target">26.44.06.1006895251</span></li>
-<li>Trim account menu <span class="dap-app-card__target">26.44.06.1006895251</span></li>
-<li>Use the system voice for navigation <span class="dap-app-card__target">26.43.05.1002020710, 26.44.06.1006895251 · default off</span></li>
-<li>Zoom controls in navigation <span class="dap-app-card__target">26.44.06.1006895251</span></li>
+<li>120 refresh rate <span class="dap-app-card__target">26.44.06.1006895251, 26.47.00.1022347503</span></li>
+<li>Account sheet cleanup <span class="dap-app-card__target">26.44.06.1006895251, 26.47.00.1022347503</span></li>
+<li>Add microG-RE support <span class="dap-app-card__target">26.44.06.1006895251, 26.47.00.1022347503 · default off</span></li>
+<li>Add original microG support <span class="dap-app-card__target">26.44.06.1006895251, 26.47.00.1022347503 · default off</span></li>
+<li>Android Auto options <span class="dap-app-card__target">26.44.06.1006895251, 26.47.00.1022347503</span></li>
+<li>Any media app <span class="dap-app-card__target">26.44.06.1006895251, 26.47.00.1022347503</span></li>
+<li>Avoid Flock cameras <span class="dap-app-card__target">26.44.06.1006895251, 26.47.00.1022347503</span></li>
+<li>Better offline maps <span class="dap-app-card__target">26.44.06.1006895251, 26.47.00.1022347503</span></li>
+<li>Black theme <span class="dap-app-card__target">26.44.06.1006895251, 26.47.00.1022347503</span></li>
+<li>Blue pin <span class="dap-app-card__target">26.44.06.1006895251, 26.47.00.1022347503</span></li>
+<li>Bypass Play Services checks <span class="dap-app-card__target">26.44.06.1006895251, 26.47.00.1022347503</span></li>
+<li>Change app name <span class="dap-app-card__target">26.44.06.1006895251, 26.47.00.1022347503</span></li>
+<li>Change package name <span class="dap-app-card__target">26.44.06.1006895251, 26.47.00.1022347503</span></li>
+<li>Customization screen <span class="dap-app-card__target">26.44.06.1006895251, 26.47.00.1022347503</span></li>
+<li>Flock cameras <span class="dap-app-card__target">26.44.06.1006895251, 26.47.00.1022347503</span></li>
+<li>Follow playing media <span class="dap-app-card__target">26.44.06.1006895251, 26.47.00.1022347503 · default off</span></li>
+<li>Hide ads and clutter <span class="dap-app-card__target">26.44.06.1006895251, 26.47.00.1022347503</span></li>
+<li>Legacy icon <span class="dap-app-card__target">26.44.06.1006895251, 26.47.00.1022347503</span></li>
+<li>Location provider toggle <span class="dap-app-card__target">26.44.06.1006895251, 26.47.00.1022347503</span></li>
+<li>Native navigation for any Android Auto host <span class="dap-app-card__target">26.44.06.1006895251, 26.47.00.1022347503</span></li>
+<li>Offline saved places <span class="dap-app-card__target">26.44.06.1006895251, 26.47.00.1022347503</span></li>
+<li>Power saving mode <span class="dap-app-card__target">26.44.06.1006895251, 26.47.00.1022347503</span></li>
+<li>Proxy <span class="dap-app-card__target">26.44.06.1006895251, 26.47.00.1022347503</span></li>
+<li>Receive alerts from a third-party application <span class="dap-app-card__target">26.44.06.1006895251, 26.47.00.1022347503</span></li>
+<li>Rectangle shapes <span class="dap-app-card__target">26.44.06.1006895251, 26.47.00.1022347503</span></li>
+<li>Remove permissions <span class="dap-app-card__target">26.44.06.1006895251, 26.47.00.1022347503</span></li>
+<li>Remove sign-in prompts <span class="dap-app-card__target">26.44.06.1006895251, 26.47.00.1022347503</span></li>
+<li>Remove telemetry <span class="dap-app-card__target">26.44.06.1006895251, 26.47.00.1022347503</span></li>
+<li>Speed cameras <span class="dap-app-card__target">26.44.06.1006895251, 26.47.00.1022347503</span></li>
+<li>Speeding chime <span class="dap-app-card__target">26.44.06.1006895251, 26.47.00.1022347503</span></li>
+<li>Trim account menu <span class="dap-app-card__target">26.44.06.1006895251, 26.47.00.1022347503</span></li>
+<li>Use the system voice for navigation <span class="dap-app-card__target">26.43.05.1002020710, 26.44.06.1006895251, 26.47.00.1022347503 · default off</span></li>
+<li>Zoom controls in navigation <span class="dap-app-card__target">26.44.06.1006895251, 26.47.00.1022347503</span></li>
 </ul>
 </details>
 
@@ -1467,6 +1501,26 @@ hide:
 </details>
 
 [Guide and downloads](apps/tvgids-nl.md){ .dap-app-card__link }
+
+</article>
+
+<article class="dap-app-card" data-category="entertainment" data-search="upflix com.douglas.upflix 5.12.10 disable crashlytics reporter disable play license check disable ads and tracking" markdown>
+<p class="dap-app-card__category">Entertainment</p>
+
+### [upflix](apps/upflix.md)
+
+<p class="dap-app-card__version">App versions: <span class="dap-data">5.12.10</span></p>
+<p class="dap-app-card__package">com.douglas.upflix</p>
+<details class="dap-app-card__patches">
+<summary>3 patches</summary>
+<ul>
+<li>Disable Crashlytics reporter <span class="dap-app-card__target">5.12.10</span></li>
+<li>Disable Play license check <span class="dap-app-card__target">5.12.10</span></li>
+<li>Disable ads and tracking <span class="dap-app-card__target">5.12.10</span></li>
+</ul>
+</details>
+
+[Guide and downloads](apps/upflix.md){ .dap-app-card__link }
 
 </article>
 

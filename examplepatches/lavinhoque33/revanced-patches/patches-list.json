@@ -1,5 +1,5 @@
 {
-  "version": "v1.46.0",
+  "version": "v1.48.0",
   "patches": [
     {
       "name": "Add to queue",
@@ -21,6 +21,27 @@
           "21.45.90",
           "21.13.164",
           "20.05.46"
+        ]
+      },
+      "options": []
+    },
+    {
+      "name": "Add to queue in tap order",
+      "description": "Adds an opt-in setting to play songs added from the native song menu in tap order, before the rest of a local, unshuffled queue. Leaves Play next unchanged.",
+      "use": true,
+      "dependencies": [
+        "BytecodePatch",
+        "ResourcePatch",
+        "BytecodePatch"
+      ],
+      "compatiblePackages": {
+        "com.google.android.apps.youtube.music": [
+          "9.40.51",
+          "9.45.51",
+          "9.15.51",
+          "8.30.54",
+          "8.28.54",
+          "8.12.54"
         ]
       },
       "options": []
@@ -1056,6 +1077,7 @@
         "BytecodePatch",
         "ResourcePatch",
         "ResourcePatch",
+        "ResourcePatch",
         "BytecodePatch"
       ],
       "compatiblePackages": {
@@ -1950,6 +1972,7 @@
       "use": true,
       "dependencies": [
         "BytecodePatch",
+        "ResourcePatch",
         "ResourcePatch",
         "ResourcePatch",
         "ResourcePatch"
@@ -3146,6 +3169,7 @@
         "BytecodePatch",
         "ResourcePatch",
         "ResourcePatch",
+        "BytecodePatch",
         "BytecodePatch"
       ],
       "compatiblePackages": {

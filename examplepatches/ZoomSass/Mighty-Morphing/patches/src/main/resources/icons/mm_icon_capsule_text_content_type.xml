@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M4.20 3.60 H19.80 A1.70 1.70 0 0 1 21.50 5.30 V5.30 A1.70 1.70 0 0 1 19.80 7.00 H4.20 A1.70 1.70 0 0 1 2.50 5.30 V5.30 A1.70 1.70 0 0 1 4.20 3.60 Z M4.20 8.60 H19.80 A1.70 1.70 0 0 1 21.50 10.30 V10.30 A1.70 1.70 0 0 1 19.80 12.00 H4.20 A1.70 1.70 0 0 1 2.50 10.30 V10.30 A1.70 1.70 0 0 1 4.20 8.60 Z M4.20 13.60 H19.80 A1.70 1.70 0 0 1 21.50 15.30 V15.30 A1.70 1.70 0 0 1 19.80 17.00 H4.20 A1.70 1.70 0 0 1 2.50 15.30 V15.30 A1.70 1.70 0 0 1 4.20 13.60 Z M4.20 18.60 H12.40 A1.70 1.70 0 0 1 14.10 20.30 V20.30 A1.70 1.70 0 0 1 12.40 22.00 H4.20 A1.70 1.70 0 0 1 2.50 20.30 V20.30 A1.70 1.70 0 0 1 4.20 18.60 Z" />
+</vector>

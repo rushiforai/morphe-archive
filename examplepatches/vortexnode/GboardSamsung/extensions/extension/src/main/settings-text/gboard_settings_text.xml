@@ -1,0 +1,2624 @@
+<?xml version="1.0" encoding="utf-8"?>
+<settings-text locales="en ru">
+    <string name="gboard_patches_frosted_glass_title">
+        <translation locale="en">Frosted Glass</translation>
+        <translation locale="ru">Матовое стекло</translation>
+    </string>
+    <string name="gboard_patches_frosted_glass_summary">
+        <translation locale="en">Live background blur for the keyboard panel.</translation>
+        <translation locale="ru">Динамическое размытие фона панели клавиатуры.</translation>
+    </string>
+    <string name="gboard_patches_frosted_glass_error_title">
+        <translation locale="en">Frosted Glass unavailable</translation>
+        <translation locale="ru">Матовое стекло недоступно</translation>
+    </string>
+    <string name="gboard_patches_frosted_glass_error_summary">
+        <translation locale="en">Reopen Gboard settings and try again.</translation>
+        <translation locale="ru">Переоткройте настройки Gboard и попробуйте снова.</translation>
+    </string>
+    <string name="gboard_patches_frosted_glass_section">
+        <translation locale="en">Appearance</translation>
+        <translation locale="ru">Внешний вид</translation>
+    </string>
+    <string name="gboard_patches_frosted_glass_enabled_title">
+        <translation locale="en">Enable live blur</translation>
+        <translation locale="ru">Включить размытие фона</translation>
+    </string>
+    <string name="gboard_patches_frosted_glass_enabled_summary">
+        <translation locale="en">Requires Android 12 or later and a device that supports cross-window blur.</translation>
+        <translation locale="ru">Требуется Android 12 или выше и устройство с поддержкой межоконного размытия.</translation>
+    </string>
+    <string name="gboard_patches_frosted_glass_transparency_help_title">
+        <translation locale="en">Background transparency and blur</translation>
+        <translation locale="ru">Прозрачность фона и размытие</translation>
+    </string>
+    <string name="gboard_patches_frosted_glass_transparency_help_summary">
+        <translation locale="en">If the theme background is opaque, select Custom under Background transparency below and increase its value to reveal the blur effect. Official themes use opaque backgrounds by default, so their background transparency also needs to be overridden. Changing Key transparency alone does not make the background transparent.</translation>
+        <translation locale="ru">Если фон темы непрозрачный, выберите «Своя» в пункте «Прозрачность фона» ниже и увеличьте значение, чтобы стал виден эффект размытия. В официальных темах фон по умолчанию непрозрачный, поэтому его прозрачность также нужно переопределить. Изменение только прозрачности клавиш не делает фон прозрачным.</translation>
+    </string>
+    <string name="gboard_patches_frosted_glass_radius_title">
+        <translation locale="en">Blur strength</translation>
+        <translation locale="ru">Сила размытия</translation>
+    </string>
+    <string name="gboard_patches_frosted_glass_radius_summary">
+        <translation locale="en">Set live blur strength from 1 to 100.</translation>
+        <translation locale="ru">Задайте силу размытия от 1 до 100.</translation>
+    </string>
+    <string name="gboard_patches_frosted_glass_radius_hint">
+        <translation locale="en">Enter strength 1-100</translation>
+        <translation locale="ru">Введите значение 1–100</translation>
+    </string>
+    <string name="gboard_patches_frosted_glass_transparency_title">
+        <translation locale="en">Background transparency</translation>
+        <translation locale="ru">Прозрачность фона</translation>
+    </string>
+    <string name="gboard_patches_frosted_glass_transparency_summary">
+        <translation locale="en">Follow the theme or set a custom keyboard background transparency.</translation>
+        <translation locale="ru">Использовать значение темы или задать свою прозрачность фона клавиатуры.</translation>
+    </string>
+    <string name="gboard_patches_frosted_glass_transparency_theme">
+        <translation locale="en">Follow theme</translation>
+        <translation locale="ru">Как в теме</translation>
+    </string>
+    <string name="gboard_patches_frosted_glass_transparency_custom">
+        <translation locale="en">Custom</translation>
+        <translation locale="ru">Своя</translation>
+    </string>
+    <string name="gboard_patches_frosted_glass_opacity_title">
+        <translation locale="en">Custom transparency</translation>
+        <translation locale="ru">Своя прозрачность</translation>
+    </string>
+    <string name="gboard_patches_frosted_glass_opacity_summary">
+        <translation locale="en">Set keyboard background transparency from 0 to 100%.</translation>
+        <translation locale="ru">Задайте прозрачность фона клавиатуры от 0 до 100%.</translation>
+    </string>
+    <string name="gboard_patches_frosted_glass_opacity_hint">
+        <translation locale="en">Enter transparency 0-100%</translation>
+        <translation locale="ru">Введите прозрачность 0–100%</translation>
+    </string>
+    <string name="gboard_patches_frosted_glass_key_transparency_title">
+        <translation locale="en">Key transparency</translation>
+        <translation locale="ru">Прозрачность клавиш</translation>
+    </string>
+    <string name="gboard_patches_frosted_glass_key_transparency_summary">
+        <translation locale="en">Follow the theme or adjust key backgrounds while keeping labels and icons clear.</translation>
+        <translation locale="ru">Следовать теме или настроить фон клавиш, сохраняя чёткость символов и значков.</translation>
+    </string>
+    <string name="gboard_patches_frosted_glass_key_opacity_title">
+        <translation locale="en">Custom transparency</translation>
+        <translation locale="ru">Своя прозрачность</translation>
+    </string>
+    <string name="gboard_patches_frosted_glass_key_opacity_summary">
+        <translation locale="en">Set key background transparency from 0 to 100%.</translation>
+        <translation locale="ru">Задайте прозрачность фона клавиш от 0 до 100%.</translation>
+    </string>
+    <string name="gboard_patches_frosted_glass_seamless_nav_bar_title">
+        <translation locale="en">Extend to navigation bar</translation>
+        <translation locale="ru">Продлить на панель навигации</translation>
+    </string>
+    <string name="gboard_patches_frosted_glass_seamless_nav_bar_summary">
+        <translation locale="en">Extend frosted glass into the bottom navigation area and adjust navigation button colors; turn this off if the buttons are hard to see or the bottom area displays incorrectly.</translation>
+        <translation locale="ru">Продлевает эффект матового стекла на нижнюю панель навигации и подстраивает цвет кнопок; отключите, если кнопки плохо видны или нижняя область отображается некорректно.</translation>
+    </string>
+    <string name="gboard_patches_frosted_glass_faq_section">
+        <translation locale="en">FAQ</translation>
+        <translation locale="ru">Вопросы и ответы</translation>
+    </string>
+    <string name="gboard_patches_frosted_glass_faq_not_working_title">
+        <translation locale="en">Why isn\'t Frosted Glass working?</translation>
+        <translation locale="ru">Почему не работает «Матовое стекло»?</translation>
+    </string>
+    <string name="gboard_patches_frosted_glass_faq_flickering_title">
+        <translation locale="en">Why do I see flickering while typing on Pixel phones?</translation>
+        <translation locale="ru">Почему при наборе на смартфонах Pixel заметно мерцание?</translation>
+    </string>
+    <string name="gboard_patches_activity_title">
+        <translation locale="en">Patches</translation>
+        <translation locale="ru">Патчи</translation>
+    </string>
+    <string name="gboard_patches_navigation_back">
+        <translation locale="en">Back</translation>
+        <translation locale="ru">Назад</translation>
+    </string>
+    <string name="gboard_patches_header_badge">
+        <translation locale="en">Gboard</translation>
+        <translation locale="ru">Gboard</translation>
+    </string>
+    <string name="gboard_patches_header_title">
+        <translation locale="en">Patch settings</translation>
+        <translation locale="ru">Настройки патчей</translation>
+    </string>
+    <string name="gboard_patches_header_summary">
+        <translation locale="en"></translation>
+        <translation locale="ru"></translation>
+    </string>
+    <string name="gboard_patches_preview_label">
+        <translation locale="en">Preview</translation>
+        <translation locale="ru">Предпросмотр</translation>
+    </string>
+    <string name="gboard_patches_current_value_label">
+        <translation locale="en">Current</translation>
+        <translation locale="ru">Текущее</translation>
+    </string>
+    <string name="gboard_patches_confirm_action">
+        <translation locale="en">Confirm</translation>
+        <translation locale="ru">Подтвердить</translation>
+    </string>
+    <string name="gboard_patches_dialog_cancel">
+        <translation locale="en">Cancel</translation>
+        <translation locale="ru">Отмена</translation>
+    </string>
+    <string name="gboard_patches_dialog_save">
+        <translation locale="en">Save</translation>
+        <translation locale="ru">Сохранить</translation>
+    </string>
+    <string name="gboard_patches_dialog_close">
+        <translation locale="en">Close</translation>
+        <translation locale="ru">Закрыть</translation>
+    </string>
+    <string name="gboard_patches_keyboard_preview_action">
+        <translation locale="en">Open keyboard</translation>
+        <translation locale="ru">Открыть клавиатуру</translation>
+    </string>
+    <string name="gboard_patches_keyboard_preview_title">
+        <translation locale="en">Gboard Patches</translation>
+        <translation locale="ru">Патчи Gboard</translation>
+    </string>
+    <string name="gboard_patches_keyboard_preview_input_accessibility">
+        <translation locale="en">Keyboard test field</translation>
+        <translation locale="ru">Поле для проверки клавиатуры</translation>
+    </string>
+    <string name="gboard_patches_dialog_error_positive">
+        <translation locale="en">Enter a positive number.</translation>
+        <translation locale="ru">Введите положительное число.</translation>
+    </string>
+    <string name="gboard_patches_dialog_error_save_failed">
+        <translation locale="en">Failed to save setting.</translation>
+        <translation locale="ru">Не удалось сохранить настройку.</translation>
+    </string>
+    <string name="gboard_patches_confirm_reset_title">
+        <translation locale="en">Reset setting</translation>
+        <translation locale="ru">Сбросить настройку</translation>
+    </string>
+    <string name="gboard_patches_section_preferences">
+        <translation locale="en">Preferences</translation>
+        <translation locale="ru">Параметры</translation>
+    </string>
+    <string name="gboard_patches_section_features">
+        <translation locale="en">Features</translation>
+        <translation locale="ru">Функции</translation>
+    </string>
+    <string name="gboard_patches_section_about">
+        <translation locale="en">About</translation>
+        <translation locale="ru">О патчах</translation>
+    </string>
+    <string name="gboard_patches_about_author_title">
+        <translation locale="en">Author</translation>
+        <translation locale="ru">Автор</translation>
+    </string>
+    <string name="gboard_patches_about_adapted_by_title">
+        <translation locale="en">Modified and adapted by</translation>
+        <translation locale="ru">Переработал и адаптировал</translation>
+    </string>
+    <string name="gboard_patches_about_patch_version_title">
+        <translation locale="en">Patch Version</translation>
+        <translation locale="ru">Версия патчей</translation>
+    </string>
+    <string name="gboard_patches_error_header_title">
+        <translation locale="en">Feature unavailable</translation>
+        <translation locale="ru">Функция недоступна</translation>
+    </string>
+    <string name="gboard_patches_error_header_summary">
+        <translation locale="en">This settings page failed to load and was safely disabled.</translation>
+        <translation locale="ru">Не удалось загрузить этот экран настроек; он был безопасно отключён.</translation>
+    </string>
+    <string name="gboard_patches_error_row_title">
+        <translation locale="en">Unable to load feature</translation>
+        <translation locale="ru">Не удалось загрузить функцию</translation>
+    </string>
+    <string name="gboard_patches_error_row_summary">
+        <translation locale="en">The host app stayed alive. Reopen Gboard settings and try again.</translation>
+        <translation locale="ru">Приложение продолжило работу. Переоткройте настройки Gboard и попробуйте снова.</translation>
+    </string>
+    <string name="gboard_patches_fatal_fallback_title">
+        <translation locale="en">Patches temporarily unavailable</translation>
+        <translation locale="ru">Патчи временно недоступны</translation>
+    </string>
+    <string name="gboard_patches_fatal_fallback_summary">
+        <translation locale="en">This screen hit an internal error and was safely disabled. Gboard stays alive. Reopen settings and try again.</translation>
+        <translation locale="ru">На этом экране произошла внутренняя ошибка, и он был безопасно отключён. Gboard продолжает работать. Переоткройте настройки и попробуйте снова.</translation>
+    </string>
+    <string name="gboard_patches_preview_load_failed">
+        <translation locale="en">Failed to load preview media.</translation>
+        <translation locale="ru">Не удалось загрузить предпросмотр.</translation>
+    </string>
+    <string name="gboard_patches_navigate_up">
+        <translation locale="en">Navigate up</translation>
+        <translation locale="ru">Перейти вверх</translation>
+    </string>
+    <string name="gboard_patches_search_title">
+        <translation locale="en">Search settings</translation>
+        <translation locale="ru">Поиск настроек</translation>
+    </string>
+    <string name="gboard_patches_search_hint">
+        <translation locale="en">Search settings</translation>
+        <translation locale="ru">Поиск настроек</translation>
+    </string>
+    <string name="gboard_patches_search_clear">
+        <translation locale="en">Clear search</translation>
+        <translation locale="ru">Очистить поиск</translation>
+    </string>
+    <string name="gboard_patches_search_close">
+        <translation locale="en">Close search</translation>
+        <translation locale="ru">Закрыть поиск</translation>
+    </string>
+    <string name="gboard_patches_search_empty_summary">
+        <translation locale="en">Search feature and setting names.</translation>
+        <translation locale="ru">Поиск по названиям функций и настроек.</translation>
+    </string>
+    <string name="gboard_patches_search_no_results_title">
+        <translation locale="en">No matching settings</translation>
+        <translation locale="ru">Ничего не найдено</translation>
+    </string>
+    <string name="gboard_patches_search_no_results_summary">
+        <translation locale="en">Try a shorter or different keyword.</translation>
+        <translation locale="ru">Попробуйте более короткий или другой запрос.</translation>
+    </string>
+    <plurals name="gboard_patches_search_results">
+        <item quantity="one">
+            <translation locale="en">%d result</translation>
+            <translation locale="ru">%d результат</translation>
+        </item>
+        <item quantity="few">
+            <translation locale="en">%d results</translation>
+            <translation locale="ru">%d результата</translation>
+        </item>
+        <item quantity="many">
+            <translation locale="en">%d results</translation>
+            <translation locale="ru">%d результатов</translation>
+        </item>
+        <item quantity="other">
+            <translation locale="en">%d results</translation>
+            <translation locale="ru">%d результата</translation>
+        </item>
+    </plurals>
+    <string name="gboard_patches_search_english_match">
+        <translation locale="en">English: %1$s</translation>
+        <translation locale="ru">English: %1$s</translation>
+    </string>
+    <string name="gboard_patches_restart_action">
+        <translation locale="en">Restart Gboard</translation>
+        <translation locale="ru">Перезапустить Gboard</translation>
+    </string>
+    <string name="gboard_patches_restart_failed">
+        <translation locale="en">Gboard could not be restarted. Reopen Gboard settings and try again.</translation>
+        <translation locale="ru">Не удалось перезапустить Gboard. Переоткройте настройки Gboard и попробуйте снова.</translation>
+    </string>
+    <string name="gboard_patches_language_title">
+        <translation locale="en">Language</translation>
+        <translation locale="ru">Язык интерфейса</translation>
+    </string>
+    <string name="gboard_patches_language_summary">
+        <translation locale="en"></translation>
+        <translation locale="ru"></translation>
+    </string>
+    <string name="gboard_patches_language_system_label">
+        <translation locale="en">System default</translation>
+        <translation locale="ru">По умолчанию (системный язык)</translation>
+    </string>
+    <string name="gboard_patches_language_english_label">
+        <translation locale="en">English</translation>
+        <translation locale="ru">Английский</translation>
+    </string>
+    <string name="gboard_patches_language_russian_label">
+        <translation locale="en">Russian</translation>
+        <translation locale="ru">Русский</translation>
+    </string>
+    <string name="gboard_patches_language_system_value">
+        <translation locale="en">System default (%1$s)</translation>
+        <translation locale="ru">Системный (%1$s)</translation>
+    </string>
+    <string name="gboard_patches_language_settings_title">
+        <translation locale="en">Language</translation>
+        <translation locale="ru">Язык</translation>
+    </string>
+    <string name="gboard_patches_language_settings_summary">
+        <translation locale="en">Spacebar language swipe and language switch key visibility.</translation>
+        <translation locale="ru">Переключение языка свайпом по пробелу и видимость клавиши переключения языка.</translation>
+    </string>
+    <string name="gboard_patches_language_settings_section">
+        <translation locale="en">Language switching</translation>
+        <translation locale="ru">Переключение языка</translation>
+    </string>
+    <string name="gboard_patches_spacebar_language_swipe_title">
+        <translation locale="en">Switch language by swiping on spacebar</translation>
+        <translation locale="ru">Переключение языка свайпом по пробелу</translation>
+    </string>
+    <string name="gboard_patches_spacebar_language_swipe_summary">
+        <translation locale="en">Swipe left or right on the spacebar to switch Gboard languages. Short tap still inserts a space and holding moves the cursor.</translation>
+        <translation locale="ru">Свайп влево или вправо по пробелу переключает языки Gboard. Короткое нажатие по-прежнему вводит пробел, а удержание перемещает курсор.</translation>
+    </string>
+    <string name="gboard_patches_spacebar_language_chevrons_title">
+        <translation locale="en">Spacebar language chevrons</translation>
+        <translation locale="ru">Шевроны переключения языка на пробеле</translation>
+    </string>
+    <string name="gboard_patches_spacebar_language_chevrons_summary">
+        <translation locale="en">Show &lt; &gt; arrows on both sides of the active language on the spacebar as a visual swipe hint.</translation>
+        <translation locale="ru">Показывать стрелки &lt; &gt; по бокам от активного языка на пробеле как визуальную подсказку для свайпа.</translation>
+    </string>
+    <string name="gboard_patches_hide_language_switch_key_title">
+        <translation locale="en">Hide language switch key</translation>
+        <translation locale="ru">Скрыть клавишу переключения языка</translation>
+    </string>
+    <string name="gboard_patches_hide_language_switch_key_summary">
+        <translation locale="en">Hide the globe/language switch key on the keyboard. Can be turned off anytime without affecting language switching.</translation>
+        <translation locale="ru">Скрывает клавишу глобуса (переключения языка) на клавиатуре. Можно вернуть в любой момент; переключение языка продолжит работать.</translation>
+    </string>
+    <string name="gboard_patches_group_keyboard_tools_title">
+        <translation locale="en">Keyboard Tools &amp; Shortcuts</translation>
+        <translation locale="ru">Инструменты и сочетания</translation>
+    </string>
+    <string name="gboard_patches_group_keyboard_tools_summary">
+        <translation locale="en">Incognito mode, long-press shortcuts, editing tools, quick insert, web search, and calculator.</translation>
+        <translation locale="ru">Режим инкогнито, удержание клавиш, кнопки правки, быстрая вставка, веб-поиск и калькулятор.</translation>
+    </string>
+    <string name="gboard_patches_group_ai_voice_title">
+        <translation locale="en">AI &amp; Voice</translation>
+        <translation locale="ru">ИИ и голосовой ввод</translation>
+    </string>
+    <string name="gboard_patches_group_ai_voice_summary">
+        <translation locale="en">AI writing tools, advanced voice typing, and Bluetooth microphone.</translation>
+        <translation locale="ru">Инструменты письма ИИ, расширенный голосовой ввод и Bluetooth-микрофон.</translation>
+    </string>
+    <string name="gboard_patches_group_keyboard_layout_title">
+        <translation locale="en">Keys, Layout &amp; Symbols</translation>
+        <translation locale="ru">Клавиши, макет и символы</translation>
+    </string>
+    <string name="gboard_patches_group_keyboard_layout_summary">
+        <translation locale="en">Expression tab order, emoji size, Access Points menu, split keyboard, rounded corners, custom themes, and frosted glass.</translation>
+        <translation locale="ru">Порядок вкладок эмодзи, размер эмодзи, стиль меню, разделённая клавиатура, скруглённые углы, свои темы и матовое стекло.</translation>
+    </string>
+    <string name="gboard_patches_group_keyboard_header_summary">
+        <translation locale="en"></translation>
+        <translation locale="ru"></translation>
+    </string>
+    <string name="gboard_patches_group_keyboard_empty_title">
+        <translation locale="en">No keyboard settings available</translation>
+        <translation locale="ru">Нет доступных настроек клавиатуры</translation>
+    </string>
+    <string name="gboard_patches_group_keyboard_empty_summary">
+        <translation locale="en">This build does not include any keyboard settings features.</translation>
+        <translation locale="ru">В этой сборке отсутствуют функции настройки клавиатуры.</translation>
+    </string>
+    <string name="gboard_patches_quick_insert_title">
+        <translation locale="en">Quick Insert</translation>
+        <translation locale="ru">Быстрая вставка</translation>
+    </string>
+    <string name="gboard_patches_quick_insert_error_title">
+        <translation locale="en">Quick Insert setting unavailable</translation>
+        <translation locale="ru">Настройка «Быстрая вставка» недоступна</translation>
+    </string>
+    <string name="gboard_patches_quick_insert_error_summary">
+        <translation locale="en">The Quick Insert settings screen failed to load. Reopen Gboard settings and try again.</translation>
+        <translation locale="ru">Не удалось загрузить экран настроек «Быстрой вставки». Переоткройте настройки Gboard и попробуйте снова.</translation>
+    </string>
+    <string name="gboard_patches_quick_insert_section_feature">
+        <translation locale="en">Feature</translation>
+        <translation locale="ru">Функция</translation>
+    </string>
+    <string name="gboard_patches_close_proactive_suggestions_title">
+        <translation locale="en">Dismiss Suggestions Button</translation>
+        <translation locale="ru">Кнопка скрытия подсказок</translation>
+    </string>
+    <string name="gboard_patches_close_proactive_suggestions_error_title">
+        <translation locale="en">Dismiss suggestions button unavailable</translation>
+        <translation locale="ru">Настройка кнопки скрытия подсказок недоступна</translation>
+    </string>
+    <string name="gboard_patches_close_proactive_suggestions_error_summary">
+        <translation locale="en">The dismiss suggestions button settings screen failed to load. Reopen Gboard settings and try again.</translation>
+        <translation locale="ru">Не удалось загрузить экран настроек кнопки скрытия подсказок. Переоткройте настройки Gboard и попробуйте снова.</translation>
+    </string>
+    <string name="gboard_patches_close_proactive_suggestions_section_feature">
+        <translation locale="en">Feature</translation>
+        <translation locale="ru">Функция</translation>
+    </string>
+    <string name="gboard_patches_access_point_count_title">
+        <translation locale="en">Top Toolbar Item Count</translation>
+        <translation locale="ru">Количество значков на верхней панели</translation>
+    </string>
+    <string name="gboard_patches_access_point_count_summary">
+        <translation locale="en"></translation>
+        <translation locale="ru"></translation>
+    </string>
+    <string name="gboard_patches_access_point_count_error_title">
+        <translation locale="en">Top toolbar item count unavailable</translation>
+        <translation locale="ru">Настройка количества значков недоступна</translation>
+    </string>
+    <string name="gboard_patches_access_point_count_error_summary">
+        <translation locale="en">The top toolbar item count settings screen failed to load. Reopen Gboard settings and try again.</translation>
+        <translation locale="ru">Не удалось загрузить экран настройки количества значков верхней панели. Переоткройте настройки Gboard и попробуйте снова.</translation>
+    </string>
+    <string name="gboard_patches_access_point_count_section">
+        <translation locale="en">Behavior</translation>
+        <translation locale="ru">Поведение</translation>
+    </string>
+    <string name="gboard_patches_access_point_count_enabled_title">
+        <translation locale="en">Enable</translation>
+        <translation locale="ru">Включить</translation>
+    </string>
+    <string name="gboard_patches_access_point_count_enabled_summary">
+        <translation locale="en">Force-stop and restart Gboard for the change to take effect.</translation>
+        <translation locale="ru">Принудительно остановите и перезапустите Gboard, чтобы изменение вступило в силу.</translation>
+    </string>
+    <string name="gboard_patches_access_point_count_value_title">
+        <translation locale="en">Count</translation>
+        <translation locale="ru">Количество</translation>
+    </string>
+    <string name="gboard_patches_access_point_count_value_summary">
+        <translation locale="en">Enter the number of toolbar items, from 3 through 8.</translation>
+        <translation locale="ru">Введите количество элементов на панели инструментов — от 3 до 8.</translation>
+    </string>
+    <string name="gboard_patches_access_point_count_value_hint">
+        <translation locale="en">3–8</translation>
+        <translation locale="ru">3–8</translation>
+    </string>
+    <string name="gboard_patches_access_point_count_value_error">
+        <translation locale="en">Enter a whole number from 3 through 8.</translation>
+        <translation locale="ru">Введите целое число от 3 до 8.</translation>
+    </string>
+    <string name="gboard_patches_toolbar_round_chips_title">
+        <translation locale="en">Toolbar round icon backgrounds</translation>
+        <translation locale="ru">Круглые подложки значков тулбара</translation>
+    </string>
+    <string name="gboard_patches_toolbar_round_chips_summary">
+        <translation locale="en">Show adaptive Samsung-style circular backgrounds behind top toolbar icons.</translation>
+        <translation locale="ru">Показывать адаптивные круглые подложки в стиле Samsung под значками верхней панели.</translation>
+    </string>
+    <string name="gboard_patches_toolbar_round_chips_section">
+        <translation locale="en">Appearance</translation>
+        <translation locale="ru">Внешний вид</translation>
+    </string>
+    <string name="gboard_patches_toolbar_round_chips_enabled_title">
+        <translation locale="en">Enable round backgrounds</translation>
+        <translation locale="ru">Включить круглые подложки</translation>
+    </string>
+    <string name="gboard_patches_toolbar_round_chips_enabled_summary">
+        <translation locale="en">Adapts diameter for 3–8 icons and follows light, dark, and dynamic themes. Does not affect Rambler voice button or menu grid.</translation>
+        <translation locale="ru">Адаптирует размер под 3–8 значков и подстраивается под светлую, тёмную и динамическую темы. Не затрагивает кнопку Rambler и сетку меню.</translation>
+    </string>
+    <string name="gboard_patches_toolbar_round_chips_menu_grid_title">
+        <translation locale="en">Menu grid ⊞ circular background</translation>
+        <translation locale="ru">Круглая подложка кнопки меню ⊞</translation>
+    </string>
+    <string name="gboard_patches_toolbar_round_chips_menu_grid_summary">
+        <translation locale="en">Draws a fixed Rambler-style circular background behind the ⊞ menu button when closed, preserving the native circle when expanded.</translation>
+        <translation locale="ru">Рисует фиксированную круглую подложку в стиле микрофона Rambler под кнопкой меню ⊞ в закрытом состоянии, сохраняя родной круг при раскрытии меню.</translation>
+    </string>
+    <string name="gboard_patches_developer_options_title">
+        <translation locale="en">Developer options</translation>
+        <translation locale="ru">Для разработчиков</translation>
+    </string>
+    <string name="gboard_patches_developer_options_summary">
+        <translation locale="en">Open Developer options and the Flag Editor.</translation>
+        <translation locale="ru">Открыть параметры разработчика и редактор флагов.</translation>
+    </string>
+    <string name="gboard_patches_developer_options_package_warning_title">
+        <translation locale="en">Unsupported Gboard package</translation>
+        <translation locale="ru">Неподдерживаемый пакет Gboard</translation>
+    </string>
+    <string name="gboard_patches_developer_options_package_warning_message">
+        <translation locale="en">The current Gboard package is %1$s. Gboard Patches supports the official package com.google.android.inputmethod.latin and the package name configured by the Package Rename patch. Mixing Gboard builds from multiple sources may cause instability.</translation>
+        <translation locale="ru">Текущий пакет Gboard: %1$s. Патчи Gboard поддерживают официальный пакет com.google.android.inputmethod.latin и имя пакета, заданное в патче «Package Rename». Смешивание сборок Gboard из разных источников может привести к нестабильной работе.</translation>
+    </string>
+    <string name="gboard_patches_developer_options_try_anyway">
+        <translation locale="en">Try anyway</translation>
+        <translation locale="ru">Всё равно попробовать</translation>
+    </string>
+    <string name="gboard_patches_developer_options_launch_failed">
+        <translation locale="en">Unable to open Developer options for %1$s.</translation>
+        <translation locale="ru">Не удалось открыть параметры разработчика для %1$s.</translation>
+    </string>
+    <string name="gboard_patches_ai_writing_tools_title">
+        <translation locale="en">AI Writing Tools</translation>
+        <translation locale="ru">Инструменты письма ИИ</translation>
+    </string>
+    <string name="gboard_patches_ai_writing_tools_summary">
+        <translation locale="en">Controls Gboard AI Writing Tools availability, keyboard support, and backend routing.</translation>
+        <translation locale="ru">Управляет доступностью инструментов письма ИИ Gboard, поддержкой раскладок и выбором движка.</translation>
+    </string>
+    <string name="gboard_patches_ai_writing_tools_header_summary">
+        <translation locale="en"></translation>
+        <translation locale="ru"></translation>
+    </string>
+    <string name="gboard_patches_ai_writing_tools_error_title">
+        <translation locale="en">AI Writing Tools unavailable</translation>
+        <translation locale="ru">Инструменты письма ИИ недоступны</translation>
+    </string>
+    <string name="gboard_patches_ai_writing_tools_error_summary">
+        <translation locale="en">The AI Writing Tools settings screen failed to load. Reopen Gboard settings and try again.</translation>
+        <translation locale="ru">Не удалось загрузить экран настроек инструментов письма ИИ. Переоткройте настройки Gboard и попробуйте снова.</translation>
+    </string>
+    <string name="gboard_patches_ai_writing_tools_enabled_title">
+        <translation locale="en">Enable AI Writing Tools</translation>
+        <translation locale="ru">Включить инструменты письма ИИ</translation>
+    </string>
+    <string name="gboard_patches_ai_writing_tools_enabled_summary">
+        <translation locale="en">Force-show Corrections &amp; suggestions &gt; Writing tools &gt; Show writing tools icon in suggestion strip while typing. Force-stop and restart Gboard for changes to take effect.</translation>
+        <translation locale="ru">Принудительно показывает «Исправление текста &gt; Инструменты письма &gt; Показывать значок инструментов письма в строке подсказок». Принудительно остановите и перезапустите Gboard для применения.</translation>
+    </string>
+    <string name="gboard_patches_ai_writing_tools_all_keyboards_title">
+        <translation locale="en">Support All Keyboards</translation>
+        <translation locale="ru">Поддержка всех раскладок</translation>
+    </string>
+    <string name="gboard_patches_ai_writing_tools_all_keyboards_summary">
+        <translation locale="en">When enabled, force writing tools to work on every keyboard. Force-stop and restart Gboard for the change to take effect.</translation>
+        <translation locale="ru">При включении принудительно активирует инструменты письма на любой клавиатуре. Принудительно остановите и перезапустите Gboard для применения.</translation>
+    </string>
+    <string name="gboard_patches_ai_writing_tools_backend_type_title">
+        <translation locale="en">Backend type</translation>
+        <translation locale="ru">Тип движка</translation>
+    </string>
+    <string name="gboard_patches_ai_writing_tools_backend_type_summary">
+        <translation locale="en">If you select AI CORE or ASTREA, your account or device must be eligible to enable it.</translation>
+        <translation locale="ru">Если выбрать AI CORE или ASTREA, ваш аккаунт или устройство должны поддерживать этот режим.</translation>
+    </string>
+    <string name="gboard_patches_ai_writing_tools_backend_type_dialog_title">
+        <translation locale="en">Backend type</translation>
+        <translation locale="ru">Тип движка</translation>
+    </string>
+    <string name="gboard_patches_ai_writing_tools_section_behavior">
+        <translation locale="en">Behavior</translation>
+        <translation locale="ru">Поведение</translation>
+    </string>
+    <string name="gboard_patches_clipboard_title">
+        <translation locale="en">Clipboard</translation>
+        <translation locale="ru">Буфер обмена</translation>
+    </string>
+    <string name="gboard_patches_clipboard_summary">
+        <translation locale="en">Adjusts clipboard retention, item limits, preview lines, metadata labels, order index, and columns.</translation>
+        <translation locale="ru">Настройка срока хранения, лимита записей, строк предпросмотра, метаданных, нумерации и столбцов.</translation>
+    </string>
+    <string name="gboard_patches_clipboard_error_title">
+        <translation locale="en">Clipboard settings unavailable</translation>
+        <translation locale="ru">Настройки буфера обмена недоступны</translation>
+    </string>
+    <string name="gboard_patches_clipboard_error_summary">
+        <translation locale="en">The clipboard settings screen failed to load. Reopen Gboard settings and try again.</translation>
+        <translation locale="ru">Не удалось загрузить экран настроек буфера обмена. Переоткройте настройки Gboard и попробуйте снова.</translation>
+    </string>
+    <string name="gboard_patches_clipboard_section_general">
+        <translation locale="en">General</translation>
+        <translation locale="ru">Основные</translation>
+    </string>
+    <string name="gboard_patches_clipboard_section_metadata">
+        <translation locale="en">Metadata</translation>
+        <translation locale="ru">Метаданные</translation>
+    </string>
+    <string name="gboard_patches_clipboard_section_layout">
+        <translation locale="en">Layout</translation>
+        <translation locale="ru">Макет</translation>
+    </string>
+    <string name="gboard_patches_clipboard_section_retention">
+        <translation locale="en">Retention</translation>
+        <translation locale="ru">Хранение</translation>
+    </string>
+    <string name="gboard_patches_clipboard_card_preview_limit_title">
+        <translation locale="en">Show only the first 1,000 characters on clipboard cards</translation>
+        <translation locale="ru">Показывать только первые 1000 символов в карточках буфера</translation>
+    </string>
+    <string name="gboard_patches_clipboard_card_preview_limit_summary">
+        <translation locale="en">Gboard puts the entire text into each card on the Clipboard page and renders it repeatedly, which can make vertical scrolling stutter. This switch makes each clipboard card actually hold only the first 1,000 characters while it is rendered to avoid scrolling lag.</translation>
+        <translation locale="ru">Gboard помещает весь текст целиком в каждую карточку буфера обмена и многократно его перерисовывает, что может вызывать рывки при прокрутке. Этот переключатель ограничивает отображаемый в карточке текст первыми 1000 символами для плавной прокрутки.</translation>
+    </string>
+    <string name="gboard_patches_clipboard_show_sensitive_content_title">
+        <translation locale="en">Show sensitive clipboard contents</translation>
+        <translation locale="ru">Показывать конфиденциальное содержимое буфера</translation>
+    </string>
+    <string name="gboard_patches_clipboard_show_sensitive_content_summary">
+        <translation locale="en">Show the original text instead of dots for clipboard items marked sensitive by password managers, incognito browsing, or other apps. This can expose passwords and private data on screen.</translation>
+        <translation locale="ru">Показывать исходный текст вместо точек для записей, помеченных как конфиденциальные менеджерами паролей, режимом инкогнито или другими приложениями. Пароли и личные данные могут быть видны на экране.</translation>
+    </string>
+    <string name="gboard_patches_preview_sensitive_content_enabled_caption">
+        <translation locale="en">Enabled: original text</translation>
+        <translation locale="ru">Включено: исходный текст</translation>
+    </string>
+    <string name="gboard_patches_preview_sensitive_content_disabled_caption">
+        <translation locale="en">Disabled: dots</translation>
+        <translation locale="ru">Отключено: точки</translation>
+    </string>
+    <string name="gboard_patches_clipboard_content_limit_title">
+        <translation locale="en">Clipboard Custom Character Limit</translation>
+        <translation locale="ru">Лимит символов в буфере обмена</translation>
+    </string>
+    <string name="gboard_patches_clipboard_content_limit_summary">
+        <translation locale="en">Customize the maximum character count for each text clipboard item. Official default: 20000</translation>
+        <translation locale="ru">Задайте максимальное число символов для одной текстовой записи буфера обмена. По умолчанию в Gboard: 20000</translation>
+    </string>
+    <string name="gboard_patches_clipboard_content_limit_dialog_title">
+        <translation locale="en">Clipboard Custom Character Limit</translation>
+        <translation locale="ru">Лимит символов в буфере обмена</translation>
+    </string>
+    <string name="gboard_patches_clipboard_content_limit_dialog_hint">
+        <translation locale="en">Maximum characters</translation>
+        <translation locale="ru">Максимум символов</translation>
+    </string>
+    <string name="gboard_patches_pref_show_expiry_countdown">
+        <translation locale="en">Show expiry countdown</translation>
+        <translation locale="ru">Показывать таймер удаления</translation>
+    </string>
+    <string name="gboard_patches_pref_show_expiry_countdown_summary">
+        <translation locale="en">Shows the remaining retention time above each clipboard item.</translation>
+        <translation locale="ru">Отображает оставшееся время хранения над каждой записью буфера обмена.</translation>
+    </string>
+    <string name="gboard_patches_pref_show_creation_time">
+        <translation locale="en">Show creation time</translation>
+        <translation locale="ru">Показывать время создания</translation>
+    </string>
+    <string name="gboard_patches_pref_show_creation_time_summary">
+        <translation locale="en">Shows when each clipboard item was created in the current device time zone.</translation>
+        <translation locale="ru">Отображает время создания каждой записи буфера обмена в текущем часовом поясе устройства.</translation>
+    </string>
+    <string name="gboard_patches_pref_show_order_index">
+        <translation locale="en">Show order index</translation>
+        <translation locale="ru">Показывать порядковый номер</translation>
+    </string>
+    <string name="gboard_patches_pref_show_order_index_summary">
+        <translation locale="en">Shows [1], [2], and so on above each clipboard item.</translation>
+        <translation locale="ru">Отображает [1], [2] и т. д. над каждой записью буфера обмена.</translation>
+    </string>
+    <string name="gboard_patches_pref_order_index_direction">
+        <translation locale="en">Order index direction</translation>
+        <translation locale="ru">Порядок нумерации</translation>
+    </string>
+    <string name="gboard_patches_pref_order_index_direction_summary">
+        <translation locale="en">Controls whether [1] marks the newest or oldest clipboard item.</translation>
+        <translation locale="ru">Определяет, какая запись получает номер [1] — самая новая или самая старая.</translation>
+    </string>
+    <string name="gboard_patches_order_index_newest_first_default">
+        <translation locale="en">Newest first (Default)</translation>
+        <translation locale="ru">Сначала новые (по умолчанию)</translation>
+    </string>
+    <string name="gboard_patches_order_index_oldest_first">
+        <translation locale="en">Oldest first</translation>
+        <translation locale="ru">Сначала старые</translation>
+    </string>
+    <string name="gboard_patches_preview_countdown_caption">
+        <translation locale="en">Countdown example</translation>
+        <translation locale="ru">Пример таймера</translation>
+    </string>
+    <string name="gboard_patches_preview_creation_time_caption">
+        <translation locale="en">Creation time example</translation>
+        <translation locale="ru">Пример времени создания</translation>
+    </string>
+    <string name="gboard_patches_preview_order_index_caption">
+        <translation locale="en">Order index example</translation>
+        <translation locale="ru">Пример нумерации</translation>
+    </string>
+    <string name="gboard_patches_pref_clipboard_columns">
+        <translation locale="en">Clipboard columns</translation>
+        <translation locale="ru">Столбцы буфера обмена</translation>
+    </string>
+    <string name="gboard_patches_pref_clipboard_columns_summary">
+        <translation locale="en">Controls how many columns the clipboard grid uses.</translation>
+        <translation locale="ru">Задаёт количество столбцов в сетке буфера обмена.</translation>
+    </string>
+    <string name="gboard_patches_pref_content_max_lines">
+        <translation locale="en">Clipboard preview lines</translation>
+        <translation locale="ru">Строки предпросмотра</translation>
+    </string>
+    <string name="gboard_patches_pref_content_max_lines_summary">
+        <translation locale="en">Controls how many preview lines each clipboard item can show before truncation.</translation>
+        <translation locale="ru">Задаёт максимальное число строк предпросмотра для каждой записи буфера обмена до обрезки.</translation>
+    </string>
+    <string name="gboard_patches_clipboard_columns_one">
+        <translation locale="en">1</translation>
+        <translation locale="ru">1</translation>
+    </string>
+    <string name="gboard_patches_clipboard_columns_two_default">
+        <translation locale="en">2 (Default)</translation>
+        <translation locale="ru">2 (по умолчанию)</translation>
+    </string>
+    <string name="gboard_patches_clipboard_columns_three">
+        <translation locale="en">3</translation>
+        <translation locale="ru">3</translation>
+    </string>
+    <string name="gboard_patches_content_max_lines_option_five_default">
+        <translation locale="en">5 (Default)</translation>
+        <translation locale="ru">5 (по умолчанию)</translation>
+    </string>
+    <string name="gboard_patches_content_max_lines_option_ten">
+        <translation locale="en">10</translation>
+        <translation locale="ru">10</translation>
+    </string>
+    <string name="gboard_patches_option_custom">
+        <translation locale="en">Custom</translation>
+        <translation locale="ru">Своё значение</translation>
+    </string>
+    <string name="gboard_patches_custom_content_max_lines_dialog_title">
+        <translation locale="en">Custom preview lines</translation>
+        <translation locale="ru">Своё число строк предпросмотра</translation>
+    </string>
+    <string name="gboard_patches_custom_content_max_lines_dialog_hint">
+        <translation locale="en">Lines</translation>
+        <translation locale="ru">Строки</translation>
+    </string>
+    <string name="gboard_patches_preview_column_count_one_caption">
+        <translation locale="en">1 column</translation>
+        <translation locale="ru">1 столбец</translation>
+    </string>
+    <string name="gboard_patches_preview_column_count_three_caption">
+        <translation locale="en">3 columns</translation>
+        <translation locale="ru">3 столбца</translation>
+    </string>
+    <string name="gboard_patches_preview_lines_default_caption">
+        <translation locale="en">Default (5 lines)</translation>
+        <translation locale="ru">По умолчанию (5 строк)</translation>
+    </string>
+    <string name="gboard_patches_preview_lines_extended_caption">
+        <translation locale="en">Extended (8 lines)</translation>
+        <translation locale="ru">Расширенный (8 строк)</translation>
+    </string>
+    <string name="gboard_patches_pref_ttl">
+        <translation locale="en">Retention TTL</translation>
+        <translation locale="ru">Срок хранения (TTL)</translation>
+    </string>
+    <string name="gboard_patches_pref_ttl_summary">
+        <translation locale="en">Controls how long unpinned clipboard items are retained.</translation>
+        <translation locale="ru">Определяет, как долго хранятся незакреплённые записи буфера обмена.</translation>
+    </string>
+    <string name="gboard_patches_pref_max_count">
+        <translation locale="en">Max count</translation>
+        <translation locale="ru">Максимум записей</translation>
+    </string>
+    <string name="gboard_patches_pref_max_count_summary">
+        <translation locale="en">Limits how many unpinned clipboard items stay visible at the same time.</translation>
+        <translation locale="ru">Ограничивает количество одновременно отображаемых незакреплённых записей.</translation>
+    </string>
+    <string name="gboard_patches_option_infinite">
+        <translation locale="en">Infinite</translation>
+        <translation locale="ru">Бессрочно</translation>
+    </string>
+    <string name="gboard_patches_ttl_option_one_minute">
+        <translation locale="en">1 minute</translation>
+        <translation locale="ru">1 минута</translation>
+    </string>
+    <string name="gboard_patches_ttl_option_one_hour_default">
+        <translation locale="en">1 hour (Default)</translation>
+        <translation locale="ru">1 час (по умолчанию)</translation>
+    </string>
+    <string name="gboard_patches_max_count_option_ten">
+        <translation locale="en">10</translation>
+        <translation locale="ru">10</translation>
+    </string>
+    <string name="gboard_patches_max_count_option_hundred_default">
+        <translation locale="en">100 (Default)</translation>
+        <translation locale="ru">100 (по умолчанию)</translation>
+    </string>
+    <string name="gboard_patches_custom_ttl_dialog_title">
+        <translation locale="en">Custom retention TTL</translation>
+        <translation locale="ru">Свой срок хранения</translation>
+    </string>
+    <string name="gboard_patches_custom_ttl_dialog_hint">
+        <translation locale="en">Minutes</translation>
+        <translation locale="ru">Минуты</translation>
+    </string>
+    <string name="gboard_patches_custom_max_count_dialog_title">
+        <translation locale="en">Custom max count</translation>
+        <translation locale="ru">Свой лимит записей</translation>
+    </string>
+    <string name="gboard_patches_custom_max_count_dialog_hint">
+        <translation locale="en">Count</translation>
+        <translation locale="ru">Количество</translation>
+    </string>
+    <string name="gboard_patches_custom_count_value">
+        <translation locale="en">Custom (%1$d)</translation>
+        <translation locale="ru">Своё (%1$d)</translation>
+    </string>
+    <string name="gboard_patches_custom_minutes_value">
+        <translation locale="en">Custom (%1$d %2$s)</translation>
+        <translation locale="ru">Своё (%1$d %2$s)</translation>
+    </string>
+    <plurals name="gboard_patches_minutes">
+        <item quantity="one">
+            <translation locale="en">%d minute</translation>
+            <translation locale="ru">%d минута</translation>
+        </item>
+        <item quantity="few">
+            <translation locale="en">%d minutes</translation>
+            <translation locale="ru">%d минуты</translation>
+        </item>
+        <item quantity="many">
+            <translation locale="en">%d minutes</translation>
+            <translation locale="ru">%d минут</translation>
+        </item>
+        <item quantity="other">
+            <translation locale="en">%d minutes</translation>
+            <translation locale="ru">%d минуты</translation>
+        </item>
+    </plurals>
+    <string name="gboard_patches_settings_homepage_title">
+        <translation locale="en">Settings Style</translation>
+        <translation locale="ru">Стиль настроек</translation>
+    </string>
+    <string name="gboard_patches_settings_homepage_summary">
+        <translation locale="en">Choose whether Gboard settings use the new or legacy settings style.</translation>
+        <translation locale="ru">Выбор между новым и классическим стилем главного экрана настроек Gboard.</translation>
+    </string>
+    <string name="gboard_patches_settings_homepage_header_summary">
+        <translation locale="en">Control whether Gboard settings use the new or legacy settings experience. Reopen Gboard settings after changing this option.</translation>
+        <translation locale="ru">Управляет тем, какой стиль настроек Gboard используется — новый или классический. После изменения переоткройте настройки Gboard.</translation>
+    </string>
+    <string name="gboard_patches_settings_homepage_error_title">
+        <translation locale="en">Settings homepage unavailable</translation>
+        <translation locale="ru">Выбор стиля настроек недоступен</translation>
+    </string>
+    <string name="gboard_patches_settings_homepage_error_summary">
+        <translation locale="en">The homepage selector failed to load. Reopen Gboard settings and try again.</translation>
+        <translation locale="ru">Не удалось загрузить переключатель стиля настроек. Переоткройте настройки Gboard и попробуйте снова.</translation>
+    </string>
+    <string name="gboard_patches_settings_homepage_safeguard_title">
+        <translation locale="en">Compatibility safeguard</translation>
+        <translation locale="ru">Защита совместимости</translation>
+    </string>
+    <string name="gboard_patches_settings_homepage_recovery_title">
+        <translation locale="en">Crash safeguard</translation>
+        <translation locale="ru">Защита от сбоев</translation>
+    </string>
+    <string name="gboard_patches_settings_homepage_trial_title">
+        <translation locale="en">Trial window</translation>
+        <translation locale="ru">Пробное окно</translation>
+    </string>
+    <string name="gboard_patches_settings_homepage_mode_title">
+        <translation locale="en">Settings style</translation>
+        <translation locale="ru">Стиль настроек</translation>
+    </string>
+    <string name="gboard_patches_settings_homepage_current_title">
+        <translation locale="en">Current active style</translation>
+        <translation locale="ru">Текущий активный стиль</translation>
+    </string>
+    <string name="gboard_patches_settings_homepage_label_auto">
+        <translation locale="en">Auto</translation>
+        <translation locale="ru">Авто</translation>
+    </string>
+    <string name="gboard_patches_settings_homepage_label_new">
+        <translation locale="en">New</translation>
+        <translation locale="ru">Новый</translation>
+    </string>
+    <string name="gboard_patches_settings_homepage_label_legacy">
+        <translation locale="en">Legacy</translation>
+        <translation locale="ru">Классический</translation>
+    </string>
+    <string name="gboard_patches_settings_homepage_section_style">
+        <translation locale="en">Style</translation>
+        <translation locale="ru">Стиль</translation>
+    </string>
+    <string name="gboard_patches_settings_homepage_section_current_state">
+        <translation locale="en">Current state</translation>
+        <translation locale="ru">Текущее состояние</translation>
+    </string>
+    <string name="gboard_patches_settings_homepage_preview_new">
+        <translation locale="en">New style</translation>
+        <translation locale="ru">Новый стиль</translation>
+    </string>
+    <string name="gboard_patches_settings_homepage_preview_legacy">
+        <translation locale="en">Legacy style</translation>
+        <translation locale="ru">Классический стиль</translation>
+    </string>
+    <string name="gboard_patches_settings_homepage_safeguard_summary">
+        <translation locale="en">This Android version does not expose the expected expressive runtime. New still remains selectable, but it runs under crash recovery protection.</translation>
+        <translation locale="ru">Эта версия Android не предоставляет ожидаемый экспрессивный интерфейс. Новый стиль всё ещё можно выбрать, но он запускается с защитой от сбоев.</translation>
+    </string>
+    <string name="gboard_patches_settings_homepage_trial_armed_summary">
+        <translation locale="en">Open Gboard settings within %1$d seconds. If nothing launches in that window, it falls back to Legacy automatically.</translation>
+        <translation locale="ru">Откройте настройки Gboard в течение %1$d с. Если за это время запуск не произойдёт, автоматически вернётся классический стиль.</translation>
+    </string>
+    <string name="gboard_patches_settings_homepage_recovery_summary">
+        <translation locale="en">The previous New settings launch did not finish cleanly. Legacy stays active so you can reopen settings and retry safely.</translation>
+        <translation locale="ru">Предыдущий запуск нового стиля настроек завершился с ошибкой. Активен классический стиль, чтобы вы могли безопасно открыть настройки и попробовать снова.</translation>
+    </string>
+    <string name="gboard_patches_settings_homepage_trial_expired_summary">
+        <translation locale="en">The New launch window expired before Gboard opened its settings page. Legacy stays active until you choose New again.</translation>
+        <translation locale="ru">Время пробного запуска нового стиля истекло до открытия настроек Gboard. Классический стиль останется активным, пока вы снова не выберете «Новый».</translation>
+    </string>
+    <string name="gboard_patches_settings_homepage_mode_new_recovered">
+        <translation locale="en">New (recovered)</translation>
+        <translation locale="ru">Новый (восстановлен)</translation>
+    </string>
+    <string name="gboard_patches_settings_homepage_mode_new_expired">
+        <translation locale="en">New (expired)</translation>
+        <translation locale="ru">Новый (время истекло)</translation>
+    </string>
+    <string name="gboard_patches_settings_homepage_mode_new_armed">
+        <translation locale="en">New (armed)</translation>
+        <translation locale="ru">Новый (ожидание)</translation>
+    </string>
+    <string name="gboard_patches_settings_homepage_mode_summary_new_recovered">
+        <translation locale="en">The previous New launch crashed. Legacy stays active until you switch modes or choose New again to retry.</translation>
+        <translation locale="ru">Предыдущий запуск нового стиля завершился сбоем. Классический стиль активен, пока вы не смените режим или снова не выберете «Новый».</translation>
+    </string>
+    <string name="gboard_patches_settings_homepage_mode_summary_new_expired">
+        <translation locale="en">The New launch window expired. Choose New again, then open Gboard settings within 10 seconds to retry.</translation>
+        <translation locale="ru">Время пробного запуска истекло. Снова выберите «Новый» и откройте настройки Gboard в течение 10 секунд.</translation>
+    </string>
+    <string name="gboard_patches_settings_homepage_mode_summary_new_armed">
+        <translation locale="en">Open Gboard settings within 10 seconds. If the launch crashes or never starts, it falls back to Legacy automatically.</translation>
+        <translation locale="ru">Откройте настройки Gboard в течение 10 секунд. Если запуск завершится сбоем или не начнётся, автоматически вернётся классический стиль.</translation>
+    </string>
+    <string name="gboard_patches_settings_homepage_mode_summary_new_guarded">
+        <translation locale="en">New stays available on this Android version, but it runs with automatic fallback protection if the settings launch fails.</translation>
+        <translation locale="ru">Новый стиль доступен на этой версии Android, но работает с автоматическим откатом при сбое запуска.</translation>
+    </string>
+    <string name="gboard_patches_settings_homepage_mode_summary_new">
+        <translation locale="en">Always use the new settings style. Reopen Gboard settings to apply.</translation>
+        <translation locale="ru">Всегда использовать новый стиль настроек. Переоткройте настройки Gboard для применения.</translation>
+    </string>
+    <string name="gboard_patches_settings_homepage_mode_summary_legacy">
+        <translation locale="en">Always use the legacy settings style. Reopen Gboard settings to apply.</translation>
+        <translation locale="ru">Всегда использовать классический стиль настроек. Переоткройте настройки Gboard для применения.</translation>
+    </string>
+    <string name="gboard_patches_settings_homepage_mode_summary_auto">
+        <translation locale="en">Follow Gboard automatic selection. Reopen Gboard settings after switching modes.</translation>
+        <translation locale="ru">Использовать автоматический выбор Gboard. Переоткройте настройки после смены режима.</translation>
+    </string>
+    <string name="gboard_patches_settings_homepage_current_summary_guarded">
+        <translation locale="en">Legacy settings style is active right now because New is being held back by the safety guard.</translation>
+        <translation locale="ru">Сейчас активен классический стиль, так как новый стиль временно сдерживается защитой от сбоев.</translation>
+    </string>
+    <string name="gboard_patches_settings_homepage_current_summary_queued">
+        <translation locale="en">New settings style is queued for the next Gboard settings launch.</translation>
+        <translation locale="ru">Новый стиль настроек поставлен в очередь на следующий запуск настроек Gboard.</translation>
+    </string>
+    <string name="gboard_patches_settings_homepage_current_summary_protected">
+        <translation locale="en">New settings style is selected with crash recovery protection on this Android version.</translation>
+        <translation locale="ru">Выбран новый стиль настроек с защитой от сбоев на этой версии Android.</translation>
+    </string>
+    <string name="gboard_patches_settings_homepage_current_summary_default">
+        <translation locale="en">%1$s settings style is active right now.</translation>
+        <translation locale="ru">Сейчас активен стиль настроек: %1$s.</translation>
+    </string>
+    <string name="gboard_patches_symbol_footer_title">
+        <translation locale="en">Emojis, stickers &amp; GIFs Tab Order</translation>
+        <translation locale="ru">Порядок вкладок эмодзи, стикеров и GIF</translation>
+    </string>
+    <string name="gboard_patches_symbol_footer_summary">
+        <translation locale="en">Reorder the bottom tabs in Gboard\'s Emojis, stickers &amp; GIFs panel.</translation>
+        <translation locale="ru">Изменение порядка нижних вкладок в панели эмодзи, стикеров и GIF.</translation>
+    </string>
+    <string name="gboard_patches_symbol_footer_header_summary">
+        <translation locale="en">Controls the bottom tab order used by Gboard\'s Emojis, stickers &amp; GIFs panel.</translation>
+        <translation locale="ru">Управляет порядком нижних вкладок в панели эмодзи, стикеров и GIF в Gboard.</translation>
+    </string>
+    <string name="gboard_patches_symbol_footer_error_title">
+        <translation locale="en">Emojis, stickers &amp; GIFs tab order unavailable</translation>
+        <translation locale="ru">Порядок вкладок недоступен</translation>
+    </string>
+    <string name="gboard_patches_symbol_footer_error_summary">
+        <translation locale="en">The footer order screen failed to load. Reopen Gboard settings and try again.</translation>
+        <translation locale="ru">Не удалось загрузить экран порядка вкладок. Переоткройте настройки Gboard и попробуйте снова.</translation>
+    </string>
+    <string name="gboard_patches_symbol_footer_current_title">
+        <translation locale="en">Current order</translation>
+        <translation locale="ru">Текущий порядок</translation>
+    </string>
+    <string name="gboard_patches_symbol_footer_reorder_title">
+        <translation locale="en">Reorder tabs</translation>
+        <translation locale="ru">Изменить порядок вкладок</translation>
+    </string>
+    <string name="gboard_patches_symbol_footer_reorder_summary">
+        <translation locale="en">Drag the handle to move tabs.</translation>
+        <translation locale="ru">Перетаскивайте маркер, чтобы менять вкладки местами.</translation>
+    </string>
+    <string name="gboard_patches_symbol_footer_reset_title">
+        <translation locale="en">Reset to default order</translation>
+        <translation locale="ru">Сбросить порядок по умолчанию</translation>
+    </string>
+    <string name="gboard_patches_symbol_footer_reset_summary">
+        <translation locale="en"></translation>
+        <translation locale="ru"></translation>
+    </string>
+    <string name="gboard_patches_symbol_footer_empty_summary">
+        <translation locale="en">No tabs available in this build.</translation>
+        <translation locale="ru">В этой сборке нет доступных вкладок.</translation>
+    </string>
+    <string name="gboard_patches_symbol_footer_section_current">
+        <translation locale="en">Current configuration</translation>
+        <translation locale="ru">Текущая конфигурация</translation>
+    </string>
+    <string name="gboard_patches_symbol_footer_section_behavior">
+        <translation locale="en">Behavior</translation>
+        <translation locale="ru">Поведение</translation>
+    </string>
+    <string name="gboard_patches_symbol_footer_section_advanced">
+        <translation locale="en">Advanced</translation>
+        <translation locale="ru">Дополнительно</translation>
+    </string>
+    <string name="gboard_patches_symbol_footer_reset_confirm_title">
+        <translation locale="en">Reset tab order</translation>
+        <translation locale="ru">Сбросить порядок вкладок</translation>
+    </string>
+    <string name="gboard_patches_symbol_footer_reset_confirm_message">
+        <translation locale="en">Restore the default Emojis, stickers &amp; GIFs tab order?</translation>
+        <translation locale="ru">Восстановить стандартный порядок вкладок эмодзи, стикеров и GIF?</translation>
+    </string>
+    <string name="gboard_patches_symbol_tab_emoji">
+        <translation locale="en">Emoji</translation>
+        <translation locale="ru">Эмодзи</translation>
+    </string>
+    <string name="gboard_patches_symbol_tab_custom_symbols">
+        <translation locale="en">Custom Symbols</translation>
+        <translation locale="ru">Свои символы</translation>
+    </string>
+    <string name="gboard_patches_symbol_tab_emoticon">
+        <translation locale="en">Emoticon</translation>
+        <translation locale="ru">Смайлики</translation>
+    </string>
+    <string name="gboard_patches_symbol_tab_gif">
+        <translation locale="en">GIF</translation>
+        <translation locale="ru">GIF</translation>
+    </string>
+    <string name="gboard_patches_symbol_tab_sticker">
+        <translation locale="en">Sticker</translation>
+        <translation locale="ru">Стикеры</translation>
+    </string>
+    <string name="gboard_patches_manual_incognito_title">
+        <translation locale="en">Incognito mode</translation>
+        <translation locale="ru">Режим инкогнито</translation>
+    </string>
+    <string name="gboard_patches_manual_incognito_summary">
+        <translation locale="en">Add a manual Incognito toolbar button and configure clipboard and voice typing behavior.</translation>
+        <translation locale="ru">Кнопка ручного включения инкогнито на панели и настройки буфера обмена и голосового ввода.</translation>
+    </string>
+    <string name="gboard_patches_manual_incognito_section_behavior">
+        <translation locale="en">Behavior</translation>
+        <translation locale="ru">Поведение</translation>
+    </string>
+    <string name="gboard_patches_manual_incognito_enabled_title">
+        <translation locale="en">Add Incognito button</translation>
+        <translation locale="ru">Добавить кнопку инкогнито</translation>
+    </string>
+    <string name="gboard_patches_manual_incognito_enabled_summary">
+        <translation locale="en">Adds an Incognito button to the Access Point toolbar. Force-stop and restart Gboard for the change to take effect.</translation>
+        <translation locale="ru">Добавляет кнопку «Инкогнито» на панель быстрого доступа. Принудительно остановите и перезапустите Gboard для применения.</translation>
+    </string>
+    <string name="gboard_patches_manual_incognito_clipboard_title">
+        <translation locale="en">Enable clipboard in incognito</translation>
+        <translation locale="ru">Разрешить буфер обмена в режиме инкогнито</translation>
+    </string>
+    <string name="gboard_patches_manual_incognito_clipboard_summary">
+        <translation locale="en">Allow Gboard to process new system clipboard changes while incognito is active. Applies when the keyboard is reopened.</translation>
+        <translation locale="ru">Позволяет Gboard обрабатывать новые записи системного буфера обмена при активном инкогнито. Применяется при повторном открытии клавиатуры.</translation>
+    </string>
+    <string name="gboard_patches_manual_incognito_voice_title">
+        <translation locale="en">Enable voice typing in incognito</translation>
+        <translation locale="ru">Разрешить голосовой ввод в режиме инкогнито</translation>
+    </string>
+    <string name="gboard_patches_manual_incognito_voice_summary">
+        <translation locale="en">Allow voice typing while incognito is active. Google services or the network may still be used. Applies when the keyboard is reopened.</translation>
+        <translation locale="ru">Позволяет использовать голосовой ввод в режиме инкогнито. При этом могут использоваться сервисы Google и сеть. Применяется при повторном открытии клавиатуры.</translation>
+    </string>
+    <string name="gboard_patches_manual_incognito_error_title">
+        <translation locale="en">Incognito settings unavailable</translation>
+        <translation locale="ru">Настройки инкогнито недоступны</translation>
+    </string>
+    <string name="gboard_patches_manual_incognito_error_summary">
+        <translation locale="en">The incognito settings screen failed to load. Reopen Gboard settings and try again.</translation>
+        <translation locale="ru">Не удалось загрузить экран настроек инкогнито. Переоткройте настройки Gboard и попробуйте снова.</translation>
+    </string>
+    <string name="gboard_patches_long_press_quick_actions_title">
+        <translation locale="en">Long-Press Editing Shortcuts</translation>
+        <translation locale="ru">Быстрая правка удержанием</translation>
+    </string>
+    <string name="gboard_patches_long_press_quick_actions_summary">
+        <translation locale="en">Long-press designated letter keys to show Select all, Undo, Copy, Cut, Paste, and Redo actions.</translation>
+        <translation locale="ru">Удержание выбранных буквенных клавиш открывает действия «Выбрать всё», «Отменить», «Копировать», «Вырезать», «Вставить» и «Повторить».</translation>
+    </string>
+    <string name="gboard_patches_long_press_quick_actions_error_title">
+        <translation locale="en">Long-Press Editing Shortcuts unavailable</translation>
+        <translation locale="ru">Быстрая правка удержанием недоступна</translation>
+    </string>
+    <string name="gboard_patches_long_press_quick_actions_error_summary">
+        <translation locale="en">The Long-Press Editing Shortcuts settings screen failed to load. Reopen Gboard settings and try again.</translation>
+        <translation locale="ru">Не удалось загрузить экран настроек быстрой правки удержанием. Переоткройте настройки Gboard и попробуйте снова.</translation>
+    </string>
+    <string name="gboard_patches_long_press_quick_actions_enabled_title">
+        <translation locale="en">Enable Long-Press Editing Shortcuts</translation>
+        <translation locale="ru">Включить быструю правку удержанием</translation>
+    </string>
+    <string name="gboard_patches_long_press_quick_actions_enabled_summary">
+        <translation locale="en">Reopen the keyboard or switch layouts to fully apply changes.</translation>
+        <translation locale="ru">Переоткройте клавиатуру или переключите раскладку для полного применения изменений.</translation>
+    </string>
+    <string name="gboard_patches_long_press_quick_actions_globe_drag_title">
+        <translation locale="en">Hold and drag from globe key</translation>
+        <translation locale="ru">Удержание и перетаскивание с глобуса</translation>
+    </string>
+    <string name="gboard_patches_long_press_quick_actions_globe_drag_summary">
+        <translation locale="en">Swipe from the globe key to A/Z/X/C/V/Y for editing actions.</translation>
+        <translation locale="ru">Проведите от клавиши глобуса к A/Z/X/C/V/Y для действий правки.</translation>
+    </string>
+    <string name="gboard_patches_long_press_quick_actions_section_feature">
+        <translation locale="en">Feature</translation>
+        <translation locale="ru">Функция</translation>
+    </string>
+    <string name="gboard_patches_long_press_quick_actions_select_all_title">
+        <translation locale="en">Select all when nothing is selected</translation>
+        <translation locale="ru">Выделять всё, если ничего не выделено</translation>
+    </string>
+    <string name="gboard_patches_long_press_quick_actions_select_all_summary">
+        <translation locale="en">When no text is selected, long-press C/X or drag from Globe to C/X to copy or cut all text in the input field.</translation>
+        <translation locale="ru">Если текст не выделен, удержание C/X или жест от глобуса к C/X скопирует или вырежет весь текст в поле ввода.</translation>
+    </string>
+    <string name="gboard_patches_long_press_quick_actions_section_mappings">
+        <translation locale="en">Mappings</translation>
+        <translation locale="ru">Назначения</translation>
+    </string>
+    <string name="gboard_patches_long_press_quick_actions_action_select_all">
+        <translation locale="en">Select all</translation>
+        <translation locale="ru">Выбрать всё</translation>
+    </string>
+    <string name="gboard_patches_long_press_quick_actions_action_undo">
+        <translation locale="en">Undo</translation>
+        <translation locale="ru">Отменить</translation>
+    </string>
+    <string name="gboard_patches_long_press_quick_actions_action_copy">
+        <translation locale="en">Copy</translation>
+        <translation locale="ru">Копировать</translation>
+    </string>
+    <string name="gboard_patches_long_press_quick_actions_action_cut">
+        <translation locale="en">Cut</translation>
+        <translation locale="ru">Вырезать</translation>
+    </string>
+    <string name="gboard_patches_long_press_quick_actions_action_paste">
+        <translation locale="en">Paste</translation>
+        <translation locale="ru">Вставить</translation>
+    </string>
+    <string name="gboard_patches_long_press_quick_actions_action_redo">
+        <translation locale="en">Redo</translation>
+        <translation locale="ru">Повторить</translation>
+    </string>
+    <string name="gboard_patches_advanced_voice_title">
+        <translation locale="en">Advanced Voice Typing</translation>
+        <translation locale="ru">Расширенный голосовой ввод</translation>
+    </string>
+    <string name="gboard_patches_bluetooth_microphone_title">
+        <translation locale="en">Use Bluetooth microphone</translation>
+        <translation locale="ru">Использовать Bluetooth-микрофон</translation>
+    </string>
+    <string name="gboard_patches_bluetooth_microphone_summary">
+        <translation locale="en">Voice typing -&gt; Use Bluetooth microphone</translation>
+        <translation locale="ru">Голосовой ввод → Использовать Bluetooth-микрофон</translation>
+    </string>
+    <string name="gboard_patches_bluetooth_microphone_error_title">
+        <translation locale="en">Bluetooth microphone unavailable</translation>
+        <translation locale="ru">Настройка Bluetooth-микрофона недоступна</translation>
+    </string>
+    <string name="gboard_patches_bluetooth_microphone_error_summary">
+        <translation locale="en">The Bluetooth microphone settings screen failed to load. Reopen Gboard settings and try again.</translation>
+        <translation locale="ru">Не удалось загрузить экран настройки Bluetooth-микрофона. Переоткройте настройки Gboard и попробуйте снова.</translation>
+    </string>
+    <string name="gboard_patches_bluetooth_microphone_section_behavior">
+        <translation locale="en">Behavior</translation>
+        <translation locale="ru">Поведение</translation>
+    </string>
+    <string name="gboard_patches_advanced_voice_summary">
+        <translation locale="en">Controls whether Advanced Voice Typing is forced on.</translation>
+        <translation locale="ru">Управляет принудительным включением расширенного голосового ввода.</translation>
+    </string>
+    <string name="gboard_patches_advanced_voice_header_summary">
+        <translation locale="en">Voice typing -&gt; Advanced features、 Add punctuation</translation>
+        <translation locale="ru">Голосовой ввод → Расширенные функции, Автоматическая пунктуация</translation>
+    </string>
+    <string name="gboard_patches_advanced_voice_error_title">
+        <translation locale="en">Advanced Voice Typing unavailable</translation>
+        <translation locale="ru">Расширенный голосовой ввод недоступен</translation>
+    </string>
+    <string name="gboard_patches_advanced_voice_error_summary">
+        <translation locale="en">The Advanced Voice Typing settings screen failed to load. Reopen Gboard settings and try again.</translation>
+        <translation locale="ru">Не удалось загрузить экран настроек расширенного голосового ввода. Переоткройте настройки Gboard и попробуйте снова.</translation>
+    </string>
+    <string name="gboard_patches_advanced_voice_enabled_title">
+        <translation locale="en">Enable Advanced Voice Typing</translation>
+        <translation locale="ru">Включить расширенный голосовой ввод</translation>
+    </string>
+    <string name="gboard_patches_advanced_voice_enabled_summary">
+        <translation locale="en">Voice typing &gt; Dictation type. Force-stop and restart Gboard for changes to take effect.</translation>
+        <translation locale="ru">Голосовой ввод &gt; Тип диктовки. Принудительно остановите и перезапустите Gboard для применения.</translation>
+    </string>
+    <string name="gboard_patches_advanced_voice_backend_title">
+        <translation locale="en">Voice typing backend</translation>
+        <translation locale="ru">Движок голосового ввода</translation>
+    </string>
+    <string name="gboard_patches_advanced_voice_backend_summary">
+        <translation locale="en">Force-stop and restart Gboard after switching for changes to take effect</translation>
+        <translation locale="ru">После переключения принудительно остановите и перезапустите Gboard для применения.</translation>
+    </string>
+    <string name="gboard_patches_advanced_voice_backend_dialog_title">
+        <translation locale="en">Choose voice typing backend</translation>
+        <translation locale="ru">Выберите движок голосового ввода</translation>
+    </string>
+    <string name="gboard_patches_advanced_voice_backend_advanced_label">
+        <translation locale="en">Advanced Voice Typing</translation>
+        <translation locale="ru">Расширенный голосовой ввод</translation>
+    </string>
+    <string name="gboard_patches_advanced_voice_backend_rambler_current_label">
+        <translation locale="en">Rambler (online only)</translation>
+        <translation locale="ru">Rambler (только онлайн)</translation>
+    </string>
+    <string name="gboard_patches_advanced_voice_backend_rambler_label">
+        <translation locale="en">Rambler (online only)</translation>
+        <translation locale="ru">Rambler (только онлайн)</translation>
+    </string>
+    <string name="gboard_patches_advanced_voice_zh_tw_punctuation_title">
+        <translation locale="en">Automatically Add Punctuation to Chinese Input</translation>
+        <translation locale="ru">Автоматическая пунктуация для китайского ввода</translation>
+    </string>
+    <string name="gboard_patches_advanced_voice_zh_tw_punctuation_summary">
+        <translation locale="en">Force-stop and restart Gboard for changes to take effect.</translation>
+        <translation locale="ru">Принудительно остановите и перезапустите Gboard для применения.</translation>
+    </string>
+    <string name="gboard_patches_advanced_voice_section_behavior">
+        <translation locale="en">Behavior</translation>
+        <translation locale="ru">Поведение</translation>
+    </string>
+    <string name="gboard_patches_advanced_voice_section_information">
+        <translation locale="en">Information</translation>
+        <translation locale="ru">Информация</translation>
+    </string>
+    <string name="gboard_patches_advanced_voice_section_offline_speech_model">
+        <translation locale="en">Offline speech model</translation>
+        <translation locale="ru">Офлайн-модель распознавания речи</translation>
+    </string>
+    <string name="gboard_patches_advanced_voice_section_supported_languages">
+        <translation locale="en">Supported languages</translation>
+        <translation locale="ru">Поддерживаемые языки</translation>
+    </string>
+    <string name="gboard_patches_advanced_voice_supported_languages_title">
+        <translation locale="en">Supported languages</translation>
+        <translation locale="ru">Поддерживаемые языки</translation>
+    </string>
+    <string name="gboard_patches_advanced_voice_supported_languages_summary">
+        <translation locale="en">Only en-US supports the complete feature set.\n\nEnglish en-AU, en-CA, en-GB, en-IE, en-IN, en-SG, en-US\nGerman de-AT, de-BE, de-CH, de-DE\nFrench fr-BE, fr-CA, fr-CH, fr-FR\nItalian it-CH, it-IT\nJapanese ja-JP\nSpanish es-ES, es-US</translation>
+        <translation locale="ru">Полный набор функций поддерживается только для en-US.
+
+Английский: en-AU, en-CA, en-GB, en-IE, en-IN, en-SG, en-US
+Немецкий: de-AT, de-BE, de-CH, de-DE
+Французский: fr-BE, fr-CA, fr-CH, fr-FR
+Итальянский: it-CH, it-IT
+Японский: ja-JP
+Испанский: es-ES, es-US</translation>
+    </string>
+    <string name="gboard_patches_advanced_voice_github_star_title">
+        <translation locale="en">Support this project on GitHub 😊</translation>
+        <translation locale="ru">Поддержать проект на GitHub 😊</translation>
+    </string>
+    <string name="gboard_patches_advanced_voice_github_star_summary">
+        <translation locale="en">This feature took a significant amount of time to build. If it helps you, please give the project a Star on GitHub.</translation>
+        <translation locale="ru">На разработку этой функции ушло много времени. Если она оказалась полезной, поставьте проекту звезду на GitHub.</translation>
+    </string>
+    <string name="gboard_patches_advanced_voice_speech_services_present_title">
+        <translation locale="en">Speech Recognition &amp; Synthesis (Installed)</translation>
+        <translation locale="ru">Распознавание и синтез речи (установлено)</translation>
+    </string>
+    <string name="gboard_patches_advanced_voice_speech_services_absent_title">
+        <translation locale="en">Speech Recognition &amp; Synthesis (Not installed)</translation>
+        <translation locale="ru">Распознавание и синтез речи (не установлено)</translation>
+    </string>
+    <string name="gboard_patches_advanced_voice_speech_services_unknown_title">
+        <translation locale="en">Speech Recognition &amp; Synthesis (Unable to verify)</translation>
+        <translation locale="ru">Распознавание и синтез речи (не удалось проверить)</translation>
+    </string>
+    <string name="gboard_patches_advanced_voice_speech_services_status_summary">
+        <translation locale="en">Package: com.google.android.tts. Required for Advanced Voice Typing: install Speech Recognition &amp; Synthesis and download the offline speech recognition model for every language you use. Tap to open its Google Play page.</translation>
+        <translation locale="ru">Пакет: com.google.android.tts. Требуется для расширенного голосового ввода: установите «Распознавание и синтез речи» и скачайте офлайн-модели для нужных языков. Нажмите, чтобы открыть страницу в Google Play.</translation>
+    </string>
+    <string name="gboard_patches_advanced_voice_speech_services_open_failed">
+        <translation locale="en">Unable to open the Speech Recognition &amp; Synthesis Google Play page.</translation>
+        <translation locale="ru">Не удалось открыть страницу «Распознавание и синтез речи» в Google Play.</translation>
+    </string>
+    <string name="gboard_patches_advanced_voice_downloaded_languages_title">
+        <translation locale="en">Downloaded offline languages</translation>
+        <translation locale="ru">Загруженные офлайн-языки</translation>
+    </string>
+    <string name="gboard_patches_advanced_voice_downloaded_languages_loading_summary">
+        <translation locale="en">Checking downloaded offline languages…</translation>
+        <translation locale="ru">Проверка загруженных офлайн-языков…</translation>
+    </string>
+    <string name="gboard_patches_advanced_voice_downloaded_languages_empty_summary">
+        <translation locale="en">No downloaded offline languages detected.</translation>
+        <translation locale="ru">Загруженные офлайн-языки не найдены.</translation>
+    </string>
+    <string name="gboard_patches_advanced_voice_downloaded_languages_unsupported_summary">
+        <translation locale="en">This Android version cannot query downloaded offline languages.</translation>
+        <translation locale="ru">Эта версия Android не позволяет запросить список загруженных офлайн-языков.</translation>
+    </string>
+    <string name="gboard_patches_advanced_voice_downloaded_languages_unavailable_summary">
+        <translation locale="en">No on-device speech recognition service is available.</translation>
+        <translation locale="ru">На устройстве недоступна служба локального распознавания речи.</translation>
+    </string>
+    <string name="gboard_patches_advanced_voice_downloaded_languages_error_summary">
+        <translation locale="en">Unable to read downloaded offline languages. Check them in Live Transcribe.</translation>
+        <translation locale="ru">Не удалось прочитать список загруженных офлайн-языков. Проверьте их в «Прямой расшифровке».</translation>
+    </string>
+    <string name="gboard_patches_advanced_voice_downloaded_languages_separator">
+        <translation locale="en">, </translation>
+        <translation locale="ru">, </translation>
+    </string>
+    <string name="gboard_patches_advanced_voice_live_transcribe_manage_title">
+        <translation locale="en">Manage languages with Live Transcribe</translation>
+        <translation locale="ru">Управление языками через «Прямую расшифровку»</translation>
+    </string>
+    <string name="gboard_patches_advanced_voice_live_transcribe_manage_summary">
+        <translation locale="en">Use Google’s official Live Transcribe app to download the Speech Recognition &amp; Synthesis offline recognition models required for Advanced Voice Typing. In Live Transcribe, open Settings → More settings → Primary language.\nTap to open Live Transcribe.</translation>
+        <translation locale="ru">Используйте официальное приложение Google «Прямая расшифровка», чтобы скачать офлайн-модели распознавания речи для расширенного голосового ввода. В приложении откройте Настройки → Другие настройки → Основной язык.
+Нажмите, чтобы открыть «Прямую расшифровку».</translation>
+    </string>
+    <string name="gboard_patches_advanced_voice_live_transcribe_open_failed">
+        <translation locale="en">Unable to open Live Transcribe or its Google Play page.</translation>
+        <translation locale="ru">Не удалось открыть «Прямую расшифровку» или её страницу в Google Play.</translation>
+    </string>
+    <string name="gboard_patches_advanced_voice_payload_present_title">
+        <translation locale="en">Dictation payload (Installed)</translation>
+        <translation locale="ru">Компонент диктовки (установлен)</translation>
+    </string>
+    <string name="gboard_patches_advanced_voice_payload_present_summary">
+        <translation locale="en">The currently installed %1$s meets the APK payload requirement for Advanced Voice Typing.</translation>
+        <translation locale="ru">Установленная сборка %1$s содержит необходимые компоненты APK для расширенного голосового ввода.</translation>
+    </string>
+    <string name="gboard_patches_advanced_voice_payload_present_requirement_title">
+        <translation locale="en">Installation requirement (currently met)</translation>
+        <translation locale="ru">Требование к сборке (выполнено)</translation>
+    </string>
+    <string name="gboard_patches_advanced_voice_payload_present_requirement_summary">
+        <translation locale="en">The current base version includes libdictation_jni.so.\nTap to view the APKMirror download page</translation>
+        <translation locale="ru">Текущая базовая версия содержит libdictation_jni.so.
+Нажмите, чтобы открыть страницу загрузки на APKMirror</translation>
+    </string>
+    <string name="gboard_patches_advanced_voice_payload_absent_title">
+        <translation locale="en">Dictation payload (Not installed)</translation>
+        <translation locale="ru">Компонент диктовки (отсутствует)</translation>
+    </string>
+    <string name="gboard_patches_advanced_voice_payload_absent_summary">
+        <translation locale="en">The currently installed %1$s does not contain libdictation_jni.so, which Advanced Voice Typing requires.</translation>
+        <translation locale="ru">Установленная сборка %1$s не содержит библиотеку libdictation_jni.so, необходимую для расширенного голосового ввода.</translation>
+    </string>
+    <string name="gboard_patches_advanced_voice_payload_absent_requirement_title">
+        <translation locale="en">Get a bundle or split APKM</translation>
+        <translation locale="ru">Получить bundle или split APKM</translation>
+    </string>
+    <string name="gboard_patches_advanced_voice_payload_absent_requirement_summary">
+        <translation locale="en">The current base version does not include libdictation_jni.so.\nTap to open the APKMirror download page</translation>
+        <translation locale="ru">Текущая базовая версия не содержит libdictation_jni.so.
+Нажмите, чтобы открыть страницу загрузки на APKMirror</translation>
+    </string>
+    <string name="gboard_patches_advanced_voice_payload_unknown_title">
+        <translation locale="en">Dictation payload (Unable to verify)</translation>
+        <translation locale="ru">Компонент диктовки (не удалось проверить)</translation>
+    </string>
+    <string name="gboard_patches_advanced_voice_payload_unknown_summary">
+        <translation locale="en">The installed APK files for the selected Gboard package could not be inspected.</translation>
+        <translation locale="ru">Не удалось проверить установленные APK-файлы выбранного пакета Gboard.</translation>
+    </string>
+    <string name="gboard_patches_advanced_voice_payload_unknown_requirement_title">
+        <translation locale="en">Verify the installation source</translation>
+        <translation locale="ru">Проверьте источник установки</translation>
+    </string>
+    <string name="gboard_patches_advanced_voice_payload_unknown_requirement_summary">
+        <translation locale="en">Cannot confirm whether the current base version includes libdictation_jni.so.\nTap to view the APKMirror download page</translation>
+        <translation locale="ru">Невозможно подтвердить наличие libdictation_jni.so в текущей базовой версии.
+Нажмите, чтобы открыть страницу загрузки на APKMirror</translation>
+    </string>
+    <string name="gboard_patches_flag_patch_error_title">
+        <translation locale="en">Patch setting unavailable</translation>
+        <translation locale="ru">Настройка патча недоступна</translation>
+    </string>
+    <string name="gboard_patches_flag_patch_error_summary">
+        <translation locale="en">The patch setting screen failed to load. Reopen Gboard settings and try again.</translation>
+        <translation locale="ru">Не удалось загрузить экран настройки патча. Переоткройте настройки Gboard и попробуйте снова.</translation>
+    </string>
+    <string name="gboard_patches_flag_patch_section_feature">
+        <translation locale="en">Feature</translation>
+        <translation locale="ru">Функция</translation>
+    </string>
+    <string name="gboard_patches_emoji_size_title">
+        <translation locale="en">Change emoji size</translation>
+        <translation locale="ru">Размер эмодзи</translation>
+    </string>
+    <string name="gboard_patches_access_points_menu_title">
+        <translation locale="en">Access Points menu style</translation>
+        <translation locale="ru">Стиль меню быстрого доступа</translation>
+    </string>
+    <string name="gboard_patches_access_points_menu_toggle_title">
+        <translation locale="en">Enable new Access Points menu style</translation>
+        <translation locale="ru">Включить новый стиль меню быстрого доступа</translation>
+    </string>
+    <string name="gboard_patches_split_keyboard_title">
+        <translation locale="en">Split keyboard</translation>
+        <translation locale="ru">Разделённая клавиатура</translation>
+    </string>
+    <string name="gboard_patches_split_keyboard_toggle_title">
+        <translation locale="en">Enable split keyboard</translation>
+        <translation locale="ru">Включить разделённую клавиатуру</translation>
+    </string>
+    <string name="gboard_patches_split_keyboard_auto_title">
+        <translation locale="en">Auto split</translation>
+        <translation locale="ru">Авторазделение</translation>
+    </string>
+    <string name="gboard_patches_split_keyboard_auto_summary">
+        <translation locale="en">Automatically uses split layout when Gboard determines there is enough space.</translation>
+        <translation locale="ru">Автоматически включает разделённую раскладку, когда Gboard определяет достаточную ширину экрана.</translation>
+    </string>
+    <string name="gboard_patches_rounded_keyboard_title">
+        <translation locale="en">Rounded Keyboard Panel</translation>
+        <translation locale="ru">Скруглённая панель клавиатуры</translation>
+    </string>
+    <string name="gboard_patches_rounded_keyboard_summary">
+        <translation locale="en">Customize which corners of the keyboard panel are rounded, and set the top and bottom radii separately.</translation>
+        <translation locale="ru">Настройте, какие углы панели клавиатуры скруглять, и задайте верхний и нижний радиусы по отдельности.</translation>
+    </string>
+    <string name="gboard_patches_rounded_keyboard_error_title">
+        <translation locale="en">Rounded keyboard settings unavailable</translation>
+        <translation locale="ru">Настройки скругления недоступны</translation>
+    </string>
+    <string name="gboard_patches_rounded_keyboard_error_summary">
+        <translation locale="en">The rounded keyboard settings screen failed to load. Reopen Gboard settings and try again.</translation>
+        <translation locale="ru">Не удалось загрузить экран настроек скругления клавиатуры. Переоткройте настройки Gboard и попробуйте снова.</translation>
+    </string>
+    <string name="gboard_patches_rounded_keyboard_section">
+        <translation locale="en">Appearance</translation>
+        <translation locale="ru">Внешний вид</translation>
+    </string>
+    <string name="gboard_patches_rounded_keyboard_enabled_title">
+        <translation locale="en">Enable rounded keyboard panel</translation>
+        <translation locale="ru">Включить скруглённую панель клавиатуры</translation>
+    </string>
+    <string name="gboard_patches_rounded_keyboard_enabled_summary">
+        <translation locale="en">Force-stop and restart Gboard for changes to take effect.</translation>
+        <translation locale="ru">Принудительно остановите и перезапустите Gboard для применения изменений.</translation>
+    </string>
+    <string name="gboard_patches_rounded_keyboard_mode_title">
+        <translation locale="en">Rounded corners</translation>
+        <translation locale="ru">Скруглённые углы</translation>
+    </string>
+    <string name="gboard_patches_rounded_keyboard_mode_summary">
+        <translation locale="en">Choose which corners of the keyboard panel are rounded.</translation>
+        <translation locale="ru">Выберите, какие углы панели клавиатуры будут скруглены.</translation>
+    </string>
+    <string name="gboard_patches_rounded_keyboard_mode_dialog_title">
+        <translation locale="en">Rounded corners</translation>
+        <translation locale="ru">Скруглённые углы</translation>
+    </string>
+    <string name="gboard_patches_rounded_keyboard_mode_all">
+        <translation locale="en">All corners</translation>
+        <translation locale="ru">Все углы</translation>
+    </string>
+    <string name="gboard_patches_rounded_keyboard_mode_top">
+        <translation locale="en">Top</translation>
+        <translation locale="ru">Верхние</translation>
+    </string>
+    <string name="gboard_patches_rounded_keyboard_mode_bottom">
+        <translation locale="en">Bottom</translation>
+        <translation locale="ru">Нижние</translation>
+    </string>
+    <string name="gboard_patches_rounded_keyboard_top_radius_title">
+        <translation locale="en">Top radius</translation>
+        <translation locale="ru">Верхний радиус</translation>
+    </string>
+    <string name="gboard_patches_rounded_keyboard_top_radius_summary">
+        <translation locale="en">Set the radius for the upper corners.</translation>
+        <translation locale="ru">Задайте радиус скругления для верхних углов.</translation>
+    </string>
+    <string name="gboard_patches_rounded_keyboard_top_radius_dialog_title">
+        <translation locale="en">Top radius</translation>
+        <translation locale="ru">Верхний радиус</translation>
+    </string>
+    <string name="gboard_patches_rounded_keyboard_bottom_radius_title">
+        <translation locale="en">Bottom radius</translation>
+        <translation locale="ru">Нижний радиус</translation>
+    </string>
+    <string name="gboard_patches_rounded_keyboard_bottom_radius_summary">
+        <translation locale="en">Set the radius for the lower corners.</translation>
+        <translation locale="ru">Задайте радиус скругления для нижних углов.</translation>
+    </string>
+    <string name="gboard_patches_rounded_keyboard_bottom_radius_dialog_title">
+        <translation locale="en">Bottom radius</translation>
+        <translation locale="ru">Нижний радиус</translation>
+    </string>
+    <string name="gboard_patches_rounded_keyboard_radius_dialog_hint">
+        <translation locale="en">0–64 dp</translation>
+        <translation locale="ru">0–64 dp</translation>
+    </string>
+    <string name="gboard_patches_rounded_keyboard_radius_dialog_error">
+        <translation locale="en">Enter a whole number from 0 to 64.</translation>
+        <translation locale="ru">Введите целое число от 0 до 64.</translation>
+    </string>
+    <string name="gboard_patches_rounded_keyboard_radius_value">
+        <translation locale="en">%1$d dp</translation>
+        <translation locale="ru">%1$d dp</translation>
+    </string>
+    <string name="gboard_patches_rounded_keyboard_advanced_section">
+        <translation locale="en">Advanced</translation>
+        <translation locale="ru">Дополнительно</translation>
+    </string>
+    <string name="gboard_patches_rounded_keyboard_reset_title">
+        <translation locale="en">Restore corner radii to 32 dp</translation>
+        <translation locale="ru">Сбросить радиусы до 32 dp</translation>
+    </string>
+    <string name="gboard_patches_rounded_keyboard_reset_summary">
+        <translation locale="en">Restore the top and bottom corner radii to 32 dp.</translation>
+        <translation locale="ru">Восстановить верхний и нижний радиусы скругления до 32 dp.</translation>
+    </string>
+    <string name="gboard_patches_rounded_keyboard_reset_confirm_title">
+        <translation locale="en">Restore corner radii?</translation>
+        <translation locale="ru">Сбросить радиусы углов?</translation>
+    </string>
+    <string name="gboard_patches_rounded_keyboard_reset_confirm_message">
+        <translation locale="en">Restore the top and bottom corner radii to 32 dp?</translation>
+        <translation locale="ru">Восстановить верхний и нижний радиусы скругления до 32 dp?</translation>
+    </string>
+    <string name="gboard_patches_access_points_preview_legacy">
+        <translation locale="en">Legacy Access Points menu</translation>
+        <translation locale="ru">Классическое меню быстрого доступа</translation>
+    </string>
+    <string name="gboard_patches_access_points_preview_redesigned">
+        <translation locale="en">Redesigned Access Points menu</translation>
+        <translation locale="ru">Обновлённое меню быстрого доступа</translation>
+    </string>
+    <string name="gboard_patches_emoji_size_preview_setting">
+        <translation locale="en">Emoji size setting</translation>
+        <translation locale="ru">Настройка размера эмодзи</translation>
+    </string>
+    <string name="gboard_patches_split_keyboard_preview_layout">
+        <translation locale="en">Split keyboard layout</translation>
+        <translation locale="ru">Разделённая раскладка клавиатуры</translation>
+    </string>
+    <string name="gboard_patches_floating_web_search_title">
+        <translation locale="en">Floating Web Search</translation>
+        <translation locale="ru">Плавающий веб-поиск</translation>
+    </string>
+    <string name="gboard_patches_floating_web_search_summary">
+        <translation locale="en">Open a browser-owned floating web page from Gboard. The selected browser supplies its cookies, login state, toolbar, and site compatibility.</translation>
+        <translation locale="ru">Открывает плавающую веб-страницу браузера прямо из Gboard. Выбранный браузер использует свои cookie, авторизацию, панель и совместимость с сайтами.</translation>
+    </string>
+    <string name="gboard_patches_floating_web_search_enable_title">
+        <translation locale="en">Enable Floating Web Search</translation>
+        <translation locale="ru">Включить плавающий веб-поиск</translation>
+    </string>
+    <string name="gboard_patches_floating_web_search_enable_summary">
+        <translation locale="en">Force-stop and restart Gboard for changes to take effect.</translation>
+        <translation locale="ru">Принудительно остановите и перезапустите Gboard для применения изменений.</translation>
+    </string>
+    <string name="gboard_patches_floating_web_search_section_feature">
+        <translation locale="en">Feature</translation>
+        <translation locale="ru">Функция</translation>
+    </string>
+    <string name="gboard_patches_floating_web_search_section_launch">
+        <translation locale="en">Launch</translation>
+        <translation locale="ru">Запуск</translation>
+    </string>
+    <string name="gboard_patches_floating_web_search_start_page_title">
+        <translation locale="en">Start page</translation>
+        <translation locale="ru">Стартовая страница</translation>
+    </string>
+    <string name="gboard_patches_floating_web_search_start_page_summary">
+        <translation locale="en">Choose the HTTPS page opened whenever Web Search starts.</translation>
+        <translation locale="ru">Выберите HTTPS-страницу, открываемую при запуске веб-поиска.</translation>
+    </string>
+    <string name="gboard_patches_floating_web_search_start_page_custom">
+        <translation locale="en">Custom HTTPS URL</translation>
+        <translation locale="ru">Свой HTTPS-адрес</translation>
+    </string>
+    <string name="gboard_patches_floating_web_search_custom_url_title">
+        <translation locale="en">Custom start page URL</translation>
+        <translation locale="ru">Свой URL стартовой страницы</translation>
+    </string>
+    <string name="gboard_patches_floating_web_search_custom_url_summary">
+        <translation locale="en">The complete HTTPS URL opened by the Web Search button.</translation>
+        <translation locale="ru">Полный HTTPS-адрес, открываемый по кнопке веб-поиска.</translation>
+    </string>
+    <string name="gboard_patches_floating_web_search_custom_url_error">
+        <translation locale="en">Enter a complete HTTPS URL.</translation>
+        <translation locale="ru">Введите полный HTTPS-адрес.</translation>
+    </string>
+    <string name="gboard_patches_floating_web_search_height_title">
+        <translation locale="en">Initial window height</translation>
+        <translation locale="ru">Начальная высота окна</translation>
+    </string>
+    <string name="gboard_patches_floating_web_search_height_summary" formatted="false">
+        <translation locale="en">Choose 50–100%. The default is 100%; supported browsers may still let you resize the tab.</translation>
+        <translation locale="ru">Выберите 50–100%. По умолчанию 100%; поддерживаемые браузеры также позволяют менять размер вкладки вручную.</translation>
+    </string>
+    <string name="gboard_patches_floating_web_search_browser_title">
+        <translation locale="en">Browser</translation>
+        <translation locale="ru">Браузер</translation>
+    </string>
+    <string name="gboard_patches_floating_web_search_browser_summary">
+        <translation locale="en">Follow the system default or select an installed browser that supports Custom Tabs. Chrome, Edge, and Brave are recommended.</translation>
+        <translation locale="ru">Использовать системный браузер по умолчанию или выбрать установленный браузер с поддержкой Custom Tabs. Рекомендуются Chrome, Edge и Brave.</translation>
+    </string>
+    <string name="gboard_patches_floating_web_search_browser_system_default">
+        <translation locale="en">System default</translation>
+        <translation locale="ru">Системный по умолчанию</translation>
+    </string>
+    <string name="gboard_patches_floating_web_search_test_title">
+        <translation locale="en">Test open</translation>
+        <translation locale="ru">Пробное открытие</translation>
+    </string>
+    <string name="gboard_patches_floating_web_search_test_summary">
+        <translation locale="en">Open the current page, browser, and height settings now.</translation>
+        <translation locale="ru">Открыть текущую страницу с выбранным браузером и высотой прямо сейчас.</translation>
+    </string>
+    <string name="gboard_patches_floating_web_search_error_title">
+        <translation locale="en">Floating Web Search setting unavailable</translation>
+        <translation locale="ru">Настройка плавающего веб-поиска недоступна</translation>
+    </string>
+    <string name="gboard_patches_floating_web_search_error_summary">
+        <translation locale="en">The Floating Web Search settings screen failed to load. Reopen Gboard settings and try again.</translation>
+        <translation locale="ru">Не удалось загрузить экран настроек плавающего веб-поиска. Переоткройте настройки Gboard и попробуйте снова.</translation>
+    </string>
+    <string name="gboard_patches_backup_restore_title">
+        <translation locale="en">Backup &amp; Restore</translation>
+        <translation locale="ru">Резервное копирование и восстановление</translation>
+    </string>
+    <string name="gboard_patches_backup_restore_summary">
+        <translation locale="en">Export or restore all Patches settings</translation>
+        <translation locale="ru">Экспорт и восстановление всех настроек патчей</translation>
+    </string>
+    <string name="gboard_patches_backup_section_patches">
+        <translation locale="en">Patches settings</translation>
+        <translation locale="ru">Настройки патчей</translation>
+    </string>
+    <string name="gboard_patches_backup_export_title">
+        <translation locale="en">Export Patches settings</translation>
+        <translation locale="ru">Экспортировать настройки патчей</translation>
+    </string>
+    <string name="gboard_patches_backup_restore_action_title">
+        <translation locale="en">Restore Patches settings</translation>
+        <translation locale="ru">Восстановить настройки патчей</translation>
+    </string>
+    <string name="gboard_patches_backup_export_done">
+        <translation locale="en">Patches backup exported.</translation>
+        <translation locale="ru">Резервная копия настроек патчей экспортирована.</translation>
+    </string>
+    <string name="gboard_patches_backup_export_failed">
+        <translation locale="en">Unable to export Patches settings.</translation>
+        <translation locale="ru">Не удалось экспортировать настройки патчей.</translation>
+    </string>
+    <string name="gboard_patches_backup_restore_done">
+        <translation locale="en">Patches settings restored. Restart Gboard to apply every change.</translation>
+        <translation locale="ru">Настройки патчей восстановлены. Перезапустите Gboard для применения всех изменений.</translation>
+    </string>
+    <string name="gboard_patches_backup_restore_done_mirror_pending">
+        <translation locale="en">Patches settings restored locally. Restart Gboard to rebuild unavailable remote settings.</translation>
+        <translation locale="ru">Настройки патчей восстановлены локально. Перезапустите Gboard для пересборки недоступных удалённых параметров.</translation>
+    </string>
+    <string name="gboard_patches_backup_restore_failed">
+        <translation locale="en">The selected backup is invalid or could not be processed.</translation>
+        <translation locale="ru">Выбранная резервная копия повреждена или не может быть обработана.</translation>
+    </string>
+    <string name="gboard_patches_backup_section_flags">
+        <translation locale="en">Gboard flag storage</translation>
+        <translation locale="ru">Хранилище флагов Gboard</translation>
+    </string>
+    <string name="gboard_patches_backup_flag_backend_title">
+        <translation locale="en">Current flag backend</translation>
+        <translation locale="ru">Текущий формат флагов</translation>
+    </string>
+    <string name="gboard_patches_backup_flag_backend_loading">
+        <translation locale="en">Checking Gboard…</translation>
+        <translation locale="ru">Проверка Gboard…</translation>
+    </string>
+    <string name="gboard_patches_backup_flag_backend_proto">
+        <translation locale="en">Gboard currently uses the new PB flag-store format.</translation>
+        <translation locale="ru">Gboard сейчас использует новый формат хранилища флагов PB.</translation>
+    </string>
+    <string name="gboard_patches_backup_flag_backend_proto_with_legacy">
+        <translation locale="en">Both the new PB format and legacy XML format currently exist. It cannot be determined which format Gboard will ultimately read.</translation>
+        <translation locale="ru">Обнаружены одновременно новый формат PB и устаревший XML. Невозможно точно определить, какой из них выберет Gboard.</translation>
+    </string>
+    <string name="gboard_patches_backup_flag_backend_legacy">
+        <translation locale="en">Gboard currently uses the legacy XML flag-store format.</translation>
+        <translation locale="ru">Gboard сейчас использует устаревший формат хранилища флагов XML.</translation>
+    </string>
+    <string name="gboard_patches_backup_flag_backend_not_created">
+        <translation locale="en">No persisted flag store exists yet; the backend cannot be determined from disk</translation>
+        <translation locale="ru">Сохранённое хранилище флагов ещё не создано; формат на диске определить невозможно</translation>
+    </string>
+    <string name="gboard_patches_backup_flag_backend_unavailable">
+        <translation locale="en">Gboard is not ready for a storage query</translation>
+        <translation locale="ru">Gboard не готов к запросу хранилища</translation>
+    </string>
+    <string name="gboard_patches_backup_flag_backend_proto_last_modified">
+        <translation locale="en">PB last modified: %1$s</translation>
+        <translation locale="ru">Последнее изменение PB: %1$s</translation>
+    </string>
+    <string name="gboard_patches_backup_flag_backend_override_last_modified">
+        <translation locale="en">flag_override.xml last modified: %1$s</translation>
+        <translation locale="ru">Последнее изменение flag_override.xml: %1$s</translation>
+    </string>
+    <string name="gboard_patches_backup_flag_backend_value_last_modified">
+        <translation locale="en">flag_value.xml last modified: %1$s</translation>
+        <translation locale="ru">Последнее изменение flag_value.xml: %1$s</translation>
+    </string>
+    <string name="gboard_patches_backup_flag_backend_time_unknown">
+        <translation locale="en">Unknown</translation>
+        <translation locale="ru">Неизвестно</translation>
+    </string>
+    <string name="gboard_patches_backup_restore_modules_title">
+        <translation locale="en">Choose modules to restore</translation>
+        <translation locale="ru">Выберите модули для восстановления</translation>
+    </string>
+    <string name="gboard_patches_backup_restore_modules_action">
+        <translation locale="en">Review differences</translation>
+        <translation locale="ru">Просмотреть различия</translation>
+    </string>
+    <string name="gboard_patches_backup_restore_preview_title">
+        <translation locale="en">Restore differences</translation>
+        <translation locale="ru">Различия при восстановлении</translation>
+    </string>
+    <string name="gboard_patches_backup_restore_preview_overall">
+        <translation locale="en">Selected changes</translation>
+        <translation locale="ru">Выбранные изменения</translation>
+    </string>
+    <string name="gboard_patches_backup_restore_preview_summary">
+        <translation locale="en">Added %1$d · Changed %2$d · Removed %3$d · Unchanged %4$d</translation>
+        <translation locale="ru">Добавлено: %1$d · Изменено: %2$d · Удалено: %3$d · Без изменений: %4$d</translation>
+    </string>
+    <string name="gboard_patches_backup_restore_preview_module_summary">
+        <translation locale="en">%1$d changes</translation>
+        <translation locale="ru">Изменений: %1$d</translation>
+    </string>
+    <string name="gboard_patches_backup_restore_preview_no_changes">
+        <translation locale="en">No changes</translation>
+        <translation locale="ru">Без изменений</translation>
+    </string>
+    <string name="gboard_patches_backup_restore_preview_action">
+        <translation locale="en">Restore selected modules</translation>
+        <translation locale="ru">Восстановить выбранные модули</translation>
+    </string>
+    <string name="gboard_patches_backup_restore_preview_added">
+        <translation locale="en">Added</translation>
+        <translation locale="ru">Добавлено</translation>
+    </string>
+    <string name="gboard_patches_backup_restore_preview_changed">
+        <translation locale="en">Changed</translation>
+        <translation locale="ru">Изменено</translation>
+    </string>
+    <string name="gboard_patches_backup_restore_preview_removed">
+        <translation locale="en">Removed</translation>
+        <translation locale="ru">Удалено</translation>
+    </string>
+    <string name="gboard_patches_backup_restore_preview_unchanged">
+        <translation locale="en">Unchanged</translation>
+        <translation locale="ru">Без изменений</translation>
+    </string>
+    <string name="gboard_patches_backup_restore_preview_current">
+        <translation locale="en">Current: %1$s</translation>
+        <translation locale="ru">Текущее: %1$s</translation>
+    </string>
+    <string name="gboard_patches_backup_restore_preview_backup">
+        <translation locale="en">Backup: %1$s</translation>
+        <translation locale="ru">В копии: %1$s</translation>
+    </string>
+    <string name="gboard_patches_backup_restore_preview_absent">
+        <translation locale="en">Not present</translation>
+        <translation locale="ru">Отсутствует</translation>
+    </string>
+    <string name="gboard_patches_backup_restore_result_title">
+        <translation locale="en">Restore result</translation>
+        <translation locale="ru">Результат восстановления</translation>
+    </string>
+    <string name="gboard_patches_backup_restore_result_overall">
+        <translation locale="en">Overall result</translation>
+        <translation locale="ru">Общий итог</translation>
+    </string>
+    <string name="gboard_patches_backup_restore_result_success">
+        <translation locale="en">Restored %1$d modules and verified %2$d backup keys. Restart Gboard to apply every change.</translation>
+        <translation locale="ru">Восстановлено модулей: %1$d, проверено ключей: %2$d. Перезапустите Gboard для применения всех изменений.</translation>
+    </string>
+    <string name="gboard_patches_backup_restore_result_mirror_pending">
+        <translation locale="en">Restored %1$d modules and verified %2$d backup keys. Some live mirrors are unavailable; restart Gboard to rebuild them.</translation>
+        <translation locale="ru">Восстановлено модулей: %1$d, проверено ключей: %2$d. Часть зеркал недоступна; перезапустите Gboard для их пересборки.</translation>
+    </string>
+    <string name="gboard_patches_backup_restore_result_partial">
+        <translation locale="en">Restored %1$d modules and %2$d keys; %3$d modules failed. Successful modules were kept.</translation>
+        <translation locale="ru">Восстановлено модулей: %1$d и ключей: %2$d; ошибок модулей: %3$d. Успешные модули сохранены.</translation>
+    </string>
+    <string name="gboard_patches_backup_restore_result_failed">
+        <translation locale="en">No selected module was restored. Review each module below.</translation>
+        <translation locale="ru">Ни один из выбранных модулей не был восстановлен. Проверьте каждый модуль ниже.</translation>
+    </string>
+    <string name="gboard_patches_backup_restore_result_no_keys">
+        <translation locale="en">No stored keys in this module</translation>
+        <translation locale="ru">В этом модуле нет сохранённых ключей</translation>
+    </string>
+    <string name="gboard_patches_backup_status_success">
+        <translation locale="en">Module restored and verified</translation>
+        <translation locale="ru">Модуль восстановлен и проверен</translation>
+    </string>
+    <string name="gboard_patches_backup_status_partial">
+        <translation locale="en">Module was partially restored</translation>
+        <translation locale="ru">Модуль восстановлен частично</translation>
+    </string>
+    <string name="gboard_patches_backup_status_failed">
+        <translation locale="en">Module restore failed</translation>
+        <translation locale="ru">Не удалось восстановить модуль</translation>
+    </string>
+    <string name="gboard_patches_backup_status_previous_values_restored">
+        <translation locale="en">Restore failed; previous values were restored</translation>
+        <translation locale="ru">Восстановление не удалось; прежние значения возвращены</translation>
+    </string>
+    <string name="gboard_patches_backup_key_restored">
+        <translation locale="en">Matched backup value after write</translation>
+        <translation locale="ru">Значение после записи совпало с резервной копией</translation>
+    </string>
+    <string name="gboard_patches_backup_key_removed">
+        <translation locale="en">Removed because it was absent from the complete backup</translation>
+        <translation locale="ru">Удалено, так как отсутствует в полной резервной копии</translation>
+    </string>
+    <string name="gboard_patches_backup_key_failed">
+        <translation locale="en">Did not match the backup value</translation>
+        <translation locale="ru">Не совпало со значением в резервной копии</translation>
+    </string>
+    <string name="gboard_patches_backup_key_previous_value_restored">
+        <translation locale="en">Previous value was restored</translation>
+        <translation locale="ru">Прежнее значение восстановлено</translation>
+    </string>
+    <string name="gboard_flag_store_replacement_title">
+        <translation locale="en">PB/XML Backup &amp; Restore</translation>
+        <translation locale="ru">Копирование и восстановление PB/XML</translation>
+    </string>
+    <string name="gboard_flag_store_replacement_export_section">
+        <translation locale="en">Raw flag-store export</translation>
+        <translation locale="ru">Экспорт файла хранилища флагов</translation>
+    </string>
+    <string name="gboard_flag_store_replacement_export_file">
+        <translation locale="en">Export %1$s</translation>
+        <translation locale="ru">Экспортировать %1$s</translation>
+    </string>
+    <string name="gboard_flag_store_replacement_export_done">
+        <translation locale="en">Raw flag-store file exported.</translation>
+        <translation locale="ru">Файл хранилища флагов экспортирован.</translation>
+    </string>
+    <string name="gboard_flag_store_replacement_export_failed">
+        <translation locale="en">Unable to export this flag-store file.</translation>
+        <translation locale="ru">Не удалось экспортировать этот файл хранилища флагов.</translation>
+    </string>
+    <string name="gboard_flag_store_replacement_import_section">
+        <translation locale="en">Choose restore file</translation>
+        <translation locale="ru">Выбор файла для восстановления</translation>
+    </string>
+    <string name="gboard_flag_store_replacement_choose_title">
+        <translation locale="en">Choose PB or XML file</translation>
+        <translation locale="ru">Выберите файл PB или XML</translation>
+    </string>
+    <string name="gboard_flag_store_replacement_invalid_name">
+        <translation locale="en">The selected file does not have a supported canonical Gboard flag-store name.</translation>
+        <translation locale="ru">Имя выбранного файла не соответствует поддерживаемому каноническому имени хранилища флагов Gboard.</translation>
+    </string>
+    <string name="gboard_flag_store_replacement_stage_failed">
+        <translation locale="en">The replacement file was rejected or could not be prepared.</translation>
+        <translation locale="ru">Файл замены был отклонён или его не удалось подготовить.</translation>
+    </string>
+    <string name="gboard_flag_store_replacement_apply_title">
+        <translation locale="en">Apply and restart Gboard</translation>
+        <translation locale="ru">Применить и перезапустить Gboard</translation>
+    </string>
+    <string name="gboard_flag_store_replacement_apply_confirm_title">
+        <translation locale="en">Restore the Gboard flag store?</translation>
+        <translation locale="ru">Восстановить хранилище флагов Gboard?</translation>
+    </string>
+    <string name="gboard_flag_store_replacement_apply_confirm_message">
+        <translation locale="en">The original values will be overwritten.</translation>
+        <translation locale="ru">Текущие значения будут перезаписаны.</translation>
+    </string>
+    <string name="gboard_flag_store_diff_summary">
+        <translation locale="en">Current values: %1$d · Replacement values: %2$d · Changed: %3$d · Added: %4$d · Removed: %5$d</translation>
+        <translation locale="ru">Текущих: %1$d · В файле замены: %2$d · Изменено: %3$d · Добавлено: %4$d · Удалено: %5$d</translation>
+    </string>
+    <string name="gboard_flag_store_diff_changed">
+        <translation locale="en">Changed values</translation>
+        <translation locale="ru">Изменённые значения</translation>
+    </string>
+    <string name="gboard_flag_store_diff_added">
+        <translation locale="en">Added values</translation>
+        <translation locale="ru">Добавленные значения</translation>
+    </string>
+    <string name="gboard_flag_store_diff_removed">
+        <translation locale="en">Removed values</translation>
+        <translation locale="ru">Удалённые значения</translation>
+    </string>
+    <string name="gboard_flag_store_diff_no_changes">
+        <translation locale="en">No semantic changes</translation>
+        <translation locale="ru">Содержательных изменений нет</translation>
+    </string>
+    <string name="gboard_flag_store_diff_identical">
+        <translation locale="en">The replacement contains the same typed values as the current file.</translation>
+        <translation locale="ru">Файл замены содержит те же типизированные значения, что и текущий файл.</translation>
+    </string>
+    <string name="gboard_flag_store_diff_value_changed">
+        <translation locale="en">%1$s → %2$s</translation>
+        <translation locale="ru">%1$s → %2$s</translation>
+    </string>
+    <string name="gboard_flag_store_diff_value_added">
+        <translation locale="en">Not present → %1$s</translation>
+        <translation locale="ru">Отсутствует → %1$s</translation>
+    </string>
+    <string name="gboard_flag_store_diff_value_removed">
+        <translation locale="en">%1$s → Not present</translation>
+        <translation locale="ru">%1$s → Отсутствует</translation>
+    </string>
+    <string name="gboard_flag_store_diff_current_failed">
+        <translation locale="en">Unable to read the current flag-store file for comparison.</translation>
+        <translation locale="ru">Не удалось прочитать текущий файл хранилища флагов для сравнения.</translation>
+    </string>
+    <string name="gboard_flag_store_diff_decode_failed">
+        <translation locale="en">Unable to completely decode this flag store, so it cannot be used.</translation>
+        <translation locale="ru">Не удалось полностью декодировать это хранилище флагов, поэтому его нельзя использовать.</translation>
+    </string>
+    <string name="gboard_patches_calculator_title">
+        <translation locale="en">Simple Calculator</translation>
+        <translation locale="ru">Простой калькулятор</translation>
+    </string>
+    <string name="gboard_patches_calculator_summary">
+        <translation locale="en">Type an arithmetic expression in any text field. Its result appears in Gboard’s suggestion row and can replace the expression with one tap.</translation>
+        <translation locale="ru">Введите арифметическое выражение в любом текстовом поле. Результат появится в строке подсказок Gboard и заменит выражение одним нажатием.</translation>
+    </string>
+    <string name="gboard_patches_calculator_enable_title">
+        <translation locale="en">Enable Simple Calculator</translation>
+        <translation locale="ru">Включить простой калькулятор</translation>
+    </string>
+    <string name="gboard_patches_calculator_enable_summary">
+        <translation locale="en">Shows results for complete arithmetic expressions the next time the keyboard opens.</translation>
+        <translation locale="ru">Показывает результаты для завершённых арифметических выражений при следующем открытии клавиатуры.</translation>
+    </string>
+    <string name="gboard_patches_calculator_section_feature">
+        <translation locale="en">Feature</translation>
+        <translation locale="ru">Функция</translation>
+    </string>
+    <string name="gboard_patches_calculator_section_usage">
+        <translation locale="en">Usage</translation>
+        <translation locale="ru">Использование</translation>
+    </string>
+    <string name="gboard_patches_calculator_usage_title">
+        <translation locale="en">Inline result suggestion</translation>
+        <translation locale="ru">Встроенный расчёт в подсказках</translation>
+    </string>
+    <string name="gboard_patches_calculator_usage_summary">
+        <translation locale="en">Type a complete expression such as 2+3×4 in the current app. Tap the result above the keyboard to replace the expression with 14, or long-press the result to copy it.</translation>
+        <translation locale="ru">Введите завершённое выражение, например 2+3×4, в текущем приложении. Нажмите на результат над клавиатурой, чтобы заменить выражение на 14, или удерживайте результат для копирования.</translation>
+    </string>
+    <string name="gboard_patches_calculator_limits_title">
+        <translation locale="en">Supported range and limits</translation>
+        <translation locale="ru">Поддерживаемый диапазон и ограничения</translation>
+    </string>
+    <string name="gboard_patches_calculator_limits_summary">
+        <translation locale="en">Expression length: Up to 128 characters; rejected before normalization.\nBinary operations: Up to 63.\nParentheses depth: Up to 16 levels.\nInternal precision: 16 significant digits, HALF_EVEN.\nDisplay precision: Up to 3 decimal places, HALF_UP.\nLarge numbers: Scientific notation from 10¹².\nOperators: + - * / − × ÷\nParentheses: Supports () and full-width （） from Traditional Chinese Gboard.</translation>
+        <translation locale="ru">Длина выражения: до 128 символов (отклоняется до нормализации).
+Бинарные операции: до 63.
+Глубина скобок: до 16 уровней.
+Внутренняя точность: 16 значащих цифр, HALF_EVEN.
+Точность отображения: до 3 знаков после запятой, HALF_UP.
+Большие числа: научная запись от 10¹².
+Операторы: + - * / − × ÷
+Скобки: поддерживаются обычные () и полноширинные скобки.</translation>
+    </string>
+    <string name="gboard_patches_calculator_error_title">
+        <translation locale="en">Calculator setting unavailable</translation>
+        <translation locale="ru">Настройка калькулятора недоступна</translation>
+    </string>
+    <string name="gboard_patches_calculator_error_summary">
+        <translation locale="en">The calculator settings screen failed to load. Reopen Gboard settings and try again.</translation>
+        <translation locale="ru">Не удалось загрузить экран настроек калькулятора. Переоткройте настройки Gboard и попробуйте снова.</translation>
+    </string>
+    <string name="gboard_patches_swipe_dismiss_title">
+        <translation locale="en">Swipe Down to Dismiss Keyboard</translation>
+        <translation locale="ru">Скрытие клавиатуры свайпом вниз</translation>
+    </string>
+    <string name="gboard_patches_swipe_dismiss_summary">
+        <translation locale="en">Swipe down from the suggestions or toolbar to close the keyboard.</translation>
+        <translation locale="ru">Свайп вниз от строки подсказок или панели инструментов скрывает клавиатуру.</translation>
+    </string>
+    <string name="gboard_patches_swipe_dismiss_section">
+        <translation locale="en">General</translation>
+        <translation locale="ru">Основные</translation>
+    </string>
+    <string name="gboard_patches_swipe_dismiss_enabled_title">
+        <translation locale="en">Enable swipe down to dismiss</translation>
+        <translation locale="ru">Включить скрытие свайпом вниз</translation>
+    </string>
+    <string name="gboard_patches_swipe_dismiss_enabled_summary">
+        <translation locale="en">Only swipes starting in the keyboard header can close the keyboard.</translation>
+        <translation locale="ru">Клавиатуру закрывают только свайпы, начинающиеся в верхней полосе клавиатуры.</translation>
+    </string>
+    <string name="gboard_patches_custom_theme_title">
+        <translation locale="en">Custom themes</translation>
+        <translation locale="ru">Свои темы</translation>
+    </string>
+    <string name="gboard_patches_custom_theme_summary">
+        <translation locale="en">Import custom ZIP themes or choose beautiful themes from Rboard.</translation>
+        <translation locale="ru">Импорт тем из ZIP-архивов или выбор тем из коллекции Rboard.</translation>
+    </string>
+    <string name="gboard_patches_custom_theme_activity_title">
+        <translation locale="en">Custom themes</translation>
+        <translation locale="ru">Свои темы</translation>
+    </string>
+    <string name="gboard_patches_custom_theme_section">
+        <translation locale="en">Feature</translation>
+        <translation locale="ru">Функция</translation>
+    </string>
+    <string name="gboard_patches_custom_theme_enabled_title">
+        <translation locale="en">Enable custom themes</translation>
+        <translation locale="ru">Включить свои темы</translation>
+    </string>
+    <string name="gboard_patches_custom_theme_enabled_summary">
+        <translation locale="en">Enable the custom theme gallery and ZIP theme support.</translation>
+        <translation locale="ru">Включает галерею пользовательских тем и поддержку импорта ZIP-тем.</translation>
+    </string>
+    <string name="gboard_patches_custom_theme_browse_title">
+        <translation locale="en">Browse Rboard themes</translation>
+        <translation locale="ru">Обзор тем Rboard</translation>
+    </string>
+    <string name="gboard_patches_custom_theme_browse_summary">
+        <translation locale="en">Themes come from Rboard’s official GitHub repository (PackRepoBeta). The Rboard project is archived; thanks to its author for eight years of work.</translation>
+        <translation locale="ru">Темы загружаются из официального репозитория Rboard на GitHub (PackRepoBeta). Проект Rboard находится в архиве; спасибо его автору за восемь лет работы.</translation>
+    </string>
+    <string name="gboard_patches_custom_theme_clear_cache">
+        <translation locale="en">Clear downloaded packs</translation>
+        <translation locale="ru">Очистить скачанные наборы</translation>
+    </string>
+    <string name="gboard_patches_custom_theme_choose_pack">
+        <translation locale="en">Choose theme pack</translation>
+        <translation locale="ru">Выбрать набор тем</translation>
+    </string>
+    <string name="gboard_patches_custom_theme_delete_downloads">
+        <translation locale="en">Delete downloaded packs</translation>
+        <translation locale="ru">Удалить скачанные наборы</translation>
+    </string>
+    <string name="gboard_patches_custom_theme_select_all">
+        <translation locale="en">Select all</translation>
+        <translation locale="ru">Выбрать все</translation>
+    </string>
+    <string name="gboard_patches_custom_theme_delete">
+        <translation locale="en">Delete</translation>
+        <translation locale="ru">Удалить</translation>
+    </string>
+    <string name="gboard_patches_custom_theme_deleted">
+        <translation locale="en">Deleted %1$d downloaded pack files.</translation>
+        <translation locale="ru">Удалено скачанных файлов наборов: %1$d.</translation>
+    </string>
+    <string name="gboard_patches_custom_theme_no_downloads">
+        <translation locale="en">No downloaded packs.</translation>
+        <translation locale="ru">Нет скачанных наборов.</translation>
+    </string>
+    <string name="gboard_patches_custom_theme_apply">
+        <translation locale="en">Apply %1$s</translation>
+        <translation locale="ru">Применить %1$s</translation>
+    </string>
+    <string name="gboard_patches_custom_theme_downloading">
+        <translation locale="en">Downloading %1$s…</translation>
+        <translation locale="ru">Загрузка %1$s…</translation>
+    </string>
+    <string name="gboard_patches_custom_theme_download_progress">
+        <translation locale="en">Downloading %1$s… %2$d%%</translation>
+        <translation locale="ru">Загрузка %1$s… %2$d%%</translation>
+    </string>
+    <string name="gboard_patches_custom_theme_preview_downloading">
+        <translation locale="en">Downloading theme previews…</translation>
+        <translation locale="ru">Загрузка предпросмотра тем…</translation>
+    </string>
+    <string name="gboard_patches_custom_theme_preview_download_progress">
+        <translation locale="en">Downloading theme previews… %1$d%%</translation>
+        <translation locale="ru">Загрузка предпросмотра тем… %1$d%%</translation>
+    </string>
+    <string name="gboard_patches_custom_theme_preview_preparing">
+        <translation locale="en">Preparing theme previews…</translation>
+        <translation locale="ru">Подготовка предпросмотра тем…</translation>
+    </string>
+    <string name="gboard_patches_custom_theme_preview_failed">
+        <translation locale="en">Theme previews could not be retrieved. Try again later or apply the latest Patch again.</translation>
+        <translation locale="ru">Не удалось загрузить предпросмотр тем. Повторите позже или обновите патч.</translation>
+    </string>
+    <string name="gboard_patches_custom_theme_pack_loaded">
+        <translation locale="en">%1$s · %2$d themes · %3$s</translation>
+        <translation locale="ru">%1$s · тем: %2$d · %3$s</translation>
+    </string>
+    <string name="gboard_patches_custom_theme_cache_cleared">
+        <translation locale="en">Cleared %1$d cached files</translation>
+        <translation locale="ru">Очищено файлов кэша: %1$d</translation>
+    </string>
+    <string name="gboard_patches_custom_theme_catalog_failed">
+        <translation locale="en">The Custom Theme catalog could not be loaded.</translation>
+        <translation locale="ru">Не удалось загрузить каталог пользовательских тем.</translation>
+    </string>
+    <string name="gboard_patches_custom_theme_pack_cached">
+        <translation locale="en">%1$s · %2$d themes · downloaded</translation>
+        <translation locale="ru">%1$s · тем: %2$d · загружен</translation>
+    </string>
+    <string name="gboard_patches_custom_theme_pack_download">
+        <translation locale="en">%1$s · %2$d themes · download on selection</translation>
+        <translation locale="ru">%1$s · тем: %2$d · загрузка при выборе</translation>
+    </string>
+    <string name="gboard_patches_custom_theme_applying">
+        <translation locale="en">Applying %1$s…</translation>
+        <translation locale="ru">Применение %1$s…</translation>
+    </string>
+    <string name="gboard_patches_custom_theme_applied">
+        <translation locale="en">Applied %1$s. Restarting Gboard…</translation>
+        <translation locale="ru">Тема %1$s применена. Перезапуск Gboard…</translation>
+    </string>
+    <string name="gboard_patches_custom_theme_failed">
+        <translation locale="en">Could not apply %1$s. Gboard was not restarted.</translation>
+        <translation locale="ru">Не удалось применить %1$s. Gboard не был перезапущен.</translation>
+    </string>
+    <string name="gboard_patches_custom_theme_failed_toast">
+        <translation locale="en">The theme could not be verified or installed.</translation>
+        <translation locale="ru">Не удалось проверить или установить тему.</translation>
+    </string>
+    <string name="gboard_patches_custom_theme_source_chooser_title">
+        <translation locale="en">Choose theme source</translation>
+        <translation locale="ru">Выберите источник темы</translation>
+    </string>
+    <string name="gboard_patches_custom_theme_source_photo">
+        <translation locale="en">Create from photo</translation>
+        <translation locale="ru">Создать из фото</translation>
+    </string>
+    <string name="gboard_patches_custom_theme_source_zip">
+        <translation locale="en">Import theme (.zip)</translation>
+        <translation locale="ru">Импортировать тему (.zip)</translation>
+    </string>
+    <string name="gboard_patches_custom_theme_choose_import">
+        <translation locale="en">Choose a theme to import</translation>
+        <translation locale="ru">Выберите тему для импорта</translation>
+    </string>
+    <string name="gboard_patches_custom_theme_imported">
+        <translation locale="en">Theme imported</translation>
+        <translation locale="ru">Тема импортирована</translation>
+    </string>
+    <string name="gboard_patches_custom_theme_import_failed">
+        <translation locale="en">Theme import failed</translation>
+        <translation locale="ru">Не удалось импортировать тему</translation>
+    </string>
+    <string name="gboard_edit_ap_title">
+        <translation locale="en">Toolbar editing buttons</translation>
+        <translation locale="ru">Кнопки правки на панели</translation>
+    </string>
+    <string name="gboard_edit_ap_section_feature">
+        <translation locale="en">Feature</translation>
+        <translation locale="ru">Функция</translation>
+    </string>
+    <string name="gboard_edit_ap_summary">
+        <translation locale="en">Add Select All, Copy, Cut and Paste to the menu.</translation>
+        <translation locale="ru">Добавляет «Выбрать всё», «Копировать», «Вырезать» и «Вставить» в меню.</translation>
+    </string>
+    <string name="gboard_edit_ap_restart">
+        <translation locale="en">Changes take effect after you force stop and restart Gboard.</translation>
+        <translation locale="ru">Изменения вступят в силу после принудительной остановки и перезапуска Gboard.</translation>
+    </string>
+    <string name="gboard_edit_ap_select_all">
+        <translation locale="en">Select all</translation>
+        <translation locale="ru">Выбрать всё</translation>
+    </string>
+    <string name="gboard_edit_ap_copy">
+        <translation locale="en">Copy</translation>
+        <translation locale="ru">Копировать</translation>
+    </string>
+    <string name="gboard_edit_ap_cut">
+        <translation locale="en">Cut</translation>
+        <translation locale="ru">Вырезать</translation>
+    </string>
+    <string name="gboard_edit_ap_paste">
+        <translation locale="en">Paste</translation>
+        <translation locale="ru">Вставить</translation>
+    </string>
+    <string name="gboard_edit_ap_error">
+        <translation locale="en">Editing buttons settings unavailable. Reopen settings and try again.</translation>
+        <translation locale="ru">Настройки кнопок правки недоступны. Переоткройте настройки и попробуйте снова.</translation>
+    </string>
+    <string name="gboard_edit_ap_select_all_unselected_title">
+        <translation locale="en">Select all when nothing is selected</translation>
+        <translation locale="ru">Выделять всё, если ничего не выделено</translation>
+    </string>
+    <string name="gboard_edit_ap_select_all_unselected_summary">
+        <translation locale="en">When no text is selected, the toolbar Copy/Cut buttons copy or cut all text in the input field.</translation>
+        <translation locale="ru">Если текст не выделен, кнопки «Копировать» и «Вырезать» на панели скопируют или вырежут весь текст в поле ввода.</translation>
+    </string>
+    <string name="gboard_patches_section_settings">
+        <translation locale="en">Settings</translation>
+        <translation locale="ru">Настройки</translation>
+    </string>
+    <plurals name="gboard_patches_restart_action_pending">
+        <item quantity="one">
+            <translation locale="en">Restart Gboard (%1$d change waiting to apply)</translation>
+            <translation locale="ru">Перезапустить Gboard (%1$d изменение ожидает применения)</translation>
+        </item>
+        <item quantity="few">
+            <translation locale="en">Restart Gboard (%1$d changes waiting to apply)</translation>
+            <translation locale="ru">Перезапустить Gboard (%1$d изменения ожидают применения)</translation>
+        </item>
+        <item quantity="many">
+            <translation locale="en">Restart Gboard (%1$d changes waiting to apply)</translation>
+            <translation locale="ru">Перезапустить Gboard (%1$d изменений ожидает применения)</translation>
+        </item>
+        <item quantity="other">
+            <translation locale="en">Restart Gboard (%1$d changes waiting to apply)</translation>
+            <translation locale="ru">Перезапустить Gboard (%1$d изменения ожидают применения)</translation>
+        </item>
+    </plurals>
+    <string name="gboard_patches_preview_row_description">
+        <translation locale="en">Preview “%1$s”</translation>
+        <translation locale="ru">Предпросмотр «%1$s»</translation>
+    </string>
+    <string name="gboard_patches_preview_done">
+        <translation locale="en">Done</translation>
+        <translation locale="ru">Готово</translation>
+    </string>
+    <string name="gboard_patches_preview_viewer_close">
+        <translation locale="en">Close viewer</translation>
+        <translation locale="ru">Закрыть просмотр</translation>
+    </string>
+    <string name="gboard_patches_preview_viewer_previous">
+        <translation locale="en">Previous</translation>
+        <translation locale="ru">Назад</translation>
+    </string>
+    <string name="gboard_patches_preview_viewer_next">
+        <translation locale="en">Next</translation>
+        <translation locale="ru">Далее</translation>
+    </string>
+    <string name="gboard_patches_preview_open_fullscreen">
+        <translation locale="en">View full screen</translation>
+        <translation locale="ru">На весь экран</translation>
+    </string>
+    <string name="gboard_patches_advanced_voice_modes_title">
+        <translation locale="en">Voice typing modes</translation>
+        <translation locale="ru">Режимы голосового ввода</translation>
+    </string>
+    <string name="gboard_patches_advanced_voice_modes_summary">
+        <translation locale="en">Voice typing has three modes: Standard, Standard - Advanced features (colorful microphone), and Rambler. Standard - Advanced features requires the Dictation payload.</translation>
+        <translation locale="ru">Доступны три режима голосового ввода: Стандартный, Стандартный — Расширенные функции (цветной микрофон) и Rambler. Для режима «Стандартный — Расширенные функции» требуется компонент диктовки.</translation>
+    </string>
+    <string name="language_models_entry_title">
+        <translation locale="en">Dictionaries &amp; Predictions</translation>
+        <translation locale="ru">Словари и подсказки</translation>
+    </string>
+    <string name="language_models_title">
+        <translation locale="en">Language model versions</translation>
+        <translation locale="ru">Версии языковых моделей</translation>
+    </string>
+    <string name="language_models_summary">
+        <translation locale="en">Choose dictionary and prediction resources by language, and inspect observed versions.</translation>
+        <translation locale="ru">Выбор ресурсов словарей и подсказок по языкам и просмотр фактически загруженных версий.</translation>
+    </string>
+    <string name="language_models_enabled_help">
+        <translation locale="en">Enable to use custom versions; disable to restore APK defaults. Restart Gboard after changes.</translation>
+        <translation locale="ru">Включите, чтобы использовать выбранные версии; отключите, чтобы вернуть значения APK по умолчанию. После изменений перезапустите Gboard.</translation>
+    </string>
+    <string name="language_models_version">
+        <translation locale="en">Resource version</translation>
+        <translation locale="ru">Версия ресурса</translation>
+    </string>
+    <string name="language_models_apk">
+        <translation locale="en">APK default</translation>
+        <translation locale="ru">По умолчанию из APK</translation>
+    </string>
+    <string name="language_models_group_suggestions">
+        <translation locale="en">Word suggestions and dictionaries</translation>
+        <translation locale="ru">Подсказки слов и словари</translation>
+    </string>
+    <string name="language_models_group_correction">
+        <translation locale="en">Input correction</translation>
+        <translation locale="ru">Исправление ввода</translation>
+    </string>
+    <string name="language_models_group_auxiliary">
+        <translation locale="en">Auxiliary resources</translation>
+        <translation locale="ru">Вспомогательные ресурсы</translation>
+    </string>
+    <string name="language_models_hmm_title">
+        <translation locale="en">HMM</translation>
+        <translation locale="ru">HMM</translation>
+    </string>
+    <string name="language_models_hmm_help">
+        <translation locale="en">Traditional Chinese and other Chinese and Korean languages</translation>
+        <translation locale="ru">Традиционный и упрощённый китайский, корейский и родственные языки</translation>
+    </string>
+    <string name="language_models_delight_title">
+        <translation locale="en">Delight</translation>
+        <translation locale="ru">Delight</translation>
+    </string>
+    <string name="language_models_delight_help">
+        <translation locale="en">English, German, Thai and more languages</translation>
+        <translation locale="ru">Английский, немецкий, тайский, русский и другие языки</translation>
+    </string>
+    <string name="language_models_nwp_title">
+        <translation locale="en">NWP</translation>
+        <translation locale="ru">NWP</translation>
+    </string>
+    <string name="language_models_nwp_help">
+        <translation locale="en">American English · Next-word and multiword prediction</translation>
+        <translation locale="ru">Американский английский · Предсказание следующего слова и фраз</translation>
+    </string>
+    <string name="language_models_key_correction_title">
+        <translation locale="en">Key correction</translation>
+        <translation locale="ru">Коррекция нажатий</translation>
+    </string>
+    <string name="language_models_key_correction_help">
+        <translation locale="en">American English · Key-correction model</translation>
+        <translation locale="ru">Американский английский · Модель коррекции нажатий</translation>
+    </string>
+    <string name="language_models_saft_title">
+        <translation locale="en">SAFT</translation>
+        <translation locale="ru">SAFT</translation>
+    </string>
+    <string name="language_models_saft_help">
+        <translation locale="en">English, German, Spanish and French · User-feature-cache resources</translation>
+        <translation locale="ru">Английский, немецкий, испанский и французский · Ресурсы кэша пользовательских признаков</translation>
+    </string>
+    <string name="language_models_mozc_spell_title">
+        <translation locale="en">Mozc spellchecker</translation>
+        <translation locale="ru">Проверка орфографии Mozc</translation>
+    </string>
+    <string name="language_models_mozc_spell_help">
+        <translation locale="en">Japanese · Spelling-correction data</translation>
+        <translation locale="ru">Японский · Данные для исправления орфографии</translation>
+    </string>
+    <string name="language_models_not_configured">
+        <translation locale="en">Not configured</translation>
+        <translation locale="ru">Не настроено</translation>
+    </string>
+    <string name="language_models_unknown_version">
+        <translation locale="en">Version unavailable</translation>
+        <translation locale="ru">Версия недоступна</translation>
+    </string>
+    <string name="language_models_hash_identity">
+        <translation locale="en">Resource version identified by the reviewed model file SHA-256</translation>
+        <translation locale="ru">Версия ресурса определена по проверенному SHA-256 файла модели</translation>
+    </string>
+    <string name="language_models_mozc_title">
+        <translation locale="en">Mozc</translation>
+        <translation locale="ru">Mozc</translation>
+    </string>
+    <string name="language_models_mozc_help">
+        <translation locale="en">Japanese · Main dictionary and language data</translation>
+        <translation locale="ru">Японский · Основной словарь и языковые данные</translation>
+    </string>
+    <string name="language_models_grammar_title">
+        <translation locale="en">Grammar</translation>
+        <translation locale="ru">Грамматика</translation>
+    </string>
+    <string name="language_models_grammar_help">
+        <translation locale="en">English, Spanish, French and Portuguese · Grammar correction</translation>
+        <translation locale="ru">Английский, испанский, французский и португальский · Проверка грамматики</translation>
+    </string>
+    <string name="language_models_langid_title">
+        <translation locale="en">Lang-id</translation>
+        <translation locale="ru">Lang-id</translation>
+    </string>
+    <string name="language_models_langid_help">
+        <translation locale="en">Multiple languages · Language identification</translation>
+        <translation locale="ru">Несколько языков · Определение языка</translation>
+    </string>
+    <string name="language_models_nwp_2023">
+        <translation locale="en">S25 Ultra</translation>
+        <translation locale="ru">S25 Ultra</translation>
+    </string>
+    <string name="language_models_pixel_disabled">
+        <translation locale="en">Pixel 2026-10-27 · Disable this NWP engine</translation>
+        <translation locale="ru">Pixel 2026-10-27 · Отключить этот движок NWP</translation>
+    </string>
+    <string name="language_models_dictionary_languages">
+        <translation locale="en">Delight · Dictionary versions by language</translation>
+        <translation locale="ru">Delight · Версии словарей по языкам</translation>
+    </string>
+    <string name="language_models_dictionary_languages_help">
+        <translation locale="en">The Delight selector chooses the overall catalog version. Its 890 language and variant entries each have their own dictionary version. Look up the dictionaries specified by each catalog; this does not select versions or enable languages.</translation>
+        <translation locale="ru">Выбор Delight задаёт общую версию каталога. Каждая из 890 записей языков и вариантов имеет собственную версию словаря. Здесь можно посмотреть словари каждого каталога; это не выбирает отдельные версии и не включает языки.</translation>
+    </string>
+    <string name="language_models_results_count">
+        <translation locale="en">Delight dictionaries: %1$d language and variant entries</translation>
+        <translation locale="ru">Словари Delight: записей языков и вариантов — %1$d</translation>
+    </string>
+    <string name="language_models_about">
+        <translation locale="en">How versions work</translation>
+        <translation locale="ru">Как работают версии</translation>
+    </string>
+    <string name="language_models_hmm_about_title">
+        <translation locale="en">HMM · Chinese and Korean dictionaries and conversion</translation>
+        <translation locale="ru">HMM · Китайские и корейские словари и преобразование</translation>
+    </string>
+    <string name="language_models_hmm_about">
+        <translation locale="en">Dictionary and model resources for Traditional Chinese, Simplified Chinese, Korean and related input methods. Switching may affect word conversion, candidate ranking and continuation predictions for input such as Zhuyin and Pinyin.</translation>
+        <translation locale="ru">Словари и модели для традиционного китайского, упрощённого китайского, корейского и родственных способов ввода. Переключение может влиять на преобразование слов, ранжирование кандидатов и подсказки продолжения для Чжуинь и Пиньинь.</translation>
+    </string>
+    <string name="language_models_delight_about_title">
+        <translation locale="en">Delight · Multilingual dictionaries and suggestions</translation>
+        <translation locale="ru">Delight · Многоязычные словари и подсказки</translation>
+    </string>
+    <string name="language_models_delight_about">
+        <translation locale="en">Dictionaries and language models for English, German, Thai and many other languages. Switching may affect suggested vocabulary, spelling correction, candidate ranking and next-word suggestions. The selector chooses the overall dictionary catalog; each language and variant has its own dictionary version and may update at a different time.</translation>
+        <translation locale="ru">Словари и языковые модели для английского, немецкого, тайского, русского и многих других языков. Переключение может влиять на словарный запас, исправление опечаток, ранжирование вариантов и подсказки следующего слова. Селектор выбирает общий каталог; каждый язык и вариант имеет собственную версию словаря и может обновляться отдельно.</translation>
+    </string>
+    <string name="language_models_nwp_about_title">
+        <translation locale="en">NWP · Next-word and multiword prediction</translation>
+        <translation locale="ru">NWP · Предсказание следующего слова и фраз</translation>
+    </string>
+    <string name="language_models_nwp_about">
+        <translation locale="en">Next-word prediction: an additional American English engine that suggests following words from the text already entered. It does not replace the main dictionary; disabling it does not disable every source of next-word suggestions.</translation>
+        <translation locale="ru">Предсказание следующего слова: дополнительный движок для американского английского, предлагающий следующие слова на основе введённого текста. Он не заменяет основной словарь; его отключение не отключает все источники подсказок.</translation>
+    </string>
+    <string name="language_models_key_correction_about_title">
+        <translation locale="en">Key correction · Correction-trigger decisions</translation>
+        <translation locale="ru">Коррекция нажатий · Решения о срабатывании исправлений</translation>
+    </string>
+    <string name="language_models_key_correction_about">
+        <translation locale="en">A Google American English TFLite model used for input-correction triggering, separate from the main dictionary. Presets apply the matching TFLite enable and key-routing flags together.</translation>
+        <translation locale="ru">Модель Google TFLite для американского английского, отвечающая за срабатывание автоисправления отдельно от основного словаря. Пресеты применяют соответствующие флаги включения TFLite и маршрутизации нажатий вместе.</translation>
+    </string>
+    <string name="language_models_saft_about_title">
+        <translation locale="en">SAFT · User-feature-cache resources</translation>
+        <translation locale="ru">SAFT · Ресурсы кэша пользовательских признаков</translation>
+    </string>
+    <string name="language_models_saft_about">
+        <translation locale="en">Auxiliary models and biasing dictionaries retrieved by the Gboard user-feature-cache manager. This catalog provides American English, German, Spanish and French resources, rather than the main Traditional Chinese model. This selects resource configuration; Gboard controls usage conditions. Native SAFT version detection is not yet available.</translation>
+        <translation locale="ru">Вспомогательные модели и уточняющие словари, загружаемые менеджером пользовательских признаков Gboard. Этот каталог содержит ресурсы для американского английского, немецкого, испанского и французского языков. Здесь выбирается конфигурация ресурсов; условия использования определяет сам Gboard. Нативное определение версии SAFT пока недоступно.</translation>
+    </string>
+    <string name="language_models_mozc_spell_about_title">
+        <translation locale="en">Mozc spellchecker · Japanese spelling correction</translation>
+        <translation locale="ru">Проверка орфографии Mozc · Исправление японской орфографии</translation>
+    </string>
+    <string name="language_models_mozc_spell_about">
+        <translation locale="en">Separate data for Japanese spelling-correction suggestions. It is independent of the main kana-to-kanji dictionary. Selecting resources does not enable system spell checking.</translation>
+        <translation locale="ru">Отдельные данные для подсказок исправления японской орфографии. Они не зависят от основного словаря преобразования каны в кандзи. Выбор ресурсов не включает системную проверку орфографии.</translation>
+    </string>
+    <string name="language_models_mozc_about_title">
+        <translation locale="en">Mozc · Japanese dictionary and conversion</translation>
+        <translation locale="ru">Mozc · Японский словарь и преобразование</translation>
+    </string>
+    <string name="language_models_mozc_about">
+        <translation locale="en">Main dictionary and language data for Japanese input. Switching may affect vocabulary for kana-to-kanji conversion, conversion candidates and their ranking.</translation>
+        <translation locale="ru">Основной словарь и языковые данные для японского ввода. Переключение может влиять на словарь преобразования каны в кандзи, варианты преобразования и их порядок.</translation>
+    </string>
+    <string name="language_models_grammar_about_title">
+        <translation locale="en">Grammar · Grammar correction</translation>
+        <translation locale="ru">Грамматика · Проверка грамматики</translation>
+    </string>
+    <string name="language_models_grammar_about">
+        <translation locale="en">Grammar correction resources for supported languages such as English, Spanish, French and Portuguese. These affect sentence error detection and correction suggestions. Selecting resources here does not enable the Grammar Checker feature.</translation>
+        <translation locale="ru">Ресурсы проверки грамматики для поддерживаемых языков (английский, испанский, французский, португальский). Они влияют на поиск ошибок в предложениях и варианты исправлений. Выбор ресурсов здесь не включает саму функцию проверки грамматики.</translation>
+    </string>
+    <string name="language_models_langid_about_title">
+        <translation locale="en">Lang-id · Language identification</translation>
+        <translation locale="ru">Lang-id · Определение языка</translation>
+    </string>
+    <string name="language_models_langid_about">
+        <translation locale="en">Identifies the likely language of multilingual input to help select suggestions from the appropriate language. It is not a dictionary and does not add input languages; switching may affect language decisions for multilingual suggestions.</translation>
+        <translation locale="ru">Определяет вероятный язык при многоязычном вводе, чтобы подбирать подсказки из нужного языка. Это не словарь и не добавляет языки ввода; переключение может влиять на выбор языка для многоязычных подсказок.</translation>
+    </string>
+    <string name="language_models_actual_title">
+        <translation locale="en">Observed loaded resources</translation>
+        <translation locale="ru">Загруженные ресурсы</translation>
+    </string>
+    <string name="language_models_restart_help">
+        <translation locale="en">Restart Gboard, open the relevant language keyboard, then check again.</translation>
+        <translation locale="ru">Перезапустите Gboard, откройте нужную языковую раскладку и проверьте снова.</translation>
+    </string>
+    <string name="language_models_loaded">
+        <translation locale="en">Native language-model load succeeded</translation>
+        <translation locale="ru">Нативная загрузка языковой модели выполнена</translation>
+    </string>
+    <string name="language_models_enrolled">
+        <translation locale="en">Native input-scheme enrollment succeeded</translation>
+        <translation locale="ru">Нативная регистрация схемы ввода выполнена</translation>
+    </string>
+    <string name="language_models_submitted">
+        <translation locale="en">Submitted to NWP engine; readiness is not yet confirmed</translation>
+        <translation locale="ru">Передано движку NWP; готовность ещё не подтверждена</translation>
+    </string>
+    <string name="language_models_search">
+        <translation locale="en">Search languages</translation>
+        <translation locale="ru">Поиск языков</translation>
+    </string>
+    <string name="language_models_search_hint">
+        <translation locale="en">Language name or locale, for example English, German, Thai, en-US</translation>
+        <translation locale="ru">Название языка или локаль, например Russian, English, ru-RU, en-US</translation>
+    </string>
+    <string name="language_models_refine_search">
+        <translation locale="en">No matching entry. Try another language name or locale.</translation>
+        <translation locale="ru">Совпадений не найдено. Попробуйте другое название языка или код локали.</translation>
+    </string>
+    <string name="language_models_unavailable">
+        <translation locale="en">Dictionary version lookup is unavailable.</translation>
+        <translation locale="ru">Просмотр версий словарей недоступен.</translation>
+    </string>
+    <string name="language_models_details">
+        <translation locale="en">View observed model loads</translation>
+        <translation locale="ru">Просмотр загруженных моделей</translation>
+    </string>
+    <string name="language_models_details_help">
+        <translation locale="en">Confirmed loads and engine submission status.</translation>
+        <translation locale="ru">Подтверждённые загрузки и статус передачи движку.</translation>
+    </string>
+    <string name="language_models_nwp_ready">
+        <translation locale="en">Native NWP engine confirmed Ready</translation>
+        <translation locale="ru">Нативный движок NWP подтвердил готовность</translation>
+    </string>
+    <string name="language_models_disabled">
+        <translation locale="en">Disabled</translation>
+        <translation locale="ru">Отключено</translation>
+    </string>
+    <string name="language_models_expected_version">
+        <translation locale="en">The selected catalog specifies %1$d. Sync may still be pending, or another source may be active. Reopen the keyboard after sync.</translation>
+        <translation locale="ru">Выбранный каталог указывает %1$d. Синхронизация ещё может идти, либо активен другой источник. Переоткройте клавиатуру после синхронизации.</translation>
+    </string>
+    <string name="language_models_detection_scope">
+        <translation locale="en">Detection coverage</translation>
+        <translation locale="ru">Охват обнаружения</translation>
+    </string>
+    <string name="language_models_detection_scope_help">
+        <translation locale="en">Native load observation is available for HMM, Delight, NWP and key correction. Key-correction resource versions are identified by reviewed file SHA-256 values. Mozc main/spellchecker, Grammar, Lang-id and SAFT currently provide configuration selection without native version detection.</translation>
+        <translation locale="ru">Нативное отслеживание загрузки доступно для HMM, Delight, NWP и коррекции нажатий. Версии ресурсов коррекции нажатий определяются по проверенным SHA-256 файлов. Mozc (основной и орфография), Грамматика, Lang-id и SAFT сейчас поддерживают выбор конфигурации без нативного определения версии.</translation>
+    </string>
+    <string name="gboard_patches_group_more_title">
+        <translation locale="en">More settings</translation>
+        <translation locale="ru">Другие настройки</translation>
+    </string>
+    <string name="gboard_patches_group_more_summary">
+        <translation locale="en">Settings style, backup and restore, and developer options.</translation>
+        <translation locale="ru">Стиль настроек, резервное копирование и параметры разработчика.</translation>
+    </string>
+    <string name="gboard_patches_group_more_empty_title">
+        <translation locale="en">No additional settings available</translation>
+        <translation locale="ru">Дополнительных настроек нет</translation>
+    </string>
+    <string name="gboard_patches_group_more_empty_summary">
+        <translation locale="en">This build does not include any additional settings features.</translation>
+        <translation locale="ru">В этой сборке отсутствуют дополнительные функции настроек.</translation>
+    </string>
+    <string name="language_models_observation_title">
+        <translation locale="en">Detect loaded models</translation>
+        <translation locale="ru">Отслеживать загруженные модели</translation>
+    </string>
+    <string name="language_models_observation_help">
+        <translation locale="en">Enabling restarts Gboard once to detect fresh model loads. Then open the keyboard preview.</translation>
+        <translation locale="ru">Включение один раз перезапустит Gboard для фиксации свежих загрузок моделей. Затем откройте предпросмотр клавиатуры.</translation>
+    </string>
+    <string name="language_models_observation_wait_title">
+        <translation locale="en">Waiting for model loads</translation>
+        <translation locale="ru">Ожидание загрузки моделей</translation>
+    </string>
+    <string name="language_models_observation_off">
+        <translation locale="en">Detection is off. Enable it to inspect the resources loaded by your keyboard.</translation>
+        <translation locale="ru">Отслеживание отключено. Включите его, чтобы просмотреть ресурсы, загружаемые клавиатурой.</translation>
+    </string>
+    <string name="language_models_observation_wait">
+        <translation locale="en">Waiting for model loads. Open the keyboard preview below; new observations appear here automatically. If none appear, use Restart Gboard above and open the preview again.</translation>
+        <translation locale="ru">Ожидание загрузки моделей. Откройте предпросмотр клавиатуры ниже — новые данные появятся здесь автоматически. Если ничего не появилось, нажмите «Перезапустить Gboard» выше и снова откройте предпросмотр.</translation>
+    </string>
+    <string name="language_models_observation_restart_failed">
+        <translation locale="en">Detection is enabled, but Gboard could not restart automatically. Use Restart Gboard above, then open the keyboard preview.</translation>
+        <translation locale="ru">Отслеживание включено, но автоматически перезапустить Gboard не удалось. Нажмите «Перезапустить Gboard» выше, затем откройте предпросмотр клавиатуры.</translation>
+    </string>
+    <string name="gboard_patches_keypress_haptics_title">
+        <translation locale="en">Keypress vibration intensity control</translation>
+        <translation locale="ru">Сила вибрации при нажатии клавиш</translation>
+    </string>
+    <string name="gboard_patches_keypress_haptics_entry_summary">
+        <translation locale="en">Control keypress vibration intensity instead of duration.</translation>
+        <translation locale="ru">Регулировка силы вибрации при нажатии вместо её длительности.</translation>
+    </string>
+    <string name="gboard_patches_keypress_haptics_summary">
+        <translation locale="en">Control keypress vibration intensity instead of duration.\nPreferences &gt; Vibration strength on keypress.</translation>
+        <translation locale="ru">Регулировка силы вибрации при нажатии вместо её длительности.
+Настройки &gt; Сила вибрации при нажатии клавиш.</translation>
+    </string>
+    <string name="gboard_patches_keypress_haptics_supported">
+        <translation locale="en">This device supports click haptics</translation>
+        <translation locale="ru">Устройство поддерживает тактильный отклик щелчка</translation>
+    </string>
+    <string name="gboard_patches_keypress_haptics_unsupported">
+        <translation locale="en">This device does not support click haptics; Gboard keeps its original vibration</translation>
+        <translation locale="ru">Устройство не поддерживает тактильный отклик щелчка; Gboard использует стандартную вибрацию</translation>
+    </string>
+    <string name="gboard_patches_keypress_haptics_support_unknown">
+        <translation locale="en">Unable to check device support; Gboard still checks before playing</translation>
+        <translation locale="ru">Не удалось проверить поддержку устройства; Gboard всё равно проверит её перед воспроизведением</translation>
+    </string>
+</settings-text>

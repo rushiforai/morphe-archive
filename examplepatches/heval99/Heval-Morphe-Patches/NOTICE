@@ -43,3 +43,12 @@ extension (extensions/samsungkeyboard). It was modified for Heval's Morphe Patch
 2026-11-13 (packages and extension prefix renamed, defaults changed, call redirectors skip
 every Heval extension class, checked instruction helpers, the app-name patch decodes
 strings.xml). Each ported file starts with a header naming its upstream path and what was changed.
+
+Smart Launcher (patches/src/main/kotlin/app/template/patches/smartlauncher and
+extensions/smartlauncher) contains code based on MrCool-888/mrcool-patches
+(https://github.com/MrCool-888/mrcool-patches), licensed under the GNU General Public License
+v3.0: the Galaxy Buds3 Pro widget fix was developed there, and its Enable Pro patch is adapted
+from hoo-dles/morphe-patches (https://github.com/hoo-dles/morphe-patches, copyright 2026
+Hoo-dles, GPL-3.0). It was modified for Heval's Morphe Patches on 2026-11-21 (packages and
+extension prefix renamed, Smart Launcher 6.6 build 026 anchors, comments and KDoc rewritten).
+Each ported file starts with a header naming its upstream path and what was changed.

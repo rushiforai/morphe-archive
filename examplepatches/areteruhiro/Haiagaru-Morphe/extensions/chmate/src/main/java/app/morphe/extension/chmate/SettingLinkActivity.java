@@ -58,7 +58,7 @@ public final class SettingLinkActivity extends HaiagaruComposeActivity {
    }).setNegativeButton("キャンセル",null).show();
   }).setNegativeButton("キャンセル",null).show();
  }
- private void openSetting(SettingLinkEntry entry){startActivity(new Intent(this,HaiagaruSettingsActivity.class).putExtra("haiagaru.settings.search",entry.label));finish();}
+ private void openSetting(SettingLinkEntry entry){startActivity(new Intent(this,HaiagaruSettingsActivity.class).putExtra("haiagaru.settings.highlight",entry.label).putExtra("haiagaru.settings.category",entry.category));finish();}
  private void error(String text){new HaiagaruDialog.Builder(this).setTitle("設定リンクを開けません").setMessage(text).setPositiveButton("閉じる",(d,w)->finish()).setOnCancelListener(d->finish()).show();}
  @Override public void onSaveInstanceState(Bundle out){out.putBoolean("applied",applied);super.onSaveInstanceState(out);}
  @Override public void onDestroy(){handler.removeCallbacksAndMessages(null);entries.clear();if(applied)Haiagaru.settingsClosed();super.onDestroy();}

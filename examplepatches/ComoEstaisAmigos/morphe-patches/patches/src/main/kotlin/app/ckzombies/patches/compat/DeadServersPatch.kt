@@ -37,7 +37,8 @@ internal object TapjoyConnectInstanceFingerprint : Fingerprint(
  * causes.
  *
  * Online, the loading screen waits about 30 seconds for gServe's version check, which only ends
- * on its own timeout; [serverCheckStallPatch] never starts it.
+ * on its own timeout; [serverCheckStallPatch] makes the game's network availability check return
+ * false, so the login flow never starts and the loading step finishes on its first frame.
  *
  * The engine drives Tapjoy from its frame loop: the points balance about every five seconds in
  * the menus and on every resume, a banner and a featured app in the shop, and Tapjoy's offer page

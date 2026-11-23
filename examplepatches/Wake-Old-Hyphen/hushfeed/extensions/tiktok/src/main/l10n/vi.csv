@@ -145,7 +145,6 @@ A message is already on its way,Tin nhắn đang được gửi đi
 A name of your own under this tab's icon. Leave it empty to keep TikTok's.,Tên riêng của bạn hiển thị dưới biểu tượng của thẻ này. Để trống nếu muốn giữ nguyên tên của TikTok.
 A port is a whole number from 1 to 65535,Cổng là số nguyên từ 1 đến 65535
 A press on Share under a video copies its link instead of opening the share sheet. Press Share again right after to open the sheet.,Nhấn vào nút Chia sẻ dưới video sẽ sao chép liên kết thay vì mở bảng chia sẻ. Nhấn lại nút Chia sẻ ngay sau đó để mở bảng chia sẻ.
-"A profile's share sheet gets an Account facts button. It shows what TikTok already sent about the account: when it joined, its region and language, when its username and display name last changed, whether it's private and whether its liked videos are public. Nothing extra is fetched.","Bảng chia sẻ của trang cá nhân có thêm nút Thông tin tài khoản. Nút này hiển thị những gì TikTok đã cung cấp về tài khoản đó: thời gian tham gia, khu vực và ngôn ngữ, lần thay đổi tên người dùng và tên hiển thị gần nhất, tài khoản có phải riêng tư hay không và danh sách video đã thích có công khai hay không. Không có dữ liệu bổ sung nào được tải thêm."
 "A screen's layout is recorded. Export the diagnostic report to send it, or tap to record another.",Bố cục màn hình đã được ghi lại. Hãy xuất báo cáo chẩn đoán để gửi hoặc chạm để ghi lại bố cục khác.
 "A small label on the feed shows the minutes or videos left of today's budget, whichever is closer to running out.","Một nhãn nhỏ trên bảng tin hiển thị số phút hoặc số video còn lại trong ngân sách hôm nay, tùy theo cái nào sắp hết trước."
 A tap on Home or on the For You tab while For You is showing no longer reloads it. The video you're on stays.,Chạm vào nút Trang chủ hoặc thẻ Dành cho bạn khi thẻ này đang hiển thị sẽ không còn tải lại trang nữa. Video bạn đang xem sẽ được giữ nguyên.
@@ -1317,7 +1316,6 @@ Not requested in this process yet,Chưa được yêu cầu trong tiến trình 
 Not saved yet,Chưa lưu
 Not seen,Chưa xem
 Not seen yet,Chưa thấy
-Not sent,Chưa gửi
 "Nothing has been checked yet, so there's nothing to report.",Chưa có thông tin nào được kiểm tra nên không có gì để báo cáo.
 Nothing has been kept,Không có tin nhắn nào được giữ lại
 "Nothing has been looked up yet. Use the app for a moment, then come back.",Chưa có dữ liệu nào được tra cứu. Hãy sử dụng ứng dụng một lúc rồi quay lại.
@@ -2884,7 +2882,7 @@ One isn't on TikTok anymore,Một video không còn trên TikTok nữa
 The host can see you,Chủ phòng thấy bạn
 Let the host see you,Cho chủ phòng thấy bạn
 Couldn't tell which LIVE this is. Open it again.,Không rõ đây là LIVE nào. Hãy mở lại.
-The host can already see you in this LIVE,Chủ phòng đã thấy bạn trong LIVE này
+The host won't see you next time you open it,Chủ phòng sẽ không thấy bạn khi bạn mở lại
 Letting the host see you,Đang cho chủ phòng thấy bạn
 The host can see you now,Giờ chủ phòng đã thấy bạn
 The host sees you next time you open it,Chủ phòng sẽ thấy bạn khi bạn mở lại
@@ -2975,3 +2973,53 @@ Always show the expand button in comments,Luôn hiện nút mở rộng trong b�
 Puts the button that stretches the comments over the whole screen on every video. TikTok only gives it to some accounts. Hide the expand button in comments wins if both are on.,"Đặt nút kéo phần bình luận ra toàn màn hình vào mọi video. TikTok chỉ cho một số tài khoản có nút này. Nếu bật cả hai, Ẩn nút mở rộng trong bình luận sẽ được ưu tiên."
 Keep the video full size under comments,Giữ video ở kích thước đầy đủ dưới bình luận
 "The video keeps its size when you open the comments, and the comments cover its lower part instead of pushing it up into a smaller box.","Video giữ nguyên kích thước khi bạn mở bình luận, và phần bình luận che phần dưới của video thay vì đẩy video lên một khung nhỏ hơn."
+Round the corners on profile grids,Bo tròn góc trên lưới trang cá nhân
+"Gives each video on profile grids rounded corners, on your own profile and on Liked and Favorites too.","Bo tròn góc của từng video trên lưới trang cá nhân, trên trang của bạn và cả trong Đã thích và Yêu thích."
+Gifter level,Cấp độ người tặng quà
+SecUID,SecUID
+Unknown (TikTok didn't send it),Không rõ (TikTok không gửi)
+"A profile's share sheet gets an Account facts button. It shows what TikTok already sent about the account: when it joined, its region and language, its gifter level and SecUID, when its username and display name last changed, whether it's private and whether its liked videos are public. Nothing extra is fetched.","Bảng chia sẻ của trang cá nhân có thêm nút Thông tin tài khoản. Nút này hiển thị những gì TikTok đã cung cấp về tài khoản đó: thời gian tham gia, khu vực và ngôn ngữ, cấp độ người tặng quà và SecUID, lần thay đổi tên người dùng và tên hiển thị gần nhất, tài khoản có phải riêng tư hay không và danh sách video đã thích có công khai hay không. Không có dữ liệu bổ sung nào được tải thêm."
+Show the room ID and your connection,Hiện ID phòng và kết nối của bạn
+"Adds a small line to LIVE rooms with the room's ID and how your own connection to the stream is doing, as TikTok's player measures it: ping, latency and download speed. Tap the line to copy the room ID.","Thêm một dòng nhỏ vào phòng LIVE với ID phòng và tình trạng kết nối của chính bạn tới luồng phát, theo đo đạc của trình phát TikTok: ping, độ trễ và tốc độ tải xuống. Nhấn vào dòng để sao chép ID phòng."
+Room ID %1$s,ID phòng %1$s
+Ping %1$s ms,Ping %1$s ms
+Latency %1$s s,Độ trễ %1$s giây
+Room ID copied,Đã sao chép ID phòng
+LIVE room ID,ID phòng LIVE
+Hide playable games,Ẩn trò chơi có thể chơi
+Hide the mini games you can play right in the For You feed.,Ẩn các trò chơi nhỏ mà bạn có thể chơi ngay trên bảng tin Dành cho bạn.
+Playable games,Trò chơi có thể chơi
+Hide the pause icon,Ẩn biểu tượng tạm dừng
+"A tap still pauses and plays the video, but the big play icon doesn't show over it.","Chạm vẫn tạm dừng và phát video, nhưng biểu tượng phát lớn không hiện đè lên video."
+Exit with one Back,Thoát bằng một lần Quay lại
+"Back on Home leaves TikTok right away, with no ""Tap again to exit"" message. From another tab, Back still takes you to Home first, or to the tab Open TikTok on picks.","Quay lại ở Trang chủ sẽ thoát TikTok ngay, không có thông báo ""Chạm lần nữa để thoát"". Ở tab khác, Quay lại vẫn đưa bạn về Trang chủ trước, hoặc về tab mà Mở TikTok tại đã chọn."
+LIVE profile card background,Nền thẻ hồ sơ trong LIVE
+"Colors the card a tap on a name opens in a LIVE room. Chips, buttons and boxes on it keep their own colors, and while a color is picked the card skips Dark LIVE panels.","Tô màu thẻ mở ra khi chạm vào tên trong phòng LIVE. Nhãn, nút và hộp trên thẻ giữ màu riêng, và khi đã chọn màu thì thẻ không dùng bảng LIVE tối."
+LIVE profile card text,Chữ trên thẻ hồ sơ trong LIVE
+"Colors the text drawn on the card itself. Automatic picks white or black, whichever stands out from the card.","Tô màu chữ nằm ngay trên thẻ. Tự động sẽ chọn trắng hoặc đen, màu nào nổi hơn trên thẻ."
+Hide rows on LIVE profile cards,Ẩn các hàng trên thẻ hồ sơ trong LIVE
+Pick the rows to take off the card a tap on a name opens in a LIVE room. The rest stay where they are.,Chọn các hàng cần bỏ khỏi thẻ mở ra khi chạm vào tên trong phòng LIVE. Các hàng còn lại giữ nguyên chỗ.
+Upcoming LIVE events,Sự kiện LIVE sắp tới
+Products in the LIVE,Sản phẩm trong LIVE
+Shop rating,Điểm đánh giá cửa hàng
+Group chat,Trò chuyện nhóm
+Bulletin board,Bảng tin
+Gift gallery,Bộ sưu tập quà tặng
+Festival honors,Danh hiệu lễ hội
+Smaller text sizes,Cỡ chữ nhỏ hơn
+"Adds three stops below the smallest size on TikTok's own Text size slider, in Settings and privacy > Accessibility. Pick one there, then restart TikTok.","Thêm ba mức nhỏ hơn cỡ nhỏ nhất vào thanh trượt Cỡ chữ của chính TikTok, trong Cài đặt và quyền riêng tư > Trợ năng. Chọn một mức ở đó, sau đó khởi động lại TikTok."
+UI size,Kích thước giao diện
+"Makes TikTok's whole interface smaller, text and buttons alike, so more fits on screen. 100 leaves it as it is. Restart TikTok to see the change.","Thu nhỏ toàn bộ giao diện TikTok, cả chữ lẫn nút, để màn hình chứa được nhiều hơn. Mức 100 giữ nguyên như cũ. Khởi động lại TikTok để xem thay đổi."
+Show how long a LIVE has been on,Hiện LIVE đã phát được bao lâu
+"Adds a small line to LIVE rooms with how long the host has been live, counted from when the room started. With the room ID on too, it goes under that.","Thêm một dòng nhỏ vào phòng LIVE cho biết chủ phòng đã phát trực tiếp bao lâu, tính từ lúc phòng bắt đầu. Nếu ID phòng cũng đang bật, dòng này nằm bên dưới."
+LIVE for %1$s,Đã LIVE %1$s
+Show exact LIVE battle scores,Hiện điểm đấu LIVE chính xác
+"In a LIVE battle, TikTok caps the big scores viewers see while the host sees the whole number. This shows the whole score in the battle bar and the co-host windows.","Trong một trận đấu LIVE, TikTok giới hạn điểm số lớn mà người xem thấy, còn chủ phòng thấy con số đầy đủ. Tùy chọn này hiện điểm đầy đủ trên thanh trận đấu và trong cửa sổ đồng chủ phòng."
+Start LIVEs at,Bắt đầu LIVE ở chất lượng
+The quality you picked last,Chất lượng bạn chọn lần cuối
+"A LIVE room opens at this quality until you pick another one, and that pick carries to the next rooms until TikTok closes. A room whose stream doesn't have it opens at TikTok's choice.","Phòng LIVE mở ở chất lượng này cho đến khi bạn chọn chất lượng khác, và lựa chọn đó áp dụng cho các phòng tiếp theo cho đến khi TikTok đóng. Phòng mà luồng phát không có chất lượng này sẽ mở theo lựa chọn của TikTok."
+Skip promo lines,Bỏ qua dòng quảng cáo
+"Skips the part of a video where a caption line has a word from Promo words, like a casino or promo code plug, and shows Undo. It reads the video's own captions, so a video without any plays as usual.","Bỏ qua đoạn video có dòng phụ đề chứa một từ trong Từ quảng cáo, như quảng cáo sòng bạc hay mã khuyến mãi, và hiện Hoàn tác. Tính năng này đọc phụ đề của chính video, nên video không có phụ đề vẫn phát như bình thường."
+Promo words,Từ quảng cáo
+"Separate words or phrases with commas, like casino, promo code. Capital letters don't matter, and ""a"" & ""b"" or ""a"" !& ""b"" work as they do for Blocked caption words.","Phân tách các từ hoặc cụm từ bằng dấu phẩy, như casino, promo code. Chữ hoa không quan trọng, và ""a"" & ""b"" hoặc ""a"" !& ""b"" hoạt động như trong Từ khóa tiêu đề bị chặn."
+Skipped a promo line,Đã bỏ qua dòng quảng cáo

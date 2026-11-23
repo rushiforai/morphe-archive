@@ -106,7 +106,7 @@ private fun MutableMethod.applyFrostedGlassConfigureDelegate(): MutableMethod {
 
 private const val FROSTED_CONFIGURE_STOCK_REGISTERS = 11
 private const val FROSTED_CONFIGURE_PATCHED_REGISTERS = 17
-private const val FROSTED_CONFIGURE_DESCRIPTOR = "Lpbk;->onConfigureWindow(Landroid/view/Window;ZZ)V"
+private const val FROSTED_CONFIGURE_DESCRIPTOR = "Lafae;->onConfigureWindow(Landroid/view/Window;ZZ)V"
 private val FROSTED_CONFIGURE_RUNTIME_DESCRIPTOR =
     RuntimeAbiCatalog.abi(RuntimeCallId.FROSTED_GLASS_RUNTIME_AFTER_CONFIGURE_WINDOW).reference
 private val FROSTED_CONFIGURE_ENTRY_COPIES = """

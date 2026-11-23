@@ -39,6 +39,7 @@ import app.morphe.patches.youtube.utils.patch.PatchList.SEEKBAR_COMPONENTS
 import app.morphe.patches.youtube.utils.playerButtonsResourcesFingerprint
 import app.morphe.patches.youtube.utils.playerButtonsVisibilityFingerprint
 import app.morphe.patches.youtube.utils.playerSeekbarColorFingerprint
+import app.morphe.patches.youtube.utils.playercontrols.playerControlsPatch
 import app.morphe.patches.youtube.utils.playservice.is_19_25_or_greater
 import app.morphe.patches.youtube.utils.playservice.is_19_34_or_greater
 import app.morphe.patches.youtube.utils.playservice.is_19_49_or_greater
@@ -107,9 +108,11 @@ val seekbarComponentsPatch = bytecodePatch(
         versionCheckPatch,
         resourceMappingPatch,
         chaptersHookPatch,
+        playerControlsPatch,
     )
 
     execute {
+        installBufferedSeekbar()
 
         var settingArray = arrayOf(
             "PREFERENCE_SCREEN: PLAYER",

@@ -88,6 +88,37 @@ internal fun BytecodePatchContext.patchBackgroundGlobalSearch(version:String){
             return-void
         """.trimIndent())
     })
+    val longClick = when {
+        old -> mutableClassDefBy(home.type.removeSuffix(";")+"\$9;").methods.single { it.name=="onItemLongClick" }
+        modern -> home.methods.single { it.name=="d" && it.returnType=="Z" &&
+            it.parameterTypes.map(CharSequence::toString)==listOf(home.type,"I",row) }
+        else -> home.methods.single { it.name=="b" && it.returnType=="Z" &&
+            it.parameterTypes.map(CharSequence::toString)==listOf(home.type,"Lo/TTVideoLandingPageActivity5;","Landroid/view/View;","I","J") }
+    }
+    val longOwner=if(old)mutableClassDefBy(home.type.removeSuffix(";")+"\$9;") else home
+    val longWords=if(modern)3 else 6
+    val nativeLong=MutableMethod(ImmutableMethod(longOwner.type,"haiagaruNativeLabelLongClick",
+        longClick.parameters,longClick.returnType,longClick.accessFlags,longClick.annotations,
+        longClick.hiddenApiRestrictions,longClick.implementation))
+    val longInvoke=if(old)"invoke-virtual/range" else "invoke-static/range"
+    val labelCallback=if(modern)
+        "invoke-static {p0, p2}, Lapp/morphe/extension/chmate/HomeThreadOrder;->labelLongClick(Ljava/lang/Object;Ljava/lang/Object;)Z"
+    else "invoke-static {p0, p1, p3}, Lapp/morphe/extension/chmate/HomeThreadOrder;->legacyLabelLongClick(Ljava/lang/Object;Landroid/widget/AdapterView;I)Z"
+    longOwner.methods.remove(longClick)
+    longOwner.methods.add(nativeLong)
+    longOwner.methods.add(MutableMethod(ImmutableMethod(longOwner.type,longClick.name,longClick.parameters,
+        longClick.returnType,longClick.accessFlags,longClick.annotations,longClick.hiddenApiRestrictions,
+        ImmutableMethodImplementation(longWords+1,emptyList(),emptyList(),emptyList()))).apply{
+        addInstructions(0,"""
+            $labelCallback
+            move-result v0
+            if-nez v0, :done
+            $longInvoke {p0 .. p${longWords-1}}, $nativeLong
+            move-result v0
+            :done
+            return v0
+        """.trimIndent())
+    })
     val resume=home.methods.single{it.name=="onResume"&&it.parameterTypes.isEmpty()}
     resume.implementation!!.instructions.withIndex().filter{it.value.opcode==Opcode.RETURN_VOID}.asReversed().forEach{
         resume.replaceInstruction(it.index,"invoke-static/range {p0 .. p0}, $GLOBAL_HOME->resumed(Ljava/lang/Object;)V")

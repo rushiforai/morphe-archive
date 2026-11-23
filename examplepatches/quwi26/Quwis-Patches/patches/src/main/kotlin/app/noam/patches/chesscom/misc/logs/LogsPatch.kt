@@ -45,7 +45,8 @@ private val appLogsResourcePatch = patch(
 val appLogsPatch = bytecodePatch(
     name = "App logs",
     description = "Keeps the app's recent logs on this phone and shows them in Quwi's Patches, " +
-        "so a bug report can include what happened before the app restarted.",
+        "so a bug report can include what happened before the app restarted. " +
+        "The log screen does not work with root mounting.",
 ) {
     compatibleWith(Constants.COMPATIBILITY)
 

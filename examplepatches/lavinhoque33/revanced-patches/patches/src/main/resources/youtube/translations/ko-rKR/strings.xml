@@ -293,8 +293,10 @@ MicroG 앱 배터리 최적화를 비활성화(제한 없음)하더라도, 배�
     <string name="morphe_playback_in_feeds_entry_off">사용 안함</string>
     <string name="morphe_playback_in_feeds_entry_wifi_only">Wi-Fi 전용</string>
     <string name="morphe_playback_in_feeds_title">피드에서 재생</string>
-    <string name="morphe_player_control_buttons_background_opacity_summary">플레이어 컨트롤 버튼과 시간 표시 버튼 뒤 배경의 투명도를 설정할 수 있습니다 (0: 투명, 100: 불투명)</string>
-    <string name="morphe_player_control_buttons_background_opacity_title">컨트롤 버튼 배경 투명도</string>
+    <string name="morphe_player_transport_background_opacity_summary">재생, 일시 정지, 다시 재생, 다음 및 이전 버튼 배경의 불투명도를 조절합니다</string>
+    <string name="morphe_player_transport_background_opacity_title">재생 버튼 배경 불투명도</string>
+    <string name="morphe_player_other_overlay_background_opacity_summary">나머지 플레이어 버튼과 시간 표시 배경의 불투명도를 조절합니다</string>
+    <string name="morphe_player_other_overlay_background_opacity_title">기타 오버레이 배경 불투명도</string>
     <string name="morphe_playlist_hide_removal_snackbar_summary">재생목록에서 동영상을 삭제한 후 확인 메시지가 표시되지 않습니다</string>
     <string name="morphe_playlist_hide_removal_snackbar_title">재생목록 삭제 스낵바 숨기기</string>
     <string name="morphe_playlist_long_press_drag_summary">재생목록의 동영상을 길게 눌러 새 위치로 드래그하세요</string>

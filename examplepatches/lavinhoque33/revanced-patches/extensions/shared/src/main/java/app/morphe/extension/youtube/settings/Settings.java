@@ -897,7 +897,14 @@ public class Settings extends SharedYouTubeSettings {
             "morphe_center_playback_button_size", CenterPlaybackButtonPatch.DEFAULT_PERCENT, true,
             new SliderConfig(CenterPlaybackButtonPatch.MIN_PERCENT, CenterPlaybackButtonPatch.MAX_PERCENT, 5, "%"));
     public static final BooleanSetting HIDE_PLAYER_CONTROL_BUTTONS_BACKGROUND = new BooleanSetting("revanced_hide_player_control_buttons_background", FALSE, true);
-    public static final IntegerSetting PLAYER_CONTROL_BUTTONS_BACKGROUND_OPACITY = new IntegerSetting("morphe_player_control_buttons_background_opacity", 30, true, new SliderConfig(0, 100, 1, "%"), parentInverted(HIDE_PLAYER_CONTROL_BUTTONS_BACKGROUND));
+    private static final int STOCK_CONTROL_BACKGROUND_OPACITY = 30;
+    private static final SliderConfig CONTROL_BACKGROUND_OPACITY_RANGE = new SliderConfig(0, 100, 1, "%");
+    public static final IntegerSetting PLAYER_TRANSPORT_BACKGROUND_OPACITY = new IntegerSetting(
+            "morphe_player_transport_background_opacity", STOCK_CONTROL_BACKGROUND_OPACITY, true,
+            CONTROL_BACKGROUND_OPACITY_RANGE, parentInverted(HIDE_PLAYER_CONTROL_BUTTONS_BACKGROUND));
+    public static final IntegerSetting PLAYER_OTHER_OVERLAY_BACKGROUND_OPACITY = new IntegerSetting(
+            "morphe_player_other_overlay_background_opacity", STOCK_CONTROL_BACKGROUND_OPACITY, true,
+            CONTROL_BACKGROUND_OPACITY_RANGE, parentInverted(HIDE_PLAYER_CONTROL_BUTTONS_BACKGROUND));
     public static final BooleanSetting HIDE_PLAYER_YOUTUBE_MUSIC_BUTTON = new BooleanSetting("revanced_hide_player_youtube_music_button", FALSE);
     /** Uses the legacy player layout for custom overlay controls on supported versions. */
     public static final BooleanSetting RESTORE_OLD_PLAYER_BUTTONS = new BooleanSetting("morphe_restore_old_player_buttons", FALSE, true);
@@ -1430,6 +1437,8 @@ public class Settings extends SharedYouTubeSettings {
     public static final BooleanSetting SB_SEEN_GUIDELINES = new BooleanSetting("sb_seen_guidelines", FALSE, false, false);
 
     // Deprecated migrations
+    private static final String LEGACY_CONTROL_BACKGROUND_OPACITY_KEY =
+            "morphe_player_control_buttons_background_opacity";
     private static final BooleanSetting DEPRECATED_WATCH_LATER_WIDE_DRAG_HANDLES =
             new BooleanSetting("morphe_watch_later_wide_drag_handles", TRUE, false, false);
     private static final BooleanSetting DEPRECATED_WATCH_LATER_HIDE_REMOVAL_SNACKBAR =
@@ -1489,6 +1498,50 @@ public class Settings extends SharedYouTubeSettings {
         }
     }
 
+    static void migratePlayerControlBackgroundOpacity(SharedPrefCategory oldYouTubePrefs) {
+        SharedPrefCategory currentPrefs = Setting.preferences;
+        String legacyKey = LEGACY_CONTROL_BACKGROUND_OPACITY_KEY;
+        boolean hasCurrentValue = currentPrefs.preferences.contains(legacyKey);
+        boolean hasOlderValue = oldYouTubePrefs.preferences.contains(legacyKey);
+        if (!hasCurrentValue && !hasOlderValue) return;
+
+        SharedPrefCategory source = hasCurrentValue ? currentPrefs : oldYouTubePrefs;
+        int opacity = source.getIntegerString(legacyKey, STOCK_CONTROL_BACKGROUND_OPACITY);
+        if (CONTROL_BACKGROUND_OPACITY_RANGE.contains(opacity)) {
+            if (!currentPrefs.preferences.contains(PLAYER_TRANSPORT_BACKGROUND_OPACITY.key)) {
+                PLAYER_TRANSPORT_BACKGROUND_OPACITY.save(opacity);
+            }
+            if (!currentPrefs.preferences.contains(PLAYER_OTHER_OVERLAY_BACKGROUND_OPACITY.key)) {
+                PLAYER_OTHER_OVERLAY_BACKGROUND_OPACITY.save(opacity);
+            }
+        }
+
+        // Consume both sources so resetting a slider to stock cannot resurrect the old value.
+        if (hasCurrentValue) currentPrefs.removeKey(legacyKey);
+        if (hasOlderValue) oldYouTubePrefs.removeKey(legacyKey);
+    }
+
+    private static void migratePlayerControlBackgroundOpacityImport(JSONObject json) throws JSONException {
+        String legacyKey = LEGACY_CONTROL_BACKGROUND_OPACITY_KEY;
+        String shortKey = legacyKey.substring("morphe_".length());
+        String importedKey = json.has(shortKey) ? shortKey : legacyKey;
+        if (!json.has(importedKey)) return;
+
+        Object opacity = json.get(importedKey);
+        importOldControlBackgroundOpacity(json, PLAYER_TRANSPORT_BACKGROUND_OPACITY, opacity);
+        importOldControlBackgroundOpacity(json, PLAYER_OTHER_OVERLAY_BACKGROUND_OPACITY, opacity);
+        json.remove(shortKey);
+        json.remove(legacyKey);
+    }
+
+    private static void importOldControlBackgroundOpacity(JSONObject json, IntegerSetting setting, Object opacity)
+            throws JSONException {
+        String shortKey = setting.key.substring("morphe_".length());
+        if (!json.has(shortKey) && !json.has(setting.key)) {
+            json.put(shortKey, opacity);
+        }
+    }
+
     private static void migratePlaylistImport(JSONObject json, String suffix) throws JSONException {
         String oldKey = "watch_later_" + suffix;
         String newKey = "playlist_" + suffix;
@@ -1512,6 +1565,7 @@ public class Settings extends SharedYouTubeSettings {
                 public void settingsImporting(JSONObject json) throws JSONException {
                     migratePlaylistImport(json, "wide_drag_handles");
                     migratePlaylistImport(json, "hide_removal_snackbar");
+                    migratePlayerControlBackgroundOpacityImport(json);
 
                     // Normalize both supported key forms before import comparisons and persistence.
                     for (String key : new String[]{"miniplayer_type", MINIPLAYER_TYPE.key}) {
@@ -1625,6 +1679,8 @@ public class Settings extends SharedYouTubeSettings {
                 migrateFromOldPreferences(ytPrefs, setting, key);
             }
         }
+
+        migratePlayerControlBackgroundOpacity(ytPrefs);
 
         if (!Setting.preferences.preferences.contains(VIDEO_ACTION_BAR_LAYOUT.key)
                 && (DEPRECATED_RESTORE_OLD_VIDEO_ACTION_BAR.get() || DEPRECATED_TABLET_LAYOUT_IN_PLAYER.get())) {

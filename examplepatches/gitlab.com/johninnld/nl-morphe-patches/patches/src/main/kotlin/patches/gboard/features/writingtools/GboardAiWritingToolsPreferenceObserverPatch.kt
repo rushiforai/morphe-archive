@@ -21,12 +21,12 @@ internal val gboardAiWritingTools1853PreferenceObserverPatch = bytecodePatch(
     compatibleWith(COMPATIBILITY_GBOARD)
     dependsOn(gboardPatchesExtensionCarrierPatch)
     execute {
-        val target = GboardMethodTarget("Lcei;", "x", listOf("I", "Z"), "Z")
+        val target = GboardMethodTarget("Lahvo;", "x", listOf("I", "Z"), "Z")
         val original = target.resolve(this)
         check(original.accessFlags == (AccessFlags.PUBLIC.value or AccessFlags.FINAL.value))
-        val owner = mutableClass("Lcei;")
+        val owner = mutableClass("Legd;")
         check(owner.methods.none { it.name == "morpheWritingToolsStockRead" })
-        if (original.implementation!!.instructions.any { it.isMethodReference("Lcei;->morpheCursorStockx(IZ)Z") }) {
+        if (original.implementation!!.instructions.any { it.isMethodReference("Legd;->morpheCursorStockx(IZ)Z") }) {
             val returns = original.implementation!!.instructions.indices.filter { original.implementation!!.instructions[it].isOpcode("RETURN") }
             check(returns.size == 1 && original.implementation!!.registerCount == 4)
             original.addInstructions(returns.single(), RuntimeCallEmitter.invoke(

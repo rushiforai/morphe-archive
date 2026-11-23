@@ -1,0 +1,76 @@
+name: Bug report
+description: A patch doesn't work, hides the wrong thing, signing in fails, or the app crashes.
+title: "bug: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting. Please [search the existing issues](https://github.com/JoFSlash/morphe-patches/issues?q=label%3Abug) first, and check the known issues in the app's README ([Quora](https://github.com/JoFSlash/morphe-patches/blob/main/docs/quora/README.md), [Booking.com](https://github.com/JoFSlash/morphe-patches/blob/main/docs/booking/README.md#known-issues), [Google Health](https://github.com/JoFSlash/morphe-patches/blob/main/docs/google-health/README.md)). Don't post your name, email, booking numbers, health data or payment details.
+  - type: dropdown
+    id: app
+    attributes:
+      label: App
+      options:
+        - Quora
+        - Booking.com
+        - Google Health (Fitbit)
+    validations:
+      required: true
+  - type: input
+    id: patch
+    attributes:
+      label: Patch
+      description: The patch that misbehaves, by its name in Morphe Manager. Write "app crashes" or "sign-in" if you don't know which one.
+      placeholder: Hide sponsored listings
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: What happens
+      description: What you expected, what happened instead, and how to get there (which screen, page or tab). Screenshots help a lot, but hide your data.
+    validations:
+      required: true
+  - type: input
+    id: versions
+    attributes:
+      label: App, patches, Morphe Manager and Android versions
+      description: The app's version is the one you patched; the others are shown in Morphe Manager. Add the MicroG-RE version if you use it.
+      placeholder: "Booking.com 71.1, patches 1.10.0, Morphe Manager 2.6.0, Android 15"
+    validations:
+      required: true
+  - type: input
+    id: changed-patches
+    attributes:
+      label: Patches you turned on or off
+      description: Optional. Only if you changed the defaults in Expert mode.
+  - type: input
+    id: country
+    attributes:
+      label: Country
+      description: Optional. Booking.com's prices, offers and messages differ by country.
+  - type: textarea
+    id: report
+    attributes:
+      label: Info from Patch settings (Quora)
+      description: >-
+        Optional, Quora only, but it helps a lot. In the patched app, long-press the Home tab, then
+        tap "Report a problem": it copies the Quora and Android version, the patches that are on and
+        the page check result. Paste it here.
+      render: text
+  - type: textarea
+    id: logs
+    attributes:
+      label: Crash log
+      description: Optional. For crashes, the output of `adb logcat | grep -E "AndroidRuntime|JoFSlash"`.
+      render: shell
+  - type: checkboxes
+    id: acknowledgements
+    attributes:
+      label: Before you send
+      options:
+        - label: I searched the open and closed issues and this is not a duplicate.
+          required: true
+        - label: The problem is still there with the latest release of the patches.
+          required: true

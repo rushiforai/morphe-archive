@@ -60,6 +60,7 @@ val playerButtonsPatch = bytecodePatch(
 
     dependsOn(
         cfBottomUIPatch,
+        centerPlaybackButtonResourcesPatch,
         sharedResourceIdPatch,
         settingsPatch,
         versionCheckPatch,
@@ -252,9 +253,6 @@ val playerButtonsPatch = bytecodePatch(
                     getReference<MethodReference>()?.name == "inflate"
                 }
 
-            val hidePlayerControlButtonsBackgroundDescriptor =
-                "$PLAYER_CLASS_DESCRIPTOR->hidePlayerControlButtonsBackground(Landroid/view/View;)V"
-
             val inflate = getInstruction(inflateControlsGroupLayoutStubIndex).getReference<MethodReference>()
             centerResizeInstalled =
                 inflate?.definingClass == "Landroid/view/ViewStub;" &&
@@ -275,7 +273,7 @@ val playerButtonsPatch = bytecodePatch(
             val instructions = buildString {
                 if (!retainsView) appendLine("move-result-object v$viewRegister")
                 appendLine("invoke-static/range { v$viewRegister .. v$viewRegister }, " +
-                    hidePlayerControlButtonsBackgroundDescriptor)
+                    "$PLAYER_CLASS_DESCRIPTOR->styleControlButtonsBackground(Landroid/view/View;)V")
                 if (centerResizeInstalled) {
                     appendLine("invoke-static/range { v$viewRegister .. v$viewRegister }, " +
                         "$PLAYER_PATH/CenterPlaybackButtonPatch;->resize(Landroid/view/View;)V")
@@ -315,6 +313,7 @@ val playerButtonsPatch = bytecodePatch(
 
         if (centerResizeInstalled) {
             addPreference(arrayOf("SETTINGS: CENTER_PLAYBACK_BUTTON_SIZE"))
+            hookCenterPlaybackDrawables()
         } else {
             printWarn("Play/Pause/Replay button size: native control group not found; keeping stock sizing.")
         }

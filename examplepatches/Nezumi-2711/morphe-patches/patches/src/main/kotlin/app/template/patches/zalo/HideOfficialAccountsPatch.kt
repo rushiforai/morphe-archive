@@ -19,7 +19,6 @@ private object MessagesListFingerprint : Fingerprint(
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
     parameters = listOf("Ljava/util/ArrayList;"),
     filters = listOf(
-        string("listFilter"),
         string("LatestMention"),
         methodCall(definingClass = "Ljava/util/ArrayList;", name = "add"),
         literal(45),
@@ -29,7 +28,7 @@ private object MessagesListFingerprint : Fingerprint(
 @Suppress("unused")
 val hideOfficialAccountsPatch = bytecodePatch(
     name = "Hide OA accounts in Messages",
-    description = "Hide OA accounts in Messages and mute them permanently by default.",
+    description = "Hide OA accounts in Messages and/or mute their notifications. Both options are configurable in Nezumi Settings.",
     default = false,
 ) {
     compatibleWith(Compatibility(
@@ -37,7 +36,7 @@ val hideOfficialAccountsPatch = bytecodePatch(
         packageName = "com.zing.zalo",
         apkFileType = ApkFileType.APKM,
         appIconColor = 0x0068FF,
-        targets = listOf(AppTarget(version = "26.10.02")),
+        targets = listOf(AppTarget(version = "26.11.01")),
     ))
 
     dependsOn(nativeSignaturePatch)
@@ -48,7 +47,7 @@ val hideOfficialAccountsPatch = bytecodePatch(
         val method = MessagesListFingerprint.method
         val instructions = method.implementation!!.instructions.toList()
         val returns = instructions.indices.filter { instructions[it].opcode == Opcode.RETURN_OBJECT }
-        check(returns.size == 2)
+        check(returns.size in 2..3)
         returns.reversed().forEach { index ->
             val register = (instructions[index] as OneRegisterInstruction).registerA
             check(register < 16)

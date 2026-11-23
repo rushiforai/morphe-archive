@@ -497,8 +497,10 @@ Info: The next queued video only starts while YouTube is on screen"</string>
     <string name="morphe_playback_in_feeds_title">Playback in feeds</string>
     <string name="morphe_center_playback_button_size_summary" formatted="false">Resize the play, pause, and replay button and its touch area. 100% leaves the original size unchanged.</string>
     <string name="morphe_center_playback_button_size_title">Play/Pause/Replay button size</string>
-    <string name="morphe_player_control_buttons_background_opacity_summary">Adjust the opacity of the background behind the player control buttons and the time bar (0 is invisible, 100 is solid)</string>
-    <string name="morphe_player_control_buttons_background_opacity_title">Control buttons background opacity</string>
+    <string name="morphe_player_transport_background_opacity_summary">Adjust the opacity of the backgrounds behind Play, Pause, Replay, Next and Previous</string>
+    <string name="morphe_player_transport_background_opacity_title">Playback buttons background opacity</string>
+    <string name="morphe_player_other_overlay_background_opacity_summary">Adjust the opacity of the backgrounds behind the other player buttons and the timestamp</string>
+    <string name="morphe_player_other_overlay_background_opacity_title">Other overlay background opacity</string>
     <string name="morphe_player_icon_style_entry_auto">Automatic</string>
     <string name="morphe_player_icon_style_entry_bold">Bold</string>
     <string name="morphe_player_icon_style_entry_custom">Custom</string>

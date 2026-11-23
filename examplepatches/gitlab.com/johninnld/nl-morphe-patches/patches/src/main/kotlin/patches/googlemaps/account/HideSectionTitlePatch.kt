@@ -17,6 +17,9 @@ internal val hideSectionTitlePatch = bytecodePatch(
         // Several account-sheet layouts bind the same section-title model through
         // different binder methods (modern list adapter, legacy adapter, and the
         // empty-list variant). Hide the title after setText in each of them.
+        // 26.47 moved the section-title resolver to Lbsqa;->y(Lcmyb;Context).
+        val titleOwner = if (packageMetadata.versionName == "26.47.00.1022347503") "Lbsqa;" else "Lbsgx;"
+        val titleName = if (packageMetadata.versionName == "26.47.00.1022347503") "y" else "D"
         var patched = 0
         classDefForEach { classDef ->
             if (classDef.type.startsWith("Lorg/ungoogled/")) return@classDefForEach
@@ -27,7 +30,7 @@ internal val hideSectionTitlePatch = bytecodePatch(
                 val instructions = method.implementation?.instructions ?: continue
                 val bindsTitle = instructions.any { insn ->
                     ((insn as? ReferenceInstruction)?.reference as? MethodReference)?.let { ref ->
-                        ref.definingClass == "Lbsgx;" && ref.name == "D" && ref.returnType == "Ljava/lang/String;"
+                        ref.definingClass == titleOwner && ref.name == titleName && ref.returnType == "Ljava/lang/String;"
                     } == true
                 }
                 if (!bindsTitle) continue

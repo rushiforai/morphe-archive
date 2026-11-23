@@ -20,22 +20,23 @@ public final class KeywordFilterSettings {
     public static final StringSetting HIDE_KEYWORD_CONTENT_PHRASES = Settings.HIDE_KEYWORD_CONTENT_PHRASES;
 
     public static final BooleanSetting HIDE_KEYWORD_CONTENT_CHANNEL = new BooleanSetting(
-            "morphe_hide_keyword_content_channel", true);
+            "morphe_hide_keyword_content_channel", true, false);
     public static final BooleanSetting HIDE_KEYWORD_CONTENT_CHECK_SUBTITLES = new BooleanSetting(
-            "morphe_hide_keyword_content_check_subtitles", true);
+            "morphe_hide_keyword_content_check_subtitles", true, false);
     public static final StringSetting HIDE_KEYWORD_CONTENT_SUBTITLES_LANGUAGE = new StringSetting(
             "morphe_hide_keyword_content_subtitles_language",
             "original",
+            false,
             parent(HIDE_KEYWORD_CONTENT_CHECK_SUBTITLES)
     );
     public static final BooleanSetting HIDE_KEYWORD_CONTENT_USE_AND_OPERATOR = new BooleanSetting(
-            "morphe_hide_keyword_content_use_and_operator", true);
+            "morphe_hide_keyword_content_use_and_operator", true, false);
     public static final BooleanSetting HIDE_KEYWORD_CONTENT_USE_REGEX = new BooleanSetting(
-            "morphe_hide_keyword_content_use_regex", true);
+            "morphe_hide_keyword_content_use_regex", true, false);
     public static final BooleanSetting HIDE_KEYWORD_CONTENT_CASE_SENSITIVE = new BooleanSetting(
-            "morphe_hide_keyword_content_case_sensitive", false);
+            "morphe_hide_keyword_content_case_sensitive", false, false);
     public static final BooleanSetting HIDE_KEYWORD_CONTENT_DEBUG = new BooleanSetting(
-            "morphe_hide_keyword_content_debug", false);
+            "morphe_hide_keyword_content_debug", false, false);
 
     public static final LongSetting KEYWORD_HIDE_COUNT_HOME = Settings.KEYWORD_HIDE_COUNT_HOME;
     public static final LongSetting KEYWORD_HIDE_COUNT_SUBSCRIPTIONS = Settings.KEYWORD_HIDE_COUNT_SUBSCRIPTIONS;

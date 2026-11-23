@@ -41,8 +41,7 @@ public final class NativeImagePaging {
         prefs.edit().remove(NEXT).remove(PREVIOUS).putBoolean(ENABLED,true).remove(DISABLED).apply();
     }
     static boolean legacy191(Context context){
-        try{return "0.8.10.191 dev".equals(context.getPackageManager().getPackageInfo(context.getPackageName(),0).versionName);}
-        catch(android.content.pm.PackageManager.NameNotFoundException ignored){return false;}
+        return "0.8.10.191 dev".equals(RuntimeVersion.get(context));
     }
     static boolean assignedHorizontal(float dx,float dy,float threshold,int next,int previous){
         int direction=axis(dx,dy,threshold);
@@ -50,7 +49,7 @@ public final class NativeImagePaging {
     }
     static int defaultDirection(Context context,String key){
         boolean horizontal=false;
-        if(context!=null)try{horizontal="0.8.10.242 dev".equals(context.getPackageManager().getPackageInfo(context.getPackageName(),0).versionName);}catch(android.content.pm.PackageManager.NameNotFoundException ignored){}
+        horizontal="0.8.10.242 dev".equals(RuntimeVersion.get(context));
         return NEXT.equals(key)?(horizontal?RIGHT:UP):(horizontal?LEFT:DOWN);
     }
     static int direction(SharedPreferences prefs,String key){
@@ -78,10 +77,8 @@ public final class NativeImagePaging {
     }
 
     static void addSettingsButton(LinearLayout group,Activity activity){
-        try{
-            String version=activity.getPackageManager().getPackageInfo(activity.getPackageName(),0).versionName;
-            if(!"0.8.10.191 dev".equals(version)&&!"0.8.10.226 dev".equals(version)&&!"0.8.10.242 dev".equals(version))return;
-        }catch(android.content.pm.PackageManager.NameNotFoundException unavailable){return;}
+        String version=RuntimeVersion.get(activity);
+        if(!"0.8.10.191 dev".equals(version)&&!"0.8.10.226 dev".equals(version)&&!"0.8.10.242 dev".equals(version))return;
         Button button=new Button(activity);button.setText("画像の切り替えジェスチャー");
         button.setOnClickListener(v->showSettings(activity));group.addView(button);
     }

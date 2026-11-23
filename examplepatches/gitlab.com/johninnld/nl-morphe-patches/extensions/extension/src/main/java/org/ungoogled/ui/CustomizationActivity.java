@@ -35,7 +35,7 @@ public final class CustomizationActivity extends Activity {
      * Misc Features); or a page with its own account sheet row (Power Saving Options, Waze & external data source).
      */
     static final String EXTRA_PAGE = "org.ungoogled.ui.page";
-    static final String PAGE_POWER = "power", PAGE_WAZE = "waze", PAGE_UI = "ui", PAGE_HIDE = "hide", PAGE_MISC = "misc";
+    static final String PAGE_POWER = "power", PAGE_WAZE = "waze", PAGE_UI = "ui", PAGE_HIDE = "hide", PAGE_MISC = "misc", PAGE_CAR = "car";
 
     private static String title(String page) {
         if (PAGE_POWER.equals(page)) return "Power Saving Options";
@@ -43,6 +43,7 @@ public final class CustomizationActivity extends Activity {
         if (PAGE_UI.equals(page)) return "UI";
         if (PAGE_HIDE.equals(page)) return "Hide Telemetry";
         if (PAGE_MISC.equals(page)) return "Misc Features";
+        if (PAGE_CAR.equals(page)) return "Android Auto";
         return "Customization";
     }
     private boolean dark, black;
@@ -122,6 +123,7 @@ public final class CustomizationActivity extends Activity {
         else if (PAGE_UI.equals(page)) buildUiPage(body);
         else if (PAGE_HIDE.equals(page)) buildHidePage(body);
         else if (PAGE_MISC.equals(page)) buildMiscPage(body);
+        else if (PAGE_CAR.equals(page)) buildCarPage(body);
         else buildMainPage(body);
 
         ScrollView sv = new ScrollView(this);
@@ -142,6 +144,8 @@ public final class CustomizationActivity extends Activity {
                 Shapes.hideTabsPatched(), "Bottom tabs",
                 Shapes.hideDirectoryPatched(), "Suggestions",
                 Shapes.hideAiPatched(), "AI"));
+        section(body, PAGE_CAR, names(
+                Shapes.carOptionsPatched(), "Satellite, navatar, startup"));
         section(body, PAGE_MISC, names(
                 Shapes.navZoomPatched(), "Zoom controls in navigation",
                 Shapes.betterOfflinePatched(), "Better offline maps",
@@ -165,6 +169,40 @@ public final class CustomizationActivity extends Activity {
         if (present.isEmpty()) return null;
         if (present.size() == 1) return present.get(0);
         return String.join(", ", present.subList(0, present.size() - 1)) + " & " + present.get(present.size() - 1);
+    }
+
+    /** Android Auto: switches Google ships off, read by the injected car code at runtime. */
+    private void buildCarPage(LinearLayout body) {
+        if (!Shapes.carOptionsPatched()) return;
+        Switch satellite = new Switch(this);
+        satellite.setChecked(Shapes.carSatelliteEnabled(this));
+        body.addView(toggleRow("Satellite view in the car",
+                "The car map starts on satellite imagery instead of the plain map. A value you set in Maps still wins.",
+                satellite));
+        satellite.setOnCheckedChangeListener((CompoundButton b, boolean on) -> {
+            Shapes.setCarSatellite(this, on);
+            restartSoon(b);
+        });
+
+        Switch startup = new Switch(this);
+        startup.setChecked(Shapes.satelliteOnStartupEnabled(this));
+        body.addView(toggleRow("Restore satellite view on startup",
+                "Start on satellite when the last session used it. A value you set in Maps still wins.",
+                startup));
+        startup.setOnCheckedChangeListener((CompoundButton b, boolean on) -> {
+            Shapes.setSatelliteOnStartup(this, on);
+            restartSoon(b);
+        });
+
+        Switch navatar = new Switch(this);
+        navatar.setChecked(Shapes.navatarKeepEnabled(this));
+        body.addView(toggleRow("Keep your navatar in the car",
+                "Maps hides an automatically enabled navatar on car screens; this keeps the avatar and colour you already have.",
+                navatar));
+        navatar.setOnCheckedChangeListener((CompoundButton b, boolean on) -> {
+            Shapes.setNavatarKeep(this, on);
+            restartSoon(b);
+        });
     }
 
     /** UI: how Maps looks. */

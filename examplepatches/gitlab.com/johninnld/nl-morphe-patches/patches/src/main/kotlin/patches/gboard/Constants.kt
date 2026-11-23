@@ -3,7 +3,7 @@ package patches.gboard
 import patches.gboard.gboard as gboardCompatibility
 
 internal object PatchBuildInfo {
-    const val VERSION = "18.6.3-port"
+    const val VERSION = "18.8.0-beta-port"
 }
 
 internal object Constants {

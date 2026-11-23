@@ -62,8 +62,23 @@ final class ThreadWatchRules {
     }
     /** Keep response numbers in rawmode, including gaps left by deleted posts. */
     static Map<Integer,String> newBodies(Target target,String dat,int before,int count){
+        return newBodies(target,dat,before,count,false);
+    }
+    static Map<Integer,String> newBodies(Target target,String dat,int before,int count,boolean skipRead){
         Map<Integer,String> out=new LinkedHashMap<>();
         if(dat==null||before<0)return out;
+        if(skipRead&&!target.shitaraba){
+            if(before>=count)return out;
+            int start=afterLines(dat,before);
+            for(int number=before+1;start>=0&&start<dat.length()&&number<=count;number++){
+                int end=lineEnd(dat,start);
+                String[] fields=dat.substring(start,end).split("<>",-1);
+                if(fields.length>=5)out.put(number,fields[3].substring(0,Math.min(fields[3].length(),16384)));
+                if(end>=dat.length())break;
+                start=end+1;
+            }
+            return out;
+        }
         String[] lines=dat.split("\n");
         for(int i=0;i<lines.length;i++){
             String[] fields=lines[i].split("<>",-1);int number=i+1,body=3;
@@ -75,6 +90,19 @@ final class ThreadWatchRules {
             if(number>before&&number<=count)out.put(number,fields[body].substring(0,Math.min(fields[body].length(),16384)));
         }
         return out;
+    }
+    static int afterLines(String dat,int lines){
+        int start=0;
+        for(int i=0;i<lines;i++){
+            int end=dat.indexOf('\n',start);
+            if(end<0)return -1;
+            start=end+1;
+        }
+        return start;
+    }
+    static int lineEnd(String dat,int start){
+        int end=dat.indexOf('\n',start);
+        return end<0?dat.length():end;
     }
     static Set<Integer> ownPosts(String flags){
         Set<Integer> result=new HashSet<>();if(flags==null)return result;

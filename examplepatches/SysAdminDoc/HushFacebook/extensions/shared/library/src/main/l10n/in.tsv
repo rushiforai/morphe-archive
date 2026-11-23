@@ -687,9 +687,9 @@ Hides ads and boosted listings in Marketplace's feed and search results. Regular
 # context: switch title under News feed; hides posts whose text holds a word or phrase the person listed
 Hide posts with words you choose	Sembunyikan postingan dengan kata pilihan Anda
 Hide posts from people, Pages and sites	Sembunyikan postingan dari orang, Halaman, dan situs
-Hides posts by people or Pages on your list below, or linking to sites on it, including shares. Your list stays on this phone unless you export it.	Menyembunyikan postingan dari orang atau Halaman di daftarmu di bawah, atau yang menautkan ke situs di dalamnya, termasuk yang dibagikan ulang. Daftarmu tetap di ponsel ini kecuali kamu mengekspornya.
+Hides posts by people or Pages on your list below, posted in a group on it, or linking to sites on it, including shares. Your list stays on this phone unless you export it.	Menyembunyikan postingan dari orang atau Halaman di daftarmu di bawah, yang diposting di grup dalam daftar itu, atau yang menautkan ke situs di dalamnya, termasuk yang dibagikan ulang. Daftarmu tetap di ponsel ini kecuali kamu mengekspornya.
 People, Pages and sites to hide	Orang, Halaman, dan situs yang disembunyikan
-One per line, up to %1$d: a name as Facebook shows it, a profile or Page ID, or a site like example.com, which also covers addresses like m.example.com. Capital letters don't matter. A Facebook link works when it has the ID in it.	Satu per baris, hingga %1$d: nama seperti yang ditampilkan Facebook, ID profil atau Halaman, atau situs seperti example.com, yang juga mencakup alamat seperti m.example.com. Huruf besar tidak berpengaruh. Tautan Facebook berfungsi jika memuat ID-nya.
+One per line, up to %1$d: a name as Facebook shows it (a person, Page or group), a profile, Page or group ID, or a site like example.com, which also covers addresses like m.example.com. Capital letters don't matter. A Facebook link works when it has the ID in it.	Satu per baris, hingga %1$d: nama seperti yang ditampilkan Facebook (orang, Halaman, atau grup), ID profil, Halaman, atau grup, atau situs seperti example.com, yang juga mencakup alamat seperti m.example.com. Huruf besar tidak berpengaruh. Tautan Facebook berfungsi jika memuat ID-nya.
 One name, ID or site per line	Satu nama, ID, atau situs per baris
 Nobody listed yet, so no post is hidden.	Belum ada yang didaftarkan, jadi tidak ada postingan yang disembunyikan.
 %1$d person, Page or site.	%1$d orang, Halaman, atau situs.
@@ -1859,8 +1859,10 @@ Picture-in-picture button	Tombol gambar dalam gambar
 Shows a small button at the left edge of a reel or video that has the window ready. Tap it to open the window right away. Works with Picture-in-picture on.	Menampilkan tombol kecil di tepi kiri reel atau video yang jendelanya sudah siap. Ketuk untuk langsung membuka jendela. Berfungsi saat Gambar dalam gambar aktif.
 # context: switch title under Playback; on, a video you started keeps its sound after you leave Facebook; also the label of a headphones button in the picture-in-picture window
 Keep playing in the background	Tetap putar di latar belakang
+Next reel in the background	Reel berikutnya di latar belakang
+When a reel playing in the background ends, the next reel plays instead of the same one again. It goes through the reels Reels had loaded when you left. Works with Keep playing in the background on.	Saat reel yang diputar di latar belakang selesai, reel berikutnya diputar, bukan reel yang sama lagi. Ini memutar reel yang sudah dimuat Reels saat kamu keluar. Berfungsi saat Tetap putar di latar belakang aktif.
 # context: summary of that switch; the notification is the one Facebook shows with the video's play and pause buttons
-A video you started with a tap keeps its sound after you leave Facebook, and its notification can pause it. Swiping the notification away or taking a call stops it.	Video yang Anda mulai dengan ketukan tetap bersuara setelah Anda keluar dari Facebook, dan notifikasinya bisa menjedanya. Menggeser notifikasi atau menerima panggilan akan menghentikannya.
+A video you started with a tap, or a reel you swiped to in Reels, keeps its sound after you leave Facebook, and its notification can pause it. Swiping the notification away or taking a call stops it.	Video yang Anda mulai dengan ketukan, atau reel yang Anda buka dengan menggeser di Reels, tetap bersuara setelah Anda keluar dari Facebook, dan notifikasinya bisa menjedanya. Menggeser notifikasi atau menerima panggilan akan menghentikannya.
 # context: title of that notification when the video has none of its own
 Facebook video	Video Facebook
 # context: switch title under Playback; on, the small picture-in-picture window gets a headphones button that keeps the sound playing after the window closes
@@ -3131,3 +3133,10 @@ When a video in your feed has the poster's name on top of the video, that name s
 Quality settings	Pengaturan kualitas
 Request community note	Minta catatan komunitas
 Something went wrong	Terjadi kesalahan
+# context: the Mark all notifications as read row under Notifications and its toasts (Discussion #338)
+Mark all notifications as read	Tandai semua notifikasi sudah dibaca
+Clears every unread dot in the Notifications tab at once, like Mark all as read in the three-dot menu there, which some accounts don't have.	Menghapus semua titik belum dibaca di tab Notifikasi sekaligus, seperti Tandai semua sudah dibaca di menu titik tiga di sana, yang tidak dimiliki sebagian akun.
+All your notifications are marked as read.	Semua notifikasi Anda sudah ditandai dibaca.
+Nothing was marked, since Facebook didn't say who's signed in. Open the Notifications tab once, then try again.	Tidak ada yang ditandai karena Facebook tidak memberi tahu siapa yang masuk. Buka tab Notifikasi sekali, lalu coba lagi.
+This build can't mark notifications as read.	Build ini tidak bisa menandai notifikasi sudah dibaca.
+Facebook couldn't mark your notifications as read. Try again in a moment.	Facebook tidak bisa menandai notifikasi Anda sudah dibaca. Coba lagi sebentar lagi.

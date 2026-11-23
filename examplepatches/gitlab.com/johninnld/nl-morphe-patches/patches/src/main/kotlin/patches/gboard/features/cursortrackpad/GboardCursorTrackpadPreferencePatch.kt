@@ -22,8 +22,8 @@ internal val gboardCursorTrackpadPreferencePatch = bytecodePatch(
     dependsOn(gboardPatchesExtensionCarrierPatch)
     execute {
         val targets = listOf(
-            GboardMethodTarget("Lqpn;", "am", listOf("Ljava/lang/String;", "Z", "Z"), "Z"),
-            GboardMethodTarget("Lcei;", "x", listOf("I", "Z"), "Z"),
+            GboardMethodTarget("Lahws;", "am", listOf("Ljava/lang/String;", "Z", "Z"), "Z"),
+            GboardMethodTarget("Lahvo;", "x", listOf("I", "Z"), "Z"),
         )
         val methods = targets.map { it.resolve(this) }
         methods.forEach { check(it.accessFlags == (AccessFlags.PUBLIC.value or AccessFlags.FINAL.value)) }
@@ -32,7 +32,7 @@ internal val gboardCursorTrackpadPreferencePatch = bytecodePatch(
             val helper = "morpheCursorStock${original.name}"
             check(owner.methods.none { it.name == helper }) { "Duplicate cursor preference bridge" }
             if (index == 1 && original.implementation!!.instructions.any {
-                    it.isMethodReference("Lcei;->morpheWritingToolsStockRead(IZ)Z") }) {
+                    it.isMethodReference("Legd;->morpheWritingToolsStockRead(IZ)Z") }) {
                 val returns = original.implementation!!.instructions.indices.filter { original.implementation!!.instructions[it].isOpcode("RETURN") }
                 check(returns.size == 1 && original.implementation!!.registerCount == 4)
                 original.addInstructions(returns.single(), """

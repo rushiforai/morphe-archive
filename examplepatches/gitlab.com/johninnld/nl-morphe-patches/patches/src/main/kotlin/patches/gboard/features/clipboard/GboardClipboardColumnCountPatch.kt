@@ -30,10 +30,10 @@ internal val gboardClipboardColumnCountPatch = bytecodePatch(
 }
 
 internal fun MutableMethod.applyClipboardColumnCountDelegate() {
-    requireExactClipboardTarget(CLIPBOARD_KEYBOARD_CLASS, "l", "I", emptyList())
+    requireExactClipboardTarget(CLIPBOARD_KEYBOARD_CLASS, "b", "I", emptyList())
     applyVerified(
         VerifiedTransformationPlan(
-            targetName = "$CLIPBOARD_KEYBOARD_CLASS->l()I",
+            targetName = "$CLIPBOARD_KEYBOARD_CLASS->b()I",
             classify = MutableMethod::classifyClipboardColumnCount,
             mutate = { method ->
                 method.addInstructions(0, COLUMN_COUNT_DELEGATE)

@@ -693,9 +693,9 @@ Hides ads and boosted listings in Marketplace's feed and search results. Regular
 # context: switch title under News feed; hides posts whose text holds a word or phrase the person listed
 Hide posts with words you choose	Скрывать публикации по выбранным словам
 Hide posts from people, Pages and sites	Скрывать публикации от людей, Страниц и сайтов
-Hides posts by people or Pages on your list below, or linking to sites on it, including shares. Your list stays on this phone unless you export it.	Скрывает публикации людей и Страниц из списка ниже, а также публикации со ссылками на указанные сайты, включая репосты. Список хранится на этом телефоне, если вы не экспортируете его.
+Hides posts by people or Pages on your list below, posted in a group on it, or linking to sites on it, including shares. Your list stays on this phone unless you export it.	Скрывает публикации людей и Страниц из списка ниже, публикации в указанных группах, а также публикации со ссылками на указанные сайты, включая репосты. Список хранится на этом телефоне, если вы не экспортируете его.
 People, Pages and sites to hide	Люди, Страницы и сайты для скрытия
-One per line, up to %1$d: a name as Facebook shows it, a profile or Page ID, or a site like example.com, which also covers addresses like m.example.com. Capital letters don't matter. A Facebook link works when it has the ID in it.	Не более %1$d записей, по одной в строке: имя, как оно отображается в Facebook, ID профиля или Страницы либо сайт, например example.com (включая адреса вроде m.example.com). Регистр букв не имеет значения. Ссылка Facebook работает, если содержит ID.
+One per line, up to %1$d: a name as Facebook shows it (a person, Page or group), a profile, Page or group ID, or a site like example.com, which also covers addresses like m.example.com. Capital letters don't matter. A Facebook link works when it has the ID in it.	Не более %1$d записей, по одной в строке: имя, как оно отображается в Facebook (человека, Страницы или группы), ID профиля, Страницы или группы либо сайт, например example.com (включая адреса вроде m.example.com). Регистр букв не имеет значения. Ссылка Facebook работает, если содержит ID.
 One name, ID or site per line	Одно имя, ID или сайт в каждой строке
 Nobody listed yet, so no post is hidden.	Список пока пуст, поэтому публикации не скрываются.
 %1$d person, Page or site.	%1$d человек, Страница или сайт.
@@ -1901,8 +1901,10 @@ Picture-in-picture button	Кнопка «Картинка в картинке»
 Shows a small button at the left edge of a reel or video that has the window ready. Tap it to open the window right away. Works with Picture-in-picture on.	Показывает небольшую кнопку у левого края Reels или видео, чтобы быстро открыть плавающее окно. Нажмите ее, чтобы сразу открыть окно. Работает при включенной функции «Картинка в картинке».
 # context: switch title under Playback; on, a video you started keeps its sound after you leave Facebook; also the label of a headphones button in the picture-in-picture window
 Keep playing in the background	Продолжать воспроизведение в фоне
+Next reel in the background	Следующий ролик Reels в фоне
+When a reel playing in the background ends, the next reel plays instead of the same one again. It goes through the reels Reels had loaded when you left. Works with Keep playing in the background on.	Когда ролик Reels, играющий в фоне, заканчивается, вместо повтора включается следующий. Воспроизводятся ролики, которые Reels успел загрузить, когда вы вышли. Работает при включенной функции «Продолжать воспроизведение в фоне».
 # context: summary of that switch; the notification is the one Facebook shows with the video's play and pause buttons
-A video you started with a tap keeps its sound after you leave Facebook, and its notification can pause it. Swiping the notification away or taking a call stops it.	Видео, которое вы запустили нажатием, продолжает звучать после выхода из Facebook, а его уведомление позволяет поставить его на паузу. Если смахнуть уведомление или ответить на звонок, воспроизведение остановится.
+A video you started with a tap, or a reel you swiped to in Reels, keeps its sound after you leave Facebook, and its notification can pause it. Swiping the notification away or taking a call stops it.	Видео, которое вы запустили нажатием, или ролик, к которому вы перешли свайпом в Reels, продолжает звучать после выхода из Facebook, а его уведомление позволяет поставить его на паузу. Если смахнуть уведомление или ответить на звонок, воспроизведение остановится.
 # context: title of that notification when the video has none of its own
 Facebook video	Видео Facebook
 # context: switch title under Playback; on, the small picture-in-picture window gets a headphones button that keeps the sound playing after the window closes
@@ -3189,3 +3191,10 @@ When a video in your feed has the poster's name on top of the video, that name s
 Quality settings	Настройки качества
 Request community note	Запросить заметку сообщества
 Something went wrong	Что-то пошло не так
+# context: the Mark all notifications as read row under Notifications and its toasts (Discussion #338)
+Mark all notifications as read	Отметить все уведомления как прочитанные
+Clears every unread dot in the Notifications tab at once, like Mark all as read in the three-dot menu there, which some accounts don't have.	Убирает сразу все отметки непрочитанного на вкладке «Уведомления», как пункт «Отметить все как прочитанные» в меню с тремя точками, которого у некоторых аккаунтов нет.
+All your notifications are marked as read.	Все уведомления отмечены как прочитанные.
+Nothing was marked, since Facebook didn't say who's signed in. Open the Notifications tab once, then try again.	Ничего не отмечено, потому что Facebook не сообщил, кто вошёл в аккаунт. Откройте вкладку «Уведомления» один раз и попробуйте снова.
+This build can't mark notifications as read.	Эта сборка не может отмечать уведомления как прочитанные.
+Facebook couldn't mark your notifications as read. Try again in a moment.	Facebook не смог отметить уведомления как прочитанные. Попробуйте ещё раз чуть позже.

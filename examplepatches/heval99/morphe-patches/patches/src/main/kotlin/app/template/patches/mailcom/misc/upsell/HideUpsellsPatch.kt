@@ -1,7 +1,7 @@
 package app.template.patches.mailcom.misc.upsell
 
 import app.morphe.patcher.Fingerprint
-import app.morphe.patcher.methodCall
+import app.morphe.patcher.string
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.returnEarly
 import app.template.patches.shared.Constants.COMPATIBILITY_MAILCOM
@@ -9,7 +9,8 @@ import app.template.patches.shared.Constants.COMPATIBILITY_MAILCOM
 // Swipe2UpsellFeature.isEnabledByConfig (9.18.3): the SWIPE_2_UPSELL feature toggle. Its only
 // reader is SwipeToUpsellHelper, the upgrade bottom sheet shown once the user has swiped away
 // enough ads (mail list and shopping list). Every Feature has an isEnabledByConfig, so this one
-// is told apart by the config read it returns. Its isEnabledByOverride is a constant false.
+// is told apart by the preference key it reads (9.21.2: the old Swipe2UpsellDebugPreferences
+// helper it called is gone). Its isEnabledByOverride is a constant false.
 //
 // IapUpsellingFeature (IAP_UPSELLING) is deliberately not touched: it is the master switch for
 // every in-app purchase entry point, including the Settings "Upgrade" row
@@ -21,7 +22,7 @@ internal object Swipe2UpsellEnabledByConfigFingerprint : Fingerprint(
     name = "isEnabledByConfig",
     returnType = "Z",
     parameters = listOf(),
-    filters = listOf(methodCall(name = "isSwipe2UpsellEnabled", parameters = listOf(), returnType = "Z")),
+    filters = listOf(string("feature.swipe2upsell.enabled")),
     custom = { method, _ -> method.implementation != null },
 )
 

@@ -1,0 +1,10 @@
+import re
+
+with open('temp_decompiled/res/values/styles.xml', 'r', encoding='utf-8') as f:
+    text = f.read()
+
+m = re.search(r'<style name="style_0x7f150c18"[^>]*>(.*?)</style>', text, re.DOTALL)
+if m:
+    items = re.findall(r'<item name="([^"]+)">([^<]+)</item>', m.group(1))
+    for name, val in items:
+        print(f"  {name} = {val}")

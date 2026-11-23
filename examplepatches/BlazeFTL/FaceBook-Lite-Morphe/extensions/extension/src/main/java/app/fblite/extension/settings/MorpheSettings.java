@@ -34,6 +34,17 @@ public final class MorpheSettings {
     public static final String PROFILE_ALWAYS = "profile_always";
     public static final String HIDE_OVER_COMMENTS = "hide_over_comments";
     public static final String DOUBLE_TAP_SEEK = "double_tap_seek";
+    public static final String DEBUG_ADS = "debug_log_ads";
+    public static final String DEBUG_VIEWS = "debug_log_views";
+    public static final String DEBUG_PLAYER = "debug_log_player";
+    public static final String DEBUG_VIDEO = "debug_log_video";
+    public static final String DEBUG_STORIES = "debug_log_stories";
+    public static final String DEBUG_APP = "debug_log_app";
+
+    static final String[] SWITCHES = {
+            VIDEO_DOWNLOAD, ASK_DOWNLOAD_QUALITY, AUTO_NEXT_REEL, SHORT_VIDEO_CONTROLS, DOUBLE_TAP_SEEK, HIDE_OVER_COMMENTS,
+            REELS_HIDE_ADS, STORIES_HIDE_ADS, PROFILE_WHEN_NO_REELS, PROFILE_ALWAYS
+    };
 
     private MorpheSettings() {
     }
@@ -50,7 +61,7 @@ public final class MorpheSettings {
     static boolean defaultValue(String key) {
         return VIDEO_DOWNLOAD.equals(key) || ASK_DOWNLOAD_QUALITY.equals(key) || STORIES_HIDE_ADS.equals(key) || REELS_HIDE_ADS.equals(key)
                 || PROFILE_WHEN_NO_REELS.equals(key) || SHORT_VIDEO_CONTROLS.equals(key) || PROFILE_ALWAYS.equals(key)
-                || HIDE_OVER_COMMENTS.equals(key);
+                || HIDE_OVER_COMMENTS.equals(key) || key.startsWith("debug_log_");
     }
 
     public static boolean isEnabled(Context context, String key) {

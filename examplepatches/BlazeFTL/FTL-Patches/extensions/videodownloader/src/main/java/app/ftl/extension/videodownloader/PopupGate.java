@@ -1,24 +1,13 @@
 package app.ftl.extension.videodownloader;
 
 import android.app.Activity;
-import android.app.AlertDialog;
-import android.content.DialogInterface;
 import android.net.Uri;
 import android.os.Build;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebView;
 
-public final class PopupGate implements DialogInterface.OnClickListener, DialogInterface.OnDismissListener {
-    private final Activity activity;
-    private final String host;
-    private final String url;
-    private final WebView view;
-
-    private PopupGate(Activity activity, String host, String url, WebView view) {
-        this.activity = activity;
-        this.host = host;
-        this.url = url;
-        this.view = view;
+public final class PopupGate {
+    private PopupGate() {
     }
 
     public static boolean intercept(WebView view, WebResourceRequest request) {
@@ -50,14 +39,14 @@ public final class PopupGate implements DialogInterface.OnClickListener, DialogI
             if (activity == null) {
                 return false;
             }
-            check(activity, url, view);
+            check(activity, url, page, view);
             return true;
         } catch (Throwable t) {
             return false;
         }
     }
 
-    private static void check(Activity activity, String url, WebView view) {
+    private static void check(final Activity activity, final String url, String page, final WebView view) {
         String host = Uri.parse(url).getHost();
         if (host == null) {
             host = "";
@@ -68,32 +57,20 @@ public final class PopupGate implements DialogInterface.OnClickListener, DialogI
         if (activity.isFinishing() || !PopupUtil.tryAcquire()) {
             return;
         }
-        PopupGate gate = new PopupGate(activity, host, url, view);
-        try {
-            new AlertDialog.Builder(activity)
-                    .setTitle("Popup blocked")
-                    .setMessage(PopupUtil.shorten(url))
-                    .setPositiveButton("Allow", gate)
-                    .setNeutralButton("Block", gate)
-                    .setNegativeButton("Always Block", gate)
-                    .setOnDismissListener(gate)
-                    .show();
-        } catch (Throwable t) {
-            PopupUtil.release();
-        }
-    }
-
-    @Override
-    public void onClick(DialogInterface dialog, int which) {
-        if (which == DialogInterface.BUTTON_POSITIVE) {
-            view.loadUrl(url);
-        } else if (which == DialogInterface.BUTTON_NEGATIVE) {
-            PopupStore.put(activity, PopupStore.REDIRECT, host, PopupStore.BLOCK);
-        }
-    }
-
-    @Override
-    public void onDismiss(DialogInterface dialog) {
-        PopupUtil.release();
+        String ruleHost = host.length() > 0 ? host : null;
+        int[] choices = ruleHost != null
+                ? new int[]{PopupPrompt.ALLOW_ONCE, PopupPrompt.BLOCK_ONCE, PopupPrompt.ALWAYS_BLOCK}
+                : new int[]{PopupPrompt.ALLOW_ONCE, PopupPrompt.BLOCK_ONCE};
+        PopupPrompt.show(activity, page, url, "A page tried to redirect you", ruleHost, choices,
+                new PopupPrompt.Callback() {
+                    @Override
+                    public void onChoice(int choice, String key) {
+                        if (choice == PopupPrompt.ALLOW_ONCE) {
+                            view.loadUrl(url);
+                        } else if (choice == PopupPrompt.ALWAYS_BLOCK && key != null) {
+                            PopupStore.put(activity, PopupStore.REDIRECT, key, PopupStore.BLOCK);
+                        }
+                    }
+                });
     }
 }

@@ -12,16 +12,22 @@ import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.Switch;
 import android.widget.TextView;
+import dev.utaa.cutlog.extension.hook.CaptureInterceptor;
 import dev.utaa.cutlog.extension.pref.Feature;
 import dev.utaa.cutlog.extension.pref.Prefs;
 
 /**
  * cutlog の機能ごとの ON/OFF（F6）。切り替えはすぐ保存し、閉じたときに撮影画面のボタンの表示を合わせ直す。
  * 当たっていないパッチの機能は出さない。
+ *
+ * <p>「ファイルから投稿」が ON のときは、先頭に「ファイルから選ぶ」を出す（setlog 1.3 (89) で撮影画面に
+ * 「ファイルから」ボタンを置く場所がなくなったため、ここから取り込む）。
  */
 final class SettingsDialog {
     private final Context context;
     private final Runnable onClosed;
+    private AlertDialog dialog;
+    private TextView importButton;
 
     SettingsDialog(Context context, Runnable onClosed) {
         this.context = context;
@@ -35,6 +41,18 @@ final class SettingsDialog {
         content.setPadding(padding, padding, padding, Ui.dp(context, 4));
 
         content.addView(Ui.text(context, "cutlog の設定", 18, Ui.TEXT_PRIMARY, true));
+        if (Feature.IMPORT.isAvailable()) {
+            importButton = Ui.pillButton(context, "ファイルから選ぶ");
+            importButton.setTextColor(android.graphics.Color.WHITE);
+            importButton.setBackground(Ui.pill(Ui.ACCENT));
+            importButton.setOnClickListener(v -> {
+                // 動画を選ぶ画面を開く前に閉じる。閉じたときに撮影画面のボタンの並びも合わせ直される。
+                dialog.dismiss();
+                CaptureInterceptor.startImport();
+            });
+            content.addView(importButton, matchWidth(Ui.dp(context, 18)));
+            refreshImportButton();
+        }
         for (Feature feature : Feature.values()) {
             if (feature.isAvailable()) {
                 content.addView(row(feature), matchWidth(Ui.dp(context, 18)));
@@ -48,7 +66,7 @@ final class SettingsDialog {
 
         ScrollView scroll = new ScrollView(context);
         scroll.addView(content);
-        AlertDialog dialog = new AlertDialog.Builder(context, android.R.style.Theme_DeviceDefault_Dialog_Alert)
+        dialog = new AlertDialog.Builder(context, android.R.style.Theme_DeviceDefault_Dialog_Alert)
                 .setView(scroll)
                 .setPositiveButton("閉じる", null)
                 .setOnDismissListener(d -> onClosed.run())
@@ -84,7 +102,10 @@ final class SettingsDialog {
                 new int[][] {{android.R.attr.state_checked}, {}},
                 new int[] {Ui.ACCENT, 0xFF8E8E93}));
         toggle.setContentDescription(feature.title);
-        toggle.setOnCheckedChangeListener((button, checked) -> Prefs.setEnabled(context, feature, checked));
+        toggle.setOnCheckedChangeListener((button, checked) -> {
+            Prefs.setEnabled(context, feature, checked);
+            refreshImportButton();
+        });
         LinearLayout.LayoutParams toggleParams = new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         toggleParams.leftMargin = Ui.dp(context, 14);
@@ -93,6 +114,13 @@ final class SettingsDialog {
         row.setClickable(true);
         row.setOnClickListener(v -> toggle.toggle());
         return row;
+    }
+
+    /** 「ファイルから投稿」が OFF の間は「ファイルから選ぶ」を隠す。 */
+    private void refreshImportButton() {
+        if (importButton != null) {
+            importButton.setVisibility(Prefs.isEnabled(context, Feature.IMPORT) ? View.VISIBLE : View.GONE);
+        }
     }
 
     private static LinearLayout.LayoutParams matchWidth(int topMargin) {

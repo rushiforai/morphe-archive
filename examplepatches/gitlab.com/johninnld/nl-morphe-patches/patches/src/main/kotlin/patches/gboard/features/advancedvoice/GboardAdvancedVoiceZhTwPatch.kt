@@ -19,28 +19,28 @@ internal val gboardAdvancedVoice1803ZhTwPatch = bytecodePatch(
     compatibleWith(COMPATIBILITY_GBOARD)
     dependsOn(gboardPatchesExtensionCarrierPatch)
     execute {
-        val readiness = GboardMethodTarget("Lsmi;", "a", emptyList(), "Z").resolve(this)
-        val eligibility = GboardMethodTarget("Lsmz;", "<init>", listOf(
-            "Landroid/content/Context;", "Ltqb;", "Lusl;", "Lsdy;", "Ltqb;", "Ltqb;", "Lswr;",
-            "Ltqb;", "Lswy;", "Lssi;", "Lkye;", "Lsrp;", "Lsrx;", "Luya;", "Lsth;", "Lsxc;",
-            "Lsyz;", "Lihu;", "Lsno;", "Lsmm;", "Ltqb;", "Lpsw;", "Ljava/util/Set;"), "V").resolve(this)
-        val mdd = GboardMethodTarget("Lsdy;", "<init>",
-            listOf("Landroid/content/Context;", "Lsvb;", "Lsdr;", "Lpsw;"), "V").resolve(this)
-        val formatter = GboardMethodTarget("Lsgm;", "<init>", listOf("Ljava/util/Locale;", "Leqn;",
-            "Lsta;", "I", "Z", "Lsgp;", "Lsyp;", "Luya;", "Ljava/util/concurrent/Executor;"), "V").resolve(this)
-        listOf(GboardFieldTarget("Lsmi;", "b", "Lgsn;"), GboardFieldTarget("Lsdy;", "d", "Lpsw;"),
-            GboardFieldTarget("Leqn;", "c", "Leqh;"), GboardFieldTarget("Leqh;", "a", "Leqh;"),
-            GboardFieldTarget("Leqh;", "H", "Z")).forEach { it.resolve(this) }
-        listOf(GboardMethodTarget("Lgsn;", "get", emptyList(), "Ljava/lang/Object;"),
-            GboardMethodTarget("Lsdw;", "<init>", listOf("Lsdy;", "Ljava/util/Locale;", "Labxm;"), "V"),
-            GboardMethodTarget("Labue;", "ak", listOf("Lpsw;", "I", "Labzl;", "I"), "Lxkb;")
+        val readiness = GboardMethodTarget("Lalyi;", "a", emptyList(), "Z").resolve(this)
+        val eligibility = GboardMethodTarget("Lalzk;", "<init>", listOf(
+            "Landroid/content/Context;", "Lanen;", "Laqir;", "Lakzm;", "Lanen;", "Lanen;", "Lanbg;",
+            "Lanen;", "Lanbr;", "Lamnr;", "Lajxy;", "Lammk;", "Lammu;", "Lantm;", "Lampm;", "Lance;",
+            "Langt;", "Lric;", "Lsno;", "Lalyu;", "Lanen;", "Laghh;", "Ljava/util/Set;"), "V").resolve(this)
+        val mdd = GboardMethodTarget("Lakzm;", "<init>",
+            listOf("Landroid/content/Context;", "Lsvb;", "Lakyu;", "Laghh;"), "V").resolve(this)
+        val formatter = GboardMethodTarget("Lalhf;", "<init>", listOf("Ljava/util/Locale;", "Liee;",
+            "Lamot;", "I", "Z", "Lsgp;", "Lsyp;", "Lantm;", "Ljava/util/concurrent/Executor;"), "V").resolve(this)
+        listOf(GboardFieldTarget("Lalyi;", "b", "Lnuf;"), GboardFieldTarget("Lakzm;", "d", "Laghh;"),
+            GboardFieldTarget("Liee;", "c", "Lidr;"), GboardFieldTarget("Lidr;", "a", "Lidr;"),
+            GboardFieldTarget("Lidr;", "H", "Z")).forEach { it.resolve(this) }
+        listOf(GboardMethodTarget("Lnuf;", "get", emptyList(), "Ljava/lang/Object;"),
+            GboardMethodTarget("Lakzj;", "<init>", listOf("Lakzm;", "Ljava/util/Locale;", "Lbeio;"), "V"),
+            GboardMethodTarget("Lbehd;", "ak", listOf("Laghh;", "I", "Lbeld;", "I"), "Lavvx;")
         ).forEach { it.resolve(this) }
-        check("Labzl;" in mutableClass("Lsdw;").interfaces)
-        mutableClass("Lsmi;").addHelperMethodIfMissing("morpheNativeSplitReady", listOf("Z"), "Z", 0x1a, 3,
+        check("Lbeld;" in mutableClass("Lakzj;").interfaces)
+        mutableClass("Lalyi;").addHelperMethodIfMissing("morpheNativeSplitReady", listOf("Z"), "Z", 0x1a, 3,
             advancedVoice1853NativeBody())
-        mutableClass("Lsdy;").addHelperMethodIfMissing("morpheRequestZhTwMdd", emptyList(), "V", 0x12, 6,
+        mutableClass("Lakzm;").addHelperMethodIfMissing("morpheRequestZhTwMdd", emptyList(), "V", 0x12, 6,
             advancedVoice1853MddBody())
-        mutableClass("Lsgm;").addHelperMethodIfMissing("morpheZhTwFormatter", listOf("Ljava/util/Locale;", "Leqn;", "Z"),
+        mutableClass("Lalhf;").addHelperMethodIfMissing("morpheZhTwFormatter", listOf("Ljava/util/Locale;", "Liee;", "Z"),
             "Z", 0x1a, 5, advancedVoice1853FormatterBody())
         val normalReadinessReturns = readiness.implementation!!.instructions.indices.filter {
             readiness.implementation!!.instructions[it].isOpcode("RETURN")
@@ -49,7 +49,7 @@ internal val gboardAdvancedVoice1803ZhTwPatch = bytecodePatch(
         normalReadinessReturns.asReversed().forEach { i ->
             val r = (readiness.implementation!!.instructions[i] as OneRegisterInstruction).registerA
             readiness.addInstructions(i, """
-                invoke-static {v$r}, Ltdn;->morpheNativeSplitReady(Z)Z
+                invoke-static {v$r}, Lanoz;->morpheNativeSplitReady(Z)Z
                 move-result v$r
             """)
         }
@@ -65,7 +65,7 @@ internal val gboardAdvancedVoice1803ZhTwPatch = bytecodePatch(
         mddReturns.asReversed().forEach { mdd.addInstructions(it, "invoke-direct {p0}, Lsva;->morpheRequestZhTwMdd()V") }
         mdd.addInstructions(0, RuntimeCallEmitter.invoke(RuntimeCallId.ADVANCED_VOICE_RUNTIME_SEED_APPLICATION_CONTEXT, "p1 .. p1"))
         formatter.addInstructions(0, """
-            invoke-static {p1, p2, p5}, Lsxu;->morpheZhTwFormatter(Ljava/util/Locale;Leqn;Z)Z
+            invoke-static {p1, p2, p5}, Lsxu;->morpheZhTwFormatter(Ljava/util/Locale;Liee;Z)Z
             move-result p5
         """)
     }
@@ -76,7 +76,7 @@ internal fun advancedVoice1853NativeBody() = """
     ${RuntimeCallEmitter.invoke(RuntimeCallId.ADVANCED_VOICE_RUNTIME_SHOULD_CHECK_NATIVE, "p0")}
     move-result v0
     if-eqz v0, :done
-    sget-object v0, Ltor;->b:Lltr;
+    sget-object v0, Ltor;->b:Lyxd;
     invoke-interface {v0}, Lhrn;->a()Ljava/lang/Object;
     move-result-object v0
     check-cast v0, Ljava/lang/Boolean;
@@ -98,16 +98,16 @@ internal fun advancedVoice1853MddBody() = """
     move-result v0
     if-eqz v0, :done
     :start
-    iget-object v0, p0, Lwdm;->d:Ladic;
+    iget-object v0, p0, Latvr;->d:Lbgms;
     if-eqz v0, :reset
     const-string v1, "zh-TW"
     invoke-static {v1}, Ljava/util/Locale;->forLanguageTag(Ljava/lang/String;)Ljava/util/Locale;
     move-result-object v1
     new-instance v2, Lsuz;
     const/4 v3, 0x0
-    invoke-direct {v2, p0, v1, v3}, Lsuz;-><init>(Lsdy;Ljava/util/Locale;Labxm;)V
+    invoke-direct {v2, p0, v1, v3}, Lsuz;-><init>(Lakzm;Ljava/util/Locale;Lbeio;)V
     const/4 v4, 0x3
-    invoke-static {v0, v3, v2, v4}, Lacna;->ak(Lpsw;ILachc;I)Lxkb;
+    invoke-static {v0, v3, v2, v4}, Lacna;->ak(Laghh;ILachc;I)Lavvx;
     move-result-object v0
     if-eqz v0, :reset
     :done

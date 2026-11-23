@@ -687,9 +687,9 @@ Hides ads and boosted listings in Marketplace's feed and search results. Regular
 # context: switch title under News feed; hides posts whose text holds a word or phrase the person listed
 Hide posts with words you choose	Ocultar publicaciones con las palabras que elijas
 Hide posts from people, Pages and sites	Ocultar publicaciones de personas, páginas y sitios
-Hides posts by people or Pages on your list below, or linking to sites on it, including shares. Your list stays on this phone unless you export it.	Oculta las publicaciones de personas o páginas de tu lista de abajo, o con enlaces a sitios de ella, compartidos incluidos. Tu lista se queda en este teléfono salvo que la exportes.
+Hides posts by people or Pages on your list below, posted in a group on it, or linking to sites on it, including shares. Your list stays on this phone unless you export it.	Oculta las publicaciones de personas o páginas de tu lista de abajo, las publicadas en un grupo de ella o con enlaces a sitios de ella, compartidos incluidos. Tu lista se queda en este teléfono salvo que la exportes.
 People, Pages and sites to hide	Personas, páginas y sitios que ocultar
-One per line, up to %1$d: a name as Facebook shows it, a profile or Page ID, or a site like example.com, which also covers addresses like m.example.com. Capital letters don't matter. A Facebook link works when it has the ID in it.	Uno por línea, hasta %1$d: un nombre tal como lo muestra Facebook, el ID de un perfil o página, o un sitio como example.com, que también abarca direcciones como m.example.com. Las mayúsculas no importan. Un enlace de Facebook funciona si lleva el ID.
+One per line, up to %1$d: a name as Facebook shows it (a person, Page or group), a profile, Page or group ID, or a site like example.com, which also covers addresses like m.example.com. Capital letters don't matter. A Facebook link works when it has the ID in it.	Uno por línea, hasta %1$d: un nombre tal como lo muestra Facebook (de una persona, página o grupo), el ID de un perfil, página o grupo, o un sitio como example.com, que también abarca direcciones como m.example.com. Las mayúsculas no importan. Un enlace de Facebook funciona si lleva el ID.
 One name, ID or site per line	Un nombre, ID o sitio por línea
 Nobody listed yet, so no post is hidden.	Todavía no hay nadie en la lista, así que no se oculta ninguna publicación.
 %1$d person, Page or site.	%1$d persona, página o sitio.
@@ -1859,8 +1859,10 @@ Picture-in-picture button	Botón de imagen en imagen
 Shows a small button at the left edge of a reel or video that has the window ready. Tap it to open the window right away. Works with Picture-in-picture on.	Muestra un botón pequeño en el borde izquierdo de un reel o vídeo que tiene la ventana lista. Tócalo para abrir la ventana al instante. Funciona con Imagen en imagen activado.
 # context: switch title under Playback; on, a video you started keeps its sound after you leave Facebook; also the label of a headphones button in the picture-in-picture window
 Keep playing in the background	Seguir reproduciendo en segundo plano
+Next reel in the background	Siguiente reel en segundo plano
+When a reel playing in the background ends, the next reel plays instead of the same one again. It goes through the reels Reels had loaded when you left. Works with Keep playing in the background on.	Cuando termina un reel que se reproduce en segundo plano, se reproduce el siguiente en lugar del mismo otra vez. Recorre los reels que Reels tenía cargados cuando saliste. Funciona con Seguir reproduciendo en segundo plano activado.
 # context: summary of that switch; the notification is the one Facebook shows with the video's play and pause buttons
-A video you started with a tap keeps its sound after you leave Facebook, and its notification can pause it. Swiping the notification away or taking a call stops it.	Un video que iniciaste con un toque sigue sonando cuando sales de Facebook, y su notificación permite pausarlo. Deslizar la notificación o atender una llamada lo detiene.
+A video you started with a tap, or a reel you swiped to in Reels, keeps its sound after you leave Facebook, and its notification can pause it. Swiping the notification away or taking a call stops it.	Un video que iniciaste con un toque, o un reel al que llegaste deslizando en Reels, sigue sonando cuando sales de Facebook, y su notificación permite pausarlo. Deslizar la notificación o atender una llamada lo detiene.
 # context: title of that notification when the video has none of its own
 Facebook video	Video de Facebook
 # context: switch title under Playback; on, the small picture-in-picture window gets a headphones button that keeps the sound playing after the window closes
@@ -3131,3 +3133,10 @@ When a video in your feed has the poster's name on top of the video, that name s
 Quality settings	Configuración de calidad
 Request community note	Solicitar nota de la comunidad
 Something went wrong	Algo salió mal
+# context: the Mark all notifications as read row under Notifications and its toasts (Discussion #338)
+Mark all notifications as read	Marcar todas las notificaciones como leídas
+Clears every unread dot in the Notifications tab at once, like Mark all as read in the three-dot menu there, which some accounts don't have.	Quita de una vez todos los puntos de no leído de la pestaña Notificaciones, como Marcar todo como leído en su menú de tres puntos, que algunas cuentas no tienen.
+All your notifications are marked as read.	Todas tus notificaciones están marcadas como leídas.
+Nothing was marked, since Facebook didn't say who's signed in. Open the Notifications tab once, then try again.	No se marcó nada porque Facebook no indicó quién inició sesión. Abre la pestaña Notificaciones una vez y vuelve a intentarlo.
+This build can't mark notifications as read.	Esta compilación no puede marcar las notificaciones como leídas.
+Facebook couldn't mark your notifications as read. Try again in a moment.	Facebook no pudo marcar tus notificaciones como leídas. Vuelve a intentarlo en un momento.

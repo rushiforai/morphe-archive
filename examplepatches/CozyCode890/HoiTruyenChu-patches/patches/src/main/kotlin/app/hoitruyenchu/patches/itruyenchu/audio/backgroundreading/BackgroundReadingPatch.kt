@@ -1,5 +1,7 @@
 package app.hoitruyenchu.patches.itruyenchu.audio.backgroundreading
 
+import app.hoitruyenchu.patches.itruyenchu.misc.settings.enablePatchFlag
+import app.hoitruyenchu.patches.itruyenchu.misc.settings.settingsPatch
 import app.hoitruyenchu.patches.itruyenchu.audio.tts.ttsReliabilityPatch
 import app.hoitruyenchu.patches.itruyenchu.shared.Constants.COMPATIBILITY_ITRUYENCHU
 import app.hoitruyenchu.patches.itruyenchu.shared.Constants.EXTENSION_TTS_CONTROLLER
@@ -20,9 +22,11 @@ val backgroundReadingPatch = patch(
     compatibleWith(COMPATIBILITY_ITRUYENCHU)
 
     // The reading session state lives in TtsController.
-    dependsOn(ttsReliabilityPatch)
+    dependsOn(ttsReliabilityPatch, settingsPatch)
 
     execute {
+        enablePatchFlag("backgroundReading")
+
         TimerManagerOnHostPauseFingerprint.method.apply {
             addInstructionsWithLabels(
                 0,

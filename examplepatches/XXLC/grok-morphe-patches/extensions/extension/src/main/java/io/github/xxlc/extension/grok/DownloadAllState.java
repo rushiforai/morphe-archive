@@ -1,6 +1,6 @@
 package io.github.xxlc.extension.grok;
 
-/** Cờ dùng một lần cho thao tác tải toàn bộ media của các bài đã chọn. */
+/** One-shot flag for downloading all media of selected posts. */
 public final class DownloadAllState {
     public static boolean all;
 

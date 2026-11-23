@@ -14,6 +14,11 @@ internal object Constants {
     const val EXTENSION_FIX_GOOGLE_LOGIN = "$EXTENSION_PATCHES/login/FixGoogleLoginPatch;"
     const val EXTENSION_TTS_MEDIA_SESSION = "$EXTENSION_PATCHES/media/TtsMediaSession;"
     const val EXTENSION_RESUME_LISTENING = "$EXTENSION_PATCHES/resume/ResumeListeningPatch;"
+    const val EXTENSION_TAP_TO_SEEK = "$EXTENSION_PATCHES/taptoseek/TapToSeekPatch;"
+    const val EXTENSION_REMEMBER_SPEED = "$EXTENSION_PATCHES/speed/RememberSpeedPatch;"
+    const val EXTENSION_SETTINGS = "$EXTENSION_PATCHES/shared/HtcSettings;"
+    const val EXTENSION_PATCH_FLAGS = "$EXTENSION_PATCHES/shared/HtcPatches;"
+    const val SETTINGS_ACTIVITY = "app.hoitruyenchu.extension.itruyenchu.patches.settings.SettingsActivity"
 
     val COMPATIBILITY_ITRUYENCHU = Compatibility(
         name = "iTruyenChu",

@@ -50,9 +50,7 @@ public final class LichessActivity extends Activity {
     private static final String EXTRA_PGN = "morphe_pgn";
 
     static void open(Context context, String pgn) {
-        Intent intent = new Intent(context, LichessActivity.class).putExtra(EXTRA_PGN, pgn);
-        if (!(context instanceof Activity)) intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        context.startActivity(intent);
+        Utils.startScreen(context, new Intent(context, LichessActivity.class).putExtra(EXTRA_PGN, pgn));
     }
 
     private static final int BACKGROUND = 0xFF161512;

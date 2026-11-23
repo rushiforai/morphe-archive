@@ -1,5 +1,6 @@
 package app.template.patches.sofascore.misc.facebook
 
+import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.resourcePatch
 import app.template.patches.shared.Constants.COMPATIBILITY_SOFASCORE
@@ -15,37 +16,41 @@ import org.w3c.dom.Element
  * initialized" when the provider is neutered - that crashed the login screen
  * (issue #24). The provider only runs `FacebookSdk.sdkInitialize()`, so it is
  * left intact; tracking is switched off through manifest flags instead.
+ *
+ * Unnamed helper (like the other helper resource patches in this repo), so it is
+ * not a selectable patch of its own.
  */
-private val disableFacebookTelemetryResourcePatch = resourcePatch(
-    name = "Disable Facebook telemetry",
-    description = "Disables Facebook event tracking.",
-    default = true,
-) {
+private val disableFacebookTelemetryResourcePatch = resourcePatch {
     compatibleWith(COMPATIBILITY_SOFASCORE)
 
     execute {
         document("AndroidManifest.xml").use { doc ->
             val applications = doc.getElementsByTagName("application")
-            if (applications.length == 0) return@execute
-            val application = applications.item(0) as Element
-
-            val existing = buildSet {
-                val metas = application.getElementsByTagName("meta-data")
-                for (i in 0 until metas.length) {
-                    val name = (metas.item(i) as? Element)?.getAttribute("android:name")
-                    if (!name.isNullOrEmpty()) add(name)
-                }
+            if (applications.length == 0) {
+                throw PatchException("Disable Facebook SDK: AndroidManifest.xml has no <application>")
             }
+            val application = applications.item(0) as Element
 
             for ((name, value) in mapOf(
                 "com.facebook.sdk.AutoLogAppEventsEnabled" to "false",
                 "com.facebook.sdk.AdvertiserIDCollectionEnabled" to "false",
             )) {
-                if (name in existing) continue
-                val meta = doc.createElement("meta-data")
-                meta.setAttribute("android:name", name)
+                // An existing entry is overwritten, so a stock "true" cannot survive.
+                var meta: Element? = null
+                val children = application.childNodes
+                for (i in 0 until children.length) {
+                    val child = children.item(i) as? Element ?: continue
+                    if (child.tagName == "meta-data" && child.getAttribute("android:name") == name) {
+                        meta = child
+                        break
+                    }
+                }
+                if (meta == null) {
+                    meta = doc.createElement("meta-data")
+                    meta.setAttribute("android:name", name)
+                    application.appendChild(meta)
+                }
                 meta.setAttribute("android:value", value)
-                application.appendChild(meta)
             }
         }
     }
@@ -54,7 +59,7 @@ private val disableFacebookTelemetryResourcePatch = resourcePatch(
 @Suppress("unused")
 val disableFacebookSdkPatch = bytecodePatch(
     name = "Disable Facebook SDK",
-    description = "Disables Facebook ads and tracking. Facebook login keeps working."
+    description = "Disables Facebook tracking."
 ) {
     compatibleWith(COMPATIBILITY_SOFASCORE)
 

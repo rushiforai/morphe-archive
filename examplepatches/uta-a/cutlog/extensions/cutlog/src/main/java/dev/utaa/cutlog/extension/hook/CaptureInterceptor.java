@@ -12,7 +12,6 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 import dev.utaa.cutlog.extension.editor.EditorDialog;
-import dev.utaa.cutlog.extension.editor.ImportButton;
 import dev.utaa.cutlog.extension.editor.SettingsButton;
 import dev.utaa.cutlog.extension.pref.Feature;
 import dev.utaa.cutlog.extension.pref.Prefs;
@@ -41,6 +40,8 @@ public final class CaptureInterceptor {
     private static WeakReference<java.util.function.Consumer<Uri>> pickingImage = new WeakReference<>(null);
 
     private static WeakReference<Activity> currentActivity = new WeakReference<>(null);
+    /** いま開いている撮影画面。設定画面の「ファイルから選ぶ」で、ここへ取り込んだ動画を返す。 */
+    private static WeakReference<CaptureHost> cameraHost = new WeakReference<>(null);
     /** 動画を選んでいる間の撮影画面。選択画面から戻ったら、ここへ結果を返す。 */
     private static WeakReference<CaptureHost> pickingHost = new WeakReference<>(null);
     /** 動画を選び始めたときの Activity。戻ってきた Activity が違えば、撮影画面は作り直されている。 */
@@ -143,19 +144,22 @@ public final class CaptureInterceptor {
         }
     }
 
-    /** 撮影画面の View ができたときに呼ばれる。「ファイルから」ボタンを足す。 */
+    /**
+     * 撮影画面の View ができたときに呼ばれる。設定画面の「ファイルから選ぶ」から取り込めるよう、撮影画面を覚えておく。
+     *
+     * <p>setlog 1.3 (89) でシャッターの右に本体のエフェクトボタンが増え、「ファイルから」ボタンを置く場所が
+     * なくなったため、撮影画面にはボタンを足さない。
+     */
     public static void onCameraViewCreated(CaptureHost host, View view) {
         Feature.IMPORT.markAvailable();
-        try {
-            ImportButton.attach(view, () -> startImport(host));
-        } catch (RuntimeException e) {
-            Log.w(TAG, "Cannot add the import button.", e);
-        }
+        cameraHost = new WeakReference<>(host);
     }
 
-    private static void startImport(CaptureHost host) {
+    /** 設定画面の「ファイルから選ぶ」から呼ばれる。端末内の動画を選ぶ画面を開く。 */
+    public static void startImport() {
         Activity activity = currentActivity.get();
-        if (activity == null) {
+        CaptureHost host = cameraHost.get();
+        if (activity == null || host == null) {
             return;
         }
         if (!Prefs.isEnabled(activity, Feature.IMPORT)) {

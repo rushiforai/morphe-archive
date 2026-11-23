@@ -8,10 +8,14 @@ import app.morphe.patcher.patch.Compatibility
 import app.morphe.patcher.patch.bytecodePatch
 
 private const val APPLE_MUSIC_701 = "7.0.1"
-internal const val APPLE_MUSIC_702 = "7.0.2"
+private const val APPLE_MUSIC_702 = "7.0.2"
+private const val APPLE_MUSIC_703 = "7.0.3"
 
 internal fun uses701LibraryBindings(versionName: String?) =
-    versionName == APPLE_MUSIC_701 || versionName == APPLE_MUSIC_702
+    versionName == APPLE_MUSIC_701 || versionName == APPLE_MUSIC_702 || versionName == APPLE_MUSIC_703
+
+internal fun uses702ComposeComposer(versionName: String?) =
+    versionName == APPLE_MUSIC_702 || versionName == APPLE_MUSIC_703
 
 internal val appleMusicCompatibility = Compatibility(
     name = "Apple Music",
@@ -22,6 +26,7 @@ internal val appleMusicCompatibility = Compatibility(
         AppTarget(version = "7.0.0", versionCode = 1614),
         AppTarget(version = APPLE_MUSIC_701, versionCode = 1622),
         AppTarget(version = APPLE_MUSIC_702, versionCode = 1624),
+        AppTarget(version = APPLE_MUSIC_703, versionCode = 1626),
     ),
 )
 

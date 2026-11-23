@@ -30,7 +30,7 @@ val disableNotificationPromptPatch = bytecodePatch(
     category("App")
     compatibleWith(COMPATIBILITY_QUORA)
 
-    extendWith("extensions/extension.mpe")
+    extendWith("extensions/quora.mpe")
 
     execute {
         // The page first shows its own "Let Quora send you notifications?" alert. p1 is the message, p2 its data.

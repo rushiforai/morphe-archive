@@ -43,9 +43,11 @@ public class LiveControlsTest {
         Settings.HIDE_LIVE_SERVICE_PLUS.save(Settings.HIDE_LIVE_SERVICE_PLUS.defaultValue);
         Settings.HIDE_LIVE_AI_SUMMARY.save(Settings.HIDE_LIVE_AI_SUMMARY.defaultValue);
         Settings.SHOW_EXACT_LIVE_VIEWERS.save(Settings.SHOW_EXACT_LIVE_VIEWERS.defaultValue);
+        Settings.SHOW_EXACT_BATTLE_SCORES.save(Settings.SHOW_EXACT_BATTLE_SCORES.defaultValue);
         Settings.OFFER_LIVE_QUALITY.save(Settings.OFFER_LIVE_QUALITY.defaultValue);
         Settings.REMEMBER_LIVE_QUALITY.save(Settings.REMEMBER_LIVE_QUALITY.defaultValue);
         Settings.REMEMBERED_LIVE_QUALITY.save(Settings.REMEMBERED_LIVE_QUALITY.defaultValue);
+        Settings.LIVE_START_QUALITY.save(Settings.LIVE_START_QUALITY.defaultValue);
         Settings.OFFER_LIVE_CLEAR_SCREEN.save(Settings.OFFER_LIVE_CLEAR_SCREEN.defaultValue);
         Settings.KEEP_LIVE_CLEAR_SCREEN.save(Settings.KEEP_LIVE_CLEAR_SCREEN.defaultValue);
         Settings.OFFER_LIVE_FULL_SCREEN.save(Settings.OFFER_LIVE_FULL_SCREEN.defaultValue);
@@ -332,6 +334,72 @@ public class LiveControlsTest {
         assertEquals("hd", LiveControls.liveQualityPick(null));
     }
 
+    // ---------------------------------------------------------------- start quality (#57)
+
+    /** A start quality picked in settings opens every room there until a pick is made this run. */
+    @Test public void aStartQualityOpensRoomsUntilAPickThisRun() {
+        Settings.OFFER_LIVE_QUALITY.save(true);
+        Settings.REMEMBERED_LIVE_QUALITY.save("ld");
+        Settings.LIVE_START_QUALITY.save("hd");
+        assertEquals("ahead of the kept pick", "hd", LiveControls.liveQualityPick(null));
+        assertEquals("and the next room", "hd", LiveControls.liveQualityPick(null));
+        LiveControls.noteLiveQualityPick("origin");
+        assertEquals("a pick this run carries", "origin", LiveControls.liveQualityPick(null));
+        assertEquals("ahead of TikTok's own", "origin", LiveControls.liveQualityPick("sd"));
+        coldStart();
+        assertEquals("a restart goes back to the start quality", "hd", LiveControls.liveQualityPick(null));
+        assertEquals("TikTok's pick this run still wins", "sd", LiveControls.liveQualityPick("sd"));
+    }
+
+    /** "last" is the default and keeps the last pick, the way rooms started before the choice. */
+    @Test public void theStartQualityKeepsTheLastPickByDefault() {
+        assertEquals("last", Settings.LIVE_START_QUALITY.defaultValue);
+        Settings.OFFER_LIVE_QUALITY.save(true);
+        Settings.REMEMBER_LIVE_QUALITY.save(true);
+        Settings.REMEMBERED_LIVE_QUALITY.save("ld");
+        assertEquals("the kept pick", "ld", LiveControls.liveQualityPick(null));
+        Settings.LIVE_START_QUALITY.save("8k");
+        assertEquals("a value it doesn't know is the default", "ld", LiveControls.liveQualityPick(null));
+        Settings.REMEMBER_LIVE_QUALITY.save(false);
+        Settings.LIVE_START_QUALITY.save("last");
+        assertEquals("nothing kept, the stream's own default", null, LiveControls.liveQualityPick(null));
+    }
+
+    /** It rides on Offer LIVE quality and the patch, and Pause turns it off. */
+    @Test public void theStartQualityNeedsOfferQualityThePatchAndNoPause() {
+        Settings.LIVE_START_QUALITY.save("hd");
+        assertEquals("Offer LIVE quality is off", null, LiveControls.liveQualityPick(null));
+        assertEquals("TikTok's own pick stays", "sd", LiveControls.liveQualityPick("sd"));
+        Settings.OFFER_LIVE_QUALITY.save(true);
+        setPaused(true);
+        assertEquals("paused", null, LiveControls.liveQualityPick(null));
+        setPaused(false);
+        SettingsStatus.liveControlsEnabled = false;
+        assertEquals("without the patch", null, LiveControls.liveQualityPick(null));
+        SettingsStatus.liveControlsEnabled = true;
+        assertEquals("hd", LiveControls.liveQualityPick(null));
+    }
+
+    /** A game room takes it too, when its stream lists it. */
+    @Test public void aGameRoomStartsAtTheStartQualityWhenItsStreamHasIt() {
+        Settings.OFFER_LIVE_QUALITY.save(true);
+        Settings.LIVE_START_QUALITY.save("sd");
+        assertEquals("sd", LiveControls.gameRoomQuality(null, "{\"data\":{\"hd\":{},\"sd\":{}}}", "hd"));
+        assertEquals(null, LiveControls.gameRoomQuality(null, "{\"data\":{\"hd\":{}}}", "hd"));
+    }
+
+    /** Every choice the settings row offers is one the start knows, and the first keeps the last pick. */
+    @Test public void theStartQualityChoicesLineUp() {
+        assertEquals(LiveControls.START_QUALITY_LABELS.length, LiveControls.START_QUALITY_VALUES.length);
+        assertEquals("last", LiveControls.START_QUALITY_VALUES[0]);
+        Settings.OFFER_LIVE_QUALITY.save(true);
+        for (int i = 1; i < LiveControls.START_QUALITY_VALUES.length; i++) {
+            String value = LiveControls.START_QUALITY_VALUES[i];
+            Settings.LIVE_START_QUALITY.save(value);
+            assertEquals(value, LiveControls.liveQualityPick(null));
+        }
+    }
+
     /** Off, TikTok's own setting decides which rooms offer a quality. */
     @Test public void qualityOffByDefaultLeavesTikToksSetting() {
         assertFalse(Settings.OFFER_LIVE_QUALITY.defaultValue);
@@ -467,6 +535,36 @@ public class LiveControlsTest {
         LiveControls.noteViewerCount(5000);
         assertEquals("5,000", LiveControls.viewerCountText("5K+"));
         assertEquals("5K+", LiveControls.viewerCountText("5K+"));
+    }
+
+    /** #495: a battle's scores past the server's cap show whole only while the switch is on. */
+    @Test public void battleScoresShowWholeOnlyWhileTheSwitchIsOn() {
+        assertFalse(Settings.SHOW_EXACT_BATTLE_SCORES.defaultValue);
+        assertTrue("TikTok's cap was lifted with the switch off", LiveControls.battleScoreCap(1));
+        assertFalse(LiveControls.battleScoreCap(0));
+        assertFalse("a viewer's score showed whole with the switch off", LiveControls.battleScoreWhole(0));
+        assertTrue("the host's own whole score", LiveControls.battleScoreWhole(1));
+
+        Settings.SHOW_EXACT_BATTLE_SCORES.save(true);
+        assertFalse("the cap is lifted", LiveControls.battleScoreCap(1));
+        assertFalse(LiveControls.battleScoreCap(0));
+        assertTrue("every writer shows the score whole", LiveControls.battleScoreWhole(0));
+        assertTrue(LiveControls.battleScoreWhole(1));
+
+        setPaused(true);
+        assertTrue("paused, TikTok's cap is back", LiveControls.battleScoreCap(1));
+        assertFalse(LiveControls.battleScoreWhole(0));
+        setPaused(false);
+        SettingsStatus.liveControlsEnabled = false;
+        assertTrue("a saved switch did something without its patch", LiveControls.battleScoreCap(1));
+        assertFalse(LiveControls.battleScoreWhole(0));
+    }
+
+    /** The hooks hand TikTok's booleans over as ints: anything non-zero is yes. */
+    @Test public void battleScoreFlagsReadAnyNonZeroAsYes() {
+        assertTrue(LiveControls.battleScoreCap(2));
+        assertTrue(LiveControls.battleScoreCap(-1));
+        assertTrue(LiveControls.battleScoreWhole(255));
     }
 
     private static String shown(long count, String tiktokText) {

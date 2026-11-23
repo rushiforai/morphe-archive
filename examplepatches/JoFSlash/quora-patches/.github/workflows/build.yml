@@ -29,7 +29,7 @@ jobs:
         env:
           GITHUB_ACTOR: ${{ github.actor }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: ./gradlew :patches:buildAndroid --no-daemon
+        run: bash .github/scripts/gradle-retry.sh :patches:buildAndroid --no-daemon
 
       - name: Setup Node.js
         uses: actions/setup-node@v7
@@ -41,3 +41,9 @@ jobs:
 
       - name: Check settings translations
         run: python3 .github/scripts/check_texts.py
+
+      - name: Check filter updates file
+        run: python3 .github/scripts/check_filters.py
+
+      - name: Check the scripts parse
+        run: python3 -m py_compile .github/scripts/*.py

@@ -27,6 +27,7 @@ final class AdLog {
 
     private static Context context;
     private static boolean enabled;
+    private static boolean category = true;
     private static long checked = -CHECK_MS;
     private static File file;
     private static int lines;
@@ -45,12 +46,14 @@ final class AdLog {
         if (now - checked >= CHECK_MS) {
             checked = now;
             try {
-                enabled = c.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE).getBoolean("debug_log", false);
+                android.content.SharedPreferences prefs = c.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE);
+                enabled = prefs.getBoolean("debug_log", false);
+                category = prefs.getBoolean("debug_log_ads", true);
             } catch (Throwable t) {
                 enabled = false;
             }
         }
-        return enabled;
+        return enabled && category;
     }
 
     /** A boolean of the Morphe settings, read by name. */

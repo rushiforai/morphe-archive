@@ -6,11 +6,11 @@
 
     const/4 v0, 0x1
 
-    invoke-static {p0, v0}, LX/im;->m1(Landroid/content/Context;Z)V
+    invoke-static {p0, v0}, LX/qغ乆لءлΚСλйЗ丧ю两ωθ乧乄ξυ並书乜ح;->m1(Landroid/content/Context;Z)V
 
     const/4 v0, -0x1
 
-    invoke-static {p0, v0}, LX/im;->j2(Landroid/content/Context;I)V
+    invoke-static {p0, v0}, LX/qغ乆لءлΚСλйЗ丧ю两ωθ乧乄ξυ並书乜ح;->j2(Landroid/content/Context;I)V
 
     invoke-virtual {p0}, Lcom/instagram/business/activity/Apo3;->M()V
 

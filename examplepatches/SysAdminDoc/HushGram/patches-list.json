@@ -1,5 +1,5 @@
 {
-  "version": "v0.0.21",
+  "version": "v0.0.22",
   "appNames": {
     "com.instagram.android": "Instagram"
   },
@@ -2702,7 +2702,7 @@
     },
     {
       "name": "Hide reels by caption words",
-      "description": "Leaves out reels whose caption holds a word or phrase from your list, or is in a language you don't keep. Also on Home does the same for Home's posts, and Also in comments hides matching comments. Starts off. Turn it on and type the words or languages in HushGram settings > Reels.",
+      "description": "Leaves out reels whose caption holds a word or phrase from your list, or is in a language you don't keep. Also on Home does the same for Home's posts, Also in comments hides matching comments, and Also in search takes matching rows out of the Explore grid and search results. Starts off. Turn it on and type the words or languages in HushGram settings > Reels.",
       "category": "Reels",
       "use": true,
       "dependencies": [
@@ -3443,7 +3443,7 @@
     },
     {
       "name": "Hide the line under names",
-      "description": "Takes the song, the place and the other labels off the line under the name on posts in your feed and on reels. Sponsored and Paid partnership stay. Starts off. Turn it on in HushGram settings > Feed and Reels.",
+      "description": "Takes the song, the place and the other labels off the line under the name on posts in your feed and on reels. Sponsored and Paid partnership stay, and `Keep the place` can leave a post's place there on its own. Starts off. Turn it on in HushGram settings > Feed and Reels.",
       "category": "Interaction",
       "use": true,
       "dependencies": [
@@ -3638,7 +3638,7 @@
     },
     {
       "name": "Hold for 2x on feed videos",
-      "description": "Press and hold a video in a feed to play it at 2x with Instagram's own speed-up, and let go for normal speed, or keep it at 2x until you hold it again. Starts off. Turn it on in HushGram settings > Feed.",
+      "description": "Press and hold a video in a feed to play it at 2x with Instagram's own speed-up, and let go for normal speed, or keep it at 2x until you hold it again (every hold, or only one of about 3 seconds). The name over the video can stay put while you hold. Starts off. Turn it on in HushGram settings > Feed.",
       "category": "Playback",
       "use": true,
       "dependencies": [
@@ -4409,7 +4409,7 @@
     {
       "name": "Keep the tab bar on reel links",
       "description": "A reel link you open from another app plays on the tab you were on, with the tab bar under it. Back goes back to that tab. Starts off. Turn it on in HushGram settings > Reels.",
-      "category": "Reels",
+      "category": "Interaction",
       "use": true,
       "dependencies": [
         "BytecodePatch",
@@ -5620,7 +5620,7 @@
     },
     {
       "name": "Saved on your profile",
-      "description": "Adds a bookmark to the tabs on your own profile, beside posts, reels and tagged, that opens Saved on All, a handle to drag through Saved and your collections, and a switch that hides the + for a new collection. All start off. Turn them on in HushGram settings > Profiles. The bookmark needs an Instagram restart.",
+      "description": "Adds a bookmark to the tabs on your own profile, beside posts, reels and tagged, that opens Saved on All, a handle to drag through Saved and your collections, and switches that hide the + for a new collection, Saved's Reels tab and the Saved bookmark on the Search tab. All start off. Turn them on in HushGram settings > Profiles. The bookmarks need an Instagram restart.",
       "category": "Profiles",
       "use": true,
       "dependencies": [
@@ -6557,7 +6557,7 @@
     },
     {
       "name": "Start feed videos with sound",
-      "description": "Starts videos on Home with their sound on, the same as tapping a video's speaker, or keeps them muted while reels play with sound. Your phone's ringer and volume still count. Starts off. Turn it on in HushGram settings > Feed.",
+      "description": "Starts videos on Home with their sound on, the same as tapping a video's speaker, or keeps them muted while reels play with sound. Your phone's ringer and volume still count, unless `Even on silent` under it is on. Starts off. Turn it on in HushGram settings > Feed.",
       "category": "Playback",
       "use": true,
       "dependencies": [

@@ -38,6 +38,19 @@ internal object FusedLocationAvailabilityFingerprint2644 : Fingerprint(
     custom = { _, classDef -> classDef.type == "Lajcc;" },
 )
 
+/** 26.47 keeps the fused-provider availability test in ajny.g() over ajwn. */
+internal object FusedLocationAvailabilityFingerprint2647 : Fingerprint(
+    name = "g",
+    returnType = "V",
+    parameters = emptyList(),
+    filters = listOf(
+        fieldAccess(opcode = Opcode.IGET_OBJECT, definingClass = "Lajny;", name = "k", type = "Lajwn;"),
+        opcode(Opcode.IF_EQZ, MatchAfterImmediately()),
+        opcode(Opcode.IF_NEZ, MatchAfterImmediately()),
+    ),
+    custom = { _, classDef -> classDef.type == "Lajny;" },
+)
+
 /**
  * Where every Play services connection Maps opens gets its descriptor: the
  * bundled client's getServiceStartIntent-style package (A()) and service
@@ -61,6 +74,27 @@ internal object PlayServicesConnectionFingerprint : Fingerprint(
             location = MatchAfterImmediately(),
         ),
     ),
+)
+
+/** 26.47's connection descriptor: the client's own B()/d()/f() feed the same constructor. */
+internal object PlayServicesConnectionFingerprint2647 : Fingerprint(
+    returnType = "Z",
+    parameters = listOf("I", "Landroid/os/IInterface;", "I"),
+    filters = listOf(
+        methodCall(definingClass = "this", name = "B", returnType = "Ljava/lang/String;"),
+        opcode(Opcode.MOVE_RESULT_OBJECT, MatchAfterImmediately()),
+        methodCall(definingClass = "this", name = "d", returnType = "Ljava/lang/String;", location = MatchAfterImmediately()),
+        opcode(Opcode.MOVE_RESULT_OBJECT, MatchAfterImmediately()),
+        methodCall(definingClass = "this", name = "f", returnType = "Z", location = MatchAfterImmediately()),
+        opcode(Opcode.MOVE_RESULT, MatchAfterImmediately()),
+        methodCall(
+            opcode = Opcode.INVOKE_DIRECT,
+            name = "<init>",
+            parameters = listOf("Ljava/lang/String;", "Ljava/lang/String;", "Z"),
+            location = MatchAfterImmediately(),
+        ),
+    ),
+    custom = { method, _ -> method.definingClass == "Lbfrn;" },
 )
 
 /**

@@ -19,12 +19,16 @@ internal val removeSignInPromoPatch = bytecodePatch(
 
         // 2. The gate the other builder consults: always "no". v0 is a free
         //    local (the method takes no arguments beyond `this`).
-        SignInPromoGateFingerprint.method.addInstructions(
-            0,
-            """
-                sget-object v0, Ljava/lang/Boolean;->FALSE:Ljava/lang/Boolean;
-                return-object v0
-            """,
-        )
+        // 26.47 folded the gate into the appender above, so there is no second
+        // Boolean gate left to answer.
+        if (packageMetadata.versionName != "26.47.00.1022347503") {
+            SignInPromoGateFingerprint.method.addInstructions(
+                0,
+                """
+                    sget-object v0, Ljava/lang/Boolean;->FALSE:Ljava/lang/Boolean;
+                    return-object v0
+                """,
+            )
+        }
     }
 }

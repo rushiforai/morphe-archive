@@ -12,6 +12,7 @@ import android.graphics.Typeface;
 import android.graphics.drawable.GradientDrawable;
 import android.net.Uri;
 import android.os.Looper;
+import android.text.TextUtils;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
@@ -317,7 +318,23 @@ public final class BinocularsMods {
         if (activity == null || activity.isFinishing() || activity.isDestroyed()) {
             return;
         }
-        Dialog dialog = new Dialog(activity, android.R.style.Theme_DeviceDefault_DayNight);
+        boolean[] changed = {false};
+        Dialog dialog = new Dialog(activity, android.R.style.Theme_DeviceDefault_DayNight) {
+            @Override
+            public void onBackPressed() {
+                if (changed[0]) {
+                    Context dialogContext = getContext();
+                    new AlertDialog.Builder(dialogContext)
+                            .setTitle(getString(dialogContext, "bin0culars_restart_title"))
+                            .setMessage(getString(dialogContext, "bin0culars_restart_message"))
+                            .setPositiveButton(getString(dialogContext, "bin0culars_restart"), (d, w) -> restartApp(activity))
+                            .setNegativeButton(getString(dialogContext, "bin0culars_later"), (d, w) -> dismiss())
+                            .show();
+                } else {
+                    super.onBackPressed();
+                }
+            }
+        };
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
 
         Context dialogContext = dialog.getContext();
@@ -382,7 +399,7 @@ public final class BinocularsMods {
         } else {
             backButton.setBackground(null);
         }
-        backButton.setOnClickListener(v -> dialog.dismiss());
+        backButton.setOnClickListener(v -> dialog.onBackPressed());
         topBar.addView(backButton);
 
         TextView titleView = new TextView(dialogContext);
@@ -612,6 +629,7 @@ public final class BinocularsMods {
                             prefs.edit().putBoolean(entry.key, newState).apply();
                         }
                         updateSubSwitches(viewHolders);
+                        changed[0] = true;
                         restartBanner.setVisibility(View.VISIBLE);
                     });
                 } else {
@@ -620,6 +638,11 @@ public final class BinocularsMods {
                             ViewGroup.LayoutParams.WRAP_CONTENT,
                             ViewGroup.LayoutParams.WRAP_CONTENT
                     ));
+                    choiceLabelView.setMaxWidth((int) (dialogContext.getResources().getDisplayMetrics().widthPixels * 0.4f));
+                    choiceLabelView.setMaxLines(2);
+                    choiceLabelView.setEllipsize(TextUtils.TruncateAt.END);
+                    choiceLabelView.setGravity(Gravity.END);
+                    choiceLabelView.setPaddingRelative(dp(dialogContext, 12), 0, 0, 0);
                     choiceLabelView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
                     if (colorAccent != 0) {
                         choiceLabelView.setTextColor(colorAccent);
@@ -660,6 +683,7 @@ public final class BinocularsMods {
                                             prefs.edit().putString(entry.key, selectedVal).apply();
                                         }
                                         choiceLabelView.setText(items[which]);
+                                        changed[0] = true;
                                         restartBanner.setVisibility(View.VISIBLE);
                                     }
                                     d.dismiss();

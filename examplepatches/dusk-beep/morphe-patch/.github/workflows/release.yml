@@ -1,0 +1,67 @@
+name: Release patches
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag (e.g. v1.0.0)"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+  packages: read
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Set up Java
+        uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Build Morphe patch bundle
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+          GITHUB_ACTOR: ${{ github.actor }}
+        run: |
+          gradle :patches:generatePatchesList -Pversion="${TAG#v}" --no-daemon
+          gradle :patches:buildAndroid --no-daemon
+          
+
+      - name: Prepare release assets
+        run: |
+          TAG="${{ inputs.tag || github.ref_name }}"
+          cat <<EOF > patches-bundle.json
+          {
+            "version": "${TAG#v}",
+            "created_at": "$(date -u +"%Y-%m-%dT%H:%M:%S")",
+            "description": "Release ${TAG} of Focus Guard Patches",
+            "download_url": "https://github.com/${{ github.repository }}/releases/latest/download/patches.mpp",
+            "signature_download_url": ""
+          }
+          EOF
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v3
+        with:
+          tag_name: ${{ inputs.tag || github.ref_name }}
+          generate_release_notes: true
+          files: |
+            patches/build/libs/patches.mpp
+            patches-bundle.json
+            package-list.json
+
+      - name: Commit metadata to repository
+        uses: stefanzweifel/git-auto-commit-action@v7
+        with:
+          branch: main # Force commit to main, avoiding detached HEAD issues from tags
+          commit_message: "chore: update patches-bundle.json [skip ci]"
+          file_pattern: "patches-bundle.json"

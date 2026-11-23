@@ -38,7 +38,7 @@ class ExpertPlayerSmokeTest {
             apk = apk,
             workDir = workDir,
             pkg = PKG,
-            version = "11.6.1",
+            version = "11.6.3",
             patchNames = setOf("Disable ads"),
             allPatches = loadAllPatches(newestPatchBundle(root)),
         )
@@ -87,7 +87,7 @@ class ExpertPlayerSmokeTest {
             apk = apk,
             workDir = workDir,
             pkg = PKG,
-            version = "11.6.1",
+            version = "11.6.3",
             patchNames = setOf("Enable Premium"),
             allPatches = loadAllPatches(newestPatchBundle(root)),
         )

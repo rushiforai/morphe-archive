@@ -13,8 +13,16 @@ import android.widget.Toast;
 
 import org.json.JSONObject;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.WeakHashMap;
 
@@ -27,6 +35,11 @@ import app.template.extension.hevalcontrols.HevalSettings;
  * and each depending on the master switch): {@value #NOTIFICATIONS} drops its pushes,
  * {@value #LISTS} blanks the score and status cells of its match list rows, {@value #WIDGET}
  * blanks the scores of its home-screen widget row and shows the kickoff time as its status.
+ *
+ * <p>A marked match is hidden only until full time: once its status is "finished" its score shows
+ * again on its own, unless {@value #KEEP_FINAL_HIDDEN} (off by default, depending on the master
+ * switch) keeps finished marked matches hidden until the user un-marks them. Every surface asks
+ * {@link #hidesScore(Object)} (pushes excepted, see {@link #blocksPush}).
  *
  * <p>The marks are two Patch settings lists, {@value #MATCHES} (Sofascore event ids, "12436870")
  * and {@value #COMPETITIONS} (UniqueTournament ids, keyed like "Hide competitions": "17" is the
@@ -44,6 +57,8 @@ public final class SpoilerFree {
     static final String NOTIFICATIONS = "sofascore.spoiler_notifications";
     static final String LISTS = "sofascore.spoiler_lists";
     static final String WIDGET = "sofascore.spoiler_widget";
+    static final String KEEP_FINAL_HIDDEN = "sofascore.spoiler_keep_final";
+    static final String MATCH_PAGE = "sofascore.spoiler_match_page";
     static final String MATCHES = "sofascore.spoiler_events";
     static final String COMPETITIONS = "sofascore.spoiler_competitions";
     private static final String TAG = "Morphe-Sofascore";
@@ -97,11 +112,44 @@ public final class SpoilerFree {
         return competition == null ? null : key(CountryFilter.call(competition, "getId"));
     }
 
-    /** Whether Sofascore's Event {@code event} is marked, by its id or its competition. */
-    static boolean isMarked(Object event) {
+    /** Sofascore's status type of a match that is over; every other type (live, not started) hides. */
+    static final String FINISHED = "finished";
+    /** The status type of a match that has not started (no score yet). */
+    static final String NOT_STARTED = "notstarted";
+
+    /**
+     * The shared decision, pure: a match's score is hidden when the match or its competition is
+     * marked and the match is not over ({@code statusType} is not {@value #FINISHED}), or when
+     * {@code keepFinalHidden} is on. A missing or unknown status hides (the safe side).
+     */
+    static boolean hidesScore(boolean matchMarked, boolean competitionMarked, String statusType, boolean keepFinalHidden) {
+        if (!matchMarked && !competitionMarked) return false;
+        return keepFinalHidden || !FINISHED.equals(statusType);
+    }
+
+    /** Event.getStatusType() ("inprogress", "finished", ...), or null when it cannot be read. */
+    static String statusType(Object event) {
+        try {
+            Object type = event == null ? null : CountryFilter.call(event, "getStatusType");
+            return type instanceof String ? (String) type : null;
+        } catch (Throwable failure) {
+            return null;
+        }
+    }
+
+    /**
+     * Whether a surface hides the score of Sofascore's Event {@code event} right now: marked (by id or
+     * competition) and not finished, or finished with {@value #KEEP_FINAL_HIDDEN} on. Read at every
+     * call, so a match shows its score again at the first redraw after full time. The one decision
+     * for every score hook (lists, widget, and the match page hooks still to come).
+     */
+    public static boolean hidesScore(Object event) {
         try {
             if (event == null) return false;
-            return isMatchMarked(eventKey(event)) || isCompetitionMarked(competitionKey(event));
+            boolean match = isMatchMarked(eventKey(event));
+            boolean competition = !match && isCompetitionMarked(competitionKey(event));
+            if (!match && !competition) return false;
+            return hidesScore(match, competition, statusType(event), HevalSettings.isEnabled(KEEP_FINAL_HIDDEN));
         } catch (Throwable failure) {
             return false;
         }
@@ -111,25 +159,59 @@ public final class SpoilerFree {
     // Notifications
     // ---------------------------------------------------------------------------------------
 
+    /** The push "icon" of the full-time result; every other icon (goal, start, half time, cards...) is live. */
+    static final String FINISH_ICON = "finish";
+
+    /** Which event ids are marked; {@link #blocksPush(String, Marks, boolean)} takes it so it stays pure. */
+    interface Marks {
+        boolean isMatchMarked(String eventId);
+    }
+
+    private static final Marks SETTINGS_MARKS = new Marks() {
+        @Override
+        public boolean isMatchMarked(String eventId) {
+            return SpoilerFree.isMatchMarked(eventId);
+        }
+    };
+
     /**
      * Patched into FCMListenerService.onMessageReceived, behind {@value #NOTIFICATIONS}: true drops
-     * the push before Sofascore handles it. {@code message} is the FCM message bundle; match pushes
-     * carry the JSON "notification" whose "open" object names the target ("details") and the event
-     * "id". Pushes carry no competition id, so only marked matches are blocked here.
+     * the push before Sofascore handles it. {@code message} is the FCM message bundle; see
+     * {@link #blocksPush(String, Marks, boolean)} for the rule.
      */
     public static boolean blocksPush(Bundle message) {
         try {
             if (message == null) return false;
-            String json = message.getString("notification");
+            return blocksPush(message.getString("notification"), SETTINGS_MARKS, HevalSettings.isEnabled(KEEP_FINAL_HIDDEN));
+        } catch (Throwable failure) {
+            return false;
+        }
+    }
+
+    /**
+     * The push rule, pure. {@code json} is the push's "notification" JSON: its "open" object names the
+     * target ("details", "highlights", "lineups") and the event "id", its "icon" the kind of alert
+     * ("finish" is the full-time result; goals, kick-off, half time, cards and the rest are live). A
+     * push of a marked match is dropped, except the full-time result while {@code keepFinalHidden} is
+     * off (the score shows again at full time, like every other surface). A push of a marked match
+     * without a readable icon is dropped (the safe side). Pushes carry no competition id, so only
+     * marked matches are matched here, not marked competitions. Unreadable JSON passes (stock).
+     */
+    static boolean blocksPush(String json, Marks marks, boolean keepFinalHidden) {
+        try {
             if (json == null || json.isEmpty()) return false;
-            JSONObject open = new JSONObject(json).optJSONObject("open");
+            JSONObject push = new JSONObject(json);
+            JSONObject open = push.optJSONObject("open");
             if (open == null) return false;
             String target = open.optString("target");
             boolean eventTarget = false;
             for (String candidate : EVENT_TARGETS) {
                 if (candidate.equals(target)) eventTarget = true;
             }
-            return eventTarget && isMatchMarked(key(open.optInt("id")));
+            if (!eventTarget || !marks.isMatchMarked(key(open.optInt("id")))) return false;
+            Object icon = push.opt("icon");
+            boolean finalResult = icon instanceof String && FINISH_ICON.equals(icon);
+            return keepFinalHidden || !finalResult;
         } catch (Throwable failure) {
             return false;
         }
@@ -168,13 +250,14 @@ public final class SpoilerFree {
     /**
      * Patched at the start of the match row binder, behind {@value #LISTS}, once per score cell of
      * the row (scores, period scores, aggregate, penalties and the status cell "FT"/"67'"): marks the
-     * cell for this bind. A cell whose state flips is redrawn with its last text, so a recycled row
-     * never keeps a hidden or a stale score.
+     * cell for this bind with {@link #hidesScore(Object)}, so every bind re-reads the mark and the
+     * match status. A cell whose state flips (marked, un-marked, or the match reached full time) is
+     * redrawn with its last text, so a recycled row never keeps a hidden or a stale score.
      */
     public static void markRow(View view, Object event) {
         try {
             if (view == null) return;
-            boolean masked = isMarked(event);
+            boolean masked = hidesScore(event);
             Cell cell = cells.get(view);
             if (cell == null) {
                 if (!masked) return;
@@ -196,16 +279,177 @@ public final class SpoilerFree {
     }
 
     // ---------------------------------------------------------------------------------------
+    // Compose match rows (main Matches tab, team, league, live, favourites, match page lists).
+    // Apart from the main Matches tab these screens are expected from static analysis of who
+    // renders the row model, not observed on a device.
+    // ---------------------------------------------------------------------------------------
+
+    private static final int MAX_NOTED = 8192;
+
+    /**
+     * The row mapper's decision per event id, for {@link #maskRow}: TRUE = the row hides its score
+     * ({@link #hidesScore(Object)} at mapping time, the status included), FALSE = the match is marked
+     * but its score shows (finished). Only these exceptions are kept; an absent id falls back to the
+     * match's own mark. Access-ordered, so a row still being drawn stays; the least recently used id
+     * is dropped past {@link #MAX_NOTED}.
+     */
+    private static final Map<Integer, Boolean> rowDecisions = new LinkedHashMap<Integer, Boolean>(256, 0.75f, true) {
+        @Override
+        protected boolean removeEldestEntry(Map.Entry<Integer, Boolean> eldest) {
+            return size() > MAX_NOTED;
+        }
+    };
+
+    /** Line class -> its score fields (home/away line objects share one class), or an empty array. */
+    private static final Map<Class<?>, Field[]> scoreFields = new HashMap<>();
+
+    /**
+     * Patched into the Compose row mapper just before it builds the row model, with the Event: the
+     * row model only carries the event id, so the decision (marks and status) is made here and
+     * noted for {@link #maskRow}. Every mapping decides again, so a new status from Sofascore (full
+     * time) or a changed mark applies to the row built from it. Behind {@value #LISTS}.
+     */
+    public static void noteEvent(Object event) {
+        try {
+            if (event == null || !HevalSettings.isEnabled(LISTS)) return;
+            Object id = CountryFilter.call(event, "getId");
+            if (!(id instanceof Integer)) return;
+            boolean match = isMatchMarked(key(id));
+            boolean competition = !match && isCompetitionMarked(competitionKey(event));
+            boolean hidden = (match || competition)
+                && hidesScore(match, competition, statusType(event), HevalSettings.isEnabled(KEEP_FINAL_HIDDEN));
+            noteRow((Integer) id, match, hidden);
+        } catch (Throwable failure) {
+            HevalSettings.reportFailure(LISTS, failure);
+        }
+    }
+
+    /** Records the mapper's decision for {@code eventId} (only the exceptions, see {@link #rowDecisions}). */
+    static void noteRow(int eventId, boolean matchMarked, boolean hidden) {
+        synchronized (rowDecisions) {
+            if (hidden) {
+                rowDecisions.put(eventId, Boolean.TRUE);
+            } else if (matchMarked) {
+                rowDecisions.put(eventId, Boolean.FALSE);
+            } else {
+                rowDecisions.remove(eventId);
+            }
+        }
+    }
+
+    /**
+     * Whether the row model of {@code eventId} hides its score: the mapper's decision, else the
+     * match's own mark (a row the mapper did not decide, such as an old row copied by the live status
+     * tick, which only runs for live matches; an unknown status hides).
+     */
+    static boolean rowHidden(int eventId, boolean matchMarked) {
+        synchronized (rowDecisions) {
+            Boolean decided = rowDecisions.get(eventId);
+            return decided != null ? decided : matchMarked;
+        }
+    }
+
+    /**
+     * Patched into the start of the Compose row model's constructor with its first five arguments
+     * (event id, kickoff text, status text, home line, away line): for a row that hides its score
+     * ({@link #rowHidden}) the score fields of both team lines are set to null (the row shows no
+     * score) and null is returned as the status text (the live minute or "FT"); otherwise
+     * {@code timeLower} comes back unchanged. The kickoff time and the team names stay. The live
+     * status copy passes the lines of the row it copies, so it keeps that row's decision. Behind
+     * {@value #LISTS} and its master switch.
+     */
+    public static Object maskRow(int eventId, Object timeUpper, Object timeLower, Object home, Object away) {
+        try {
+            if (!HevalSettings.isEnabled(LISTS)) return timeLower;
+            if (!rowHidden(eventId, isMatchMarked(eventId > 0 ? Integer.toString(eventId) : null))) return timeLower;
+            clearScores(home);
+            clearScores(away);
+            return null;
+        } catch (Throwable failure) {
+            HevalSettings.reportFailure(LISTS, failure);
+            return timeLower;
+        }
+    }
+
+    private static void clearScores(Object line) throws Exception {
+        if (line == null) return;
+        Field[] fields = scoreFieldsOf(line.getClass());
+        for (Field field : fields) {
+            field.set(line, null);
+        }
+    }
+
+    /**
+     * The last three declared fields of the type that the line class declares four times (the name,
+     * game score, set score and score cells are all RowText; the patch checked this shape), in
+     * field-name order (the patch checks that this is the constructor order): game score, set score, score. Empty
+     * when the shape is not as expected.
+     */
+    static Field[] scoreFieldsOf(Class<?> type) {
+        synchronized (scoreFields) {
+            Field[] cached = scoreFields.get(type);
+            if (cached != null) return cached;
+            Field[] found = new Field[0];
+            try {
+                Map<Class<?>, List<Field>> byType = new LinkedHashMap<>();
+                for (Field field : type.getDeclaredFields()) {
+                    Class<?> fieldType = field.getType();
+                    if (Modifier.isStatic(field.getModifiers()) || fieldType.isPrimitive()) continue;
+                    List<Field> same = byType.get(fieldType);
+                    if (same == null) {
+                        same = new ArrayList<>();
+                        byType.put(fieldType, same);
+                    }
+                    same.add(field);
+                }
+                List<Field> cells = null;
+                for (List<Field> same : byType.values()) {
+                    if (same.size() == 4) {
+                        if (cells != null) {
+                            cells = null;
+                            break;
+                        }
+                        cells = same;
+                    }
+                }
+                if (cells != null) {
+                    // The patch pins the constructor order to the name order; sort here so the result
+                    // never depends on the order getDeclaredFields() happens to return.
+                    Collections.sort(cells, new Comparator<Field>() {
+                        @Override
+                        public int compare(Field a, Field b) {
+                            return a.getName().compareTo(b.getName());
+                        }
+                    });
+                    found = new Field[] {cells.get(1), cells.get(2), cells.get(3)};
+                    for (Field field : found) {
+                        field.setAccessible(true);
+                    }
+                } else {
+                    HevalSettings.reportFailure(LISTS, new IllegalStateException("EventTeamLine shape changed"));
+                }
+            } catch (Throwable failure) {
+                found = new Field[0];
+                HevalSettings.reportFailure(LISTS, failure);
+            }
+            scoreFields.put(type, found);
+            return found;
+        }
+    }
+
+    // ---------------------------------------------------------------------------------------
     // Home-screen widget
     // ---------------------------------------------------------------------------------------
 
     /**
-     * Patched before the widget row builder returns, behind {@value #WIDGET}: for a marked match
-     * the score cells are emptied and the status cell shows the kickoff time.
+     * Patched before the widget row builder returns, behind {@value #WIDGET}: for a match whose
+     * score is hidden ({@link #hidesScore(Object)}) the score cells are emptied and the status cell
+     * shows the kickoff time. The widget redraws on its own schedule, so a finished match shows its
+     * score at the widget's next refresh.
      */
     public static void maskWidgetRow(Context context, RemoteViews row, Object event) {
         try {
-            if (context == null || row == null || !isMarked(event)) return;
+            if (context == null || row == null || !hidesScore(event)) return;
             String pkg = context.getPackageName();
             for (String name : WIDGET_SCORE_IDS) {
                 int id = context.getResources().getIdentifier(name, "id", pkg);
@@ -218,6 +462,161 @@ public final class SpoilerFree {
             }
         } catch (Throwable failure) {
             HevalSettings.reportFailure(WIDGET, failure);
+        }
+    }
+
+    // ---------------------------------------------------------------------------------------
+    // Match page header. Which views each sport's header uses is read from the app's code
+    // (static analysis), not observed on a device.
+    // ---------------------------------------------------------------------------------------
+
+    /**
+     * Header parts besides the result view that show the score, by layout id name (the patch checks
+     * the names exist): the football goal scorers under the result, and the tennis and volleyball
+     * scores shown in the collapsed toolbar.
+     */
+    static final String[] HEADER_SCORE_IDS = {
+        "additional_info_container", "container_result_collapsed", "collapsed_result_first_team",
+        "collapsed_result_second_team", "collapsed_result_view",
+    };
+
+    /** Each match page header's last decision (main thread only; headers go with their activity). */
+    private static final Map<View, Boolean> headers = new WeakHashMap<>();
+    /** The header views this class made INVISIBLE, so only those are made visible again. */
+    private static final Map<View, Boolean> hiddenViews = new WeakHashMap<>();
+
+    /**
+     * Patched into the start of every match page header's setEvent(Event) (one per sport family; the
+     * activity calls it with every update of the match, so a status change is seen at once), behind
+     * {@value #MATCH_PAGE}: while {@link #hidesScore(Object)} holds the header's result view (score,
+     * live minute, period scores) and {@link #HEADER_SCORE_IDS} are INVISIBLE (the layout keeps its
+     * size, the team names and logos stay); otherwise the views this class hid are shown again. A
+     * match that has not started has no score yet, so its kickoff date stays. Live ticks of the
+     * minute only change text inside the hidden view.
+     */
+    public static void onHeader(Object header, Object event) {
+        try {
+            if (!(header instanceof View)) return;
+            View view = (View) header;
+            boolean hidden = HevalSettings.isEnabled(MATCH_PAGE) && hidesScore(event) && !NOT_STARTED.equals(statusType(event));
+            headers.put(view, hidden);
+            Object result = CountryFilter.call(header, "getResultView");
+            if (result instanceof View) apply((View) result, hidden);
+            String pkg = view.getContext().getPackageName();
+            for (String name : HEADER_SCORE_IDS) {
+                int id = view.getResources().getIdentifier(name, "id", pkg);
+                View part = id == 0 ? null : view.findViewById(id);
+                if (part != null) apply(part, hidden);
+            }
+        } catch (Throwable failure) {
+            HevalSettings.reportFailure(MATCH_PAGE, failure);
+        }
+    }
+
+    /**
+     * Patched into the start of the header's setResultView(ViewGroup): a result view inflated while
+     * setEvent runs (the layout changes with the match status) gets the header's current decision.
+     */
+    public static void onResultView(Object header, Object resultView) {
+        try {
+            Boolean hidden = headers.get(header);
+            if (hidden != null && resultView instanceof View) apply((View) resultView, hidden);
+        } catch (Throwable failure) {
+            HevalSettings.reportFailure(MATCH_PAGE, failure);
+        }
+    }
+
+    /**
+     * Patched into the start of the football header's setFootballGoals(List): true skips the goal
+     * scorers list while the header hides its score (the list would make its container visible).
+     */
+    public static boolean hidesHeaderGoals(Object header) {
+        try {
+            Boolean hidden = headers.get(header);
+            return hidden != null && hidden;
+        } catch (Throwable failure) {
+            return false;
+        }
+    }
+
+    // ---------------------------------------------------------------------------------------
+    // Match page Details tab: the period score tables and the period points graph.
+    // ---------------------------------------------------------------------------------------
+
+    /** A Details module's state: whether it is masked and the visibility the app last asked for. */
+    private static final class Module {
+        boolean masked;
+        int requested;
+        boolean applying;
+    }
+
+    private static final Map<View, Module> modules = new WeakHashMap<>();
+
+    /**
+     * Patched into the start of a score module's bind method (the period score tables of the
+     * Details tab and the period points graph), behind {@value #MATCH_PAGE}: while the page hides
+     * the score (the rule of {@link #onHeader}) the module is GONE; when it no longer does, it gets
+     * back the visibility the app last asked for.
+     */
+    public static void maskModule(Object module, Object event) {
+        try {
+            if (!(module instanceof View)) return;
+            View view = (View) module;
+            boolean masked = HevalSettings.isEnabled(MATCH_PAGE) && hidesScore(event) && !NOT_STARTED.equals(statusType(event));
+            Module state = modules.get(view);
+            if (state == null) {
+                if (!masked) return;
+                state = new Module();
+                state.requested = view.getVisibility();
+                modules.put(view, state);
+            }
+            if (state.masked == masked) return;
+            state.masked = masked;
+            state.applying = true;
+            try {
+                view.setVisibility(masked ? View.GONE : state.requested);
+            } finally {
+                state.applying = false;
+            }
+        } catch (Throwable failure) {
+            HevalSettings.reportFailure(MATCH_PAGE, failure);
+        }
+    }
+
+    /**
+     * Patched into the start of the share modal's match header bind (its second argument is not the
+     * Event): the header (score, status, teams) is GONE like a Details module, so a shared card of a
+     * hidden match carries no score.
+     */
+    public static void maskShareHeader(Object header, Object unused, Object event) {
+        maskModule(header, event);
+    }
+
+    /**
+     * Patched into the start of the Details modules' shared setVisibility(int) (the base class of the
+     * score tables, which set their own visibility while they bind): a masked module stays GONE and
+     * the requested value is kept for {@link #maskModule}. Other modules pass unchanged.
+     */
+    public static int moduleVisibility(Object module, int visibility) {
+        try {
+            Module state = modules.get(module);
+            if (state == null || state.applying) return visibility;
+            state.requested = visibility;
+            return state.masked ? View.GONE : visibility;
+        } catch (Throwable failure) {
+            return visibility;
+        }
+    }
+
+    /** Hides a visible view, or shows again a view this class hid; views the app hid itself stay as they are. */
+    private static void apply(View view, boolean hidden) {
+        if (hidden) {
+            if (view.getVisibility() == View.VISIBLE) {
+                view.setVisibility(View.INVISIBLE);
+                hiddenViews.put(view, Boolean.TRUE);
+            }
+        } else if (hiddenViews.remove(view) != null && view.getVisibility() == View.INVISIBLE) {
+            view.setVisibility(View.VISIBLE);
         }
     }
 

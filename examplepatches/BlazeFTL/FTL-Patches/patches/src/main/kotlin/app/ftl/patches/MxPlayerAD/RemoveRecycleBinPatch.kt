@@ -3,21 +3,38 @@ package app.ftl.patches.mxplayerad
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.InstructionLocation.MatchAfterImmediately
 import app.morphe.patcher.InstructionLocation.MatchAfterWithin
-import app.morphe.patcher.fieldAccess
-import app.morphe.patcher.opcode
-import app.morphe.patcher.string
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
+import app.morphe.patcher.fieldAccess
+import app.morphe.patcher.opcode
 import app.morphe.patcher.patch.bytecodePatch
-import app.morphe.patcher.util.smali.ExternalLabel
+import app.morphe.patcher.string
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
+import app.morphe.patcher.util.smali.ExternalLabel
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.builder.MutableMethodImplementation
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
 
+private const val DELETE_CONFIRM_CLASS = "Lapp/ftl/extension/mxplayerad/DeleteConfirm;"
+
+// Delete confirm dialog (next build: com/mxtech/videoplayer/deletefile/a, source "MediaDeleteConfirmDialog.kt").
+// Class name is R8 and never pinned. How to find it again, all anchors are real:
+//   - non-nested class, source file MediaDeleteConfirmDialog.kt
+//   - super is androidx.appcompat.app.* (appcompat AlertDialog, R8 name "d")
+//   - one java.util.Collection field (files to delete)
+//   - ctor (androidx.fragment.app.*, Z)  -> FragmentActivity + boolean
+//   - one field typed androidx.fragment.app.* (the activity, next build: "h"), read off the class, not pinned
+//   - callback: the single field whose type is an interface with a (Collection, Z)V method
+//     (next build: field "p", type "v49", set by n(ArrayList, a2c))
+//
+// The old show() override built the replacement dialog with the appcompat Builder
+// (androidx/appcompat/app/d$a, AlertController$b fields e/g, methods h/e/n). Those are R8 names and
+// were the pinned part and the likely crash cause (their smali was not in the dump, so unverified).
+// The confirm dialog is now built in the extension from SDK classes
+// only (DeleteConfirm.show); if it returns false or throws, the stock show() runs, so it cannot crash.
 private object RecycleBinTileFingerprint : Fingerprint(
     definingClass = "Lcom/mxtech/videoplayer/ad/subscriptions/ui/metab/viewmodels/LocalMePageViewModel;",
     filters = listOf(
@@ -85,6 +102,8 @@ val removeRecycleBinPatch = bytecodePatch(
         }
 
         val collectionField = dialogClass.fields.first { it.type == "Ljava/util/Collection;" }
+        val activityField = dialogClass.fields.firstOrNull { it.type.startsWith("Landroidx/fragment/app/") }
+        val superType = dialogClass.superclass ?: "Landroid/app/Dialog;"
 
         var callbackMethodName = ""
         val callbackField = dialogClass.fields.single { field ->
@@ -102,6 +121,13 @@ val removeRecycleBinPatch = bytecodePatch(
         if (onClickListenerType !in dialogClass.interfaces) {
             dialogClass.interfaces.add(onClickListenerType)
         }
+
+        val loadContext = if (activityField != null) {
+            "iget-object v0, p0, ${dialogClass.type}->${activityField.name}:${activityField.type}"
+        } else {
+            "invoke-virtual {p0}, Landroid/app/Dialog;->getContext()Landroid/content/Context;"
+        }
+        val moveContext = if (activityField != null) "" else "move-result-object v0"
 
         val showMethod = ImmutableMethod(
             dialogClass.type,
@@ -122,49 +148,16 @@ val removeRecycleBinPatch = bytecodePatch(
                 move-result v0
                 if-eqz v0, :stock
 
-                invoke-virtual {p0}, Landroid/app/Dialog;->getContext()Landroid/content/Context;
-                move-result-object v0
-
-                new-instance v1, Landroidx/appcompat/app/d${'$'}a;
-                invoke-direct {v1, v0}, Landroidx/appcompat/app/d${'$'}a;-><init>(Landroid/content/Context;)V
-
-                iget-object v2, v1, Landroidx/appcompat/app/d${'$'}a;->b:Landroidx/appcompat/app/AlertController${'$'}b;
-
-                const-string v3, "Delete"
-                iput-object v3, v2, Landroidx/appcompat/app/AlertController${'$'}b;->e:Ljava/lang/CharSequence;
-
-                const-string v3, "The following file will be deleted permanently."
-                iput-object v3, v2, Landroidx/appcompat/app/AlertController${'$'}b;->g:Ljava/lang/CharSequence;
-
-                const-string v3, "OK"
-                invoke-virtual {v1, v3, p0}, Landroidx/appcompat/app/d${'$'}a;->h(Ljava/lang/CharSequence;Landroid/content/DialogInterface${'$'}OnClickListener;)V
-
-                const-string v2, "Cancel"
-                const/4 v3, 0x0
-                invoke-virtual {v1, v2, v3}, Landroidx/appcompat/app/d${'$'}a;->e(Ljava/lang/CharSequence;Landroid/content/DialogInterface${'$'}OnClickListener;)V
-
-                invoke-virtual {v1}, Landroidx/appcompat/app/d${'$'}a;->n()Landroidx/appcompat/app/d;
-                move-result-object v1
-
-                sget v4, Landroid/R${'$'}id;->button1:I
-                invoke-virtual {v1, v4}, Landroid/app/Dialog;->findViewById(I)Landroid/view/View;
-                move-result-object v4
-
-                if-eqz v4, :cond_end
-
-                invoke-virtual {v4}, Landroid/view/View;->getLayoutParams()Landroid/view/ViewGroup${'$'}LayoutParams;
-                move-result-object v0
-                check-cast v0, Landroid/view/ViewGroup${'$'}MarginLayoutParams;
-                iget v3, v0, Landroid/view/ViewGroup${'$'}MarginLayoutParams;->leftMargin:I
-                add-int/lit8 v3, v3, 0x3c
-                iput v3, v0, Landroid/view/ViewGroup${'$'}MarginLayoutParams;->leftMargin:I
-                invoke-virtual {v4, v0}, Landroid/view/View;->setLayoutParams(Landroid/view/ViewGroup${'$'}LayoutParams;)V
-
-                :cond_end
-                return-void
+                $loadContext
+                $moveContext
+                invoke-static {v0, p0}, $DELETE_CONFIRM_CLASS->show(Landroid/content/Context;$onClickListenerType)Z
+                move-result v0
+                if-nez v0, :done
 
                 :stock
-                invoke-super {p0}, Landroidx/appcompat/app/d;->show()V
+                invoke-super {p0}, $superType->show()V
+
+                :done
                 return-void
             """.trimIndent(),
         )

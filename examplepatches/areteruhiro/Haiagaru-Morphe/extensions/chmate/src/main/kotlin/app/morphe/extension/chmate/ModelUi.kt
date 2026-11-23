@@ -37,6 +37,14 @@ internal val LocalArchiveControlLayout = staticCompositionLocalOf { 100 }
 /** Keep the actions in their own scrollable viewport; the grip resizes that viewport. */
 @OptIn(ExperimentalLayoutApi::class, androidx.compose.foundation.ExperimentalFoundationApi::class)
 @Composable private fun CheckerToolbar(view: LinearLayout, revision: Int, modifier: Modifier, changed: () -> Unit) {
+    fun visibleButtons(group: ViewGroup): List<Button> = buildList {
+        for (index in 0 until group.childCount) {
+            val child = group.getChildAt(index)
+            if (child.visibility != View.VISIBLE) continue
+            if (child is Button) add(child)
+            else if (child is ViewGroup) addAll(visibleButtons(child))
+        }
+    }
     val providers = view.getTag(CheckerBarOptions.PROVIDERS_TAG) == true
     val palette = view.getTag(CheckerBarOptions.PALETTE_TAG) as? IntArray
     val barModifier = if (palette == null) modifier else modifier.background(Color(palette[0]))
@@ -47,9 +55,7 @@ internal val LocalArchiveControlLayout = staticCompositionLocalOf { 100 }
         CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides 0.dp) {
             FlowRow(Modifier.fillMaxWidth().height(height.dp).verticalScroll(scroll),
                 horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                for (index in 0 until view.childCount) {
-                    val button = view.getChildAt(index) as? Button ?: continue
-                    if (button.visibility != View.VISIBLE) continue
+                for (button in visibleButtons(view)) {
                     Box(Modifier.height(height.coerceAtMost(32f).dp).combinedClickable(
                         enabled = button.isEnabled, role = Role.Button,
                         onClick = { button.performClick(); changed() },
@@ -418,6 +424,12 @@ internal fun prepareNativeSurfaces(root: ViewGroup) {
 @Composable internal fun ArchiveSearchScreen(activity: android.app.Activity, root: LinearLayout,
     back: () -> Unit = { activity.finish() },
     showTopBar: Boolean = true, embedded: Boolean = false) {
+    CheckerPalette(root) { ArchiveSearchContent(activity, root, back, showTopBar, embedded) }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable private fun ArchiveSearchContent(activity: android.app.Activity, root: LinearLayout,
+    back: () -> Unit, showTopBar: Boolean, embedded: Boolean) {
     var localRevision by remember(root) { mutableIntStateOf(0) }
     val revision = rememberModelRevision(root) + localRevision
     val changed = { localRevision++; Unit }
@@ -533,6 +545,27 @@ internal fun prepareNativeSurfaces(root: ViewGroup) {
 @Composable internal fun ModelScreen(activity: android.app.Activity, title: String, root: View,
     back: () -> Unit = { @Suppress("DEPRECATION") activity.onBackPressed() }, showTopBar: Boolean = true,
     embedded: Boolean = false) {
+    CheckerPalette(root) { ModelScreenContent(activity, title, root, back, showTopBar, embedded) }
+}
+
+@Composable private fun CheckerPalette(root: View, content: @Composable () -> Unit) {
+    val revision = rememberModelRevision(root)
+    val palette = root.getTag(CheckerBarOptions.PALETTE_TAG) as? IntArray
+    val colors = MaterialTheme.colorScheme
+    if (palette == null) { content(); return }
+    val background = Color(palette[0])
+    val foreground = Color(palette[1])
+    MaterialTheme(colorScheme = colors.copy(
+        background = background, onBackground = foreground,
+        surface = background, onSurface = foreground,
+        surfaceContainer = background, surfaceContainerLow = background,
+        surfaceContainerHigh = background, surfaceContainerHighest = background,
+        onSurfaceVariant = foreground, primary = foreground), content = content)
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable private fun ModelScreenContent(activity: android.app.Activity, title: String, root: View,
+    back: () -> Unit, showTopBar: Boolean, embedded: Boolean) {
     var localRevision by remember(root) { mutableIntStateOf(0) }
     val revision = rememberModelRevision(root) + localRevision
     if (root is ViewGroup) prepareNativeSurfaces(root)

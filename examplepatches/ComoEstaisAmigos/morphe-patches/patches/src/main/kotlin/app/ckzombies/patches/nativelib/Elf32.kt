@@ -46,6 +46,17 @@ internal data class CivilianPlan(
 )
 
 /**
+ * One tiny stub in the first-segment padding and the word in Glu's code that jumps to it.
+ * `CAmmoWin::Update` calls it instead of loading the clip, and it returns 0 while the weapon
+ * reloads, so the HUD reads 0/capacity and turns on its own low-ammo state for the reload.
+ */
+internal data class HudPlan(
+    val cave: Long,
+    val caveBytes: String,
+    val edits: List<WordEdit>,
+)
+
+/**
  * A little-endian ELF32 file read and written by virtual address, the way the dynamic linker
  * maps it, never by raw file offset. That is what lets independent patches compose: splicing a
  * page into a file moves file offsets but no virtual address.

@@ -22,6 +22,7 @@ import app.morphe.patches.tiktok.interaction.sharesheet.SHARE_LIVE_QUALITY
 import app.morphe.patches.tiktok.interaction.sharesheet.addOwnedShareAction
 import app.morphe.patches.tiktok.interaction.sharesheet.ownedShareActionsPatch
 import app.morphe.patches.tiktok.misc.extension.sharedExtensionPatch
+import app.morphe.patches.tiktok.misc.optimizer.isBranchTarget
 import app.morphe.patches.tiktok.misc.settings.SettingsStatusLoadFingerprint
 import app.morphe.patches.tiktok.misc.settings.settingsPatch
 import app.morphe.patches.tiktok.misc.theme.AMOLED_THEME_EXTENSION
@@ -1847,6 +1848,96 @@ internal fun hookLightRoomView(constructor: MutableMethod, view: String) {
     )
 }
 
+/** Compose's view for Android layouts, real-named on every build. */
+internal const val COMPOSE_VIEW = "Landroidx/compose/ui/platform/ComposeView;"
+
+/** TikTok's LIVE Compose host, which hands every LIVE Compose view its content, real-named on 47.9.3. */
+internal const val LIVE_HOST_COMPOSE = "Lcom/ss/android/ugc/aweme/live/livehostimpl/LiveHostCompose;"
+
+/** The guest panel's "Find an open guest spot" page, real-named on 47.9.3. */
+internal const val GUEST_MATCH_ENTRY =
+    "Lcom/bytedance/android/live/liveinteract/multiguestv3/main/userinfo/common/matchentry/GuestMatchEntryFragment;"
+
+/**
+ * The LIVE Compose host giving a Compose view its content (LiveHostCompose.K01 on 47.9.3, #362):
+ * it wraps the content in LIVE's palette with the mode fixed at Light, black text on a pill at
+ * 5% black, whatever the sheet under it looks like.
+ */
+internal object LiveHostComposeFingerprint : Fingerprint(
+    definingClass = LIVE_HOST_COMPOSE,
+    returnType = "V",
+    parameters = listOf(COMPOSE_VIEW, "L"),
+)
+
+/**
+ * The "Find an open guest spot" page making its Compose view (#362): a plain fragment under the
+ * guest panel that builds its view from its own context and ignores the inflater, so the panel's
+ * dark context never reaches it.
+ */
+internal object GuestMatchEntryViewFingerprint : Fingerprint(
+    definingClass = GUEST_MATCH_ENTRY,
+    name = "onCreateView",
+    returnType = "Landroid/view/View;",
+    parameters = listOf("Landroid/view/LayoutInflater;", "Landroid/view/ViewGroup;", "Landroid/os/Bundle;"),
+)
+
+/**
+ * Hands the view and the palette mode the host's one palette call gets to the extension first,
+ * on the call's own label, and puts its answer back in the mode's register as the mode's type.
+ */
+internal fun hookComposeMode(host: MutableMethod) {
+    val instructions = host.implementation?.instructions?.toList()
+        ?: throw PatchException("LIVE controls: the LIVE Compose host has no body")
+    val calls = instructions.withIndex().filter { (_, instruction) ->
+        val call = (instruction as? ReferenceInstruction)?.reference as? MethodReference
+        instruction.opcode == Opcode.INVOKE_STATIC && call != null && call.returnType == "V" &&
+            call.parameterTypes.map(CharSequence::toString).let { it.size == 3 && it[0] == COMPOSE_VIEW && it[1].startsWith("L") }
+    }
+    val (at, palette) = calls.singleOrNull()
+        ?: throw PatchException("LIVE controls: the LIVE Compose host's palette call is gone (${calls.size})")
+    val registers = palette as FiveRegisterInstruction
+    val view = registers.registerC
+    val mode = registers.registerD
+    if (view > 15 || mode > 15 || mode == view || mode == registers.registerE) {
+        throw PatchException("LIVE controls: the LIVE Compose host's palette call takes v$view, v$mode")
+    }
+    val type = ((palette as ReferenceInstruction).reference as MethodReference).parameterTypes[1]
+    host.addInstructionsAtControlFlowLabel(
+        at,
+        """
+            invoke-static {v$view, v$mode}, $PANEL_THEME->composeMode(Landroid/view/View;Ljava/lang/Object;)Ljava/lang/Object;
+            move-result-object v$mode
+            check-cast v$mode, $type
+        """,
+    )
+}
+
+/**
+ * Hands the page and its Compose view to the extension right after the view's constructor, before
+ * the page gives the view its content, which is when the host asks for the palette.
+ */
+internal fun hookComposePage(create: MutableMethod) {
+    val body = create.implementation ?: throw PatchException("LIVE controls: the guest spot page has no body")
+    val instructions = body.instructions.toList()
+    val made = instructions.indexOfFirst { instruction ->
+        val call = (instruction as? ReferenceInstruction)?.reference as? MethodReference
+        instruction.opcode == Opcode.INVOKE_DIRECT && call != null && call.definingClass == COMPOSE_VIEW && call.name == "<init>"
+    }
+    if (made < 0) {
+        throw PatchException("LIVE controls: the guest spot page no longer makes a Compose view")
+    }
+    val view = (instructions[made] as FiveRegisterInstruction).registerC
+    val ins = 1 + create.parameterTypes.sumOf { if (it.toString() == "J" || it.toString() == "D") 2 else 1 }
+    val page = body.registerCount - ins
+    if (view > 15 || page > 15 || create.isBranchTarget(made + 1)) {
+        throw PatchException("LIVE controls: the guest spot page's Compose view can't take the hook (v$view)")
+    }
+    create.addInstructions(
+        made + 1,
+        "invoke-static {p0, v$view}, $PANEL_THEME->darkComposePage(Ljava/lang/Object;Landroid/view/View;)V",
+    )
+}
+
 /** LIVE's widget base, real-named on 47.9.3. */
 internal const val LIVE_WIDGET = "Lcom/bytedance/android/widget/Widget;"
 
@@ -1970,6 +2061,55 @@ internal fun hookWidgetLoader(method: MutableMethod) {
             move-result p$register
         """,
     )
+}
+
+/** The base of LIVE's pinned comment widgets, real-named on 47.8.3 and 47.9.3. */
+internal const val LIVE_PINNED_WIDGET = "Lcom/bytedance/android/live/pin/widget/BaseCommentPinnedWidget;"
+
+/** Every pinned comment widget LIVE ships: the room's, the landscape room's and the extended screen's. */
+internal val LIVE_PINNED_WIDGETS = listOf(
+    "Lcom/bytedance/android/live/pin/widget/MainScreenCommentPinnedWidget;",
+    "Lcom/bytedance/android/live/pin/widget/LandscapeCommentPinnedWidget;",
+    "Lcom/bytedance/android/live/pin/widget/ExtendScreenCommentPinnedWidget;",
+)
+
+/**
+ * Hands each context a pinned comment widget reads from its widget base to make a layout inflater
+ * to the extension first, in that context's own register, and answers how many it found (#362).
+ * The card's rows inflate that way (MainScreenCommentPinnedWidget.C1 and D1 on 47.9.3), from the
+ * widget's context, which is the room's own and not the overlay inflater the widget hook gives a
+ * pinned comment. A row's Pinned and timer tags take their pill color from the row's context
+ * (attr f1o on 47.9.3, ezp on 47.8.3), and LIVE's dark color style, which the darkened room gets,
+ * sets it to white at 50%, so with Dark LIVE panels on the tags sat on pale pills they don't have
+ * with the switch off.
+ */
+internal fun hookPinnedRows(method: MutableMethod): Int {
+    val instructions = method.implementation?.instructions?.toList() ?: return 0
+    val reads = instructions.indices.filter { at ->
+        val read = instructions[at]
+        val field = (read as? ReferenceInstruction)?.reference as? FieldReference
+        val next = instructions.getOrNull(at + 1)
+        val call = (next as? ReferenceInstruction)?.reference as? MethodReference
+        read.opcode == Opcode.IGET_OBJECT && field != null && field.definingClass == LIVE_WIDGET &&
+            field.name == "context" && field.type == "Landroid/content/Context;" &&
+            next?.opcode == Opcode.INVOKE_STATIC && call != null && call.returnType == "Landroid/view/LayoutInflater;" &&
+            call.parameterTypes.map(CharSequence::toString) == listOf("Landroid/content/Context;") &&
+            (next as FiveRegisterInstruction).registerC == (read as TwoRegisterInstruction).registerA
+    }
+    reads.reversed().forEach { at ->
+        if (method.isBranchTarget(at + 1)) {
+            throw PatchException("LIVE controls: a pinned comment's row inflater in ${method.name} is a branch target")
+        }
+        val context = (instructions[at] as TwoRegisterInstruction).registerA
+        method.addInstructions(
+            at + 1,
+            """
+                invoke-static/range {v$context .. v$context}, $PANEL_THEME->lightRoomView(Landroid/content/Context;)Landroid/content/Context;
+                move-result-object v$context
+            """,
+        )
+    }
+    return reads.size
 }
 
 private const val ANDROID_THEME = "Landroid/content/res/Resources\$Theme;"
@@ -2571,7 +2711,7 @@ private fun wrapped(instructions: List<Instruction>, at: Int, result: Int): Bool
 val liveControlsPatch = bytecodePatch(
     name = "LIVE controls",
     description = "Stops a LIVE in the feed from opening by itself after a countdown. It can " +
-        "show a LIVE's exact viewer count instead of a rounded one, offer a quality choice and " +
+        "show a LIVE's exact viewer count and battle scores instead of rounded ones, offer a quality choice and " +
         "clear screen in more LIVE rooms, and keep your quality pick after TikTok restarts. " +
         "Starts off. Turn it on in Hushfeed settings > Playback. " +
         "It also keeps a LIVE in the feed from showing the Service+ row of the LIVE before it " +
@@ -2736,6 +2876,12 @@ val liveControlsPatch = bytecodePatch(
         hookLightRoomView(LiveAnchorTipFingerprint.classDef.methods.single {
             it.name == "<init>" && it.parameterTypes.map(CharSequence::toString) == listOf("Landroid/content/Context;")
         }, "the toolbar tip")
+        // The guest panel's "Find an open guest spot" bar is a Compose view, which TikTok's LIVE
+        // Compose host always gives the Light palette, so its black text and arrow sat on the
+        // black sheet (#362). The page hands its view to the extension as it makes it, and the
+        // host asks the extension for the mode, which is Dark for a view under a darkened panel.
+        hookComposePage(GuestMatchEntryViewFingerprint.method)
+        hookComposeMode(LiveHostComposeFingerprint.method)
         // A host's pinned comment takes LIVE's dark overlay over the room's theme, which the room
         // hook darkened, so its Pinned and timer tags came out in other colors than with the switch
         // off (#362). Each manager names the widget to the extension right before it asks for the
@@ -2756,6 +2902,17 @@ val liveControlsPatch = bytecodePatch(
         }
         if (widgetLoads == 0 || widgetLoaders == 0) {
             throw PatchException("LIVE controls: the widget managers' loads are gone ($widgetLoads, $widgetLoaders)")
+        }
+        // The pinned card's rows, where its Pinned and timer tags are, inflate from the widget's
+        // own context, the darkened room, not that overlay inflater, so the tags kept the dark LIVE
+        // colors' pale pill (#362). Each row inflater takes the room's light copy instead.
+        val pinnedWidgets = LIVE_PINNED_WIDGETS.filter { classDefByOrNull(it) != null }
+        if (pinnedWidgets.isEmpty()) throw PatchException("LIVE controls: the pinned comment widgets are gone")
+        for (widget in pinnedWidgets) {
+            val rows = mutableClassDefBy(widget).methods.sumOf { hookPinnedRows(it) }
+            if (rows == 0) {
+                throw PatchException("LIVE controls: $widget no longer inflates its pinned comment's rows")
+            }
         }
         // That light copy is taken before the room's color scheme styles, the style its base adds
         // in onCreate and TikTok's LIVE color theme, which the room's LIVE fragments apply as
@@ -2816,6 +2973,15 @@ val liveControlsPatch = bytecodePatch(
             0,
             "invoke-static/range {p0 .. p0}, $RECORD_EXTENSION->noteRoomFragment(Ljava/lang/Object;)V",
         )
+        // The room ID and connection line (#487) follows the same room pages, and reads the
+        // current player's stats by the route TikTok's own LIVE debug panel takes.
+        LivePlayFragmentResumeFingerprint.method.addInstruction(
+            0,
+            "invoke-static/range {p0 .. p0}, $LIVE_ROOM_INFO_EXTENSION->noteRoomFragment(Ljava/lang/Object;)V",
+        )
+        installLiveRoomInfoBridge(livePlayerStatsReads(LiveDebugInfoTextFingerprint.originalMethod))
+        // The profile card's rows (#487): each cell's answer to its container, by TikTok's module name.
+        hookLiveProfileCardRows()
         // Each message a LIVE room gets, for the name alert, before TikTok hands it out (#424).
         LiveMessageDispatchFingerprint.method.addInstruction(
             0,
@@ -2871,6 +3037,9 @@ val liveControlsPatch = bytecodePatch(
             }
             hookViewerCounts(type, found)
         }
+
+        // A battle's scores past the server's high score cap, shown whole on request (#495).
+        installBattleScoreHooks()
 
         // A LIVE preview bound to a LIVE with no Service+ item runs the row's own hide first
         // when it's still showing the last LIVE's row (#94). Matched and checked in full before

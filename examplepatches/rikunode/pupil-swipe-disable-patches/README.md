@@ -40,7 +40,7 @@ Build compilation and successful patcher execution are separate from actual devi
 ## Patches
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.5.0](https://github.com/rikunode/pupil-morphe-patches/releases/tag/v1.5.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;3 patches total
+> **[v1.7.1](https://github.com/rikunode/pupil-morphe-patches/releases/tag/v1.7.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;3 patches total
 <details open>
 <summary>📦 Pupil&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
 <br>
@@ -54,7 +54,7 @@ Build compilation and successful patcher execution are separate from actual devi
 |----------|----------------|-----------|
 | [Disable automatic update checks](#disable-automatic-update-checks) | Stop Pupil 6.1.1 checking for updates at startup and showing update prompts. Manual update checking in Settings remains available. |  |
 | [Disable gallery left swipe](#disable-gallery-left-swipe) | Disable the left-swipe action tray on Pupil 6.1.1 gallery cards. Preserve taps, long taps, reader gestures and vertical scrolling. |  |
-| [Favorites random shortcut](#favorites-random-shortcut) | Show one random gallery button on the Favorites tab, with its right/left position selectable in Pupil settings. |  |
+| [Favorites random shortcut](#favorites-random-shortcut) | Random Favorites shortcuts on the Favorites tab, gallery details and optional Downloads navigation slot, with runtime settings. |  |
 
 </details>
 

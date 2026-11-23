@@ -1,0 +1,37 @@
+# Gradle & build caches
+.gradle/
+build/
+**/build/
+.idea/
+*.iml
+.DS_Store
+
+# Temporary & intermediate patcher files
+tools/patcher-data/
+tools/APKEditor*.jar
+# Binary APK files (binaries are hosted on GitHub Releases)
+*.apk
+*.apk.idsig
+output/patching-result*.json
+output/*.mpp
+!output/.gitkeep
+
+# Local input files (do not commit stock APKs)
+input/splits*/
+!input/.gitkeep
+
+# Log files
+*.log
+
+# Scratch directory
+scratch/
+
+temp_decompiled/
+temp_decompiled_1841/
+build_classes/
+tools/*.jar
+tools/*.keystore
+
+artifacts_debug/
+temp_smali/
+verify_apk/

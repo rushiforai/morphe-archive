@@ -100,7 +100,7 @@ val libraryToolsPatch = bytecodePatch(
         LibraryComposeMenuState(
             definingClass = if (use701Bindings) "LBa/C;" else "LAa/C;",
             stateType = if (use701Bindings) "Lz0/t0;" else "Lz0/p0;",
-            composerType = if (versionName == APPLE_MUSIC_702) "Lz0/n;" else "Lz0/m;",
+            composerType = if (uses702ComposeComposer(versionName)) "Lz0/n;" else "Lz0/m;",
         ).method.addInstructions(
             0,
             """

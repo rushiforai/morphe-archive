@@ -78,7 +78,7 @@ val blockAppTelemetryPatch = bytecodePatch(
     category("Privacy")
     compatibleWith(COMPATIBILITY_QUORA)
 
-    extendWith("extensions/extension.mpe")
+    extendWith("extensions/quora.mpe")
 
     execute {
         // p1 is the API call. The callers of logging calls don't wait for an answer,

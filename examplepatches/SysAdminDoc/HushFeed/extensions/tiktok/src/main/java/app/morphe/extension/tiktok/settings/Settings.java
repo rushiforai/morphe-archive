@@ -126,6 +126,17 @@ public class Settings extends BaseSettings {
     /** The Accessibility page's Captions switch and the caption controls, where TikTok leaves them off (CaptionsAvailable). */
     public static final BooleanSetting KEEP_CAPTIONS_AVAILABLE = new BooleanSetting("keep_captions_available", FALSE, true);
     public static final BooleanSetting ALLOW_SCREEN_CAPTURE = new BooleanSetting("allow_screen_capture", FALSE, true);
+    /** Three stops below the smallest size on TikTok's own Text size slider (#476). */
+    public static final BooleanSetting SMALLER_TEXT_SIZES = new BooleanSetting("smaller_text_sizes", FALSE, true);
+    /**
+     * Which of those stops the slider was last confirmed on: 0 for none of them, 1 to 3 from the
+     * one next to TikTok's smallest down. No row: the slider writes it (SmallerTextSizes).
+     */
+    public static final IntegerSetting SMALLER_TEXT_SIZE_LEVEL =
+            new IntegerSetting("smaller_text_size_level", 0).withRange(0, 3);
+    /** TikTok's whole interface in percent of its own size (#477). 100 leaves it alone. */
+    public static final IntegerSetting UI_SCALE_PERCENT =
+            new IntegerSetting("ui_scale_percent", 100, true).withRange(50, 100);
     public static final BooleanSetting SYSTEM_FONT = new BooleanSetting("system_font", FALSE, true);
     public static final BooleanSetting SYSTEM_EMOJI = new BooleanSetting("system_emoji", FALSE, true);
     // Use system font's hook draws TikTok's text in the imported font file while this is on and
@@ -534,6 +545,10 @@ public class Settings extends BaseSettings {
     public static final StringSetting BLOCKED_CAPTION_WORDS =
             new FeedRuleStringSetting("blocked_caption_words", false);
     public static final BooleanSetting BLOCKED_WORDS_IN_STICKERS = new BooleanSetting("blocked_words_in_stickers", FALSE);
+    /** Skip promo lines (#493): seek past caption lines holding a word from the list below. */
+    public static final BooleanSetting SKIP_PROMO_LINES = new BooleanSetting("skip_promo_lines", FALSE);
+    public static final StringSetting SKIP_PROMO_WORDS =
+            new FeedRuleStringSetting("skip_promo_words", false);
     public static final StringSetting BLOCKED_CREATORS =
             new FeedRuleStringSetting("blocked_creators", true);
     public static final StringSetting LOCAL_HIDDEN_CREATORS =
@@ -679,6 +694,8 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting INBOX_TAB_FLIPS_READ_RECEIPTS = new BooleanSetting("inbox_tab_flips_read_receipts", FALSE);
     /** The tab TikTok opens on from its icon: tiktok (its own pick), for_you, following, friends, inbox or profile. */
     public static final StringSetting START_PAGE = new StringSetting("start_page", "tiktok");
+    /** Back on Home leaves TikTok at once, with no "Tap again to exit" (#489). */
+    public static final BooleanSetting EXIT_WITH_ONE_BACK = new BooleanSetting("exit_with_one_back", FALSE);
     /** TikTok's previous, pause and next buttons on the feed, shown without a screen reader. Off by default. */
     public static final BooleanSetting SHOW_FEED_BUTTONS = new BooleanSetting("show_feed_buttons", FALSE);
     public static final BooleanSetting HIDE_TAKO_AI = new BooleanSetting("hide_tako_ai", FALSE, true);
@@ -815,6 +832,22 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting SHOW_EXACT_LIVE_VIEWERS = new BooleanSetting("show_exact_live_viewers", FALSE);
     /**
+     * Shows a LIVE battle's scores whole past the server's high score cap ("1M+") in the battle
+     * bar, the co-host windows and the high score notice (#495); the LIVE controls patch. Read
+     * each time a score is written and as a battle takes its cap, so no restart.
+     */
+    public static final BooleanSetting SHOW_EXACT_BATTLE_SCORES = new BooleanSetting("show_exact_battle_scores", FALSE);
+    /**
+     * A small line in a LIVE room with the room's ID and your own connection to the stream as
+     * TikTok's player measures it (#487); the LIVE controls patch. Read every second, so no restart.
+     */
+    public static final BooleanSetting LIVE_ROOM_INFO = new BooleanSetting("live_room_info", FALSE);
+    /**
+     * How long the LIVE has been running, on the same line (#494), counted from the room's own
+     * start time; the LIVE controls patch. Read every second, so no restart.
+     */
+    public static final BooleanSetting LIVE_RUNNING_TIME = new BooleanSetting("live_running_time", FALSE);
+    /**
      * Offers TikTok's quality picker in more LIVE rooms and carries the last pick to the next
      * room; the LIVE controls patch. Read when a room builds its menu and picks its starting
      * quality, so the next room follows a change.
@@ -833,6 +866,14 @@ public class Settings extends BaseSettings {
             "remember_live_quality", TRUE, false, Setting.parent(OFFER_LIVE_QUALITY));
     /** TikTok's key for that pick ("hd", "origin" and so on), saved from its picker. Never shown. */
     public static final StringSetting REMEMBERED_LIVE_QUALITY = new StringSetting("remembered_live_quality", "");
+    /**
+     * The quality every LIVE room starts at until a pick is made this run (#57): "last" keeps
+     * the last pick, otherwise one of TikTok's keys ("origin", "uhd", "hd", "sd", "ld"). The LIVE
+     * controls patch, under {@link #OFFER_LIVE_QUALITY}. Read as each room picks its starting
+     * quality, so no restart.
+     */
+    public static final StringSetting LIVE_START_QUALITY = new StringSetting(
+            "live_start_quality", "last", false, Setting.parent(OFFER_LIVE_QUALITY));
     /**
      * Adds Audio only to a LIVE room's Video quality list when the room's stream has its sound on
      * its own (#265); the LIVE controls patch. Read as the list opens and as the player switches,
@@ -865,6 +906,23 @@ public class Settings extends BaseSettings {
      * dialog and sheet page also inflates through the dark overlay with force (LivePanelTheme).
      */
     public static final BooleanSetting DARK_LIVE_PANELS = new BooleanSetting("dark_live_panels", FALSE);
+    /**
+     * The LIVE profile card's background (#487): off, or one of the colors in LiveProfileCard; the
+     * LIVE controls patch. Read as each card opens. A picked color takes the card over from Dark
+     * LIVE panels.
+     */
+    public static final StringSetting LIVE_CARD_BACKGROUND = new StringSetting("live_card_background", "off");
+    /** The text drawn on the LIVE profile card itself: off (automatic), or one of the colors in LiveProfileCard. */
+    public static final StringSetting LIVE_CARD_TEXT = new StringSetting("live_card_text", "off");
+    /** Each switch takes one module off the LIVE profile card (#487), named for TikTok's module in LiveProfileCard. */
+    public static final BooleanSetting HIDE_LIVE_CARD_EVENTS = new BooleanSetting("hide_live_card_events", FALSE);
+    public static final BooleanSetting HIDE_LIVE_CARD_PRODUCTS = new BooleanSetting("hide_live_card_products", FALSE);
+    public static final BooleanSetting HIDE_LIVE_CARD_SHOP = new BooleanSetting("hide_live_card_shop", FALSE);
+    public static final BooleanSetting HIDE_LIVE_CARD_SHOP_RATING = new BooleanSetting("hide_live_card_shop_rating", FALSE);
+    public static final BooleanSetting HIDE_LIVE_CARD_GROUP_CHAT = new BooleanSetting("hide_live_card_group_chat", FALSE);
+    public static final BooleanSetting HIDE_LIVE_CARD_BULLETIN_BOARD = new BooleanSetting("hide_live_card_bulletin_board", FALSE);
+    public static final BooleanSetting HIDE_LIVE_CARD_GIFT_GALLERY = new BooleanSetting("hide_live_card_gift_gallery", FALSE);
+    public static final BooleanSetting HIDE_LIVE_CARD_FEST_HONORS = new BooleanSetting("hide_live_card_fest_honors", FALSE);
     /**
      * Puts a Record button in LIVE rooms (#37); the LIVE controls patch. A recording starts when the
      * button is tapped and ends at Stop or when the room is left. Read as a room resumes and on the
@@ -964,6 +1022,8 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting PUBLISH_DATE_ON_GRID = new BooleanSetting("publish_date_on_grid", FALSE);
     public static final BooleanSetting VIDEO_LENGTH_ON_GRID = new BooleanSetting("video_length_on_grid", FALSE);
     public static final BooleanSetting HIDE_GRID_VIEW_COUNT = new BooleanSetting("hide_grid_view_count", FALSE);
+    /** Rounded corners on every profile grid cell (#487). */
+    public static final BooleanSetting ROUNDED_GRID_CORNERS = new BooleanSetting("rounded_grid_corners", FALSE);
     /** How loaded profile and Liked grids are ordered (#180): off, or one of the orders in GridSort. */
     public static final StringSetting PROFILE_GRID_SORT = new StringSetting("profile_grid_sort", "off");
     /** A sorted grid puts pinned videos in the chosen order with the rest instead of first (#466). */
@@ -1210,6 +1270,8 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting HIDE_FOOTNOTES = new BooleanSetting("hide_footnotes", FALSE);
     /** The people you may know tag beside a creator's name on a video (#462). */
     public static final BooleanSetting HIDE_MAY_KNOW_TAG = new BooleanSetting("hide_may_know_tag", FALSE);
+    /** The play icon TikTok fades in over a video a tap has paused; the tap still pauses (#489). */
+    public static final BooleanSetting HIDE_PAUSE_ICON = new BooleanSetting("hide_pause_icon", FALSE);
     /** The LIVE and stories row across the top of the Following tab and its count pill (#262). */
     public static final BooleanSetting HIDE_FOLLOWING_LIVE_ROW = new BooleanSetting("hide_following_live_row", FALSE);
     /**
@@ -1548,6 +1610,8 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting HIDE_PLAYLIST_VIDEOS = new BooleanSetting("hide_playlist_videos", FALSE, true);
     // TikTok Subs posts only subscribers can watch (#219), on the feed and on profile grids.
     public static final BooleanSetting HIDE_SUBSCRIBER_ONLY = new BooleanSetting("hide_subscriber_only", FALSE, true);
+    // The mini games tagged Playable that For You serves as posts (#486).
+    public static final BooleanSetting HIDE_PLAYABLE_GAMES = new BooleanSetting("hide_playable_games", FALSE, true);
     // The LIVE feed you swipe through (issue #57). Read on every page TikTok sends, so a change
     // reaches the next page without a restart.
     public static final BooleanSetting LIVE_FEED_FILTER = new BooleanSetting("live_feed_filter", FALSE);

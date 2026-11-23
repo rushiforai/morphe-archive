@@ -13,6 +13,6 @@ val disableUpdatePromptsPatch = bytecodePatch(
 
     execute {
         // The app never asks Play for an update, so no in-app update flow starts.
-        CheckUpdateFingerprint.method.returnEarly()
+        checkUpdateFingerprint.method.returnEarly()
     }
 }

@@ -5,8 +5,9 @@
 package app.morphe.patches.facebook.misc.appicons
 
 import app.morphe.patcher.patch.PatchException
-import app.morphe.patcher.patch.resourcePatch
+import app.morphe.patcher.patch.patch
 import app.morphe.patches.facebook.misc.extension.patchLog
+import app.morphe.util.onResources
 
 /*
  * The Notification icon option of Hushfacebook settings (#467): Hushfacebook's H, cut out of a
@@ -104,14 +105,17 @@ internal fun notificationIconWrites(files: Map<String, ByteArray>): Map<String, 
  * Draws Hushfacebook's H over Facebook's "f" notification icons when [notificationIcon] answers
  * Hushfacebook. With Facebook's own picked, it opens no file.
  */
-internal fun notificationIconPatch(notificationIcon: () -> String?) = resourcePatch {
+internal fun notificationIconPatch(notificationIcon: () -> String?) = patch {
+    // Built in a function, so the block is written here to carry this file's name (see PatchBodies.kt).
     execute {
-        pickedNotificationIcon(notificationIcon()) ?: return@execute
-        // Patcher 2.0 decodes only the files a patch asks for. Shapes would be .xml and are refused.
-        val paths = FACEBOOK_NOTIFICATION_ICONS.flatMap { decode("res/drawable*/$it.*") }.distinct()
-        paths.firstOrNull { it.endsWith(".xml") }?.let { refuseNotification("Facebook's $it is a drawn shape, not a picture") }
-        val writes = notificationIconWrites(paths.associateWith { get(it).readBytes() })
-        for ((path, bytes) in writes) get(path).writeBytes(bytes)
-        patchLog.info("$NOTIFICATION_OPTION: Hushfacebook's H is on ${writes.size} notification pictures (${writes.keys.joinToString()}).")
+        onResources {
+            pickedNotificationIcon(notificationIcon()) ?: return@onResources
+            // Patcher 2.0 decodes only the files a patch asks for. Shapes would be .xml and are refused.
+            val paths = FACEBOOK_NOTIFICATION_ICONS.flatMap { decode("res/drawable*/$it.*") }.distinct()
+            paths.firstOrNull { it.endsWith(".xml") }?.let { refuseNotification("Facebook's $it is a drawn shape, not a picture") }
+            val writes = notificationIconWrites(paths.associateWith { get(it).readBytes() })
+            for ((path, bytes) in writes) get(path).writeBytes(bytes)
+            patchLog.info("$NOTIFICATION_OPTION: Hushfacebook's H is on ${writes.size} notification pictures (${writes.keys.joinToString()}).")
+        }
     }
 }

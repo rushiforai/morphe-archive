@@ -1,3 +1,141 @@
+## 3.2.0 (2026-11-22)
+
+### 📱 FotMob `242.18410.20261117`
+- New: Spoiler-free mode hides a marked match only while it is live
+
+### 📱 Sofascore `26.11.09`
+- New: Spoiler-free mode hides a marked match only while it is live
+- Fixed: Filter the main list's popular events and close two Hide sports and update gaps
+- Fixed: Say when the full-time push is blocked
+
+**Download:** [patches-3.2.0.mpp](https://github.com/heval99/Heval-Morphe-Patches/releases/download/v3.2.0/patches-3.2.0.mpp)
+
+## 3.2.0-dev.1 (2026-11-22)
+
+### 📱 FotMob `242.18410.20261117`
+- New: Spoiler-free mode hides a marked match only while it is live
+
+### 📱 Sofascore `26.11.09`
+- New: Spoiler-free mode hides a marked match only while it is live
+- Fixed: Filter the main list's popular events and close two Hide sports and update gaps
+- Fixed: Say when the full-time push is blocked
+
+**Download:** [patches-3.2.0-dev.1.mpp](https://github.com/heval99/Heval-Morphe-Patches/releases/download/v3.2.0-dev.1/patches-3.2.0-dev.1.mpp)
+
+## 3.1.0 (2026-11-22)
+
+### 🆕 New apps
+- **Smart Launcher** `6.6 build 026` - Disable telemetry, Enable Premium, Fix Galaxy Buds3 Pro widget, Hide promotions, Spoof signature
+
+### 📱 Niagara Launcher `1.16.37`
+- New: Raise widget stack limit
+
+### 📱 Sofascore `26.11.09`
+- Fixed: Hide scores in the main match lists with Spoiler-free mode
+
+### 📱 Truecaller `26.45.5`
+- New: Hide surveys
+
+### ⬆️ Updated apps
+| App | From | To |
+|---|---|---|
+| 365Scores | `15.0.1` | `15.0.2` |
+| Beeper | `4.64.0` | `4.66.2` |
+| BlueMail | `2.2.432` | `2.2.436` |
+| Bookly | `2.4.3` | `2.4.5` |
+| Brave Browser | `1.99.57` | `1.100.58` |
+| CREX | `26.11.01` | `26.11.07` |
+| Digi Sport | `1.1.15` | `1.1.16` |
+| EasyNotes | `1.3.65.1019` | `1.3.66.1117` |
+| Firefox | `160.0` | `160.0.1` |
+| Firefox Focus | `160.0` | `160.0.1` |
+| FotMob | `241.18134.20261030` | `242.18410.20261117` |
+| Futbin | `27.13` | `27.15` |
+| Hevy | `3.2.7.1` | `3.2.8` |
+| Hyperion Launcher | `2.2.16` | `2.2.19` |
+| L'Équipe | `10.71.1` | `10.72.0` |
+| Livescore | `10.4.1` | `10.5.1` |
+| mail.com | `9.20.2` | `9.21.2` |
+| Mango Launcher | `1.68` | `1.70` |
+| Minimalist Launcher | `1.22.8v236` | `1.22.10v238` |
+| MyFitnessPal | `26.45.0` | `26.46.0` |
+| Niagara Launcher | `1.16.36` | `1.16.37` |
+| OneFootball | `15.150.0` | `15.151.0` |
+| Shazam | `16.67.0-261105` | `16.68.0-261112` |
+| Sofascore | `26.11.03` | `26.11.09` |
+| Truecaller | `26.44.6` | `26.45.5` |
+| TV 2 Play | `2026.10-1` | `2026.11` |
+| TV Smarters Player Expert | `11.6.1` | `11.6.3` |
+| Yahoo Sports | `12.28.1` | `12.29.0` |
+
+### 🙏 Credits
+- Enable Pro patch from hoo-dles/morphe-patches via MrCool-888/mrcool-patches (GPL-3.0)
+
+**Download:** [patches-3.1.0.mpp](https://github.com/heval99/Heval-Morphe-Patches/releases/download/v3.1.0/patches-3.1.0.mpp)
+
+## 3.1.0-dev.2 (2026-11-22)
+
+### 🆕 New apps
+- **Smart Launcher** `6.6 build 026` - Disable telemetry, Enable Premium, Fix Galaxy Buds3 Pro widget, Hide promotions, Spoof signature
+
+### 📱 Niagara Launcher `1.16.37`
+- New: Raise widget stack limit
+
+### 📱 Sofascore `26.11.09`
+- Fixed: Hide scores in the main match lists with Spoiler-free mode
+
+### ⬆️ Updated apps
+| App | From | To |
+|---|---|---|
+| 365Scores | `15.0.1` | `15.0.2` |
+| Beeper | `4.65.0` | `4.66.2` |
+| BlueMail | `2.2.432` | `2.2.436` |
+| Bookly | `2.4.4` | `2.4.5` |
+| Brave Browser | `1.99.57` | `1.100.58` |
+| CREX | `26.11.01` | `26.11.07` |
+| Digi Sport | `1.1.15` | `1.1.16` |
+| EasyNotes | `1.3.65.1019` | `1.3.66.1117` |
+| Futbin | `27.14` | `27.15` |
+| Hevy | `3.2.7.1` | `3.2.8` |
+| Hyperion Launcher | `2.2.17` | `2.2.19` |
+| L'Équipe | `10.71.1` | `10.72.0` |
+| Livescore | `10.4.1` | `10.5.1` |
+| Mango Launcher | `1.68` | `1.70` |
+| Minimalist Launcher | `1.22.8v236` | `1.22.10v238` |
+| MyFitnessPal | `26.45.0` | `26.46.0` |
+| Niagara Launcher | `1.16.36` | `1.16.37` |
+| TV 2 Play | `2026.10-1` | `2026.11` |
+| TV Smarters Player Expert | `11.6.1` | `11.6.3` |
+| Yahoo Sports | `12.28.1` | `12.29.0` |
+
+### 🙏 Credits
+- Enable Pro patch from hoo-dles/morphe-patches via MrCool-888/mrcool-patches (GPL-3.0)
+
+**Download:** [patches-3.1.0-dev.2.mpp](https://github.com/heval99/Heval-Morphe-Patches/releases/download/v3.1.0-dev.2/patches-3.1.0-dev.2.mpp)
+
+## 3.1.0-dev.1 (2026-11-18)
+
+### 📱 Truecaller `26.45.5`
+- New: Hide surveys
+
+### ⬆️ Updated apps
+| App | From | To |
+|---|---|---|
+| Beeper | `4.64.0` | `4.65.0` |
+| Bookly | `2.4.3` | `2.4.4` |
+| Firefox | `160.0` | `160.0.1` |
+| Firefox Focus | `160.0` | `160.0.1` |
+| FotMob | `241.18134.20261030` | `242.18410.20261117` |
+| Futbin | `27.13` | `27.14` |
+| Hyperion Launcher | `2.2.16` | `2.2.17` |
+| mail.com | `9.20.2` | `9.21.2` |
+| OneFootball | `15.150.0` | `15.151.0` |
+| Shazam | `16.67.0-261105` | `16.68.0-261112` |
+| Sofascore | `26.11.03` | `26.11.09` |
+| Truecaller | `26.44.6` | `26.45.5` |
+
+**Download:** [patches-3.1.0-dev.1.mpp](https://github.com/heval99/Heval-Morphe-Patches/releases/download/v3.1.0-dev.1/patches-3.1.0-dev.1.mpp)
+
 ## 3.0.0 (2026-11-16)
 
 ### ⚠️ Breaking change

@@ -424,12 +424,7 @@ public final class SubredditFilters {
     }
 
     private static Context appContext() {
-        try {
-            Object app = Class.forName("o.o.joey.MyApplication").getMethod("p").invoke(null);
-            if (app instanceof Context) return (Context) app;
-        } catch (Throwable ignored) {
-        }
-        return null;
+        return ModernUi.getContext();
     }
 
     private static void notifyFiltersChanged(Activity activity) {

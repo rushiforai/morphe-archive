@@ -234,19 +234,19 @@
         <translation locale="en">Keyboard Tools &amp; Shortcuts</translation>
     </string>
     <string name="gboard_patches_group_keyboard_tools_summary">
-        <translation locale="en">Customize the top row, incognito mode, long-press shortcuts, and OCR.</translation>
+        <translation locale="en">Keyboard tools, shortcuts and text capture.</translation>
     </string>
     <string name="gboard_patches_group_ai_voice_title">
         <translation locale="en">AI &amp; Voice</translation>
     </string>
     <string name="gboard_patches_group_ai_voice_summary">
-        <translation locale="en">AI writing tools, advanced voice typing, and Bluetooth microphone.</translation>
+        <translation locale="en">Writing tools and voice typing extras.</translation>
     </string>
     <string name="gboard_patches_group_keyboard_layout_title">
         <translation locale="en">Keys, Layout &amp; Symbols</translation>
     </string>
     <string name="gboard_patches_group_keyboard_layout_summary">
-        <translation locale="en">Globe key behavior, English uppercase, Zhuyin bottom row, and emoji, sticker, and GIF tab order.</translation>
+        <translation locale="en">Keys, layout, and emoji, sticker and GIF options.</translation>
     </string>
     <string name="gboard_patches_group_keyboard_header_summary">
         <translation locale="en"></translation>
@@ -867,7 +867,7 @@
         <translation locale="en">Clipboard</translation>
     </string>
     <string name="gboard_patches_clipboard_summary">
-        <translation locale="en">Adjusts clipboard retention, item limits, preview lines, metadata labels, order index, columns, and the phone-hosted Web Clipboard.</translation>
+        <translation locale="en">Clipboard history: retention, limits, previews, labels, order and columns.</translation>
     </string>
     <string name="gboard_patches_clipboard_error_title">
         <translation locale="en">Clipboard settings unavailable</translation>
@@ -1436,7 +1436,7 @@
         <translation locale="en">Controls whether Advanced Voice Typing is forced on.</translation>
     </string>
     <string name="gboard_patches_advanced_voice_header_summary">
-        <translation locale="en">Voice typing -&gt; Advanced features、 Add punctuation</translation>
+        <translation locale="en">Voice typing -&gt; Advanced features</translation>
     </string>
     <string name="gboard_patches_advanced_voice_error_title">
         <translation locale="en">Advanced Voice Typing unavailable</translation>
@@ -1467,12 +1467,6 @@
     </string>
     <string name="gboard_patches_advanced_voice_backend_rambler_label">
         <translation locale="en">Rambler (online only)</translation>
-    </string>
-    <string name="gboard_patches_advanced_voice_zh_tw_punctuation_title">
-        <translation locale="en">Automatically Add Punctuation to Chinese Input</translation>
-    </string>
-    <string name="gboard_patches_advanced_voice_zh_tw_punctuation_summary">
-        <translation locale="en">Force-stop and restart Gboard for changes to take effect.</translation>
     </string>
     <string name="gboard_patches_advanced_voice_section_behavior">
         <translation locale="en">Behavior</translation>
@@ -2763,7 +2757,7 @@
         <translation locale="en">More settings</translation>
     </string>
     <string name="gboard_patches_group_more_summary">
-        <translation locale="en">FTP Server, settings style, backup and restore, and developer options.</translation>
+        <translation locale="en">Extra tools, backup and advanced options.</translation>
     </string>
     <string name="gboard_patches_group_more_empty_title">
         <translation locale="en">No additional settings available</translation>
@@ -2857,5 +2851,110 @@
     </string>
     <string name="gboard_patches_spacebar_logo_size_invalid">
         <translation locale="en">Enter a size between 12 and 40 dp.</translation>
+    </string>
+    <string name="gboard_patches_voice_extras_title">
+        <translation locale="en">Standard voice typing settings</translation>
+    </string>
+    <string name="gboard_patches_voice_extras_entry_summary">
+        <translation locale="en">The advanced-features, punctuation and language-switch switches that stock hides under the Standard voice typing page.</translation>
+    </string>
+    <string name="gboard_patches_voice_extras_summary">
+        <translation locale="en">These are Gboard\'s own Standard-engine preferences. They do not apply to Rambler or Parakeet transcription.</translation>
+    </string>
+    <string name="gboard_patches_voice_extras_section">
+        <translation locale="en">Standard engine</translation>
+    </string>
+    <string name="gboard_patches_voice_extras_features_title">
+        <translation locale="en">Advanced features</translation>
+    </string>
+    <string name="gboard_patches_voice_extras_features_summary">
+        <translation locale="en">Use advanced voice commands to edit text, add emojis and more.</translation>
+    </string>
+    <string name="gboard_patches_voice_extras_punctuation_title">
+        <translation locale="en">Add punctuation</translation>
+    </string>
+    <string name="gboard_patches_voice_extras_punctuation_summary">
+        <translation locale="en">Add punctuation automatically when voice typing.</translation>
+    </string>
+    <string name="gboard_patches_voice_extras_language_title">
+        <translation locale="en">Automatically switch language</translation>
+    </string>
+    <string name="gboard_patches_voice_extras_language_summary">
+        <translation locale="en">Adjust to the language you speak if advanced voice typing detects it.</translation>
+    </string>
+    <string name="gboard_patches_voice_extras_error_title">
+        <translation locale="en">Voice typing settings unavailable</translation>
+    </string>
+    <string name="gboard_patches_voice_extras_error_summary">
+        <translation locale="en">The screen failed to load. Reopen Gboard settings and try again.</translation>
+    </string>
+    <string name="gboard_patches_beta_flags_title">
+        <translation locale="en">Beta features</translation>
+    </string>
+    <string name="gboard_patches_beta_flags_entry_summary">
+        <translation locale="en">New Gboard 18.8 features that are off by default.</translation>
+    </string>
+    <string name="gboard_patches_beta_flags_summary">
+        <translation locale="en">Plain-text quick-paste chip, floating clipboard chip, invisible floating-keyboard resize, Emoji2 provider and the new swipe-to-remove confirmation.</translation>
+    </string>
+    <string name="gboard_patches_beta_flags_error_title">
+        <translation locale="en">Beta features unavailable</translation>
+    </string>
+    <string name="gboard_patches_beta_flags_error_summary">
+        <translation locale="en">The beta features screen failed to load. Reopen Gboard settings and try again.</translation>
+    </string>
+    <string name="gboard_patches_beta_flags_section">
+        <translation locale="en">Features</translation>
+    </string>
+    <string name="gboard_patches_beta_flags_master_summary">
+        <translation locale="en">Master switch for every feature below. Each one can also be turned on by itself.</translation>
+    </string>
+    <string name="gboard_patches_beta_flag_quick_paste_title">
+        <translation locale="en">Plain-text quick-paste chip</translation>
+    </string>
+    <string name="gboard_patches_beta_flag_quick_paste_summary">
+        <translation locale="en">Adds a second clipboard chip that pastes a plain-text clip in one tap.</translation>
+    </string>
+    <string name="gboard_patches_beta_flag_floating_chip_title">
+        <translation locale="en">Floating clipboard chip</translation>
+    </string>
+    <string name="gboard_patches_beta_flag_floating_chip_summary">
+        <translation locale="en">Shows the clipboard chip on a floating keyboard.</translation>
+    </string>
+    <string name="gboard_patches_beta_flag_floating_resize_title">
+        <translation locale="en">Invisible resize band</translation>
+    </string>
+    <string name="gboard_patches_beta_flag_floating_resize_summary">
+        <translation locale="en">Drag anywhere on the edge of a floating keyboard to resize it.</translation>
+    </string>
+    <string name="gboard_patches_beta_flag_emoji2_title">
+        <translation locale="en">Emoji2 provider</translation>
+    </string>
+    <string name="gboard_patches_beta_flag_emoji2_summary">
+        <translation locale="en">Uses the updated Emoji2 emoji provider instead of the legacy one.</translation>
+    </string>
+    <string name="gboard_patches_beta_flag_remove_v2_title">
+        <translation locale="en">New swipe-to-remove confirmation</translation>
+    </string>
+    <string name="gboard_patches_beta_flag_remove_v2_summary">
+        <translation locale="en">Shows the redesigned confirmation when a suggested word is swiped away.</translation>
+    </string>
+    <string name="gboard_patches_hidden_flags_title">
+        <translation locale="en">Hidden flags</translation>
+    </string>
+    <string name="gboard_patches_hidden_flags_entry_summary">
+        <translation locale="en">Force individual Gboard flags from this beta.</translation>
+    </string>
+    <string name="gboard_patches_hidden_flags_summary">
+        <translation locale="en">Each switch writes Gboard\'s own flag override, so it applies to the running keyboard without a restart.</translation>
+    </string>
+    <string name="gboard_patches_hidden_flags_section">
+        <translation locale="en">Flags</translation>
+    </string>
+    <string name="gboard_patches_hidden_flags_error_title">
+        <translation locale="en">Hidden flags unavailable</translation>
+    </string>
+    <string name="gboard_patches_hidden_flags_error_summary">
+        <translation locale="en">The hidden flags screen failed to load. Reopen Gboard settings and try again.</translation>
     </string>
 </settings-text>

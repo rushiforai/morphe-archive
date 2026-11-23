@@ -358,7 +358,7 @@ public final class ShareContentPatch {
         }
     }
 
-    private static String getString(Context context, String name) {
+    static String getString(Context context, String name) {
         try {
             int id = context.getResources().getIdentifier(name, "string", context.getPackageName());
             if (id != 0) {
@@ -369,7 +369,7 @@ public final class ShareContentPatch {
         return "";
     }
 
-    private static HttpURLConnection openConnectionWithRedirects(String urlString) throws IOException {
+    static HttpURLConnection openConnectionWithRedirects(String urlString) throws IOException {
         String currentUrl = urlString;
         for (int i = 0; i < 5; i++) {
             URL url = new URL(currentUrl);
@@ -397,7 +397,7 @@ public final class ShareContentPatch {
         throw new IOException("Too many redirects");
     }
 
-    private static String getExtensionFromMime(String contentType) {
+    static String getExtensionFromMime(String contentType) {
         if (contentType == null) {
             return null;
         }
@@ -418,7 +418,7 @@ public final class ShareContentPatch {
         }
     }
 
-    private static String getExtensionFromUrl(String urlString) {
+    static String getExtensionFromUrl(String urlString) {
         if (urlString == null) {
             return null;
         }
@@ -504,7 +504,7 @@ public final class ShareContentPatch {
         return "com.reddit.frontpage.provider.file";
     }
 
-    private static Object invokeMethod(Object target, String methodName) {
+    static Object invokeMethod(Object target, String methodName) {
         if (target == null) {
             return null;
         }

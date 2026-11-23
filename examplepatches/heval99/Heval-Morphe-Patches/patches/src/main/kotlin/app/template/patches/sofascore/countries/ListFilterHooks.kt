@@ -58,6 +58,7 @@ internal val EVENT_LIST_REQUESTS = listOf(
     Triple(SportLiveEventsCallFingerprint, "sportLiveEvents", "filterEventList"),
     Triple(IndexedEventsPageCallFingerprint, "getIndexedEventsPage", "filterEventList"),
     Triple(CategoryScheduledEventsCallFingerprint, "categoryScheduledEvents", "filterCategoryEvents"),
+    Triple(PopularEventsCallFingerprint, "getPopularEvents", "filterEventList"),
 )
 
 private fun BytecodePatchContext.requireReflectedMethods() {
@@ -133,8 +134,17 @@ private fun filterSmali(register: Int, helper: String) =
 //  7. an expanded country of the date feed: the categoryScheduledEvents request's result
 //     (`api/v1/category/{cid}/scheduled-events/{date}`, the same; 26.10.19: ro3, which returns the
 //     result through `move-object v0, v1`),
+//  8. the popular matches at the top of a date in the Matches tab: the getPopularEvents(sport,
+//     countryCode, date) request's result (`api/v1/sport/{sport}/{countryCode}/popular-events/{date}`,
+//     the same; 2026-11-22, 26.11.09: the default case of cil, which returns it through its own
+//     return-object, so the other case, queryCategoriesForData, is untouched),
 // plus CountryFilter.init before every return of ReleaseApp.onCreate (country seeds and the
 // pickers' icons).
+// Not hooked on purpose: the pinned leagues section of the Matches tab. It loads each pinned
+// league's matches with uniqueTournamentScheduledEvents (`api/v1/unique-tournament/{uid}/
+// scheduled-events/{date}`; 26.11.09: fcc, from the pinned_tournaments_table query), the same
+// request a league's own page uses (kl7, u9d). Pinned leagues are the user's explicit choice and the
+// patch rows say they stay, so neither that request nor EventListResponse.getEvents is filtered.
 internal val sofascoreListFiltersPatch = bytecodePatch(
     description = "Routes Sofascore's match, league and search lists through the hidden countries and competitions.",
 ) {
@@ -177,7 +187,7 @@ internal val sofascoreListFiltersPatch = bytecodePatch(
             method.addInstructionsChecked(ret, filterSmali(register, "$helper(Ljava/util/List;)Ljava/util/List;"))
         }
 
-        // 5-7. The request lambdas' return: labels move to the filter, so the direct and the resumed
+        // 5-8. The request lambdas' return: labels move to the filter, so the direct and the resumed
         //      path both pass through it.
         for ((site, helper) in requests) {
             val (method, ret, register) = site

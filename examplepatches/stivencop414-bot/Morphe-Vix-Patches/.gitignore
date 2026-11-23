@@ -1,0 +1,23 @@
+# Gradle & build outputs
+node_modules/
+.gradle/
+.kotlin/
+build/
+*/build/
+out/
+local.properties
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# APKs, bundles, keys & local artifacts
+*.apk
+*.apkm
+*.xapk
+*.apks
+*.keystore
+*.jks
+morphe-signing.key
+work/

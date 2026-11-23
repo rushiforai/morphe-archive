@@ -10,11 +10,12 @@ import androidx.media3.common.Player;
 import org.json.JSONObject;
 
 import java.lang.ref.WeakReference;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 
+import app.hoitruyenchu.extension.itruyenchu.patches.shared.HtcSettings;
+import app.hoitruyenchu.extension.itruyenchu.patches.shared.JsBridge;
 import app.hoitruyenchu.extension.itruyenchu.patches.shared.JsScripts;
 import app.hoitruyenchu.extension.itruyenchu.patches.tts.TtsController;
 import okhttp3.OkHttpClient;
@@ -45,8 +46,6 @@ public final class TtsMediaSession {
     private static final ArrayList<WeakReference<TtsSessionPlayer>> players = new ArrayList<>();
     private static final Handler main = new Handler(Looper.getMainLooper());
 
-    private static WeakReference<Object> reactContext;
-    private static Method emitDeviceEvent;
     private static int lastCommandId;
     private static final HashMap<Integer, Runnable> fallbacks = new HashMap<>();
 
@@ -63,6 +62,7 @@ public final class TtsMediaSession {
      */
     public static Player wrap(Object service, Player player) {
         if (player == null) return null;
+        if (!HtcSettings.bool(HtcSettings.MEDIA_ENABLED)) return player;
         try {
             TtsSessionPlayer wrapped = new TtsSessionPlayer(service, player);
             synchronized (lock) {
@@ -80,6 +80,7 @@ public final class TtsMediaSession {
     /** AudioMediaSessionCallback.onConnect(): expo-audio removes next / previous, add them back. */
     public static Player.Commands allowSkip(Player.Commands commands) {
         if (commands == null) return null;
+        if (!HtcSettings.bool(HtcSettings.MEDIA_ENABLED)) return commands;
         try {
             return commands.buildUpon()
                     .add(Player.COMMAND_SEEK_TO_PREVIOUS)
@@ -109,11 +110,7 @@ public final class TtsMediaSession {
 
     /** End of ReactInstance.loadJSBundle(loader): queue the voice bar script after the app bundle. */
     public static void afterMainBundle(Object reactInstance) {
-        Object context = JsScripts.load(reactInstance, VoiceBarScript.FILE_NAME, VoiceBarScript.SCRIPT, TAG);
-        if (context == null) return;
-        synchronized (lock) {
-            reactContext = new WeakReference<>(context);
-        }
+        JsScripts.load(reactInstance, VoiceBarScript.FILE_NAME, VoiceBarScript.SCRIPT, TAG);
     }
 
     /** The reading state changed: refresh the widget (after delayMs). */
@@ -158,8 +155,14 @@ public final class TtsMediaSession {
         }
     }
 
-    /** Next / previous button: change the chapter. */
+    /** Next / previous button: change the chapter, or move 1 / 5 lines (settings). */
     static void onSkip(boolean next) {
+        String mode = HtcSettings.string(HtcSettings.MEDIA_SKIP);
+        int lines = "line1".equals(mode) ? 1 : "line5".equals(mode) ? 5 : 0;
+        if (lines > 0) {
+            sendToApp("line" + (next ? "+" : "-") + lines, () -> Log.i(TAG, "no line to move to (reader not shown)"));
+            return;
+        }
         sendToApp(next ? "next" : "prev", () -> Log.i(TAG, "no chapter to change (reader not shown)"));
     }
 
@@ -191,25 +194,12 @@ public final class TtsMediaSession {
         // The JS timers may have been paused in background (needed by the voice bar).
         TtsController.wakeJsTimers();
         final int id;
-        Object context;
         synchronized (lock) {
             id = ++lastCommandId;
             fallbacks.put(id, fallback);
-            context = reactContext != null ? reactContext.get() : null;
         }
-        boolean sent = false;
-        if (context != null) {
-            try {
-                if (emitDeviceEvent == null) {
-                    emitDeviceEvent = context.getClass().getMethod("emitDeviceEvent", String.class, Object.class);
-                }
-                emitDeviceEvent.invoke(context, EVENT, command + "#" + id);
-                sent = true;
-                Log.i(TAG, "sent " + command + " to the app");
-            } catch (Throwable t) {
-                Log.w(TAG, "could not send " + command + " to the app", t);
-            }
-        }
+        boolean sent = JsBridge.emit(EVENT, command + "#" + id);
+        if (sent) Log.i(TAG, "sent " + command + " to the app");
         if (!sent) {
             runFallback(id, "app not reachable");
             return;

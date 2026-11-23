@@ -1,8 +1,8 @@
 # Buienradar
 
-**App version:** 7.4.8 · **Build:** 7897 · **Original file:** APKM
+**App version:** 7.4.8 · **Build:** 7915 · **Original file:** APKM
 
-[Download original app](https://buzzheavier.com/v4m79608e677){ .md-button .md-button--primary }
+[Download original app](https://www.apkmirror.com/apk/dpg-media/buienradar-weer/buienradar-weer-7-4-8-release/buienradar-weer-7-4-8-4-android-apk-download/){ .md-button .md-button--primary }
 
 Select the exact original file in Morphe Manager. Use the complete archive for a split app.
 
@@ -14,6 +14,7 @@ Select the exact original file in Morphe Manager. Use the complete archive for a
 | **Disable tracking** | On | Stops the supported optional usage statistics, advertising identifiers and diagnostics. |
 | **Hide Premium banner** | On | Hides automatic subscription offers and Premium promotions. |
 | **Hide ads** | On | Removes ads between weather cards and before weather videos. |
+| **Hide update prompt** | On | Skips the startup update prompt and opens Buienradar. |
 | **Skip consent screens** | On | Skips automatic advertising-consent screens; manual privacy choices remain available. |
 
 ## Advertising and tracking services

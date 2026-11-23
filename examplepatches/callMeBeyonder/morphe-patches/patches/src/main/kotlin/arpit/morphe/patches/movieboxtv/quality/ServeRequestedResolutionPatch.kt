@@ -50,9 +50,8 @@ private const val RESOURCE_MAPPER = "w1"
 @Suppress("unused")
 val serveRequestedResolutionPatch = bytecodePatch(
     name = "Serve requested resolution",
-    description = "Uses the signed DASH streams of the mobile play-info endpoint, so 480p/720p/" +
-        "1080p/4K actually select a real video track instead of reloading the same low-res MP4. " +
-        "Falls back to the TV streams when the mobile ladder is unavailable or lower.",
+    description = "Makes quality selection work: 480p, 720p, 1080p and 4K actually switch to " +
+        "that resolution.",
 ) {
     compatibleWith(COMPATIBILITY_MOVIEBOX_TV)
 

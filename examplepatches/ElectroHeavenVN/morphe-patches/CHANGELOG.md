@@ -1,3 +1,15 @@
+## [1.1.1](https://github.com/ElectroHeavenVN/morphe-patches/compare/v1.1.0...v1.1.1) (2026-11-22)
+
+### 🐛 Bug Fixes
+
+* Zalo crashes due to race condition ([61a877a](https://github.com/ElectroHeavenVN/morphe-patches/commit/61a877a8198622961adfc21052fdf89ac397169f))
+
+## [1.1.1-dev.1](https://github.com/ElectroHeavenVN/morphe-patches/compare/v1.1.0...v1.1.1-dev.1) (2026-11-22)
+
+### 🐛 Bug Fixes
+
+* Zalo crashes due to race condition ([61a877a](https://github.com/ElectroHeavenVN/morphe-patches/commit/61a877a8198622961adfc21052fdf89ac397169f))
+
 ## [1.1.0](https://github.com/ElectroHeavenVN/morphe-patches/compare/v1.0.0...v1.1.0) (2026-11-21)
 
 ### ✨ New Features

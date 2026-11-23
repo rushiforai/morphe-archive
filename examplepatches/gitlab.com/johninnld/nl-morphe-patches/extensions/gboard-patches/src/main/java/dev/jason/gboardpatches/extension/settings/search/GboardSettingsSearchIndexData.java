@@ -100,7 +100,6 @@ final class GboardSettingsSearchIndexData {
             {1, R.string.gboard_patches_ai_writing_tools_backend_type_title, R.string.gboard_patches_ai_writing_tools_backend_type_summary, 0},
             {2, R.string.gboard_patches_advanced_voice_title, R.string.gboard_patches_advanced_voice_summary, 1},
             {2, R.string.gboard_patches_advanced_voice_enabled_title, R.string.gboard_patches_advanced_voice_enabled_summary, 0},
-            {2, R.string.gboard_patches_advanced_voice_zh_tw_punctuation_title, R.string.gboard_patches_advanced_voice_zh_tw_punctuation_summary, 0},
             {2, R.string.gboard_patches_advanced_voice_payload_unknown_requirement_title, R.string.gboard_patches_advanced_voice_payload_unknown_requirement_summary, 0},
             {2, R.string.gboard_patches_advanced_voice_speech_services_absent_title, R.string.gboard_patches_advanced_voice_speech_services_status_summary, 0},
             {2, R.string.gboard_patches_advanced_voice_live_transcribe_manage_title, R.string.gboard_patches_advanced_voice_live_transcribe_manage_summary, 0},

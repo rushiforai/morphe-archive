@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Accent is the app's own default colour theme, "cyan" (0xFF06B6D4). -->
+    <style name="EclipseCarTheme" parent="@android:style/Theme.Black.NoTitleBar">
+        <item name="carColorPrimary">#FF06B6D4</item>
+        <item name="carColorPrimaryDark">#FF06B6D4</item>
+        <item name="carColorSecondary">#FFFFFFFF</item>
+        <item name="carColorSecondaryDark">#FFFFFFFF</item>
+    </style>
+</resources>

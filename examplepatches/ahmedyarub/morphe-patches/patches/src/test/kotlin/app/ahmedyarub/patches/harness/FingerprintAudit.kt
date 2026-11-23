@@ -36,6 +36,7 @@ internal object FingerprintAudit {
      */
     private val FINGERPRINT_PACKAGES =
         mapOf(
+            "com.anthropic.claude" to listOf("app/ahmedyarub/patches/claude/"),
             "com.instagram.android" to listOf("app/ahmedyarub/patches/instagram/", "app/crimera/patches/instagram/"),
             "com.reddit.frontpage" to listOf("app/ahmedyarub/patches/reddit/"),
             "com.twitter.android" to listOf("app/ahmedyarub/patches/x/"),

@@ -26,7 +26,7 @@ private fun pageScriptPatch(
     category(patchCategory)
     compatibleWith(COMPATIBILITY_QUORA)
 
-    extendWith("extensions/extension.mpe")
+    extendWith("extensions/quora.mpe")
 
     execute {
         PageFinishedFingerprint.method.addInstruction(
@@ -40,7 +40,7 @@ private fun pageScriptPatch(
 val hideQuoraPlusAnswersPatch = pageScriptPatch(
     name = "Hide Quora+ answers",
     patchCategory = "Feed",
-    description = "Hides answers and posts that can only be read with a Quora+ subscription.",
+    description = "Hides answers and posts that show only their start, with a Quora+ lock over the rest.",
     extensionMethod = "hideQuoraPlusAnswers",
     default = true,
 )
@@ -73,7 +73,7 @@ val hideDismissedQuestionsPatch = bytecodePatch(
     category("Feed")
     compatibleWith(COMPATIBILITY_QUORA)
 
-    extendWith("extensions/extension.mpe")
+    extendWith("extensions/quora.mpe")
 
     execute {
         PageFinishedFingerprint.method.addInstruction(
@@ -162,6 +162,14 @@ val enableTextSelectionPatch = pageScriptPatch(
     description = "Lets you select and copy text on every page.",
     extensionMethod = "enableTextSelection",
     default = true,
+)
+
+@Suppress("unused")
+val wordCountPatch = pageScriptPatch(
+    name = "Word count",
+    patchCategory = "Writing",
+    description = "Shows how many words and characters you have written while you write an answer or a post.",
+    extensionMethod = "wordCount",
 )
 
 @Suppress("unused")

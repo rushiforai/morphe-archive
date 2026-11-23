@@ -104,20 +104,11 @@ public final class GboardClipboardSettingsFeature
             SharedPreferences preferences = GboardClipboardSettings.preferences(context);
             GboardClipboardSettings.ensureDefaults(preferences);
 
-            boolean canQueryAvailability = canQueryFeatureAvailability(context);
-            boolean hasClipboardEnhancements = canQueryAvailability
-                    ? GboardPatchesFeatureAvailability.hasFeature(
-                            context,
-                            GboardPatchesFeatureAvailability.FEATURE_CLIPBOARD_ENHANCEMENTS)
-                    : true;
-            boolean hasClipboardContentLimit = canQueryAvailability
-                    ? GboardPatchesFeatureAvailability.hasFeature(
-                            context,
-                            GboardPatchesFeatureAvailability.FEATURE_CLIPBOARD_CONTENT_LIMIT)
-                    : true;
-            boolean hasWebClipboard = canQueryAvailability
-                    ? webClipboardFeature.isAvailable(context)
-                    : true;
+            boolean hasClipboardEnhancements = GboardPatchesFeatureAvailability.hasFeature(
+                    context, GboardPatchesFeatureAvailability.FEATURE_CLIPBOARD_ENHANCEMENTS);
+            boolean hasClipboardContentLimit = GboardPatchesFeatureAvailability.hasFeature(
+                    context, GboardPatchesFeatureAvailability.FEATURE_CLIPBOARD_CONTENT_LIMIT);
+            boolean hasWebClipboard = webClipboardFeature.isAvailable(context);
             List<GboardPatchesSettingsContract.Section> sections =
                     new ArrayList<GboardPatchesSettingsContract.Section>();
 
@@ -295,17 +286,4 @@ public final class GboardClipboardSettingsFeature
                 R.string.gboard_patches_clipboard_section_extensions);
     }
 
-    private boolean canQueryFeatureAvailability(Context context) {
-        if (context == null) {
-            return false;
-        }
-        Context applicationContext = context.getApplicationContext();
-        Context lookupContext = applicationContext != null ? applicationContext : context;
-        try {
-            return lookupContext.getPackageManager() != null
-                    && lookupContext.getPackageName() != null;
-        } catch (Throwable ignored) {
-            return false;
-        }
-    }
 }

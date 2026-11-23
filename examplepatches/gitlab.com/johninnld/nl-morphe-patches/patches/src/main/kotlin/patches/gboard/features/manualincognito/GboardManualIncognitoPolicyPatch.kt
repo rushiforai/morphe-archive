@@ -27,7 +27,7 @@ internal val gboardManualIncognitoPolicyPatch = bytecodePatch(
     execute {
         findMutableMethodOrThrow(GboardManualIncognitoTargets.clipboardListener)
             .applyManualIncognitoAfterBooleanCall(
-                owner = "Lpdl;",
+                owner = "Lafcu;",
                 name = "f",
                 call = RuntimeCallId.MANUAL_INCOGNITO_RUNTIME_APPLY_CLIPBOARD_POLICY,
             )
@@ -38,7 +38,7 @@ internal val gboardManualIncognitoPolicyPatch = bytecodePatch(
             )
         findMutableMethodOrThrow(GboardManualIncognitoTargets.dictationEligibility)
             .applyManualIncognitoAfterBooleanFieldRead(
-                fieldReference = "Leqh;->v:Z",
+                fieldReference = "Lidr;->v:Z",
                 call = RuntimeCallId.MANUAL_INCOGNITO_RUNTIME_APPLY_DICTATION_FLAG,
             )
     }

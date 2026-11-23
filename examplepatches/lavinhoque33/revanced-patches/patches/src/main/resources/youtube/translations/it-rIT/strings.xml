@@ -293,8 +293,10 @@ Per risolvere il problema, attiva \'Falsificazione dei flussi video\' e modifica
     <string name="morphe_playback_in_feeds_entry_off">Disattivato</string>
     <string name="morphe_playback_in_feeds_entry_wifi_only">Solo Wi-Fi</string>
     <string name="morphe_playback_in_feeds_title">Riproduzione nei feed</string>
-    <string name="morphe_player_control_buttons_background_opacity_summary">Regola l\'opacità dello sfondo dietro i pulsanti di controllo del riproduttore e la barra del tempo (0 è invisibile, 100 è opaco)</string>
-    <string name="morphe_player_control_buttons_background_opacity_title">Opacità dello sfondo dei pulsanti di controllo</string>
+    <string name="morphe_player_transport_background_opacity_summary">Regola l\'opacità dello sfondo dei pulsanti Riproduci, Pausa, Riproduci di nuovo, Successivo e Precedente</string>
+    <string name="morphe_player_transport_background_opacity_title">Opacità dello sfondo dei pulsanti di riproduzione</string>
+    <string name="morphe_player_other_overlay_background_opacity_summary">Regola l\'opacità dello sfondo degli altri pulsanti del lettore e dell\'indicatore del tempo</string>
+    <string name="morphe_player_other_overlay_background_opacity_title">Opacità dello sfondo degli altri elementi sovrapposti</string>
     <string name="morphe_playlist_hide_removal_snackbar_summary">La conferma non viene mostrata dopo che un video è stato rimosso da una playlist</string>
     <string name="morphe_playlist_hide_removal_snackbar_title">Nascondi snackbar di rimozione playlist</string>
     <string name="morphe_playlist_long_press_drag_summary">Tieni premuto un video della tua playlist per trascinarlo in una nuova posizione</string>

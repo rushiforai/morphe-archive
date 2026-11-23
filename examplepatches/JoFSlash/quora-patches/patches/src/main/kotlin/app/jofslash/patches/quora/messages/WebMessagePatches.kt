@@ -40,7 +40,7 @@ private fun blockWebMessagesPatch(
         category(patchCategory)
         compatibleWith(COMPATIBILITY_QUORA)
 
-        extendWith("extensions/extension.mpe")
+        extendWith("extensions/quora.mpe")
 
         execute {
             if (settingKey != null) registerSetting(settingKey, name)
@@ -148,7 +148,7 @@ val hideMoreStoriesPatch = bytecodePatch(
     category("Feed")
     compatibleWith(COMPATIBILITY_QUORA)
 
-    extendWith("extensions/extension.mpe")
+    extendWith("extensions/quora.mpe")
 
     execute {
         registerSetting("hideMoreStories", "Hide More Stories button")

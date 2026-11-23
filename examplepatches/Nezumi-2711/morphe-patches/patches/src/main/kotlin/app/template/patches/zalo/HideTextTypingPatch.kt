@@ -45,7 +45,7 @@ private object GroupTextTypingFingerprint : Fingerprint(
 
 private fun suppressTextTyping(method: MutableMethod, statusParameter: String) {
     val first = method.implementation!!.instructions.first()
-    check(method.implementation!!.registerCount >= 11)
+    check(method.implementation!!.registerCount >= 8)
     method.addInstructionsWithLabels(0, """
         if-nez $statusParameter, :nezumi_send_typing
         invoke-static {}, Lcom/zing/zalo/MainApplication;->getAppContext()Landroid/content/Context;
@@ -68,7 +68,7 @@ val hideTextTypingPatch = bytecodePatch(
         packageName = "com.zing.zalo",
         apkFileType = ApkFileType.APKM,
         appIconColor = 0x0068FF,
-        targets = listOf(AppTarget(version = "26.10.02")),
+        targets = listOf(AppTarget(version = "26.11.01")),
     ))
 
     dependsOn(nativeSignaturePatch)

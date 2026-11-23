@@ -86,9 +86,9 @@ public final class GboardAccessPointContributionsRuntime {
             return;
         }
         ClassLoader loader = controller.getClass().getClassLoader();
-        Class<?> controllerType = Class.forName("mpq", false, loader);
-        Class<?> orderType = Class.forName("mpb", false, loader);
-        Class<?> catalogType = Class.forName("wim", false, loader);
+        Class<?> controllerType = Class.forName("aajh", false, loader);
+        Class<?> orderType = Class.forName("aaia", false, loader);
+        Class<?> catalogType = Class.forName("auco", false, loader);
         if (!controllerType.isInstance(controller)) {
             throw new IllegalArgumentException("Not the exact1853 AP controller");
         }

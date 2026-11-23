@@ -5,7 +5,7 @@
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to Morphe contributions.
  *
- * Modified by lavinhoque33, 2026-11-20
+ * Modified by lavinhoque33, 2026-11-22
  */
 
 package app.morphe.extension.youtube.patches.utils;
@@ -154,15 +154,11 @@ public class PlayerControlsPatch {
             Drawable background = button.getBackground();
             if (background == styledBackground) return;
 
-            if (background != null) {
-                Drawable styled = PlayerPatch.applyControlButtonsBackgroundOpacity(background);
-                if (styled != background) {
-                    button.setBackground(styled);
-                    layoutDirty = true;
-                }
-                background = styled;
+            PlayerPatch.styleOverlayButtonBackground(button);
+            styledBackground = button.getBackground();
+            if (styledBackground != background) {
+                layoutDirty = true;
             }
-            styledBackground = background;
         }
 
         private void updateOverlayAlignment() {

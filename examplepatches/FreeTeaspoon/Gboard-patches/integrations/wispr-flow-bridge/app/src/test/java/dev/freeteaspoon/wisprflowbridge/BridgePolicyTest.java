@@ -7,8 +7,9 @@ public class BridgePolicyTest {
     @Test public void onlyVerifiedWisprVersionsEnableTheBridge() {
         assertTrue(BridgePolicy.supportsVersion("2.8.5"));
         assertTrue(BridgePolicy.supportsVersion("2.8.7"));
+        assertTrue(BridgePolicy.supportsVersion("2.8.8"));
         assertFalse(BridgePolicy.supportsVersion("2.8.6"));
-        assertFalse(BridgePolicy.supportsVersion("2.8.8"));
+        assertFalse(BridgePolicy.supportsVersion("2.8.9"));
         assertFalse(BridgePolicy.supportsVersion(null));
     }
 

@@ -8,7 +8,7 @@ import app.template.extension.hevalcontrols.HevalSettings;
 
 /**
  * "AMOLED black" for FotMob: a Patch settings switch (fotmob.amoled_black, restart required for
- * screens that are already open). The resource patch adds the theme overlay HevalAmoledOverlay (ten
+ * screens that are already open). The resource patch adds the theme overlay HevalAmoledOverlay (twenty
  * theme attributes of the dark theme at near-black values); while the switch is on, each new screen
  * that is in dark mode gets it applied on top of its theme, from ActivityHooks.onActivityCreated
  * (inside super.onCreate, before the content is inflated). With the switch off, or in light mode,

@@ -45,7 +45,9 @@ public final class PostingIpWarning {
         try{
             String version=a.getPackageManager().getPackageInfo(a.getPackageName(),0).versionName;
             if(!version.equals("0.8.10.191 dev")&&!version.equals("0.8.10.226 dev")&&!version.equals("0.8.10.242 dev"))return;
-            bindings.put(version.contains("242")?model:fragment,new Binding(fragment,model,a,version));
+            Binding binding=new Binding(fragment,model,a,version);
+            bindings.put(fragment,binding);
+            bindings.put(model,binding);
         }catch(Exception e){android.util.Log.w("Haiagaru","IP warning editor registration failed",e);}
     }
     private static Object field(Object o,String name)throws Exception{return NativeFields.find(o.getClass(),name).get(o);}

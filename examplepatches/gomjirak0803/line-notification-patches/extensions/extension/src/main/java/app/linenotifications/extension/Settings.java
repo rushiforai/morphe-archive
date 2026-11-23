@@ -93,7 +93,8 @@ public final class Settings {
     static void setMuted(String account, String chat, String name, boolean mute) {
         SharedPreferences.Editor editor = prefs().edit();
         String key = mutePrefix(account) + encoded(chat);
-        if (mute) editor.putString(key, name == null || name.isEmpty() ? "채팅방" : name);
+        if (mute) editor.putString(key, name == null || name.isEmpty()
+                ? Strings.get("line_notify_fallback_chat", "Chat") : name);
         else editor.remove(key);
         editor.apply();
         if (mute) {
@@ -138,9 +139,11 @@ public final class Settings {
     public static void show(Context context) {
         try { new SettingsPage(context).show(); }
         catch (ReflectiveOperationException | RuntimeException ignored) {
-            new AlertDialog.Builder(context).setTitle("알림 패치 설정")
-                    .setMessage("설정 화면을 열 수 없습니다. 지원하는 LINE 버전인지 확인해 주세요.")
-                    .setPositiveButton("닫기", null).show();
+            new AlertDialog.Builder(context)
+                    .setTitle(Strings.get(context, "line_notify_settings", "Notification patch settings"))
+                    .setMessage(Strings.get(context, "line_notify_settings_open_failed",
+                            "Unable to open patch settings. Please make sure you are using a supported LINE version."))
+                    .setPositiveButton(Strings.get(context, "line_notify_btn_close", "Close"), null).show();
         }
     }
 
@@ -167,14 +170,20 @@ public final class Settings {
                 if (method.getName().equals("invoke")) {
                     if (!account.equals(NativeLine.account())) return null;
                     boolean hidden = fullyMuted(account, chat);
-                    new AlertDialog.Builder(context).setTitle("알림 완전히 숨기기")
-                            .setMessage(hidden ? "이 채팅방의 알림 숨김을 해제할까요?" : "이 채팅방은 조용한 알림도 표시하지 않습니다. LINE의 기존 알림 끄기처럼 처리합니다.")
-                            .setPositiveButton(hidden ? "숨김 해제" : "숨기기", (d, w) -> {
+                    new AlertDialog.Builder(context)
+                            .setTitle(Strings.get(context, "line_notify_hide_chat", "Hide notifications completely"))
+                            .setMessage(hidden
+                                    ? Strings.get(context, "line_notify_unhide_confirm_msg", "Stop hiding notifications for this chat?")
+                                    : Strings.get(context, "line_notify_hide_confirm_msg",
+                                            "This chat will not show even silent notifications. It will behave like LINE’s original mute setting."))
+                            .setPositiveButton(hidden
+                                    ? Strings.get(context, "line_notify_btn_unhide", "Unhide")
+                                    : Strings.get(context, "line_notify_btn_hide", "Hide"), (d, w) -> {
                                 try { if (account.equals(NativeLine.account())) ChatNotifications.change(context, chat,
                                         hidden ? (quiet(account, chat) ? ChatNotifications.QUIET : ChatNotifications.NORMAL) : ChatNotifications.HIDDEN,
                                         null, null); }
                                 catch (ReflectiveOperationException ignored) { }
-                            }).setNegativeButton("취소", null).show();
+                            }).setNegativeButton(Strings.get(context, "line_notify_btn_cancel", "Cancel"), null).show();
                     return NativeLine.type("vs8.i0").getField("a").get(null);
                 }
                 if (method.getName().equals("hashCode")) return System.identityHashCode(proxy);

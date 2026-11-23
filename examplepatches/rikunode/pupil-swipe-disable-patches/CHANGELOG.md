@@ -1,3 +1,22 @@
+## [1.7.1](https://github.com/rikunode/pupil-morphe-patches/compare/v1.7.0...v1.7.1) (2026-11-22)
+
+### 🐛 Bug Fixes
+
+* align detail shortcuts horizontally and hide duplicate floating button ([4a382f5](https://github.com/rikunode/pupil-morphe-patches/commit/4a382f5a2f0eda10d1dd48d654c276663d2e3328))
+
+## [1.7.0](https://github.com/rikunode/pupil-morphe-patches/compare/v1.6.0...v1.7.0) (2026-11-22)
+
+### ✨ New Features
+
+* bookmark return and optional random bottom navigation ([b312949](https://github.com/rikunode/pupil-morphe-patches/commit/b312949391598b483d534b15c55a1f92dc404e9f))
+
+## [1.6.0](https://github.com/rikunode/pupil-morphe-patches/compare/v1.5.0...v1.6.0) (2026-11-22)
+
+### ✨ New Features
+
+* place gallery random shortcut before thumbnail pager ([17c933e](https://github.com/rikunode/pupil-morphe-patches/commit/17c933e76b9415b1525b98d19242ed69b2ac0867))
+* show optional random shortcut on gallery details ([3af2037](https://github.com/rikunode/pupil-morphe-patches/commit/3af20371c7106d9105f85a14ac77cc66d7a095a4))
+
 ## [1.5.0](https://github.com/rikunode/pupil-morphe-patches/compare/v1.4.0...v1.5.0) (2026-11-22)
 
 ### 🐛 Bug Fixes

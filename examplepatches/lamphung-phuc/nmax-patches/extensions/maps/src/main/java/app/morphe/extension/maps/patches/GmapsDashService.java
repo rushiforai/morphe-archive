@@ -16,13 +16,14 @@ import android.view.Surface;
 public final class GmapsDashService extends Service {
     private static final String DESCRIPTOR = "com.lampp.nmaxconnect.gmaps.IGmapsDash";
     private static final String CLIENT = "com.lampp.nmaxconnect";
-    private static final int API_VERSION = 4; // 2: setNavListener; 3: isMapOnDash; 4: zoom
+    private static final int API_VERSION = 5; // 2: setNavListener; 3: isMapOnDash; 4: zoom; 5: stopNavigation
     private static final int GET_API_VERSION = IBinder.FIRST_CALL_TRANSACTION + 1;
     private static final int ATTACH = IBinder.FIRST_CALL_TRANSACTION + 2;
     private static final int DETACH = IBinder.FIRST_CALL_TRANSACTION + 3;
     private static final int SET_NAV_LISTENER = IBinder.FIRST_CALL_TRANSACTION + 4;
     private static final int IS_MAP_ON_DASH = IBinder.FIRST_CALL_TRANSACTION + 5;
     private static final int ZOOM = IBinder.FIRST_CALL_TRANSACTION + 6;
+    private static final int STOP_NAVIGATION = IBinder.FIRST_CALL_TRANSACTION + 7;
 
     private final Binder binder = new Binder() {
         @Override
@@ -31,7 +32,7 @@ public final class GmapsDashService extends Service {
                 reply.writeString(DESCRIPTOR);
                 return true;
             }
-            if (code < GET_API_VERSION || code > ZOOM) return super.onTransact(code, data, reply, flags);
+            if (code < GET_API_VERSION || code > STOP_NAVIGATION) return super.onTransact(code, data, reply, flags);
             data.enforceInterface(DESCRIPTOR);
             if (!allowed(getCallingUid())) {
                 Log.w("GmapsDash", "refused uid " + getCallingUid());
@@ -52,6 +53,7 @@ public final class GmapsDashService extends Service {
             if (code == GET_API_VERSION) reply.writeInt(API_VERSION);
             if (code == IS_MAP_ON_DASH) reply.writeInt(GmapsDashBridge.isMapOnDash() ? 1 : 0);
             if (code == ZOOM) reply.writeInt(GmapsDashBridge.zoom(data.readInt() != 0) ? 1 : 0);
+            if (code == STOP_NAVIGATION) reply.writeInt(GmapsDashStop.stop(GmapsDashService.this) ? 1 : 0);
             return true;
         }
     };

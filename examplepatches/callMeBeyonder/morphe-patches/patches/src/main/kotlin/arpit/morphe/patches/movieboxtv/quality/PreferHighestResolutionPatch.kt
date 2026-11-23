@@ -42,8 +42,7 @@ private const val HIGHEST_HEIGHT = 2160
 @Suppress("unused")
 val preferHighestResolutionPatch = bytecodePatch(
     name = "Prefer highest resolution",
-    description = "Starts playback at the best available resolution instead of the built-in " +
-        "480p default. An explicit choice in the settings panel still takes precedence.",
+    description = "Starts videos at the highest available quality instead of 480p.",
 ) {
     compatibleWith(COMPATIBILITY_MOVIEBOX_TV)
 

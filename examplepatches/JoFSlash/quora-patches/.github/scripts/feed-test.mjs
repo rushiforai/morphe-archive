@@ -329,10 +329,10 @@ async function main() {
   if (state.startsWith('not-signed-in:captcha') || state.startsWith('not-signed-in:verification')) {
     warning(`Quora asked for more than a password (${state.split(':')[1]}), so the feed test is skipped. `
       + 'A new emulator is a new device to Quora: save a signed-in session in the QUORA_TEST_COOKIES secret '
-      + '(see CONTRIBUTING.md) so the test doesn\'t sign in at all.');
+      + '(see docs/quora/CONTRIBUTING.md) so the test doesn\'t sign in at all.');
     report(`skipped: ${session ? 'the saved session in QUORA_TEST_COOKIES no longer works' : 'no saved session'}, `
       + `and Quora asked for a ${state.split(':')[1]} when signing in with the password. `
-      + 'Save a new session in QUORA_TEST_COOKIES (see CONTRIBUTING.md) and run the Feed test by hand.');
+      + 'Save a new session in QUORA_TEST_COOKIES (see docs/quora/CONTRIBUTING.md) and run the Feed test by hand.');
     return 0;
   }
   if (state === 'not-signed-in:email-not-confirmed') {

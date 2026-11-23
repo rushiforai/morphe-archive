@@ -73,6 +73,21 @@ internal val mapsVoiceContracts=mapOf(
     "Lnjy;->i()Ljava/lang/Object;" to MapsVoiceContract(26, 2064, 18, "7e35dff5b9297ec7cf3298a2eb91d9659ae745f87e169ac36a94d5200aeda37d"),
 )
 
+/**
+ * 26.47 pins only the methods the binder actually rewrites: the dispatch, the audio-focus request,
+ * the terminal listener, and the route preview's constructor, resume and reset. Every other 26.44 row
+ * was an integrity pin on a class no hook touches, and those classes were renamed without any
+ * structural relationship worth pinning. Values generated with the offline `VoiceHash` inspector.
+ */
+internal val mapsVoiceContracts2647=mapOf(
+    "Lbmcw;->b(Ljava/lang/Object;)V" to MapsVoiceContract(19, 572, 4113, "09ba86d69e2d5e8e74ae658eec03f784a67e88805e41ef3209cd4550cb39cfe6"),
+    "Lbnfz;->g(Lbnit;I)Z" to MapsVoiceContract(7, 66, 17, "89568148f4c274a04d3624d31ffe7d20c00d0473bb4eb3959b486407645a8123"),
+    "Lbnhq;->a(Lbnil;)V" to MapsVoiceContract(4, 35, 17, "2d91231720aff588751b4c71b07b4056fde9750998ce53a2328bea52e66e19a0"),
+    "Lbmvq;-><init>(Lbmuy;Lbmvd;Landroid/content/Context;Lbnsr;Lcrhl;Lcrhl;Ljava/util/concurrent/Executor;Lbabo;Laxju;Lbmrq;)V" to MapsVoiceContract(13, 41, 65537, "270267dfd07a2b2715bb9fd6042d14f97bb65b66544667b5afa408a11324fd6d"),
+    "Lbmvq;->s(Lyga;)V" to MapsVoiceContract(6, 44, 17, "a4ccc52122f1c5438d127933fcb571f035fac9d44d1c640dece133f6429ff62f"),
+    "Lbmvq;->t()V" to MapsVoiceContract(2, 10, 17, "a514128393f4d71637ed57a32981be8ba9f57b2de7b96e80ac7aec0f83fc26da"),
+)
+
 /** Same primitive JSON body representation as the independent original-DEX inspector. */
 internal fun mapsVoiceFingerprint(method:Method):String {
     val body=method.implementation ?: error("Missing Maps voice body")
@@ -117,6 +132,41 @@ internal fun mapsVoiceFingerprint(method:Method):String {
 internal fun validateMapsWarningVoice(classes:Iterable<ClassDef>):Map<String,Method> {
     val byType=classes.associateBy { it.type }
     validateMapsGuidanceComponent { byType.getValue(it) }
+    // 26.47 warning model (verified by field type on the target APK). Detect it by the shape of the
+    // route preview: several 26.44 classes reuse these obfuscated names, so names alone are unsafe.
+    if (byType["Lbmvq;"]?.methods?.any {
+            it.name=="s" && it.parameterTypes.map(CharSequence::toString)==listOf("Lyga;") && it.returnType=="V"
+        }==true) {
+        listOf(
+            Triple("Lngt;","hU","Lcrkc;"),
+            Triple("Lbnfl;","f","Lbngz;"),
+            Triple("Lbnfl;","j","Lbzyj;"),
+            Triple("Lbnfl;","p","Lcrhl;"),
+            Triple("Lbnfl;","q","Lcrhl;"),
+            Triple("Lbnhu;","s","Ljava/util/concurrent/atomic/AtomicBoolean;"),
+            Triple("Lbnhu;","w","Lbnij;"),
+            Triple("Lbnhq;","a","Lbnhu;"),
+            Triple("Lbmvq;","a","Lcrhl;"),
+            Triple("Lbmvq;","b","Lcrhl;"),
+            Triple("Lbmvq;","c","Lbmuy;"),
+            Triple("Lbmvq;","d","Landroid/content/Context;"),
+            Triple("Lbmvq;","e","Lbmca;"),
+            Triple("Lbmvq;","o","Lyga;"),
+            Triple("Lbngu;","a","Landroid/media/MediaPlayer;"),
+            Triple("Lbnid;","a","Lbnil;"),
+            Triple("Lbngr;","a","[Lbnil;"),
+        ).forEach { (owner,name,type) ->
+            check(byType.getValue(owner).fields.count { it.name==name && it.type==type }==1) { "Changed Maps warning field $owner->$name" }
+        }
+        listOf(Triple("Lbmca;","b","Lyfm;"),Triple("Lyfm;","k","Lbjws;")).forEach { (owner,name,type) ->
+            check(byType.getValue(owner).fields.count { it.name==name && it.type==type }==1) { "Changed Maps native route geometry field $owner->$name" }
+        }
+        return mapsVoiceContracts2647.mapValues { (descriptor,c) ->
+            val m=byType.getValue(descriptor.substringBefore("->")).methods.single { it.toString()==descriptor }
+            check(m.accessFlags==c.flags && m.implementation?.registerCount==c.registers && m.implementation!!.instructions.count()==c.count && mapsVoiceFingerprint(m)==c.hash) { "Changed or already patched Maps warning voice $descriptor" }
+            m
+        }
+    }
     listOf(
         Triple("Lnjz;","hU","Lcqya;"),
         Triple("Lbmxs;","f","Lbmzi;"),
@@ -150,8 +200,19 @@ internal fun validateMapsWarningVoice(classes:Iterable<ClassDef>):Map<String,Met
 
 context(context:BytecodePatchContext)
 internal fun bindMapsWarningVoice() {
-    val bindingTypes=listOf("Lcom/google/android/apps/gmm/base/app/GoogleMapsApplication;", "Lnsn;", "Lngb;", "Lnsm;", "Lcqwl;", "Lnjz;", "Lblra;")
-    val classes=(mapsVoiceContracts.keys.map { it.substringBefore("->") }+bindingTypes).distinct().map { context.classDefBy(it) }
+    val bindingTypes=listOf("Lcom/google/android/apps/gmm/base/app/GoogleMapsApplication;",
+        "Lnsn;", "Lngb;", "Lnsm;", "Lcqwl;", "Lnjz;", "Lblra;",
+        // 26.47: the same chain and guidance types under their new names.
+        "Lnuq;", "Lnbh;", "Lnup;", "Lnbe;", "Lnbn;", "Lcrin;", "Lngt;", "Lblxy;", "Lblxx;",
+        // 26.47 warning model classes validated below.
+        "Lbnfl;", "Lbnhu;", "Lbnhq;", "Lbmvq;", "Lbngu;", "Lbnid;", "Lbngr;", "Lbmca;", "Lyfm;")
+    val is2647=runCatching {
+        context.classDefBy("Lbmvq;").methods.any {
+            it.name=="s" && it.parameterTypes.map(CharSequence::toString)==listOf("Lyga;") && it.returnType=="V"
+        }
+    }.getOrDefault(false)
+    val contracts=if(is2647)mapsVoiceContracts2647 else mapsVoiceContracts
+    val classes=(contracts.keys.map { it.substringBefore("->") }+bindingTypes).distinct().map { context.classDefBy(it) }
     val originals=validateMapsWarningVoice(classes)
     val methods=originals.keys.associateWith { descriptor -> context.mutableClassDefBy(descriptor.substringBefore("->")).methods.single { it.toString()==descriptor } }
     val extension=context.mutableClassDefBy(COORDINATOR)
@@ -163,20 +224,30 @@ internal fun bindMapsWarningVoice() {
         replay.methods.count { it.name==MAPS_RESUME_VOICE && it.parameterTypes.isEmpty() && it.returnType=="V" }==1) {
         "Missing Maps native voice-only recovery interface"
     }
-    bindMapsVoiceResume(context.mutableClassDefBy("Lbmon;"),originals.getValue("Lbmon;->u(Lycx;)V"))
-    bindMapsNativeVoice(methods)
+    val routeOwner=if(is2647)"Lbmvq;" else "Lbmon;"
+    bindMapsVoiceResume(context.mutableClassDefBy(routeOwner),originals.getValue(if(is2647)"Lbmvq;->s(Lyga;)V" else "Lbmon;->u(Lycx;)V"))
+    bindMapsNativeVoice(methods,is2647)
     val installed=extension.methods.single { it.name=="hooksInstalled" }
     installed.replaceInstruction(0,"const/4 v0, 0x1")
 }
 
-internal fun bindMapsNativeVoice(methods:Map<String,MutableMethod>) {
+internal fun bindMapsNativeVoice(methods:Map<String,MutableMethod>,is2647:Boolean) {
     fun pick(owner:String,name:String)=methods.values.single { it.definingClass==owner && it.name==name }
-    val dispatch=pick("Lbmyo;","b")
-    val anchors=dispatch.instructions.withIndex().filter { (it.value as? ReferenceInstruction)?.reference?.toString()=="Lbnau;->d(Lbnas;)V" }
+    // 26.47 renamed the whole voice engine; every hook below keeps its 26.44 role, verified by body.
+    val dispatchOwner=if(is2647)"Lbmcw;" else "Lbmyo;"
+    val anchorInvoke=if(is2647)"Lbnil;->d(Lbnij;)V" else "Lbnau;->d(Lbnas;)V"
+    val anchorField=if(is2647)"Lbnhu;->w:Lbnij;" else "Lbnad;->w:Lbnas;"
+    val anchorIndex=if(is2647)370 else 366
+    val focusOwner=if(is2647)"Lbnfz;" else "Lbmyh;"
+    val terminalOwner=if(is2647)"Lbnhq;" else "Lbmzz;"
+    val routeOwner=if(is2647)"Lbmvq;" else "Lbmon;"
+    val routeEndName=if(is2647)"t" else "v"
+    val dispatch=pick(dispatchOwner,"b")
+    val anchors=dispatch.instructions.withIndex().filter { (it.value as? ReferenceInstruction)?.reference?.toString()==anchorInvoke }
     check(anchors.size==1)
     val at=anchors.single().index;val call=anchors.single().value as FiveRegisterInstruction
-    check(at==366 && call.registerCount==2 && call.registerC==1 && call.registerD==3)
-    check((dispatch.instructions[at-1] as ReferenceInstruction).reference.toString()=="Lbnad;->w:Lbnas;")
+    check(at==anchorIndex && call.registerCount==2 && call.registerC==1 && call.registerD==3)
+    check((dispatch.instructions[at-1] as ReferenceInstruction).reference.toString()==anchorField)
     check((dispatch.instructions[at-1] as TwoRegisterInstruction).registerB==0)
     // Replace the existing invoke so all incoming branches run the final asynchronous fence.
     dispatch.replaceInstruction(at,"invoke-static {v0, v1, v3}, $COORDINATOR->dispatch(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)V")
@@ -186,14 +257,14 @@ internal fun bindMapsNativeVoice(methods:Map<String,MutableMethod>) {
         if-eqz v0, :maps_native_ready_callback
         return-void
     """,ExternalLabel("maps_native_ready_callback",dispatch.getInstruction(0)))
-    val focus=pick("Lbmyh;","g")
-    val outline="Laq\$\$ExternalSyntheticApiModelOutline0;->m\$1(Landroid/media/AudioManager;Landroid/media/AudioFocusRequest;)I"
-    val focusAt=focus.instructions.withIndex().filter { (it.value as? ReferenceInstruction)?.reference?.toString()==outline }.single().index
+    val focus=pick(focusOwner,"g")
+    val outlineSuffix="->m\$1(Landroid/media/AudioManager;Landroid/media/AudioFocusRequest;)I"
+    val focusAt=focus.instructions.withIndex().filter { (it.value as? ReferenceInstruction)?.reference?.toString()?.endsWith(outlineSuffix)==true }.single().index
     val focusCall=focus.instructions[focusAt] as FiveRegisterInstruction
     check(focusCall.registerCount==2 && focus.instructions[focusAt].opcode==Opcode.INVOKE_STATIC)
     focus.replaceInstruction(focusAt,"invoke-static {v${focusCall.registerC}, v${focusCall.registerD}}, $COORDINATOR->requestNativeFocus(Landroid/media/AudioManager;Landroid/media/AudioFocusRequest;)I")
-    pick("Lbmzz;","a").addInstruction(0,"invoke-static/range {p0 .. p1}, $COORDINATOR->terminal(Ljava/lang/Object;Ljava/lang/Object;)V")
-    val route=pick("Lbmon;","<init>")
+    pick(terminalOwner,"a").addInstruction(0,"invoke-static/range {p0 .. p1}, $COORDINATOR->terminal(Ljava/lang/Object;Ljava/lang/Object;)V")
+    val route=pick(routeOwner,"<init>")
     route.instructions.withIndex().filter { it.value.opcode==Opcode.RETURN_VOID }.map { it.index }.reversed().forEach { route.addInstruction(it,"invoke-static/range {p0 .. p0}, $COORDINATOR->captureRoute(Ljava/lang/Object;)V") }
-    pick("Lbmon;","v").addInstruction(0,"invoke-static/range {p0 .. p0}, $COORDINATOR->routeEnded(Ljava/lang/Object;)V")
+    pick(routeOwner,routeEndName).addInstruction(0,"invoke-static/range {p0 .. p0}, $COORDINATOR->routeEnded(Ljava/lang/Object;)V")
 }

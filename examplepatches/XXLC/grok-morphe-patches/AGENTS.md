@@ -6,7 +6,7 @@
 - Use GitHub Actions to build and validate. Do not run local Gradle builds;
   the documented local setup lacks the Android SDK and GitHub Packages access.
 - Treat fingerprints and injected references as specific to Grok
-  `1.2.53-release.00` (versionCode `11253200`). Recheck them for any new version.
+  `1.2.59-release.00` (versionCode `11259200`). Recheck them for any new version.
 - Use Conventional Commits that reflect the actual change: `feat` and `fix`
   trigger releases; non-breaking `docs` and `chore` do not. Breaking changes,
   `perf`, `bump` and `build(Needs bump)` also affect releases; see DEVELOPMENT.md.

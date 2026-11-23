@@ -1,0 +1,24 @@
+version: 2
+
+# 1. Define the custom registry Dependabot should check
+registries:
+  morphe-github-packages:
+    type: maven-repository
+    url: https://maven.pkg.github.com/MorpheApp/registry
+    username: ${{ secrets.GH_USERNAME }}
+    password: ${{ secrets.GH_TOKEN }}
+
+updates:
+  # 2. Tell the Gradle updater to use this registry
+  - package-ecosystem: "gradle"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    registries:
+      - morphe-github-packages
+
+  # 3. Keep GitHub Actions updated too
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"

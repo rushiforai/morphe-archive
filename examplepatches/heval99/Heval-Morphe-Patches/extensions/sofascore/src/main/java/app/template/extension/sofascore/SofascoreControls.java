@@ -310,16 +310,16 @@ public final class SofascoreControls {
     // ---------------------------------------------------------------------------------------
 
     /** One hour, the widget refresh interval while "Slower widget refresh" is on. */
-    private static final long SLOW_WIDGET_REFRESH_MILLIS = 60L * 60L * 1000L;
+    private static final long SLOW_WIDGET_REFRESH_MINUTES = 60L;
 
     /**
-     * Patched in after the widget refresh work's repeat interval (30 minutes in 26.10.19) is
-     * loaded: answers one hour while the switch is on (never shorter than the app's own value),
-     * the app's value otherwise.
+     * Patched in after the widget refresh work's repeat interval is loaded (30, passed to
+     * PeriodicWorkRequest.Builder with TimeUnit.MINUTES since 26.11.09): answers one hour while
+     * the switch is on (never shorter than the app's own value), the app's value otherwise.
      */
-    public static long widgetRefreshInterval(long interval) {
-        if (!HevalSettings.isEnabled("sofascore.slower_widget_refresh")) return interval;
-        return Math.max(interval, SLOW_WIDGET_REFRESH_MILLIS);
+    public static long widgetRefreshMinutes(long minutes) {
+        if (!HevalSettings.isEnabled("sofascore.slower_widget_refresh")) return minutes;
+        return Math.max(minutes, SLOW_WIDGET_REFRESH_MINUTES);
     }
 
     private SofascoreControls() { }

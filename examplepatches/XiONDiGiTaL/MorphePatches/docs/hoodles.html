@@ -21,6 +21,7 @@
   .hoodles-table th[scope="row"] code { font-weight: 400; color: var(--muted); }
   .hoodles-table td { vertical-align: top; font-size: 0.86rem; line-height: 1.55; }
   .hoodles-credit { display: grid; gap: 0.7rem; }
+  .btn.is-disabled { opacity: 0.45; pointer-events: none; }
 </style>
 </head>
 <body>
@@ -55,7 +56,7 @@
       <span class="hero__ghost" aria-hidden="true">H</span>
       <div class="wrap hero__inner">
         <div class="hero__copy">
-          <p class="eyebrow">Mirror — hoodles</p>
+          <p class="eyebrow">Mirror: hoodles</p>
           <h1 class="hero__title">The Hoodles<br>collection</h1>
           <p class="hero__tagline">
             Someone else's work.
@@ -63,9 +64,9 @@
           </p>
           <p class="hero__lede">
             78 patches for 57 Android apps, written by <strong>hoodles</strong> and
-            published under the GNU GPLv3. His repository was removed from GitHub in November 2026; the
-            source is mirrored on GitGud so the work stays available and attributable to him. Nothing here
-            is mine, and nothing here is on my GitHub.
+            published under the GNU GPLv3. His repository was removed from GitHub in November 2026, so his
+            source and a rebuilt 1.47.0 bundle are mirrored on GitGud, with a one-tap link for Morphe.
+            Nothing here is mine, and nothing here is on my GitHub.
           </p>
           <div class="hero__actions">
             <a class="btn btn--primary" href="https://gitgud.io/xiondigital/MorphePatches/-/tree/main/hoodles">Source on GitGud</a>
@@ -87,11 +88,14 @@
             <li><span>02</span> His GPLv3 license and notice</li>
             <li><span>03</span> His README and changelog</li>
             <li><span>04</span> His patch list, v1.47.0</li>
+            <li><span>05</span> His rebuilt 1.47.0 bundle</li>
           </ul>
           <p class="source-card__note">
-            Source only. His prebuilt <code class="inline-code">.mpp</code> release asset went down with
-            the repository, so the bundle has to be built from the mirrored sources — the command is
-            below. This mirror is temporary and maintained without his involvement.
+            Source and a rebuilt bundle. His original signed
+            <code class="inline-code">.mpp</code> release asset went down with the repository, so the
+            mirror rebuilt 1.47.0 from the sources and published it on GitGud. Its SHA-256 is recorded in
+            <code class="inline-code">source.json</code> and shown below. This mirror is temporary and
+            maintained without his involvement.
           </p>
         </aside>
       </div>
@@ -117,21 +121,23 @@
               <strong>hoodles</strong> wrote and maintains this collection. His repository,
               <code class="inline-code">github.com/hoo-dles/morphe-patches</code>, was blocked by GitHub on
               18 November 2026, and his signed release bundle was removed with it. The source survives
-              because it was publicly mirrored before the takedown, and it is reproduced here — on GitGud,
-              outside GitHub — so the patches stay reachable while his own hosting is gone.
+              because it was publicly mirrored before the takedown, and it is reproduced here on GitGud,
+              outside GitHub, so the patches stay reachable while his own hosting is gone. The mirror also
+              rebuilt and published 1.47.0 from that source.
               <br><br>
               This is a <strong>temporary mirror</strong>, not a fork and not an endorsement. No patch in it
               was written or modified by me. The code stays under his license, the GPLv3, and his
               <code class="inline-code">LICENSE</code> and <code class="inline-code">NOTICE</code> travel
               with it. If he asks for it to come down, or publishes somewhere new, the mirror comes down.
               <br><br>
-              What is <em>not</em> here: his prebuilt bundle (lost with the release), and any original or
-              patched application package. Only patch sources are mirrored.
+              What is here: his patch sources, his license and notices, and a rebuilt 1.47.0 bundle. What
+              is <em>not</em> here: his original signed release asset, which was lost with the repository,
+              and any original or patched application package.
             </p>
             <div class="card__tags" style="margin-top: 16px; padding-top: 0;">
-              <span class="chip chip--blue chip--dot">GPLv3 — his license</span>
-              <span class="chip">Source only</span>
-              <span class="chip" data-hoodles-chip>Checking bundle…</span>
+              <span class="chip chip--blue chip--dot">GPLv3, his license</span>
+              <span class="chip">Source + rebuilt bundle</span>
+              <span class="chip" data-hoodles-chip>Bundle published</span>
               <span class="chip">v1.47.0</span>
               <span class="chip">Temporary</span>
             </div>
@@ -143,24 +149,27 @@
               <tbody>
                 <tr><th scope="row">Mirror</th><td><a class="text-link" href="https://gitgud.io/xiondigital/MorphePatches/-/tree/main/hoodles">gitgud.io/xiondigital/MorphePatches/hoodles ↗</a></td></tr>
                 <tr><th scope="row">Author</th><td>hoodles</td></tr>
-                <tr><th scope="row">Original</th><td><code class="inline-code">github.com/hoo-dles/morphe-patches</code> — removed</td></tr>
+                <tr><th scope="row">Original</th><td><code class="inline-code">github.com/hoo-dles/morphe-patches</code>, removed with the repository</td></tr>
                 <tr><th scope="row">License</th><td>GNU GPLv3, retained in <code class="inline-code">hoodles/LICENSE</code></td></tr>
                 <tr><th scope="row">Release</th><td>1.47.0 · 2026-10-04 · 597 commits</td></tr>
-                <tr><th scope="row">Build</th><td><code class="inline-code">scripts/hoodles-build.sh</code> — run by the <code class="inline-code">hoodles:bundle</code> CI job</td></tr>
+                <tr><th scope="row">Bundle</th><td><a class="text-link" href="https://gitgud.io/xiondigital/MorphePatches/-/raw/main/hoodles/patches-1.47.0.mpp">patches-1.47.0.mpp ↗</a> · 5,641,808 bytes<br>SHA-256 <code class="inline-code">ef5e931ad9f2d4a54caf2ab1df073e1a05b47a707f6b1261fbe48ca27299109b</code></td></tr>
+                <tr><th scope="row">Build</th><td>Rebuilt from the v1.47.0 sources with <code class="inline-code">scripts/hoodles-build.sh</code>; unsigned, SHA-256 recorded in <code class="inline-code">hoodles/source.json</code></td></tr>
+                <tr><th scope="row">Add link</th><td><a class="text-link" href="https://morphe.software/add-source?gitlab=XiONDiGiTaL/hoodles-morphe-patches&amp;name=hoodles">morphe.software/add-source?gitlab=XiONDiGiTaL/hoodles-morphe-patches ↗</a> (live)<br><code class="inline-code">gitlab.com/XiONDiGiTaL/hoodles-morphe-patches</code> holds the metadata the link reads</td></tr>
               </tbody>
             </table>
             <p class="panel__note">
-              <strong data-hoodles-headline>Status: checking whether the bundle is published…</strong>
-              <span data-hoodles-status>That line is filled in from GitGud when this page loads; with
-              JavaScript off it stays as it is, so open the source link in step 03 to check.</span>
+              <strong data-hoodles-headline>Status: live. The rebuilt bundle is published.</strong>
+              <span data-hoodles-status>The one-tap link resolves, and Morphe can add the collection as
+              its own source. With JavaScript off this line is the static state; the metadata is at
+              <code class="inline-code">gitlab.com/XiONDiGiTaL/hoodles-morphe-patches</code>.</span>
               <br>
-              <code class="inline-code">scripts/hoodles-build.sh</code> builds
-              <code class="inline-code">hoodles/patches-1.47.0.mpp</code>, records its SHA-256 in
-              <code class="inline-code">hoodles/source.json</code>, and the
-              <code class="inline-code">hoodles:bundle</code> CI job publishes the two in that order —
-              the bundle first, then the source, each re-downloaded and hash-checked. That order is why
-              a source pointing at a missing bundle cannot appear. Whether it has run is not written
-              down here; it is checked against GitGud every time the page loads.
+              <code class="inline-code">scripts/hoodles-build.sh</code> rebuilt
+              <code class="inline-code">hoodles/patches-1.47.0.mpp</code> from the mirrored v1.47.0
+              sources. The bundle was published first, then
+              <code class="inline-code">hoodles/source.json</code>, with each download checked against the
+              recorded SHA-256. The bundle has 78 patches for 57 apps, is unsigned, and is not hoodles'
+              original release asset. The build used JDK 17, Android SDK 36, and a GitHub token with
+              <code class="inline-code">read:packages</code>.
             </p>
           </div>
         </div>
@@ -270,11 +279,12 @@
         <div class="section__head">
           <div>
             <p class="eyebrow">03 / Using it</p>
-            <h2 class="section__title">Add the <em>GitGud source</em></h2>
+            <h2 class="section__title">Add <em>his patches</em></h2>
           </div>
           <p class="section__note">
-            Morphe's add-source link only accepts github.com and gitlab.com repositories, so a GitGud
-            source is added by hand — one paste, no account.
+            One tap, once the bundle is published. Morphe only accepts github.com and gitlab.com links,
+            so the link points at a GitLab repository that holds nothing but the metadata — the bundle
+            stays on GitGud.
           </p>
         </div>
 
@@ -294,14 +304,21 @@
           <div class="step">
             <span class="step__num">STEP 02</span>
             <div>
-              <h3 class="step__title">The mirror builds it, not you</h3>
+              <h3 class="step__title">The mirror built it, not you</h3>
               <p class="step__copy">
-                His release asset is gone. A CI job,
-                <code class="inline-code">hoodles:bundle</code>, runs
-                <code class="inline-code">scripts/hoodles-build.sh</code> — JDK 17, Android SDK 36, and a
-                GitHub token with <code class="inline-code">read:packages</code> for Morphe's Gradle
-                registry — and commits the result. There is nothing to do on your side; if it has not run
-                yet, the next step is not possible.
+                His original signed release asset is gone, so the mirror rebuilt 1.47.0 from the mirrored
+                sources. The build is published, and the one-tap link in step 03 works. It used JDK 17,
+                Android SDK 36, and a GitHub token with
+                <code class="inline-code">read:packages</code> for Morphe's Gradle registry. The rebuild
+                is unsigned; its SHA-256 is recorded in
+                <code class="inline-code">hoodles/source.json</code> and shown in the table above.
+                <br><br>
+                To build it yourself, the toolchain needs no system install:
+                <code class="inline-code">scripts/hoodles-bootstrap.sh</code> puts JDK 17 and the Android
+                SDK in <code class="inline-code">.toolchain/</code>, then
+                <code class="inline-code">scripts/hoodles-build.sh</code> builds with them as soon as a
+                <code class="inline-code">read:packages</code> token is in
+                <code class="inline-code">GITHUB_TOKEN</code>.
               </p>
             </div>
           </div>
@@ -310,14 +327,18 @@
             <div>
               <h3 class="step__title">Add his patches as a second source</h3>
               <p class="step__copy">
+                <a class="btn btn--primary btn--sm" href="https://morphe.software/add-source?gitlab=XiONDiGiTaL/hoodles-morphe-patches&amp;name=hoodles" data-hoodles-add style="margin-bottom: 14px;">Add to Morphe</a>
+                <br>
+                Without the link, paste his source into <strong>Sources → + → Remote</strong>:
                 <code class="inline-code" id="hoodles-source">https://gitgud.io/xiondigital/MorphePatches/-/raw/main/hoodles/source.json</code>
                 <br>
                 <button class="btn btn--ghost btn--sm" type="button" data-copy="#hoodles-source" style="margin-top: 10px;">Copy source link</button>
               </p>
               <p class="step__copy" style="margin-top: 12px;" data-hoodles-step>
-                Whether that link resolves is checked when this page loads. Morphe keeps one bundle per
-                source, so his collection stays its own source beside the XiØN one; when both have
-                patches for an app, Morphe asks which source to use.
+                The one-tap link is live. The page still checks the metadata when it loads, so the status
+                reflects what GitLab serves. Morphe keeps one bundle per source, so his collection stays
+                its own source beside the XiØN one; when both have patches for an app, Morphe asks which
+                source to use.
               </p>
             </div>
           </div>
@@ -342,6 +363,7 @@
           <h3>Mirror</h3>
           <ul>
             <li><a href="https://gitgud.io/xiondigital/MorphePatches">GitGud repository</a></li>
+            <li><a href="https://gitlab.com/XiONDiGiTaL/hoodles-morphe-patches">Metadata on GitLab</a></li>
             <li><a href="https://gitgud.io/xiondigital/MorphePatches/-/tree/main/hoodles">Hoodles sources</a></li>
             <li><a href="https://gitgud.io/xiondigital/MorphePatches/-/blob/main/MIRROR.md">Mirror notice</a></li>
             <li><a href="https://github.com/ameyamg/morphe-patches-hoodles">Surviving public mirror</a></li>

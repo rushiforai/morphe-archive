@@ -2039,11 +2039,9 @@ Shows a small count under TikTok's top tabs of what the feed filter has removed 
 1 filtered out	1 süzüldü
 %1$d filtered out	%1$d süzüldü
 Account facts on profiles	Profillərdə hesab faktları
-A profile's share sheet gets an Account facts button. It shows what TikTok already sent about the account: when it joined, its region and language, when its username and display name last changed, whether it's private and whether its liked videos are public. Nothing extra is fetched.	Profilin paylaşma panelinə Hesab faktları düyməsi əlavə olunur. O, TikTok-un hesab haqqında artıq göndərdiklərini göstərir: nə vaxt qoşulduğunu, regionunu və dilini, istifadəçi adının və görünən adının sonuncu dəfə nə vaxt dəyişdiyini, hesabın gizli olub-olmadığını və bəyəndiyi videoların açıq olub-olmadığını. Əlavə heç nə yüklənmir.
 Account facts	Hesab faktları
 TikTok account facts	TikTok hesab faktları
 Account facts copied	Hesab faktları kopyalandı
-Not sent	Göndərilməyib
 Joined	Qoşulub
 Account region	Hesab regionu
 Language	Dil
@@ -3036,7 +3034,7 @@ One isn't on TikTok anymore	Biri artıq TikTok-da yoxdur
 The host can see you	Aparıcı sizi görür
 Let the host see you	Aparıcı sizi görsün
 Couldn't tell which LIVE this is. Open it again.	Bunun hansı LIVE olduğu bilinmədi. Yenidən açın.
-The host can already see you in this LIVE	Aparıcı bu LIVE-da sizi artıq görür
+The host won't see you next time you open it	Növbəti dəfə açanda aparıcı sizi görməyəcək
 Letting the host see you	Aparıcıya görünürsünüz
 The host can see you now	Aparıcı indi sizi görür
 The host sees you next time you open it	Növbəti dəfə açanda aparıcı sizi görəcək
@@ -3133,3 +3131,59 @@ Always show the expand button in comments	Şərhlərdə genişləndirmə düymə
 Puts the button that stretches the comments over the whole screen on every video. TikTok only gives it to some accounts. Hide the expand button in comments wins if both are on.	Şərhləri bütün ekrana yayan düyməni hər videoya qoyur. TikTok onu yalnız bəzi hesablara verir. Hər ikisi yanılıdırsa, Şərhlərdə genişləndirmə düyməsini gizlədin üstün gəlir.
 Keep the video full size under comments	Şərhlərin altında videonu tam ölçüdə saxlayın
 The video keeps its size when you open the comments, and the comments cover its lower part instead of pushing it up into a smaller box.	Şərhləri açanda video öz ölçüsünü saxlayır, şərhlər isə onu yuxarı, daha kiçik bir qutuya itələmək əvəzinə aşağı hissəsini örtür.
+# context: Always show publish date grid switch; rounds each profile grid cell's corners
+Round the corners on profile grids	Profil şəbəkəsində küncləri yumrulaşdırın
+Gives each video on profile grids rounded corners, on your own profile and on Liked and Favorites too.	Profil şəbəkəsində hər videonun künclərini yumru edir, öz profilinizdə, Bəyənilənlərdə və Seçilmişlərdə də.
+# context: Account facts sheet on a profile's share sheet: the gifter level (pay_grade) and SecUID lines, the value shown for a detail TikTok left out, and the switch summary
+Gifter level	Hədiyyəçi səviyyəsi
+SecUID	SecUID
+Unknown (TikTok didn't send it)	Naməlum (TikTok göndərmədi)
+A profile's share sheet gets an Account facts button. It shows what TikTok already sent about the account: when it joined, its region and language, its gifter level and SecUID, when its username and display name last changed, whether it's private and whether its liked videos are public. Nothing extra is fetched.	Profilin paylaşma panelinə Hesab faktları düyməsi əlavə olunur. O, TikTok-un hesab haqqında artıq göndərdiklərini göstərir: nə vaxt qoşulduğunu, regionunu və dilini, hədiyyəçi səviyyəsini və SecUID-ni, istifadəçi adının və görünən adının sonuncu dəfə nə vaxt dəyişdiyini, hesabın gizli olub-olmadığını və bəyəndiyi videoların açıq olub-olmadığını. Əlavə heç nə yüklənmir.
+# context: LIVE controls: a small line in a LIVE room with the room ID and the viewer's own connection (ping, latency, download speed) from TikTok's player; a tap copies the room ID
+Show the room ID and your connection	Otaq ID-sini və bağlantınızı göstərin
+Adds a small line to LIVE rooms with the room's ID and how your own connection to the stream is doing, as TikTok's player measures it: ping, latency and download speed. Tap the line to copy the room ID.	LIVE otaqlarına otağın ID-si və yayımla öz bağlantınızın vəziyyəti olan kiçik bir sətir əlavə edir, TikTok-un pleyerinin ölçdüyü kimi: ping, gecikmə və yükləmə sürəti. Otaq ID-sini kopyalamaq üçün sətrə toxunun.
+Room ID %1$s	Otaq ID-si %1$s
+Ping %1$s ms	Ping %1$s ms
+Latency %1$s s	Gecikmə %1$s san
+Room ID copied	Otaq ID-si kopyalandı
+LIVE room ID	LIVE otağının ID-si
+Hide playable games	Oynanıla bilən oyunları gizlədin
+Hide the mini games you can play right in the For You feed.	Sənin üçün lentində birbaşa oynaya biləcəyiniz mini oyunları gizlədin.
+Playable games	Oynanıla bilən oyunlar
+Hide the pause icon	Fasilə işarəsini gizlədin
+A tap still pauses and plays the video, but the big play icon doesn't show over it.	Toxunuş videonu yenə dayandırır və oynadır, amma böyük oynatma işarəsi onun üzərində görünmür.
+Exit with one Back	Bir Geri ilə çıxın
+Back on Home leaves TikTok right away, with no "Tap again to exit" message. From another tab, Back still takes you to Home first, or to the tab Open TikTok on picks.	Ana səhifədə Geri TikTok-dan dərhal çıxır, "Çıxmaq üçün yenidən toxunun" mesajı olmadan. Başqa tabda Geri sizi yenə əvvəlcə Ana səhifəyə, ya da TikTok-u burada açın seçiminin seçdiyi taba aparır.
+# context: LIVE controls: colors and hidden rows for the profile card a tap on a name opens in a LIVE room
+LIVE profile card background	LIVE profil kartının fonu
+Colors the card a tap on a name opens in a LIVE room. Chips, buttons and boxes on it keep their own colors, and while a color is picked the card skips Dark LIVE panels.	LIVE otağında ada toxunanda açılan kartı rəngləyir. Üzərindəki nişanlar, düymələr və qutular öz rənglərini saxlayır, rəng seçildiyi müddətdə kart tünd LIVE panellərindən istifadə etmir.
+LIVE profile card text	LIVE profil kartının mətni
+Colors the text drawn on the card itself. Automatic picks white or black, whichever stands out from the card.	Kartın özündəki mətni rəngləyir. Avtomatik ağ və ya qara rəngdən kartda hansı daha yaxşı seçilirsə onu götürür.
+Hide rows on LIVE profile cards	LIVE profil kartlarında sətirləri gizlət
+Pick the rows to take off the card a tap on a name opens in a LIVE room. The rest stay where they are.	LIVE otağında ada toxunanda açılan kartdan çıxarılacaq sətirləri seçin. Qalanları yerində qalır.
+Upcoming LIVE events	Qarşıdan gələn LIVE tədbirləri
+Products in the LIVE	LIVE-dakı məhsullar
+Shop rating	Mağaza reytinqi
+Group chat	Qrup söhbəti
+Bulletin board	Elan lövhəsi
+Gift gallery	Hədiyyə qalereyası
+Festival honors	Festival mükafatları
+# context: an Appearance switch and its summary (#476). Text size, Settings and privacy and Accessibility are TikTok's own labels (its NxString entries 13899, 2691 and 2892 on 47.9.3): the slider page, the menu, and the menu row that holds the page. Use TikTok's label for each in this language
+Smaller text sizes	Daha kiçik mətn ölçüləri
+Adds three stops below the smallest size on TikTok's own Text size slider, in Settings and privacy > Accessibility. Pick one there, then restart TikTok.	TikTok-un Parametrlər və məxfilik > Əlçatanlıq bölməsindəki öz Mətn ölçüsü sürgüsünə ən kiçik ölçüdən aşağı üç pillə əlavə edir. Orada birini seçin, sonra TikTok-u yenidən başladın.
+# context: a number row under Appearance and its summary (#477). The number is a percent of TikTok's own size, from 50 to 100, and the row shows it as 80% and so on
+UI size	İnterfeys ölçüsü
+Makes TikTok's whole interface smaller, text and buttons alike, so more fits on screen. 100 leaves it as it is. Restart TikTok to see the change.	TikTok-un bütün interfeysini, mətni də, düymələri də kiçildir ki, ekrana daha çox şey sığsın. 100 onu olduğu kimi saxlayır. Dəyişikliyi görmək üçün TikTok-u yenidən başladın.
+Show how long a LIVE has been on	LIVE-ın nə qədər davam etdiyini göstər
+Adds a small line to LIVE rooms with how long the host has been live, counted from when the room started. With the room ID on too, it goes under that.	LIVE otaqlarına aparıcının nə qədər vaxtdır canlı yayımda olduğunu göstərən kiçik bir sətir əlavə edir, otağın başladığı andan hesablanır. Otaq ID-si də açıqdırsa, onun altında görünür.
+LIVE for %1$s	LIVE müddəti %1$s
+Show exact LIVE battle scores	Dəqiq LIVE döyüş xallarını göstər
+In a LIVE battle, TikTok caps the big scores viewers see while the host sees the whole number. This shows the whole score in the battle bar and the co-host windows.	LIVE döyüşündə TikTok izləyicilərin gördüyü böyük xalları məhdudlaşdırır, aparıcı isə tam rəqəmi görür. Bu, döyüş panelində və birgə aparıcı pəncərələrində tam xalı göstərir.
+Start LIVEs at	LIVE-ları bu keyfiyyətdə başlat
+The quality you picked last	Son seçdiyiniz keyfiyyət
+A LIVE room opens at this quality until you pick another one, and that pick carries to the next rooms until TikTok closes. A room whose stream doesn't have it opens at TikTok's choice.	LIVE otağı siz başqa keyfiyyət seçənə qədər bu keyfiyyətdə açılır, həmin seçim isə TikTok bağlanana qədər növbəti otaqlara keçir. Yayımında bu keyfiyyət olmayan otaq TikTok-un seçimi ilə açılır.
+Skip promo lines	Reklam sətirlərini keç
+Skips the part of a video where a caption line has a word from Promo words, like a casino or promo code plug, and shows Undo. It reads the video's own captions, so a video without any plays as usual.	Videonun başlıq sətrində Reklam sözlərindən biri olan hissəsini, məsələn kazino və ya promo kod reklamını keçir və Geri qaytarın göstərir. Videonun öz başlıqlarını oxuyur, ona görə başlığı olmayan video həmişəki kimi oynayır.
+Promo words	Reklam sözləri
+Separate words or phrases with commas, like casino, promo code. Capital letters don't matter, and "a" & "b" or "a" !& "b" work as they do for Blocked caption words.	Sözləri və ya ifadələri vergüllə ayırın, məsələn casino, promo code. Böyük hərflərin fərqi yoxdur, "a" & "b" və ya "a" !& "b" isə Bloklanmış başlıq sözlərindəki kimi işləyir.
+Skipped a promo line	Reklam sətri keçildi

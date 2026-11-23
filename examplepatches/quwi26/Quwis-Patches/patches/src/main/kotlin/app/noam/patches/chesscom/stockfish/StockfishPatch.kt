@@ -3,6 +3,7 @@ package app.noam.patches.chesscom.stockfish
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.Option
 import app.morphe.patcher.patch.PatchException
+import app.morphe.patcher.patch.booleanOption
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.filePathOption
 import app.morphe.patcher.patch.patch
@@ -19,6 +20,7 @@ import java.io.InputStream
 import java.net.HttpURLConnection
 import java.net.URI
 import java.net.URL
+import java.net.UnknownHostException
 import java.security.DigestOutputStream
 import java.security.MessageDigest
 import java.util.logging.Logger
@@ -31,9 +33,54 @@ private const val BOARD_STATE_41023 = "Lcom/chess/chessboard/vm/movesinput/y;"
 private const val OLD_BOARD = "Lcom/chess/chessboard/view/ChessBoardView;"
 private const val V2_BOARD = "Lcom/chess/chessboard/v2/ChessBoardView;"
 
-/** Stockfish's own Android build, downloaded while patching so the patches don't carry it. */
-private const val STOCKFISH_URL =
-    "https://github.com/official-stockfish/Stockfish/releases/download/sf_19/stockfish-android-arm64-universal.tar.gz"
+/**
+ * One of Stockfish's own Android builds, downloaded while patching so the patches don't carry it.
+ * A 32-bit phone runs neither the 64-bit engine nor a library from another ABI's folder: the app
+ * extracts the folder its own ABI names and nothing else, so the engine goes into that one.
+ */
+private class Build(
+    /** The app's native library folder the engine goes into. */
+    val abi: String,
+    /** The engine as the log and the error messages name it. */
+    val name: String,
+    val url: String,
+    /** The archive's size: a shorter file is a download that stopped, not a wrong one. */
+    val archiveSize: Long,
+    val archiveSha256: String,
+    /** The engine's path inside the archive. */
+    val member: String,
+    val engineSha256: String,
+) {
+    /** The engine kept between patch runs; the name carries its hash, so a changed one is a new file. */
+    val cachedFile: String get() = "morphe-stockfish-19-${engineSha256.take(16)}"
+}
+
+private const val STOCKFISH_RELEASE = "https://github.com/official-stockfish/Stockfish/releases/download/sf_19/"
+
+/** 64-bit ARM, the engine of every phone whose Android is 64-bit. */
+private val ARM64 = Build(
+    abi = "arm64-v8a",
+    name = "Stockfish 19 for 64-bit ARM",
+    url = STOCKFISH_RELEASE + "stockfish-android-arm64-universal.tar.gz",
+    archiveSize = 80_233_187L,
+    archiveSha256 = "ebb24051aa4a222b4daaf049b882ecf1163d370c128fe02316602643f4d5e426",
+    member = "stockfish/stockfish-android-arm64-universal",
+    engineSha256 = "ffd8fc2004d3d19f9fdab95d84c92709aea92e8d3af405eda0b281b23cf1daf8",
+)
+
+/** 32-bit ARM with NEON, for the phones whose Android is 32-bit (the Galaxy A10, for one). */
+private val ARM32 = Build(
+    abi = "armeabi-v7a",
+    name = "Stockfish 19 for 32-bit ARM",
+    url = STOCKFISH_RELEASE + "stockfish-android-armv7-neon.tar.gz",
+    archiveSize = 80_008_700L,
+    archiveSha256 = "47c34963f1cdf4a6af34c1b5294f7a4e2679b3eb52698c324855af2c6486024b",
+    member = "stockfish/stockfish-android-armv7-neon",
+    engineSha256 = "993a3e8bce85a503abc900056019691057a83e13ae92c1a2cbb089b9680593f3",
+)
+
+private val BUILDS = listOf(ARM64, ARM32)
+
 /**
  * GitHub mirrors that hand the same release file on, asked in turn when github.com or its download
  * server doesn't answer: a DNS filter, an ad blocker's DNS or a blocked Cloudflare hop often leaves
@@ -42,49 +89,78 @@ private const val STOCKFISH_URL =
  */
 private val STOCKFISH_MIRRORS = listOf(
     "https://gh-proxy.com/",
+    "https://gh-proxy.org/",
     "https://ghproxy.net/",
     "https://ghfast.top/",
 )
-private const val STOCKFISH_ARCHIVE_SHA256 = "ebb24051aa4a222b4daaf049b882ecf1163d370c128fe02316602643f4d5e426"
-private const val STOCKFISH_MEMBER = "stockfish/stockfish-android-arm64-universal"
-private const val STOCKFISH_SHA256 = "ffd8fc2004d3d19f9fdab95d84c92709aea92e8d3af405eda0b281b23cf1daf8"
-/** The archive's size: a shorter file is a download that stopped, not a wrong one. */
-private const val STOCKFISH_ARCHIVE_SIZE = 80_233_187L
-private val STOCKFISH_FILE = "morphe-stockfish-19-${STOCKFISH_SHA256.take(16)}"
 private const val CACHE_FOLDER = ".morphe"
 private const val STOCKFISH_FOLDER = "stockfish"
 
 /**
- * The archive picked in the patch's option, which the resource patch below reads: the manager fills
- * in every option before any patch starts, so by the time the engine is copied the value is there.
+ * The options the resource patch below reads, which the manager fills in before any patch starts, so
+ * by the time the engine is copied their values are there.
  */
 private var stockfishArchive: Option<String>? = null
+private var stockfish32Bit: Option<Boolean>? = null
 
 private val stockfishResourcePatch = patch(
     description = "Adds the official Stockfish 19 to the app's native libraries, downloaded (80 MB) from " +
         "Stockfish's GitHub while patching (mirrors are used when github.com doesn't answer), or taken from " +
-        "an archive picked in this patch's option. The download is kept between patch runs.",
+        "an archive picked in this patch's option. The engine matches the phone: 64-bit ARM, or 32-bit ARM " +
+        "for a phone whose Android is 32-bit. The download is kept between patch runs.",
 ) {
     execute {
         // A copy downloaded before is used again when it still checks out, so patching the same app
         // again does not download the 80 MB again.
         val directory = cacheDirectory()
+        val build = targetBuild()
         val picked = pickedArchive(stockfishArchive?.value)
-        val cached = cachedEngine(directory)
+        val cached = cachedEngine(directory, build)
         val engine = when {
-            picked != null -> fromPicked(picked, directory)
+            picked != null -> fromPicked(picked, build, directory)
             cached != null -> {
                 val kept = keep(cached, directory)
-                logger.info("Stockfish 19 is already downloaded at ${kept.path}; no download is needed")
+                logger.info("${build.name} is already downloaded at ${kept.path}; no download is needed")
                 kept
             }
-            else -> File(directory, STOCKFISH_FILE).also { download(it) }
+            else -> File(directory, build.cachedFile).also { download(it, build) }
         }
-        // Android extracts native libraries into the one folder an app may run programs from.
-        val target = resourceFile("lib/arm64-v8a/libstockfish.so", false)
+        // Android extracts native libraries into the one folder an app may run programs from, and only
+        // the folder of the app's own ABI: the 64-bit engine in a 32-bit app is never extracted.
+        val target = resourceFile("lib/${build.abi}/libstockfish.so", false)
         target.parentFile.mkdirs()
         engine.copyTo(target, overwrite = true)
+        logger.info("${build.name} is in lib/${build.abi}")
     }
+}
+
+/**
+ * The engine for the phone the patched app will run on. A patch run on the phone itself asks the
+ * platform which ABIs it has; on a computer that is unknown, so the 64-bit engine is used unless the
+ * "32-bit engine" option says otherwise.
+ */
+private fun targetBuild(): Build {
+    if (stockfish32Bit?.value == true) {
+        logger.info("The 32-bit engine is picked in the patch options")
+        return ARM32
+    }
+    if (phoneHas64BitArm() == false) {
+        logger.info("This phone's Android has no 64-bit ARM, so the 32-bit engine is used")
+        return ARM32
+    }
+    return ARM64
+}
+
+/**
+ * Whether the phone the patcher runs on has a 64-bit Android, or null on a computer, where the phone
+ * the patched app goes to is not known. The platform's class is looked up by name, so this also runs
+ * where there is no Android.
+ */
+private fun phoneHas64BitArm(): Boolean? = try {
+    val abis = Class.forName("android.os.Build").getField("SUPPORTED_64_BIT_ABIS").get(null) as? Array<*>
+    if (abis == null || abis.isEmpty()) null else abis.any { it == "arm64-v8a" }
+} catch (e: Throwable) {
+    null
 }
 
 /**
@@ -116,12 +192,12 @@ private fun usable(directory: File): Boolean = try {
 }
 
 /** A cached engine that still matches its published SHA-256, in [directory] or the old temp folder. */
-private fun cachedEngine(directory: File): File? {
+private fun cachedEngine(directory: File, build: Build): File? {
     val folders = listOf(directory, File(System.getProperty("java.io.tmpdir")))
     for (folder in folders.distinctBy { it.absolutePath }) {
-        val file = File(folder, STOCKFISH_FILE)
+        val file = File(folder, build.cachedFile)
         if (!file.isFile) continue
-        if (sha256(file) == STOCKFISH_SHA256) return file
+        if (sha256(file) == build.engineSha256) return file
         // A damaged copy would only be checked again next time.
         file.delete()
     }
@@ -160,28 +236,41 @@ private fun pickedArchive(value: String?): File? {
  * The engine out of the archive picked in the patch's option, or the engine itself when that is what
  * was picked. A copy stays in the cache, so a later patch run needs neither the file nor a download.
  */
-private fun fromPicked(picked: File, directory: File): File {
-    val engine = File(directory, STOCKFISH_FILE)
-    if (engine.isFile && sha256(engine) == STOCKFISH_SHA256) {
-        logger.info("Stockfish 19 is already unpacked at ${engine.path}; the picked file is not needed")
+private fun fromPicked(picked: File, build: Build, directory: File): File {
+    val engine = File(directory, build.cachedFile)
+    if (engine.isFile && sha256(engine) == build.engineSha256) {
+        logger.info("${build.name} is already unpacked at ${engine.path}; the picked file is not needed")
         return engine
     }
     val digest = sha256(picked)
     directory.mkdirs()
-    if (digest == STOCKFISH_SHA256) {
+    if (digest == build.engineSha256) {
         logger.info("Using the engine picked at ${picked.path}")
         picked.copyTo(engine, overwrite = true)
         return engine
     }
-    if (picked.length() != STOCKFISH_ARCHIVE_SIZE || digest != STOCKFISH_ARCHIVE_SHA256) {
+    if (picked.length() != build.archiveSize || digest != build.archiveSha256) {
+        // The other ABI's archive is the likeliest mistake, and its message can say what to change.
+        val other = BUILDS.firstOrNull { it !== build && picked.length() == it.archiveSize && digest == it.archiveSha256 }
+        if (other != null) {
+            val fix = if (build === ARM64) {
+                "If the phone's Android is 32-bit, switch on \"32-bit engine\" in this patch's options and patch again."
+            } else {
+                "Switch \"32-bit engine\" off in this patch's options to use the 64-bit engine."
+            }
+            throw PatchException(
+                "The file picked as the Stockfish 19 archive is ${other.name}, but this patch is adding " +
+                    "${build.name}. $fix",
+            )
+        }
         throw PatchException(
             "The file picked as the Stockfish 19 archive is not the official one: it is ${picked.length()} " +
-                "bytes and its SHA-256 is $digest, not $STOCKFISH_ARCHIVE_SHA256. Download " +
-                "$STOCKFISH_URL again, or clear the \"Stockfish 19 archive\" option to let it download.",
+                "bytes and its SHA-256 is $digest, not ${build.archiveSha256}. Download " +
+                "${build.url} again, or clear the \"Stockfish 19 archive\" option to let it download.",
         )
     }
     logger.info("Unpacking the Stockfish 19 archive picked at ${picked.path}")
-    unpack(picked, engine)
+    unpack(picked, engine, build)
     return engine
 }
 
@@ -193,40 +282,41 @@ private const val CONNECT_TIMEOUT_MS = 45_000
  * what it has and the next source continues from there, so no progress is lost.
  */
 private const val READ_TIMEOUT_MS = 30_000
-private const val GITHUB = "github.com"
 
 private val logger = Logger.getLogger("Stockfish analysis")
 
 /** github.com first, then the mirrors: same release file, each with the whole URL after the mirror. */
-private fun downloadSources(): List<String> =
-    listOf(STOCKFISH_URL) + STOCKFISH_MIRRORS.map { it + STOCKFISH_URL }
+private fun downloadSources(build: Build): List<String> =
+    listOf(build.url) + STOCKFISH_MIRRORS.map { it + build.url }
 
 /**
  * Downloads Stockfish, asking github.com and then every mirror; a round that fails everywhere waits
- * and starts again. A retry continues the archive where it stopped.
+ * and starts again. A retry continues the archive where it stopped. Each source's last error is kept
+ * for the message the manager shows, so a name the phone's DNS blocks can be told from a proxy that
+ * answered something else.
  */
-private fun download(engine: File) {
+private fun download(engine: File, build: Build) {
     val archive = File(engine.parentFile, engine.name + ".tar.gz.part")
-    val sources = downloadSources()
-    logger.info("Downloading Stockfish 19 (about 80 MB, once)")
-    var last: IOException? = null
+    val sources = downloadSources(build)
+    val failures = LinkedHashMap<String, IOException>()
+    logger.info("Downloading ${build.name} (about 80 MB, once)")
     for (round in 0..RETRY_PAUSES_MS.size) {
         for (source in sources) {
             try {
-                downloadOnce(archive, engine, source)
+                downloadOnce(archive, engine, source, build)
                 return
             } catch (e: IOException) {
-                last = e
-                logger.warning("Stockfish 19 download from ${host(source)} failed (${describe(e)})")
+                failures[host(source)] = e
+                logger.warning("${build.name} download from ${host(source)} failed (${describe(e)})")
             }
         }
         if (round < RETRY_PAUSES_MS.size) {
             val pause = RETRY_PAUSES_MS[round]
-            logger.info("No source answered; trying Stockfish 19 again in ${pause / 1000} s")
+            logger.info("No source answered; trying ${build.name} again in ${pause / 1000} s")
             Thread.sleep(pause)
         }
     }
-    throw PatchException(failure(last), last)
+    throw PatchException(failure(failures, build), failures.values.lastOrNull())
 }
 
 private fun host(url: String) = try {
@@ -240,38 +330,38 @@ private fun host(url: String) = try {
  * against their published SHA-256. The file stays on disk for a later try: 80 MB on a phone's
  * connection often outlives one connection, and its next try takes only the rest.
  */
-private fun downloadOnce(archive: File, engine: File, source: String) {
-    if (archive.length() > STOCKFISH_ARCHIVE_SIZE) archive.delete()
-    if (archive.length() != STOCKFISH_ARCHIVE_SIZE) fetch(archive, source)
+private fun downloadOnce(archive: File, engine: File, source: String, build: Build) {
+    if (archive.length() > build.archiveSize) archive.delete()
+    if (archive.length() != build.archiveSize) fetch(archive, source, build)
     val got = sha256(archive)
-    if (got != STOCKFISH_ARCHIVE_SHA256) {
+    if (got != build.archiveSha256) {
         // A short file is a download that stopped, and the next try continues it; a whole one is wrong.
-        if (archive.length() != STOCKFISH_ARCHIVE_SIZE) {
-            throw IOException("The download stopped at ${archive.length()} of $STOCKFISH_ARCHIVE_SIZE bytes")
+        if (archive.length() != build.archiveSize) {
+            throw IOException("The download stopped at ${archive.length()} of ${build.archiveSize} bytes")
         }
         archive.delete()
         throw PatchException(
-            "The Stockfish 19 download does not match its published SHA-256 ($got instead of " +
-                "$STOCKFISH_ARCHIVE_SHA256). Patch again; if it keeps happening, something changed the download.",
+            "The ${build.name} download does not match its published SHA-256 ($got instead of " +
+                "${build.archiveSha256}). Patch again; if it keeps happening, something changed the download.",
         )
     }
-    unpack(archive, engine)
+    unpack(archive, engine, build)
     archive.delete()
 }
 
 /** Takes the archive's missing bytes, continuing the file it already has with a Range request. */
-private fun fetch(archive: File, source: String) {
-    val from = archive.length().coerceIn(0L, STOCKFISH_ARCHIVE_SIZE)
+private fun fetch(archive: File, source: String, build: Build) {
+    val from = archive.length().coerceIn(0L, build.archiveSize)
     val download = open(from, source)
     try {
         val offset = download.offset
         if (offset == 0L) {
             archive.delete()
         } else {
-            logger.info("Continuing the Stockfish 19 download at ${percent(offset)}%")
+            logger.info("Continuing the ${build.name} download at ${percent(offset, build)}%")
         }
         var written = offset
-        var next = percent(written) / 10 * 10 + 10
+        var next = percent(written, build) / 10 * 10 + 10
         FileOutputStream(archive, offset > 0L).use { out ->
             BufferedInputStream(download.connection.inputStream, BUFFER).use { input ->
                 val buffer = ByteArray(BUFFER)
@@ -280,39 +370,39 @@ private fun fetch(archive: File, source: String) {
                     if (n < 0) break
                     out.write(buffer, 0, n)
                     written += n
-                    val done = percent(written)
+                    val done = percent(written, build)
                     while (done >= next && next <= 90) {
-                        logger.info("Downloading Stockfish 19: $next%")
+                        logger.info("Downloading ${build.name}: $next%")
                         next += 10
                     }
                 }
             }
         }
-        if (written < STOCKFISH_ARCHIVE_SIZE) {
-            throw IOException("The download stopped at $written of $STOCKFISH_ARCHIVE_SIZE bytes")
+        if (written < build.archiveSize) {
+            throw IOException("The download stopped at $written of ${build.archiveSize} bytes")
         }
     } finally {
         download.connection.disconnect()
     }
 }
 
-private fun percent(bytes: Long) = (bytes * 100 / STOCKFISH_ARCHIVE_SIZE).toInt()
+private fun percent(bytes: Long, build: Build) = (bytes * 100 / build.archiveSize).toInt()
 
 /** Unpacks Stockfish from the checked archive and checks it against its published SHA-256 too. */
-private fun unpack(archive: File, engine: File) {
+private fun unpack(archive: File, engine: File, build: Build) {
     val partial = File(engine.path + ".part")
     try {
         val engineDigest = MessageDigest.getInstance("SHA-256")
         val found = BufferedInputStream(archive.inputStream(), BUFFER).use { raw ->
             val gzip = GZIPInputStream(raw, BUFFER)
-            Tar(gzip).copy(STOCKFISH_MEMBER) { member ->
+            Tar(gzip).copy(build.member) { member ->
                 DigestOutputStream(partial.outputStream().buffered(BUFFER), engineDigest).use { member.copyTo(it, BUFFER) }
             }
         }
-        if (!found) throw PatchException("The official Stockfish 19 archive has no $STOCKFISH_MEMBER.")
+        if (!found) throw PatchException("The official ${build.name} archive has no ${build.member}.")
         val unpacked = hex(engineDigest.digest())
-        if (unpacked != STOCKFISH_SHA256) {
-            throw PatchException("Stockfish 19 from the archive does not match its SHA-256 ($unpacked instead of $STOCKFISH_SHA256).")
+        if (unpacked != build.engineSha256) {
+            throw PatchException("${build.name} from the archive does not match its SHA-256 ($unpacked instead of ${build.engineSha256}).")
         }
         if (!partial.renameTo(engine)) partial.copyTo(engine, overwrite = true)
     } finally {
@@ -322,8 +412,10 @@ private fun unpack(archive: File, engine: File) {
 
 /**
  * The archive's connection, starting at [from] bytes. A mirror or GitHub may answer with a redirect
- * to its download server; it is followed here rather than by the connection, so a failure can say
- * which of the two didn't answer, and the Range request is sent to the download server it leads to.
+ * to its download server; it is followed here rather than by the connection, so the Range request is
+ * sent to the download server it leads to and a redirect to plain http is refused. A failure keeps
+ * the source's own name in the caller's list, so the message says which source failed, not the
+ * server it was redirected to.
  */
 private fun open(from: Long, source: String): Download {
     var url = URL(source)
@@ -337,7 +429,7 @@ private fun open(from: Long, source: String): Download {
             connection.responseCode
         } catch (e: IOException) {
             connection.disconnect()
-            throw Unanswered(url.host, e)
+            throw e
         }
         if (code == HttpURLConnection.HTTP_OK) return Download(connection, 0L)
         // The server took the Range request: it is sending the rest of the archive.
@@ -354,34 +446,37 @@ private fun open(from: Long, source: String): Download {
 /** A connection and where in the archive it starts: 0 when the server ignored the Range request. */
 private class Download(val connection: HttpURLConnection, val offset: Long)
 
-/** A server that couldn't be reached. */
-private class Unanswered(val host: String, cause: IOException) : IOException(cause.message, cause)
-
 /** "SocketTimeoutException: Connect timed out": an exception's message alone can be just a host. */
-private fun describe(e: IOException): String {
-    val cause = if (e is Unanswered) e.cause ?: e else e
-    return "${cause.javaClass.simpleName}: ${cause.message}"
-}
+private fun describe(e: IOException): String = "${e.javaClass.simpleName}: ${e.message}"
 
 /**
- * What the log and the manager show when no source answered. A phone whose DNS can't find github.com
- * still has a browser that can, so the message points at the archive option before it gives up.
+ * What the log and the manager show when no source answered: every source with the error it gave, so
+ * a name the phone's DNS doesn't find can be told from a proxy that answered with an error. A phone
+ * whose DNS blocks github.com still has a browser that can reach it, so the message points at the
+ * archive option before it gives up.
  */
-private fun failure(e: IOException?): String {
-    val start = "Couldn't download Stockfish 19 (github.com and ${STOCKFISH_MIRRORS.size} mirrors, " +
+private fun failure(failures: Map<String, IOException>, build: Build): String {
+    val start = "Couldn't download ${build.name} (github.com and ${STOCKFISH_MIRRORS.size} mirrors, " +
         "${RETRY_PAUSES_MS.size + 1} rounds)"
-    val picked = "A browser often downloads the file even when the patcher can't, with Private DNS, an " +
-        "ad blocker's DNS or a VPN in the way: open $STOCKFISH_URL there, save the .tar.gz, and pick it " +
-        "in \"Stockfish 19 archive\" (Simple mode: Settings > Patch options; Expert mode: the patch's " +
-        "own options when choosing patches)."
-    val end = "Then patch again, or leave out Stockfish analysis."
-    return when (val host = (e as? Unanswered)?.host) {
-        null -> "$start: ${e?.let(::describe) ?: "no source answered"}. Check the internet connection. $end"
-        GITHUB -> "$start: github.com didn't answer (${describe(e)}), so the phone's DNS could not find " +
-            "it. $picked Turning on a VPN or turning Private DNS off may also help. $end"
-        else -> "$start: $host didn't answer (${describe(e)}). Something on this device or network is " +
-            "likely blocking that server, such as a VPN, a DNS or ad blocker or a firewall. $picked $end"
+    val each = failures.entries.joinToString("; ") { "${it.key}: ${describe(it.value)}" }
+    val unknown = failures.values.filterIsInstance<UnknownHostException>()
+    val why = when {
+        failures.isNotEmpty() && unknown.size == failures.size ->
+            "None of those names could be found in DNS, so something on this phone or network is " +
+                "filtering DNS: Private DNS, an ad blocker's DNS or a VPN."
+        unknown.isNotEmpty() ->
+            "Some of those names could not be found in DNS and the rest did not answer; something on " +
+                "this device or network is likely blocking them, such as a VPN, a DNS or ad blocker or a firewall."
+        else ->
+            "Something on this device or network is likely blocking those servers, such as a VPN, " +
+                "a DNS or ad blocker or a firewall."
     }
+    val details = if (each.isEmpty()) "" else " Each source said: $each."
+    val picked = "A browser often downloads the file even when the patcher can't: open ${build.url} " +
+        "there, save the .tar.gz, and pick it in \"Stockfish 19 archive\" (Simple mode: Settings > Patch " +
+        "options; Expert mode: the patch's own options when choosing patches)."
+    val end = "Then patch again, or leave out Stockfish analysis."
+    return "$start.$details $why $picked $end"
 }
 
 private const val BUFFER = 64 * 1024
@@ -513,7 +608,7 @@ private class Tar(private val input: InputStream) {
 @Suppress("unused")
 val stockfishPatch = bytecodePatch(
     name = "Stockfish analysis",
-    description = "Stockfish 19 on your phone, offline (arm64): best-move arrows on finished games, the " +
+    description = "Stockfish 19 on your phone, offline (64-bit and 32-bit ARM): best-move arrows on finished games, the " +
         "analysis boards, the game explorer and Game Review (in a Lichess review, on the moves Lichess " +
         "didn't mark), and an eval bar where chess.com has none of its own. It never shows while a game " +
         "is being played or in puzzles. Patching downloads the official Stockfish 19 (80 MB) from " +
@@ -528,10 +623,22 @@ val stockfishPatch = bytecodePatch(
         key = "stockfishArchive",
         default = "",
         title = "Stockfish 19 archive",
-        description = "Optional: a stockfish-android-arm64-universal.tar.gz downloaded earlier, used instead " +
-            "of the download. The file is checked against Stockfish's published SHA-256.",
+        description = "Optional: a stockfish-android-arm64-universal.tar.gz or " +
+            "stockfish-android-armv7-neon.tar.gz downloaded earlier, used instead of the download. The " +
+            "file is checked against Stockfish's published SHA-256.",
         required = false,
         allowedExtensions = listOf("tar.gz", "gz", "tgz"),
+    )
+
+    // A 32-bit phone's Android runs neither the 64-bit engine nor a library from another ABI's folder.
+    // Patching on the phone itself is told which it is by the platform; on a computer this option does.
+    stockfish32Bit = booleanOption(
+        key = "stockfish32Bit",
+        default = false,
+        title = "32-bit engine",
+        description = "Use Stockfish's 32-bit ARM build (armeabi-v7a) instead of the 64-bit one. Needed " +
+            "only when patching on a computer for a phone whose Android is 32-bit: patching on the phone " +
+            "picks the right engine itself.",
     )
 
     dependsOn(settingsPatch, stockfishResourcePatch)

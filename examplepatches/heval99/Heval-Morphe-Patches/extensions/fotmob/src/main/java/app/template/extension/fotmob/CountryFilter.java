@@ -13,7 +13,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.Vector;
 import java.util.concurrent.ConcurrentHashMap;
 
 import app.template.extension.hevalcontrols.AppContext;
@@ -128,9 +127,9 @@ public final class CountryFilter {
         if (leagueMatches == null) return null;
         Object league = field(LEAGUE_MATCHES, "league").get(leagueMatches);
         if (league == null) return leagueMatches;
-        String code = (String) field(LEAGUE, "CountryCode").get(league);
-        int id = field(LEAGUE, "Id").getInt(league);
-        int parentId = field(LEAGUE, "ParentId").getInt(league);
+        String code = (String) field(LEAGUE, "rawCountryCode").get(league);
+        int id = field(LEAGUE, "id").getInt(league);
+        int parentId = field(LEAGUE, "parentId").getInt(league);
         CountryData.learn(id, code);
         CompetitionFilter.learnParent(id, parentId);
         boolean drop = CompetitionFilter.isHidden(competitions, id, parentId) || isHidden(app, hidden, code, id, parentId);
@@ -148,11 +147,10 @@ public final class CountryFilter {
         }
         if (kept.isEmpty()) return null;
         if (kept.size() == all.length) return leagueMatches;
-        Object copy = constructor(LEAGUE_MATCHES, Collator.class).newInstance(Collator.getInstance());
-        field(LEAGUE_MATCHES, "league").set(copy, league);
-        field(LEAGUE_MATCHES, "sortPriority").setInt(copy, field(LEAGUE_MATCHES, "sortPriority").getInt(leagueMatches));
-        field(LEAGUE_MATCHES, "Matches").set(copy, new Vector<>(kept));
-        return copy;
+        // 242 made LeagueMatches a Kotlin class with final fields: (Collator, League, List, int sortPriority).
+        return constructor(LEAGUE_MATCHES, Collator.class, league.getClass(), List.class, int.class)
+                .newInstance(Collator.getInstance(), league, new ArrayList<>(kept),
+                        field(LEAGUE_MATCHES, "sortPriority").getInt(leagueMatches));
     }
 
     private static int teamId(Object team) throws Exception {
@@ -181,21 +179,21 @@ public final class CountryFilter {
             Map<String, String> seenCompetitions = new HashMap<>(all.length * 2);
             for (Object league : all) {
                 if (league == null) continue;
-                String code = (String) field(LEAGUE, "CountryCode").get(league);
+                String code = (String) field(LEAGUE, "rawCountryCode").get(league);
                 // Staff picks are copies of leagues listed under their own country too, and carry the
                 // picks group's name, not their country's.
                 if (code == null || code.isEmpty() || isPseudoCode(code) || field(LEAGUE, "isSuggested").getBoolean(league)) continue;
-                int id = field(LEAGUE, "Id").getInt(league);
+                int id = field(LEAGUE, "id").getInt(league);
                 if (id > 0) fresh.put(id, code);
-                String countryName = (String) field(LEAGUE, "CountryName").get(league);
+                String countryName = (String) field(LEAGUE, "countryName").get(league);
                 if (!seen.containsKey(code)) {
                     String label = CountrySeeds.NAMES.get(code);
                     if (label == null) label = countryName;
                     seen.put(code, label);
                 }
-                String key = CompetitionFilter.key(id, field(LEAGUE, "ParentId").getInt(league));
+                String key = CompetitionFilter.key(id, field(LEAGUE, "parentId").getInt(league));
                 String label = CompetitionFilter.label(CompetitionFilter.countryLabel(code, countryName),
-                        (String) field(LEAGUE, "Name").get(league));
+                        (String) field(LEAGUE, "nameNoLocalization").get(league));
                 if (key != null && label != null) seenCompetitions.put(key, label);
             }
             CountryData.remember(app, fresh);
@@ -209,9 +207,9 @@ public final class CountryFilter {
             List<Object> kept = new ArrayList<>(all.length);
             for (Object league : all) {
                 if (league == null) continue;
-                String code = (String) field(LEAGUE, "CountryCode").get(league);
-                int id = field(LEAGUE, "Id").getInt(league);
-                int parentId = field(LEAGUE, "ParentId").getInt(league);
+                String code = (String) field(LEAGUE, "rawCountryCode").get(league);
+                int id = field(LEAGUE, "id").getInt(league);
+                int parentId = field(LEAGUE, "parentId").getInt(league);
                 boolean drop = CompetitionFilter.isHidden(competitions, id, parentId) || isHidden(app, hidden, code, id, parentId);
                 if (!drop || favourites.league(id, parentId)) kept.add(league);
             }
@@ -431,11 +429,13 @@ public final class CountryFilter {
         return field;
     }
 
-    private static Constructor<?> constructor(String className, Class<?> parameter) throws Exception {
-        String key = className + '#' + parameter.getName();
+    private static Constructor<?> constructor(String className, Class<?>... parameters) throws Exception {
+        StringBuilder name = new StringBuilder(className);
+        for (Class<?> parameter : parameters) name.append('#').append(parameter.getName());
+        String key = name.toString();
         Constructor<?> constructor = constructors.get(key);
         if (constructor == null) {
-            constructor = Class.forName(className, false, CountryFilter.class.getClassLoader()).getDeclaredConstructor(parameter);
+            constructor = Class.forName(className, false, CountryFilter.class.getClassLoader()).getDeclaredConstructor(parameters);
             constructor.setAccessible(true);
             constructors.put(key, constructor);
         }
