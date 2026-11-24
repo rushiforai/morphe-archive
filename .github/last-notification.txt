@@ -1,20 +1,13 @@
-# Repos reported by the last notification (19)
-Dyno0311/dyno-patches
-FarhanZafarr-9/myzong-patches
-Gagan-Pratap-S/GT-morphe-patches
-HaoDH/vbook-patche
-JoFSlash/morphe-patches
-OmarBrbutovic/merak-patches
-Pirrotto/aare-patches
-Rafaello0/RealmeLink-Plus
-diminDDL/ytm-ru-skippper
-dusk-beep/morphe-patch
-neoKushan/smortthings
-ninocss/MaterialTidal
-rikunode/chmate-ua-spoof-patches
-ryuya0124/morphe-x-video-60fps
-saigauthamr/tao-patches
-smartworldarafath/Gboard_Pro
-stivencop414-bot/Morphe-Vix-Patches
-sujaan13/spotify-scroll-lock-patches
-vortexnode/GboardSamsung
+# Repos reported by the last notification (12)
+0xJohnnyboy/morphe-patches
+EnesCevikdogan/LiquidMusic
+KyVexo/farotv-patches
+KyVexo/tiktok-lite-patches
+josselinonduty/morphe-patches
+kirihime9/morphe-patches
+nawszym/sey-morphe-patches
+quangmach/waze-minimize-search-bar
+rikunode/futatabi
+saneclacibos19/Anixart-patches
+springfurst/morphe-patches
+stivencop414-bot/PatchLab
